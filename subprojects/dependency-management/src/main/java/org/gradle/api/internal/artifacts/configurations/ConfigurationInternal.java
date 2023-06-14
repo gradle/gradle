@@ -29,7 +29,6 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public interface ConfigurationInternal extends ResolveContext, DeprecatableConfiguration, FinalizableValue, Configuration {
@@ -44,11 +43,11 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     AttributeContainerInternal getAttributes();
 
     /**
-     * Runs any registered dependency actions for this Configuration, and any parent Configuration.
+     * Runs any registered dependency actions for this Configuration.
      * Actions may mutate the dependency set for this configuration.
      * After execution, all actions are de-registered, so execution will only occur once.
      */
-    void runDependencyActions();
+    void runOwnDependencyActions();
 
     void markAsObserved(InternalState requestedState);
 

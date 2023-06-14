@@ -108,7 +108,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
                 configurationsProvider, configurationMetadataBuilder, model, calculatedValueContainerFactory);
 
-        configurationsProvider.visitAll(ConfigurationInternal::preventFromFurtherMutation);
+        configurationsProvider.visitAll(ConfigurationInternal::preventUsageMutation);
 
         return new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
     }

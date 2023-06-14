@@ -142,15 +142,18 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -314,12 +317,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
-        this.intrinsicFiles = fileCollectionFromSpec(Specs.satisfyAll());
         this.exceptionContextualizer = exceptionContextualizer;
-        this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
+
+        this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+        this.intrinsicFiles = fileCollectionFromSpec(Specs.satisfyAll());
 
         this.ownDependencies = (DefaultDomainObjectSet<Dependency>) domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);
         this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -524,17 +528,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void runDependencyActions() {
+    public void runOwnDependencyActions() {
         defaultDependencyActions.execute(dependencies);
         withDependencyActions.execute(dependencies);
 
         // Discard actions after execution
         defaultDependencyActions = ImmutableActionSet.empty();
         withDependencyActions = ImmutableActionSet.empty();
+    }
 
-        for (Configuration superConfig : extendsFrom) {
-            ((ConfigurationInternal) superConfig).runDependencyActions();
-        }
+    /**
+     * Runs dependency actions for this configuration and all parents.
+     */
+    private void runAllDependencyActions() {
+        runOwnDependencyActions();
+        runActionInParentConfigurations(this, ConfigurationInternal::runOwnDependencyActions);
     }
 
     @Deprecated
@@ -710,11 +718,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return buildOperationExecutor.call(new CallableBuildOperation<ResolveState>() {
             @Override
             public ResolveState call(BuildOperationContext context) {
-                runDependencyActions();
+                performPreResolveActions();
                 preventFromFurtherMutation();
 
-                ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
-                performPreResolveActions(incoming);
                 ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this);
                 dependenciesModified = false;
 
@@ -728,7 +734,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 markReferencedProjectConfigurationsObserved(requestedState, results);
 
                 if (!newState.hasError()) {
-                    dependencyResolutionListeners.getSource().afterResolve(incoming);
+                    dependencyResolutionListeners.getSource().afterResolve(getIncoming());
 
                     // Use the current state, which may have changed if the listener queried the result
                     newState = currentResolveState.get();
@@ -835,11 +841,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return null;
     }
 
-    private void performPreResolveActions(ResolvableDependencies incoming) {
+    private void performPreResolveActions() {
         DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
         insideBeforeResolve = true;
         try {
-            dependencyResolutionListener.beforeResolve(incoming);
+            dependencyResolutionListener.beforeResolve(getIncoming());
         } finally {
             insideBeforeResolve = false;
         }
@@ -909,6 +915,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ResolveState currentState = currentResolveState.update(initial -> {
             if (initial.state == UNRESOLVED) {
                 // Traverse graph
+                preventFromFurtherMutation();
                 ResolverResults results = resolver.resolveBuildDependencies(DefaultConfiguration.this);
                 markReferencedProjectConfigurationsObserved(BUILD_DEPENDENCIES_RESOLVED, results);
                 return new BuildDependenciesResolved(results);
@@ -1148,23 +1155,52 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void preventFromFurtherMutation() {
-        // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (!canBeMutated) {
             return;
         }
 
-        outgoing.preventFromFurtherMutation();
-        canBeMutated = false;
-        preventUsageMutation();
+        // Run any mutating actions
+        runOwnDependencyActions();
 
-        logIfImproperConfiguration();
-
-        // Freeze attributes
+        // Freeze own attributes
         configurationAttributes.freeze();
         if (mustHaveUniqueAttributes(this)) {
             List<String> collisions = getCollisions(configurationsProvider);
             if (!collisions.isEmpty()) {
                 throw formatCollisionFailure(collisions, false);
+            }
+        }
+
+        // Freeze parent state
+        runActionInParentConfigurations(this, ConfigurationInternal::preventFromFurtherMutation);
+
+        // Freeze own state
+        outgoing.preventFromFurtherMutation();
+        canBeMutated = false;
+        preventUsageMutation();
+
+        logIfImproperConfiguration();
+    }
+
+    /**
+     * Runs the provided action for all configurations that {@code conf} extends from.
+     *
+     * <p>Specifically handles the case where {@link Configuration#extendsFrom} is called during the
+     * action execution.</p>
+     */
+    private static void runActionInParentConfigurations(ConfigurationInternal conf, Action<ConfigurationInternal> action) {
+        Set<Configuration> seen = new HashSet<>();
+        Queue<Configuration> remaining = new ArrayDeque<>(conf.getExtendsFrom());
+        seen.add(conf);
+
+        while (!remaining.isEmpty()) {
+            Configuration current = remaining.remove();
+            action.execute((ConfigurationInternal) current);
+
+            for (Configuration parent : current.getExtendsFrom()) {
+                if (seen.add(parent)) {
+                    remaining.add(parent);
+                }
             }
         }
     }
@@ -1182,7 +1218,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         return otherConfigurations.getAll().stream()
             .filter(c -> c != this && mustHaveUniqueAttributes(c))
-            .filter(c -> !c.isCanBeMutated())
             .filter(isDuplicate)
             .map(ResolveContext::getDisplayName)
             .collect(Collectors.toList());
@@ -1204,10 +1239,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     /**
-     * Consumable, non-default configurations with attributes must have unique attributes.
+     * Consumable, non-resolvable, non-default configurations with attributes must have unique attributes.
      */
     private static boolean mustHaveUniqueAttributes(Configuration configuration) {
         return configuration.isCanBeConsumed() &&
+            !configuration.isCanBeResolved() &&
             !Dependency.DEFAULT_CONFIGURATION.equals(configuration.getName()) &&
             !configuration.getAttributes().isEmpty();
     }
@@ -1216,7 +1252,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (conf.getOutgoing().getCapabilities().isEmpty()) {
             Project project = domainObjectContext.getProject();
             if (project == null) {
-                throw new IllegalStateException("Project is null for configuration '" + conf.getName() + "'.");
+                return ImmutableSet.of();
             }
             return ImmutableSet.of(new ProjectDerivedCapability(project));
         } else {
@@ -1454,6 +1490,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         childMutationValidators.remove(validator);
     }
 
+    /**
+     * Called when a parent configuration is mutated.
+     */
     private void validateParentMutation(MutationType type) {
         // Strategy changes in a parent configuration do not affect this configuration, or any of its children, in any way
         if (type == MutationType.STRATEGY) {
@@ -1463,6 +1502,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         preventIllegalParentMutation(type);
         markAsModified(type);
         notifyChildren(type);
+        maybePreventMutation(type + " of parent");
     }
 
     @Override
@@ -1470,6 +1510,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         preventIllegalMutation(type);
         markAsModified(type);
         notifyChildren(type);
+        maybePreventMutation(type.toString());
+    }
+
+    private void maybePreventMutation(String type) {
+        if (insideBeforeResolve) {
+            DeprecationLogger.deprecate(String.format("Mutating the %s of " + this + " inside a beforeResolve hook", type))
+                .withAdvice("The beforeResolve hook should not mutate the configuration.")
+                .willBecomeAnErrorInGradle9()
+                .undocumented() // TODO: Document
+                .nagUser();
+        } else if (!canBeMutated) {
+            DeprecationLogger.deprecate(String.format("Mutating the %s of " + this + " after it has been locked for mutation", type))
+                .withAdvice("After a Configuration has been resolved, observed via dependency-management, or published, it should not be modified further.")
+                .willBecomeAnErrorInGradle9()
+                .undocumented() // TODO: Document
+                .nagUser();
+        }
     }
 
     private void preventIllegalParentMutation(MutationType type) {
@@ -2121,13 +2178,13 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         public DependencySet getDependencies() {
-            runDependencyActions();
+            runAllDependencyActions();
             return getAllDependencies();
         }
 
         @Override
         public DependencyConstraintSet getDependencyConstraints() {
-            runDependencyActions();
+            runAllDependencyActions();
             return getAllDependencyConstraints();
         }
 

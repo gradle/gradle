@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -51,11 +50,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
 
 /**
  * Encapsulates all logic required to build a {@link LocalConfigurationMetadata} from a
@@ -83,6 +78,9 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
+        // After we build a Configuration's metadata, its state should not change.
+        configuration.preventFromFurtherMutation();
+
         ComponentIdentifier componentId = parent.getId();
         ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configuration.getName());
 
@@ -105,9 +103,6 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
                 variantsBuilder.add(new LocalVariantMetadata(configuration.getName() + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), componentId, displayName, attributes, artifacts, ImmutableCapabilities.of(capabilities), model, calculatedValueContainerFactory));
             }
         });
-
-        // We must call this before collecting dependency state, since dependency actions may modify the hierarchy.
-        runDependencyActionsInHierarchy(configuration);
 
         // Collect all dependencies and excludes in hierarchy.
         ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
@@ -135,30 +130,6 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             calculatedValueContainerFactory,
             parent
         );
-    }
-
-    /**
-     * Runs the dependency actions for all configurations in {@code conf}'s hierarchy.
-     *
-     * <p>Specifically handles the case where {@link Configuration#extendsFrom} is called during the
-     * dependency action execution.</p>
-     */
-    private static void runDependencyActionsInHierarchy(ConfigurationInternal conf) {
-        Set<Configuration> seen = new HashSet<>();
-        Queue<Configuration> remaining = new ArrayDeque<>();
-        remaining.add(conf);
-        seen.add(conf);
-
-        while (!remaining.isEmpty()) {
-            Configuration current = remaining.remove();
-            ((ConfigurationInternal) current).runDependencyActions();
-
-            for (Configuration parent : current.getExtendsFrom()) {
-                if (seen.add(parent)) {
-                    remaining.add(parent);
-                }
-            }
-        }
     }
 
     /**

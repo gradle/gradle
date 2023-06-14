@@ -66,6 +66,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     @Override
     public Set<? extends UsageContext> getUsages() {
+        finalized = true;
         ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
         for (ConfigurationVariantMapping variant : variants.values()) {
             variant.collectVariants(builder);
@@ -75,11 +76,6 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     protected boolean isRegisteredAsLegacyVariant(Configuration outgoingConfiguration) {
         return variants.containsKey(outgoingConfiguration);
-    }
-
-    @Override
-    public void finalizeValue() {
-        finalized = true;
     }
 
     protected void checkNotFinalized() {

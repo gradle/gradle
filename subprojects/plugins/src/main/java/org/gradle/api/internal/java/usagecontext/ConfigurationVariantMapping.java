@@ -58,6 +58,7 @@ public class ConfigurationVariantMapping {
     }
 
     public void collectVariants(final ImmutableCollection.Builder<UsageContext> outgoing) {
+        outgoingConfiguration.preventFromFurtherMutation();
         if (!outgoingConfiguration.isTransitive()) {
             DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
                 .withUserManual("publishing_ivy", "configurations_marked_as_non_transitive")
@@ -126,8 +127,7 @@ public class ConfigurationVariantMapping {
 
         @Override
         public AttributeContainer getAttributes() {
-            outgoingConfiguration.preventFromFurtherMutation();
-            return outgoingConfiguration.getAttributes();
+            return outgoingConfiguration.getAttributes().asImmutable();
         }
     }
 
