@@ -86,7 +86,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint =
+    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint? =
         constraints.add(name, dependencyConstraintNotation, configuration)
 
     /**
@@ -96,7 +96,7 @@ private constructor(
      * @return The dependency constraint.
      * @see [DependencyConstraintHandler.add]
      */
-    operator fun Configuration.invoke(dependencyConstraintNotation: Any): DependencyConstraint =
+    operator fun Configuration.invoke(dependencyConstraintNotation: Any): DependencyConstraint? =
         add(name, dependencyConstraintNotation)
 
     /**
