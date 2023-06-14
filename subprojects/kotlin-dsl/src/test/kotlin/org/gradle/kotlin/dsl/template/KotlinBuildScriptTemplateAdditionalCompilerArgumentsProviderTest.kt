@@ -7,9 +7,11 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.File
 
+
 class KotlinBuildScriptTemplateAdditionalCompilerArgumentsProviderTest : TestWithTempFiles() {
 
-    private val argumentProvider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(emptyList())
+    private
+    val argumentProvider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(emptyList())
 
     @Test
     fun `kotlin assignment is ENABLED when environment is null`() {
