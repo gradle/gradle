@@ -77,7 +77,7 @@ public class EclipseDependenciesCreator {
     public List<AbstractClasspathEntry> createDependencyEntries() {
         EclipseDependenciesVisitor visitor = new EclipseDependenciesVisitor(classpath.getProject());
         Set<Configuration> testConfigurations = classpath.getTestConfigurations().getOrElse(Collections.emptySet());
-        new IdeDependencySet(classpath.getProject().getDependencies(), ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), inferModulePath, gradleApiSourcesResolver, testConfigurations).visit(visitor);
+        new IdeDependencySet(classpath.getProject().getObjects(), ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), inferModulePath, gradleApiSourcesResolver, testConfigurations).visit(visitor);
         return visitor.getDependencies();
     }
 

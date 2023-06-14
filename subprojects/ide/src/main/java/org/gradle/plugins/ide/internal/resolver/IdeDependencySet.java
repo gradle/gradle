@@ -15,41 +15,29 @@
  */
 package org.gradle.plugins.ide.internal.resolver;
 
-import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
-import com.google.common.collect.Table;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactCollection;
-import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.result.ArtifactResolutionResult;
-import org.gradle.api.artifacts.result.ArtifactResult;
-import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.component.Artifact;
+import org.gradle.api.attributes.DocsType;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.jvm.JvmLibrary;
-import org.gradle.language.base.artifact.SourcesArtifact;
-import org.gradle.language.java.artifact.JavadocArtifact;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,7 +50,7 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
  * Allows adding and subtracting {@link Configuration}s, working in offline mode and downloading sources/javadoc.
  */
 public class IdeDependencySet {
-    private final DependencyHandler dependencyHandler;
+    private final ObjectFactory objectFactory;
     private final JavaModuleDetector javaModuleDetector;
     private final Collection<Configuration> plusConfigurations;
     private final Collection<Configuration> minusConfigurations;
@@ -70,12 +58,12 @@ public class IdeDependencySet {
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
     private final Collection<Configuration> testConfigurations;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
-        this(dependencyHandler, javaModuleDetector, plusConfigurations, minusConfigurations, inferModulePath, gradleApiSourcesResolver, Collections.emptySet());
+    public IdeDependencySet(ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
+        this(objectFactory, javaModuleDetector, plusConfigurations, minusConfigurations, inferModulePath, gradleApiSourcesResolver, Collections.emptySet());
     }
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver, Collection<Configuration> testConfigurations) {
-        this.dependencyHandler = dependencyHandler;
+    public IdeDependencySet(ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver, Collection<Configuration> testConfigurations) {
+        this.objectFactory = objectFactory;
         this.javaModuleDetector = javaModuleDetector;
         this.plusConfigurations = plusConfigurations;
         this.minusConfigurations = minusConfigurations;
@@ -103,126 +91,116 @@ public class IdeDependencySet {
         private final Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = Maps.newLinkedHashMap();
         private final SetMultimap<ComponentArtifactIdentifier, Configuration> configurations = MultimapBuilder.hashKeys().linkedHashSetValues().build();
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
-        private final Table<ModuleComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> auxiliaryArtifacts = HashBasedTable.create();
+        private final SetMultimap<ComponentArtifactIdentifier, ResolvedArtifactResult> sources = MultimapBuilder.hashKeys().linkedHashSetValues().build();
+        private final SetMultimap<ComponentArtifactIdentifier, ResolvedArtifactResult> javadoc = MultimapBuilder.hashKeys().linkedHashSetValues().build();
 
         public void visit(IdeDependencyVisitor visitor) {
             resolvePlusConfigurations(visitor);
             resolveMinusConfigurations(visitor);
-            resolveAuxiliaryArtifacts(visitor);
             visitArtifacts(visitor);
             visitUnresolvedDependencies(visitor);
         }
 
         private void resolvePlusConfigurations(IdeDependencyVisitor visitor) {
             for (Configuration configuration : plusConfigurations) {
-                ArtifactCollection artifacts = getResolvedArtifacts(configuration, visitor);
+                ArtifactCollection artifacts = getResolvedArtifacts(configuration, visitor.isOffline());
                 for (ResolvedArtifactResult resolvedArtifact : artifacts) {
                     resolvedArtifacts.put(resolvedArtifact.getId(), resolvedArtifact);
                     configurations.put(resolvedArtifact.getId(), configuration);
                 }
-                if (artifacts.getFailures().isEmpty()) {
-                    continue;
+
+                if (!visitor.isOffline() && !artifacts.getFailures().isEmpty()) {
+                    for (UnresolvedDependencyResult unresolvedDependency : getUnresolvedDependencies(configuration)) {
+                        unresolvedDependencies.put(unresolvedDependency.getAttempted(), unresolvedDependency);
+                    }
                 }
-                for (UnresolvedDependencyResult unresolvedDependency : getUnresolvedDependencies(configuration, visitor)) {
-                    unresolvedDependencies.put(unresolvedDependency.getAttempted(), unresolvedDependency);
+
+                if (!visitor.isOffline() && visitor.downloadSources()) {
+                    for (ResolvedArtifactResult sourcesArtifact : getSources(configuration)) {
+                        sources.put(sourcesArtifact.getId(), sourcesArtifact);
+                    }
+                }
+
+                if (!visitor.isOffline() && visitor.downloadJavaDoc()) {
+                    for (ResolvedArtifactResult javadocArtifact : getJavadoc(configuration)) {
+                        javadoc.put(javadocArtifact.getId(), javadocArtifact);
+                    }
                 }
             }
         }
 
         private void resolveMinusConfigurations(IdeDependencyVisitor visitor) {
             for (Configuration configuration : minusConfigurations) {
-                ArtifactCollection artifacts = getResolvedArtifacts(configuration, visitor);
+                ArtifactCollection artifacts = getResolvedArtifacts(configuration, visitor.isOffline());
                 for (ResolvedArtifactResult resolvedArtifact : artifacts) {
                     resolvedArtifacts.remove(resolvedArtifact.getId());
                     configurations.removeAll(resolvedArtifact.getId());
                 }
-                if (artifacts.getFailures().isEmpty()) {
-                    continue;
+
+                if (!visitor.isOffline() && !artifacts.getFailures().isEmpty()) {
+                    for (UnresolvedDependencyResult unresolvedDependency : getUnresolvedDependencies(configuration)) {
+                        unresolvedDependencies.remove(unresolvedDependency.getAttempted());
+                    }
                 }
-                for (UnresolvedDependencyResult unresolvedDependency : getUnresolvedDependencies(configuration, visitor)) {
-                    unresolvedDependencies.remove(unresolvedDependency.getAttempted());
+
+                if (!visitor.isOffline() && visitor.downloadSources()) {
+                    for (ResolvedArtifactResult sourcesArtifact : getSources(configuration)) {
+                        sources.removeAll(sourcesArtifact.getId());
+                    }
+                }
+
+                if (!visitor.isOffline() && visitor.downloadJavaDoc()) {
+                    for (ResolvedArtifactResult javadocArtifact : getJavadoc(configuration)) {
+                        javadoc.removeAll(javadocArtifact.getId());
+                    }
                 }
             }
         }
 
-        private ArtifactCollection getResolvedArtifacts(Configuration configuration, final IdeDependencyVisitor visitor) {
-            return configuration.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
-                @Override
-                public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
-                    viewConfiguration.lenient(true);
-                    viewConfiguration.componentFilter(getComponentFilter(visitor));
-                }
+        private ArtifactCollection getResolvedArtifacts(Configuration configuration, boolean isOffline) {
+            return configuration.getIncoming().artifactView(view -> {
+                view.lenient(true);
+                view.componentFilter(getComponentFilter(isOffline));
             }).getArtifacts();
         }
 
-        private Spec<ComponentIdentifier> getComponentFilter(IdeDependencyVisitor visitor) {
-            return visitor.isOffline() ? NOT_A_MODULE : Specs.<ComponentIdentifier>satisfyAll();
+        private Spec<ComponentIdentifier> getComponentFilter(boolean isOffline) {
+            if (isOffline) {
+                return id -> !(id instanceof ModuleComponentIdentifier);
+            } else {
+                return Specs.satisfyAll();
+            }
         }
 
-        private Iterable<UnresolvedDependencyResult> getUnresolvedDependencies(Configuration configuration, IdeDependencyVisitor visitor) {
-            if (visitor.isOffline()) {
-                return Collections.emptySet();
-            }
+        private ArtifactCollection getSources(Configuration configuration) {
+            return configuration.getIncoming().artifactView(view -> {
+                view.lenient(true);
+                view.withVariantReselection();
+                view.attributes(attrs -> {
+                    attrs.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, DocsType.SOURCES));
+                });
+            }).getArtifacts();
+        }
+
+        private ArtifactCollection getJavadoc(Configuration configuration) {
+            return configuration.getIncoming().artifactView(view -> {
+                view.lenient(true);
+                view.withVariantReselection();
+                view.attributes(attrs -> {
+                    attrs.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, DocsType.JAVADOC));
+                });
+            }).getArtifacts();
+        }
+
+        private Iterable<UnresolvedDependencyResult> getUnresolvedDependencies(Configuration configuration) {
             return Iterables.filter(configuration.getIncoming().getResolutionResult().getRoot().getDependencies(), UnresolvedDependencyResult.class);
         }
 
-        private void resolveAuxiliaryArtifacts(IdeDependencyVisitor visitor) {
-            if (visitor.isOffline()) {
-                return;
-            }
-
-            Set<ModuleComponentIdentifier> componentIdentifiers = getModuleComponentIdentifiers();
-            if (componentIdentifiers.isEmpty()) {
-                return;
-            }
-
-            List<Class<? extends Artifact>> types = getAuxiliaryArtifactTypes(visitor);
-            if (types.isEmpty()) {
-                return;
-            }
-
-            ArtifactResolutionResult result = dependencyHandler.createArtifactResolutionQuery()
-                .forComponents(componentIdentifiers)
-                .withArtifacts(JvmLibrary.class, types)
-                .execute();
-
-            for (ComponentArtifactsResult artifactsResult : result.getResolvedComponents()) {
-                for (Class<? extends Artifact> type : types) {
-                    Set<ResolvedArtifactResult> resolvedArtifactResults = Sets.newLinkedHashSet();
-
-                    for (ArtifactResult artifactResult : artifactsResult.getArtifacts(type)) {
-                        if (artifactResult instanceof ResolvedArtifactResult) {
-                            resolvedArtifactResults.add((ResolvedArtifactResult) artifactResult);
-                        }
-                    }
-                    auxiliaryArtifacts.put((ModuleComponentIdentifier) artifactsResult.getId(), type, resolvedArtifactResults);
-                }
-            }
-        }
-
-        private Set<ModuleComponentIdentifier> getModuleComponentIdentifiers() {
-            Set<ModuleComponentIdentifier> componentIdentifiers = Sets.newLinkedHashSet();
-            for (ComponentArtifactIdentifier identifier : resolvedArtifacts.keySet()) {
-                ComponentIdentifier componentIdentifier = identifier.getComponentIdentifier();
-                if (componentIdentifier instanceof ModuleComponentIdentifier) {
-                    componentIdentifiers.add((ModuleComponentIdentifier) componentIdentifier);
-                }
-            }
-            return componentIdentifiers;
-        }
-
-        private List<Class<? extends Artifact>> getAuxiliaryArtifactTypes(IdeDependencyVisitor visitor) {
-            List<Class<? extends Artifact>> types = Lists.newArrayListWithCapacity(2);
-            if (visitor.downloadSources()) {
-                types.add(SourcesArtifact.class);
-            }
-            if (visitor.downloadJavaDoc()) {
-                types.add(JavadocArtifact.class);
-            }
-            return types;
-        }
-
         private void visitArtifacts(IdeDependencyVisitor visitor) {
+
+            SetMultimap<ComponentIdentifier, ResolvedArtifactResult> sourcesByComponent = sortByComponent(sources);
+            SetMultimap<ComponentIdentifier, ResolvedArtifactResult> javadocByComponent = sortByComponent(javadoc);
+
             for (ResolvedArtifactResult artifact : resolvedArtifacts.values()) {
                 ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
                 boolean testOnly = isTestConfiguration(configurations.get(artifact.getId()));
@@ -231,11 +209,9 @@ public class IdeDependencySet {
                     visitor.visitProjectDependency(artifact, testOnly, asModule);
                 } else {
                     if (componentIdentifier instanceof ModuleComponentIdentifier) {
-                        Set<ResolvedArtifactResult> sources = auxiliaryArtifacts.get(componentIdentifier, SourcesArtifact.class);
-                        sources = sources != null ? sources : Collections.emptySet();
-                        Set<ResolvedArtifactResult> javaDoc = auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
-                        javaDoc = javaDoc != null ? javaDoc : Collections.emptySet();
-                        visitor.visitModuleDependency(artifact, sources, javaDoc, testOnly, asModule);
+                        Set<ResolvedArtifactResult> sources = sourcesByComponent.get(componentIdentifier);
+                        Set<ResolvedArtifactResult> javadoc = javadocByComponent.get(componentIdentifier);
+                        visitor.visitModuleDependency(artifact, sources, javadoc, testOnly, asModule);
                     } else if (isLocalGroovyDependency(artifact)) {
                         File localGroovySources = shouldDownloadSources(visitor) ? gradleApiSourcesResolver.resolveLocalGroovySources(artifact.getFile().getName()) : null;
                         visitor.visitGradleApiDependency(artifact, localGroovySources, testOnly);
@@ -244,6 +220,16 @@ public class IdeDependencySet {
                     }
                 }
             }
+        }
+
+        private SetMultimap<ComponentIdentifier, ResolvedArtifactResult> sortByComponent(
+            SetMultimap<ComponentArtifactIdentifier, ResolvedArtifactResult> artifacts
+        ) {
+            ImmutableSetMultimap.Builder<ComponentIdentifier, ResolvedArtifactResult> result = ImmutableSetMultimap.builder();
+            for (Map.Entry<ComponentArtifactIdentifier, ResolvedArtifactResult> entry : artifacts.entries()) {
+                result.put(entry.getKey().getComponentIdentifier(), entry.getValue());
+            }
+            return result.build();
         }
 
         private boolean isModule(boolean testOnly, File artifact) {
@@ -278,12 +264,5 @@ public class IdeDependencySet {
             }
         }
     }
-
-    private static final Spec<ComponentIdentifier> NOT_A_MODULE = new Spec<ComponentIdentifier>() {
-        @Override
-        public boolean isSatisfiedBy(ComponentIdentifier id) {
-            return !(id instanceof ModuleComponentIdentifier);
-        }
-    };
 
 }
