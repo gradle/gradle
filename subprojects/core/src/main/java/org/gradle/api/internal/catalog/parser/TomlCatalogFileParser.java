@@ -34,6 +34,7 @@ import org.tomlj.TomlParseError;
 import org.tomlj.TomlParseResult;
 import org.tomlj.TomlTable;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -106,7 +107,7 @@ public class TomlCatalogFileParser {
             TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
             Sets.SetView<String> unknownTle = Sets.difference(result.keySet(), TOP_LEVEL_ELEMENTS);
             if (!unknownTle.isEmpty()) {
-                throw throwVersionCatalogProblem(Problems.createError(VERSION_CATALOG, "Problem: In version catalog libs, unknown top level elements " + unknownTle)
+                throw throwVersionCatalogProblem(Problems.createError(VERSION_CATALOG, getProblemInVersionCatalog(builder) + ", unknown top level elements " + unknownTle)
                     .description("TOML file contains an unexpected top-level element")
                     .solution("Make sure the top-level elements of your TOML file is one of " + oxfordListOf(TOP_LEVEL_ELEMENTS, "or"))
                     .documentedAt(VERSION_CATALOG_PROBLEMS, TOML_SYNTAX_ERROR.name().toLowerCase())
@@ -124,12 +125,12 @@ public class TomlCatalogFileParser {
         if (result.hasErrors()) {
             List<TomlParseError> errors = result.errors();
             throw throwVersionCatalogProblem(
-                Problems.createNew(VERSION_CATALOG, "Problem: In version catalog libs, parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".", Severity.ERROR)
-                .description(getErrorText(catalogFilePath, errors))
-                .solution("Fix the TOML file according to the syntax described at https://toml.io")
-                .documentedAt(VERSION_CATALOG_PROBLEMS, TOML_SYNTAX_ERROR.name().toLowerCase())
-                .type(TOML_SYNTAX_ERROR.name())
-                .build());
+                Problems.createNew(VERSION_CATALOG, getProblemInVersionCatalog(builder) + ", parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".", Severity.ERROR)
+                    .description(getErrorText(catalogFilePath, errors))
+                    .solution("Fix the TOML file according to the syntax described at https://toml.io")
+                    .documentedAt(VERSION_CATALOG_PROBLEMS, TOML_SYNTAX_ERROR.name().toLowerCase())
+                    .type(TOML_SYNTAX_ERROR.name())
+                    .build());
 
 //            throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
 //                spec.withShortDescription(() -> "Parsing failed with " + errors.size() + " error" + getPluralEnding(errors))
@@ -155,7 +156,7 @@ public class TomlCatalogFileParser {
         if (metadataTable != null) {
             String format = metadataTable.getString("format.version");
             if (format != null && !CURRENT_VERSION.equals(format)) {
-                throw throwVersionCatalogProblem(Problems.createNew(VERSION_CATALOG, "Problem: In version catalog libs, unsupported version catalog format " + format + ".", Severity.ERROR)
+                throw throwVersionCatalogProblem(Problems.createNew(VERSION_CATALOG, getProblemInVersionCatalog(builder) + ", unsupported version catalog format " + format + ".", Severity.ERROR)
                     .description("This version of Gradle only supports format version " + CURRENT_VERSION)
                     .solution("Try to upgrade to a newer version of Gradle which supports the catalog format version " + format + ".")
                     .documentedAt(VERSION_CATALOG_PROBLEMS, UNSUPPORTED_FORMAT_VERSION.name().toLowerCase())
@@ -170,6 +171,11 @@ public class TomlCatalogFileParser {
 //                );
             }
         }
+    }
+
+    @Nonnull
+    private static String getProblemInVersionCatalog(VersionCatalogBuilder builder) {
+        return "Problem: In version catalog " + builder.getName();
     }
 
     private static void parseLibraries(@Nullable TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
