@@ -39,8 +39,9 @@ public class DefaultProblem implements Problem {
     private final String description;
     private final List<String> solutions;
     private final Throwable cause;
+    private final String problemType;
 
-    public DefaultProblem(ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl, @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause) {
+    public DefaultProblem(ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl, @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType) {
         this.problemGroup = problemGroup;
         this.message = message;
         this.severity = severity;
@@ -49,10 +50,11 @@ public class DefaultProblem implements Problem {
         this.description = description;
         this.solutions = solutions == null ? Collections.<String>emptyList() : solutions;
         this.cause = cause;
+        this.problemType = problemType;
     }
 
     @Override
-    public ProblemGroup getProblemId() {
+    public ProblemGroup getProblemGroup() {
         return problemGroup;
     }
 
@@ -90,6 +92,11 @@ public class DefaultProblem implements Problem {
     @Override
     public Throwable getCause() {
         return cause;
+    }
+
+    @Override
+    public String getProblemType() {
+        return problemType;
     }
 
     private static boolean equals(@Nullable  Object a, @Nullable Object b) {

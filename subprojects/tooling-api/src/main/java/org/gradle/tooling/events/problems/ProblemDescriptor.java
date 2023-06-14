@@ -29,7 +29,7 @@ import java.util.List;
  */
 @Incubating
 public interface ProblemDescriptor extends OperationDescriptor {
-    String getProblemId();
+    String getProblemGroup();
 
     String getMessage();
 
@@ -51,4 +51,6 @@ public interface ProblemDescriptor extends OperationDescriptor {
 
     @Nullable
     Throwable getCause();
+
+    String getProblemType();
 }

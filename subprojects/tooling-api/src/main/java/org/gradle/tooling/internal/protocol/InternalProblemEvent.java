@@ -29,7 +29,7 @@ import java.util.List;
 @NonNullApi
 public interface InternalProblemEvent extends InternalProgressEvent {
 
-    String getProblemId();
+    String getProblemGroup();
 
     String getMessage();
 
@@ -51,4 +51,6 @@ public interface InternalProblemEvent extends InternalProgressEvent {
 
     @Nullable
     Throwable getCause();
+
+    String getProblemType();
 }
