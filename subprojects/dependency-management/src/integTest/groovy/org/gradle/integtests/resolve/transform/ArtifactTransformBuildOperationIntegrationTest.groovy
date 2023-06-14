@@ -856,8 +856,11 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             subjectName: "producer.jar (project :producer)",
         ])
 
-        checkExecuteTransformWorkOperations(executePlannedStepOps[0], 1)
-        checkExecuteTransformWorkOperations(executePlannedStepOps[1], 0) // same execution is re-used
+        def executeWorkOps1 = buildOperations.children(executePlannedStepOps[0], ExecuteWorkBuildOperationType)
+        def executeWorkOps2 = buildOperations.children(executePlannedStepOps[1], ExecuteWorkBuildOperationType)
+
+        // Order of scheduling/execution is not guaranteed between the consumer projects
+        checkExecuteTransformWorkOperations(executeWorkOps1 + executeWorkOps2, 1)
     }
 
     def "failing transform"() {
@@ -1335,17 +1338,19 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
     void checkExecuteTransformWorkOperations(BuildOperationRecord parent, int expectOperationsCount) {
         def executeWorkOps = buildOperations.children(parent, ExecuteWorkBuildOperationType)
-        assert executeWorkOps.size() == expectOperationsCount
-        executeWorkOps.every {
-            verifyAll(it) {
-                details.workType == "TRANSFORM"
-                result.skipMessage == null
-            }
-        }
+        checkExecuteTransformWorkOperations(executeWorkOps, expectOperationsCount)
     }
 
     void checkExecuteTransformWorkOperations(BuildOperationRecord parent, List<String> skipMessages) {
         def executeWorkOps = buildOperations.children(parent, ExecuteWorkBuildOperationType)
+        checkExecuteTransformWorkOperations(executeWorkOps, skipMessages)
+    }
+
+    void checkExecuteTransformWorkOperations(List<BuildOperationRecord> executeWorkOps, int expectOperationsCount) {
+        checkExecuteTransformWorkOperations(executeWorkOps, [null as String] * expectOperationsCount)
+    }
+
+    void checkExecuteTransformWorkOperations(List<BuildOperationRecord> executeWorkOps, List<String> skipMessages) {
         assert executeWorkOps.size() == skipMessages.size()
         [executeWorkOps, skipMessages].transpose().every { op, skipMessage ->
             verifyAll(op) {
