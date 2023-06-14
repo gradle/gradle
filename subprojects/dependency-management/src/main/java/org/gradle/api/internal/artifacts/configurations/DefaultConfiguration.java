@@ -1514,13 +1514,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void maybePreventMutation(String type) {
-        if (insideBeforeResolve) {
-            DeprecationLogger.deprecate(String.format("Mutating the %s of " + this + " inside a beforeResolve hook", type))
-                .withAdvice("The beforeResolve hook should not mutate the configuration.")
-                .willBecomeAnErrorInGradle9()
-                .undocumented() // TODO: Document
-                .nagUser();
-        } else if (!canBeMutated) {
+//        if (insideBeforeResolve) {
+//            DeprecationLogger.deprecate(String.format("Mutating the %s of " + this + " inside a beforeResolve hook", type))
+//                .withAdvice("The beforeResolve hook should not mutate the configuration.")
+//                .willBecomeAnErrorInGradle9()
+//                .undocumented() // TODO: Document
+//                .nagUser();
+//        } else
+        if (!insideBeforeResolve && !canBeMutated) {
             DeprecationLogger.deprecate(String.format("Mutating the %s of " + this + " after it has been locked for mutation", type))
                 .withAdvice("After a Configuration has been resolved, observed via dependency-management, or published, it should not be modified further.")
                 .willBecomeAnErrorInGradle9()
