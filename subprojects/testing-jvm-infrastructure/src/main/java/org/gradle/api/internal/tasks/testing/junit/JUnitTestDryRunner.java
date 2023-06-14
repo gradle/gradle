@@ -43,7 +43,7 @@ public class JUnitTestDryRunner extends Runner {
         while (!queue.isEmpty()) {
             Description description = queue.removeFirst();
             queue.addAll(description.getChildren());
-            if (JUnitTestEventAdapter.methodName(description) != null) {
+            if (description.isTest()) {
                 notifier.fireTestIgnored(description);
             }
         }

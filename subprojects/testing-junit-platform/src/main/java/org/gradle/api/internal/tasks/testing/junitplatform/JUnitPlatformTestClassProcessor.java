@@ -131,16 +131,15 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     private void dryRun(TestIdentifier testIdentifier, TestPlan testPlan, TestExecutionListener listener) {
-        listener.executionStarted(testIdentifier);
-
-        for (TestIdentifier child : testPlan.getChildren(testIdentifier)) {
-            dryRun(child, testPlan, listener);
-        }
-
-        if (testIdentifier.isContainer()) {
-            listener.executionFinished(testIdentifier, TestExecutionResult.successful());
-        } else {
+        if (testIdentifier.isTest()) {
             listener.executionSkipped(testIdentifier, "Gradle test execution dry run");
+        } else {
+            listener.executionStarted(testIdentifier);
+
+            for (TestIdentifier child : testPlan.getChildren(testIdentifier)) {
+                dryRun(child, testPlan, listener);
+            }
+            listener.executionFinished(testIdentifier, TestExecutionResult.successful());
         }
     }
 
