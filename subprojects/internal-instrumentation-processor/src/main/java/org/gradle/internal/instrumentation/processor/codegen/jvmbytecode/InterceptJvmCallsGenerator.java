@@ -34,7 +34,7 @@ import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures.FailureInfo;
+import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.model.internal.asm.MethodVisitorScope;

@@ -26,7 +26,7 @@ import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures.FailureInfo;
+import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 import org.gradle.util.internal.TextUtil;
@@ -58,7 +58,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         String className,
         Collection<CallInterceptionRequest> requestsClassGroup,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super FailureInfo> onFailure
+        Consumer<? super HasFailures.FailureInfo> onFailure
     ) {
         List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup);
         MethodSpec getInterceptors = generateGetInterceptorsMethod(interceptorTypeSpecs);

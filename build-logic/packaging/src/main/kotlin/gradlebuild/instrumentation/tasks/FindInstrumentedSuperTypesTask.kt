@@ -30,6 +30,7 @@ import java.util.ArrayDeque
 import java.util.Properties
 import java.util.Queue
 
+
 @CacheableTask
 abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
 
@@ -56,7 +57,8 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
         }
     }
 
-    private fun mergeSuperTypes(): Map<String, Set<String>> {
+    private
+    fun mergeSuperTypes(): Map<String, Set<String>> {
         // Merge all super types files into a single map
         val directSuperTypes = mutableMapOf<String, MutableSet<String>>()
         directSuperTypesFiles.forEach { file ->
@@ -80,18 +82,20 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
      * Finds all instrumented classes from `instrumented-classes.properties` file.
      * That file is created by instrumentation annotation processor. See :internal-instrumentation-processor project.
      */
-    private fun findInstrumentedClasses(projectResourceDirs: Set<File>): Set<String> {
+    private
+    fun findInstrumentedClasses(projectResourceDirs: Set<File>): Set<String> {
         return projectResourceDirs
-                .map { File(it, "instrumentation/instrumented-classes.properties") }
-                .filter { it.exists() }
-                .flatMap { file ->
-                    val properties = Properties()
-                    file.inputStream().use { properties.load(it) }
-                    properties.keys.map { it as String }
-                }.toSet()
+            .map { File(it, "org/gradle/internal/instrumentation/instrumented-classes.txt") }
+            .filter { it.exists() }
+            .flatMap { file ->
+                val properties = Properties()
+                file.inputStream().use { properties.load(it) }
+                properties.keys.map { it as String }
+            }.toSet()
     }
 
-    private fun computeAllSuperTypes(className: String, directSuperTypes: Map<String, Set<String>>): Set<String> {
+    private
+    fun computeAllSuperTypes(className: String, directSuperTypes: Map<String, Set<String>>): Set<String> {
         val superTypes: Queue<String> = ArrayDeque(directSuperTypes[className] ?: emptySet())
         val collected = mutableSetOf<String>()
         collected.add(className)
@@ -104,13 +108,15 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
         return collected
     }
 
-    private fun keepOnlyInstrumentedSuperTypes(superTypes: Map<String, Set<String>>, instrumentedClasses: Set<String>): Map<String, Set<String>> {
+    private
+    fun keepOnlyInstrumentedSuperTypes(superTypes: Map<String, Set<String>>, instrumentedClasses: Set<String>): Map<String, Set<String>> {
         return superTypes.mapValues {
             it.value.filter { superType -> instrumentedClasses.contains(superType) }.toSet()
         }.filter { it.value.isNotEmpty() }
     }
 
-    private fun writeOutput(onlyInstrumentedSuperTypes: Map<String, Set<String>>) {
+    private
+    fun writeOutput(onlyInstrumentedSuperTypes: Map<String, Set<String>>) {
         val outputFile = instrumentedSuperTypes.asFile.get()
         if (onlyInstrumentedSuperTypes.isEmpty()) {
             // If there is no instrumented types just create an empty file
@@ -124,7 +130,8 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
         }
     }
 
-    private fun File.toEmptyFile() {
+    private
+    fun File.toEmptyFile() {
         this.delete()
         this.createNewFile()
     }

@@ -26,6 +26,7 @@ import org.gradle.internal.instrumentation.processor.extensibility.ClassLevelAnn
 import org.gradle.internal.instrumentation.processor.extensibility.CodeGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.InstrumentationProcessorExtension;
 import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
+import org.gradle.internal.instrumentation.processor.extensibility.ResourceGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 
@@ -169,7 +170,8 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
             processingEnv.getMessager(),
             new CompositeInstrumentationCodeGenerator(
                 getExtensionsByType(CodeGeneratorContributor.class).stream().map(CodeGeneratorContributor::contributeCodeGenerator).collect(Collectors.toList())
-            )
+            ),
+            getExtensionsByType(ResourceGeneratorContributor.class).stream().map(ResourceGeneratorContributor::contributeResourceGenerator).collect(Collectors.toList())
         );
 
         generatorHost.generateCodeForRequestedInterceptors(requests);

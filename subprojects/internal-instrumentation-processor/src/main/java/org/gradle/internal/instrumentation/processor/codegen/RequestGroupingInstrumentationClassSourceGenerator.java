@@ -36,7 +36,7 @@ public abstract class RequestGroupingInstrumentationClassSourceGenerator impleme
         String className,
         Collection<CallInterceptionRequest> requestsClassGroup,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super GenerationResult.HasFailures.FailureInfo> onFailure
+        Consumer<? super HasFailures.FailureInfo> onFailure
     );
 
     @Override
@@ -45,7 +45,7 @@ public abstract class RequestGroupingInstrumentationClassSourceGenerator impleme
             .filter(it -> classNameForRequest(it) != null)
             .collect(Collectors.groupingBy(this::classNameForRequest, LinkedHashMap::new, Collectors.toList()));
 
-        List<GenerationResult.HasFailures.FailureInfo> failuresInfo = new ArrayList<>();
+        List<HasFailures.FailureInfo> failuresInfo = new ArrayList<>();
         Set<CallInterceptionRequest> processedRequests = new LinkedHashSet<>(interceptionRequests.size());
         Map<String, Consumer<TypeSpec.Builder>> classContentByName = new LinkedHashMap<>();
 
@@ -56,7 +56,7 @@ public abstract class RequestGroupingInstrumentationClassSourceGenerator impleme
         if (failuresInfo.isEmpty()) {
             return successResult(processedRequests, classContentByName);
         } else {
-            return new GenerationResult.HasFailures(failuresInfo);
+            return new GenerationResult.CodeFailures(failuresInfo);
         }
     }
 

@@ -58,7 +58,8 @@ abstract class CollectDirectClassSuperTypesTransform : TransformAction<Transform
         outputFile.outputStream().use { properties.store(it, null) }
     }
 
-    private fun findChanges(properties: Properties) {
+    private
+    fun findChanges(properties: Properties) {
         inputChanges.getFileChanges(classesDir)
             .filter { change -> change.fileType == FileType.FILE && change.normalizedPath.endsWith(".class") }
             .forEach { change ->
