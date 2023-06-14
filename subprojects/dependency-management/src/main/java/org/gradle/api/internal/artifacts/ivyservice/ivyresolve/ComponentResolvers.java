@@ -28,7 +28,9 @@ public interface ComponentResolvers {
     ComponentMetaDataResolver getComponentResolver();
 
     @Nullable
-    OriginArtifactSelector getArtifactSelector();
+    default OriginArtifactSelector getArtifactSelector() {
+        return null;
+    }
 
     ArtifactResolver getArtifactResolver();
 }
