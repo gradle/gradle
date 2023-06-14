@@ -37,4 +37,11 @@ class JUnitVintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutio
         return testResult.testClassStartsWith('Gradle Test Executor')
             .assertTestFailed("failed to execute tests", containsString("Could not execute test class '${testClassName}'"))
     }
+
+    @Override
+    String getStableEnvironmentDependencies() {
+        return super.getStableEnvironmentDependencies() + """
+            testImplementation 'junit:junit:${LATEST_JUNIT4_VERSION}'
+        """
+    }
 }

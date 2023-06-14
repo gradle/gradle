@@ -21,15 +21,15 @@ package org.gradle.internal.featurelifecycle;
  */
 public class SimulatedJavaCallLocation {
 
-    static FeatureUsage create() {
+    static SimulatedSingleMessageLogger.TestFeatureUsage create() {
         return SimulatedSingleMessageLogger.nagUserWith(SimulatedSingleMessageLogger.DIRECT_CALL);
     }
 
-    static FeatureUsage indirectly() {
+    static SimulatedSingleMessageLogger.TestFeatureUsage indirectly() {
         return SimulatedSingleMessageLogger.indirectly(SimulatedSingleMessageLogger.INDIRECT_CALL);
     }
 
-    static FeatureUsage indirectly2() {
+    static SimulatedSingleMessageLogger.TestFeatureUsage indirectly2() {
         return SimulatedSingleMessageLogger.indirectlySecondLevel(SimulatedSingleMessageLogger.INDIRECT_CALL_2);
     }
 }

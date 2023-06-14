@@ -19,8 +19,8 @@ package org.gradle.testing.junit.junit4
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.junit.AbstractJUnitAssumptionsIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.getASSUMPTIONS
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_ASSUMPTIONS
 
-@TargetCoverage({ ASSUMPTIONS })
+@TargetCoverage({ JUNIT4_ASSUMPTIONS })
 class JUnit4AssumptionsIntegrationTest extends AbstractJUnitAssumptionsIntegrationTest implements JUnit4MultiVersionTest {
 }

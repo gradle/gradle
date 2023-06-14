@@ -38,6 +38,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
+import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -122,31 +123,37 @@ class DefaultProjectSpec extends Specification {
         rootProject.toString() == "root project 'root'"
         rootProject.displayName == "root project 'root'"
         rootProject.path == ":"
+        rootProject.buildTreePath == ':'
         rootProject.identityPath == Path.ROOT
 
         child1.toString() == "project ':child1'"
         child1.displayName == "project ':child1'"
         child1.path == ":child1"
+        child1.buildTreePath == ":child1"
         child1.identityPath == Path.path(":child1")
 
         child2.toString() == "project ':child1:child2'"
         child2.displayName == "project ':child1:child2'"
         child2.path == ":child1:child2"
+        child2.buildTreePath == ":child1:child2"
         child2.identityPath == Path.path(":child1:child2")
 
         nestedRootProject.toString() == "project ':nested'"
         nestedRootProject.displayName == "project ':nested'"
         nestedRootProject.path == ":"
+        nestedRootProject.buildTreePath == ":nested"
         nestedRootProject.identityPath == Path.path(":nested")
 
         nestedChild1.toString() == "project ':nested:child1'"
         nestedChild1.displayName == "project ':nested:child1'"
         nestedChild1.path == ":child1"
+        nestedChild1.buildTreePath == ":nested:child1"
         nestedChild1.identityPath == Path.path(":nested:child1")
 
         nestedChild2.toString() == "project ':nested:child1:child2'"
         nestedChild2.displayName == "project ':nested:child1:child2'"
         nestedChild2.path == ":child1:child2"
+        nestedChild2.buildTreePath == ":nested:child1:child2"
         nestedChild2.identityPath == Path.path(":nested:child1:child2")
     }
 
@@ -197,8 +204,12 @@ class DefaultProjectSpec extends Specification {
             getBuildFile() >> new File("build file")
         }
 
+        def scriptResolution = Stub(ProjectScopedScriptResolution) {
+            resolveScriptsForProject(_, _) >> { p, a -> a.get() }
+        }
+
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
-        def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null))
+        def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
         return factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }
 }

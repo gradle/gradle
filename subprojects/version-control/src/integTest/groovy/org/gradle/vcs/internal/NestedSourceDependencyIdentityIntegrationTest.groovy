@@ -162,11 +162,13 @@ Required by:
                 assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
                 assert components[0].projectName == 'buildA'
+                assert components[0].buildTreePath == ':'
                 assert components[1].build.buildPath == ':buildB'
                 assert components[1].build.name == 'buildB'
                 assert !components[1].build.currentBuild
                 assert components[1].projectPath == ':'
                 assert components[1].projectName == 'buildB'
+                assert components[1].buildTreePath == ':buildB'
                 assert components[2].build.buildPath == ':${buildName}'
                 assert components[2].build.name == '${buildName}'
                 assert !components[2].build.currentBuild

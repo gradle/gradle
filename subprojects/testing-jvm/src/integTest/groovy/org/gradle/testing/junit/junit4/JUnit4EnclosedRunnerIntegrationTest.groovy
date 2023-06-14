@@ -19,8 +19,8 @@ package org.gradle.testing.junit.junit4
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.junit.AbstractJUnitEnclosedRunnerIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_CATEGORIES
 
-@TargetCoverage({ JUNIT_4_LATEST })
+@TargetCoverage({ JUNIT4_CATEGORIES })
 class JUnit4EnclosedRunnerIntegrationTest extends AbstractJUnitEnclosedRunnerIntegrationTest implements JUnit4MultiVersionTest {
 }

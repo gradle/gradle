@@ -18,8 +18,8 @@ package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
 
-import static org.gradle.testing.fixture.JUnitCoverage.LARGE_COVERAGE
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_LARGE_COVERAGE
 
-@TargetCoverage({ LARGE_COVERAGE })
+@TargetCoverage({ JUNIT4_LARGE_COVERAGE })
 class JUnit4ClassLevelFilteringIntegrationTest extends AbstractJUnit4ClassLevelFilteringIntegrationTest implements JUnit4MultiVersionTest {
 }

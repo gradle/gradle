@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -28,9 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Internal coordinator of build cache operations.
- *
- * Wraps user {@link BuildCacheService} implementations.
+ * High-level controller for build-cache operations; can load and store {@link CacheableEntity}s with a given {@link BuildCacheKey}.
  */
 public interface BuildCacheController extends Closeable {
 

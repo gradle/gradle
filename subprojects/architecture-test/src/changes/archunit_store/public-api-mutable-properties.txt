@@ -13,6 +13,7 @@ Method <org.gradle.api.Project.getAnt()> does not have raw return type assignabl
 Method <org.gradle.api.Project.getArtifacts()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getBuildDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (Project.java:0)
 Method <org.gradle.api.Project.getBuildFile()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
+Method <org.gradle.api.Project.getBuildTreePath()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getBuildscript()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getChildProjects()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getComponents()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)

@@ -1135,6 +1135,38 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
     }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/16154")
+    @Test
+    fun `file annotations and package statement in precompiled script plugin handled correctly`() {
+        withKotlinBuildSrc()
+
+        val pluginId = "my-plugin"
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            """
+                @file:Suppress("UnstableApiUsage")
+
+                package bar
+
+                println("foo")
+            """
+        )
+
+        withBuildScript(
+            """
+                plugins {
+                    id("bar.$pluginId")
+                }
+            """
+        )
+
+        build(":help").apply {
+            assertTaskExecuted(":help")
+            assertOutputContains("foo")
+        }
+    }
 }
 
 

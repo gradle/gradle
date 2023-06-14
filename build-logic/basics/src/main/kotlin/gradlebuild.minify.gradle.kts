@@ -16,7 +16,6 @@
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 
 /**
  * A map from artifact name to a set of class name prefixes that should be kept.
@@ -41,6 +40,10 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet",
         "it.unimi.dsi.fastutil.objects.ObjectOpenHashSet",
         "it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap",
+        // For dependency management
+        "it.unimi.dsi.fastutil.longs.Long2ObjectMap",
+        "it.unimi.dsi.fastutil.longs.Long2ObjectMaps",
+        "it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap",
         // For the configuration cache module
         "it.unimi.dsi.fastutil.objects.ReferenceArrayList",
         "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
@@ -51,11 +54,13 @@ plugins.withId("java-base") {
         attributesSchema {
             attribute(minified)
         }
+        // It would be nice if we could be more selective about which variants to apply this to.
+        // TODO https://github.com/gradle/gradle/issues/11831#issuecomment-580686994
         artifactTypes.getByName("jar") {
             attributes.attribute(minified, java.lang.Boolean.FALSE)
         }
         /*
-         * This transform exists solely to shrink the size of the fastutil jar from 25MB to 1.5MB.
+         * This transform exists solely to shrink the size of the fastutil jar from 25MB to 1.7MB.
          * The keys to the map parameter are used as the names of the files to which to apply the transform - there is only one entry.
          * It would perhaps be better to do this more selectively instead of applying this transform so broadly and having
          * it just no-op in most cases.
@@ -68,19 +73,17 @@ plugins.withId("java-base") {
             }
         }
     }
-    configurations.all {
-        // TODO we should be able to solve this only by requesting attributes for artifacts - https://github.com/gradle/gradle/issues/11831#issuecomment-580686994
-        (this as ConfigurationInternal).beforeLocking {
-            // everywhere where we resolve, prefer the minified version
-            if (isCanBeResolved && !isCanBeConsumed && name !in setOf("currentApiClasspath", "codenarc")) {
-                attributes.attribute(minified, true)
-            }
-            // local projects are already minified
-            if (isCanBeConsumed && !isCanBeResolved) {
-                if (attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == Category.LIBRARY
-                    && attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE)?.name == Bundling.EXTERNAL
-                ) {
-                    attributes.attribute(minified, true)
+    afterEvaluate {
+        // Without afterEvaluate, configurations.all runs before the configurations' roles are set.
+        // This is yet another reason we need configuration factory methods.
+        configurations.all {
+            if (isCanBeResolved && !isCanBeConsumed) {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module("it.unimi.dsi:fastutil")).using(variant(module("it.unimi.dsi:fastutil:8.5.2")) {
+                        attributes {
+                            attribute(minified, true)
+                        }
+                    })
                 }
             }
         }

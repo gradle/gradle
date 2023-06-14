@@ -109,15 +109,13 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         extension.getClasspath().from(runtimeClasspath);
         extension.getDocumentedSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
-            // Filter out any non-public APIs
             f.include(PublicApi.INSTANCE.getIncludes());
+            // Filter out any non-public APIs
             f.exclude(PublicApi.INSTANCE.getExcludes());
         }));
         extension.getKotlinDslSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
-            // Filter out any non-public APIs
-            f.include(PublicApi.INSTANCE.getIncludes());
             f.include(PublicKotlinDslApi.INSTANCE.getIncludes());
-            f.exclude(PublicApi.INSTANCE.getExcludes());
+            // Filter out any non-public APIs
             f.exclude(PublicKotlinDslApi.INSTANCE.getExcludes());
         }));
     }

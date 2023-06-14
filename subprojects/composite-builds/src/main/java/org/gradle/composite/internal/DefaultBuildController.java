@@ -21,7 +21,9 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -42,6 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 class DefaultBuildController implements BuildController {
@@ -77,6 +80,12 @@ class DefaultBuildController implements BuildController {
     public void addFilter(Spec<Task> filter) {
         assertInState(State.DiscoveringTasks);
         workGraph.addFilter(filter);
+    }
+
+    @Override
+    public void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
+        assertInState(State.DiscoveringTasks);
+        workGraph.addFinalization(finalization);
     }
 
     @Override
@@ -131,7 +140,7 @@ class DefaultBuildController implements BuildController {
         }
     }
 
-    private void checkForCyclesFor(TaskInternal task, Set<TaskInternal> visited, Set<TaskInternal> visiting) {
+    private static void checkForCyclesFor(TaskInternal task, Set<TaskInternal> visited, Set<TaskInternal> visiting) {
         if (visited.contains(task)) {
             // Already checked
             return;
@@ -157,7 +166,7 @@ class DefaultBuildController implements BuildController {
         visited.add(task);
     }
 
-    private void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
+    private static void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
         TaskNodeFactory taskNodeFactory = ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
         TaskNode node = taskNodeFactory.getOrCreateNode(task);
         for (Node dependency : node.getAllSuccessors()) {

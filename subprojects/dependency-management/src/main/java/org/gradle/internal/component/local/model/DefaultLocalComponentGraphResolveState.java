@@ -39,7 +39,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
-import org.gradle.internal.component.model.VariantArtifactSelectionMetadata;
+import org.gradle.internal.component.model.VariantArtifactSelectionCandidates;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
@@ -220,15 +220,15 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(new LocalComponentArtifactResolveMetadata(component), new LocalVariantArtifactSelectionMetadata(allVariants, legacyVariants), exclusions, overriddenAttributes);
+            return artifactSelector.resolveArtifacts(new LocalComponentArtifactResolveMetadata(component), new LocalVariantArtifactSelectionCandidates(allVariants, legacyVariants), exclusions, overriddenAttributes);
         }
     }
 
-    private static class LocalVariantArtifactSelectionMetadata implements VariantArtifactSelectionMetadata {
+    private static class LocalVariantArtifactSelectionCandidates implements VariantArtifactSelectionCandidates {
         private final Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariants;
         private final Set<? extends VariantResolveMetadata> legacyVariants;
 
-        public LocalVariantArtifactSelectionMetadata(Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants) {
+        public LocalVariantArtifactSelectionCandidates(Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants) {
             this.allVariants = allVariants;
             this.legacyVariants = legacyVariants;
         }

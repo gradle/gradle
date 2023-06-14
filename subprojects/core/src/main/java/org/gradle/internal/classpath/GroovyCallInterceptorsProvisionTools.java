@@ -22,7 +22,6 @@ import org.gradle.internal.classpath.intercept.CallInterceptor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,7 +41,7 @@ public class GroovyCallInterceptorsProvisionTools {
         try {
             return getInterceptorsFromClass(Class.forName(className));
         } catch (ClassNotFoundException e) {
-            return Collections.emptyList();
+            throw new RuntimeException(e);
         }
     }
 

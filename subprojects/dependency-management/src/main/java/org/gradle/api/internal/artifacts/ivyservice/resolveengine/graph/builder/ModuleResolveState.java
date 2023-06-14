@@ -34,6 +34,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
@@ -461,7 +462,7 @@ class ModuleResolveState implements CandidateModule {
         for (ComponentState componentState : versions.values()) {
             if (componentState.getMetadataOrNull() == null) {
                 // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
-                componentState.setState(LenientPlatformGraphResolveState.of(idGenerator, (ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
+                componentState.setState(LenientPlatformGraphResolveState.of(idGenerator, (ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState), ComponentGraphSpecificResolveState.EMPTY_STATE);
             }
         }
     }

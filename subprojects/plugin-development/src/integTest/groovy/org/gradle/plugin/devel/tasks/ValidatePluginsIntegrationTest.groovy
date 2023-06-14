@@ -804,7 +804,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     @ValidationTestFor(
         ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
     )
-    def "nested map with #supportedType key is validated without deprecation warning"() {
+    def "nested map with #supportedType key is validated without warning"() {
         def gStringValue = "foo"
         javaTaskSource << """
             import org.gradle.api.*;
@@ -862,7 +862,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     @ValidationTestFor(
         ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
     )
-    def "nested map with unsupported key type is validated with deprecation warning"() {
+    def "nested map with unsupported key type is validated with warning"() {
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
@@ -898,6 +898,129 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationFailsWith([
             warning(nestedMapUnsupportedKeyType { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
         ])
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_TYPE_UNSUPPORTED
+    )
+    def "nested #typeName#parameterType is validated with warning"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public $typeName$parameterType getMy$typeName() {
+                    return $producer;
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith([
+            warning(nestedTypeUnsupported { type("MyTask").property("my$typeName").annotatedType(className) },
+                'validation_problems', 'unsupported_nested_type'),
+        ])
+
+        where:
+        typeName   | parameterType      | producer                                                            | className
+        'Integer'  | ''                 | 'Integer.valueOf(1)'                                                | 'java.lang.Integer'
+        'String'   | ''                 | 'new String()'                                                      | 'java.lang.String'
+        'Iterable' | '<Integer>'        | 'Arrays.asList(Integer.valueOf(1), Integer.valueOf(2))'             | 'java.lang.Integer'
+        'List'     | '<String>'         | 'Arrays.asList("value1", "value2")'                                 | 'java.lang.String'
+        'Map'      | '<String,Integer>' | 'Collections.singletonMap("a", Integer.valueOf(1))'                 | 'java.lang.Integer'
+        'Provider' | '<Boolean>'        | 'getProject().getProviders().provider(() -> Boolean.valueOf(true))' | 'java.lang.Boolean'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_TYPE_UNSUPPORTED
+    )
+    def "nested #typeName#parameterType is validated without warning"() {
+        groovyTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.io.*;
+            import java.util.*;
+
+            enum SomeEnum { A, B, C }
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public $typeName$parameterType getMy$typeName() {
+                    return $producer;
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+
+        where:
+        typeName   | parameterType      | producer
+        'Options'  | ''                 | 'new Options()'
+        'SomeEnum' | ''                 | 'SomeEnum.A'
+        'File'     | ''                 | 'new File("some/path")'  // Not invalidated because type is not final
+        'GString'  | ''                 | 'GString.EMPTY'          // Not invalidated because type is not final
+        'Iterable' | '<Options>'        | 'Arrays.asList(new Options(), new Options())'
+        'Map'      | '<String,Options>' | 'Collections.singletonMap("a", new Options())'
+        'Provider' | '<Options>'        | 'getProject().getProviders().provider(() -> new Options())'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested Kotlin #typeName is validated with warning"() {
+        kotlinTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import kotlin.*;
+
+            abstract class MyTask : DefaultTask() {
+                @get:Nested
+                var my$typeName: $typeName = $producer
+
+                @TaskAction
+                fun execute() { }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith([
+            warning(nestedTypeUnsupported { type("MyTask").property("my$typeName").annotatedType(className) },
+                'validation_problems', 'unsupported_nested_type'),
+        ])
+
+        where:
+        typeName            | producer                    | className
+        'DeprecationLevel'  | 'DeprecationLevel.WARNING'  | 'kotlin.DeprecationLevel'
+        'String'            | '"abc"'                     | 'java.lang.String'
     }
 
     def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {
