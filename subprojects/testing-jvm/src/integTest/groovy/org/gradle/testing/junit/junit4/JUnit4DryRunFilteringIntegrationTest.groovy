@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.test;
+package org.gradle.testing.junit.junit4
 
-import java.util.stream.Stream;
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.DryRunFilteringTest
 
-public interface TestTaskProperties {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_IGNORE_ON_CLASS
 
-    boolean isUsingJUnitPlatform();
-
-    long getForkEvery();
-
-    boolean isDryRun();
-
-    TestTaskFilters getFilters();
-
-    TestTaskForkOptions getForkOptions();
-
-    Stream<CandidateClassFile> getCandidateClassFiles();
-
-    Stream<InputFileProperty> getInputFileProperties();
-
-    Stream<OutputFileProperty> getOutputFileProperties();
-
+@TargetCoverage({ JUNIT4_IGNORE_ON_CLASS })
+class JUnit4DryRunFilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationTest implements JUnit4MultiVersionTest, DryRunFilteringTest {
 }

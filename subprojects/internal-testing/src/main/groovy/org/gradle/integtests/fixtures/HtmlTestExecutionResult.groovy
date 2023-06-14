@@ -179,6 +179,13 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             return this
         }
 
+        @Override
+        TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
+            def fullMessages = collectTestFailFullMessages(name, name)
+            assert !fullMessages.isEmpty()
+            return this
+        }
+
         TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
             assert testFailed(name, messageMatchers)
             return this
@@ -189,11 +196,10 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         boolean testFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
-            def testCase = testsFailures.grep { it.name == name && it.displayName == displayName }
-            if (testCase.isEmpty()) {
+            def fullMessages = collectTestFailFullMessages(name, displayName)
+            if (fullMessages.isEmpty()) {
                 return false
             }
-            def fullMessages = testCase.first().messages
             def messages = fullMessages.collect { it.readLines().first() }
             if (messages.size() != messageMatchers.length) {
                 return false
@@ -204,6 +210,15 @@ class HtmlTestExecutionResult implements TestExecutionResult {
                 }
             }
             return true
+        }
+
+        private List<String> collectTestFailFullMessages(String name, String displayName) {
+            def testCase = testsFailures.grep { it.name == name && it.displayName == displayName }
+            if (testCase.isEmpty()) {
+                return Collections.emptyList()
+            }
+
+            return testCase.first().messages
         }
 
         @Override

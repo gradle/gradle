@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.test;
+package org.gradle.testing
 
-import java.util.stream.Stream;
-
-public interface TestTaskProperties {
-
-    boolean isUsingJUnitPlatform();
-
-    long getForkEvery();
-
-    boolean isDryRun();
-
-    TestTaskFilters getFilters();
-
-    TestTaskForkOptions getForkOptions();
-
-    Stream<CandidateClassFile> getCandidateClassFiles();
-
-    Stream<InputFileProperty> getInputFileProperties();
-
-    Stream<OutputFileProperty> getOutputFileProperties();
-
+/**
+ * Overrides methods from {@link AbstractTestFilteringIntegrationTest}
+ */
+trait DryRunFilteringTest {
+    boolean isDryRun() {
+        return true
+    }
 }
