@@ -151,8 +151,6 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             expectConventionTypeDeprecation(kotlinVersion, agpVersion)
             expectJavaPluginConventionDeprecation(kotlinVersion)
             expectBasePluginConventionDeprecation(kotlinVersion, agpVersion)
-        }.deprecations(AndroidPluginsSmokeTest.AndroidDeprecations) {
-            expectClientModuleDeprecationWarning(agpVersion)
         }
     }
 

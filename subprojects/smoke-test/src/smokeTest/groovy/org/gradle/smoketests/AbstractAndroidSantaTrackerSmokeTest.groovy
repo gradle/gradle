@@ -70,7 +70,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                expectClientModuleDeprecationWarning(agpVersion)
             }
         }.build()
     }
@@ -84,7 +83,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierNameDeprecation()
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                expectClientModuleDeprecationWarning(agpVersion)
             } else {
                 expectBuildIdentifierNameDeprecation()
                 // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
@@ -94,7 +92,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
                 if (!agpVersion.startsWith("7.3")) {
                     expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                    expectClientModuleDeprecationWarning(agpVersion)
                 }
             }
         }.build()
@@ -110,7 +107,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 expectBuildIdentifierNameDeprecation()
-                expectClientModuleDeprecationWarning(agpVersion)
             }.build()
     }
 
@@ -134,7 +130,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 if (!agpVersion.startsWith("7.3")) {
                     // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
                     expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                    expectClientModuleDeprecationWarning(agpVersion)
                 }
             }.build()
     }
@@ -151,7 +146,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
             expectConfigUtilDeprecationWarning(agpVersion)
-            expectClientModuleDeprecationWarning(agpVersion)
         }.build()
     }
 
