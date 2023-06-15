@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION") // todo: should not be necessary in the end
-
 package org.gradle.kotlin.dsl.support.bytecode
 
 import kotlinx.metadata.Flag
@@ -31,6 +29,8 @@ import kotlinx.metadata.KmValueParameter
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
+import kotlinx.metadata.jvm.KmModule
+import kotlinx.metadata.jvm.KmPackageParts
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
 import kotlinx.metadata.jvm.getterSignature
@@ -78,12 +78,14 @@ fun KmPackage.closeHeader(moduleName: String): Metadata {
 
 
 internal
-fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray =
-    KotlinModuleMetadata.Writer().run {
-        visitPackageParts("org.gradle.kotlin.dsl", fileFacades.map { it.value }, emptyMap())
-        visitEnd()
-        write().bytes
-    }
+fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray {
+    val kmModule = KmModule()
+    kmModule.packageParts["org.gradle.kotlin.dsl"] = KmPackageParts(
+        fileFacades.map { it.value }.toMutableList(),
+        emptyMap<String, String>().toMutableMap()
+    )
+    return KotlinModuleMetadata.write(kmModule).bytes
+}
 
 
 internal
