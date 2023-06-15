@@ -34,7 +34,7 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
     //normally, state transition timeout must be lower than the daemon timeout
     //so that the daemon does not timeout in the middle of the state verification
     //effectively hiding some bugs or making tests fail
-    int stateTransitionTimeout = daemonIdleTimeout/2
+    int stateTransitionTimeout = daemonIdleTimeout / 2
 
     final List<GradleHandle> builds = []
     final List<GradleHandle> foregroundDaemons = []
@@ -42,10 +42,8 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
     // set this to change the java home used to launch any gradle, set back to null to use current JVM
     def javaHome = null
 
-    // set this to change the desired default encoding for the build request
-    def buildEncoding = null
-
-    @Delegate DaemonEventSequenceBuilder sequenceBuilder =
+    @Delegate
+    DaemonEventSequenceBuilder sequenceBuilder =
         new DaemonEventSequenceBuilder(stateTransitionTimeout * 1000)
 
     def buildDir(buildNum) {
@@ -104,7 +102,7 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
-    private static deleteFile(File file) {
+    protected static deleteFile(File file) {
         // Repeat the attempt to delete in case it was temporarily locked
         poll(10) {
             if (file.exists()) {
@@ -156,14 +154,6 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
-    void startForegroundDaemonWithDefaultCharacterEncoding(String encoding) {
-        run {
-            executer.withDefaultCharacterEncoding(encoding)
-            startForegroundDaemonNow()
-            javaHome = null
-        }
-    }
-
     void startForegroundDaemonNow() {
         if (javaHome) {
             executer.withJavaHome(javaHome)
@@ -172,27 +162,8 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
         foregroundDaemons << executer.start()
     }
 
-    //this is a windows-safe way of killing the process
-    void disappearDaemon(int num = 0) {
-        run {
-            buildDir(num).file("exit") << "exit"
-        }
-    }
-
-    void killForegroundDaemon(int num = 0) {
-        run { foregroundDaemons[num].abort().waitForFailure() }
-    }
-
     void killBuild(int num = 0) {
         run { builds[num].abort().waitForFailure() }
-    }
-
-    void buildFailed(int num = 0) {
-        run { failed builds[num] }
-    }
-
-    void foregroundDaemonCompleted(int num = 0) {
-        run { foregroundDaemons[num].waitForFinish() }
     }
 
     void failed(GradleHandle handle) {
