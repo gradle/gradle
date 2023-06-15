@@ -93,9 +93,8 @@ See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/
 
 `link:{javadocPath}/org/gradle/api/artifacts/ClientModule.html[ClientModule]` dependencies are deprecated and will be removed in Gradle 9.0.
 
-Client module dependencies were originally intended to allow builds to override incorrect or
-missing component metadata of external dependencies by defining the metadata locally. This
-functionality has since been replaced by <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
+Client module dependencies were originally intended to allow builds to override incorrect or missing component metadata of external dependencies by defining the metadata locally.
+This functionality has since been replaced by <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
 
 Consider the following client module dependency example:
 
