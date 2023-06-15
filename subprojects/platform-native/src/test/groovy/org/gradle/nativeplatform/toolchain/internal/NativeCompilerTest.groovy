@@ -41,7 +41,7 @@ abstract class NativeCompilerTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
-    protected CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(TestFiles.resolver(tmpDirProvider.root))
+    protected CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(TestFiles.resolver(tmpDirProvider.testDirectory))
     private static final String O_EXT = ".o"
 
     protected abstract NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile)

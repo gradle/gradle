@@ -36,7 +36,7 @@ class Jdk7SymlinkTest extends Specification {
     @Requires(UnitTestPreconditions.Symlinks)
     def 'on symlink supporting system, it will return true for supported symlink'() {
         expect:
-        new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.getRoot())).isSymlinkCreationSupported()
+        new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.createDir("tmp"))).isSymlinkCreationSupported()
     }
 
     @Requires(UnitTestPreconditions.NoSymlinks)
@@ -48,7 +48,7 @@ class Jdk7SymlinkTest extends Specification {
     def 'deletes test files after symlink support test with #create'() {
         expect:
         listSymlinkTestFiles().findAll { !it.delete() }.empty
-        create(temporaryFolder.root)
+        create(temporaryFolder.createDir("tmp"))
         listSymlinkTestFiles().empty
 
         where:
@@ -57,7 +57,7 @@ class Jdk7SymlinkTest extends Specification {
 
     @Requires(UnitTestPreconditions.Symlinks)
     def 'can create and detect symlinks'() {
-        def symlink = new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.getRoot()))
+        def symlink = new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.createDir("tmp")))
         def testDirectory = temporaryFolder.getTestDirectory().createDir()
 
         when:
