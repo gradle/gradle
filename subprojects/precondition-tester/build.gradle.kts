@@ -63,11 +63,11 @@ dependencies {
 
 tasks {
     test {
-        this.setupAsProbingTest()
+        setupAsProbingTest()
     }
 
     withType(DistributionTest::class) {
-        this.setupAsProbingTest()
+        setupAsProbingTest()
     }
 }
 
