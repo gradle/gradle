@@ -1162,6 +1162,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         // Run any mutating actions
         runOwnDependencyActions();
 
+        // Realize pending elements.
+        // Otherwise, when they are realized, they will trigger the mutationValidator
+        ownDependencies.iterator();
+        ownDependencyConstraints.iterator();
+
         // Freeze own attributes
         configurationAttributes.freeze();
         if (mustHaveUniqueAttributes(this)) {
