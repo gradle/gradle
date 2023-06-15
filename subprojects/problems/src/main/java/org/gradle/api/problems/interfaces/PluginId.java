@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,33 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-}
+package org.gradle.api.problems.interfaces;
 
-description = """A problems description API
-    |
-    |This project provides base classes to describe problems and their
-    |solutions, in a way that enforces the creation of good error messages.
-    |
-    |It's a stripped down version of the original code available
-    |at https://github.com/melix/jdoctor/
-""".trimMargin()
+import org.gradle.api.Incubating;
 
-dependencies {
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
+import javax.annotation.Nullable;
 
+/**
+ * A description of a plugin.
+ *
+ * @since 8.3
+ */
+@Incubating
+public interface PluginId {
+
+    /**
+     * The fully qualified plugin ID.
+     */
+    String getId();
+
+    /**
+     * The namespace of the plugin or {@code null} if the ID contains no {@code .}.
+     */
+    @Nullable
+    String getNamespace();
+
+    /**
+     * The plugin name without the namespace.
+     */
+    String getName();
 }

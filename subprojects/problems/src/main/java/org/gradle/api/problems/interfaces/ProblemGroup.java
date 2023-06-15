@@ -28,7 +28,8 @@ public enum ProblemGroup {
 
     GENERIC("generic"),
     DEPRECATION("deprecation"),
-    VERSION_CATALOG("version_catalog");
+    VERSION_CATALOG("version_catalog"),
+    TYPE_VALIDATION("type_validation");
 
     private final String id;
 

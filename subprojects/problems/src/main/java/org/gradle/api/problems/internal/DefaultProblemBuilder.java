@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.DocLink;
+import org.gradle.api.problems.interfaces.PluginId;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
@@ -49,6 +50,10 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     private boolean explicitlyUndocumented = false;
     private List<String> solution;
     private Throwable cause;
+    private String typeName;
+    private PluginId pluginId;
+    private String parentPropertyName;
+    private String propertyName;
 
     public DefaultProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) { //add type
         this.problemGroup = problemGroup;
@@ -87,6 +92,14 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     @Override
     public ProblemBuilder noLocation() {
         this.noLocation = true;
+        return this;
+    }
+
+    public ProblemBuilder location(@Nullable String typeName, @Nullable PluginId pluginId, @Nullable String parentPropertyName, @Nullable String propertyName) {
+        this.typeName = typeName;
+        this.pluginId = pluginId;
+        this.parentPropertyName = parentPropertyName;
+        this.propertyName = propertyName;
         return this;
     }
 
@@ -137,7 +150,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
             problemGroup,
             message,
             severity,
-            path == null ? null : new DefaultProblemLocation(path, line),
+            new DefaultProblemLocation(path, line, typeName, pluginId, parentPropertyName, propertyName),
             documentationUrl,
             description,
             solution,

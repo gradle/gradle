@@ -40,13 +40,13 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     public void recordValidationWarnings(UnitOfWork work, Collection<TypeValidationProblem> warnings) {
         workWithFailuresCount.incrementAndGet();
 
-        ImmutableSet<String> uniqueWarnings = warnings.stream().map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false))).collect(ImmutableSet.toImmutableSet());
+        ImmutableSet<String> uniqueWarnings = warnings.stream().map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning.toNewProblem(), true, false))).collect(ImmutableSet.toImmutableSet());
         LOGGER.warn("Execution optimizations have been disabled for {} to ensure correctness due to the following reasons:{}",
             work.getDisplayName(),
             uniqueWarnings.stream()
                 .map(warning -> "\n  - " + warning)
                 .collect(Collectors.joining()));
-        warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning, false, false)))
+        warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning.toNewProblem(), false, false)))
             .withContext("Execution optimizations are disabled to ensure correctness.")
             .willBeRemovedInGradle9()
             .withUserManual(warning.getUserManualReference().getId(), warning.getUserManualReference().getSection())

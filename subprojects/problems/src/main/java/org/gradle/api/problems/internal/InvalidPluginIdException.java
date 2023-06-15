@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-}
+package org.gradle.api.problems.internal;
 
-description = """A problems description API
-    |
-    |This project provides base classes to describe problems and their
-    |solutions, in a way that enforces the creation of good error messages.
-    |
-    |It's a stripped down version of the original code available
-    |at https://github.com/melix/jdoctor/
-""".trimMargin()
+import org.gradle.api.GradleException;
 
-dependencies {
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
+public class InvalidPluginIdException extends GradleException {
 
+    private final String reason;
+
+    public InvalidPluginIdException(String pluginId, String reason) {
+        super(String.format("plugin id '%s' is invalid: %s", pluginId, reason));
+        this.reason = reason;
+    }
+
+    public String getReason() {
+        return reason;
+    }
 }

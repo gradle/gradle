@@ -15,12 +15,15 @@
  */
 package org.gradle.internal.reflect.validation;
 
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.interfaces.PluginId;
+import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.model.internal.type.ModelType;
-import org.gradle.plugin.use.PluginId;
 import org.gradle.problems.Solution;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
@@ -37,23 +40,23 @@ public class TypeValidationProblemRenderer {
     }
 
     public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink) {
-        return renderMinimalInformationAbout(problem, renderDocLink, true);
+        return renderMinimalInformationAbout(problem.toNewProblem(), renderDocLink, true);
     }
 
-    public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink, boolean renderSolutions) {
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getWhere()) + endLineWithDot(problem.getShortDescription()));
-        problem.getWhy().ifPresent(reason -> {
+        formatter.node(introductionFor(problem.getWhere()) + endLineWithDot(problem.getMessage()));
+        Optional.ofNullable(problem.getDescription()).ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(endLineWithDot(reason)));
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDescription())));
         });
         if (renderSolutions) {
-            renderSolutions(formatter, problem.getPossibleSolutions());
+            renderNewSolutions(formatter, problem.getSolutions());
         }
         if (renderDocLink) {
-            problem.getDocumentationLink().ifPresent(docLink -> {
+            Optional.ofNullable(problem.getDocumentationLink()).ifPresent(docLink -> {
                 formatter.blankLine();
-                formatter.node(docLink);
+                formatter.node(new DocumentationRegistry().getDocumentationRecommendationFor("information", docLink.getPage(), docLink.getSection()));
             });
         }
         return formatter.toString();
@@ -70,6 +73,23 @@ public class TypeValidationProblemRenderer {
                 formatter.startNumberedChildren();
                 possibleSolutions.forEach(solution ->
                     formatter.node(capitalize(endLineWithDot(solution.getShortDescription())))
+                );
+                formatter.endChildren();
+            }
+        }
+    }
+
+    private static void renderNewSolutions(TreeFormatter formatter, List<String> possibleSolutions) {
+        int solutionCount = possibleSolutions.size();
+        if (solutionCount > 0) {
+            formatter.blankLine();
+            if (solutionCount == 1) {
+                formatter.node("Possible solution: " + capitalize(endLineWithDot(possibleSolutions.get(0))));
+            } else {
+                formatter.node("Possible solutions");
+                formatter.startNumberedChildren();
+                possibleSolutions.forEach(solution ->
+                    formatter.node(capitalize(endLineWithDot(solution)))
                 );
                 formatter.endChildren();
             }
@@ -104,22 +124,21 @@ public class TypeValidationProblemRenderer {
             .replaceAll(": ?[. ]", ": ");
     }
 
-    private static String introductionFor(TypeValidationProblemLocation location) {
+    private static String introductionFor(ProblemLocation location) {
         StringBuilder builder = new StringBuilder();
-        Class<?> rootType = location.getType()
+        String rootType = Optional.ofNullable(location.getTypeName())
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
-        PluginId pluginId = location.getPlugin().orElse(null);
+        PluginId pluginId = location.getPluginId();
         if (rootType != null) {
             if (pluginId != null) {
                 builder.append("In plugin '").append(pluginId).append("' type '");
             } else {
                 builder.append("Type '");
             }
-            builder.append(ModelType.of(rootType).getName())
-                .append("' ");
+            builder.append(rootType).append("' ");
         }
-        String property = location.getPropertyName().orElse(null);
+        String property = Optional.ofNullable(location.getPropertyName()).orElse(null);
         if (property != null) {
             if (rootType == null) {
                 if (pluginId != null) {
@@ -130,7 +149,7 @@ public class TypeValidationProblemRenderer {
             } else {
                 builder.append("property '");
             }
-            location.getParentPropertyName().ifPresent(parentProperty -> {
+            Optional.ofNullable(location.getParentPropertyName()).ifPresent(parentProperty -> {
                 builder.append(parentProperty);
                 builder.append('.');
             });
@@ -144,7 +163,7 @@ public class TypeValidationProblemRenderer {
     // The "DefaultTask" type may appear in error messages
     // (if using "adhoc" tasks) but isn't visible to this
     // class so we have to rely on text matching for now.
-    private static boolean shouldRenderType(Class<?> clazz) {
-        return !("org.gradle.api.DefaultTask".equals(clazz.getName()));
+    private static boolean shouldRenderType(String className) {
+        return !"org.gradle.api.DefaultTask".equals(className);
     }
 }

@@ -25,7 +25,6 @@ import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.internal.reflect.validation.UserManualReference;
 
 import java.util.List;
 
@@ -58,8 +57,8 @@ public class DefaultNodeValidator implements NodeValidator {
     private void logWarnings(List<TypeValidationProblem> problems) {
         problems.stream()
             .filter(problem -> problem.getSeverity().isWarning())
+            .map(TypeValidationProblem::toNewProblem)
             .forEach(problem -> {
-                UserManualReference userManualReference = problem.getUserManualReference();
                 // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
                 // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
                 // and rendering
@@ -67,7 +66,7 @@ public class DefaultNodeValidator implements NodeValidator {
                 DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
                     .willBeRemovedInGradle9()
-                    .withUserManual(userManualReference.getId(), userManualReference.getSection())
+                    .withUserManual(problem.getDocumentationLink().getPage(), problem.getDocumentationLink().getSection())
                     .nagUser();
             });
     }

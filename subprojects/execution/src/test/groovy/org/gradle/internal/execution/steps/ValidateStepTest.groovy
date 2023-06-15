@@ -139,12 +139,12 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
         then:
         1 * warningReporter.recordValidationWarnings(work, { warnings ->
-            convertToSingleLine(renderMinimalInformationAbout(warnings.first(), false, false)) == expectedWarning })
+            convertToSingleLine(renderMinimalInformationAbout(warnings.first().toNewProblem(), false, false)) == expectedWarning })
         1 * virtualFileSystem.invalidateAll()
 
         then:
         1 * delegate.execute(work, { ValidationFinishedContext context ->
-            convertToSingleLine(renderMinimalInformationAbout(context.validationProblems.first(), false, false)) == expectedWarning })
+            convertToSingleLine(renderMinimalInformationAbout(context.validationProblems.first().toNewProblem(), false, false)) == expectedWarning })
         0 * _
     }
 
@@ -179,7 +179,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         }
 
         then:
-        1 * warningReporter.recordValidationWarnings(work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first(), true, false)) == expectedWarning })
+        1 * warningReporter.recordValidationWarnings(work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first().toNewProblem(), true, false)) == expectedWarning })
 
         then:
         def ex = thrown WorkValidationException
