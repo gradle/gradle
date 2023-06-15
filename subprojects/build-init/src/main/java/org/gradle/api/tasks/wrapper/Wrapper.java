@@ -191,7 +191,7 @@ public abstract class Wrapper extends DefaultTask {
 
     private static URI getDistributionUri(File uriRoot, String url) {
         try {
-            return WrapperDistributionUrlConverter.toUri(uriRoot, url);
+            return WrapperDistributionUrlConverter.convertDistributionUrl(url, uriRoot);
         } catch (URISyntaxException e) {
             throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
         }

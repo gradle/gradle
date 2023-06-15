@@ -40,7 +40,7 @@ class TestNGTestClassProcessorTest extends Specification {
         filterSpec,
         "Gradle suite", "Gradle test", null, -1, false,
         [] as Set, [] as Set, [] as Set,
-        TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY, false, false))
+        TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY, false, false, false))
 
     @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 

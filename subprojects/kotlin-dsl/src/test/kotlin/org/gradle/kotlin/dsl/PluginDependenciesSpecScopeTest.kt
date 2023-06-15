@@ -71,6 +71,13 @@ class PluginDependenciesSpecScopeTest {
             kotlin("jvm") version "1.1.1"
         }
     }
+
+    @Test
+    fun `given embedded kotlin plugin accessor, it should create a single request with embedded version`() {
+        expecting(plugin(id = "org.jetbrains.kotlin.jvm", version = embeddedKotlinVersion)) {
+            embeddedKotlin("jvm")
+        }
+    }
 }
 
 

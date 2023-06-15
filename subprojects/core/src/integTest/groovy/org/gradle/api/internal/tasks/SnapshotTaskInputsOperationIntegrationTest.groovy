@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks
 
+import com.google.common.collect.Iterables
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
@@ -36,6 +37,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
@@ -597,7 +599,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         def aCompileJavaTask = operations.first(ExecuteTaskBuildOperationType) {
             it.details.taskPath == taskPath
         }
-        def results = operations.children(aCompileJavaTask, SnapshotTaskInputsBuildOperationType)
+        def executeWorkOperation = Iterables.getOnlyElement(operations.children(aCompileJavaTask, ExecuteWorkBuildOperationType))
+        def results = operations.children(executeWorkOperation, SnapshotTaskInputsBuildOperationType)
         assert results.size() == 1
         results.first().result
     }

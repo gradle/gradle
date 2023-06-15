@@ -93,6 +93,11 @@ You can also enable this behavior by using the `--fail-fast` command line option
 `testLogging` — default: _not set_::
 This property represents a set of options that control which test events are logged and at what level. You can also configure other logging behavior via this property. See link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html[TestLoggingContainer] for more detail.
 
+`dryRun` — default: false::
+If this property is `true`, Gradle will simulate the execution of the tests without actually running them. This will still generate reports, allowing for inspection of what tests were selected. This can be used to verify that your test filtering configuration is correct without actually running the tests.
++
+You can also enable this behavior by using the `--test-dry-run` command-line option, or disable it respectively with `--no-test-dry-run`.
+
 See link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for details on all the available configuration options.
 [NOTE]
 ====

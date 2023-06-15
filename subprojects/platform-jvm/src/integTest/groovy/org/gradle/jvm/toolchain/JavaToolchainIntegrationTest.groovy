@@ -16,10 +16,8 @@
 
 package org.gradle.jvm.toolchain
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 
@@ -162,7 +160,6 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
     }
 
-    @ToBeFixedForConfigurationCache(because = "CC toolchain provisioning but we don't have an IBM one on CI")
     def "nag user when toolchain spec is IBM_SEMERU"() {
         given:
         buildScript """
@@ -183,6 +180,9 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#ibm_semeru_should_not_be_used"
 
         then:
-        succeeds ':build'
+        fails ':build'
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+               .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
     }
 }
