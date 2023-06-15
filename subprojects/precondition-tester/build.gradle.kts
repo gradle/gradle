@@ -63,11 +63,11 @@ dependencies {
 
 tasks {
     test {
-        setupAsProbingTest()
+        setupPreconditionTesting()
     }
 
     withType(DistributionTest::class) {
-        setupAsProbingTest()
+        setupPreconditionTesting()
     }
 }
 
