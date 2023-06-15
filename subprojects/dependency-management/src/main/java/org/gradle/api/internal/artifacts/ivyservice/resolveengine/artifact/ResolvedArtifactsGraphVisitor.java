@@ -25,8 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentArtifactResolveState;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
@@ -72,7 +71,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         }
         for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
             int id = nextId++;
-            artifactResults.visitArtifacts(node, fileDependency, id, artifactSelector.resolveArtifacts(fileDependency));
+            artifactResults.visitArtifacts(node, fileDependency, id, artifactSelector.resolveLocalArtifacts(fileDependency));
         }
     }
 
@@ -83,14 +82,13 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toNode) {
-        ComponentArtifactResolveState componentState = toNode.getOwner().getResolveState().prepareForArtifactResolution();
         VariantArtifactResolveState variantState = toNode.getResolveState().prepareForArtifactResolution();
         ImmutableAttributes overriddenAttributes = dependency.getAttributes();
 
-        List<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(variantState);
+        List<IvyArtifactName> artifacts = dependency.getDependencyMetadata().getArtifacts();
         if (!artifacts.isEmpty()) {
             int id = nextId++;
-            ArtifactSet artifactSet = artifactSelector.resolveArtifacts(componentState.getResolveMetadata(), artifacts, overriddenAttributes);
+            ArtifactSet artifactSet = variantState.resolveArtifacts(artifactSelector, artifacts, overriddenAttributes);
             return new ArtifactsForNode(id, artifactSet);
         }
 

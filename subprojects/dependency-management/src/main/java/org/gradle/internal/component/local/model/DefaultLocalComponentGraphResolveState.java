@@ -224,13 +224,17 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
 
         @Override
-        public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            return graphSelectedConfiguration.prepareToResolveArtifacts().artifact(artifact);
+        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, List<IvyArtifactName> dependencyArtifacts, ImmutableAttributes overriddenAttributes) {
+            List<ComponentArtifactMetadata> artifacts = dependencyArtifacts.stream()
+                .map(artifact -> graphSelectedConfiguration.prepareToResolveArtifacts().artifact(artifact))
+                .collect(Collectors.toList());
+
+            return artifactSelector.resolveComponentArtifacts(new LocalComponentArtifactResolveMetadata(component), artifacts, overriddenAttributes);
         }
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(new LocalComponentArtifactResolveMetadata(component), new LocalVariantArtifactSelectionCandidates(allVariants, legacyVariants), exclusions, overriddenAttributes);
+            return artifactSelector.resolveVariantArtifacts(new LocalComponentArtifactResolveMetadata(component), new LocalVariantArtifactSelectionCandidates(allVariants, legacyVariants), exclusions, overriddenAttributes);
         }
     }
 

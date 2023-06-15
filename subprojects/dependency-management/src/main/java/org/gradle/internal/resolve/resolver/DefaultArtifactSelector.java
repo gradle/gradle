@@ -65,12 +65,12 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(LocalFileDependencyMetadata fileDependencyMetadata) {
+    public ArtifactSet resolveLocalArtifacts(LocalFileDependencyMetadata fileDependencyMetadata) {
         return new FileDependencyArtifactSet(fileDependencyMetadata, artifactTypeRegistry, calculatedValueContainerFactory);
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveVariantArtifacts(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(component, variant.getLegacyVariants(), exclusions);
         Lazy<ImmutableSet<ResolvedVariant>> allVariants = Lazy.locking().of(() -> buildResolvedVariants(component, variant.getAllVariants(), exclusions));
 
@@ -143,7 +143,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveComponentArtifacts(ComponentArtifactResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
         VariantResolveMetadata.Identifier identifier = null;
         if (artifacts.size() == 1) {
             identifier = new SingleArtifactVariantIdentifier(artifacts.iterator().next().getId());

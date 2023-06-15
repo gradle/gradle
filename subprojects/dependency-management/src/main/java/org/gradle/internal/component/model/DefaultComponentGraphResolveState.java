@@ -192,13 +192,17 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         }
 
         @Override
-        public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            return graphSelectedConfiguration.artifact(artifact);
+        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, List<IvyArtifactName> dependencyArtifacts, ImmutableAttributes overriddenAttributes) {
+            List<ComponentArtifactMetadata> artifacts = dependencyArtifacts.stream()
+                .map(graphSelectedConfiguration::artifact)
+                .collect(Collectors.toList());
+
+            return artifactSelector.resolveComponentArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), artifacts, overriddenAttributes);
         }
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), new ExternalVariantArtifactSelectionCandidates(allVariants, legacyVariants), exclusions, overriddenAttributes);
+            return artifactSelector.resolveVariantArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), new ExternalVariantArtifactSelectionCandidates(allVariants, legacyVariants), exclusions, overriddenAttributes);
         }
     }
 

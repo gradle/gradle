@@ -28,17 +28,17 @@ import java.util.Collection;
 
 public interface ArtifactSelector {
     /**
-     * Creates a set that will resolve the artifacts of the given configuration, minus those artifacts that are excluded.
+     * Creates a set that will resolve the artifacts of the given variant, minus those artifacts that are excluded.
      */
-    ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
+    ArtifactSet resolveVariantArtifacts(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
 
     /**
      * Creates a set that will resolve the given artifacts of the given component.
      */
-    ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes);
+    ArtifactSet resolveComponentArtifacts(ComponentArtifactResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes);
 
     /**
      * Creates a set that will resolve the artifacts of the file dependency.
      */
-    ArtifactSet resolveArtifacts(LocalFileDependencyMetadata fileDependencyMetadata);
+    ArtifactSet resolveLocalArtifacts(LocalFileDependencyMetadata fileDependencyMetadata);
 }
