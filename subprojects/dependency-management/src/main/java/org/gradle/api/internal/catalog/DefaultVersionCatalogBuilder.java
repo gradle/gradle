@@ -238,7 +238,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         Set<ResolvedArtifactResult> artifacts = cnf.getIncoming().getArtifacts().getArtifacts();
         if (artifacts.size() > 1) {
-            throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog() + "Importing multiple files are not supported", TOO_MANY_IMPORT_FILES)
+            throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog() + "importing multiple files are not supported.", TOO_MANY_IMPORT_FILES)
                 .description("The import consists of multiple files")
                 .solution("Only import a single file"));
 
@@ -257,7 +257,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             File file = resolvedArtifactResult.getFile();
             withContext("catalog " + resolvedArtifactResult.getVariant().getOwner(), () -> importCatalogFromFile(file));
         } else {
-            throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog() + "No files are resolved to be imported", NO_IMPORT_FILES)
+            throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog() + "no files are resolved to be imported.", NO_IMPORT_FILES)
                 .description("The imported dependency doesn't resolve into any file")
                 .solution("Check the import statement, it should resolve into a single file"));
 //                throwVersionCatalogProblem(NO_IMPORT_FILES, spec ->
@@ -293,7 +293,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         if (importedCatalog == null) {
             importedCatalog = new Import(dependencyNotation);
         } else {
-            throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog() + "You can only call the 'from' method a single time", TOO_MANY_IMPORT_INVOCATION)
+            throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog() + "you can only call the 'from' method a single time.", TOO_MANY_IMPORT_INVOCATION)
                 .description("The method was called more than once")
                 .solution("Remove further usages of the method call"));
 
@@ -320,7 +320,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 //            );
         }
         if (!modelFile.exists()) {
-            throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog() + "Import of external catalog file failed", CATALOG_FILE_DOES_NOT_EXIST)
+            throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog() + "import of external catalog file failed.", CATALOG_FILE_DOES_NOT_EXIST)
                 .description("File '" + modelFile + "' doesn't exist")
                 .solution("Make sure that the catalog file '" + modelFile.getName() + "' exists before importing it"));
 
