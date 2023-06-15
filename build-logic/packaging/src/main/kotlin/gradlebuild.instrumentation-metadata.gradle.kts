@@ -46,10 +46,11 @@ val runtimeProjectResources = configurations.create("runtimeProjectResources") {
 
 tasks.register<FindInstrumentedSuperTypesTask>("findInstrumentedSuperTypes") {
     directSuperTypesFiles = runtimeDirectSuperTypes.projectsOnlyView()
-    projectResourceDirs = runtimeProjectResources.projectsOnlyView()
+    projectResourceDirs = files()
     instrumentedSuperTypes = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
 }
 
 fun Configuration.projectsOnlyView() = incoming.artifactView {
     componentFilter { id -> id is ProjectComponentIdentifier }
+    lenient(true)
 }.files

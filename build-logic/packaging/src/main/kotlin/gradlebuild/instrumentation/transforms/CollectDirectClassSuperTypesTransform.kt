@@ -66,11 +66,9 @@ abstract class CollectDirectClassSuperTypesTransform : TransformAction<Transform
                 val className = change.normalizedPath.removeSuffix(".class")
                 when (change.changeType) {
                     ADDED, MODIFIED -> {
-                        val superTypes = change.file.getClassSuperTypes().filter { it.startsWith("org/gradle") }
-                        when {
-                            superTypes.isEmpty() -> properties.remove(className)
-                            else -> properties.setProperty(className, superTypes.joinToString(","))
-                        }
+                        // Add also className itself, so we collect all classes
+                        val superTypes = (change.file.getClassSuperTypes() + className).filter { it.startsWith("org/gradle") }
+                        properties.setProperty(className, superTypes.joinToString(","))
                     }
                     REMOVED -> properties.remove(className)
                 }

@@ -47,11 +47,12 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
 
     @TaskAction
     fun run() {
-        val instrumentedClasses = findInstrumentedClasses(projectResourceDirs.files)
+        val instrumentedClasses = setOf("org/gradle/api/Task", "org/gradle/api/DefaultTask")
         if (instrumentedClasses.isEmpty()) {
             instrumentedSuperTypes.asFile.get().toEmptyFile()
         } else {
             val superTypes = mergeSuperTypes()
+            println("Collected super types: " + superTypes)
             val onlyInstrumentedSuperTypes = keepOnlyInstrumentedSuperTypes(superTypes, instrumentedClasses)
             writeOutput(onlyInstrumentedSuperTypes)
         }
@@ -61,7 +62,9 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
     fun mergeSuperTypes(): Map<String, Set<String>> {
         // Merge all super types files into a single map
         val directSuperTypes = mutableMapOf<String, MutableSet<String>>()
+        println("Merging super types from: " + directSuperTypesFiles.files)
         directSuperTypesFiles.forEach { file ->
+            println("File: $file:\n${file.readText()}")
             val properties = Properties()
             file.inputStream().use { properties.load(it) }
             properties.forEach { key, value ->
@@ -111,7 +114,7 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
     private
     fun keepOnlyInstrumentedSuperTypes(superTypes: Map<String, Set<String>>, instrumentedClasses: Set<String>): Map<String, Set<String>> {
         return superTypes.mapValues {
-            it.value.filter { superType -> instrumentedClasses.contains(superType) }.toSet()
+            it.value.filter { superType -> instrumentedClasses.contains(superType) }.toSortedSet()
         }.filter { it.value.isNotEmpty() }
     }
 
