@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -23,7 +24,9 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
@@ -53,6 +56,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
     private final ObjectFactory objectFactory;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final NotationParser<Object, Capability> capabilityNotationParser;
+    private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
 
     public ResolutionStrategyFactory(
         Instantiator instantiator,
@@ -79,28 +83,28 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         this.objectFactory = objectFactory;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
+        this.componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create();
     }
 
     @Override
     public ResolutionStrategyInternal create() {
         CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(DefaultCapabilitiesResolution.class,
-            capabilityNotationParser,
-            new ComponentIdentifierParserFactory().create()
+            capabilityNotationParser, componentIdentifierNotationParser
+        );
+
+        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forResolutionStrategy(
+            componentIdentifierFactory, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser
         );
 
         ResolutionStrategyInternal resolutionStrategyInternal = instantiator.newInstance(DefaultResolutionStrategy.class,
             globalDependencySubstitutionRules,
             vcsMappingsStore,
-            componentIdentifierFactory,
+            dependencySubstitutions,
             moduleIdentifierFactory,
             componentSelectorConverter,
             dependencyLockingProvider,
             capabilitiesResolutionInternal,
-            instantiator,
-            objectFactory,
-            attributesFactory,
-            moduleSelectorNotationParser,
-            capabilityNotationParser
+            objectFactory
         );
 
         startParameterResolutionOverride.applyToCachePolicy(resolutionStrategyInternal.getCachePolicy());
