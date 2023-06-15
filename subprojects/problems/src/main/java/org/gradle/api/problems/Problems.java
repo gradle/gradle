@@ -22,7 +22,7 @@ import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Prototype Problems API.
@@ -52,7 +52,7 @@ public class Problems {
         ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
     }
 
-    public static RuntimeException throwing(List<Problem> problems, RuntimeException cause) {
+    public static RuntimeException throwing(Collection<Problem> problems, RuntimeException cause) {
         for (Problem problem : problems){
             ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
         }

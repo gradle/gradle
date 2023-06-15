@@ -16,6 +16,7 @@
 package org.gradle.api.internal.catalog;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
@@ -25,15 +26,16 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.catalog.problems.VersionCatalogProblem;
-import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.TextUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.IOException;
@@ -44,11 +46,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static com.google.common.collect.ImmutableList.of;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.createVersionCatalogError;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getProblemInVersionCatalog;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
+import static org.gradle.problems.internal.RenderingUtils.oxfordJoin;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
@@ -245,7 +252,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         List<String> aliases = classNode.aliases
             .stream()
             .sorted()
-            .collect(Collectors.toList());
+            .collect(toList());
         writeLn("public static class " + bundleClassName + " extends BundleFactory " + interfaces + "{");
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
@@ -258,7 +265,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 List<String> coordinates = bundle.getComponents().stream()
                     .map(config::getDependencyData)
                     .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
-                    .collect(Collectors.toList());
+                    .collect(toList());
                 writeBundle(path, coordinates, bundle.getContext(), true, deprecated);
             }
             for (String alias : aliases) {
@@ -268,7 +275,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                     List<String> coordinates = bundle.getComponents().stream()
                         .map(config::getDependencyData)
                         .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
-                        .collect(Collectors.toList());
+                        .collect(toList());
                     writeBundle(alias, coordinates, bundle.getContext(), false, deprecated);
                 }
             }
@@ -304,7 +311,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         List<String> aliases = classNode.aliases
             .stream()
             .sorted()
-            .collect(Collectors.toList());
+            .collect(toList());
         writeLn("public static class " + pluginClassName + " extends PluginFactory " + interfaces + "{");
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.plugin);
@@ -369,7 +376,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 List<String> coordinates = model.getComponents().stream()
                     .map(config::getDependencyData)
                     .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
-                    .collect(Collectors.toList());
+                    .collect(toList());
                 writeBundle(alias, coordinates, model.getContext(), false, deprecated);
             }
         }
@@ -487,7 +494,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private String standardErrorLocation() {
-        return "Version catalog " + config.getName();
+        return "version catalog " + config.getName();
     }
 
     private void performValidation(List<String> libraries, List<String> bundles, List<String> versions, List<String> plugins) {
@@ -497,32 +504,53 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         assertUnique(plugins, "plugins", "Plugin");
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
-            maybeThrowError(ERROR_HEADER, of(buildProblem(VersionCatalogProblemId.TOO_MANY_ENTRIES, spec ->
-                spec.inContext(this::standardErrorLocation)
-                    .withShortDescription(() -> "Version catalog model contains too many entries (" + size + ")")
-                    .happensBecause(() -> "The maximum number of aliases in a catalog is " + MAX_ENTRIES)
-                    .addSolution(() -> "Reduce the number of aliases defined in this catalog")
-                    .addSolution(() -> "Split the catalog into multiple catalogs")
-                    .documented()
-            )));
+            throw throwVersionCatalogProblemException(createVersionCatalogError(gerProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
+                .description("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
+                .solution("Reduce the number of aliases defined in this catalog")
+                .solution("Split the catalog into multiple catalogs"));
+
+//            maybeThrowError(ERROR_HEADER, of(buildProblem(VersionCatalogProblemId.TOO_MANY_ENTRIES, spec ->
+//                spec.inContext(this::standardErrorLocation)
+//                    .withShortDescription(() -> "Version catalog model contains too many entries (" + size + ")")
+//                    .happensBecause(() -> "The maximum number of aliases in a catalog is " + MAX_ENTRIES)
+//                    .addSolution(() -> "Reduce the number of aliases defined in this catalog")
+//                    .addSolution(() -> "Split the catalog into multiple catalogs")
+//                    .documented()
+//            )));
         }
     }
 
+    private static RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
+        throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()));
+    }
+
     private void assertUnique(List<String> names, String prefix, String suffix) {
-        List<VersionCatalogProblem> errors = names.stream()
-            .collect(Collectors.groupingBy(AbstractSourceGenerator::toJavaName))
+        List<Problem> errors = names.stream()
+            .collect(groupingBy(AbstractSourceGenerator::toJavaName))
             .entrySet()
             .stream()
             .filter(e -> e.getValue().size() > 1)
-            .map(e -> buildProblem(VersionCatalogProblemId.ACCESSOR_NAME_CLASH, spec ->
-                spec.inContext(this::standardErrorLocation)
-                    .withShortDescription(() -> prefix + " " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")) + " are mapped to the same accessor name get" + e.getKey() + suffix + "()")
-                    .happensBecause("A name clash was detected")
-                    .addSolution(() -> "Use a different alias for " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")))
-                    .documented()
-            ))
-            .collect(Collectors.toList());
+            .map(e -> {
+                String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
+                return createVersionCatalogError(gerProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
+                    .description("A name clash was detected")
+                    .solution("Use a different alias for " + errorValues)
+                    .build();
+            })
+//            .map(e -> buildProblem(VersionCatalogProblemId.ACCESSOR_NAME_CLASH, spec ->
+//                spec.inContext(this::standardErrorLocation)
+//                    .withShortDescription(() -> prefix + " " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")) + " are mapped to the same accessor name get" + e.getKey() + suffix + "()")
+//                    .happensBecause("A name clash was detected")
+//                    .addSolution(() -> "Use a different alias for " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")))
+//                    .documented()
+//            ))
+            .collect(toList());
         maybeThrowError(ERROR_HEADER, errors);
+    }
+
+    @Nonnull
+    private String gerProblemPrefix() {
+        return getProblemInVersionCatalog(config.getName()) + ", ";
     }
 
     private static String coordinatesDescriptorFor(DependencyModel dependencyData) {

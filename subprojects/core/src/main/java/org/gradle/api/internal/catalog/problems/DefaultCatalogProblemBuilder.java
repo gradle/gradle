@@ -17,7 +17,9 @@ package org.gradle.api.internal.catalog.problems;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
@@ -25,13 +27,18 @@ import org.gradle.api.problems.internal.DefaultDocLink;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.problems.Solution;
 import org.gradle.problems.StandardSeverity;
+import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG;
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutionsWithNewProblemsApi;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
@@ -75,7 +82,13 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
         }
     }
 
-    public static RuntimeException throwErrorWithNewProblemsApi(String error, List<Problem> problems) {
+    public static void maybeThrowError(String error, Collection<Problem> problems) {
+        if (!problems.isEmpty()) {
+            throw throwErrorWithNewProblemsApi(error, problems);
+        }
+    }
+
+    public static RuntimeException throwErrorWithNewProblemsApi(String error, Collection<Problem> problems) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
@@ -84,7 +97,6 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
         }
         formatter.endChildren();
         throw Problems.throwing(problems, new InvalidUserDataException(formatter.toString()));
-//            throw new InvalidUserDataException(formatter.toString());
     }
 
     private static void reportInto(TreeFormatter output, Problem problem) {
@@ -102,6 +114,23 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
             formatter.node(DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", documentationLink.getPage(), documentationLink.getSection()));
         }
         output.node(formatter.toString());
+    }
+
+    @Nonnull
+    public static String getProblemInVersionCatalog(VersionCatalogBuilder builder) {
+        return getProblemInVersionCatalog(builder.getName());
+    }
+
+    @NotNull
+    public static String getProblemInVersionCatalog(String name) {
+        return "Problem: In version catalog " + name;
+    }
+
+    @Nonnull
+    public static ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
+        return Problems.createNew(VERSION_CATALOG, message, ERROR)
+            .type(catalogProblemId.name())
+            .documentedAt(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase());
     }
 
     @Override
