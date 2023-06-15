@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -62,6 +64,30 @@ private constructor(
     operator fun String.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint =
         constraints.add(this, dependencyConstraintNotation, configuration)
 
+    /**
+     * Adds a dependency constraint to the given configuration.
+     *
+     * @param dependencyConstraintNotation notation for the dependency constraint to be added.
+     * @return The dependency constraint.
+     * @see [DependencyConstraintHandler.add]
+     * @since 8.3
+     */
+    @Incubating
+    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint? =
+        constraints.add(name, dependencyConstraintNotation)
+
+    /**
+     * Adds a dependency constraint to the given configuration.
+     *
+     * @param dependencyConstraintNotation notation for the dependency constraint to be added.
+     * @param configuration expression to use to configure the dependency constraint.
+     * @return The dependency constraint.
+     * @see [DependencyConstraintHandler.add]
+     * @since 8.3
+     */
+    @Incubating
+    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint? =
+        constraints.add(name, dependencyConstraintNotation, configuration)
 
     /**
      * Adds a dependency constraint to the given configuration.
