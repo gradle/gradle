@@ -78,7 +78,7 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         def metaData = create()
 
         then:
-        1 * configuration.runDependencyActions()
+        1 * configuration.preventFromFurtherMutation()
 
         metaData.dependencies.size() == 0
         metaData.files.size() == 0
@@ -95,7 +95,7 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         def metaData = create()
 
         then:
-        1 * configuration.runDependencyActions()
+        1 * configuration.preventFromFurtherMutation()
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
         1 * dependencyMetadataFactory.createDependencyMetadata(componentId, "config", _, dependency1) >> dependencyDescriptor1
         1 * dependencyMetadataFactory.createDependencyMetadata(componentId, "config", _, dependency2) >> dependencyDescriptor2
@@ -113,7 +113,7 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         def metaData = create()
 
         then:
-        1 * configuration.runDependencyActions()
+        1 * configuration.preventFromFurtherMutation()
         1 * dependencyConstraintSet.iterator() >> [dependencyConstraint1, dependencyConstraint2].iterator()
         1 * dependencyMetadataFactory.createDependencyConstraintMetadata(componentId, "config", _, dependencyConstraint1) >> dependencyDescriptor1
         1 * dependencyMetadataFactory.createDependencyConstraintMetadata(componentId, "config", _, dependencyConstraint2) >> dependencyDescriptor2
@@ -129,7 +129,7 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         def metaData = create()
 
         then:
-        1 * configuration.runDependencyActions()
+        1 * configuration.preventFromFurtherMutation()
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
 
         metaData.files*.source == [dependency1, dependency2]
@@ -143,7 +143,7 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         def metaData = create()
 
         then:
-        1 * configuration.runDependencyActions()
+        1 * configuration.preventFromFurtherMutation()
         1 * configuration.excludeRules >> ([excludeRule] as Set)
         1 * excludeRuleConverter.convertExcludeRule(excludeRule) >> ivyExcludeRule
 

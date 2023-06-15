@@ -83,6 +83,8 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
 
+    void runBeforeResolve();
+
     /**
      * Test if this configuration can either be declared against or extends another
      * configuration which can be declared against.

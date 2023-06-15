@@ -1382,7 +1382,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         conf.dependencies.add(Mock(Dependency))
 
         when:
-        conf.runDependencyActions()
+        conf.preventFromFurtherMutation()
 
         then:
         0 * _
@@ -1396,7 +1396,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         conf.defaultDependencies defaultDependencyAction2
 
         when:
-        conf.runDependencyActions()
+        conf.preventFromFurtherMutation()
 
         then:
         1 * defaultDependencyAction1.execute(conf.dependencies) >> {
@@ -1415,7 +1415,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         conf.defaultDependencies defaultDependencyAction
 
         when:
-        conf.runDependencyActions()
+        conf.preventFromFurtherMutation()
 
         then:
         1 * defaultDependencyAction.execute(conf.dependencies)
@@ -1437,7 +1437,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         conf.withDependencies mutation
 
         when:
-        conf.runDependencyActions()
+        conf.preventFromFurtherMutation()
 
         then:
         1 * defaultDependencyAction.execute(conf.dependencies)

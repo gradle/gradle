@@ -106,6 +106,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -718,8 +719,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return buildOperationExecutor.call(new CallableBuildOperation<ResolveState>() {
             @Override
             public ResolveState call(BuildOperationContext context) {
-                performPreResolveActions();
-                preventFromFurtherMutation();
+                preventFromFurtherMutation(ConfigurationInternal::runBeforeResolve);
 
                 ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this);
                 dependenciesModified = false;
@@ -841,7 +841,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return null;
     }
 
-    private void performPreResolveActions() {
+    @Override
+    public void runBeforeResolve() {
         DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
         insideBeforeResolve = true;
         try {
@@ -1155,12 +1156,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void preventFromFurtherMutation() {
+        preventFromFurtherMutation(Actions.doNothing());
+    }
+
+    /**
+     * @param action An additional action to run before freezing the configuration.
+     *      If the configuration is already frozen, the action is run immediately.
+     */
+    private void preventFromFurtherMutation(Action<ConfigurationInternal> action) {
         if (!canBeMutated) {
+            action.execute(this);
             return;
         }
 
         // Run any mutating actions
         runOwnDependencyActions();
+        action.execute(this);
 
         // Realize pending elements.
         // Otherwise, when they are realized, they will trigger the mutationValidator
@@ -1523,14 +1534,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 //            DeprecationLogger.deprecate(String.format("Mutating the %s of " + this + " inside a beforeResolve hook", type))
 //                .withAdvice("The beforeResolve hook should not mutate the configuration.")
 //                .willBecomeAnErrorInGradle9()
-//                .undocumented() // TODO: Document
+//                .withUpgradeGuideSection(8, "mutate_configuration_after_locking")
 //                .nagUser();
 //        } else
         if (!insideBeforeResolve && !canBeMutated) {
             DeprecationLogger.deprecate(String.format("Mutating the %s of " + this + " after it has been locked for mutation", type))
                 .withAdvice("After a Configuration has been resolved, observed via dependency-management, or published, it should not be modified further.")
                 .willBecomeAnErrorInGradle9()
-                .undocumented() // TODO: Document
+                .withUpgradeGuideSection(8, "mutate_configuration_after_locking")
                 .nagUser();
         }
     }
