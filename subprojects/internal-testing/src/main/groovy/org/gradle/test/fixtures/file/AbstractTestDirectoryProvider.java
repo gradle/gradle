@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  * ideally < 90 chars (from repo root to test dir root, e.g. "core/build/tmp/teŝt files/{TestClass}/{testMethod}/qqlj8"),
  * or < 40 chars for "{TestClass}/{testMethod}/qqlj8"
  */
-abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
+public abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
     protected final TestFile root;
     private final String className;
 
