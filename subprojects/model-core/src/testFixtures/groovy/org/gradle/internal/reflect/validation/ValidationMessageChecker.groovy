@@ -416,9 +416,16 @@ trait ValidationMessageChecker {
     )
     String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(UnsupportedValueType, "unsupported_value_type", spec)
-        config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
-            .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
-        config.render()
+        if (config.propertyType.contains("URL")) {
+            config.description("has @Input annotation used on type 'java.net.URL' or a property of this type")
+                .reason("Type 'java.net.URL' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle")
+                .solution("Use type 'java.net.URI' instead.")
+                .render()
+        } else {
+            config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
+                .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
+                .render()
+        }
     }
 
     @ValidationTestFor(
