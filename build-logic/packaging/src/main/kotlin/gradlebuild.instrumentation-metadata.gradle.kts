@@ -17,7 +17,7 @@
 import gradlebuild.basics.classanalysis.Attributes
 import gradlebuild.instrumentation.tasks.FindInstrumentedSuperTypesTask
 import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.DIRECT_SUPER_TYPES
+import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTATION_METADATA
 
 /**
  * A plugin that configures tasks to generate metadata that is needed for code instrumentation.
@@ -25,28 +25,19 @@ import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransf
 dependencies {
     registerTransform(CollectDirectClassSuperTypesTransform::class) {
         from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JVM_CLASS_DIRECTORY)
-        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, DIRECT_SUPER_TYPES)
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, INSTRUMENTATION_METADATA)
     }
 }
 
-val runtimeDirectSuperTypes = configurations.create("runtimeDirectSuperTypes") {
-    attributes.attribute(Attributes.artifactType, DIRECT_SUPER_TYPES)
+val runtimeInstrumentationMetadata = configurations.create("runtimeInstrumentationMetadata") {
+    attributes.attribute(Attributes.artifactType, INSTRUMENTATION_METADATA)
     isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(configurations.getByName("runtimeClasspath"))
 }
-
-val runtimeProjectResources = configurations.create("runtimeProjectResources") {
-    attributes.attribute(Attributes.artifactType, ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY)
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    extendsFrom(configurations.getByName("runtimeClasspath"))
-}
-
 
 tasks.register<FindInstrumentedSuperTypesTask>("findInstrumentedSuperTypes") {
-    directSuperTypesFiles = runtimeDirectSuperTypes.projectsOnlyView()
-    projectResourceDirs = files()
+    instrumentationMetadataDirs = runtimeInstrumentationMetadata.projectsOnlyView()
     instrumentedSuperTypes = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
 }
 

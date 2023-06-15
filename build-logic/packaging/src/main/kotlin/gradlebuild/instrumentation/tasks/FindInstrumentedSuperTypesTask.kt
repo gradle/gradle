@@ -16,6 +16,8 @@
 
 package gradlebuild.instrumentation.tasks
 
+import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.DIRECT_SUPER_TYPES_FILE
+import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTED_CLASSES_FILE
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
@@ -36,65 +38,61 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val directSuperTypesFiles: ConfigurableFileCollection
-
-    @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val projectResourceDirs: ConfigurableFileCollection
+    abstract val instrumentationMetadataDirs: ConfigurableFileCollection
 
     @get:OutputFile
     abstract val instrumentedSuperTypes: RegularFileProperty
 
     @TaskAction
     fun run() {
-        val instrumentedClasses = setOf("org/gradle/api/Task", "org/gradle/api/DefaultTask")
+        val instrumentedClasses = findInstrumentedClasses()
         if (instrumentedClasses.isEmpty()) {
             instrumentedSuperTypes.asFile.get().toEmptyFile()
         } else {
+            // Merge and find all transitive super types
             val superTypes = mergeSuperTypes()
-            println("Collected super types: " + superTypes)
+            // Keep only instrumented super types as we don't need to others for instrumentation
             val onlyInstrumentedSuperTypes = keepOnlyInstrumentedSuperTypes(superTypes, instrumentedClasses)
             writeOutput(onlyInstrumentedSuperTypes)
         }
+    }
+
+    /**
+     * Finds all instrumented classes from `instrumented-classes.txt` file.
+     * That file is created by instrumentation annotation processor and artifact transform.
+     * See :internal-instrumentation-processor project and [gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform].
+     */
+    private
+    fun findInstrumentedClasses(): Set<String> {
+        return instrumentationMetadataDirs
+            .map { it.resolve(INSTRUMENTED_CLASSES_FILE) }
+            .filter { it.exists() }
+            .flatMap { it.readLines() }
+            .toSet()
     }
 
     private
     fun mergeSuperTypes(): Map<String, Set<String>> {
         // Merge all super types files into a single map
         val directSuperTypes = mutableMapOf<String, MutableSet<String>>()
-        println("Merging super types from: " + directSuperTypesFiles.files)
-        directSuperTypesFiles.forEach { file ->
-            println("File: $file:\n${file.readText()}")
-            val properties = Properties()
-            file.inputStream().use { properties.load(it) }
-            properties.forEach { key, value ->
-                val className = key.toString()
-                val superTypeNames = value.toString().split(",")
-                directSuperTypes.computeIfAbsent(className) { linkedSetOf() }.addAll(superTypeNames)
+        instrumentationMetadataDirs
+            .map { it.resolve(DIRECT_SUPER_TYPES_FILE) }
+            .filter { it.exists() }
+            .forEach { file ->
+                val properties = Properties()
+                file.inputStream().use { properties.load(it) }
+                properties.forEach { key, value ->
+                    val className = key.toString()
+                    val superTypeNames = value.toString().split(",")
+                    directSuperTypes.computeIfAbsent(className) { linkedSetOf() }.addAll(superTypeNames)
+                }
             }
-        }
 
         // Note: superTypesFiles contains only direct super types, but no transitive ones,
         // so we have to collect also transitive super types
         return directSuperTypes.map {
             it.key to computeAllSuperTypes(it.key, directSuperTypes)
         }.toMap()
-    }
-
-    /**
-     * Finds all instrumented classes from `instrumented-classes.properties` file.
-     * That file is created by instrumentation annotation processor. See :internal-instrumentation-processor project.
-     */
-    private
-    fun findInstrumentedClasses(projectResourceDirs: Set<File>): Set<String> {
-        return projectResourceDirs
-            .map { File(it, "org/gradle/internal/instrumentation/instrumented-classes.txt") }
-            .filter { it.exists() }
-            .flatMap { file ->
-                val properties = Properties()
-                file.inputStream().use { properties.load(it) }
-                properties.keys.map { it as String }
-            }.toSet()
     }
 
     private
@@ -114,7 +112,7 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
     private
     fun keepOnlyInstrumentedSuperTypes(superTypes: Map<String, Set<String>>, instrumentedClasses: Set<String>): Map<String, Set<String>> {
         return superTypes.mapValues {
-            it.value.filter { superType -> instrumentedClasses.contains(superType) }.toSortedSet()
+            it.value.filter { superType -> instrumentedClasses.contains(superType) }.toSet()
         }.filter { it.value.isNotEmpty() }
     }
 

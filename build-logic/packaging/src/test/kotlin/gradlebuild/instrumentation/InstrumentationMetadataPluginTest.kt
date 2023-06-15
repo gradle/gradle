@@ -24,7 +24,7 @@ import java.io.File
 import java.util.Properties
 
 
-class InstrumentationMetadataTest {
+class InstrumentationMetadataPluginTest {
     @TempDir
     private
     lateinit var temporaryFolder: File
@@ -53,11 +53,32 @@ class InstrumentationMetadataTest {
             "org/gradle/quality/SourceTask" to "org/gradle/api/DefaultTask,org/gradle/api/Task"
         ).toSortedMap()
         assert(instrumentedSuperTypes == expectedSuperTypes) {
-            "Expected instrumented-super-types.properties to be:\n$expectedSuperTypes but were:\n$instrumentedSuperTypes"
+            "Expected instrumented-super-types.properties to be equal to:\n$expectedSuperTypes but was:\n$instrumentedSuperTypes"
         }
     }
 
-    private fun File.readPropertiesFileToSorterMap() = this.inputStream()
+    @Test
+    fun `should output empty instrumented-super-types properties file if none of types is instrumented`() {
+        // Given
+        // Override the build.gradle file to not write instrumented-classes.txt file
+        File(projectRoot, "core/build.gradle").writeText("""
+            plugins {
+                id("java-library")
+            }
+        """)
+
+        // When
+        assertSucceeds()
+
+        // Then
+        val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties").readPropertiesFileToSorterMap()
+        assert(instrumentedSuperTypes.isEmpty()) {
+            "Expected instrumented-super-types.properties to be empty but contained $instrumentedSuperTypes"
+        }
+    }
+
+    private
+    fun File.readPropertiesFileToSorterMap() = this.inputStream()
         .use { Properties().apply { load(it) } }
         .map { it.key as String to it.value as String }
         .toMap()
@@ -99,7 +120,7 @@ class InstrumentationMetadataTest {
                 doLast {
                     // Simulate annotation processor output
                     file("build/classes/java/main/org/gradle/internal/instrumentation").mkdirs()
-                    file("build/classes/java/main/org/gradle/internal/instrumentation/instrumented-classes.txt") << "org/gradle/api/Task.java\norg.gradle.api.DefaultTask"
+                    file("build/classes/java/main/org/gradle/internal/instrumentation/instrumented-classes.txt") << "org/gradle/api/Task\norg/gradle/api/DefaultTask"
                 }
             }
         """)
