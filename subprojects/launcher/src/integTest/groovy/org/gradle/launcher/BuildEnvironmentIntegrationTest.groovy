@@ -19,12 +19,14 @@ package org.gradle.launcher
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
+@DoesNotSupportNonAsciiPaths(reason = "Some tests need to run with ASCII encoding")
 class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll("default locale for gradle build switched to #locale")
