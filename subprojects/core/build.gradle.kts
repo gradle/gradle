@@ -145,11 +145,11 @@ dependencies {
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.asm)
-
-    testFixturesRuntimeOnly(project(":plugin-use")) {
+    testFixturesImplementation(project(":dependency-management")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    testFixturesRuntimeOnly(project(":dependency-management")) {
+
+    testFixturesRuntimeOnly(project(":plugin-use")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
     testFixturesRuntimeOnly(project(":workers")) {
