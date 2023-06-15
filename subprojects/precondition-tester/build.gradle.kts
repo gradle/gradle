@@ -71,7 +71,7 @@ tasks {
     }
 }
 
-fun Test.setupAsProbingTest() {
+fun Test.setupPreconditionTesting() {
     // We only want to execute our special tests
     // so we override what classes are going to run
     testClassesDirs = sourceSets.test.get().output.classesDirs

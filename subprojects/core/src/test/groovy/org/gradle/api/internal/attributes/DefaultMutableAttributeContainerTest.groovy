@@ -281,4 +281,17 @@ class DefaultMutableAttributeContainerTest extends Specification {
         container.toString() == "{a=fixed(class java.lang.String, a), b=b, c=c}"
         container.asImmutable().toString() == "{a=a, b=b, c=c}"
     }
+
+    def "can access lazy elements while iterating over keySet"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+
+        when:
+        container.attributeProvider(Attribute.of("a", String), Providers.of("foo"))
+        container.attributeProvider(Attribute.of("b", String), Providers.of("foo"))
+
+        then:
+        for (Attribute<?> attribute : container.keySet()) {
+            container.getAttribute(attribute)
+        }
+    }
 }

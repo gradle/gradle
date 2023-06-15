@@ -16,6 +16,9 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":persistent-cache"))
     implementation(project(":snapshots"))
+    implementation(projects.enterpriseOperations) {
+        because("Adds generic build operations for the execution engine")
+    }
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

@@ -38,6 +38,28 @@ public interface TestClassExecutionResult {
     int getTestCount();
 
     /**
+     * Asserts that the given tests have the given outcome for the given test class.
+     */
+    default TestClassExecutionResult assertTestOutcomes(TestOutcome status, String... testNames) {
+        if (status == TestOutcome.SKIPPED) {
+            return assertTestsSkipped(testNames);
+        }
+        for (String testName : testNames) {
+            switch (status) {
+                case PASSED:
+                    assertTestPassed(testName);
+                    break;
+                case FAILED:
+                    assertTestFailedIgnoreMessages(testName);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown test outcome: " + status);
+            }
+        }
+        return this;
+    }
+
+    /**
      * Asserts that the given tests (and only the given tests) were skipped for the given test class.
      */
     TestClassExecutionResult assertTestsSkipped(String... testNames);
@@ -57,6 +79,9 @@ public interface TestClassExecutionResult {
     TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers);
 
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
+
+    TestClassExecutionResult assertTestFailedIgnoreMessages(String name);
+
     /**
      *
      */
@@ -93,7 +118,9 @@ public interface TestClassExecutionResult {
 
     interface TestCase {
         String getName();
+
         String getDisplayName();
+
         List<String> getMessages();
     }
 }

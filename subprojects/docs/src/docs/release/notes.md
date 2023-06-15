@@ -62,6 +62,25 @@ Also, error messages related to SSL have been improved, and they should be more 
 
 TODO - dependency resolution uses less heap
 
+### Kotlin DSL improvements
+
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing experience in supported IDEs compared to the traditional Groovy DSL — auto-completion, smart content assist, quick access to documentation, navigation to source, and context-aware refactoring.
+
+Kotlin DSL has received substantial improvements in the recent releases, leading to the announcement that [Kotlin DSL is Now the Default for New Gradle Builds](https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds).
+This release brings another series of improvements.
+
+#### Request plugin with the embedded Kotlin version
+
+It is now easier to request a plugin with the embedded Kotlin version in the builds of your Gradle plugins implemented in Kotlin.
+
+Instead of using [kotlin()](kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html) that requires a version declaration you can now use [embeddedKotlin()](kotlin-dsl/gradle/org.gradle.kotlin.dsl/embedded-kotlin.html) instead:
+
+```kotlin
+plugins {
+    embeddedKotlin("plugin.serialization")
+}
+```
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
