@@ -24,6 +24,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * A step that executes a unit of work and wraps it into a {@link ExecuteWorkBuildOperationType} build operation.
@@ -39,29 +40,31 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        return operation(operationContext -> {
-                R result = delegate.execute(work, context);
-                ExecuteWorkBuildOperationType.Result operationResult = new ExecuteWorkResult(result.getExecution());
-                operationContext.setResult(operationResult);
-                return result;
-            },
-            BuildOperationDescriptor
-                .displayName("Execute unit of work")
-                .details(new ExecuteWorkDetails(work)));
+        Optional<String> buildOperationWorkType = work.getBuildOperationWorkType();
+        return buildOperationWorkType.map(workType -> operation(operationContext -> {
+                    R result = delegate.execute(work, context);
+                    ExecuteWorkBuildOperationType.Result operationResult = new ExecuteWorkResult(result.getExecution());
+                    operationContext.setResult(operationResult);
+                    return result;
+                },
+                BuildOperationDescriptor
+                    .displayName("Execute unit of work")
+                    .details(new ExecuteWorkDetails(workType)))
+        ).orElseGet(() -> delegate.execute(work, context));
     }
 
     private static class ExecuteWorkDetails implements ExecuteWorkBuildOperationType.Details {
 
-        private final UnitOfWork work;
+        private final String workType;
 
-        public ExecuteWorkDetails(UnitOfWork work) {
-            this.work = work;
+        public ExecuteWorkDetails(String workType) {
+            this.workType = workType;
         }
 
         @Nullable
         @Override
         public String getWorkType() {
-            return work.getBuildOperationWorkType().orElse(null);
+            return workType;
         }
 
     }

@@ -16,14 +16,12 @@
 
 package org.gradle.api.tasks
 
-import com.google.common.collect.Iterables
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
-import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.IgnoreIf
 
@@ -286,8 +284,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     List<String> taskLogging(String taskPath) {
         def taskExecutionOp = operations.only("Task $taskPath")
-        def workExecutionOp = Iterables.getOnlyElement(operations.children(taskExecutionOp, ExecuteWorkBuildOperationType))
-        def logging = workExecutionOp.progress(LogEventBuildOperationProgressDetails)*.details
+        def logging = taskExecutionOp.progress(LogEventBuildOperationProgressDetails)*.details
         def timeoutLogging = logging.findAll { it.category == DefaultTimeoutHandler.name }
         timeoutLogging.collect { it.message } as List<String>
     }
