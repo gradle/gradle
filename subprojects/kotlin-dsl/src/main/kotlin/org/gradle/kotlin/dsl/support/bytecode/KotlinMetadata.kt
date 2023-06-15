@@ -31,7 +31,6 @@ import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KmModule
 import kotlinx.metadata.jvm.KmPackageParts
-import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
 import kotlinx.metadata.jvm.getterSignature
@@ -52,10 +51,10 @@ import java.io.File
 internal
 fun publicKotlinClass(
     internalClassName: InternalName,
-    header: KotlinClassHeader,
+    metadata: Metadata,
     classBody: ClassWriter.() -> Unit
 ): ByteArray = publicClass(internalClassName) {
-    visitKotlinMetadataAnnotation(header)
+    visitKotlinMetadataAnnotation(metadata)
     classBody()
 }
 
@@ -75,9 +74,9 @@ fun beginFileFacadeClassHeader() = KmPackage()
 
 
 internal
-fun KmPackage.closeHeader(moduleName: String): KotlinClassHeader {
+fun KmPackage.closeHeader(moduleName: String): Metadata {
     this.moduleName = moduleName
-    return KotlinClassMetadata.FileFacade.Writer().also { this.accept(it) }.write().header
+    return KotlinClassMetadata.writeFileFacade(this).annotationData
 }
 
 
@@ -88,7 +87,7 @@ fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray {
         fileFacades.map { it.value }.toMutableList(),
         emptyMap<String, String>().toMutableMap()
     )
-    return KotlinModuleMetadata.Writer().also { kmModule.accept(it) }.write().bytes
+    return KotlinModuleMetadata.write(kmModule).bytes
 }
 
 
@@ -123,26 +122,26 @@ fun ClassVisitor.publicStaticSyntheticMethod(
 
 
 internal
-fun ClassWriter.endKotlinClass(classHeader: KotlinClassHeader): ByteArray {
-    visitKotlinMetadataAnnotation(classHeader)
+fun ClassWriter.endKotlinClass(metadata: Metadata): ByteArray {
+    visitKotlinMetadataAnnotation(metadata)
     return endClass()
 }
 
 
 /**
- * Writes the given [header] to the class file as a [kotlin.Metadata] annotation.
+ * Writes the given [metadata] to the class file as a [kotlin.Metadata] annotation.
  **/
 private
-fun ClassWriter.visitKotlinMetadataAnnotation(header: KotlinClassHeader) {
+fun ClassWriter.visitKotlinMetadataAnnotation(metadata: Metadata) {
     visitAnnotation("Lkotlin/Metadata;", true).run {
-        visit("mv", header.metadataVersion)
-        visit("k", header.kind)
+        visit("mv", metadata.metadataVersion)
+        visit("k", metadata.kind)
         visitArray("d1").run {
-            header.data1.forEach { visit(null, it) }
+            metadata.data1.forEach { visit(null, it) }
             visitEnd()
         }
         visitArray("d2").run {
-            header.data2.forEach { visit(null, it) }
+            metadata.data2.forEach { visit(null, it) }
             visitEnd()
         }
         visitEnd()
