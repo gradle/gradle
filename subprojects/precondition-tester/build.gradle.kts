@@ -1,3 +1,5 @@
+import gradlebuild.integrationtests.tasks.DistributionTest
+
 /*
  * Copyright 2023 the original author or authors.
  *
@@ -60,24 +62,27 @@ dependencies {
 }
 
 tasks {
-    withType(Test::class) {
-        // We skip archTests, as they don't need preconditions
-        if (this.name == "archTest") {
-            return@withType
-        }
-
-        // We only want to execute our special tests,
-        // so we override what classes are going to run
-        testClassesDirs = sourceSets.test.get().output.classesDirs
-        // All test should have this project's "test" source set on their classpath
-        classpath += sourceSets.test.get().output
-
-        // These tests should not be impacted by the predictive selection
-        predictiveSelection {
-            enabled = false
-        }
-
-        // These tests should always run
-        outputs.upToDateWhen { false }
+    test {
+        this.setupAsProbingTest()
     }
+
+    withType(DistributionTest::class) {
+        this.setupAsProbingTest()
+    }
+}
+
+fun Test.setupAsProbingTest() {
+    // We only want to execute our special tests
+    // so we override what classes are going to run
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    // All test should have this project's "test" source set on their classpath
+    classpath += sourceSets.test.get().output
+
+    // These tests should not be impacted by the predictive selection
+    predictiveSelection {
+        enabled = false
+    }
+
+    // These tests should always run
+    outputs.upToDateWhen { false }
 }
