@@ -24,10 +24,11 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 
 class MutableTransformExecution extends AbstractTransformExecution {
-    private final String rootProjectLocation;
+    private final Path rootProjectLocation;
 
     public MutableTransformExecution(
         Transform transform,
@@ -46,23 +47,23 @@ class MutableTransformExecution extends AbstractTransformExecution {
             transform, inputArtifact, dependencies, subject,
             transformExecutionListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
         );
-        this.rootProjectLocation = producerProject.getRootDir().getAbsolutePath() + File.separator;
+        this.rootProjectLocation = producerProject.getRootDir().toPath().toAbsolutePath();
     }
 
     @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
         return new MutableTransformWorkspaceIdentity(
-            normalizeAbsolutePath(inputArtifact.getAbsolutePath()),
+            normalizeAbsolutePath(inputArtifact.toPath().toAbsolutePath()),
             identityInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
             identityFileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
         );
     }
 
-    private String normalizeAbsolutePath(String path) {
+    private String normalizeAbsolutePath(Path path) {
         // We try to normalize the absolute path, so the workspace id is stable between machines for cacheable transforms.
         if (path.startsWith(rootProjectLocation)) {
-            return path.substring(rootProjectLocation.length());
+            return rootProjectLocation.relativize(path).toString();
         }
-        return path;
+        return path.toString();
     }
 }
