@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import spock.lang.Issue
 import spock.lang.See
 
@@ -25,6 +26,7 @@ import static org.gradle.api.plugins.quality.checkstyle.CheckstylePluginMultiPro
 
 @Issue("https://github.com/gradle/gradle/issues/21624")
 @See("https://checkstyle.sourceforge.io/config_system_properties.html#Enable_External_DTD_load")
+@DoesNotSupportNonAsciiPaths(reason = "https://github.com/checkstyle/checkstyle/issues/13012")
 class CheckstylePluginExternalDTDOptionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """

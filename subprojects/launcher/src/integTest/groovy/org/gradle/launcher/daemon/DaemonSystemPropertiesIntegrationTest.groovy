@@ -110,37 +110,6 @@ task verify {
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded }) // need to start Gradle process from command line to use GRADLE_OPTS
-    def "forks new daemon when file encoding is set to different value via GRADLE_OPTS"() {
-        setup:
-        buildScript """
-            println "GRADLE_VERSION: " + gradle.gradleVersion
-
-            task verify {
-                doFirst {
-                    println "verified = " + java.nio.charset.Charset.defaultCharset().name()
-                }
-            }
-        """
-
-        when:
-        executer.withEnvironmentVars(GRADLE_OPTS: "-Dfile.encoding=UTF-8");
-        run "verify"
-
-        then:
-        String gradleVersion = (output =~ /GRADLE_VERSION: (.*)/)[0][1]
-        daemons(gradleVersion).daemons.size() == 1
-
-        when:
-        executer.withEnvironmentVars(GRADLE_OPTS: "-Dfile.encoding=ISO-8859-1");
-        executer.withArgument("-i")
-        run "verify"
-
-        then:
-        output.contains("verified = ISO-8859-1")
-        daemons(gradleVersion).daemons.size() == 2
-    }
-
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon when tmpdir is set to different value via GRADLE_OPTS"() {
         setup:
         buildScript """

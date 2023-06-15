@@ -23,16 +23,15 @@ import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixtu
 import org.gradle.performance.annotations.AllFeaturesShouldBeAnnotated
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
-import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
 import org.gradle.test.fixtures.file.CleanupTestDirectory
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
 import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
+
 /**
  * A base class for cross version performance tests.
  *
@@ -43,9 +42,6 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
 class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
 
     private static final RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossVersionResultsStore() }
-
-    @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 

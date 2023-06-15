@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.performance.fixture;
 
-package org.gradle.performance.fixture
+import org.gradle.test.fixtures.file.AbstractTestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestFile;
 
-import groovy.transform.CompileStatic
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import java.io.File;
 
-@CompileStatic
-class PerformanceTestDirectoryProvider extends TestNameTestDirectoryProvider {
-    PerformanceTestDirectoryProvider(Class<?> klass) {
+public class PerformanceTestDirectoryProvider extends AbstractTestDirectoryProvider {
+    public PerformanceTestDirectoryProvider(Class<?> klass) {
         // Java does not support spaces in GC logging location
-        super(new TestFile(new File("build/tmp/performance-test-files")), klass)
+        super(new TestFile(new File("build/tmp/performance-test-files")), klass);
     }
 }
