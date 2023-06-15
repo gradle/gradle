@@ -21,11 +21,6 @@ import spock.lang.Specification
 
 class WeakIdentityHashMapTest extends Specification {
 
-    private def runGc() {
-        System.gc()
-        Thread.sleep(2000)
-    }
-
     def "can put a value to map"() {
         Thing thing = new Thing("thing")
         WeakIdentityHashMap<Thing, String> map = new WeakIdentityHashMap<>()
@@ -72,10 +67,9 @@ class WeakIdentityHashMapTest extends Specification {
         when:
         key1 = null
         key2 = null
-        runGc()
 
         then:
-        map.keySet().every { it.get() == null }
+        waitForConditionAfterGC { map.keySet().every { it.get() == null } }
     }
 
     def "weakKey is doesn't keep strong reference at referent"() {
@@ -84,10 +78,9 @@ class WeakIdentityHashMapTest extends Specification {
 
         when:
         referent = null
-        runGc()
 
         then:
-        weakKey.get() == null
+        waitForConditionAfterGC { weakKey.get() == null }
     }
 
     def "weakKeys for equal objects are different"() {
@@ -150,5 +143,22 @@ class WeakIdentityHashMapTest extends Specification {
         int hashCode() {
             return name.hashCode()
         }
+    }
+
+    private boolean waitForConditionAfterGC(Closure<Boolean> condition) {
+        System.gc()
+        waitForCondition(condition)
+    }
+
+    private boolean waitForCondition(Closure<Boolean> condition) {
+        def conditionMet = condition.call()
+        def startTime = System.currentTimeMillis()
+
+        while (!conditionMet && (System.currentTimeMillis() - startTime) < 2000) {
+            Thread.sleep(100)
+            conditionMet = condition.call()
+        }
+
+        conditionMet
     }
 }
