@@ -162,6 +162,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, handler);
         handler.attachProxy(proxy);
 
+        graphDetails.putViewFor(sourceObject, viewKey, proxy);
+
         return viewType.cast(proxy);
     }
 
@@ -470,7 +472,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         void attachProxy(Object proxy) {
             this.proxy = proxy;
-            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration), proxy);
         }
     }
 
