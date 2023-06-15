@@ -117,8 +117,6 @@ public class ResolveIvyFactory {
         }
 
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
-        startParameterResolutionOverride.applyToCachePolicy(cachePolicy);
-
         UserResolverChain moduleResolver = new UserResolverChain(versionComparator, resolutionStrategy.getComponentSelection(), versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
         ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
 
