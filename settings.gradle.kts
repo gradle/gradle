@@ -182,6 +182,7 @@ unassigned {
     subproject("smoke-test")
     subproject("performance")
     subproject("build-scan-performance")
+    subproject("precondition-tester")
 }
 
 rootProject.name = "gradle"

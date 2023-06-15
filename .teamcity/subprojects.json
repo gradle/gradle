@@ -651,6 +651,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "precondition-tester",
+    "path": "subprojects/precondition-tester",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
     "name": "problems",
     "path": "subprojects/problems",
     "unitTests": true,
