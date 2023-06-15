@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
+
 public class TarFileTree extends AbstractArchiveFileTree {
     private final Provider<File> tarFileProvider;
     private final Provider<ReadableResourceInternal> resource;
@@ -177,7 +179,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         @Override
         public File getFile() {
             if (file == null) {
-                file = new File(expandedDir, entry.getName());
+                file = new File(expandedDir, safeEntryName());
                 if (!file.exists()) {
                     copyTo(file);
                 }
@@ -214,12 +216,16 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
         @Override
         public RelativePath getRelativePath() {
-            return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
+            return new RelativePath(!entry.isDirectory(), safeEntryName().split("/"));
         }
 
         @Override
         public int getMode() {
             return entry.getMode() & 0777;
+        }
+
+        private String safeEntryName() {
+            return safeZipEntryName(entry.getName());
         }
     }
 
