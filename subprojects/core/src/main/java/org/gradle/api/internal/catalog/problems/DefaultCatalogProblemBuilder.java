@@ -27,7 +27,6 @@ import org.gradle.api.problems.internal.DefaultDocLink;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.problems.Solution;
 import org.gradle.problems.StandardSeverity;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -121,7 +120,7 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
         return getProblemInVersionCatalog(builder.getName());
     }
 
-    @NotNull
+    @Nonnull
     public static String getProblemInVersionCatalog(String name) {
         return "Problem: In version catalog " + name;
     }
