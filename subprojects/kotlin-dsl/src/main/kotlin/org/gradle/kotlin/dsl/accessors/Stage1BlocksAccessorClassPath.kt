@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.Flag
-import kotlinx.metadata.KmTypeVisitor
+import kotlinx.metadata.KmType
 import kotlinx.metadata.flagsOf
 import org.gradle.api.Project
 import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
@@ -40,7 +40,7 @@ import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
-import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
+import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
 import java.io.File
 import javax.inject.Inject
 
@@ -184,13 +184,8 @@ data class ExtensionSpec(
 internal
 data class TypeSpec(val sourceName: String, val internalName: InternalName) {
 
-    val builder: KmTypeBuilder
-        get() = { visitClass(internalName) }
-
-    private
-    fun KmTypeVisitor.visitClass(internalName: InternalName) {
-        visitClass(internalName.value)
-    }
+    val kmType: KmType
+        get() = newClassTypeOf(internalName.value)
 }
 
 

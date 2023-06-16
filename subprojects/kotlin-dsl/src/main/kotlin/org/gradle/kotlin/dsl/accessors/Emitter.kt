@@ -18,10 +18,8 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
-
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
-
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.beginPublicClass
@@ -29,7 +27,6 @@ import org.gradle.kotlin.dsl.support.bytecode.closeHeader
 import org.gradle.kotlin.dsl.support.bytecode.endKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
-
 import java.io.File
 
 
@@ -153,8 +150,8 @@ fun IO.writeAccessorsBytecodeTo(
         BytecodeFragmentScope(signature, classWriter).run(bytecode)
     }
 
-    val classHeader = metadataWriter.closeHeader(moduleName)
-    val classBytes = classWriter.endKotlinClass(classHeader)
+    val metadata = metadataWriter.closeHeader(moduleName)
+    val classBytes = classWriter.endKotlinClass(metadata)
     val classFile = binDir.resolve("$className.class")
     writeFile(classFile, classBytes)
 }
