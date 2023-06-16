@@ -5,6 +5,7 @@ import common.hiddenArtifactDestination
 import common.isSecurityFork
 import configurations.PerformanceTestsPass
 import configurations.StagePasses
+import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
