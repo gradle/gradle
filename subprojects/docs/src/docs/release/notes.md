@@ -124,7 +124,7 @@ See the [build init](userguide/build_init_plugin.html#sec:what_to_set_up) user m
 #### Fail on script compilation warnings
 
 Gradle [Kotlin DSL scripts](userguide/kotlin_dsl.html#sec:scripts) are compiled by Gradle during the configuration phase of your build.
-Deprecation warnings found by the Kotlin compiler are reported on the console when compiling the scripts.
+For example, deprecation warnings or unused variables found by the Kotlin compiler are reported on the console when compiling the scripts.
 
 In order to catch potential issues faster, it is now possible to configure your build to fail on any warning emitted during script compilation by setting the `org.gradle.kotlin.dsl.allWarningsAsErrors` Gradle property to `true`:
 
