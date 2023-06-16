@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.classanalysis.Attributes
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension
 import gradlebuild.instrumentation.tasks.FindInstrumentedSuperTypesTask
 import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform
 import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTATION_METADATA
 
 /**
- * A plugin that configures tasks to generate metadata that is needed for code instrumentation.
+ * A plugin that configures tasks and transforms to generate metadata that is needed for code instrumentation.
  */
 dependencies {
     registerTransform(CollectDirectClassSuperTypesTransform::class) {
@@ -29,19 +29,12 @@ dependencies {
     }
 }
 
-val runtimeInstrumentationMetadata = configurations.create("runtimeInstrumentationMetadata") {
-    attributes.attribute(Attributes.artifactType, INSTRUMENTATION_METADATA)
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    extendsFrom(configurations.getByName("runtimeClasspath"))
+val extension = extensions.create<InstrumentationMetadataExtension>("instrumentationMetadata").apply {
+    classpathToInspect = files()
+    superTypesOutputFile.convention(layout.buildDirectory.file("instrumentation/instrumented-super-types.properties"))
 }
 
 tasks.register<FindInstrumentedSuperTypesTask>("findInstrumentedSuperTypes") {
-    instrumentationMetadataDirs = runtimeInstrumentationMetadata.projectsOnlyView()
-    instrumentedSuperTypes = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
+    instrumentationMetadataDirs = extension.classpathToInspect
+    instrumentedSuperTypes.convention(extension.superTypesOutputFile)
 }
-
-fun Configuration.projectsOnlyView() = incoming.artifactView {
-    componentFilter { id -> id is ProjectComponentIdentifier }
-    lenient(true)
-}.files

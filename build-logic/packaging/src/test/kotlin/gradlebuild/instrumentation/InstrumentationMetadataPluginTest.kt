@@ -175,6 +175,11 @@ class InstrumentationMetadataPluginTest {
                 implementation(project(":core"))
                 implementation(project(":code-quality"))
             }
+
+            instrumentationMetadata {
+                classpathToInspect = createInstrumentationMetadataViewOf(configurations.runtimeClasspath)
+                superTypesOutputFile = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
+            }
         """)
     }
 }

@@ -22,6 +22,7 @@ import gradlebuild.docs.GradleUserManualPlugin
 import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask
 import gradlebuild.docs.dsl.source.GenerateApiMapping
 import gradlebuild.docs.dsl.source.GenerateDefaultImports
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension
 import gradlebuild.packaging.GradleDistributionSpecs
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
@@ -51,6 +52,7 @@ import java.util.jar.Attributes
  */
 plugins {
     id("gradlebuild.module-identity")
+    id("gradlebuild.instrumentation-metadata")
 }
 
 // Name of the Jar a Gradle distributions project produces as part of the distribution.
@@ -134,6 +136,13 @@ val emptyClasspathManifest by tasks.registering(ClasspathManifest::class) {
     this.manifestFile = generatedPropertiesFileFor("$runtimeApiJarName-classpath")
 }
 
+// At runtime, Gradle expects to have instrumentation metadata
+val instrumentationMetadataTask = tasks.named("findInstrumentedSuperTypes")
+extensions.configure<InstrumentationMetadataExtension>("instrumentationMetadata") {
+    classpathToInspect = runtimeClasspath.toInstrumentationMetadataView()
+    superTypesOutputFile = generatedPropertiesFileFor("instrumented-super-types")
+}
+
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'
 val runtimeApiInfoJar by tasks.registering(Jar::class) {
     archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
@@ -152,6 +161,7 @@ val runtimeApiInfoJar by tasks.registering(Jar::class) {
     from(pluginsManifest)
     from(implementationPluginsManifest)
     from(emptyClasspathManifest)
+    from(instrumentationMetadataTask)
 }
 
 // A standard Java runtime variant for embedded integration testing
