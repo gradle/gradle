@@ -28,7 +28,6 @@ import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Test
-import spock.lang.Ignore
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def failedResolve = new ResolveFailureTestFixture(buildFile, "compile")
@@ -445,7 +444,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 1
     }
 
-    @Ignore("wip")
     @ToBeFixedForConfigurationCache(because = "Runtime classpath for CompileJava task is resolved even though the task will not run")
     def "resolved components contain their source repository name, even when taken from the cache"() {
         setup:
@@ -534,7 +532,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         verifyExpectedOperation()
     }
 
-    @Ignore("wip")
     def "resolved components contain their source repository name when resolution fails"() {
         setup:
         mavenHttpRepo.module('org.foo', 'transitive1').publish().allowAll()
@@ -585,7 +582,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolvedComponents.'org.foo:transitive1:1.0'.repoId == repoId
     }
 
-    @Ignore("wip")
     @ToBeFixedForConfigurationCache(because = "Dependency resolution does not run for a from-cache build")
     def "resolved components contain their source repository id, even when they are structurally identical"() {
         setup:
@@ -650,7 +646,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolvedComponents2.'org.foo:good:1.0'.repoId == repo2Id
     }
 
-    @Ignore("wip")
     def "resolved components contain their source repository id, even when the repository definitions are modified"() {
         mavenRepo.module('org.foo', 'good').publish()
 
