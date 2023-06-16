@@ -51,7 +51,6 @@ public class DefaultTypeValidationProblemBuilder extends AbstractValidationProbl
             shortProblemDescription,
             longDescription,
             reason,
-            cacheabilityProblemOnly,
             userManualReference,
             possibleSolutions
         );

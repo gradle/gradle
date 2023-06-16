@@ -37,7 +37,6 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     protected Supplier<String> reason = () -> null;
     protected UserManualReference userManualReference;
     protected final List<Supplier<Solution>> possibleSolutions = Lists.newArrayListWithExpectedSize(1);
-    protected boolean cacheabilityProblemOnly = false;
     protected boolean typeIrrelevantInErrorMessage = false;
 
     public AbstractValidationProblemBuilder(DocumentationRegistry documentationRegistry, @Nullable PluginId pluginId) {
@@ -86,12 +85,6 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
         DefaultSolutionBuilder builder = new DefaultSolutionBuilder(documentationRegistry, solution);
         solutionSpec.execute(builder);
         possibleSolutions.add(builder.build());
-        return Cast.uncheckedCast(this);
-    }
-
-    @Override
-    public T onlyAffectsCacheableWork() {
-        this.cacheabilityProblemOnly = true;
         return Cast.uncheckedCast(this);
     }
 

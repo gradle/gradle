@@ -16,8 +16,8 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import kotlinx.metadata.KmPackage
 import kotlinx.metadata.jvm.JvmMethodSignature
-import kotlinx.metadata.jvm.KotlinClassMetadata
 
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 
@@ -52,7 +52,7 @@ typealias MetadataWriter = MetadataFragmentScope.() -> Unit
 internal
 data class MetadataFragmentScope(
     val signature: JvmMethodSignature,
-    val writer: KotlinClassMetadata.FileFacade.Writer
+    val kmPackage: KmPackage
 )
 
 

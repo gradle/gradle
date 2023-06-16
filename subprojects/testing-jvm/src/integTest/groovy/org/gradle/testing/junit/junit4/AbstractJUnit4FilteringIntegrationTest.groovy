@@ -102,12 +102,12 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         theParameterizedFiles()
 
         when:
-        run("test")
+        succeedsWithTestTaskArguments("test")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("ParameterizedFoo")
-        result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+        result.testClass("ParameterizedFoo").assertTestOutcomes(passedTestOutcome, "pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
     }
 
     @Issue("GRADLE-3112")
@@ -116,12 +116,12 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         theParameterizedFiles()
 
         when:
-        run("test", "--tests", "*ParameterizedFoo.pass*")
+        succeedsWithTestTaskArguments("test", "--tests", "*ParameterizedFoo.pass*")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("ParameterizedFoo")
-        result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+        result.testClass("ParameterizedFoo").assertTestOutcomes(passedTestOutcome, "pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
     }
 
     @Issue("GRADLE-3112")
@@ -130,16 +130,16 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         theSuiteFiles()
 
         when:
-        run("test", "--tests", "*AllFooTests")
+        succeedsWithTestTaskArguments("test", "--tests", "*AllFooTests")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted("FooTest", "FooServerTest")
         result.testClass("FooTest").assertTestCount(1, 0, 0);
-        result.testClass("FooTest").assertTestsExecuted("testFoo")
+        result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
         result.testClass("FooServerTest").assertTestCount(1, 0, 0);
-        result.testClass("FooServerTest").assertTestsExecuted("testFooServer")
+        result.testClass("FooServerTest").assertTestOutcomes(passedTestOutcome, "testFooServer")
     }
 
     @Issue("GRADLE-3112")
@@ -157,15 +157,15 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         theSuiteFiles()
 
         when:
-        run("test")
+        succeedsWithTestTaskArguments("test")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted("FooTest", "FooServerTest")
         result.testClass("FooTest").assertTestCount(1, 0, 0);
-        result.testClass("FooTest").assertTestsExecuted("testFoo")
+        result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
         result.testClass("FooServerTest").assertTestCount(1, 0, 0);
-        result.testClass("FooServerTest").assertTestsExecuted("testFooServer")
+        result.testClass("FooServerTest").assertTestOutcomes(passedTestOutcome, "testFooServer")
     }
 }

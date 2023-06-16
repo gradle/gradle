@@ -74,6 +74,9 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
         this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
+        if (spec.isDryRun()) {
+            System.setProperty("testng.mode.dryrun", "true");
+        }
     }
 
     @Override

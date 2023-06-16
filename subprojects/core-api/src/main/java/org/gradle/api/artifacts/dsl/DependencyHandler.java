@@ -258,6 +258,9 @@ import java.util.Map;
  *
  * <h3>Client module dependencies</h3>
  *
+ * <strong>Client module dependencies are deprecated and will be removed in Gradle 9.0.
+ * Use component metadata rules instead.</strong>
+ *
  * <p>To add a client module to a configuration you can use the notation:</p>
  *
  * <pre>
@@ -359,7 +362,10 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @param notation The module notation, in one of the notations described above.
      * @return The dependency.
+     *
+     * @deprecated Use component metadata rules instead. This method will be removed in Gradle 9.0.
      */
+    @Deprecated
     Dependency module(Object notation);
 
     /**
@@ -369,7 +375,10 @@ public interface DependencyHandler extends ExtensionAware {
      * @param notation The module notation, in one of the notations described above.
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency.
+     *
+     * @deprecated Use component metadata rules instead. This method will be removed in Gradle 9.0.
      */
+    @Deprecated
     Dependency module(Object notation, Closure configureClosure);
 
     /**

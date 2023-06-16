@@ -38,6 +38,7 @@ image::task-dag-examples.png[Example task graphs]
 Both plugins and your own build scripts contribute to the task graph via the <<tutorial_using_tasks#sec:task_dependencies,task dependency mechanism>>.
 
 [[build_lifecycle_events]]
+
 [[sec:build_phases]]
 == Build Phases
 

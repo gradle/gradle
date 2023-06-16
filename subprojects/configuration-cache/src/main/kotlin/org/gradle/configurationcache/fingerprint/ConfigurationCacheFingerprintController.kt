@@ -53,6 +53,7 @@ import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.scripts.ScriptFileResolverListeners
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -63,6 +64,7 @@ import org.gradle.util.internal.GFileUtils
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
+import java.util.function.Supplier
 
 
 /**
@@ -90,7 +92,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val agentStatus: AgentStatus,
     private val problems: ConfigurationCacheProblems,
     private val encryptionService: EncryptionService
-) : Stoppable {
+) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
@@ -114,6 +116,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         open fun append(fingerprint: ProjectSpecificFingerprint): Unit =
             illegalStateFor("append")
+
+        open fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T =
+            illegalStateFor("resolveScriptsForProject")
 
         open fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T =
             illegalStateFor("collectFingerprintForProject")
@@ -144,6 +149,11 @@ class ConfigurationCacheFingerprintController internal constructor(
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
         }
 
+        override fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T {
+            // Ignore scripts resolved while loading from cache
+            return action()
+        }
+
         override fun dispose(): WritingState =
             this
     }
@@ -156,6 +166,10 @@ class ConfigurationCacheFingerprintController internal constructor(
     ) : WritingState() {
         override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> DefaultWriteContext): WritingState {
             return this
+        }
+
+        override fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T {
+            return fingerprintWriter.collectFingerprintForProject(identityPath, action)
         }
 
         override fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
@@ -217,6 +231,11 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     class Committed : WritingState() {
+        override fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T {
+            // Ignore scripts resolved while loading from cache
+            return action()
+        }
+
         override fun dispose(): WritingState {
             return this
         }
@@ -238,6 +257,10 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     fun commitFingerprintTo(buildScopedFingerprint: ConfigurationCacheStateFile, projectScopedFingerprint: ConfigurationCacheStateFile) {
         writingState = writingState.commit(buildScopedFingerprint, projectScopedFingerprint)
+    }
+
+    override fun <T : Any> resolveScriptsForProject(identityPath: Path, action: Supplier<T>): T {
+        return writingState.resolveScriptsForProject(identityPath) { action.get() }
     }
 
     /**

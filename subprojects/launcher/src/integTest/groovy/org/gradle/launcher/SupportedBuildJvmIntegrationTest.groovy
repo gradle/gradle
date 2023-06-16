@@ -19,6 +19,7 @@ package org.gradle.launcher
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -26,6 +27,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
+@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(UnitTestPreconditions.Symlinks)

@@ -44,19 +44,19 @@ import org.gradle.kotlin.dsl.support.bytecode.INVOKEVIRTUAL
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.internalName
-import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
 import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
-import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
 import org.gradle.kotlin.dsl.support.useToRun
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import java.io.BufferedWriter
 import java.io.File
 import kotlin.reflect.KClass
 import kotlinx.metadata.jvm.JvmMethodSignature
+import org.gradle.kotlin.dsl.support.bytecode.addKmProperty
+import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 
 
 internal
@@ -148,43 +148,22 @@ fun IO.buildVersionCatalogAccessorsFor(
         moduleMetadata
     )
 
-    val buildscriptProperties = ArrayList<Pair<VersionCatalogAccessor, JvmMethodSignature>>(versionCatalogs.size)
+    val buildscriptAccessorSignatures = ArrayList<Pair<VersionCatalogAccessor, JvmMethodSignature>>(versionCatalogs.size)
     val pluginsProperties = ArrayList<Pair<VersionCatalogAccessor, JvmMethodSignature>>(versionCatalogs.size)
     val header = writeFileFacadeClassHeader(moduleName) {
         versionCatalogs.forEach { catalog ->
+            val buildscriptAccessorSignature = jvmGetterSignatureFor(catalog.buildscriptExtension)
+            addKmProperty(catalog.buildscriptExtension, buildscriptAccessorSignature)
+            buildscriptAccessorSignatures.add(catalog to buildscriptAccessorSignature)
 
-            val buildscriptExtension = catalog.buildscriptExtension
-            val buildscriptGetterSignature = jvmGetterSignatureFor(
-                propertyName = buildscriptExtension.name,
-                desc = "(L${buildscriptExtension.receiverType.internalName};)L${buildscriptExtension.returnType.internalName};"
-            )
-            writePropertyOf(
-                receiverType = buildscriptExtension.receiverType.builder,
-                returnType = buildscriptExtension.returnType.builder,
-                propertyName = buildscriptExtension.name,
-                getterSignature = buildscriptGetterSignature,
-                getterFlags = nonInlineGetterFlags
-            )
-            buildscriptProperties.add(catalog to buildscriptGetterSignature)
-
-            val pluginsExtension = catalog.pluginsExtension
-            val pluginsGetterSignature = jvmGetterSignatureFor(
-                propertyName = pluginsExtension.name,
-                desc = "(L${pluginsExtension.receiverType.internalName};)L${pluginsExtension.returnType.internalName};"
-            )
-            writePropertyOf(
-                receiverType = pluginsExtension.receiverType.builder,
-                returnType = pluginsExtension.returnType.builder,
-                propertyName = pluginsExtension.name,
-                getterSignature = pluginsGetterSignature,
-                getterFlags = nonInlineGetterFlags
-            )
-            pluginsProperties.add(catalog to pluginsGetterSignature)
+            val pluginsAccessorSignature = jvmGetterSignatureFor(catalog.pluginsExtension)
+            addKmProperty(catalog.pluginsExtension, pluginsAccessorSignature)
+            pluginsProperties.add(catalog to pluginsAccessorSignature)
         }
     }
 
     val classBytes = publicKotlinClass(fileFacadeClassName, header) {
-        buildscriptProperties.forEach { (versionCatalogAccessor, signature) ->
+        buildscriptAccessorSignatures.forEach { (versionCatalogAccessor, signature) ->
             emitVersionCatalogAccessorMethodFor(
                 versionCatalogAccessor.buildscriptExtension,
                 signature,

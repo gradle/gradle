@@ -106,7 +106,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -250,8 +249,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Lazy<List<? extends DependencyMetadata>> syntheticDependencies = Lazy.unsafe().of(this::generateSyntheticDependencies);
 
     private final AtomicInteger copyCount = new AtomicInteger();
-
-    private Action<? super ConfigurationInternal> beforeLocking;
 
     private List<String> declarationAlternatives = ImmutableList.of();
     private List<String> resolutionAlternatives = ImmutableList.of();
@@ -1136,17 +1133,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void beforeLocking(Action<? super ConfigurationInternal> action) {
-        if (canBeMutated) {
-            if (beforeLocking != null) {
-                beforeLocking = Actions.composite(beforeLocking, action);
-            } else {
-                beforeLocking = action;
-            }
-        }
-    }
-
-    @Override
     public boolean isCanBeMutated() {
         return canBeMutated;
     }
@@ -1164,10 +1150,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private List<? extends GradleException> preventFromFurtherMutation(boolean lenient) {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
-            if (beforeLocking != null) {
-                beforeLocking.execute(this);
-                beforeLocking = null;
-            }
             AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
             configurationAttributes = new ImmutableAttributeContainerWithErrorMessage(delegatee, this.displayName);
             outgoing.preventFromFurtherMutation();

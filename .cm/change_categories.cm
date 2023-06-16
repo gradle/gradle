@@ -200,7 +200,7 @@ platforms:
       - 'subprojects/code-quality/'
       - 'subprojects/distributions-jvm/'
       - 'subprojects/distributions-publishing/'
-      - 'subprojects/ear/'
+      - 'platforms/jvm/ear/'
       - 'subprojects/jacoco/'
       - 'subprojects/java-compiler-plugin/'
       - 'subprojects/jvm-services/'

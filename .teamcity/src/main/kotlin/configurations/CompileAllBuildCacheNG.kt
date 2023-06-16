@@ -3,15 +3,22 @@ package configurations
 import model.CIBuildModel
 import model.Stage
 
-class CompileAllBuildCacheNG(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
-    id("${model.projectId}_CompileAllBuild_BuildCacheNG")
-    name = "Compile All BuildCacheNG"
-    description = "Compiles all production/test source code and warms up the build cache NG"
+class CompileAllBuildCacheNG(model: CIBuildModel, stage: Stage, oldCacheWithNgRemote: Boolean = false) : BaseGradleBuildType(stage = stage, failStage = false, init = {
+    if (oldCacheWithNgRemote) {
+        id("${model.projectId}_CompileAllBuild_NGRemote")
+        name = "Compile All With NG Remote"
+        description = "Compiles all production/test source code using old build cache but NG remote"
+    } else {
+        id("${model.projectId}_CompileAllBuild_BuildCacheNG")
+        name = "Compile All BuildCacheNG"
+        description = "Compiles all production/test source code and warms up the build cache NG"
+    }
 
+    val cacheNgEnabled = !oldCacheWithNgRemote
     applyDefaults(
         model,
         this,
-        "compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=false -Dorg.gradle.unsafe.cache.ng=true",
+        "compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=false -Dorg.gradle.unsafe.cache.ng=$cacheNgEnabled",
         extraParameters = "-Porg.gradle.java.installations.auto-download=false"
     )
 

@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -159,11 +160,36 @@ private constructor(
      * Adds a dependency to the given configuration.
      *
      * @param dependencyNotation notation for the dependency to be added.
+     * @return The dependency.
+     * @see [DependencyHandler.add]
+     * @since 8.3
+     */
+    @Incubating
+    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency? =
+        add(name, dependencyNotation)
+
+    /**
+     * Adds a dependency to the given configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      * @see [DependencyHandler.add]
      */
     inline operator fun Configuration.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+        add(name, dependencyNotation, dependencyConfiguration)
+
+    /**
+     * Adds a dependency to the given configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     * @see [DependencyHandler.add]
+     * @since 8.3
+     */
+    @Incubating
+    inline operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
         add(name, dependencyNotation, dependencyConfiguration)
 
     /**
@@ -180,6 +206,31 @@ private constructor(
      * @see [DependencyHandler.add]
      */
     operator fun Configuration.invoke(
+        group: String,
+        name: String,
+        version: String? = null,
+        configuration: String? = null,
+        classifier: String? = null,
+        ext: String? = null
+    ): ExternalModuleDependency =
+        create(group, name, version, configuration, classifier, ext).apply { add(this@invoke.name, this) }
+
+    /**
+     * Adds a dependency to the given configuration.
+     *
+     * @param group the group of the module to be added as a dependency.
+     * @param name the name of the module to be added as a dependency.
+     * @param version the optional version of the module to be added as a dependency.
+     * @param configuration the optional configuration of the module to be added as a dependency.
+     * @param classifier the optional classifier of the module artifact to be added as a dependency.
+     * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     * @since 8.3
+     */
+    @Incubating
+    operator fun NamedDomainObjectProvider<Configuration>.invoke(
         group: String,
         name: String,
         version: String? = null,
@@ -218,6 +269,34 @@ private constructor(
     /**
      * Adds a dependency to the given configuration.
      *
+     * @param group the group of the module to be added as a dependency.
+     * @param name the name of the module to be added as a dependency.
+     * @param version the optional version of the module to be added as a dependency.
+     * @param configuration the optional configuration of the module to be added as a dependency.
+     * @param classifier the optional classifier of the module artifact to be added as a dependency.
+     * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.create]
+     * @see [DependencyHandler.add]
+     * @since 8.3
+     */
+    @Incubating
+    inline operator fun NamedDomainObjectProvider<Configuration>.invoke(
+        group: String,
+        name: String,
+        version: String? = null,
+        configuration: String? = null,
+        classifier: String? = null,
+        ext: String? = null,
+        dependencyConfiguration: ExternalModuleDependency.() -> Unit
+    ): ExternalModuleDependency =
+        add(this.name, create(group, name, version, configuration, classifier, ext), dependencyConfiguration)
+
+    /**
+     * Adds a dependency to the given configuration.
+     *
      * @param dependency dependency to be added.
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
@@ -225,6 +304,20 @@ private constructor(
      * @see [DependencyHandler.add]
      */
     inline operator fun <T : ModuleDependency> Configuration.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
+        add(name, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency to the given configuration.
+     *
+     * @param dependency dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     * @since 8.3
+     */
+    @Incubating
+    inline operator fun <T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
 
     /**
@@ -244,11 +337,36 @@ private constructor(
      * Adds a dependency provider to the given configuration.
      *
      * @param dependency the dependency provider to be added.
+     * @param dependencyConfiguration the configuration to be applied to the dependency
+     *
+     * @see [DependencyHandler.addProvider]
+     * @since 8.3
+     */
+    @Incubating
+    operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+        addProvider(name, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
      *
      * @see [DependencyHandler.addProvider]
      * @since 7.0
      */
     operator fun <T : Any> Configuration.invoke(dependency: Provider<T>) =
+        addProvider(name, dependency)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     *
+     * @see [DependencyHandler.addProvider]
+     * @since 8.3
+     */
+    @Incubating
+    operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>) =
         addProvider(name, dependency)
 
     /**
@@ -268,11 +386,36 @@ private constructor(
      * Adds a dependency provider to the given configuration.
      *
      * @param dependency the dependency provider to be added.
+     * @param dependencyConfiguration the configuration to be applied to the dependency
+     *
+     * @see [DependencyHandler.addProviderConvertible]
+     * @since 8.3
+     */
+    @Incubating
+    operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+        addProviderConvertible(name, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
      *
      * @see [DependencyHandler.addProviderConvertible]
      * @since 7.4
      */
     operator fun <T : Any> Configuration.invoke(dependency: ProviderConvertible<T>) =
+        addProviderConvertible(name, dependency)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     *
+     * @see [DependencyHandler.addProviderConvertible]
+     * @since 8.3
+     */
+    @Incubating
+    operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>) =
         addProviderConvertible(name, dependency)
 
     /**

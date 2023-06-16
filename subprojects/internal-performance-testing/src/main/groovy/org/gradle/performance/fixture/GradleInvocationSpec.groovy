@@ -21,7 +21,7 @@ import groovy.transform.EqualsAndHashCode
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.profiler.BuildAction
-import org.gradle.profiler.RunTasksAction
+import org.gradle.profiler.gradle.RunTasksAction
 
 @CompileStatic
 @EqualsAndHashCode

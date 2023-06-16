@@ -103,6 +103,10 @@ public class JUnitTestClassExecutor implements Action<String> {
             return;
         }
 
+        if (spec.isDryRun()) {
+            runner = new JUnitTestDryRunner(runner);
+        }
+
         RunNotifier notifier = new RunNotifier();
         notifier.addListener(listener);
         runner.run(notifier);

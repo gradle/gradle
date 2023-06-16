@@ -123,7 +123,7 @@ packageCycles {
 testFilesCleanup.reportOnly = true
 
 tasks.clean {
-    val testFiles = layout.buildDirectory.dir("tmp/test files")
+    val testFiles = layout.buildDirectory.dir("tmp/teŝt files")
     doFirst {
         // On daemon crash, read-only cache tests can leave read-only files around.
         // clean now takes care of those files as well

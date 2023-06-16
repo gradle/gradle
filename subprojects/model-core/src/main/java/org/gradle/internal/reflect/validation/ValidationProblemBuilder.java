@@ -57,9 +57,6 @@ public interface ValidationProblemBuilder<T extends ValidationProblemBuilder<T>>
         return addPossibleSolution(() -> solution);
     }
 
-    T onlyAffectsCacheableWork();
-
-
     /**
      * Indicates that whenever this error is reported to the user,
      * it's not important, or even sometimes confusing, to report the type

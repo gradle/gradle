@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
@@ -76,7 +77,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("55e949185c26ba3ddcd2c6a4217d043bfa0ce3cc002bbbb52b709a181a513e81")
+        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("9f67fed4ccde373e25f4fbac62203dd714c45b8299d36d22a758252baa033891")
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
@@ -257,6 +258,20 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run( "wrapper", "--gradle-distribution-url", url, "--validate-url")
+
+        then:
+        succeeds()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/25252')
+    def "wrapper task succeeds if distribution url from command-line results in relative uri (no scheme)"() {
+        given:
+        file("gradle/wrapper/../distributions/8.0-rc-5") << "some content"
+
+        def url = "../distributions/8.0-rc-5"
+
+        when:
+        run "wrapper", "--gradle-distribution-url", url
 
         then:
         succeeds()

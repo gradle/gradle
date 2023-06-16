@@ -35,7 +35,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
     def instantiator = TestUtil.instantiatorFactory()
     def factory =
         DefaultExecActionFactory
-            .of(resolver, fileCollectionFactory, executorFactory, TestFiles.tmpDirTemporaryFileProvider(tmpDir.root))
+            .of(resolver, fileCollectionFactory, executorFactory, TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
             .forContext()
             .withInstantiator(instantiator.decorateLenient())
             .withObjectFactory(TestUtil.objectFactory())
