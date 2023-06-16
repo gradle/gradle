@@ -56,6 +56,6 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
 
     @Override
     public HashCode getConfigHash() {
-        return HashCode.fromString("0");
+        return HashCode.fromBytes(new byte[]{0, 0, 0, 0});
     }
 }

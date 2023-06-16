@@ -278,7 +278,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         private final PersistentCache cache;
         private final ManagedExecutor executor;
 
-        private ParallelTransformExecutor(PersistentCache cache, ManagedExecutor executor) {
+        public ParallelTransformExecutor(PersistentCache cache, ManagedExecutor executor) {
             this.cache = cache;
             this.executor = executor;
         }

@@ -118,8 +118,9 @@ class DefaultInstrumentingDirectSuperTypesCollector implements InstrumentingDire
                 }
                 if (entry.getName().endsWith(".class")) {
                     ClassReader classReader = new ClassReader(entry.getContent());
-                    registerSuperType(classReader.getClassName(), classReader.getSuperName(), directSuperTypes);
-                    registerInterfaces(classReader.getClassName(), classReader.getInterfaces(), directSuperTypes);
+                    String className = classReader.getClassName();
+                    registerSuperType(className, classReader.getSuperName(), directSuperTypes);
+                    registerInterfaces(className, classReader.getInterfaces(), directSuperTypes);
                 }
             });
         } catch (FileException e) {

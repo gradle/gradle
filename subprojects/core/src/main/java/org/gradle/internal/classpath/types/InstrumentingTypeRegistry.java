@@ -26,7 +26,7 @@ public interface InstrumentingTypeRegistry {
     /**
      * Returns instrumented super types for a given type.
      *
-     * Note: It returns only instrumented types that are instrumented with {@link org.gradle.internal.instrumentation.api.annotations.InterceptInherited}.
+     * Note: For core types it returns only instrumented types that are directly instrumented with {@link org.gradle.internal.instrumentation.api.annotations.InterceptInherited}.
      */
     Set<String> getInstrumentedSuperTypes(String type);
 

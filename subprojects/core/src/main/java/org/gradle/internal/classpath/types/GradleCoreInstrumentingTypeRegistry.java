@@ -40,16 +40,16 @@ class GradleCoreInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
      */
     private static final String INSTRUMENTED_SUPER_TYPES_FILE = "instrumented-super-types/instrumented-super-types.properties";
 
-    private static final Lazy<Map<String, Set<String>>> instrumentedSuperTypes = Lazy.locking().of(GradleCoreInstrumentingTypeRegistry::loadInstrumentedSuperTypes);
+    private static final Lazy<Map<String, Set<String>>> INSTRUMENTED_SUPER_TYPES = Lazy.locking().of(GradleCoreInstrumentingTypeRegistry::loadInstrumentedSuperTypes);
 
     @Override
     public Set<String> getInstrumentedSuperTypes(String type) {
-        return instrumentedSuperTypes.get().getOrDefault(type, Collections.emptySet());
+        return INSTRUMENTED_SUPER_TYPES.get().getOrDefault(type, Collections.emptySet());
     }
 
     @Override
     public boolean isEmpty() {
-        return instrumentedSuperTypes.get().isEmpty();
+        return INSTRUMENTED_SUPER_TYPES.get().isEmpty();
     }
 
     private static Map<String, Set<String>> loadInstrumentedSuperTypes() {
