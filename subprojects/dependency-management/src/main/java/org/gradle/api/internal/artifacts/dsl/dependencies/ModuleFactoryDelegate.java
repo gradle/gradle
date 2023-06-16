@@ -19,16 +19,16 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import org.codehaus.groovy.runtime.InvokerHelper;
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.util.internal.ConfigureUtil;
 
+@Deprecated
 public class ModuleFactoryDelegate {
-    private final ClientModule clientModule;
+    private final org.gradle.api.artifacts.ClientModule clientModule;
     private final DependencyFactoryInternal dependencyFactory;
 
-    public ModuleFactoryDelegate(ClientModule clientModule, DependencyFactoryInternal dependencyFactory) {
+    public ModuleFactoryDelegate(org.gradle.api.artifacts.ClientModule clientModule, DependencyFactoryInternal dependencyFactory) {
         this.clientModule = clientModule;
         this.dependencyFactory = dependencyFactory;
     }
@@ -64,9 +64,9 @@ public class ModuleFactoryDelegate {
 
     private static class ClientModuleConfigureDelegate extends GroovyObjectSupport {
         private final ModuleFactoryDelegate moduleFactoryDelegate;
-        private final ClientModule clientModule;
+        private final org.gradle.api.artifacts.ClientModule clientModule;
 
-        public ClientModuleConfigureDelegate(ClientModule clientModule, ModuleFactoryDelegate moduleFactoryDelegate) {
+        public ClientModuleConfigureDelegate(org.gradle.api.artifacts.ClientModule clientModule, ModuleFactoryDelegate moduleFactoryDelegate) {
             this.clientModule = clientModule;
             this.moduleFactoryDelegate = moduleFactoryDelegate;
         }

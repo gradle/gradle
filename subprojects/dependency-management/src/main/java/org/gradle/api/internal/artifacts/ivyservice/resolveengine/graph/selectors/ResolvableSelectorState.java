@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
@@ -66,7 +65,8 @@ public interface ResolvableSelectorState {
 
     IvyArtifactName getFirstDependencyArtifact();
 
-    ClientModule getClientModule();
+    @Deprecated
+    org.gradle.api.artifacts.ClientModule getClientModule();
 
     boolean isChanging();
 

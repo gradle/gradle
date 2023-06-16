@@ -16,7 +16,6 @@
 package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Interner;
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -25,7 +24,8 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import javax.annotation.Nonnull;
 
-public class ClientModuleNotationParserFactory implements Factory<NotationParser<Object, ClientModule>> {
+@SuppressWarnings("deprecation")
+public class ClientModuleNotationParserFactory implements Factory<NotationParser<Object, org.gradle.api.artifacts.ClientModule>> {
 
     private final Instantiator instantiator;
     private final Interner<String> stringInterner;
@@ -37,8 +37,8 @@ public class ClientModuleNotationParserFactory implements Factory<NotationParser
 
     @Nonnull
     @Override
-    public NotationParser<Object, ClientModule> create() {
-        return NotationParserBuilder.toType(ClientModule.class)
+    public NotationParser<Object, org.gradle.api.artifacts.ClientModule> create() {
+        return NotationParserBuilder.toType(org.gradle.api.artifacts.ClientModule.class)
                 .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, DefaultClientModule.class, stringInterner))
                 .converter(new DependencyMapNotationConverter<>(instantiator, DefaultClientModule.class))
                 .toComposite();

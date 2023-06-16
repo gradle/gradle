@@ -86,6 +86,145 @@ Some builds may have worked around this by also putting the additional attribute
 The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.22[Kotlin 1.8.22].
 See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
 
+
+=== Deprecations
+
+==== Deprecated `ClientModule` dependencies
+
+`link:{javadocPath}/org/gradle/api/artifacts/ClientModule.html[ClientModule]` dependencies are deprecated and will be removed in Gradle 9.0.
+
+Client module dependencies were originally intended to allow builds to override incorrect or missing component metadata of external dependencies by defining the metadata locally.
+This functionality has since been replaced by <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
+
+Consider the following client module dependency example:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation(module("org:foo:1.0") {
+        dependency("org:bar:1.0")
+        module("org:baz:1.0") {
+            dependency("com:example:1.0")
+        }
+    })
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation module("org:foo:1.0") {
+        dependency "org:bar:1.0"
+        module("org:baz:1.0") {
+            dependency "com:example:1.0"
+        }
+    }
+}
+----
+======
+=====
+
+This can be replaced with the following component metadata rule:
+
+=====
+[.multi-language-sample]
+======
+.build-logic/src/main/kotlin/my-plugin.gradle.kts
+[source,kotlin]
+----
+@CacheableRule
+abstract class AddDependenciesRule @Inject constructor(val dependencies: List<String>) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        listOf("compile", "runtime").forEach { base ->
+            context.details.withVariant(base) {
+                withDependencies {
+                    dependencies.forEach {
+                        add(it)
+                    }
+                }
+            }
+        }
+    }
+}
+----
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    components {
+        withModule<AddDependenciesRule>("org:foo") {
+            params(listOf(
+                "org:bar:1.0",
+                "org:baz:1.0"
+            ))
+        }
+        withModule<AddDependenciesRule>("org:baz") {
+            params(listOf("com:example:1.0"))
+        }
+    }
+
+    implementation("org:foo:1.0")
+}
+----
+======
+[.multi-language-sample]
+======
+.build-logic/src/main/groovy/my-plugin.gradle
+[source,groovy]
+----
+@CacheableRule
+abstract class AddDependenciesRule implements ComponentMetadataRule {
+
+    List<String> dependencies
+
+    @Inject
+    AddDependenciesRule(List<String> dependencies) {
+        this.dependencies = dependencies
+    }
+
+    @Override
+    void execute(ComponentMetadataContext context) {
+        ["compile", "runtime"].each { base ->
+            context.details.withVariant(base) {
+                withDependencies {
+                    dependencies.each {
+                        add(it)
+                    }
+                }
+            }
+        }
+    }
+}
+----
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    components {
+        withModule("org:foo", AddDependenciesRule) {
+            params([
+                "org:bar:1.0",
+                "org:baz:1.0"
+            ])
+        }
+        withModule("org:baz", AddDependenciesRule) {
+            params(["com:example:1.0"])
+        }
+    }
+
+    implementation "org:foo:1.0"
+}
+----
+======
+=====
+
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 
