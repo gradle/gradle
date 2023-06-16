@@ -177,7 +177,13 @@ class Interpreter(val host: Host) {
 
         val assignmentOverloadEnabled = KotlinDslAssignment.isAssignmentOverloadEnabled()
         val programId =
-            ProgramId(templateId, sourceHash, parentClassLoader, assignmentOverloadEnabled = assignmentOverloadEnabled)
+            ProgramId(
+                templateId,
+                sourceHash,
+                parentClassLoader,
+                allWarningsAsErrors = host.allWarningsAsErrors,
+                assignmentOverloadEnabled = assignmentOverloadEnabled
+            )
 
         val cachedProgram =
             host.cachedClassFor(programId)
@@ -419,6 +425,7 @@ class Interpreter(val host: Host) {
                 parentClassLoader,
                 host.hashOf(accessorsClassPath),
                 host.hashOf(compileClassPath),
+                host.allWarningsAsErrors,
                 assignmentOverloadEnabled
             )
 

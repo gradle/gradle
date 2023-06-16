@@ -152,19 +152,17 @@ class StandardKotlinScriptEvaluator(
         JavaVersion.current()
 
     private
-    val allWarningsAsErrors: Boolean by lazy {
-        gradlePropertiesController.gradleProperties.find("org.gradle.kotlin.dsl.allWarningsAsErrors") == "true"
-    }
-
-    private
     val interpreter by lazy {
-        Interpreter(InterpreterHost(jvmTarget, allWarningsAsErrors))
+        Interpreter(InterpreterHost(gradlePropertiesController, jvmTarget))
     }
 
     inner class InterpreterHost(
+        private val gradlePropertiesController: GradlePropertiesController,
         override val jvmTarget: JavaVersion,
-        override val allWarningsAsErrors: Boolean,
     ) : Interpreter.Host {
+
+        override val allWarningsAsErrors: Boolean =
+            gradlePropertiesController.gradleProperties.find("org.gradle.kotlin.dsl.allWarningsAsErrors") == "true"
 
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {
@@ -266,6 +264,7 @@ class StandardKotlinScriptEvaluator(
             executionEngineFor(scriptHost).createRequest(
                 CompileKotlinScript(
                     jvmTarget,
+                    allWarningsAsErrors,
                     programId,
                     compilationClassPath,
                     accessorsClassPath,
@@ -356,6 +355,7 @@ class StandardKotlinScriptEvaluator(
 internal
 class CompileKotlinScript(
     private val jvmTarget: JavaVersion,
+    private val allWarningsAsErrors: Boolean,
     private val programId: ProgramId,
     private val compilationClassPath: ClassPath,
     private val accessorsClassPath: ClassPath,
@@ -369,6 +369,7 @@ class CompileKotlinScript(
     companion object {
         const val ASSIGNMENT_OVERLOAD_ENABLED = "assignmentOverloadEnabled"
         const val JVM_TARGET = "jvmTarget"
+        const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
         const val TEMPLATE_ID = "templateId"
         const val SOURCE_HASH = "sourceHash"
         const val COMPILATION_CLASS_PATH = "compilationClassPath"
@@ -381,6 +382,7 @@ class CompileKotlinScript(
     ) {
         visitor.visitInputProperty(ASSIGNMENT_OVERLOAD_ENABLED) { programId.assignmentOverloadEnabled }
         visitor.visitInputProperty(JVM_TARGET) { jvmTarget.majorVersion }
+        visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { allWarningsAsErrors }
         visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
         visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
         visitor.visitClassPathProperty(COMPILATION_CLASS_PATH, compilationClassPath)
