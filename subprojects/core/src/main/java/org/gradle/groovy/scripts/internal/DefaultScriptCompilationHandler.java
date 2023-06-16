@@ -35,7 +35,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -92,8 +91,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Override
-    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
-                             Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public void compileToDir(
+        ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
+        Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier
+    ) {
         Timer clock = Time.startTimer();
         try {
             deleter.ensureEmptyDirectory(classesDir);
@@ -201,9 +202,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
-        ScriptCompilationException cause = new ScriptCompilationException(message, e, source, lineNumber);
-        throw Problems.throwing(Problems.createNew(ProblemGroup.GENERIC, message, Severity.ERROR)
-            .location(source.getFileName(), lineNumber), cause);
+        throw Problems.throwing(
+            Problems.createError(ProblemGroup.GENERIC, message)
+                .location(source.getFileName(), lineNumber),
+            new ScriptCompilationException(message, e, source, lineNumber));
     }
 
     private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {

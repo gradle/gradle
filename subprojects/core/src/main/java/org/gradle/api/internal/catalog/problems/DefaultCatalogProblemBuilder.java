@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.catalog.problems;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -23,63 +22,58 @@ import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.internal.DefaultDocLink;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.problems.Solution;
-import org.gradle.problems.StandardSeverity;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG;
 import static org.gradle.api.problems.interfaces.Severity.ERROR;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutionsWithNewProblemsApi;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
-public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilder,
-    VersionCatalogProblemBuilder.ProblemWithId,
-    VersionCatalogProblemBuilder.DescribedProblem,
-    VersionCatalogProblemBuilder.DescribedProblemWithCause {
+public class DefaultCatalogProblemBuilder {
+//    implements VersionCatalogProblemBuilder,
+//    VersionCatalogProblemBuilder.ProblemWithId,
+//    VersionCatalogProblemBuilder.DescribedProblem,
+//    VersionCatalogProblemBuilder.DescribedProblemWithCause
+//{
 
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
-    private final VersionCatalogProblemId id;
-    private Supplier<String> context;
-    private Supplier<String> shortDescription;
-    private Supplier<String> longDescription = () -> "";
-    private Supplier<String> reason;
-    private StandardSeverity severity = StandardSeverity.ERROR;
-    private final List<Supplier<String>> solutions = Lists.newArrayListWithExpectedSize(1);
-    private DefaultDocLink docLink;
+//    private final VersionCatalogProblemId id;
+//    private Supplier<String> context;
+//    private Supplier<String> shortDescription;
+//    private Supplier<String> longDescription = () -> "";
+//    private Supplier<String> reason;
+//    private StandardSeverity severity = StandardSeverity.ERROR;
+//    private final List<Supplier<String>> solutions = Lists.newArrayListWithExpectedSize(1);
+//    private DefaultDocLink docLink;
 
-    private DefaultCatalogProblemBuilder(VersionCatalogProblemId id) {
-        this.id = id;
-    }
+//    private DefaultCatalogProblemBuilder(VersionCatalogProblemId id) {
+//        this.id = id;
+//    }
 
-    public static VersionCatalogProblem buildProblem(VersionCatalogProblemId id, Consumer<? super VersionCatalogProblemBuilder> spec) {
-        DefaultCatalogProblemBuilder builder = new DefaultCatalogProblemBuilder(id);
-        spec.accept(builder);
-        return builder.build();
-    }
+//    public static VersionCatalogProblem buildProblem(VersionCatalogProblemId id, Consumer<? super VersionCatalogProblemBuilder> spec) {
+//        DefaultCatalogProblemBuilder builder = new DefaultCatalogProblemBuilder(id);
+//        spec.accept(builder);
+//        return builder.build();
+//    }
 
-    public static void maybeThrowError(String error, List<VersionCatalogProblem> problems) {
-        if (!problems.isEmpty()) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(error);
-            formatter.startChildren();
-            for (VersionCatalogProblem problem : problems) {
-                problem.reportInto(formatter);
-            }
-            formatter.endChildren();
-            throw new InvalidUserDataException(formatter.toString());
-        }
-    }
+//    public static void maybeThrowError(String error, List<VersionCatalogProblem> problems) {
+//        if (!problems.isEmpty()) {
+//            TreeFormatter formatter = new TreeFormatter();
+//            formatter.node(error);
+//            formatter.startChildren();
+//            for (VersionCatalogProblem problem : problems) {
+//                problem.reportInto(formatter);
+//            }
+//            formatter.endChildren();
+//            throw new InvalidUserDataException(formatter.toString());
+//        }
+//    }
 
     public static void maybeThrowError(String error, Collection<Problem> problems) {
         if (!problems.isEmpty()) {
@@ -95,7 +89,9 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
             reportInto(formatter, problem);
         }
         formatter.endChildren();
-        throw Problems.throwing(problems, new InvalidUserDataException(formatter.toString()));
+
+        Problems.collect(problems);
+        throw new InvalidUserDataException(formatter.toString());
     }
 
     private static void reportInto(TreeFormatter output, Problem problem) {
@@ -132,94 +128,94 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
             .documentedAt(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase());
     }
 
-    @Override
-    public ProblemWithId inContext(Supplier<String> context) {
-        this.context = context;
-        return this;
-    }
+//    @Override
+//    public ProblemWithId inContext(Supplier<String> context) {
+//        this.context = context;
+//        return this;
+//    }
 
-    @Override
-    public ProblemWithId withSeverity(StandardSeverity severity) {
-        this.severity = severity;
-        return this;
-    }
+//    @Override
+//    public ProblemWithId withSeverity(StandardSeverity severity) {
+//        this.severity = severity;
+//        return this;
+//    }
+//
+//    @Override
+//    public DescribedProblem withShortDescription(Supplier<String> description) {
+//        this.shortDescription = description;
+//        return this;
+//    }
 
-    @Override
-    public DescribedProblem withShortDescription(Supplier<String> description) {
-        this.shortDescription = description;
-        return this;
-    }
+//    @Override
+//    public DescribedProblem withLongDescription(Supplier<String> description) {
+//        this.longDescription = description;
+//        return this;
+//    }
 
-    @Override
-    public DescribedProblem withLongDescription(Supplier<String> description) {
-        this.longDescription = description;
-        return this;
-    }
+//    @Override
+//    public DescribedProblemWithCause happensBecause(Supplier<String> reason) {
+//        this.reason = reason;
+//        return this;
+//    }
+//
+//    @Override
+//    public DescribedProblemWithCause documentedAt(String page, String section) {
+//        this.docLink = new DefaultDocLink(page, section);
+//        return this;
+//    }
 
-    @Override
-    public DescribedProblemWithCause happensBecause(Supplier<String> reason) {
-        this.reason = reason;
-        return this;
-    }
+//    @Override
+//    public DescribedProblemWithCause documented() {
+//        return documentedAt(VERSION_CATALOG_PROBLEMS, id.name().toLowerCase());
+//    }
 
-    @Override
-    public DescribedProblemWithCause documentedAt(String page, String section) {
-        this.docLink = new DefaultDocLink(page, section);
-        return this;
-    }
+//    @Override
+//    public DescribedProblemWithCause addSolution(Supplier<String> solution) {
+//        solutions.add(solution);
+//        return this;
+//    }
 
-    @Override
-    public DescribedProblemWithCause documented() {
-        return documentedAt(VERSION_CATALOG_PROBLEMS, id.name().toLowerCase());
-    }
+//    public VersionCatalogProblem build() {
+//        if (context == null) {
+//            throw new IllegalStateException("You must provide the context of this problem");
+//        }
+//        if (shortDescription == null) {
+//            throw new IllegalStateException("You must provide a short description of the problem");
+//        }
+//        if (reason == null) {
+//            throw new IllegalStateException("You must provide the reason why this problem happened");
+//        }
+//        if (solutions.isEmpty()) {
+//            throw new IllegalStateException("You must provide at least one solution to the problem");
+//        }
+//        return new VersionCatalogProblem(
+//            id,
+//            severity,
+//            context.get(),
+//            shortDescription,
+//            longDescription,
+//            reason,
+//            () -> docLink == null ? null : DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", docLink.getPage(), docLink.getSection()),
+//            solutions.stream()
+//                .map(DefaultCatalogProblemBuilder::toSolution)
+//                .collect(toList())
+//        );
+//    }
 
-    @Override
-    public DescribedProblemWithCause addSolution(Supplier<String> solution) {
-        solutions.add(solution);
-        return this;
-    }
+//    private static Supplier<Solution> toSolution(Supplier<String> solutionText) {
+//        return () -> new SimpleSolution(solutionText);
+//    }
 
-    public VersionCatalogProblem build() {
-        if (context == null) {
-            throw new IllegalStateException("You must provide the context of this problem");
-        }
-        if (shortDescription == null) {
-            throw new IllegalStateException("You must provide a short description of the problem");
-        }
-        if (reason == null) {
-            throw new IllegalStateException("You must provide the reason why this problem happened");
-        }
-        if (solutions.isEmpty()) {
-            throw new IllegalStateException("You must provide at least one solution to the problem");
-        }
-        return new VersionCatalogProblem(
-            id,
-            severity,
-            context.get(),
-            shortDescription,
-            longDescription,
-            reason,
-            () -> docLink == null ? null : DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", docLink.getPage(), docLink.getSection()),
-            solutions.stream()
-                .map(DefaultCatalogProblemBuilder::toSolution)
-                .collect(toList())
-        );
-    }
-
-    private static Supplier<Solution> toSolution(Supplier<String> solutionText) {
-        return () -> new SimpleSolution(solutionText);
-    }
-
-    private static class SimpleSolution implements Solution {
-        private final Supplier<String> descriptor;
-
-        private SimpleSolution(Supplier<String> descriptor) {
-            this.descriptor = descriptor;
-        }
-
-        @Override
-        public String getShortDescription() {
-            return descriptor.get();
-        }
-    }
+//    private static class SimpleSolution implements Solution {
+//        private final Supplier<String> descriptor;
+//
+//        private SimpleSolution(Supplier<String> descriptor) {
+//            this.descriptor = descriptor;
+//        }
+//
+//        @Override
+//        public String getShortDescription() {
+//            return descriptor.get();
+//        }
+//    }
 }
