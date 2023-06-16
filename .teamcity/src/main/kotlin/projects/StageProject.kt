@@ -1,8 +1,7 @@
 package projects
 
-import common.VersionedSettingsBranch
 import common.hiddenArtifactDestination
-import common.toCapitalized
+import common.uuidPrefix
 import configurations.BaseGradleBuildType
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
@@ -11,6 +10,7 @@ import configurations.PerformanceTest
 import configurations.PerformanceTestsPass
 import configurations.SmokeTests
 import configurations.buildReportTab
+import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
 import model.FlameGraphGeneration
@@ -32,7 +32,7 @@ class StageProject(
     previousPerformanceTestPasses: List<PerformanceTestsPass>
 ) : Project({
     this.id("${model.projectId}_Stage_${stage.stageName.id}")
-    this.uuid = "${VersionedSettingsBranch.fromDslContext().branchName.toCapitalized()}_${model.projectId}_Stage_${stage.stageName.uuid}"
+    this.uuid = "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stage.stageName.uuid}"
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 }) {

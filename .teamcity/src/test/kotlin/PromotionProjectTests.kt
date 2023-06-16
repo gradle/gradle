@@ -25,6 +25,10 @@ import org.junit.jupiter.api.Test
 import promotion.PromotionProject
 
 class PromotionProjectTests {
+    init {
+        DslContext.initForTest()
+    }
+
     @Test
     fun `promotion project has expected build types for master branch`() {
         val model = setupModelFor("master")

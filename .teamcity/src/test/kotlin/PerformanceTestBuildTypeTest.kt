@@ -20,7 +20,6 @@ import common.Os
 import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTest
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
@@ -39,9 +38,7 @@ import java.io.File
 
 class PerformanceTestBuildTypeTest {
     init {
-        // Set the project id here, so we can use methods on the DslContext
-        DslContext.projectId = AbsoluteId("Gradle_Master")
-        DslContext.addParameters("Branch" to "master")
+        DslContext.initForTest()
     }
 
     private
