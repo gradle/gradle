@@ -1,6 +1,7 @@
 package projects
 
 import common.VersionedSettingsBranch
+import common.isSecurityAdvisoryFork
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
 import model.DefaultFunctionalTestBucketProvider
@@ -20,7 +21,9 @@ class GradleBuildToolRootProject(branch: VersionedSettingsBranch) : Project({
     val gradleBuildBucketProvider = DefaultFunctionalTestBucketProvider(model, File("./test-buckets.json"))
     subProject(CheckProject(model, gradleBuildBucketProvider))
 
-    subProject(PromotionProject(model.branch))
-    subProject(UtilProject)
-    subProject(UtilPerformanceProject)
+    if (!isSecurityAdvisoryFork()) {
+        subProject(PromotionProject(model.branch))
+        subProject(UtilProject)
+        subProject(UtilPerformanceProject)
+    }
 })
