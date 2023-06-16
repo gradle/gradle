@@ -16,36 +16,26 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
-import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveResult;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet.NO_ARTIFACTS;
-
-class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifactSelector {
+class RepositoryChainArtifactResolver implements ArtifactResolver {
     private final Map<String, ModuleComponentRepository<?>> repositories = new LinkedHashMap<>();
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
@@ -65,16 +55,6 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
         if (!result.hasResult()) {
             sourceRepository.getRemoteAccess().resolveArtifactsWithType(component.getMetadata(), artifactType, result);
         }
-    }
-
-    @Nullable
-    @Override
-    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants, ImmutableAttributes overriddenAttributes) {
-        if (component.getSources() == null) {
-            // virtual components have no source
-            return NO_ARTIFACTS;
-        }
-        return new DefaultArtifactSet(component.getId(), component.getAttributesSchema(), overriddenAttributes, allVariants, legacyVariants);
     }
 
     @Override
