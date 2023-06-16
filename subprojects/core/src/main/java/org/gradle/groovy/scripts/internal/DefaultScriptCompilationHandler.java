@@ -201,12 +201,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
-//        throw new ScriptCompilationException(message, e, source, lineNumber);
-        Problems.createNew(ProblemGroup.GENERIC, message, Severity.ERROR)
-            .location(source.getFileName(), lineNumber)
-            .cause(new ScriptCompilationException(message, e, source, lineNumber))
-            .report()
-            .throwIt();
+        ScriptCompilationException cause = new ScriptCompilationException(message, e, source, lineNumber);
+        throw Problems.throwing(Problems.createNew(ProblemGroup.GENERIC, message, Severity.ERROR)
+            .location(source.getFileName(), lineNumber), cause);
     }
 
     private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {

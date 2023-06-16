@@ -41,7 +41,8 @@ public class DefaultProblem implements Problem {
     private final Throwable cause;
     private final String problemType;
 
-    public DefaultProblem(ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl, @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType) {
+    public DefaultProblem(ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl,
+                          @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType) {
         this.problemGroup = problemGroup;
         this.message = message;
         this.severity = severity;

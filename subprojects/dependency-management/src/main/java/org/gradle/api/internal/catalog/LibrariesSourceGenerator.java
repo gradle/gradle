@@ -508,15 +508,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 .description("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
                 .solution("Reduce the number of aliases defined in this catalog")
                 .solution("Split the catalog into multiple catalogs"));
-
-//            maybeThrowError(ERROR_HEADER, of(buildProblem(VersionCatalogProblemId.TOO_MANY_ENTRIES, spec ->
-//                spec.inContext(this::standardErrorLocation)
-//                    .withShortDescription(() -> "Version catalog model contains too many entries (" + size + ")")
-//                    .happensBecause(() -> "The maximum number of aliases in a catalog is " + MAX_ENTRIES)
-//                    .addSolution(() -> "Reduce the number of aliases defined in this catalog")
-//                    .addSolution(() -> "Split the catalog into multiple catalogs")
-//                    .documented()
-//            )));
         }
     }
 
@@ -537,13 +528,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                     .solution("Use a different alias for " + errorValues)
                     .build();
             })
-//            .map(e -> buildProblem(VersionCatalogProblemId.ACCESSOR_NAME_CLASH, spec ->
-//                spec.inContext(this::standardErrorLocation)
-//                    .withShortDescription(() -> prefix + " " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")) + " are mapped to the same accessor name get" + e.getKey() + suffix + "()")
-//                    .happensBecause("A name clash was detected")
-//                    .addSolution(() -> "Use a different alias for " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")))
-//                    .documented()
-//            ))
             .collect(toList());
         maybeThrowError(ERROR_HEADER, errors);
     }
