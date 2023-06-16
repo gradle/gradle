@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -48,7 +49,7 @@ import java.util.jar.Manifest;
 import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
+public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
     private static final int CACHE_FORMAT = 5;
     private static final int AGENT_INSTRUMENTATION_VERSION = 2;
@@ -127,7 +128,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, TypeHierarchyRegistry typeRegistry) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
         String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
@@ -182,7 +183,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         return hasher.hash().toString();
     }
 
-    private void transform(File source, File dest, TypeHierarchyRegistry typeRegistry) {
+    private void transform(File source, File dest, InstrumentingTypeRegistry typeRegistry) {
         if (policy.instrumentFile(source)) {
             instrument(source, dest, typeRegistry);
         } else {
@@ -191,7 +192,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
     }
 
-    private void instrument(File source, File dest, TypeHierarchyRegistry typeRegistry) {
+    private void instrument(File source, File dest, InstrumentingTypeRegistry typeRegistry) {
         classpathBuilder.jar(dest, builder -> {
             try {
                 visitEntries(source, builder, typeRegistry);
@@ -202,7 +203,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         });
     }
 
-    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder, TypeHierarchyRegistry typeRegistry) throws IOException, FileException {
+    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder, InstrumentingTypeRegistry typeRegistry) throws IOException, FileException {
         classpathWalker.visit(source, entry -> {
             try {
                 if (!policy.includeEntry(entry)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.classpath.types;
 
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public interface ClasspathFileTransformer {
-    File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry);
+/**
+ * Visit files and collect the direct super types for every type.
+ */
+interface InstrumentingDirectSuperTypesCollector {
 
-    HashCode getConfigHash();
+    Map<String, Set<String>> visit(List<File> files, HashCode configHash);
 }

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath
+package org.gradle.internal.classpath.types
 
 import org.gradle.api.DefaultTask
+import org.gradle.internal.classpath.TypeHierarchyRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

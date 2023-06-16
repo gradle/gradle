@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.objectweb.asm.ClassReader;
@@ -24,10 +25,10 @@ import org.objectweb.asm.tree.ClassNode;
 import javax.annotation.Nonnull;
 
 public class ClassData implements InstrumentationMetadata {
-    private final TypeHierarchyRegistry typeRegistry;
+    private final InstrumentingTypeRegistry typeRegistry;
     private final Lazy<ClassNode> lazyClassNode;
 
-    ClassData(ClassReader reader, TypeHierarchyRegistry typeRegistry) {
+    ClassData(ClassReader reader, InstrumentingTypeRegistry typeRegistry) {
         lazyClassNode = Lazy.unsafe().of(() -> {
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, 0);
@@ -43,6 +44,6 @@ public class ClassData implements InstrumentationMetadata {
 
     @Override
     public boolean isInstanceOf(@Nonnull String type, @Nonnull String superType) {
-        return typeRegistry.getSuperTypes(type).contains(superType);
+        return typeRegistry.getInstrumentedSuperTypes(type).contains(superType);
     }
 }

@@ -18,30 +18,27 @@ package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.classpath.types.DefaultInstrumentingTypeRegistryFactory;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistryFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
-import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,15 +48,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.Optional.empty;
 import static org.gradle.internal.Either.left;
 import static org.gradle.internal.Either.right;
 import static org.gradle.internal.UncheckedException.unchecked;
-import static org.gradle.internal.classpath.TypeHierarchyRegistry.TypeHierarchyReaderWriter.readFromFile;
-import static org.gradle.internal.classpath.TypeHierarchyRegistry.TypeHierarchyReaderWriter.writeToFile;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
 
@@ -73,7 +66,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final AgentStatus agentStatus;
     private final ManagedExecutor executor;
     private final ParallelTransformExecutor parallelTransformExecutor;
-    private final TypeRegistryProvider typeRegistryProvider;
+    private final InstrumentingTypeRegistryFactory typeRegistryFactory;
 
     public DefaultCachedClasspathTransformer(
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
@@ -97,7 +90,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(cache, fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
         this.parallelTransformExecutor = new ParallelTransformExecutor(cache, executor);
-        this.typeRegistryProvider = new TypeRegistryProvider(cache, parallelTransformExecutor, classpathWalker, this::snapshotOf);
+        this.typeRegistryFactory = new DefaultInstrumentingTypeRegistryFactory(cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
     }
 
     @Override
@@ -177,9 +170,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             return ImmutableList.of();
         }
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
-        TypeHierarchyRegistry typeRegistry = transformer instanceof InstrumentingClasspathFileTransformer
-            ? typeRegistryProvider.getFor(urls, transformer.getConfigHash())
-            : new TypeHierarchyRegistry();
+        InstrumentingTypeRegistry typeRegistry = typeRegistryFactory.createFor(urls, transformer);
         return parallelTransformExecutor.transformAll(
             urls,
             (url, seen) -> cachedURL(url, transformer, seen, typeRegistry)
@@ -187,9 +178,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        TypeHierarchyRegistry typeRegistry = transformer instanceof InstrumentingClasspathFileTransformer
-            ? typeRegistryProvider.getFor(classPath.getAsFiles(), transformer.getConfigHash())
-            : new TypeHierarchyRegistry();
+        InstrumentingTypeRegistry typeRegistry = typeRegistryFactory.createFor(classPath.getAsFiles(), transformer);
         return DefaultClassPath.of(
             parallelTransformExecutor.transformAll(
                 classPath.getAsFiles(),
@@ -221,7 +210,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, policy, transform);
     }
 
-    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, TypeHierarchyRegistry typeRegistry) {
+    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, InstrumentingTypeRegistry typeRegistry) {
         if (original.getProtocol().equals("file")) {
             return cachedFile(Convert.urlToFile(original), transformer, seen, typeRegistry).map(
                 result -> result.fold(
@@ -237,7 +226,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         File original,
         ClasspathFileTransformer transformer,
         Set<HashCode> seen,
-        TypeHierarchyRegistry typeRegistry
+        InstrumentingTypeRegistry typeRegistry
     ) {
         FileSystemLocationSnapshot snapshot = snapshotOf(original);
         if (snapshot.getType() == FileType.Missing) {
@@ -257,7 +246,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return Optional.of(left(original));
     }
 
-    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer, TypeHierarchyRegistry typeRegistry) {
+    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer, InstrumentingTypeRegistry typeRegistry) {
         final File result = transformer.transform(original, snapshot, cache.getBaseDir(), typeRegistry);
         markAccessed(result, original);
         return result;
@@ -279,12 +268,12 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     @FunctionalInterface
-    private interface ValueOrTransformProvider<T, U> {
+    public interface ValueOrTransformProvider<T, U> {
         Optional<Either<U, Callable<U>>> apply(T input, Set<HashCode> seen);
     }
 
     @NonNullApi
-    private static class ParallelTransformExecutor {
+    public static class ParallelTransformExecutor {
 
         private final PersistentCache cache;
         private final ManagedExecutor executor;
@@ -328,90 +317,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
     }
 
-    @NonNullApi
-    private static class TypeRegistryProvider {
-
-        private static final Logger LOGGER = Logging.getLogger(TypeRegistryProvider.class);
-
-        private final PersistentCache cache;
-        private final ParallelTransformExecutor parallelExecutor;
-        private final ClasspathWalker classpathWalker;
-        private final Function<File, FileSystemLocationSnapshot> snapshotFun;
-
-        public TypeRegistryProvider(PersistentCache cache, ParallelTransformExecutor parallelExecutor, ClasspathWalker classpathWalker,
-                                    Function<File, FileSystemLocationSnapshot> snapshotFun) {
-            this.cache = cache;
-            this.parallelExecutor = parallelExecutor;
-            this.classpathWalker = classpathWalker;
-            this.snapshotFun = snapshotFun;
-        }
-
-        public TypeHierarchyRegistry getFor(Collection<URL> urls, HashCode configHash) {
-            List<File> files = urls.stream()
-                .filter(url -> url.getProtocol().equals("file"))
-                .map(Convert::urlToFile)
-                .collect(Collectors.toList());
-            return getFor(files, configHash);
-        }
-
-        public TypeHierarchyRegistry getFor(List<File> files, HashCode configHash) {
-            List<TypeHierarchyRegistry> typeRegistries = parallelExecutor.transformAll(files, (File source, Set<HashCode> seen) -> visitClassHierarchyForFile(source, seen, configHash));
-            return TypeHierarchyRegistry.of(typeRegistries);
-        }
-
-        private Optional<Either<TypeHierarchyRegistry, Callable<TypeHierarchyRegistry>>> visitClassHierarchyForFile(File source, Set<HashCode> seen, HashCode configHash) {
-            FileSystemLocationSnapshot snapshot = snapshotFun.apply(source.getAbsoluteFile());
-            if (snapshot.getType() == FileType.Missing || !seen.add(snapshot.getHash())) {
-                // Don't visit missing files or files that have already been visited
-                return Optional.empty();
-            }
-            return Optional.of(Either.right(() -> visitClassHierarchyForFile(source, snapshot, configHash)));
-        }
-
-        private TypeHierarchyRegistry visitClassHierarchyForFile(File source, FileSystemLocationSnapshot sourceSnapshot, HashCode configHash) throws IOException {
-            TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
-            InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
-            String destDirName = source.toPath().startsWith(cache.getBaseDir().toPath())
-                ? source.getParentFile().getName()
-                : hashOf(sourceSnapshot, configHash);
-            File destDir = new File(cache.getBaseDir(), destDirName);
-            if (!destDir.exists()) {
-                destDir.mkdirs();
-            }
-            String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
-            File hierachyFile = new File(destDir, destFileName + ".hierarchy");
-            if (hierachyFile.isFile()) {
-                return readFromFile(hierachyFile);
-            }
-
-            try {
-                classpathWalker.visit(source, entry -> {
-                    if (!policy.includeEntry(entry)) {
-                        return;
-                    }
-                    if (entry.getName().endsWith(".class")) {
-                        typeRegistry.visit(entry.getContent());
-                    }
-                });
-            } catch (FileException e) {
-                // Badly formed archive, so discard the contents and produce an empty registry
-                LOGGER.debug("Malformed archive '{}'. No type hierarchy to discover.", source.getName(), e);
-            }
-            writeToFile(typeRegistry, hierachyFile);
-            return typeRegistry;
-        }
-
-        // TODO: Reuse this somehow from InstrumentingClasspathFileTransformer
-        private static String hashOf(FileSystemLocationSnapshot sourceSnapshot, HashCode configHash) {
-            Hasher hasher = Hashing.defaultFunction().newHasher();
-            hasher.putHash(configHash);
-            // TODO - apply runtime classpath normalization?
-            hasher.putHash(sourceSnapshot.getHash());
-            return hasher.hash().toString();
-        }
-    }
-
-    private static class Convert {
+    public static class Convert {
 
         public static File urlToFile(URL original) {
             return new File(unchecked(original::toURI));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
-
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-
-import java.io.File;
-
-public interface ClasspathFileTransformer {
-    File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry);
-
-    HashCode getConfigHash();
-}
+/**
+ * A package containing code for discovering types and instrumenting inherited methods.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.internal.classpath.types;

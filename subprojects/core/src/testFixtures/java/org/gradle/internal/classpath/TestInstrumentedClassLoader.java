@@ -19,6 +19,7 @@ package org.gradle.internal.classpath;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.TransformingClassLoader;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -93,7 +94,7 @@ public class TestInstrumentedClassLoader extends TransformingClassLoader {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         Pair<RelativePath, ClassVisitor> pathAndVisitor;
         try {
-            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, new TypeHierarchyRegistry()));
+            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, InstrumentingTypeRegistry.empty()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

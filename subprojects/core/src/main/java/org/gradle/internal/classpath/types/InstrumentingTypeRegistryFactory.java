@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.classpath.types;
 
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.classpath.ClasspathFileTransformer;
 
 import java.io.File;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 
-public interface ClasspathFileTransformer {
-    File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry);
-
-    HashCode getConfigHash();
+public interface InstrumentingTypeRegistryFactory {
+    InstrumentingTypeRegistry createFor(Collection<URL> urls, ClasspathFileTransformer transformer);
+    InstrumentingTypeRegistry createFor(List<File> files, ClasspathFileTransformer transformer);
 }
