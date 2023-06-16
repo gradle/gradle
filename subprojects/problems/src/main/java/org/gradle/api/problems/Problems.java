@@ -24,6 +24,8 @@ import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 
 import java.util.Collection;
 
+import static java.util.Collections.singleton;
+
 /**
  * Prototype Problems API.
  *
@@ -52,6 +54,10 @@ public class Problems {
         ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
     }
 
+    public static RuntimeException throwing(ProblemBuilder problem, RuntimeException cause) {
+        problem.cause(cause);
+        return throwing(singleton(problem.build()), cause);
+    }
     public static RuntimeException throwing(Collection<Problem> problems, RuntimeException cause) {
         for (Problem problem : problems){
             ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
