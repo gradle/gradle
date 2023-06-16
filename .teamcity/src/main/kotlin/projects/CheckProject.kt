@@ -2,6 +2,7 @@ package projects
 
 import common.cleanupRule
 import common.hiddenArtifactDestination
+import common.isSecurityFork
 import configurations.PerformanceTestsPass
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
@@ -9,6 +10,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
 import model.FunctionalTestBucketProvider
 import model.Stage
+import model.StageName
 import model.StatisticsBasedPerformanceTestBucketProvider
 import java.io.File
 
@@ -54,6 +56,9 @@ class CheckProject(
     var prevStage: Stage? = null
     val previousPerformanceTestPasses: MutableList<PerformanceTestsPass> = mutableListOf()
     model.stages.forEach { stage ->
+        if (isSecurityFork() && stage.stageName > StageName.READY_FOR_RELEASE) {
+            return@forEach
+        }
         val stageProject = StageProject(model, functionalTestBucketProvider, performanceTestBucketProvider, stage, previousPerformanceTestPasses)
         val stagePasses = StagePasses(model, stage, prevStage, stageProject)
         buildType(stagePasses)
