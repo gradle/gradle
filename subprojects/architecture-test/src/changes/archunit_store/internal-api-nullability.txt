@@ -362,8 +362,6 @@ Class <org.gradle.api.internal.catalog.parser.StrictVersionParser$RichVersion> i
 Class <org.gradle.api.internal.catalog.parser.StrictVersionParser> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (StrictVersionParser.java:0)
 Class <org.gradle.api.internal.catalog.parser.TomlCatalogFileParser> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TomlCatalogFileParser.java:0)
 Class <org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCatalogProblemBuilder.java:0)
-Class <org.gradle.api.internal.catalog.problems.VersionCatalogProblem> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (VersionCatalogProblem.java:0)
-Class <org.gradle.api.internal.catalog.problems.VersionCatalogProblemBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (VersionCatalogProblemBuilder.java:0)
 Class <org.gradle.api.internal.catalog.problems.VersionCatalogProblemId> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (VersionCatalogProblemId.java:0)
 Class <org.gradle.api.internal.changedetection.TaskExecutionMode> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TaskExecutionMode.java:0)
 Class <org.gradle.api.internal.changedetection.TaskExecutionModeResolver> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TaskExecutionModeResolver.java:0)
