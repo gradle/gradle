@@ -38,6 +38,9 @@ import kotlinx.metadata.jvm.getterSignature
 import kotlinx.metadata.jvm.moduleName
 import kotlinx.metadata.jvm.signature
 import kotlinx.metadata.jvm.syntheticMethodForAnnotations
+import org.gradle.kotlin.dsl.accessors.ExtensionSpec
+import org.gradle.kotlin.dsl.accessors.accessorDescriptorFor
+import org.gradle.kotlin.dsl.accessors.nonInlineGetterFlags
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -206,6 +209,18 @@ fun newTypeParameterTypeOf(id: Int): KmType {
 
 
 internal
+fun KmPackage.addKmProperty(extensionSpec: ExtensionSpec, getterSignature: JvmMethodSignature) {
+    properties += newPropertyOf(
+        name = extensionSpec.name,
+        getterFlags = nonInlineGetterFlags,
+        receiverType = extensionSpec.receiverType.kmType,
+        returnType = extensionSpec.returnType.kmType,
+        getterSignature = getterSignature
+    )
+}
+
+
+internal
 fun newFunctionOf(
     flags: Flags = publicFunctionFlags,
     receiverType: KmType,
@@ -269,6 +284,13 @@ fun providerOfStar(): KmType =
 internal
 fun providerConvertibleOfStar(): KmType =
     newClassTypeOf("org/gradle/api/provider/ProviderConvertible", KmTypeProjection.STAR)
+
+
+internal
+fun jvmGetterSignatureFor(pluginsExtension: ExtensionSpec): JvmMethodSignature = jvmGetterSignatureFor(
+    pluginsExtension.name,
+    accessorDescriptorFor(pluginsExtension.receiverType.internalName, pluginsExtension.returnType.internalName)
+)
 
 
 internal

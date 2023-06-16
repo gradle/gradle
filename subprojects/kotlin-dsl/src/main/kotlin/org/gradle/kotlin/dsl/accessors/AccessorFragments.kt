@@ -921,7 +921,7 @@ fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): String =
     "Accessors${hashOf(accessorSpec)}Kt"
 
 
-private
+internal
 fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =
     "(L$receiverType;)L$returnType;"
 

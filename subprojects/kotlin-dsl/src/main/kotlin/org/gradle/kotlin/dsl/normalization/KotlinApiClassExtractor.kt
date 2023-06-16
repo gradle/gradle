@@ -125,13 +125,13 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
 
     private
     fun parseKotlinClassHeader(kotlinMetadataAnnotation: AnnotationMember): KotlinClassHeader {
-        var kind = 0
-        var metadataVersion = IntArray(0)
-        var data1 = arrayOf<String>()
-        var data2 = arrayOf<String>()
-        var extraString = ""
-        var packageName = ""
-        var extraInt = 0
+        var kind: Int? = null
+        var metadataVersion: IntArray? = null
+        var data1: Array<String>? = null
+        var data2: Array<String>? = null
+        var extraString: String? = null
+        var packageName: String? = null
+        var extraInt: Int? = null
         kotlinMetadataAnnotation.values.forEach {
             // see Metadata.kt
             when (it) {
@@ -150,15 +150,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                     }
             }
         }
-        return KotlinClassHeader(
-            kind = kind,
-            metadataVersion = metadataVersion,
-            data1 = data1,
-            data2 = data2,
-            extraString = extraString,
-            packageName = packageName,
-            extraInt = extraInt
-        )
+        return KotlinClassHeader(kind, metadataVersion, data1, data2, extraString, packageName, extraInt)
     }
 
     private

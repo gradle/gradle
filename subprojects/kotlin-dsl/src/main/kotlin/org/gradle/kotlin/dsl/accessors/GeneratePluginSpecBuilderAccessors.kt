@@ -48,11 +48,11 @@ import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.NEW
 import org.gradle.kotlin.dsl.support.bytecode.PUTFIELD
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
+import org.gradle.kotlin.dsl.support.bytecode.addKmProperty
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
-import org.gradle.kotlin.dsl.support.bytecode.newPropertyOf
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
@@ -172,7 +172,7 @@ fun IO.buildPluginDependencySpecAccessorsFor(
         moduleMetadata
     )
 
-    val properties = ArrayList<Pair<PluginDependencySpecAccessor, JvmMethodSignature>>(accessorList.size)
+    val accessorSignatures = ArrayList<Pair<PluginDependencySpecAccessor, JvmMethodSignature>>(accessorList.size)
     val header = writeFileFacadeClassHeader(moduleName) {
         accessorList.forEach { accessor ->
 
@@ -182,23 +182,14 @@ fun IO.buildPluginDependencySpecAccessorsFor(
             }
 
             val extensionSpec = accessor.extension
-            val propertyName = extensionSpec.name
-            val receiverType = extensionSpec.receiverType
-            val returnType = extensionSpec.returnType
-            val getterSignature = jvmGetterSignatureFor(propertyName, "(L${receiverType.internalName};)L${returnType.internalName};")
-            this.properties += newPropertyOf(
-                name = propertyName,
-                getterFlags = nonInlineGetterFlags,
-                receiverType = receiverType.kmType,
-                returnType = returnType.kmType,
-                getterSignature = getterSignature
-            )
-            properties.add(accessor to getterSignature)
+            val getterSignature = jvmGetterSignatureFor(extensionSpec)
+            addKmProperty(extensionSpec, getterSignature)
+            accessorSignatures.add(accessor to getterSignature)
         }
     }
 
     val classBytes = publicKotlinClass(fileFacadeClassName, header) {
-        properties.forEach { (accessor, signature) ->
+        accessorSignatures.forEach { (accessor, signature) ->
             emitPluginDependencySpecAccessorMethodFor(accessor, signature)
         }
     }
