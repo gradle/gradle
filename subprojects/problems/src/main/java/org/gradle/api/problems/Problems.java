@@ -59,9 +59,13 @@ public class Problems {
         return throwing(singleton(problem.build()), cause);
     }
     public static RuntimeException throwing(Collection<Problem> problems, RuntimeException cause) {
+        collect(problems);
+        throw cause;
+    }
+
+    public static void collect(Collection<Problem> problems) {
         for (Problem problem : problems){
             ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
         }
-        throw cause;
     }
 }
