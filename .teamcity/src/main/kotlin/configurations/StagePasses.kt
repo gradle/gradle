@@ -1,9 +1,9 @@
 package configurations
 
-import common.VersionedSettingsBranch
 import common.applyDefaultSettings
-import common.toCapitalized
+import common.uuidPrefix
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
+import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.SnapshotDependency
@@ -82,7 +82,7 @@ fun stageTriggerUuid(model: CIBuildModel, stage: Stage) = stageTriggerUuid(model
 
 fun stageTriggerId(model: CIBuildModel, stageName: StageName) = "${model.projectId}_Stage_${stageName.id}_Trigger"
 
-fun stageTriggerUuid(model: CIBuildModel, stageName: StageName) = "${VersionedSettingsBranch.fromDslContext().branchName.toCapitalized()}_${model.projectId}_Stage_${stageName.uuid}_Trigger"
+fun stageTriggerUuid(model: CIBuildModel, stageName: StageName) = "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stageName.uuid}_Trigger"
 
 fun <T : BaseGradleBuildType> Dependencies.snapshotDependencies(buildTypes: Iterable<T>, snapshotConfig: SnapshotDependency.(T) -> Unit = {}) {
     buildTypes.forEach { buildType ->
