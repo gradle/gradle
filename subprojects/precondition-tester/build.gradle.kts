@@ -1,3 +1,4 @@
+import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
 import gradlebuild.integrationtests.tasks.DistributionTest
 
 /*
@@ -79,7 +80,7 @@ fun Test.setupPreconditionTesting() {
     classpath += sourceSets.test.get().output
 
     // These tests should not be impacted by the predictive selection
-    predictiveSelection {
+    extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
         enabled = false
     }
 
