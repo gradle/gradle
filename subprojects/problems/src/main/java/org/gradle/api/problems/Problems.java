@@ -18,13 +18,17 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 
 import java.util.Collection;
 
 import static java.util.Collections.singleton;
+import static org.gradle.api.problems.interfaces.ProblemGroup.GENERIC;
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
 
 /**
  * Prototype Problems API.
@@ -34,20 +38,18 @@ import static java.util.Collections.singleton;
 @Incubating
 public class Problems {
 
-    public static ProblemBuilder createNew(ProblemGroup problemGroup, String message, Severity severity) {
-        return new ProblemBuilder(problemGroup, message, severity);
+    public static ProblemBuilder create(ProblemGroup problemGroup, String message, Severity severity, String type) {
+        return new DefaultProblemBuilder(problemGroup, message, severity, type);
     }
 
-    public static ProblemBuilder createError(ProblemGroup problemGroup, String message) {
-        return new ProblemBuilder(problemGroup, message, Severity.ERROR);
+    public static ProblemBuilder createError(ProblemGroup problemGroup, String message, String type) {
+        return new DefaultProblemBuilder(problemGroup, message, ERROR, type);
     }
-
-//    public static ProblemBuilder throwing(Exception e, ProblemId problemId) { // TODO should be a different builder; that throws as a terminal operation
-//        return new ProblemBuilder(problemId, e.getMessage(), Severity.ERROR);
-//    }
 
     public static void collect(Throwable failure) {
-        new ProblemBuilder(ProblemGroup.GENERIC, failure.getMessage(), Severity.ERROR).cause(failure).report(true);
+        new DefaultProblemBuilder(GENERIC, failure.getMessage(), ERROR, "generic_exception")
+            .cause(failure)
+            .report();
     }
 
     public static void collect(Problem problem) {

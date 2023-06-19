@@ -93,7 +93,7 @@ public class DefaultTaskSelector implements TaskSelector {
 //                throw Problems.throwing(Problems.createError(ProblemGroup.GENERIC, message)
 //                    .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1), new TaskSelectionException(message));
 
-                throw Problems.createError(ProblemGroup.GENERIC, message)
+                throw Problems.createError(ProblemGroup.GENERIC, message, null)
                     .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
                     .cause(new TaskSelectionException(message))
                     .throwIt();

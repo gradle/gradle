@@ -19,39 +19,34 @@ package org.gradle.api.problems.interfaces;
 import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 /**
- * Problem description.
+ * A builder interface for {@link Problem} instances.
  *
  * @since 8.3
  */
 @Incubating
-public interface Problem {
+public interface ProblemBuilder {
+    ProblemBuilder location(String path, Integer line);
+
+    ProblemBuilder noLocation();
+
+    ProblemBuilder description(String description);
+
+    ProblemBuilder documentedAt(String page, String section);
+
+    ProblemBuilder undocumented();
+
+    ProblemBuilder type(String problemType);
+
+    ProblemBuilder solution(@Nullable String solution);
+
+    ProblemBuilder cause(Throwable cause);
+
+    Problem build();
 
 
-    ProblemGroup getProblemGroup();
+    void report();
 
-    String getMessage();
-
-    Severity getSeverity();
-
-    @Nullable
-    ProblemLocation getWhere();
-
-    @Nullable
-    DocLink getDocumentationLink();
-
-    @Nullable
-    String getDescription();
-
-    List<String> getSolutions();
-
-    @Nullable
-    Throwable getCause();
-
-    /**
-     * Mandotory field for problem type.
-     */
-    String getProblemType();
+    RuntimeException throwIt();
 }

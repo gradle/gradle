@@ -118,8 +118,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getElapsed());
     }
 
-    private void compileScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
-                               final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier) {
+    private void compileScript(
+        ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
+        final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier
+    ) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 
@@ -127,8 +129,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         final PackageStatementDetector packageDetector = new PackageStatementDetector();
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
-            protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
-                                                            CodeSource codeSource) {
+            protected CompilationUnit createCompilationUnit(
+                CompilerConfiguration compilerConfiguration,
+                CodeSource codeSource
+            ) {
 
                 CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this, simpleNameToFQN);
 
@@ -202,10 +206,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
-        throw Problems.throwing(
-            Problems.createError(ProblemGroup.GENERIC, message)
-                .location(source.getFileName(), lineNumber),
-            new ScriptCompilationException(message, e, source, lineNumber));
+        throw Problems.createError(ProblemGroup.GENERIC, message, "script_compilation_failed")
+            .location(source.getFileName(), lineNumber)
+            .cause(new ScriptCompilationException(message, e, source, lineNumber))
+            .throwIt();
     }
 
     private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
@@ -216,8 +220,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassPath scriptClassPath,
-                                                                  File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
+    public <T extends Script, M> CompiledScript<T, M> loadFromDir(
+        ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassPath scriptClassPath,
+        File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass
+    ) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
             byte flags = decoder.readByte();
