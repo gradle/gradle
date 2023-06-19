@@ -110,14 +110,12 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     }
 
     private static void nagAboutDeprecatedPluginVersion(String pluginVersion) {
-        DeprecationLogger.deprecateIndirectUsage("Usage of the Gradle Enterprise plugin " + pluginVersion)
-            .withContext("The plugin application will be ignored.")
-            .withAdvice(String.format("Please upgrade to version %s.%s.%s or later of the Gradle Enterprise plugin.",
+        DeprecationLogger.deprecateIndirectUsage("Gradle Enterprise plugin " + pluginVersion)
+            .startingWithGradle9(String.format("only Gradle Enterprise plugin %s.%s.%s or newer is supported",
                 MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMajor(),
                 MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMinor(),
                 MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMicro()
             ))
-            .willChangeInGradle9()
             .withUpgradeGuideSection(8, "unsupported_ge_plugin_3.13")
             .nagUser();
     }

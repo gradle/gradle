@@ -137,6 +137,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final List<String> SUPPORTED_BY_CI_INJECTION = SUPPORTED
         .findAll { VersionNumber.parse("3.3") <= VersionNumber.parse(it) }
 
+    private static final VersionNumber FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE = VersionNumber.parse("3.4")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
     private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
@@ -175,10 +176,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         then:
         scanRunner()
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Usage of the Gradle Enterprise plugin " + version + " has been deprecated. " +
-                    "This will change in Gradle 9.0. " +
-                    "The plugin application will be ignored. " +
-                    "Please upgrade to version 3.13.1 or later of the Gradle Enterprise plugin. " +
+                "Gradle Enterprise plugin $version has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
             )
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
@@ -225,6 +224,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         expect:
         scanRunner("--init-script", initScript)
+            .expectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "Gradle Enterprise plugin $pluginVersion has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
+            )
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "The BuildIdentifier.getName() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
