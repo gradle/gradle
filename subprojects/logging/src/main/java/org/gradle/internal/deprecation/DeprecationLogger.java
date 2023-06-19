@@ -103,7 +103,7 @@ public class DeprecationLogger {
     /**
      * Indirect usage means that stack trace at the time the deprecation is logged does not indicate the call site.
      * This directs GE to not display unhelpful stacktraces with the deprecation.
-     *
+     * <p>
      * Output: ${feature} has been deprecated.
      */
     @CheckReturnValue
