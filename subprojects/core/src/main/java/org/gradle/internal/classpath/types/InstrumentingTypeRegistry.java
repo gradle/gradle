@@ -19,6 +19,9 @@ package org.gradle.internal.classpath.types;
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * Provides information about types that are visited during instrumentation.
+ */
 public interface InstrumentingTypeRegistry {
 
     InstrumentingTypeRegistry EMPTY = new EmptyInstrumentingTypeRegistry();

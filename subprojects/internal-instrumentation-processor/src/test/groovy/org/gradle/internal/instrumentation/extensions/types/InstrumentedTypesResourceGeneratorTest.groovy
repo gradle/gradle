@@ -69,6 +69,6 @@ class InstrumentedTypesResourceGeneratorTest extends InstrumentationCodeGenTest 
         assertThat(compilation)
                 .generatedFile(CLASS_OUTPUT, "org/gradle/internal/instrumentation/instrumented-classes.txt")
                 .contentsAsString(StandardCharsets.UTF_8)
-                .isEqualTo("org/gradle/api/Rule\norg/gradle/api/Task\n")
+                .isEqualTo("org/gradle/api/Rule\norg/gradle/api/Task")
     }
 }

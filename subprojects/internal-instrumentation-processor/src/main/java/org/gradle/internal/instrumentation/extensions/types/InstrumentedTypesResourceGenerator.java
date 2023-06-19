@@ -53,17 +53,16 @@ public class InstrumentedTypesResourceGenerator implements InstrumentationResour
 
             @Override
             public void writeLines(Writer writer) {
-                requestsForInheritedTypes.stream()
-                        .map(request -> request.getInterceptedCallable().getOwner().getType().getClassName())
-                        .distinct()
-                        .sorted()
-                        .forEach(className -> {
-                            try {
-                                writer.write(className.replace(".", "/") + "\n");
-                            } catch (IOException e) {
-                                throw new UncheckedIOException(e);
-                            }
-                        });
+                String types = requestsForInheritedTypes.stream()
+                    .map(request -> request.getInterceptedCallable().getOwner().getType().getClassName().replace(".", "/"))
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.joining("\n"));
+                try {
+                    writer.write(types);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
 
             @Override

@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.types;
+package org.gradle.internal.classpath;
 
-import org.gradle.internal.classpath.ClasspathFileTransformer;
+import org.gradle.api.NonNullApi;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-import java.io.File;
-import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-
-/**
- * Creates {@link InstrumentingTypeRegistry} instances for given urls or files.
- */
-public interface InstrumentingTypeRegistryFactory {
-    InstrumentingTypeRegistry createFor(Collection<URL> urls, ClasspathFileTransformer transformer);
-    InstrumentingTypeRegistry createFor(List<File> files, ClasspathFileTransformer transformer);
+@NonNullApi
+public interface ClasspathFileHasher {
+    HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot);
 }

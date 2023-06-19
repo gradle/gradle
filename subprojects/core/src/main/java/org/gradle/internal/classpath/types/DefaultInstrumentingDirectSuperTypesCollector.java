@@ -21,14 +21,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Either;
+import org.gradle.internal.classpath.ClasspathFileHasher;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.classpath.InstrumentingClasspathFileTransformer;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.objectweb.asm.ClassReader;
@@ -72,8 +71,8 @@ class DefaultInstrumentingDirectSuperTypesCollector implements InstrumentingDire
     }
 
     @Override
-    public Map<String, Set<String>> visit(List<File> files, HashCode configHash) {
-        List<Map<String, Set<String>>> directSuperTypes = parallelExecutor.transformAll(files, (File source, Set<HashCode> seen) -> visitClassHierarchyForFile(source, seen, configHash));
+    public Map<String, Set<String>> visit(List<File> files, ClasspathFileHasher fileHasher) {
+        List<Map<String, Set<String>>> directSuperTypes = parallelExecutor.transformAll(files, (File source, Set<HashCode> seen) -> visitClassHierarchyForFile(source, seen, fileHasher));
         return directSuperTypes.stream().flatMap(map -> map.entrySet().stream())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, DefaultInstrumentingDirectSuperTypesCollector::concat));
     }
@@ -85,21 +84,21 @@ class DefaultInstrumentingDirectSuperTypesCollector implements InstrumentingDire
             .build();
     }
 
-    private Optional<Either<Map<String, Set<String>>, Callable<Map<String, Set<String>>>>> visitClassHierarchyForFile(File source, Set<HashCode> seen, HashCode configHash) {
+    private Optional<Either<Map<String, Set<String>>, Callable<Map<String, Set<String>>>>> visitClassHierarchyForFile(File source, Set<HashCode> seen, ClasspathFileHasher fileHasher) {
         FileSystemLocationSnapshot snapshot = fileSystemAccess.read(source.getAbsoluteFile().getAbsolutePath());
         if (snapshot.getType() == FileType.Missing || !seen.add(snapshot.getHash())) {
             // Don't visit missing files or files that have already been visited
             return Optional.empty();
         }
-        return Optional.of(Either.right(() -> visitClassHierarchyForFile(source, snapshot, configHash)));
+        return Optional.of(Either.right(() -> visitClassHierarchyForFile(source, snapshot, fileHasher)));
     }
 
-    private Map<String, Set<String>> visitClassHierarchyForFile(File source, FileSystemLocationSnapshot sourceSnapshot, HashCode configHash) throws IOException {
+    private Map<String, Set<String>> visitClassHierarchyForFile(File source, FileSystemLocationSnapshot sourceSnapshot, ClasspathFileHasher fileHasher) throws IOException {
         Map<String, Set<String>> directSuperTypes = new HashMap<>();
         InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
         String destDirName = source.toPath().startsWith(cache.getBaseDir().toPath())
             ? source.getParentFile().getName()
-            : hashOf(sourceSnapshot, configHash);
+            : fileHasher.hashOf(sourceSnapshot).toString();
         File destDir = new File(cache.getBaseDir(), destDirName);
         if (!destDir.exists()) {
             destDir.mkdirs();
@@ -165,14 +164,5 @@ class DefaultInstrumentingDirectSuperTypesCollector implements InstrumentingDire
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    // TODO: Reuse this somehow from InstrumentingClasspathFileTransformer
-    private static String hashOf(FileSystemLocationSnapshot sourceSnapshot, HashCode configHash) {
-        Hasher hasher = Hashing.defaultFunction().newHasher();
-        hasher.putHash(configHash);
-        // TODO - apply runtime classpath normalization?
-        hasher.putHash(sourceSnapshot.getHash());
-        return hasher.hash().toString();
     }
 }

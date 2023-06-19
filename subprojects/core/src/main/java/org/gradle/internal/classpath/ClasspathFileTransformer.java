@@ -17,7 +17,6 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
@@ -25,5 +24,5 @@ import java.io.File;
 public interface ClasspathFileTransformer {
     File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry);
 
-    HashCode getConfigHash();
+    ClasspathFileHasher getFileHasher();
 }

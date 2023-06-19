@@ -26,6 +26,10 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * InstrumentingTypeRegistry for checking type information for external plugins.
+ * It combines data of direct super types that when visiting external plugins classes and Gradle core types data, to calculated final information for external types.
+ */
 public class ExternalPluginsInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
 
     private final InstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry;

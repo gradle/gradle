@@ -19,7 +19,6 @@ package org.gradle.internal.classpath;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.util.internal.GFileUtils;
 
@@ -55,7 +54,7 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
     }
 
     @Override
-    public HashCode getConfigHash() {
-        return HashCode.fromBytes(new byte[]{0, 0, 0, 0});
+    public ClasspathFileHasher getFileHasher() {
+        return FileSystemLocationSnapshot::getHash;
     }
 }

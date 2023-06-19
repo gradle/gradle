@@ -65,7 +65,7 @@ public class DefaultInstrumentingTypeRegistryFactory implements InstrumentingTyp
         if (shouldReturnEmptyRegistry(transformer)) {
             return InstrumentingTypeRegistry.empty();
         }
-        Map<String, Set<String>> directSuperTypes = directSuperTypesCollector.visit(files, transformer.getConfigHash());
+        Map<String, Set<String>> directSuperTypes = directSuperTypesCollector.visit(files, transformer.getFileHasher());
         return new ExternalPluginsInstrumentingTypeRegistry(directSuperTypes, gradleCoreInstrumentingRegistry);
     }
 

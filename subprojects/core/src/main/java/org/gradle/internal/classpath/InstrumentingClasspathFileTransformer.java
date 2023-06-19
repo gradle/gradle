@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
@@ -62,7 +63,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     private final ClasspathBuilder classpathBuilder;
     private final Policy policy;
     private final CachedClasspathTransformer.Transform transform;
-    private final HashCode configHash;
+    private final ClasspathFileHasher fileHasher;
 
     /**
      * Instrumentation policy. There are some differences when instrumenting classes to be loaded by the instrumenting agent, this interface encapsulates them.
@@ -116,7 +117,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         this.classpathBuilder = classpathBuilder;
         this.policy = policy;
         this.transform = transform;
-        this.configHash = configHashFor(transform);
+        this.fileHasher = new InstrumentingFileHasher(configHashFor(transform));
     }
 
     private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
@@ -163,8 +164,8 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     }
 
     @Override
-    public HashCode getConfigHash() {
-        return configHash;
+    public ClasspathFileHasher getFileHasher() {
+        return fileHasher;
     }
 
     private FileLock exclusiveLockFor(File file) {
@@ -176,11 +177,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     }
 
     private String hashOf(FileSystemLocationSnapshot sourceSnapshot) {
-        Hasher hasher = Hashing.defaultFunction().newHasher();
-        hasher.putHash(configHash);
-        // TODO - apply runtime classpath normalization?
-        hasher.putHash(sourceSnapshot.getHash());
-        return hasher.hash().toString();
+        return fileHasher.hashOf(sourceSnapshot).toString();
     }
 
     private void transform(File source, File dest, InstrumentingTypeRegistry typeRegistry) {
@@ -346,5 +343,23 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
 
     private static boolean isManifest(ClasspathEntryVisitor.Entry entry) {
         return entry.getName().equals("META-INF/MANIFEST.MF");
+    }
+
+    @NonNullApi
+    private static class InstrumentingFileHasher implements ClasspathFileHasher {
+
+        private final HashCode configHash;
+
+        public InstrumentingFileHasher(HashCode configHash) {
+            this.configHash = configHash;
+        }
+
+        public HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot) {
+            Hasher hasher = Hashing.defaultFunction().newHasher();
+            hasher.putHash(configHash);
+            // TODO - apply runtime classpath normalization?
+            hasher.putHash(sourceSnapshot.getHash());
+            return hasher.hash();
+        }
     }
 }

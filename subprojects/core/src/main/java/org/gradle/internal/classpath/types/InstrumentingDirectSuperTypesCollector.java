@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classpath.types;
 
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.classpath.ClasspathFileHasher;
 
 import java.io.File;
 import java.util.List;
@@ -28,5 +28,5 @@ import java.util.Set;
  */
 interface InstrumentingDirectSuperTypesCollector {
 
-    Map<String, Set<String>> visit(List<File> files, HashCode configHash);
+    Map<String, Set<String>> visit(List<File> files, ClasspathFileHasher fileHasher);
 }
