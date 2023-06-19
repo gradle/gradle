@@ -23,14 +23,13 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.fixture.JUnitCoverage
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
-
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
@@ -396,7 +395,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:${JUnitCoverage.JUNIT_4_LATEST}'
+                testImplementation 'junit:junit:${LATEST_JUNIT4_VERSION}'
             }
         """.stripIndent()
     }

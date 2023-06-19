@@ -49,6 +49,18 @@ class JavaEcosystemAttributesDescriberTest extends Specification {
         describer.describeAttributeSet(attributes.asMap()) == "a library for use during compile-time, with a release status, compatible with Java 11, packaged as a jar"
     }
 
+    def "describes a library with MAX_VALUE target JVM version"() {
+        when:
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, named(Usage, "java-api"))
+            .attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "library"))
+            .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, named(LibraryElements, "jar"))
+            .attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.MAX_VALUE)
+            .attribute(ProjectInternal.STATUS_ATTRIBUTE, "release")
+
+        then:
+        describer.describeAttributeSet(attributes.asMap()) == "a library for use during compile-time, with a release status, compatible with any Java version, packaged as a jar"
+    }
+
     def "describes arbitrary attributes"() {
         when:
         attributes.attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.DOCUMENTATION))

@@ -137,7 +137,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "multiple threads can coordinate on locking of entire build when not in parallel"() {
-        def projectLockService = new DefaultWorkerLeaseService(coordinationService, notParallel())
+        def projectLockService = workerLeaseService(notParallel())
         def testLock = new ReentrantLock()
         def threadCount = 10
         def started = new CountDownLatch(threadCount)
@@ -168,7 +168,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "multiple threads can coordinate on locking of multiple builds when not in parallel"() {
-        def projectLockService = new DefaultWorkerLeaseService(coordinationService, notParallel())
+        def projectLockService = workerLeaseService(notParallel())
         def threadCount = 20
         def buildCount = 4
         def testLock = []
@@ -202,7 +202,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "locking task execution lease also locks project state when parallel execution disabled"() {
-        def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, notParallel())
+        def workerLeaseService = workerLeaseService(notParallel())
         def taskLease = workerLeaseService.getTaskExecutionLock(path("build"), path("project"))
         def projectLock = workerLeaseService.getProjectLock(path("build"), path("project"))
 
@@ -219,7 +219,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "can release and reacquire project lock while holding task execution lease"() {
-        def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, notParallel())
+        def workerLeaseService = workerLeaseService(notParallel())
         def taskLease = workerLeaseService.getTaskExecutionLock(path("build"), path("project"))
         def projectLock = workerLeaseService.getProjectLock(path("build"), path("project"))
 
@@ -237,7 +237,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "can acquire task execution lease while holding the project lock"() {
-        def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, notParallel())
+        def workerLeaseService = workerLeaseService(notParallel())
         def taskLease = workerLeaseService.getTaskExecutionLock(path("build"), path("project"))
         def projectLock = workerLeaseService.getProjectLock(path("build"), path("project"))
 
@@ -256,7 +256,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "locking task execution lease blocks when other thread holds task execution lease"() {
-        def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, notParallel())
+        def workerLeaseService = workerLeaseService(notParallel())
         def taskLease = workerLeaseService.getTaskExecutionLock(path("build"), path("project"))
 
         when:
@@ -282,7 +282,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "locking task execution lease blocks when other thread holds project lock"() {
-        def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, notParallel())
+        def workerLeaseService = workerLeaseService(notParallel())
         def taskLease = workerLeaseService.getTaskExecutionLock(path("build"), path("project"))
         def projectLock = workerLeaseService.getProjectLock(path("build"), path("project"))
 

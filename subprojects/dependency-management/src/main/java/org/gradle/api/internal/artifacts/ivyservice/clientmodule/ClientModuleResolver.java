@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -66,13 +65,14 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         resolver.resolve(identifier, componentOverrideMetadata, result);
 
         if (result.getFailure() != null) {
             return;
         }
-        ClientModule clientModule = componentOverrideMetadata.getClientModule();
+        org.gradle.api.artifacts.ClientModule clientModule = componentOverrideMetadata.getClientModule();
         if (clientModule != null) {
             ModuleComponentResolveMetadata originalMetadata = (ModuleComponentResolveMetadata) result.getState().getMetadata();
             List<ModuleDependencyMetadata> clientModuleDependencies = createClientModuleDependencies(identifier, clientModule);
@@ -88,7 +88,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         return resolver.isFetchingMetadataCheap(identifier);
     }
 
-    private List<ModuleDependencyMetadata> createClientModuleDependencies(ComponentIdentifier identifier, ClientModule clientModule) {
+    @SuppressWarnings("deprecation")
+    private List<ModuleDependencyMetadata> createClientModuleDependencies(ComponentIdentifier identifier, org.gradle.api.artifacts.ClientModule clientModule) {
         List<ModuleDependencyMetadata> dependencies = Lists.newArrayList();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {
             ModuleDependencyMetadata dependencyMetadata = createDependencyMetadata(identifier, moduleDependency);

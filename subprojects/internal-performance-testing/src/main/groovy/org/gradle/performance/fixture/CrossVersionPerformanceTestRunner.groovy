@@ -30,13 +30,13 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
-import org.gradle.profiler.AndroidStudioSyncAction
 import org.gradle.profiler.BuildAction
 import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.GradleInvoker
-import org.gradle.profiler.GradleInvokerBuildAction
 import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.ToolingApiGradleClient
+import org.gradle.profiler.gradle.GradleInvoker
+import org.gradle.profiler.gradle.GradleInvokerBuildAction
+import org.gradle.profiler.gradle.ToolingApiGradleClient
+import org.gradle.profiler.studio.AndroidStudioSyncAction
 import org.gradle.profiler.studio.tools.StudioFinder
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection

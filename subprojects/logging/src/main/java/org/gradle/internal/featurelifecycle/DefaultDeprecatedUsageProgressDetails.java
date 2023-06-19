@@ -18,6 +18,7 @@ package org.gradle.internal.featurelifecycle;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
+import org.gradle.problems.ProblemDiagnostics;
 
 import java.util.List;
 
@@ -25,9 +26,11 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
 
     @VisibleForTesting
     public final DeprecatedFeatureUsage featureUsage;
+    private final ProblemDiagnostics diagnostics;
 
-    public DefaultDeprecatedUsageProgressDetails(DeprecatedFeatureUsage featureUsage) {
+    public DefaultDeprecatedUsageProgressDetails(DeprecatedFeatureUsage featureUsage, ProblemDiagnostics diagnostics) {
         this.featureUsage = featureUsage;
+        this.diagnostics = diagnostics;
     }
 
     @Override
@@ -62,6 +65,6 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
 
     @Override
     public List<StackTraceElement> getStackTrace() {
-        return featureUsage.getStack();
+        return diagnostics.getStack();
     }
 }

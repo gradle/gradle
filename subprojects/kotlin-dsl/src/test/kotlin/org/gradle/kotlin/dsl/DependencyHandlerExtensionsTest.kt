@@ -10,8 +10,8 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
@@ -199,15 +199,16 @@ class DependencyHandlerExtensionsTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `client module configuration`() {
 
-        val clientModule = mock<ClientModule> {
-            on { setTransitive(any()) }.thenAnswer { it.mock }
+        val clientModule = mock<org.gradle.api.artifacts.ClientModule> {
+            on { isTransitive = any() }.thenAnswer { it.mock }
         }
 
         val commonsCliDependency = mock<ExternalModuleDependency>(name = "commonsCliDependency")
 
-        val antModule = mock<ClientModule>(name = "antModule")
+        val antModule = mock<org.gradle.api.artifacts.ClientModule>(name = "antModule")
         val antLauncherDependency = mock<ExternalModuleDependency>(name = "antLauncherDependency")
         val antJUnitDependency = mock<ExternalModuleDependency>(name = "antJUnitDependency")
 
@@ -292,6 +293,38 @@ class DependencyHandlerExtensionsTest {
         }
 
         verify(dependencyHandler).add("configuration", baseConfig)
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/24503")
+    fun `given configuration provider and dependency notation, it will add the dependency to the configuration provider`() {
+
+        val constraint = mock<DependencyConstraint>()
+        val constraintHandler = mock<DependencyConstraintHandler> {
+            on { add(any(), any()) } doReturn constraint
+            on { add(any(), any(), any()) } doReturn constraint
+        }
+        val dependencyHandler = newDependencyHandlerMock {
+            on { add(any(), any()) } doReturn mock<Dependency>()
+            on { constraints } doReturn constraintHandler
+        }
+        val configuration = mock<NamedDomainObjectProvider<Configuration>> {
+            on { name } doReturn "c"
+        }
+
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
+        dependencies {
+            configuration("some:thing:1.0")
+            (constraints) {
+                configuration("other:thing:1.0")
+            }
+        }
+
+        verify(dependencyHandler).add("c", "some:thing:1.0")
+        inOrder(constraintHandler) {
+            verify(constraintHandler).add(eq("c"), eq("other:thing:1.0"))
+            verifyNoMoreInteractions()
+        }
     }
 
     @Test
@@ -400,7 +433,7 @@ class DependencyHandlerExtensionsTest {
 
         val notation = mock<Provider<MinimalExternalModuleDependency>>()
         val config = mock<Configuration> {
-            on { getName() } doReturn "config"
+            on { name } doReturn "config"
         }
 
         val dependencies = DependencyHandlerScope.of(dependencyHandler)
@@ -420,7 +453,7 @@ class DependencyHandlerExtensionsTest {
 
         val notation = mock<Provider<MinimalExternalModuleDependency>>()
         val config = mock<Configuration> {
-            on { getName() } doReturn "config"
+            on { name } doReturn "config"
         }
 
         val dependencies = DependencyHandlerScope.of(dependencyHandler)

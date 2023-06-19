@@ -16,7 +16,7 @@
 
 package org.gradle.java.fixtures
 
-class JavaTestFixturesIntegrationTest extends AbstractJavaTestFixturesIntegrationTest {
+class JavaTestFixturesIntegrationTest extends AbstractJavaProjectTestFixturesIntegrationTest {
     @Override
     String getPluginName() {
         'java'

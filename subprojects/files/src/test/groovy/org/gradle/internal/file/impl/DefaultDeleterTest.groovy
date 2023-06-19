@@ -161,7 +161,7 @@ class DefaultDeleterTest extends Specification {
 
     def "reports reasonable help message when failing to delete single #description"() {
         if (isSymlink) {
-            assumeTrue(TestPrecondition.doSatisfies(UnitTestPreconditions.Symlinks))
+            assumeTrue(TestPrecondition.satisfied(UnitTestPreconditions.Symlinks))
         }
 
         given:

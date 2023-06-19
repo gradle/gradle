@@ -79,7 +79,7 @@ class DefaultBuildCacheControllerTest extends Specification {
                 remotePush
             ),
             operations,
-            TestFiles.tmpDirTemporaryFileProvider(tmpDir.root),
+            TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
             false,
             false,
             disableRemoteOnError,

@@ -229,6 +229,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         };
     }
 
+    @Deprecated
     @Override
     public Dependency module(Object notation) {
         return module(notation, null);
@@ -239,6 +240,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation);
     }
 
+    @Deprecated
     @Override
     @SuppressWarnings("rawtypes")
     public Dependency module(Object notation, @Nullable Closure configureClosure) {

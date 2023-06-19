@@ -457,7 +457,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         """
     }
 
-    def "can attach a task provider as an artifact"() {
+    def "can attach an archive task provider as an artifact"() {
         createBuildScripts("""
             def customJar = tasks.register("myJar", Jar) {
                 archiveClassifier = 'classy'

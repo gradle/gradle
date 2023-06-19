@@ -34,11 +34,11 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleDependencyMetadataConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyMetadataConverter;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.CacheableTransformTypeAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.InputArtifactAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnnotationHandler;
+import org.gradle.api.internal.artifacts.transform.TransformActionScheme;
+import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
@@ -142,7 +142,7 @@ class DependencyManagementGlobalScopeServices {
         return new PlatformSupport(instantiator);
     }
 
-    ArtifactTransformParameterScheme createArtifactTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+    TransformParameterScheme createTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
             ImmutableSet.of(
@@ -167,10 +167,10 @@ class DependencyManagementGlobalScopeServices {
             ),
             instantiationScheme
         );
-        return new ArtifactTransformParameterScheme(instantiationScheme, inspectionScheme);
+        return new TransformParameterScheme(instantiationScheme, inspectionScheme);
     }
 
-    ArtifactTransformActionScheme createArtifactTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+    TransformActionScheme createTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(
             InputArtifact.class,
             InputArtifactDependencies.class
@@ -191,6 +191,6 @@ class DependencyManagementGlobalScopeServices {
             ),
             instantiationScheme
         );
-        return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme);
+        return new TransformActionScheme(instantiationScheme, inspectionScheme);
     }
 }

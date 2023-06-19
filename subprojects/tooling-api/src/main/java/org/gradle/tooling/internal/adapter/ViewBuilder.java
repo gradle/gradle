@@ -45,5 +45,6 @@ public interface ViewBuilder<T> {
     /**
      * Creates a view for the given source object. Returns null when source object is null.
      */
+    @Nullable
     T build(@Nullable Object sourceObject);
 }

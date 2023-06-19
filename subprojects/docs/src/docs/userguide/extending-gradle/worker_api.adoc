@@ -90,6 +90,7 @@ include::{snippetsPath}/workerApi/md5CustomTask/tests/md5Task.out[]
 In the `build/md5` directory, you should now see corresponding files with an `md5` extension containing MD5 hashes of the files from the `src` directory.
 Notice that the task takes at least 9 seconds to run because it hashes each file one at a time (i.e. 3 files at ~3 seconds a piece).
 
+[[converting_to_worker_api]]
 == Converting to the Worker API
 
 Although this task processes each file in sequence, the processing of each file is independent of any other file.

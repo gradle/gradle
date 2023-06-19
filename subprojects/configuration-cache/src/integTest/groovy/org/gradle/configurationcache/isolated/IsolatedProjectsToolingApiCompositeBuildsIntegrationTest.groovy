@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache.isolated
 
-import spock.lang.Ignore
-
 class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def "invalidates cached state when plugin in buildSrc changes"() {
         given:
@@ -158,7 +156,6 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         }
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches BuildAction that queries models from included build "() {
         given:
         withSomeToolingModelBuilderPluginInChildBuild("plugins")

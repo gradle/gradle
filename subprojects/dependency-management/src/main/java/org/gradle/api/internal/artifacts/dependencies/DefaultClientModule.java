@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 
@@ -24,7 +23,8 @@ import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultClientModule extends AbstractExternalModuleDependency implements ClientModule {
+@SuppressWarnings("deprecation")
+public class DefaultClientModule extends AbstractExternalModuleDependency implements org.gradle.api.artifacts.ClientModule {
 
     private final Set<ModuleDependency> dependencies = new LinkedHashSet<>();
 
@@ -56,7 +56,7 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
     }
 
     @Override
-    public ClientModule copy() {
+    public org.gradle.api.artifacts.ClientModule copy() {
         DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(), getTargetConfiguration());
         copyTo(copiedClientModule);
         for (ModuleDependency dependency : dependencies) {
@@ -87,7 +87,7 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
             return false;
         }
 
-        ClientModule that = (ClientModule) dependency;
+        org.gradle.api.artifacts.ClientModule that = (org.gradle.api.artifacts.ClientModule) dependency;
         return isContentEqualsFor(that) && dependencies.equals(that.getDependencies());
     }
 }

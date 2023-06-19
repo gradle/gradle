@@ -18,9 +18,9 @@ package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
 
-import static org.gradle.testing.fixture.JUnitCoverage.CATEGORIES
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_CATEGORIES
 
-@TargetCoverage({ CATEGORIES })
+@TargetCoverage({ JUNIT4_CATEGORIES })
 class JUnit4TestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTest implements JUnit4MultiVersionTest {
     def "options can be set prior to setting same test framework for the default test task"() {
         given:

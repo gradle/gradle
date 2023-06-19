@@ -16,17 +16,19 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
+import kotlinx.metadata.KmType
+import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
+import org.gradle.kotlin.dsl.support.bytecode.newTypeParameterTypeOf
 
 
 internal
 object KotlinType {
 
-    val string: KmTypeBuilder = { visitClass("kotlin/String") }
+    val string: KmType = newClassTypeOf("kotlin/String")
 
-    val unit: KmTypeBuilder = { visitClass("kotlin/Unit") }
+    val unit: KmType = newClassTypeOf("kotlin/Unit")
 
-    val any: KmTypeBuilder = { visitClass("kotlin/Any") }
+    val any: KmType = newClassTypeOf("kotlin/Any")
 
-    val typeParameter: KmTypeBuilder = { visitTypeParameter(0) }
+    val typeParameter: KmType = newTypeParameterTypeOf(0)
 }
