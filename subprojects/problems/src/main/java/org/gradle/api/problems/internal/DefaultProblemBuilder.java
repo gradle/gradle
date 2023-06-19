@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.api.problems.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.api.problems.interfaces.Severity;
-import org.gradle.api.problems.internal.DefaultDocLink;
-import org.gradle.api.problems.internal.DefaultProblem;
-import org.gradle.api.problems.internal.DefaultProblemLocation;
-import org.gradle.api.problems.internal.GradleExceptionWithProblem;
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -38,48 +34,60 @@ import java.util.List;
  * @since 8.3
  */
 @Incubating
-public class ProblemBuilder {
+public class DefaultProblemBuilder implements ProblemBuilder {
+
     private final ProblemGroup problemGroup;
     private String message;
+    private String problemType;
     private final Severity severity;
     private String path;
     private Integer line;
+    private boolean noLocation = false;
+
     private String description;
     private DocLink documentationUrl;
+    private boolean explicitlyUndocumented = false;
     private List<String> solution;
     private Throwable cause;
-    private String problemType;
 
-    public ProblemBuilder(ProblemGroup problemGroup, String message, Severity severity) {
+    public DefaultProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) { //add type
         this.problemGroup = problemGroup;
         this.message = message;
         this.severity = severity;
+        this.problemType = type;
     }
 
-    public ProblemBuilder(ProblemGroup problemGroup, Throwable cause, Severity severity) {
+    public DefaultProblemBuilder(ProblemGroup problemGroup, Throwable cause, Severity severity) {
         this.problemGroup = problemGroup;
         this.cause = cause;
         this.severity = severity;
     }
 
-   public ProblemBuilder(Problem problem) {
+    public DefaultProblemBuilder(Problem problem) {
         this.problemGroup = problem.getProblemGroup();
         this.severity = problem.getSeverity();
         this.message = problem.getMessage();
-       ProblemLocation where = problem.getWhere();
-       if(where != null) {
-           this.path = where.getPath();
-           this.line = where.getLine();
-       }
-       this.documentationUrl = problem.getDocumentationLink();
-       for (String solution : problem.getSolutions()) {
-           this.solution(solution);
-       }
+        ProblemLocation where = problem.getWhere();
+        if (where != null) {
+            this.path = where.getPath();
+            this.line = where.getLine();
+        }
+        this.documentationUrl = problem.getDocumentationLink();
+        for (String solution : problem.getSolutions()) {
+            this.solution(solution);
+        }
     }
 
+    //add noLocation
     public ProblemBuilder location(String path, Integer line) {
         this.path = path;
         this.line = line;
+        return this;
+    }
+
+    @Override
+    public ProblemBuilder noLocation() {
+        this.noLocation = true;
         return this;
     }
 
@@ -88,8 +96,15 @@ public class ProblemBuilder {
         return this;
     }
 
+    // add "undocumented"
     public ProblemBuilder documentedAt(String page, String section) {
         this.documentationUrl = new DefaultDocLink(page, section);
+        return this;
+    }
+
+    @Override
+    public ProblemBuilder undocumented() {
+        this.explicitlyUndocumented = true;
         return this;
     }
 
@@ -100,7 +115,7 @@ public class ProblemBuilder {
 
     public ProblemBuilder solution(@Nullable String solution) {
         if (this.solution == null) {
-            this.solution = new ArrayList<String>();
+            this.solution = new ArrayList<>();
         }
         this.solution.add(solution);
         return this;
@@ -112,6 +127,14 @@ public class ProblemBuilder {
     }
 
     public Problem build() {
+        if (!explicitlyUndocumented && documentationUrl == null) {
+            throw new IllegalStateException("Problem is not documented: " + message);
+        }
+
+        if(!noLocation && (path == null || line == null)) {
+            throw new IllegalStateException("Problem has no location: " + message);
+        }
+
         return new DefaultProblem(
             problemGroup,
             message,
@@ -124,15 +147,9 @@ public class ProblemBuilder {
             problemType);
     }
 
-    public ProblemThrower report() {
-        return report(false);
-    }
-    public ProblemThrower report(boolean reportNow) {
+    public void report() {
         Problem problem = build();
-        if (reportNow || problem.getSeverity() == Severity.WARNING) {
-            report(problem);
-        }
-        return new ProblemThrower(problem);
+        report(problem);
     }
 
     public RuntimeException throwIt() {
@@ -164,24 +181,5 @@ public class ProblemBuilder {
 
     private static void report(Problem problem) {
         ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
-    }
-
-
-    /**
-     * allows to throw problems in a builder like fashion
-     *
-     * @since 8.3
-     */
-    @Incubating
-    public static class ProblemThrower {
-        protected final Problem problem;
-
-        public ProblemThrower(Problem problem) {
-            this.problem = problem;
-        }
-
-        public void throwIt() {
-            throwPossibleError(problem);
-        }
     }
 }

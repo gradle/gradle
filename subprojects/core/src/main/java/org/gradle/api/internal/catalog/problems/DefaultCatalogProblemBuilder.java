@@ -18,10 +18,10 @@ package org.gradle.api.internal.catalog.problems;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nonnull;
@@ -81,13 +81,17 @@ public class DefaultCatalogProblemBuilder {
 
     @Nonnull
     public static String getProblemInVersionCatalog(String name) {
-        return "Problem: In version catalog " + name;
+        return "Problem: " + getInVersionCatalog(name);
+    }
+
+    @Nonnull
+    public static String getInVersionCatalog(String name) {
+        return "In version catalog " + name;
     }
 
     @Nonnull
     public static ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
-        return Problems.createNew(VERSION_CATALOG, message, ERROR)
-            .type(catalogProblemId.name())
+        return Problems.create(VERSION_CATALOG, message, ERROR, catalogProblemId.name())
             .documentedAt(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase());
     }
 }

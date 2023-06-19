@@ -23,7 +23,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
-import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlInvalidTypeException;
@@ -31,6 +31,7 @@ import org.tomlj.TomlParseError;
 import org.tomlj.TomlParseResult;
 import org.tomlj.TomlTable;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +46,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.apache.commons.lang.StringUtils.uncapitalize;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.createVersionCatalogError;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getInVersionCatalog;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getProblemInVersionCatalog;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION;
@@ -249,7 +251,7 @@ public class TomlCatalogFileParser {
                 registerDependency(builder, alias, group, name, null, rich.require, rich.strictly, rich.prefer, null, null);
                 return;
             } else {
-                throw throwVersionCatalogProblemException(createVersionCatalogError("In version catalog " + builder.getName() + ", on alias '" + alias + "' notation '" + gav + "' is not a valid dependency notation.", INVALID_DEPENDENCY_NOTATION)
+                throw throwVersionCatalogProblemException(createVersionCatalogError(getInVersionCatalog(builder.getName()) + ", on alias '" + alias + "' notation '" + gav + "' is not a valid dependency notation.", INVALID_DEPENDENCY_NOTATION)
                     .description("When using a string to declare library coordinates, you must use a valid dependency notation")
                     .solution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2"));
             }
@@ -267,7 +269,7 @@ public class TomlCatalogFileParser {
                 group = notEmpty(builder, split.get(0), "group", alias);
                 name = notEmpty(builder, split.get(1), "name", alias);
             } else {
-                throw throwVersionCatalogProblemException(createVersionCatalogError("In version catalog " + builder.getName() + ", on alias '" + alias + "' module '" + mi + "' is not a valid module notation.", INVALID_MODULE_NOTATION)
+                throw throwVersionCatalogProblemException(createVersionCatalogError(getInVersionCatalog(builder.getName()) + ", on alias '" + alias + "' module '" + mi + "' is not a valid module notation.", INVALID_MODULE_NOTATION)
                     .description("When using a string to declare library module coordinates, you must use a valid module notation")
                     .solution("Make sure that the module consist of 2 parts separated by colons, eg: my.group:artifact"));
             }
@@ -302,16 +304,24 @@ public class TomlCatalogFileParser {
         }
         if (group == null) {
             // ProblemIds for "subtypes" of a problem
-            throw throwVersionCatalogProblemException(createVersionCatalogError("Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR)
-                .description("Group for alias '" + alias + "' wasn't set")
-                .solution("Add the 'group' element on alias '" + alias + "'"));
+            throw throwVersionCatalogAliasException(alias, "group");
         }
         if (name == null) {
-            throw throwVersionCatalogProblemException(createVersionCatalogError("Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR)
-                .description("Name for alias '" + alias + "' wasn't set")
-                .solution("Add the 'name' element on alias '" + alias + "'"));
+            throw throwVersionCatalogAliasException(alias, "name");
         }
         registerDependency(builder, alias, group, name, versionRef, require, strictly, prefer, rejectedVersions, rejectAll);
+    }
+
+    @Nonnull
+    private static RuntimeException throwVersionCatalogAliasException(String alias, String aliasType) {
+        return throwVersionCatalogProblemException(createAliasInvalid(alias)
+            .description(capitalize(aliasType) + " for alias '" + alias + "' wasn't set")
+            .solution("Add the '" + aliasType + "' element on alias '" + alias + "'"));
+    }
+
+    @Nonnull
+    private static ProblemBuilder createAliasInvalid(String alias) {
+        return createVersionCatalogError("Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR);
     }
 
     private static void parsePlugin(String alias, TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
@@ -325,7 +335,7 @@ public class TomlCatalogFileParser {
                 registerPlugin(builder, alias, id, null, rich.require, rich.strictly, rich.prefer, null, null);
                 return;
             } else {
-                throw throwVersionCatalogProblemException(createVersionCatalogError("In version catalog " + builder.getName() + ", on alias '" + alias + "' notation '" + coordinates + "' is not a valid plugin notation.", INVALID_PLUGIN_NOTATION)
+                throw throwVersionCatalogProblemException(createVersionCatalogError(getInVersionCatalog(builder.getName()) + ", on alias '" + alias + "' notation '" + coordinates + "' is not a valid plugin notation.", INVALID_PLUGIN_NOTATION)
                     .description("When using a string to declare plugin coordinates, you must use a valid plugin notation")
                     .solution("Make sure that the coordinates consist of 2 parts separated by colons, eg: my.plugin.id:1.2"));
             }
