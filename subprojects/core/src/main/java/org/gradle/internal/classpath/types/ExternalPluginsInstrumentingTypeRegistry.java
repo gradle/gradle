@@ -26,7 +26,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-class ExternalPluginsInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
+public class ExternalPluginsInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
 
     private final InstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry;
     private final Map<String, Set<String>> directSuperTypes;
@@ -38,11 +38,11 @@ class ExternalPluginsInstrumentingTypeRegistry implements InstrumentingTypeRegis
     }
 
     @Override
-    public Set<String> getInstrumentedSuperTypes(String type) {
+    public Set<String> getSuperTypes(String type) {
         // TODO: This can probably be optimized: optimize it if it has performance impact
         Set<String> superTypes = Collections.emptySet();
         if (type.startsWith("org/gradle")) {
-            superTypes = gradleCoreInstrumentingTypeRegistry.getInstrumentedSuperTypes(type);
+            superTypes = gradleCoreInstrumentingTypeRegistry.getSuperTypes(type);
         }
         return !superTypes.isEmpty() ? superTypes : computeAndCacheSuperTypesForExternalType(type);
     }
@@ -69,7 +69,7 @@ class ExternalPluginsInstrumentingTypeRegistry implements InstrumentingTypeRegis
         if (!superTypes.isEmpty() || !type.startsWith("org/gradle")) {
             return superTypes;
         }
-        return gradleCoreInstrumentingTypeRegistry.getInstrumentedSuperTypes(type);
+        return gradleCoreInstrumentingTypeRegistry.getSuperTypes(type);
     }
 
     @Override

@@ -24,11 +24,11 @@ public interface InstrumentingTypeRegistry {
     InstrumentingTypeRegistry EMPTY = new EmptyInstrumentingTypeRegistry();
 
     /**
-     * Returns instrumented super types for a given type.
+     * Returns super types for a given type.
      *
-     * Note: For core types it returns only instrumented types that are directly instrumented with {@link org.gradle.internal.instrumentation.api.annotations.InterceptInherited}.
+     * Note: As an optimization, for core types it returns only super types that are instrumented with {@link org.gradle.internal.instrumentation.api.annotations.InterceptInherited}.
      */
-    Set<String> getInstrumentedSuperTypes(String type);
+    Set<String> getSuperTypes(String type);
 
     boolean isEmpty();
 
@@ -38,7 +38,7 @@ public interface InstrumentingTypeRegistry {
 
     class EmptyInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
         @Override
-        public Set<String> getInstrumentedSuperTypes(String type) {
+        public Set<String> getSuperTypes(String type) {
             return Collections.emptySet();
         }
 

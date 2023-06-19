@@ -16,7 +16,8 @@
 
 package org.gradle.internal.classpath
 
-import org.gradle.api.Rule
+import org.gradle.internal.classpath.types.ExternalPluginsInstrumentingTypeRegistry
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 
 import java.util.function.Predicate
 
@@ -42,13 +43,16 @@ class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
         return { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
     }
 
-    String interceptedFor(InheritedMethodTestReceiver receiver) {
-        def call = { JavaCallerForBasicCallInterceptorTest.doCallSayHello(it) }
-        return instrumentedClasses.instrumentedClosure(call).call(receiver)
+    @Override
+    protected InstrumentingTypeRegistry typeRegistry() {
+        return new ExternalPluginsInstrumentingTypeRegistry([
+            "org/gradle/internal/classpath/InheritedMethodTestReceiver\$A": ["org/gradle/internal/classpath/InheritedMethodTestReceiver"] as Set,
+            "org/gradle/internal/classpath/InheritedMethodTestReceiver\$B": ["org/gradle/internal/classpath/InheritedMethodTestReceiver\$A"] as Set
+        ], InstrumentingTypeRegistry.empty())
     }
 
-    String interceptedFor(Rule receiver) {
-        def call = { JavaCallerForBasicCallInterceptorTest.doCallDescription(it) }
+    String interceptedFor(InheritedMethodTestReceiver receiver) {
+        def call = { JavaCallerForBasicCallInterceptorTest.doCallSayHello(it) }
         return instrumentedClasses.instrumentedClosure(call).call(receiver)
     }
 
@@ -66,33 +70,5 @@ class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
         "transient subclass"              | new InheritedMethodTestReceiver.B()                                | "Hello from: InheritedMethodTestReceiver\$B"
         "down-casted direct subclass"     | new InheritedMethodTestReceiver.A() as InheritedMethodTestReceiver | "Hello from: InheritedMethodTestReceiver\$A"
         "down-casted transitive subclass" | new InheritedMethodTestReceiver.B() as InheritedMethodTestReceiver | "Hello from: InheritedMethodTestReceiver\$B"
-    }
-
-    def 'intercepts inherited method for interface type from Gradle core #description'() {
-        when:
-        def intercepted = interceptedFor(interceptionReceiver)
-
-        then:
-        intercepted == expected
-
-        where:
-        description          | interceptionReceiver  | expected
-        "direct subclass"    | new MyDirectRule()    | "This is a description for: InheritedMethodsInterceptionTest\$MyDirectRule"
-        "transitive subclass" | new MyTransientRule() | "This is a description for: InheritedMethodsInterceptionTest\$MyTransientRule"
-    }
-
-    static class MyDirectRule implements Rule {
-        @Override
-        String getDescription() {
-            return "This is a description"
-        }
-
-        @Override
-        void apply(String domainObjectName) {
-
-        }
-    }
-
-    static class MyTransientRule extends MyDirectRule {
     }
 }

@@ -50,7 +50,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -133,13 +132,13 @@ class DefaultInstrumentingDirectSuperTypesCollector implements InstrumentingDire
 
     private static void registerSuperType(String className, @Nullable String superType, Map<String, Set<String>> directSuperTypes) {
         if (superType != null) {
-            directSuperTypes.computeIfAbsent(className, k -> ConcurrentHashMap.newKeySet()).add(superType);
+            directSuperTypes.computeIfAbsent(className, k -> new HashSet<>()).add(superType);
         }
     }
 
     private static void registerInterfaces(String className, String[] interfaces, Map<String, Set<String>> directSuperTypes) {
         for (String superType : interfaces) {
-            directSuperTypes.computeIfAbsent(className, k -> ConcurrentHashMap.newKeySet()).add(superType);
+            directSuperTypes.computeIfAbsent(className, k -> new HashSet<>()).add(superType);
         }
     }
 

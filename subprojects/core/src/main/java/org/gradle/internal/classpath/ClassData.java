@@ -44,6 +44,6 @@ public class ClassData implements InstrumentationMetadata {
 
     @Override
     public boolean isInstanceOf(@Nonnull String type, @Nonnull String superType) {
-        return typeRegistry.getInstrumentedSuperTypes(type).contains(superType);
+        return typeRegistry.getSuperTypes(type).contains(superType);
     }
 }

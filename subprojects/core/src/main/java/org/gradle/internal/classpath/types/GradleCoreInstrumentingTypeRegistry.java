@@ -43,7 +43,7 @@ class GradleCoreInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
     private static final Lazy<Map<String, Set<String>>> INSTRUMENTED_SUPER_TYPES = Lazy.locking().of(GradleCoreInstrumentingTypeRegistry::loadInstrumentedSuperTypes);
 
     @Override
-    public Set<String> getInstrumentedSuperTypes(String type) {
+    public Set<String> getSuperTypes(String type) {
         return INSTRUMENTED_SUPER_TYPES.get().getOrDefault(type, Collections.emptySet());
     }
 

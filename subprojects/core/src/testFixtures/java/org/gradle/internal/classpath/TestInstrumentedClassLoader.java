@@ -34,16 +34,19 @@ public class TestInstrumentedClassLoader extends TransformingClassLoader {
     private final CachedClasspathTransformer.Transform transform;
     private final Predicate<String> shouldLoadTransformedClass;
     private final ClassLoader source;
+    private final InstrumentingTypeRegistry typeRegistry;
 
     TestInstrumentedClassLoader(
         ClassLoader source,
         Predicate<String> shouldLoadTransformedClass,
-        CachedClasspathTransformer.Transform transform
+        CachedClasspathTransformer.Transform transform,
+        InstrumentingTypeRegistry typeRegistry
     ) {
         super("test-transformed-loader", source, Collections.emptyList());
         this.shouldLoadTransformedClass = shouldLoadTransformedClass;
         this.transform = transform;
         this.source = source;
+        this.typeRegistry = typeRegistry;
     }
 
     @Override
@@ -94,7 +97,7 @@ public class TestInstrumentedClassLoader extends TransformingClassLoader {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         Pair<RelativePath, ClassVisitor> pathAndVisitor;
         try {
-            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, InstrumentingTypeRegistry.empty()));
+            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, typeRegistry));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

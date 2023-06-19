@@ -59,10 +59,10 @@ class InstrumentingTypeRegistryTest extends ConcurrentSpec {
         when:
         def className = D.name.replace('.', '/')
         def typeRegistry = factory.createFor([dir], instrumentingTransformer)
-        def instrumentedTypes = typeRegistry.getInstrumentedSuperTypes(className)
+        def superTypes = typeRegistry.getSuperTypes(className)
 
         then:
-        instrumentedTypes ==~ [
+        superTypes ==~ [
             'org/gradle/api/Task',
             'org/gradle/api/internal/TaskInternal',
             'org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest$DefaultTask',
@@ -114,7 +114,7 @@ class InstrumentingTypeRegistryTest extends ConcurrentSpec {
         }
 
         @Override
-        Set<String> getInstrumentedSuperTypes(String type) {
+        Set<String> getSuperTypes(String type) {
             return instrumentedSuperTypes.getOrDefault(type, Collections.emptySet())
         }
 
