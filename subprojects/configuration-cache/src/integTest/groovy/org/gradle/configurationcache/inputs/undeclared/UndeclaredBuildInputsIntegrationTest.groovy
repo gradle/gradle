@@ -599,7 +599,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        EnvVariableInjection.unsetEnvironmentVariable("CI").setup(this)
+        EnvVariableInjection.checkEnvironmentVariableUnset("CI")
         configurationCacheRun()
 
         then:
@@ -670,7 +670,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         '''
 
         when:
-        EnvVariableInjection.unsetEnvironmentVariable("CI1").setup(this)
+        EnvVariableInjection.checkEnvironmentVariableUnset("CI1")
         configurationCacheRun()
 
         then:
