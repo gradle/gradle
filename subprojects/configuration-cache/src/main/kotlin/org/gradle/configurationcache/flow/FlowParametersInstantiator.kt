@@ -22,6 +22,8 @@ import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
+import org.gradle.api.problems.interfaces.Problem
+import org.gradle.api.problems.interfaces.Severity
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
@@ -30,7 +32,6 @@ import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
-import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.TypeValidationProblem
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
 import org.gradle.internal.service.ServiceRegistry
@@ -60,6 +61,13 @@ class FlowParametersInstantiator(
             parameters,
             object : ProblemRecordingTypeValidationContext(DocumentationRegistry(), type, { Optional.empty() }) {
                 override fun recordProblem(problem: TypeValidationProblem) {
+                    problems.put(
+                        TypeValidationProblemRenderer.renderMinimalInformationAbout(problem.toNewProblem()),
+                        problem.toNewProblem().severity
+                    )
+                }
+
+                override fun recordProblem(problem: Problem) {
                     problems.put(
                         TypeValidationProblemRenderer.renderMinimalInformationAbout(problem),
                         problem.severity

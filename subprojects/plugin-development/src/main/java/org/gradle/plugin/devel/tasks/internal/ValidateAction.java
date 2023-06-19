@@ -55,7 +55,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
 
 public abstract class ValidateAction implements WorkAction<ValidateAction.Params> {
     private final static Logger LOGGER = Logging.getLogger(ValidateAction.class);

@@ -19,8 +19,9 @@ package org.gradle.internal.reflect;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
@@ -51,6 +52,14 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         if (problem.getId().onlyAffectsCacheableWork() && !reportCacheabilityProblems) {
             return;
         }
+        problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem.toNewProblem()), problem.toNewProblem().getSeverity());
+    }
+
+    @Override
+    protected void recordProblem(Problem problem) {
+        if (/*problem.getId().onlyAffectsCacheableWork() &&*/ !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
+            return;
+        }
         problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), problem.getSeverity());
     }
 
@@ -58,7 +67,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         return problems.build();
     }
 
-    public static void throwOnProblemsOf(Class<?> implementation, ImmutableMap<String, Severity> validationMessages) {
+    public static void throwOnProblemsOf(Class<?> implementation, ImmutableMap<String, org.gradle.api.problems.interfaces.Severity> validationMessages) {
         if (!validationMessages.isEmpty()) {
             String formatString = validationMessages.size() == 1
                 ? "A problem was found with the configuration of %s."

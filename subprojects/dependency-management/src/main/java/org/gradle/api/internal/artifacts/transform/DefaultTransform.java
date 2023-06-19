@@ -365,7 +365,7 @@ public class DefaultTransform implements Transform {
             })
         );
 
-        ImmutableMap<String, Severity> validationMessages = validationContext.getProblems();
+        ImmutableMap<String, org.gradle.api.problems.interfaces.Severity> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1

@@ -19,6 +19,7 @@ package org.gradle.internal.execution.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -34,7 +35,7 @@ import java.util.function.Supplier;
 
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final ImmutableList.Builder<TypeValidationProblem> problems = ImmutableList.builder();
+    private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
     private final DocumentationRegistry documentationRegistry;
     private final TypeOriginInspector typeOriginInspector;
 
@@ -54,13 +55,18 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
                 if (problem.getId().onlyAffectsCacheableWork() && !cacheable) {
                     return;
                 }
+                problems.add(problem.toNewProblem());
+            }
+
+            @Override
+            protected void recordProblem(Problem problem) {
                 problems.add(problem);
             }
         };
     }
 
     @Override
-    public List<TypeValidationProblem> getProblems() {
+    public List<Problem> getProblems() {
         return problems.build();
     }
 

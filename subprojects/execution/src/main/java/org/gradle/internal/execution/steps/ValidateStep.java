@@ -19,21 +19,20 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.problems.BaseProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,13 +69,13 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         context.getBeforeExecutionState()
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
-        Map<Severity, List<TypeValidationProblem>> problems = validationContext.getProblems()
+        Map<Severity, List<Problem>> problems = validationContext.getProblems()
             .stream()
             .collect(
-                groupingBy(BaseProblem::getSeverity,
+                groupingBy(Problem::getSeverity,
                     mapping(Function.identity(), toList())));
-        ImmutableList<TypeValidationProblem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
-        ImmutableList<TypeValidationProblem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
+        ImmutableList<Problem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
+        ImmutableList<Problem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
@@ -149,11 +148,11 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         return problem
             .typeIsIrrelevantInErrorMessage()
             .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
-            .reportAs(Severity.ERROR)
+            .reportAs(org.gradle.internal.reflect.validation.Severity.ERROR)
             .documentedAt("validation_problems", "implementation_unknown");
     }
 
-    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<TypeValidationProblem> validationErrors) {
+    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<Problem> validationErrors) {
         ImmutableSet<String> uniqueErrors = validationErrors.stream()
                 .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
                 .collect(ImmutableSet.toImmutableSet());
@@ -163,6 +162,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     }
 
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork work, Collection<TypeValidationProblem> warnings);
+        void recordValidationWarnings(UnitOfWork work, Collection<Problem> warnings);
     }
 }

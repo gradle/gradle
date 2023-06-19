@@ -18,6 +18,7 @@ package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.reflect.validation.DefaultPropertyValidationProblemBuilder;
 import org.gradle.internal.reflect.validation.DefaultTypeValidationProblemBuilder;
 import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
@@ -65,5 +66,8 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         recordProblem(builder.build());
     }
 
+
     abstract protected void recordProblem(TypeValidationProblem problem);
+
+    abstract protected void recordProblem(Problem problem);
 }

@@ -39,8 +39,16 @@ public class TypeValidationProblemRenderer {
         return renderMinimalInformationAbout(problem, true);
     }
 
+    public static String renderMinimalInformationAbout(Problem problem) {
+        return renderMinimalInformationAbout(problem, true);
+    }
+
     public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink) {
         return renderMinimalInformationAbout(problem.toNewProblem(), renderDocLink, true);
+    }
+
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink) {
+        return renderMinimalInformationAbout(problem, renderDocLink, true);
     }
 
     public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {

@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.interfaces.Problem;
 
 public interface TypeValidationContext {
 

@@ -25,5 +25,9 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum Severity {
-    WARNING, ERROR
+    WARNING, ERROR;
+
+    public boolean isWarning() {
+        return this == WARNING;
+    }
 }

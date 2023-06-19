@@ -17,10 +17,10 @@
 package org.gradle.execution;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.steps.ValidateStep;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,19 +37,18 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     private final AtomicInteger workWithFailuresCount = new AtomicInteger();
 
     @Override
-    public void recordValidationWarnings(UnitOfWork work, Collection<TypeValidationProblem> warnings) {
+    public void recordValidationWarnings(UnitOfWork work, Collection<Problem> warnings) {
         workWithFailuresCount.incrementAndGet();
-
-        ImmutableSet<String> uniqueWarnings = warnings.stream().map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning.toNewProblem(), true, false))).collect(ImmutableSet.toImmutableSet());
+        ImmutableSet<String> uniqueWarnings = warnings.stream().map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false))).collect(ImmutableSet.toImmutableSet());
         LOGGER.warn("Execution optimizations have been disabled for {} to ensure correctness due to the following reasons:{}",
             work.getDisplayName(),
             uniqueWarnings.stream()
                 .map(warning -> "\n  - " + warning)
                 .collect(Collectors.joining()));
-        warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning.toNewProblem(), false, false)))
+        warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning, false, false)))
             .withContext("Execution optimizations are disabled to ensure correctness.")
             .willBeRemovedInGradle9()
-            .withUserManual(warning.getUserManualReference().getId(), warning.getUserManualReference().getSection())
+            .withUserManual(warning.getDocumentationLink().getPage(), warning.getDocumentationLink().getSection())
             .nagUser()
         );
     }

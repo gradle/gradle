@@ -19,11 +19,11 @@ package org.gradle.execution.plan;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class DefaultNodeValidator implements NodeValidator {
     @Override
     public boolean hasValidationProblems(LocalTaskNode node) {
         WorkValidationContext validationContext = validateNode(node);
-        List<TypeValidationProblem> problems = validationContext.getProblems();
+        List<Problem> problems = validationContext.getProblems();
         logWarnings(problems);
         reportErrors(problems, node.getTask(), validationContext);
         return !problems.isEmpty();
@@ -54,10 +54,9 @@ public class DefaultNodeValidator implements NodeValidator {
         return validationContext;
     }
 
-    private void logWarnings(List<TypeValidationProblem> problems) {
+    private void logWarnings(List<Problem> problems) {
         problems.stream()
             .filter(problem -> problem.getSeverity().isWarning())
-            .map(TypeValidationProblem::toNewProblem)
             .forEach(problem -> {
                 // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
                 // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
@@ -71,7 +70,7 @@ public class DefaultNodeValidator implements NodeValidator {
             });
     }
 
-    private void reportErrors(List<TypeValidationProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
+    private void reportErrors(List<Problem> problems, TaskInternal task, WorkValidationContext validationContext) {
         ImmutableSet<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
@@ -80,7 +79,7 @@ public class DefaultNodeValidator implements NodeValidator {
         }
     }
 
-    private static ImmutableSet<String> getUniqueErrors(List<TypeValidationProblem> problems) {
+    private static ImmutableSet<String> getUniqueErrors(List<Problem> problems) {
         return problems.stream()
             .filter(problem -> !problem.getSeverity().isWarning())
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
