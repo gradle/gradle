@@ -241,6 +241,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
     }
 
     def "catch escaping path in tar archive entry during unpacking"() {
+        given:
         def targetDir = temporaryFolder.file("target")
         def output = new ByteArrayOutputStream()
 
@@ -268,6 +269,8 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
         unpack input, prop("destinationDir", DIRECTORY, targetDir)
 
         then:
-        assert !temporaryFolder.file("evil.txt").exists()
+        def iae = thrown(IllegalArgumentException)
+        iae.message == "'tree-destinationDir/../evil.txt' is not a safe zip entry name."
+        !temporaryFolder.file("evil.txt").exists()
     }
 }
