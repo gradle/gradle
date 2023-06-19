@@ -35,7 +35,6 @@ import org.gradle.internal.instrumentation.processor.features.withstaticreferenc
 import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesPostProcessor;
 import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesReader;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationCallInterceptionRequestReaderImpl;
-import org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils;
 
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
@@ -50,13 +49,12 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
 
     @Override
     protected Collection<InstrumentationProcessorExtension> getExtensions() {
-        TypeUtils typeUtils = new TypeUtils(processingEnv.getTypeUtils());
         return Arrays.asList(
             (ClassLevelAnnotationsContributor) () -> Arrays.asList(SpecificJvmCallInterceptors.class, SpecificGroovyCallInterceptors.class, VisitForInstrumentation.class),
 
-            new AnnotationCallInterceptionRequestReaderImpl(typeUtils),
+            new AnnotationCallInterceptionRequestReaderImpl(),
 
-            new WithExtensionReferencesReader(typeUtils),
+            new WithExtensionReferencesReader(),
             new WithExtensionReferencesPostProcessor(),
             new AddGeneratedClassNameFlagFromClassLevelAnnotation(
                 ifHasExtraOfType(WithExtensionReferencesExtra.ProducedSynthetically.class), SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new
@@ -69,7 +67,7 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
             (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new,
 
             // Properties upgrade extensions
-            new PropertyUpgradeAnnotatedMethodReader(typeUtils),
+            new PropertyUpgradeAnnotatedMethodReader(),
             (CodeGeneratorContributor) PropertyUpgradeClassSourceGenerator::new,
 
             // Generate resource with instrumented types

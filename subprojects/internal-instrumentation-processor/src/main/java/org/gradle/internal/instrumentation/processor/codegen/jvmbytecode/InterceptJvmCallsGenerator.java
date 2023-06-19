@@ -22,7 +22,6 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeVariableName;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
@@ -84,9 +83,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
         );
 
-        FieldSpec typesWithInterceptedInheritedMethods = generateFieldWithTypesWithInterceptedInheritedMethods(requestsClassGroup);
-        MethodSpec getTypesWithInterceptedInheritedMethods = generateGetTypesWithInterceptedInheritedMethods(typesWithInterceptedInheritedMethods);
-
         return builder ->
             builder.addMethod(constructor)
                 .addModifiers(Modifier.PUBLIC)
@@ -96,41 +92,12 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(METHOD_VISITOR_FIELD)
                 .addField(METADATA_FIELD)
-                .addField(typesWithInterceptedInheritedMethods)
                 .superclass(MethodVisitorScope.class)
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
-                .addMethod(getTypesWithInterceptedInheritedMethods)
                 .addFields(typeFieldByOwner.values());
     }
 
-    private static FieldSpec generateFieldWithTypesWithInterceptedInheritedMethods(Collection<CallInterceptionRequest> requestsClassGroup) {
-        String classNames = requestsClassGroup.stream()
-            .filter(request -> request.getInterceptedCallable().getOwner().isInterceptSubtypes())
-            .map(request -> request.getInterceptedCallable().getOwner().getType().getClassName())
-            .filter(className -> className.startsWith("org.gradle"))
-            .distinct()
-            .sorted()
-            .map(className -> "\"" + className + "\"")
-            .collect(Collectors.joining(",\n"));
-        CodeBlock initializer = classNames.equals("\"\"")
-            ? CodeBlock.of("java.util.Collections.emptySet()")
-            : CodeBlock.of("java.util.Collections.unmodifiableSet(new java.util.LinkedHashSet<String>(java.util.Arrays.asList(\n" + classNames + "\n)))");
-        TypeVariableName typeVariableName = TypeVariableName.get("java.util.Set<String>");
-        return FieldSpec.builder(typeVariableName, "TYPES_WITH_INTERCEPTED_INHERITED_METHODS", Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
-            .initializer(initializer)
-            .build();
-    }
-
-    private static MethodSpec generateGetTypesWithInterceptedInheritedMethods(FieldSpec typesWithInterceptedInheritedMethods) {
-        TypeVariableName typeVariableName = TypeVariableName.get("java.util.Set<String>");
-        return MethodSpec.methodBuilder("getTypesWithInterceptedInheritedMethods")
-            .addModifiers(Modifier.PUBLIC)
-            .addAnnotation(Override.class)
-            .returns(typeVariableName)
-            .addStatement("return $N", typesWithInterceptedInheritedMethods)
-            .build();
-    }
 
     private static void generateVisitMethodInsnCode(
         MethodSpec.Builder visitMethodInsnBuilder,

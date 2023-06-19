@@ -16,10 +16,8 @@
 
 package org.gradle.internal.instrumentation.api.jvmbytecode;
 
-import org.gradle.internal.instrumentation.api.annotations.InterceptInherited;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.Set;
 import java.util.function.Supplier;
 
 public interface JvmBytecodeCallInterceptor {
@@ -32,9 +30,4 @@ public interface JvmBytecodeCallInterceptor {
             boolean isInterface,
             Supplier<MethodNode> readMethodNode
     );
-
-    /**
-     * Returns all types that have at least one methods intercepted with {@link InterceptInherited} annotation.
-     */
-    Set<String> getTypesWithInterceptedInheritedMethods();
 }

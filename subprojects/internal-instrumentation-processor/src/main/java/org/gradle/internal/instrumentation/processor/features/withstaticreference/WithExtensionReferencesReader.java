@@ -34,13 +34,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class WithExtensionReferencesReader implements RequestPostProcessorExtension {
-
-    private final TypeUtils typeUtils;
-
-    public WithExtensionReferencesReader(TypeUtils typeUtils) {
-        this.typeUtils = typeUtils;
-    }
-
     @Override
     public Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest) {
         if (shouldPostProcess(originalRequest)) {
@@ -49,7 +42,7 @@ public class WithExtensionReferencesReader implements RequestPostProcessorExtens
                 AnnotationUtils.findAnnotationMirror(element, WithExtensionReferences.class).ifPresent(annotation ->
                     AnnotationUtils.findAnnotationValue(annotation, "toClass").ifPresent(value -> {
                         TypeMirror typeMirror = (TypeMirror) value.getValue();
-                        Type type = typeUtils.extractType(typeMirror);
+                        Type type = TypeUtils.extractType(typeMirror);
                         String methodName = extractMethodName(originalRequest, annotation);
                         originalRequest.getRequestExtras().add(new WithExtensionReferencesExtra(type, methodName));
                     }));
