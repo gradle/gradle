@@ -132,11 +132,11 @@ class PluginsBlockInterpreterTest {
 
     @Test
     fun `single plugin - id() long chain of versions and applies`() {
-        assertStaticInterpretationOf(
+        assertDynamicInterpretationOf(
             """
                 id("plugin-id").version("1.0").version("2.0").apply(true).apply(false) version "3.0" apply false apply true version "4.0"
             """.trimIndent(),
-            PluginRequestSpec("plugin-id", version = "4.0", apply = true),
+            "Multiple version/apply calls not supported",
         )
     }
 
@@ -218,13 +218,12 @@ class PluginsBlockInterpreterTest {
             """
                 id("plugin-id-1")
                     .version("1.0")
-                    .apply(false)
-                    .version("2.0") ; kotlin("plugin-id-2")
-                    .version("1.0") apply false
+                    .apply(false) ; kotlin("plugin-id-2")
+                    .version("2.0") apply false
                 id("plugin-id-3")
             """,
-            PluginRequestSpec("plugin-id-1", version = "2.0", apply = false),
-            PluginRequestSpec("org.jetbrains.kotlin.plugin-id-2", version = "1.0", apply = false),
+            PluginRequestSpec("plugin-id-1", version = "1.0", apply = false),
+            PluginRequestSpec("org.jetbrains.kotlin.plugin-id-2", version = "2.0", apply = false),
             PluginRequestSpec("plugin-id-3"),
         )
     }
