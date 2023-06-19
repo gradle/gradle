@@ -71,6 +71,25 @@ fun <T> many(parser: Parser<T>): Parser<List<T>> = {
 }
 
 
+internal
+inline fun <T> aggregate(
+    crossinline parser: Parser<List<T>?>,
+    initialValue: T,
+    crossinline f: (T, T) -> T
+): Parser<T?> = {
+    when (val r = parser()) {
+        is ParserResult.Failure -> r
+        is ParserResult.Success -> {
+            var aggregate = initialValue
+            r.result?.forEach {
+                aggregate = f(aggregate, it)
+            }
+            ParserResult.Success(aggregate)
+        }
+    }
+}
+
+
 @JvmName("timesTU")
 internal
 inline operator fun <T, U> Parser<T>.times(crossinline suffix: Parser<U>): Parser<Pair<T, U>> =

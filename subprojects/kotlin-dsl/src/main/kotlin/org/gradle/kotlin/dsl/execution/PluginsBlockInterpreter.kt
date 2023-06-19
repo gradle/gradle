@@ -83,17 +83,22 @@ val pluginsBlockParser = run {
 
     val infixApply = apply * (parenBool + bool) * ws()
 
-    val infixVersionApply = infixVersion * optional(infixApply)
-
-    val infixApplyVersion = flip(infixApply, optional(infixVersion))
-
     val optionalApply = optional(dotApply + infixApply)
+
+    val optionalVersion = optional(dotVersion + infixVersion)
+
+    val infixVersionApply = infixVersion * optionalApply
+
+    val infixApplyVersion = flip(infixApply, optionalVersion)
 
     val dotVersionApply = dotVersion * optionalApply
 
-    val dotApplyVersion = flip(dotApply, optional(dotVersion + infixVersion))
+    val dotApplyVersion = flip(dotApply, optionalVersion)
 
-    val optionalVersionAndApply = optional(infixVersionApply + infixApplyVersion + dotVersionApply + dotApplyVersion)
+    val optionalVersionAndApply = aggregate(
+        optional(many(infixVersionApply + infixApplyVersion + dotVersionApply + dotApplyVersion)),
+        null to null
+    ) { p1, p2 -> (p2.first ?: p1.first) to (p2.second ?: p1.second) }
 
     val pluginIdSpec = zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
         when (versionAndApply) {

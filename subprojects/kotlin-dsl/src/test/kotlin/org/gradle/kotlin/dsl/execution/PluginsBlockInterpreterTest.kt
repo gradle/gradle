@@ -108,19 +108,43 @@ class PluginsBlockInterpreterTest {
     fun `single plugin - id() mixed version apply`() {
         assertStaticInterpretationOf(
             """
-                id("plugin-id").version("1.0") apply false
-                id("plugin-id").apply(false) version "3.0"
+                id("plugin-id").version("1.0").apply(true)
+                id("plugin-id").version("2.0") apply true
+                id("plugin-id") version "3.0".apply(true)
+                id("plugin-id") version "4.0" apply true
+
+                id("plugin-id").apply(false).version("1.0")
+                id("plugin-id").apply(false) version "2.0"
+                id("plugin-id") apply false.version("3.0")
+                id("plugin-id") apply false version "4.0"
             """.trimIndent(),
+            PluginRequestSpec("plugin-id", version = "1.0", apply = true),
+            PluginRequestSpec("plugin-id", version = "2.0", apply = true),
+            PluginRequestSpec("plugin-id", version = "3.0", apply = true),
+            PluginRequestSpec("plugin-id", version = "4.0", apply = true),
             PluginRequestSpec("plugin-id", version = "1.0", apply = false),
-            PluginRequestSpec("plugin-id", version = "3.0", apply = false)
+            PluginRequestSpec("plugin-id", version = "2.0", apply = false),
+            PluginRequestSpec("plugin-id", version = "3.0", apply = false),
+            PluginRequestSpec("plugin-id", version = "4.0", apply = false),
+        )
+    }
+
+
+    @Test
+    fun `single plugin - id() long chain of versions and applies`() {
+        assertStaticInterpretationOf(
+            """
+                id("plugin-id").version("1.0").version("2.0").apply(true).apply(false) version "3.0" apply false apply true version "4.0"
+            """.trimIndent(),
+            PluginRequestSpec("plugin-id", version = "4.0", apply = true),
         )
     }
 
     @Test
     fun `single plugin - kotlin()`() {
         assertStaticInterpretationOf(
-            """kotlin("js")""",
-            PluginRequestSpec("org.jetbrains.kotlin.js")
+            """kotlin("jvm")""",
+            PluginRequestSpec("org.jetbrains.kotlin.jvm")
         )
     }
 
@@ -195,11 +219,11 @@ class PluginsBlockInterpreterTest {
                 id("plugin-id-1")
                     .version("1.0")
                     .apply(false)
-                    ; kotlin("plugin-id-2")
+                    .version("2.0") ; kotlin("plugin-id-2")
                     .version("1.0") apply false
                 id("plugin-id-3")
             """,
-            PluginRequestSpec("plugin-id-1", version = "1.0", apply = false),
+            PluginRequestSpec("plugin-id-1", version = "2.0", apply = false),
             PluginRequestSpec("org.jetbrains.kotlin.plugin-id-2", version = "1.0", apply = false),
             PluginRequestSpec("plugin-id-3"),
         )
