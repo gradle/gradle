@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.smoketests.KotlinRunnerFactory.ParallelTasksInProject
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
@@ -34,12 +35,11 @@ class KotlinAndroidDeprecations extends BaseDeprecations implements WithKotlinDe
             "If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead. " +
             String.format(RECOMMENDATION,"information",  DOC_REGISTRY.getDslRefForProperty("org.gradle.api.artifacts.Configuration", "extendsFrom(org.gradle.api.artifacts.Configuration[])"))
 
-    void expectKotlinConfigurationAsDependencyDeprecation(String version) {
-        VersionNumber kotlinVersionNumber = VersionNumber.parse(version)
+    void expectKotlinConfigurationAsDependencyDeprecation(VersionNumber kotlinVersionNumber) {
         runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber < KOTLIN_VERSION_WITHOUT_CONFIGURATION_DEPENDENCY, CONFIGURATION_AS_DEPENDENCY_DEPRECATION)
     }
 
-    void expectAndroidOrKotlinWorkerSubmitDeprecation(String agpVersion, boolean kotlinWorkers, String kotlinVersion) {
-        runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(agpVersion) || (kotlinWorkers && kotlinPluginUsesOldWorkerApi(kotlinVersion)), WORKER_SUBMIT_DEPRECATION)
+    void expectAndroidOrKotlinWorkerSubmitDeprecation(VersionNumber androidPluginVersionNumber, ParallelTasksInProject parallelTasksInProject, VersionNumber kotlinPluginVersionNumber) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(androidPluginVersionNumber.toString()) || (parallelTasksInProject.isPropertyPresent() && kotlinPluginUsesOldWorkerApi(kotlinPluginVersionNumber)), WORKER_SUBMIT_DEPRECATION)
     }
 }
