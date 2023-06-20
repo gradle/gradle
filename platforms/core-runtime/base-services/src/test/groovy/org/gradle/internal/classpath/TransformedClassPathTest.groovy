@@ -172,6 +172,93 @@ class TransformedClassPathTest extends Specification {
         filtered.findTransformedJarFor(file("1.jar")) == file("t1.jar")
     }
 
+    def "instrumenting artifact transform output can be converted to classpath"() {
+        when:
+        TransformedClassPath cp = TransformedClassPath.fromInstrumentingArtifactTransformOutput(inputClassPath)
+
+        then:
+        cp.asFiles == outputClassPath.asFiles
+        cp.findTransformedJarFor(file(original)) == (transformed != null ? file(transformed) : null)
+
+        where:
+        inputClassPath                                  | outputClassPath             | original | transformed
+        classPath("1.jiar", "1.jar")                    | classPath("1.jar")          | "1.jar"  | "1.jiar"
+        classPath("1.jiar", "1.jar", "2.jar")           | classPath("1.jar", "2.jar") | "1.jar"  | "1.jiar"
+        classPath("1.jiar", "1.jar", "2.jar")           | classPath("1.jar", "2.jar") | "2.jar"  | null
+        classPath("1.jar", "2.jiar", "2.jar")           | classPath("1.jar", "2.jar") | "2.jar"  | "2.jiar"
+        classPath("1.jar", "2.jiar", "2.jar")           | classPath("1.jar", "2.jar") | "1.jar"  | null
+        classPath("1.jiar", "1.jar", "2.jiar", "2.jar") | classPath("1.jar", "2.jar") | "1.jar"  | "1.jiar"
+        classPath("1.jiar", "1.jar", "2.jiar", "2.jar") | classPath("1.jar", "2.jar") | "2.jar"  | "2.jiar"
+
+        classPath("1.jar")                              | classPath("1.jar")          | "1.jar"  | null
+        classPath("1.jar", "2.jar")                     | classPath("1.jar", "2.jar") | "1.jar"  | null
+        classPath("1.jar", "2.jar")                     | classPath("1.jar", "2.jar") | "2.jar"  | null
+    }
+
+    def "invalid instrumenting artifact transform outputs are detected"() {
+        when:
+        TransformedClassPath.fromInstrumentingArtifactTransformOutput(inputClassPath)
+
+        then:
+        thrown IllegalArgumentException
+
+        where:
+        inputClassPath                          | _
+        transformedClassPath("1.jar": "1.jiar") | _
+        classPath("1.jiar")                     | _
+        classPath("1.jiar", "2.jiar")           | _
+        classPath("1.jar", "1.jiar")            | _
+    }
+
+    def "instrumenting artifact transform output is recognized"() {
+        when:
+        ClassPath cp = TransformedClassPath.handleInstrumentingArtifactTransform(inputClassPath)
+
+        then:
+        cp instanceof TransformedClassPath
+        cp.asFiles == outputClassPath.asFiles
+
+        where:
+        inputClassPath                                  | outputClassPath
+        classPath("1.jiar", "1.jar")                    | classPath("1.jar")
+        classPath("1.jiar", "1.jar", "2.jar")           | classPath("1.jar", "2.jar")
+        classPath("1.jiar", "1.jar", "2.jar")           | classPath("1.jar", "2.jar")
+        classPath("1.jar", "2.jiar", "2.jar")           | classPath("1.jar", "2.jar")
+        classPath("1.jar", "2.jiar", "2.jar")           | classPath("1.jar", "2.jar")
+        classPath("1.jiar", "1.jar", "2.jiar", "2.jar") | classPath("1.jar", "2.jar")
+        classPath("1.jiar", "1.jar", "2.jiar", "2.jar") | classPath("1.jar", "2.jar")
+    }
+
+    def "not instrumenting artifact transform output is recognized"() {
+        when:
+        ClassPath cp = TransformedClassPath.handleInstrumentingArtifactTransform(inputClassPath)
+
+        then:
+        !(cp instanceof TransformedClassPath)
+        cp.asFiles == outputClassPath.asFiles
+
+        where:
+        inputClassPath                                  | outputClassPath
+        classPath("1.jar")                              | classPath("1.jar")
+        classPath("1.jar", "2.jar")                     | classPath("1.jar", "2.jar")
+        classPath("1.jar", "2.jar")                     | classPath("1.jar", "2.jar")
+        ClassPath.EMPTY                                 | ClassPath.EMPTY
+    }
+
+    def "transformedclasspath is recognized"() {
+        when:
+        ClassPath cp = TransformedClassPath.handleInstrumentingArtifactTransform(inputClassPath)
+
+        then:
+        cp instanceof TransformedClassPath
+        cp.asFiles == outputClassPath.asFiles
+
+        where:
+        inputClassPath                          | outputClassPath
+        transformedClassPath("1.jar": "1.jiar") | classPath("1.jar")
+        transformedClassPath("1.jiar": "1.jar") | classPath("1.jiar")
+    }
+
     private static File file(String path) {
         return new File(path)
     }
@@ -182,5 +269,9 @@ class TransformedClassPathTest extends Specification {
             builder.add(file(original), file(transformed))
         }
         return builder.build()
+    }
+
+    private static ClassPath classPath(String... jars) {
+        return DefaultClassPath.of(jars.collect { file(it) })
     }
 }

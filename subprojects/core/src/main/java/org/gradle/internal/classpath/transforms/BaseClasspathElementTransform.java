@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
+import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.util.internal.JarUtil;
@@ -71,6 +72,11 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
                 LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
             }
         });
+    }
+
+    @Override
+    public String decorateDestinationFileName(String rawDestinationName) {
+        return rawDestinationName.replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
     }
 
     private void visitEntries(ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
