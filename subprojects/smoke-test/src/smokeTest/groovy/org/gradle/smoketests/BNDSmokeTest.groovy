@@ -17,11 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
-
-import java.util.jar.Attributes
-import java.util.jar.JarFile
 
 /**
  * Smoke tests for <a href="https://github.com/bndtools/bnd/blob/master/gradle-plugins/README.md">the BND plugin</a>.
@@ -446,9 +444,8 @@ Bundle-Activator: com.example.Activator
     }
 
     private void assertJarManifestContains(String attribute, String value) {
-        JarFile jarFile = new JarFile(file("build/libs/bnd-smoke-test.jar"))
-        Attributes attributes = jarFile.manifest.mainAttributes
-        assert attributes.getValue(attribute) == value
+        JarTestFixture jarTestFixture = new JarTestFixture(file("build/libs/bnd-smoke-test.jar"))
+        assert jarTestFixture.manifest.mainAttributes.getValue(attribute) == value
     }
 
     private String addBNDBuilderPlugin() {
