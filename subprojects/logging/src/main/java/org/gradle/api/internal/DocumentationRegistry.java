@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GradleVersion;
@@ -46,6 +47,14 @@ public class DocumentationRegistry {
      */
     public String getDocumentationFor(String id, String section) {
         return getDocumentationFor(id) + "#" + section;
+    }
+    public String getDocumentationFor(DocLink docLink) {
+        String page = docLink.getPage();
+        String section = docLink.getSection();
+        if(section == null) {
+            return getDocumentationFor(page);
+        }
+        return getDocumentationFor(page, section);
     }
 
     public String getDslRefForProperty(Class<?> clazz, String property) {

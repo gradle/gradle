@@ -19,6 +19,8 @@ package org.gradle.api.problems.interfaces;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * A link to a documentation page.
  *
@@ -28,5 +30,6 @@ import org.gradle.api.Incubating;
 public interface DocLink {
     String getPage();
 
+    @Nullable
     String getSection();
 }

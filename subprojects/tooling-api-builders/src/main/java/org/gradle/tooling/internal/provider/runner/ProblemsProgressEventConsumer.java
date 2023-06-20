@@ -19,12 +19,12 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -78,7 +78,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         if(docLink == null) {
             return "";
         }
-        return new DocumentationRegistry().getDocumentationFor(docLink.getPage(), docLink.getSection());
+        return new DocumentationRegistry().getDocumentationFor(docLink);
     }
 
     @Override

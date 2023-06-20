@@ -18,6 +18,8 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.interfaces.DocLink;
 
+import javax.annotation.Nullable;
+
 /**
  * A link to a documentation page.
  *
@@ -27,7 +29,7 @@ public class DefaultDocLink implements DocLink {
     private final String page;
     private final String section;
 
-    public DefaultDocLink(String page, String section) {
+    public DefaultDocLink(String page, @Nullable String section) {
         this.page = page;
         this.section = section;
     }
@@ -38,6 +40,7 @@ public class DefaultDocLink implements DocLink {
     }
 
     @Override
+    @Nullable
     public String getSection() {
         return section;
     }

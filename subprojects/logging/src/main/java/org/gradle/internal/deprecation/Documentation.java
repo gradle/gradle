@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.problems.interfaces.DocLink;
+import org.gradle.api.problems.internal.DefaultDocLink;
 import org.gradle.api.internal.DocumentationRegistry;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION;
-
 public abstract class Documentation {
+    public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
     static final Documentation NO_DOCUMENTATION = new NullDocumentation();
@@ -109,35 +110,22 @@ public abstract class Documentation {
     }
 
     private static class UserGuide extends Documentation {
-        private final String id;
-        private final String section;
+        private final DocLink docLink;
 
         private UserGuide(String id, @Nullable String section) {
-            this.id = Preconditions.checkNotNull(id);
-            this.section = section;
+            this.docLink = new DefaultDocLink(Preconditions.checkNotNull(id), section);
         }
 
         @Override
         public String documentationUrl() {
-            if (section != null) {
-                return DOCUMENTATION_REGISTRY.getDocumentationFor(id, section);
-            }
-            return DOCUMENTATION_REGISTRY.getDocumentationFor(id);
+            return DOCUMENTATION_REGISTRY.getDocumentationFor(docLink);
         }
     }
 
-    private static class UpgradeGuide extends Documentation {
-        private final int majorVersion;
-        private final String section;
+    private static class UpgradeGuide extends UserGuide {
 
         private UpgradeGuide(int majorVersion, String section) {
-            this.majorVersion = majorVersion;
-            this.section = Preconditions.checkNotNull(section);
-        }
-
-        @Override
-        public String documentationUrl() {
-            return DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, section);
+            super("upgrading_version_" + majorVersion, section);
         }
 
         @Override

@@ -49,6 +49,8 @@ public class Problems {
     public static void collect(Throwable failure) {
         new DefaultProblemBuilder(GENERIC, failure.getMessage(), ERROR, "generic_exception")
             .cause(failure)
+            .noLocation()
+            .undocumented()
             .report();
     }
 
