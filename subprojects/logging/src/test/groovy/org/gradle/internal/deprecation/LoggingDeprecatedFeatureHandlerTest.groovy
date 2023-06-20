@@ -21,7 +21,6 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
-import org.gradle.internal.featurelifecycle.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.featurelifecycle.StackTraceSanitizerTest
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -51,13 +50,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties()
     final problemStream = Mock(ProblemStream)
-    final diagnosticsFactory = createProblemDiagnosticMock()
+    final diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
 
-    private createProblemDiagnosticMock() {
-        def mock = Mock(ProblemDiagnosticsFactory)
-        mock.newStream() >> NoOpProblemDiagnosticsFactory.EMPTY_STREAM
-        mock
-    }
     final handler = new LoggingDeprecatedFeatureHandler()
     final Clock clock = Mock(Clock)
     final BuildOperationListener buildOperationListener = Mock()
@@ -208,6 +202,9 @@ feature1 removal""")
     }
 
     def "no warnings should be displayed in #type"() {
+        given:
+        useStackTrace()
+
         when:
         handler.init(diagnosticsFactory, type, progressBroadcaster)
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
