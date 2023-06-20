@@ -208,6 +208,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         String message = String.format("Could not compile %s.", source.getDisplayName());
         throw Problems.createError(ProblemGroup.GENERIC, message, "script_compilation_failed")
             .location(source.getFileName(), lineNumber)
+            .undocumented()
             .cause(new ScriptCompilationException(message, e, source, lineNumber))
             .throwIt();
     }

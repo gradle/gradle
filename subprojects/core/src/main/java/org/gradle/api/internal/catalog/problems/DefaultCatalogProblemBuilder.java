@@ -92,6 +92,7 @@ public class DefaultCatalogProblemBuilder {
     @Nonnull
     public static ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
         return Problems.create(VERSION_CATALOG, message, ERROR, catalogProblemId.name())
+            .noLocation()
             .documentedAt(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase());
     }
 }
