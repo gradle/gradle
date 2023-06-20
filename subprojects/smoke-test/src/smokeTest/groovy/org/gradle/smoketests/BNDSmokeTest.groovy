@@ -149,7 +149,7 @@ jar {
     bundle {
         properties.empty() // Make this work with CC per: https://github.com/bndtools/bnd/blob/master/gradle-plugins/README.md#gradle-configuration-cache-support
 
-        bnd(\"\"\"-exportcontents: com.example.util.*\"\"\")
+        bnd("-exportcontents": "com.example.util.*")
     }
 }
 """
@@ -237,7 +237,7 @@ version = "$directVersion"
 tasks.withType(Jar).configureEach {
     BundleTaskExtension bundle = extensions.create(BundleTaskExtension.NAME, BundleTaskExtension.class, it)
     bundle.properties.empty() // Make this work with CC per: https://github.com/bndtools/bnd/blob/master/gradle-plugins/README.md#gradle-configuration-cache-support
-    bundle.bnd(\"\"\"-exportcontents: com.example.util.*\"\"\")
+    bundle.bnd("-exportcontents": "com.example.util.*")
 
     doLast(bundle.buildAction())
 }
@@ -348,7 +348,7 @@ jar {
     bundle {
         properties.empty() // Make this work with CC per: https://github.com/bndtools/bnd/blob/master/gradle-plugins/README.md#gradle-configuration-cache-support
 
-        bnd(\"\"\"-exportcontents: com.example.util.*\"\"\")
+        bnd("-exportcontents": "com.example.util.*")
     }
 }
 """
