@@ -24,21 +24,30 @@ import org.gradle.internal.jvm.Jvm
 class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def "fails when using an invalid toolchain spec when #description"() {
-        buildScript """
-            apply plugin: "java"
 
-            task unpackLauncher {
-                doFirst {
-                    javaToolchains.launcherFor {
-                        $configureInvalid
-                    }.getOrNull()
+        buildScript """
+            apply plugin: JvmToolchainsPlugin
+
+            abstract class UnpackLauncher extends DefaultTask {
+                @Nested
+                abstract Property<JavaLauncher> getLauncher()
+
+                @TaskAction
+                void useLauncher() {
+                    // we never get here
+                    launcher.getOrNull()
                 }
+            }
+
+            task unpackLauncher(type: UnpackLauncher) {
+                launcher.set(javaToolchains.launcherFor {
+                    $configureInvalid
+                })
             }
         """
 
         when:
-        // build error is lazy
-        runAndFail ':unpackLauncher'
+        fails ':unpackLauncher'
         then:
         failure.assertHasDocumentedCause("Using toolchain specifications without setting a language version is not supported. Consider configuring the language version. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#invalid_toolchain_specification_deprecation")
 
