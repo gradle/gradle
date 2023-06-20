@@ -31,6 +31,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
@@ -83,6 +84,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 return true;
             });
         });
-        return classpathTransformer.transform(DefaultClassPath.of(view.getFiles()), CachedClasspathTransformer.StandardTransform.BuildLogic);
+        return TransformedClassPath.handleInstrumentingArtifactTransform(classpathTransformer.transform(DefaultClassPath.of(view.getFiles()), CachedClasspathTransformer.StandardTransform.BuildLogic));
     }
 }

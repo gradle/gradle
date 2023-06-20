@@ -101,6 +101,14 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
          * @return {@code true} if the entry should be included.
          */
         boolean includeEntry(ClasspathEntryVisitor.Entry entry);
+
+        /**
+         * Modifies the default destination file name if necessary.
+         *
+         * @param rawDestinationName the original destination jar name
+         * @return the modified destination file name
+         */
+        String decorateDestinationFileName(String rawDestinationName);
     }
 
     public InstrumentingClasspathFileTransformer(
@@ -130,7 +138,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
-        String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
+        String destFileName = policy.decorateDestinationFileName(sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName());
         File receipt = new File(destDir, destFileName + ".receipt");
         File transformed = new File(destDir, destFileName);
 
@@ -266,6 +274,12 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 // include everything
                 return true;
             }
+
+            @Override
+            public String decorateDestinationFileName(String rawDestinationName) {
+                // no decoration needed
+                return rawDestinationName;
+            }
         };
     }
 
@@ -330,6 +344,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
                 // Only include classes in the result, resources will be loaded from the original JAR by the class loader.
                 return isClassFile(entry) || isManifest(entry);
+            }
+
+            @Override
+            public String decorateDestinationFileName(String rawDestinationName) {
+                return rawDestinationName.replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
             }
         };
     }
