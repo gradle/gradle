@@ -30,6 +30,8 @@ import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.hamcrest.CoreMatchers.startsWith
+import static org.hamcrest.Matchers.both
+import static org.hamcrest.Matchers.endsWith
 
 @TargetCoverage({ CodeNarcCoverage.supportedVersionsByCurrentJdk })
 @Requires(UnitTestPreconditions.StableGroovy)
@@ -110,6 +112,52 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         ["html", "xml", "txt"].each {
             assert report("main", it).exists()
         }
+        // HTML report is sortable
+        report("main").text.contains("Sort by")
+    }
+
+    def "reports HTML report over text or XML report in failure message"() {
+        badCode()
+        buildFile << """
+            codenarcTest.reports {
+                xml.required = true
+                text.required = true
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertThatCause(both(startsWith("CodeNarc rule violations were found. See the report at:")).and(endsWith("html")))
+    }
+
+    def "reports text report over XML report in failure message"() {
+        badCode()
+        buildFile << """
+            codenarcTest.reports {
+                html.required = false
+                xml.required = true
+                text.required = true
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertThatCause(both(startsWith("CodeNarc rule violations were found. See the report at:")).and(endsWith("txt")))
+    }
+
+    def "reports XML report in failure message"() {
+        badCode()
+        buildFile << """
+            codenarcTest.reports {
+                html.required = false
+                xml.required = true
+                text.required = false
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertThatCause(both(startsWith("CodeNarc rule violations were found. See the report at:")).and(endsWith("xml")))
     }
 
     def "analyze bad code"() {
@@ -180,12 +228,38 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
                 reportFormat = 'console'
             }
         '''
-        file('src/main/groovy/a/A.groovy') << 'package a;class A{}'
+        badCode()
 
         then:
-        succeeds('check')
-        output.contains('CodeNarc Report')
-        output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
+        fails('check')
+        def codenarcOutput = result.groupedOutput.task(":codenarcTest")
+        codenarcOutput.assertOutputContains('[ant:codenarc]     Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
+    }
+
+    def "can enable multiple reports with console"() {
+        when:
+        buildFile << '''
+            codenarc {
+                reportFormat = "console"
+            }
+            tasks.withType(CodeNarc).configureEach {
+                reports {
+                    html {
+                        required = true
+                    }
+                }
+            }
+        '''
+        badCode()
+
+        then:
+        fails('check')
+        and:
+        // Failures should be reported to console, HTML report should be written and failure should link to HTML report
+        def codenarcOutput = result.groupedOutput.task(":codenarcTest")
+        codenarcOutput.assertOutputContains('[ant:codenarc]     Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
+        failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
+        report("test").assertExists()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
