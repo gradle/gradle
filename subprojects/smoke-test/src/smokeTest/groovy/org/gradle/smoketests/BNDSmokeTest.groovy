@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 import java.util.jar.Attributes
@@ -79,8 +78,7 @@ public class Example {
         when:
         runner("jar")
             .forwardOutput()
-            .expectLegacyDeprecationWarningIf(
-                VersionNumber.parse(GradleVersion.current().version) > VersionNumber.parse("8.1"),
+            .expectLegacyDeprecationWarning(
                 "The AbstractTask.getConvention() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
@@ -171,8 +169,7 @@ public class MyUtil {
         when:
         runner(":jar")
             .forwardOutput()
-            .expectLegacyDeprecationWarningIf(
-                VersionNumber.parse(GradleVersion.current().version) > VersionNumber.parse("8.1"),
+            .expectLegacyDeprecationWarning(
                 "The AbstractTask.getConvention() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
@@ -371,8 +368,7 @@ public class MyUtil {
         expect:
         runner(":resolve")
                 .forwardOutput()
-                .expectLegacyDeprecationWarningIf(
-                        VersionNumber.parse(GradleVersion.current().version) > VersionNumber.parse("8.1"),
+                .expectLegacyDeprecationWarning(
                         "The AbstractTask.getConvention() method has been deprecated. " +
                                 "This is scheduled to be removed in Gradle 9.0. " +
                                 "Consult the upgrading guide for further information: " +
@@ -455,8 +451,7 @@ Bundle-Activator: com.example.Activator
         expect:
         def result = runner(":run")
                 .forwardOutput()
-                .expectLegacyDeprecationWarningIf(
-                        VersionNumber.parse(GradleVersion.current().version) > VersionNumber.parse("8.1"),
+                .expectLegacyDeprecationWarning(
                         "The AbstractTask.getConvention() method has been deprecated. " +
                                 "This is scheduled to be removed in Gradle 9.0. " +
                                 "Consult the upgrading guide for further information: " +
