@@ -44,11 +44,7 @@ rootProject.name = 'bnd-smoke-test'
         def commonsVersion = "3.12.0"
         def calculatedCommonsVersionRange = "[3.12,4)"
         buildFile << """
-plugins {
-    id "biz.aQute.bnd.builder"
-}
-
-${mavenCentralRepository()}
+${addBNDBuilderPlugin()}
 
 dependencies {
     implementation "org.apache.commons:commons-lang3:$commonsVersion"
@@ -98,11 +94,7 @@ public class Example {
 include "direct"
 """
         buildFile << """
-plugins {
-    id "biz.aQute.bnd.builder"
-}
-
-${mavenCentralRepository()}
+${addBNDBuilderPlugin()}
 
 dependencies {
     implementation project(":direct")
@@ -273,11 +265,7 @@ public class Util {
 include "direct"
 """
         buildFile << """
-plugins {
-    id "biz.aQute.bnd.builder"
-}
-
-${mavenCentralRepository()}
+${addBNDBuilderPlugin()}
 
 dependencies {
     implementation project(":direct")
@@ -386,11 +374,7 @@ public class MyUtil {
 include "direct"
 """
         buildFile << """
-plugins {
-    id "biz.aQute.bnd.builder"
-}
-
-${mavenCentralRepository()}
+${addBNDBuilderPlugin()}
 
 dependencies {
     compileOnly 'org.osgi:osgi.core:5.0.0'
@@ -465,6 +449,16 @@ Bundle-Activator: com.example.Activator
         JarFile jarFile = new JarFile(file("build/libs/bnd-smoke-test.jar"))
         Attributes attributes = jarFile.manifest.mainAttributes
         assert attributes.getValue(attribute) == value
+    }
+
+    private String addBNDBuilderPlugin() {
+        return """
+plugins {
+    id "biz.aQute.bnd.builder"
+}
+
+${mavenCentralRepository()}
+"""
     }
 
     @Override
