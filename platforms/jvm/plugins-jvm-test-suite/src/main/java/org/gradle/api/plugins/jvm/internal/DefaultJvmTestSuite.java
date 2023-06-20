@@ -32,6 +32,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.testing.toolchains.internal.FrameworkCachingJvmTestToolchain;
@@ -78,13 +79,14 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @SuppressWarnings("this-escape")
     @Inject
-    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultJvmTestSuite(String name, TaskContainer tasks, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
         this.taskDependencyFactory = taskDependencyFactory;
         this.toolchainFactory = new ToolchainFactory(getObjectFactory(), getParentServices(), getInstantiatorFactory());
 
-        getTargets().registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+        getTargets().registerFactory(JvmTestSuiteTarget.class,
+            targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, targetName, tasks, taskDependencyFactory, sourceSet));
 
         if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies

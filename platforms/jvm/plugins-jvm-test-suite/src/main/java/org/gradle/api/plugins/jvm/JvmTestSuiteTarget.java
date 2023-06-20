@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuiteTarget;
 
@@ -37,6 +38,15 @@ public interface JvmTestSuiteTarget extends TestSuiteTarget, Named {
      * @since 7.3
      */
     TaskProvider<Test> getTestTask();
+
+    /**
+     * The {@link JavaCompile} task that compiles the tests for the associated test suite.
+     *
+     * @return provider to the compilation task
+     * @since 9.10.0
+     */
+    @Incubating
+    TaskProvider<JavaCompile> getCompileTask();
 
     /**
      * {@inheritDoc}
