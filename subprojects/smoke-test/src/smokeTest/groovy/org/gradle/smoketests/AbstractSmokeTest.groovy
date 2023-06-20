@@ -187,6 +187,15 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/com.palantir.consistent-versions
         static palantirConsistentVersions = "2.12.0"
+
+        // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
+        static teamCityGradlePluginRef = "v0.33"
+
+        // https://github.com/jenkinsci/gradle-plugin/releases
+        static jenkinsGradlePluginRef = "gradle-2.8"
+
+        // https://github.com/gradle/gradle-enterprise-bamboo-plugin/releases
+        static bambooGradlePluginRef = "gradle-enterprise-bamboo-plugin-1.1.0"
     }
 
     static class Versions implements Iterable<String> {
