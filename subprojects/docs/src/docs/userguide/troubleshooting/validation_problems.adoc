@@ -386,10 +386,10 @@ This error indicates that a task declares an input property with values of an un
 
 To fix this, look at the error message which indicates the list of possible solutions.
 
-Please find below the list of unsupported value type and links to respective sections of the user manual:
+Please find below the list of unsupported value types:
 
 `ResolvedArtifactResult`:: <<incremental_build#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
-`java.net.URL`:: <<incremental_build#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+`java.net.URL`:: This type cannot be annotated with `@Input` because Java Serialization can lead to the same object of this type being detected as different by Gradle. This is a known issue in Java, see the https://bugs.openjdk.org/browse/JDK-8075619[OpenJDK bug report] for more details.
 
 [[unsupported_key_type_of_nested_map]]
 == Unsupported key type of nested map

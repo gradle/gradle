@@ -36,6 +36,7 @@ import java.util.List;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
+import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public InputPropertyAnnotationHandler() {
@@ -58,11 +59,11 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         Class<?> valueType = propertyMetadata.getDeclaredType().getRawType();
         validateNotDirectoryType(propertyMetadata, validationContext, valueType);
         validateNotFileType(propertyMetadata, validationContext, valueType);
-        validateNotPrimitiveType(propertyMetadata, validationContext, valueType);
+        validateNotOptionalPrimitiveType(propertyMetadata, validationContext, valueType);
         validateNotUrlType(propertyMetadata, validationContext);
     }
 
-    private static void validateNotPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private static void validateNotOptionalPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
@@ -117,7 +118,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                     problem.withId(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
                             .forProperty(propertyMetadata.getPropertyName())
-                            .reportAs(ERROR)
+                            .reportAs(WARNING)
                             .withDescription(() -> String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
                             .happensBecause(() -> String.format("Type '%s' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle", URL.class.getName()))
                             .addPossibleSolution("Use type 'java.net.URI' instead.")

@@ -659,13 +659,13 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
         assertValidationFailsWith([
-            error(unsupportedValueType { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueType { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueType { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueType { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueType { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueType { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueType { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
         ])
     }
 
