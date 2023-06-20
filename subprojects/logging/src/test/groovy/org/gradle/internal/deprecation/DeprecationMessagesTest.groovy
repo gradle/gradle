@@ -16,9 +16,10 @@
 
 package org.gradle.internal.deprecation
 
-import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.featurelifecycle.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging

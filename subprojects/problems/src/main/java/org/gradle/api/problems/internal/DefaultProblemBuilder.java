@@ -156,12 +156,6 @@ public class DefaultProblemBuilder implements ProblemBuilder {
         throw throwError(build());
     }
 
-    protected static void throwPossibleError(Problem problem) {
-        if (problem.getSeverity() == Severity.ERROR) {
-            throw throwError(problem);
-        }
-    }
-
     public static RuntimeException throwError(Problem problem) {
         Throwable t = problem.getCause();
         if (t instanceof InterruptedException) {
