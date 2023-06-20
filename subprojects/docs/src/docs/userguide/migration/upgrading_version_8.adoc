@@ -90,9 +90,12 @@ A plugin compiled with Gradle >= 8.2 that makes use of the Kotlin DSL functions 
 
 ==== Deferred or avoided configuration of some tasks
 
-When performing dependency resolution, Gradle creates an internal representation of the available link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]s. This requires inspecting all configurations and artifacts. Processing artifacts created by tasks causes those tasks to be realized and configured.
+When performing dependency resolution, Gradle creates an internal representation of the available link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]s.
+This requires inspecting all configurations and artifacts.
+Processing artifacts created by tasks causes those tasks to be realized and configured.
 
-This internal representation is now created more lazily, which can change the order in which tasks are configured. Some tasks may never be configured.
+This internal representation is now created more lazily, which can change the order in which tasks are configured.
+Some tasks may never be configured.
 
 This change may cause code paths that relied on a particular order to no longer function, such as conditionally adding attributes to a configuration based on the presence of certain attributes.
 
