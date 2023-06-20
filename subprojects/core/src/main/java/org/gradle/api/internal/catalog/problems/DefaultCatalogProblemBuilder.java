@@ -30,6 +30,7 @@ import java.util.Collection;
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG;
 import static org.gradle.api.problems.interfaces.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutionsWithNewProblemsApi;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
@@ -69,7 +70,7 @@ public class DefaultCatalogProblemBuilder {
         DocLink documentationLink = problem.getDocumentationLink();
         if (documentationLink != null) {
             formatter.blankLine();
-            formatter.node(DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", documentationLink.getPage(), documentationLink.getSection()));
+            formatter.node(DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", documentationLink));
         }
         output.node(formatter.toString());
     }
@@ -93,6 +94,6 @@ public class DefaultCatalogProblemBuilder {
     public static ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
         return Problems.create(VERSION_CATALOG, message, ERROR, catalogProblemId.name())
             .noLocation()
-            .documentedAt(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase());
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
     }
 }

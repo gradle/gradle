@@ -17,13 +17,12 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.problems.interfaces.DocLink;
-import org.gradle.api.problems.internal.DefaultDocLink;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.interfaces.DocLink;
 
 import javax.annotation.Nullable;
 
-public abstract class Documentation {
+public abstract class Documentation implements DocLink {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
@@ -110,15 +109,20 @@ public abstract class Documentation {
     }
 
     private static class UserGuide extends Documentation {
-        private final DocLink docLink;
+        private final String page;
+        private final String section;
 
         private UserGuide(String id, @Nullable String section) {
-            this.docLink = new DefaultDocLink(Preconditions.checkNotNull(id), section);
+            this.page = Preconditions.checkNotNull(id);
+            this.section = section;
         }
 
         @Override
         public String documentationUrl() {
-            return DOCUMENTATION_REGISTRY.getDocumentationFor(docLink);
+            if(section == null) {
+                return DOCUMENTATION_REGISTRY.getDocumentationFor(page);
+            }
+            return DOCUMENTATION_REGISTRY.getDocumentationFor(page, section);
         }
     }
 

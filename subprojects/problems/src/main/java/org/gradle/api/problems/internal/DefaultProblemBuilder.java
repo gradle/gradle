@@ -78,7 +78,6 @@ public class DefaultProblemBuilder implements ProblemBuilder {
         }
     }
 
-    //add noLocation
     public ProblemBuilder location(String path, Integer line) {
         this.path = path;
         this.line = line;
@@ -96,9 +95,8 @@ public class DefaultProblemBuilder implements ProblemBuilder {
         return this;
     }
 
-    // add "undocumented"
-    public ProblemBuilder documentedAt(String page, String section) {
-        this.documentationUrl = new DefaultDocLink(page, section);
+    public ProblemBuilder documentedAt(DocLink doc) {
+        this.documentationUrl = doc;
         return this;
     }
 
