@@ -86,6 +86,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private static void addPossibleLocation(ProblemDiagnostics diagnostics, ProblemBuilder genericDeprecation) {
+        if(diagnostics == null) {
+            return;
+        }
         Location location = diagnostics.getLocation();
         if (location == null) {
             genericDeprecation.noLocation();
