@@ -98,7 +98,22 @@ This change may cause code paths that relied on a particular order to no longer 
 
 This impacted the link:https://github.com/bndtools/bnd/issues/5695[bnd plugin and JUnit5 build].
 
-We recommend not modifying domain objects (configurations, source sets, tasks, etc) from configuration blocks for other domain objects that may not be configured. 
+We recommend not modifying domain objects (configurations, source sets, tasks, etc) from configuration blocks for other domain objects that may not be configured.
+
+For example, avoid doing something like this:
+
+```kotlin
+    configurations {
+        val myConfig = create("myConfig")
+    }
+
+    tasks.register("myTask") {
+            // This is not safe, as the execution of this block may not occur, or may not occur in the order expected
+          configurations["myConfig"].attributes {
+              attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+          }
+    }
+```
 
 === Deprecations
 
