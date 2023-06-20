@@ -20,7 +20,6 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.PluginRequestSpec
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.instanceOf
 import org.junit.Test
 
 
@@ -136,7 +135,7 @@ class PluginsBlockInterpreterTest {
             """
                 id("plugin-id").version("1.0").version("2.0").apply(true).apply(false) version "3.0" apply false apply true version "4.0"
             """.trimIndent(),
-            "Multiple version/apply calls not supported",
+            "Expecting token of type RBRACE, but got DOT instead",
         )
     }
 
@@ -490,7 +489,7 @@ class PluginsBlockInterpreterTest {
     fun `unsupported syntax - plugin spec accessor`() {
         assertDynamicInterpretationOf(
             """java""",
-            "Expecting id or kotlin, got 'java'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('java') instead"
         )
     }
 
@@ -498,7 +497,7 @@ class PluginsBlockInterpreterTest {
     fun `unsupported syntax - version catalog alias`() {
         assertDynamicInterpretationOf(
             """alias(libs.plugins.jmh)""",
-            "Expecting id or kotlin, got 'alias'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('alias') instead"
         )
     }
 
@@ -506,7 +505,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - starts with unknown identifier`() {
         assertDynamicInterpretationOf(
             """garbage""",
-            "Expecting id or kotlin, got 'garbage'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('garbage') instead"
         )
     }
 
@@ -514,7 +513,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - starts with unexpected token`() {
         assertDynamicInterpretationOf(
             """.""",
-            "Expecting plugin spec, got '.'"
+            "Expecting token of type RBRACE, but got DOT instead"
         )
     }
 
@@ -522,7 +521,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() without parens`() {
         assertDynamicInterpretationOf(
             """id "plugin-id"""",
-            "Expecting (, got '\"'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('id') instead"
         )
     }
 
@@ -530,7 +529,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() with not a string`() {
         assertDynamicInterpretationOf(
             """id(false)""",
-            "Expecting <plugin id string>, got 'false'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('id') instead"
         )
     }
 
@@ -538,7 +537,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() with empty string`() {
         assertDynamicInterpretationOf(
             """id("")""",
-            "Expecting <plugin id string>, got '\"'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('id') instead"
         )
     }
 
@@ -546,7 +545,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() with unclosed string`() {
         assertDynamicInterpretationOf(
             """id("plugin-id-1) ; id("plugin-id-2")"""",
-            "Expecting ), got 'plugin'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('id') instead"
         )
     }
 
@@ -554,7 +553,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() with unclosed parens`() {
         assertDynamicInterpretationOf(
             """id("plugin-id-1" ; id("plugin-id-2")"""",
-            "Expecting ), got ';'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('id') instead"
         )
     }
 
@@ -562,7 +561,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() with misplaced semicolon`() {
         assertDynamicInterpretationOf(
             """id("plugin-id-1";)""",
-            "Expecting ), got ';'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('id') instead"
         )
     }
 
@@ -570,7 +569,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() apply with not a boolean`() {
         assertDynamicInterpretationOf(
             """id("plugin-id") apply "1.0"""",
-            "Expecting (, got '\"'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('apply') instead"
         )
     }
 
@@ -578,7 +577,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() version with not a string`() {
         assertDynamicInterpretationOf(
             """id("plugin-id") version false""",
-            "Expecting (, got 'false'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('version') instead"
         )
     }
 
@@ -586,7 +585,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() id() on the same line`() {
         assertDynamicInterpretationOf(
             """id("plugin-id-1") id("plugin-id-2")""",
-            "Expecting <statement separator>, got 'id'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('id') instead"
         )
     }
 
@@ -594,7 +593,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() unknown on the same line`() {
         assertDynamicInterpretationOf(
             """id("plugin-id-1") unknown "thing"""",
-            "Expecting version or apply, got 'unknown'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('unknown') instead"
         )
     }
 
@@ -602,7 +601,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() without parens`() {
         assertDynamicInterpretationOf(
             """kotlin "plugin-id"""",
-            "Expecting (, got '\"'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('kotlin') instead"
         )
     }
 
@@ -610,7 +609,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() with not a string`() {
         assertDynamicInterpretationOf(
             """kotlin(false)""",
-            "Expecting <kotlin plugin module string>, got 'false'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('kotlin') instead"
         )
     }
 
@@ -618,7 +617,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() with empty string`() {
         assertDynamicInterpretationOf(
             """kotlin("")""",
-            "Expecting <kotlin plugin module string>, got '\"'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('kotlin') instead"
         )
     }
 
@@ -626,7 +625,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() with unclosed string`() {
         assertDynamicInterpretationOf(
             """kotlin("plugin-id-1) ; kotlin("plugin-id-2")"""",
-            "Expecting ), got 'plugin'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('kotlin') instead"
         )
     }
 
@@ -634,7 +633,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() with unclosed parens`() {
         assertDynamicInterpretationOf(
             """kotlin("plugin-id-1" ; kotlin("plugin-id-2")"""",
-            "Expecting ), got ';'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('kotlin') instead"
         )
     }
 
@@ -642,7 +641,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() with misplaced semicolon`() {
         assertDynamicInterpretationOf(
             """kotlin("plugin-id-1";)""",
-            "Expecting ), got ';'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('kotlin') instead"
         )
     }
 
@@ -650,7 +649,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() apply with not a boolean`() {
         assertDynamicInterpretationOf(
             """kotlin("plugin-id") apply "1.0"""",
-            "Expecting (, got '\"'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('apply') instead"
         )
     }
 
@@ -658,7 +657,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() version with not a string`() {
         assertDynamicInterpretationOf(
             """kotlin("plugin-id") version false""",
-            "Expecting (, got 'false'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('version') instead"
         )
     }
 
@@ -666,7 +665,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() kotlin() on the same line`() {
         assertDynamicInterpretationOf(
             """kotlin("plugin-id-1") kotlin("plugin-id-2")""",
-            "Expecting <statement separator>, got 'kotlin'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('kotlin') instead"
         )
     }
 
@@ -674,7 +673,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() unknown on the same line`() {
         assertDynamicInterpretationOf(
             """kotlin("plugin-id-1") unknown "thing"""",
-            "Expecting version or apply, got 'unknown'"
+            "Expecting token of type RBRACE, but got IDENTIFIER ('unknown') instead"
         )
     }
 
@@ -682,7 +681,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - dot after dot`() {
         assertDynamicInterpretationOf(
             """id("plugin-id-1"). .version("1.0")""",
-            "Expecting version or apply, got '.'"
+            "Expecting token of type RBRACE, but got DOT instead"
         )
     }
 
@@ -693,7 +692,7 @@ class PluginsBlockInterpreterTest {
                 id("plugin-id-1").
                     .version("1.0")
             """,
-            "Expecting version or apply, got '.'"
+            "Expecting token of type RBRACE, but got DOT instead"
         )
     }
 
@@ -701,7 +700,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() dot version`() {
         assertDynamicInterpretationOf(
             """id("plugin-id").version "1.0"""",
-            """Expecting (, got '"'"""
+            """Expecting token of type RBRACE, but got DOT instead"""
         )
     }
 
@@ -709,7 +708,7 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() dot apply`() {
         assertDynamicInterpretationOf(
             """id("plugin-id").apply false""",
-            """Expecting (, got 'false'"""
+            """Expecting token of type RBRACE, but got DOT instead"""
         )
     }
 
@@ -724,14 +723,12 @@ class PluginsBlockInterpreterTest {
     }
 
     private
-    fun assertDynamicInterpretationOf(pluginsBlock: String, @Suppress("unused_parameter") reason: String) {
+    fun assertDynamicInterpretationOf(pluginsBlock: String, reason: String) {
         assertThat(
             interpret(Program.Plugins(fragment("plugins", pluginsBlock))),
-            instanceOf(PluginsBlockInterpretation.Dynamic::class.java)
-// TODO: validate failure reason
-//            equalTo(
-//                PluginsBlockInterpretation.Dynamic(reason)
-//            )
+            equalTo(
+                PluginsBlockInterpretation.Dynamic(reason)
+            )
         )
     }
 }

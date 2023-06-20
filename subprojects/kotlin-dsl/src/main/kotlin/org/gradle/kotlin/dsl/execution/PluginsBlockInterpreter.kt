@@ -117,7 +117,7 @@ val pluginsBlockParser = run {
     val pluginSpec = pluginIdSpec + kotlinDslSpec
 
     token(LBRACE) * wsOrNewLine() *
-        many(pluginSpec * statementSeparator()) *
+        zeroOrMore(pluginSpec * statementSeparator()) *
         optional(pluginSpec * wsOrNewLine()) *
         token(RBRACE)
 }

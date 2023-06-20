@@ -30,7 +30,7 @@ class CombinatorTest {
         assertSuccess(parser("foo"))
         assertFailure(
             parser("bar"),
-            "Expecting symbol 'foo'"
+            "Expecting symbol 'foo', but got 'bar' instead"
         )
     }
 
@@ -46,16 +46,16 @@ class CombinatorTest {
         val parser = symbol("foo") + symbol("bar")
         assertSuccess(parser("foo"))
         assertSuccess(parser("bar"))
-        assertFailure(parser("baz"), "Expecting symbol 'bar'")
+        assertFailure(parser("baz"), "Expecting symbol 'bar', but got 'baz' instead")
 
         val fooBarBaz = parser + symbol("baz")
         assertSuccess(fooBarBaz("baz"))
-        assertFailure(fooBarBaz("gazonk"), "Expecting symbol 'baz'")
+        assertFailure(fooBarBaz("gazonk"), "Expecting symbol 'baz', but got 'gazonk' instead")
     }
 
     @Test
     fun `can parse many symbols`() {
-        val parser = many(symbol("foo"))
+        val parser = zeroOrMore(symbol("foo"))
         assertSuccess(
             parser("foo"),
             listOf(Unit)
@@ -68,7 +68,7 @@ class CombinatorTest {
 
     @Test
     fun `can parse many symbols before another symbol`() {
-        val parser = many(symbol("foo")) * symbol("bar")
+        val parser = zeroOrMore(symbol("foo")) * symbol("bar")
         assertSuccess(
             parser("foo bar"),
             listOf(Unit)
@@ -81,7 +81,7 @@ class CombinatorTest {
 
     @Test
     fun `can fail many symbols`() {
-        val parser = many(symbol("foo"))
+        val parser = zeroOrMore(symbol("foo"))
         assertSuccess(
             parser("foofoo"),
             listOf()
@@ -92,8 +92,8 @@ class CombinatorTest {
     fun `can fail on sequence of symbols`() {
         val parser = symbol("foo") * symbol("bar")
         assertFailure(parser("foo"), "Expecting symbol 'bar'")
-        assertFailure(parser("bar"), "Expecting symbol 'foo'")
-        assertFailure(parser("foobar"), "Expecting symbol 'foo'")
+        assertFailure(parser("bar"), "Expecting symbol 'foo', but got 'bar' instead")
+        assertFailure(parser("foobar"), "Expecting symbol 'foo', but got 'foobar' instead")
     }
 
     @Test

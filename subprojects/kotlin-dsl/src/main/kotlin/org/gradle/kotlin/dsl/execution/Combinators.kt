@@ -51,7 +51,7 @@ operator fun <T> Parser<T>.invoke(input: String) =
 
 
 internal
-fun <T> many(parser: Parser<T>): Parser<List<T>> = {
+fun <T> zeroOrMore(parser: Parser<T>): Parser<List<T>> = {
     var lazyResult: MutableList<T>? = null
     while (tokenType != null) {
         val mark = currentPosition
@@ -163,14 +163,17 @@ inline fun <L, R, T> either(
 
 internal
 fun symbol(s: String): Parser<Unit> {
-    val failure = failure("Expecting symbol '$s'")
     return {
         if (tokenType == IDENTIFIER && tokenText == s) {
             advance()
             skipWhitespace(false)
             unitSuccess
+        } else if (tokenType == IDENTIFIER) {
+            failure("Expecting symbol '$s', but got '$tokenText' instead")
+        } else if (tokenType == null) {
+            failure("Expecting symbol '$s'")
         } else {
-            failure
+            failure("Expecting symbol '$s', but got a token of type '$tokenType' instead")
         }
     }
 }
@@ -195,7 +198,6 @@ fun token(ktToken: KtToken): Parser<Unit> =
 
 internal
 inline fun <T> token(token: KtToken, crossinline f: KotlinLexer.() -> T): Parser<T> {
-    val failure = failure("Expecting token '$token'")
     return {
         when (tokenType) {
             token -> {
@@ -205,7 +207,7 @@ inline fun <T> token(token: KtToken, crossinline f: KotlinLexer.() -> T): Parser
             }
 
             else -> {
-                failure
+                failure("Expecting token of type $token, but got $tokenType${if (tokenType == IDENTIFIER) " ('$tokenText')" else ""} instead")
             }
         }
     }
@@ -224,11 +226,7 @@ val ws_: Parser<Unit> = {
 
 
 internal
-fun wsOrNewLine(): Parser<Unit> = wsOrNewLine_
-
-
-private
-val wsOrNewLine_: Parser<Unit> = {
+fun wsOrNewLine(): Parser<Unit> = {
     skipWhitespace(true)
     unitSuccess
 }
@@ -282,11 +280,7 @@ fun KotlinLexer.skipWhitespace(acceptNewLines: Boolean) {
 
 
 internal
-fun statementSeparator(): Parser<Unit> = statementSeparator_
-
-
-private
-val statementSeparator_: Parser<Unit> = {
+fun statementSeparator(): Parser<Unit> = {
     var seenSeparator = false
     while (tokenType != null) {
         when (tokenType) {
@@ -312,12 +306,8 @@ val statementSeparator_: Parser<Unit> = {
         }
     }
     if (seenSeparator) unitSuccess
-    else statementSeparatorFailure
+    else failure("Expecting STATEMENT SEPARATOR, but not found")
 }
-
-
-private
-val statementSeparatorFailure = failure("Expecting <STATEMENT SEPARATOR>")
 
 
 private
