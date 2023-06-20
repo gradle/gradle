@@ -28,8 +28,6 @@ import javax.annotation.Nullable;
  */
 @Incubating
 public interface DocLink {
-    String getPage();
-
     @Nullable
-    String getSection();
+    String documentationUrl();
 }

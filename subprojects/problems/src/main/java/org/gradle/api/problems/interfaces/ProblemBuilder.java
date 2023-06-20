@@ -33,7 +33,7 @@ public interface ProblemBuilder {
 
     ProblemBuilder description(String description);
 
-    ProblemBuilder documentedAt(String page, String section);
+    ProblemBuilder documentedAt(DocLink doc);
 
     ProblemBuilder undocumented();
 

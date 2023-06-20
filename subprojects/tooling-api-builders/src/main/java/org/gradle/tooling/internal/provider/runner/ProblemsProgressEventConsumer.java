@@ -24,7 +24,6 @@ import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -33,6 +32,8 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 
 import javax.annotation.Nonnull;
+
+import static com.google.common.base.Strings.nullToEmpty;
 
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
@@ -78,7 +79,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         if(docLink == null) {
             return "";
         }
-        return new DocumentationRegistry().getDocumentationFor(docLink);
+        return nullToEmpty(docLink.documentationUrl());
     }
 
     @Override

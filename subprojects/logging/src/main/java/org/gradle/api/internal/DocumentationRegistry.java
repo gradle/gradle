@@ -30,10 +30,6 @@ public class DocumentationRegistry {
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
     public static final String LEARN_MORE_STRING = "To learn more about Gradle by exploring our Samples at ";
 
-    public DocumentationRegistry() {
-    }
-
-
     /**
      * Returns the location of the documentation for the given feature, referenced by id. The location may be local or remote.
      */
@@ -48,14 +44,14 @@ public class DocumentationRegistry {
     public String getDocumentationFor(String id, String section) {
         return getDocumentationFor(id) + "#" + section;
     }
-    public String getDocumentationFor(DocLink docLink) {
-        String page = docLink.getPage();
-        String section = docLink.getSection();
-        if(section == null) {
-            return getDocumentationFor(page);
-        }
-        return getDocumentationFor(page, section);
-    }
+//    public String getDocumentationFor(DocLink docLink) {
+//        String page = docLink.getPage();
+//        String section = docLink.getSection();
+//        if(section == null) {
+//            return getDocumentationFor(page);
+//        }
+//        return getDocumentationFor(page, section);
+//    }
 
     public String getDslRefForProperty(Class<?> clazz, String property) {
         String className = clazz.getName();
@@ -89,6 +85,12 @@ public class DocumentationRegistry {
     public String getDocumentationRecommendationFor(String topic, String id, String section) {
         return getRecommendationString(topic, getDocumentationFor(id, section));
     }
+
+    public String getDocumentationRecommendationFor(String topic, DocLink docLink) {
+        String url = docLink.documentationUrl();
+        return getRecommendationString(topic, url == null ? "<N/A>" : url);
+    }
+
 
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
 
