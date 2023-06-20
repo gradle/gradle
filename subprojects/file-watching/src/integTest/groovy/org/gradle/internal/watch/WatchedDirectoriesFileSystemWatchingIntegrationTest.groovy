@@ -192,10 +192,8 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
             project.buildDir = file("${buildDir}")
 
-            task myClean {
-                doLast {
-                    delete buildDir
-                }
+            task myClean(type: Delete) {
+                delete buildDir
             }
 
             task producer {

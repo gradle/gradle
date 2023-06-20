@@ -19,6 +19,7 @@ package org.gradle.internal.watch
 import com.gradle.enterprise.testing.annotations.LocalOnly
 import net.rubygrapefruit.platform.internal.jni.NativeLogger
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -71,6 +72,7 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         !(result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/)
     }
 
+    @ToBeFixedForConfigurationCache
     def "debug logging can be enabled"() {
         buildFile << """
             tasks.register("change") {
