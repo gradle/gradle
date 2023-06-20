@@ -418,8 +418,8 @@ trait ValidationMessageChecker {
         def config = display(UnsupportedValueType, "unsupported_value_type", spec)
         if (config.propertyType.contains("URL")) {
             config.description("has @Input annotation used on type 'java.net.URL' or a property of this type")
-                .reason("Type 'java.net.URL' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle")
-                .solution("Use type 'java.net.URI' instead.")
+                .reason("Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type")
+                .solution("Use type 'java.net.URI' instead")
                 .render()
         } else {
             config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")

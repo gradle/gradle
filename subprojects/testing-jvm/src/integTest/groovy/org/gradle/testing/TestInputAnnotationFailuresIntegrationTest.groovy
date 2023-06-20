@@ -204,31 +204,31 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         then:
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'TaskWithInput' property 'direct' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
-                "Type 'java.net.URL' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle",
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
             'validation_problems', 'unsupported_value_type')
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'TaskWithInput' property 'providerInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
-                "Type 'java.net.URL' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle",
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
             'validation_problems', 'unsupported_value_type')
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'TaskWithInput' property 'propertyInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
-                "Type 'java.net.URL' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle",
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
             'validation_problems', 'unsupported_value_type')
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'TaskWithInput' property 'setPropertyInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
-                "Type 'java.net.URL' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle",
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
             'validation_problems', 'unsupported_value_type')
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'TaskWithInput' property 'listPropertyInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
-                "Type 'java.net.URL' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle",
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
             'validation_problems', 'unsupported_value_type')
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'TaskWithInput' property 'mapPropertyInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
-                "Type 'java.net.URL' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle",
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
             'validation_problems', 'unsupported_value_type')
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'TaskWithInput' property 'nestedInput.nested' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
-                "Type 'java.net.URL' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle",
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
             'validation_problems', 'unsupported_value_type')
     }
 }

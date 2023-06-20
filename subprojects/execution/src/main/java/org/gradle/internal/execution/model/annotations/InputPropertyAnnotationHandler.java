@@ -120,8 +120,8 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                             .forProperty(propertyMetadata.getPropertyName())
                             .reportAs(WARNING)
                             .withDescription(() -> String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
-                            .happensBecause(() -> String.format("Type '%s' cannot be annotated with @Input because Java Serialization can lead to the same object of this type being detected as different by Gradle", URL.class.getName()))
-                            .addPossibleSolution("Use type 'java.net.URI' instead.")
+                            .happensBecause(() -> String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
+                            .addPossibleSolution("Use type 'java.net.URI' instead")
                             .documentedAt("validation_problems", "unsupported_value_type")
             );
         }
