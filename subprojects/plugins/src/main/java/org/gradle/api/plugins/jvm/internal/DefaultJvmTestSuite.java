@@ -43,6 +43,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Pair;
@@ -166,7 +167,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultJvmTestSuite(String name, TaskContainer tasks, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
         this.taskDependencyFactory = taskDependencyFactory;
@@ -177,7 +178,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+        this.targets.registerFactory(JvmTestSuiteTarget.class,
+                targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, targetName, tasks, taskDependencyFactory, sourceSet));
 
         this.dependencies = getObjectFactory().newInstance(
                 DefaultJvmComponentDependencies.class,

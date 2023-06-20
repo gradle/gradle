@@ -20,9 +20,11 @@ import org.gradle.api.Buildable;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.internal.GUtil;
 
@@ -31,10 +33,11 @@ import javax.inject.Inject;
 public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, Buildable {
     private final String name;
     private final TaskProvider<Test> testTask;
+    private final TaskProvider<JavaCompile> compileTask;
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory, SourceSet sourceSet) {
         this.name = name;
 
         // Might not always want Test type here?
@@ -42,6 +45,7 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
             t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         });
+        this.compileTask = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
@@ -52,6 +56,10 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
 
     public TaskProvider<Test> getTestTask() {
         return testTask;
+    }
+
+    public TaskProvider<JavaCompile> getCompileTask() {
+        return compileTask;
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuiteTarget;
 
@@ -34,4 +35,11 @@ public interface JvmTestSuiteTarget extends TestSuiteTarget {
      * @return provider to the test task
      */
     TaskProvider<Test> getTestTask();
+
+    /**
+     * The {@link JavaCompile} task that compiles the tests for the associated test suite.
+     *
+     * @return provider to the compilation task
+     */
+    TaskProvider<JavaCompile> getCompileTask();
 }
