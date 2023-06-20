@@ -16,20 +16,18 @@
 
 package org.gradle.internal.work
 
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
+
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.operations.BuildOperationRef
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS
 
 class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
-    ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
-    WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, 1))
+    WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
     AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(workerLeaseService)
 
     def "can wait for async work to complete"() {

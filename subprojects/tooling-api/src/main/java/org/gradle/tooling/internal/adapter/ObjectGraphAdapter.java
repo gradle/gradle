@@ -16,10 +16,13 @@
 
 package org.gradle.tooling.internal.adapter;
 
+import javax.annotation.Nullable;
+
 /**
  * Converts or adapts objects to views over the objects.
  */
 public interface ObjectGraphAdapter {
+    @Nullable
     <T> T adapt(Class<T> targetType, Object sourceObject);
 
     <T> ViewBuilder<T> builder(Class<T> viewType);

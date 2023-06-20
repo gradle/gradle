@@ -113,7 +113,6 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
                 String propertyName = propertyMetadata.getPropertyName();
                 problem.withId(ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION)
                     .reportAs(Severity.ERROR)
-                    .onlyAffectsCacheableWork()
                     .forProperty(propertyName)
                     .withDescription(() -> String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
                     .happensBecause("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")

@@ -30,6 +30,7 @@ class DefaultTestTaskProperties implements TestTaskProperties {
 
     private final boolean usingJUnitPlatform;
     private final long forkEvery;
+    private final boolean isDryRun;
     private final TestTaskFilters filters;
     private final TestTaskForkOptions forkOptions;
     private final ImmutableList<CandidateClassFile> candidateClassFiles;
@@ -39,6 +40,7 @@ class DefaultTestTaskProperties implements TestTaskProperties {
     DefaultTestTaskProperties(
         boolean usingJUnitPlatform,
         long forkEvery,
+        boolean isDryRun,
         TestTaskFilters filters,
         TestTaskForkOptions forkOptions,
         ImmutableList<CandidateClassFile> candidateClassFiles,
@@ -47,6 +49,7 @@ class DefaultTestTaskProperties implements TestTaskProperties {
     ) {
         this.usingJUnitPlatform = usingJUnitPlatform;
         this.forkEvery = forkEvery;
+        this.isDryRun = isDryRun;
         this.filters = filters;
         this.forkOptions = forkOptions;
         this.candidateClassFiles = candidateClassFiles;
@@ -62,6 +65,11 @@ class DefaultTestTaskProperties implements TestTaskProperties {
     @Override
     public long getForkEvery() {
         return forkEvery;
+    }
+
+    @Override
+    public boolean isDryRun() {
+        return isDryRun;
     }
 
     @Override

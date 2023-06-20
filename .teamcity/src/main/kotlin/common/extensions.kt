@@ -103,7 +103,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
         *.psoutput => $hiddenArtifactDestination
         build/*.threaddump => $hiddenArtifactDestination
         build/report-* => $hiddenArtifactDestination
-        build/tmp/test files/** => $hiddenArtifactDestination/test-files
+        build/tmp/teŝt files/** => $hiddenArtifactDestination/teŝt-files
         build/errorLogs/** => $hiddenArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
@@ -135,6 +135,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
             executionTimeoutMin = timeout
         }
         testFailure = false
+        supportTestRetry = true
         add {
             failOnText {
                 conditionType = BuildFailureOnText.ConditionType.CONTAINS

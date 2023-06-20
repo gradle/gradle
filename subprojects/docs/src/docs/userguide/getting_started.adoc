@@ -19,7 +19,7 @@ Everyone has to start somewhere and if you're new to Gradle, this is where to be
 
 == Before you start
 
-In order to use Gradle effectively, you need to know what it is and understand some of its fundamental concepts. So before you start using Gradle in earnest, we highly recommend you read <<what_is_gradle#what_is_gradle,What is Gradle?>>.
+In order to use Gradle effectively, you need to know what it is and understand some of its fundamental concepts. So before you start using Gradle in earnest, we highly recommend you read <<userguide#what_is_gradle,What is Gradle?>>
 
 
 [[gs:installation]]
@@ -36,20 +36,20 @@ In order to create a new build or add a Wrapper to an existing build, you will n
 
 Actively using Gradle is a great way to learn about it, so once you've installed Gradle, try one of the introductory hands-on tutorials:
 
- * link:../samples/sample_building_android_apps.html[Building Android apps]
- * link:../samples/sample_building_java_applications.html[Building Java applications]
- * link:../samples/sample_building_java_libraries.html[Building Java libraries]
- * link:../samples/sample_building_groovy_applications.html[Building Groovy applications]
- * link:../samples/sample_building_groovy_libraries.html[Building Groovy libraries]
- * link:../samples/sample_building_scala_applications.html[Building Scala applications]
- * link:../samples/sample_building_scala_libraries.html[Building Scala libraries]
- * link:../samples/sample_building_kotlin_applications.html[Building Kotlin JVM applications]
- * link:../samples/sample_building_kotlin_libraries.html[Building Kotlin JVM libraries]
- * link:../samples/sample_building_cpp_applications.html[Building C++ applications]
- * link:../samples/sample_building_cpp_libraries.html[Building C++ libraries]
- * link:../samples/sample_building_swift_applications.html[Building Swift applications]
- * link:../samples/sample_building_swift_libraries.html[Building Swift libraries]
- * link:https://scans.gradle.com/[Creating build scans]
+* link:../samples/sample_building_android_apps.html[Building Android apps]
+* link:../samples/sample_building_java_applications.html[Building Java applications]
+* link:../samples/sample_building_java_libraries.html[Building Java libraries]
+* link:../samples/sample_building_groovy_applications.html[Building Groovy applications]
+* link:../samples/sample_building_groovy_libraries.html[Building Groovy libraries]
+* link:../samples/sample_building_scala_applications.html[Building Scala applications]
+* link:../samples/sample_building_scala_libraries.html[Building Scala libraries]
+* link:../samples/sample_building_kotlin_applications.html[Building Kotlin JVM applications]
+* link:../samples/sample_building_kotlin_libraries.html[Building Kotlin JVM libraries]
+* link:../samples/sample_building_cpp_applications.html[Building C++ applications]
+* link:../samples/sample_building_cpp_libraries.html[Building C++ libraries]
+* link:../samples/sample_building_swift_applications.html[Building Swift applications]
+* link:../samples/sample_building_swift_libraries.html[Building Swift libraries]
+* link:https://scans.gradle.com/[Creating build scans]
 
 There are more samples available on the link:../samples/index.html[samples pages].
 
@@ -67,17 +67,17 @@ If you follow any of the tutorials <<#try_gradle,linked above>>, you will execut
 
 Here are some useful steps to follow:
 
- 1. Determine whether the project has a Gradle wrapper and <<gradle_wrapper#sec:using_wrapper,use it if it's there>> — the main IDEs default to using the wrapper when it's available.
- 2. Discover the project structure.
+1. Determine whether the project has a Gradle wrapper and <<gradle_wrapper#sec:using_wrapper,use it if it's there>> — the main IDEs default to using the wrapper when it's available.
+2. Discover the project structure.
 +
 Either import the build with an IDE or run `gradle projects` from the command line. If only the root project is listed, it's a single-project build. Otherwise it's a <<intro_multi_project_builds#intro_multi_project_builds,multi-project build>>.
- 3. Find out what tasks you can run.
+3. Find out what tasks you can run.
 +
 If you have imported the build into an IDE, you should have access to a view that displays all the available tasks. From the command line, run `gradle tasks`.
- 4. Learn more about the tasks via `gradle help --task <taskname>`.
+4. Learn more about the tasks via `gradle help --task <taskname>`.
 +
 The `help` task can display extra information about a task, including which projects contain that task and what options the task supports.
- 5. Run the task that you are interested in.
+5. Run the task that you are interested in.
 +
 Many convention-based builds integrate with Gradle's <<base_plugin#sec:base_tasks,lifecycle tasks>>, so use those when you don't have something more specific you want to do with the build. For example, most builds have `clean`, `check`, `assemble` and `build` tasks.
 +
@@ -93,12 +93,12 @@ Learning to create and maintain Gradle builds is a process, and one that takes a
 
 Here are some useful first steps on your journey to mastering Gradle:
 
- 1. Try one or two <<#try_gradle,basic tutorials>> to see what a Gradle build looks like, particularly the ones that match the type of project you work with (Java, native, Android, etc.).
- 2. Make sure you've read <<what_is_gradle#what_is_gradle,What is Gradle?>>
- 3. Learn about the fundamental elements of a Gradle build: <<tutorial_using_tasks#sec:projects_and_tasks,projects>>, <<more_about_tasks#more_about_tasks,tasks>>, and the <<working_with_files#working_with_files,file API>>.
- 4. If you are building software for the JVM, be sure to read about the specifics of those types of projects in <<building_java_projects#building_java_projects,Building Java & JVM projects>> and <<java_testing#java_testing,Testing in Java & JVM projects>>.
- 5. Familiarize yourself with the <<plugin_reference#plugin_reference,core plugins>> that come packaged with Gradle, as they provide a lot of useful functionality out of the box.
- 6. Learn how to <<authoring_maintainable_build_scripts#authoring_maintainable_build_scripts,author maintainable build scripts>> and <<organizing_gradle_projects#organizing_gradle_projects,best organize your Gradle projects>>.
+1. Try one or two <<#try_gradle,basic tutorials>> to see what a Gradle build looks like, particularly the ones that match the type of project you work with (Java, native, Android, etc.).
+2. Make sure you've read <<userguide#what_is_gradle,What is Gradle?>>
+3. Learn about the fundamental elements of a Gradle build: <<tutorial_using_tasks#sec:projects_and_tasks,projects>>, <<more_about_tasks#more_about_tasks,tasks>>, and the <<working_with_files#working_with_files,file API>>.
+4. If you are building software for the JVM, be sure to read about the specifics of those types of projects in <<building_java_projects#building_java_projects,Building Java & JVM projects>> and <<java_testing#java_testing,Testing in Java & JVM projects>>.
+5. Familiarize yourself with the <<plugin_reference#plugin_reference,core plugins>> that come packaged with Gradle, as they provide a lot of useful functionality out of the box.
+6. Learn how to <<authoring_maintainable_build_scripts#authoring_maintainable_build_scripts,author maintainable build scripts>> and <<organizing_gradle_projects#organizing_gradle_projects,best organize your Gradle projects>>.
 
 The user manual contains a lot of other useful information and you can find samples demonstrating various Gradle features on the link:../samples/index.html[samples pages].
 
@@ -108,7 +108,7 @@ Gradle's flexibility means that it readily works with other tools, such as those
 
 There are two main modes of integration:
 
- * A tool drives Gradle — uses it to extract information about a build and run it — via the <<third_party_integration.adoc#embedding,Tooling API>>
- * Gradle invokes or generates information for a tool via the 3rd-party tool's APIs — this is usually done via plugins and custom task types
+* A tool drives Gradle — uses it to extract information about a build and run it — via the <<third_party_integration.adoc#embedding,Tooling API>>
+* Gradle invokes or generates information for a tool via the 3rd-party tool's APIs — this is usually done via plugins and custom task types
 
 Tools that have existing Java-based APIs are generally straightforward to integrate. You can find many such integrations on Gradle's https://plugins.gradle.org/[plugin portal].

@@ -24,15 +24,18 @@ public class JUnitSpec implements Serializable {
     private final TestFilterSpec filter;
     private final Set<String> includeCategories;
     private final Set<String> excludeCategories;
+    private final boolean isDryRun;
 
     public JUnitSpec(
         TestFilterSpec filter,
         Set<String> includeCategories,
-        Set<String> excludeCategories
+        Set<String> excludeCategories,
+        boolean isDryRun
     ) {
         this.filter = filter;
         this.includeCategories = includeCategories;
         this.excludeCategories = excludeCategories;
+        this.isDryRun = isDryRun;
     }
 
     public TestFilterSpec getFilter() {
@@ -49,5 +52,9 @@ public class JUnitSpec implements Serializable {
 
     public boolean hasCategoryConfiguration() {
         return !(excludeCategories.isEmpty() && includeCategories.isEmpty());
+    }
+
+    public boolean isDryRun() {
+        return isDryRun;
     }
 }

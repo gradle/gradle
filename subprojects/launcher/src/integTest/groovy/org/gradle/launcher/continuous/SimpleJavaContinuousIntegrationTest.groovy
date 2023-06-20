@@ -50,7 +50,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        if (TestPrecondition.doSatisfies(UnitTestPreconditions.Windows)) {
+        if (TestPrecondition.satisfied(UnitTestPreconditions.Windows)) {
             //the main src dir might be locked, only delete children
             file("src/main/java").listFiles().each {
                 assert !it.deleteDir().exists()

@@ -534,4 +534,27 @@ Artifacts
         then:
         result.assertTasksExecuted(":compileJava", ":bar")
     }
+
+    def "accessing reportsDir convention from the java plugin convention is deprecated"() {
+        given:
+        buildScript("""
+            plugins { id 'java' }
+            println(reportsDir)
+        """)
+
+        expect:
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation"
+        )
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
+        succeeds('help')
+    }
 }

@@ -20,7 +20,7 @@ import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 
 abstract class EnvVariableInjection extends BuildInputInjection {
     static EnvVariableInjection environmentVariable(String key, String value) {
-        return environmentVariables((key): value)
+        return environmentVariables((key): Objects.requireNonNull(value))
     }
 
     static EnvVariableInjection environmentVariables(Map<String, String> variables) {
@@ -32,20 +32,16 @@ abstract class EnvVariableInjection extends BuildInputInjection {
 
             @Override
             void setup(AbstractConfigurationCacheIntegrationTest test) {
-                HashMap<String, String> environment = new HashMap<>(System.getenv())
-                variables.forEach((k, v) -> {
-                    if (v != null) {
-                        environment.put(k, v)
-                    } else {
-                        environment.remove(k)
-                    }
-                })
-                test.executer.withEnvironmentVars(environment)
+                test.executer.withEnvironmentVars(variables)
             }
         }
     }
 
-    static EnvVariableInjection unsetEnvironmentVariable(String key) {
-        return environmentVariable(key, null)
+    static void checkEnvironmentVariableUnset(String key) {
+        // We can't "unset" the variable with the API executer provides, but it isn't necessary, thanks to the filtering in
+        // build-logic/jvm/src/main/kotlin/gradlebuild/propagated-env-variables.kt
+        if (System.getenv().containsKey(key)) {
+            throw new IllegalStateException("Environment variable $key is present for this process and may affect tests")
+        }
     }
 }

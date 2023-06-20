@@ -88,13 +88,13 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
         modCount++;
-        return getInserted().add(cachingElement(provider));
+        return addPendingElement(cachingElement(provider));
     }
 
     @Override
     public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         modCount++;
-        return getInserted().add(cachingElement(provider));
+        return addPendingElement(cachingElement(provider));
     }
 
     private ListIterator<T> iteratorAt(int index) {

@@ -188,6 +188,13 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
     }
 
+    @Override
+    TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
+        def testMethodNode = findTestMethod(name)
+        assert testMethodNode.@status as String == 'FAIL'
+        return this
+    }
+
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
         def testMethodNode = findTestMethod(name)
         assert testMethodNode.@status as String == 'FAIL'
