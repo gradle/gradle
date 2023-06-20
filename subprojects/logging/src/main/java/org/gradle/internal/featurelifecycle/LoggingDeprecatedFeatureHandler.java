@@ -78,13 +78,20 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
             }
         }
-        ProblemBuilder genericDeprecation = Problems.create(DEPRECATION, usage.formattedMessage(), WARNING, "generic_deprecation");
-        usage.getDocumentationUrl();
-        genericDeprecation
-            .undocumented()
-            .noLocation()
-            .report();
+        ProblemBuilder genericDeprecation = Problems.create(DEPRECATION, usage.formattedMessage(), WARNING, "generic_deprecation")
+            .documentedAt(usage.getDocumentationUrl());
+        addPossibleLocation(diagnostics, genericDeprecation);
+        genericDeprecation.report();
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
+    }
+
+    private static void addPossibleLocation(ProblemDiagnostics diagnostics, ProblemBuilder genericDeprecation) {
+        Location location = diagnostics.getLocation();
+        if (location == null) {
+            genericDeprecation.noLocation();
+        } else {
+            genericDeprecation.location(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
+        }
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
