@@ -253,15 +253,20 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             testing {
                 suites {
-                    integTest(JvmTestSuite)
-                }
-            }
-            tasks.integTest {
-                doLast {
-                    assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert classpath.size() == 8
-                    assert classpath.any { it.name =~ /junit-platform-launcher-.*.jar/ }
-                    assert classpath.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                    integTest(JvmTestSuite) {
+                        targets {
+                            all {
+                                testTask.configure {
+                                    doLast {
+                                        assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+                                        assert classpath.size() == 8
+                                        assert classpath.any { it.name =~ /junit-platform-launcher-.*.jar/ }
+                                        assert classpath.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         """
@@ -283,7 +288,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                         ${testingFrameworkDeclaration}
                         targets {
                             all {
-                                testTask {
+                                testTask.configure {
                                     doLast {
                                         assert testFramework instanceof ${testingFrameworkType.canonicalName}
                                         assert classpath.any { it.name == "${testingFrameworkDep}" }
@@ -325,13 +330,17 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     integTest(JvmTestSuite) {
                         $testingFrameworkMethod(frameworkVersion)
+                        targets {
+                            all {
+                                testTask.configure {
+                                    doLast {
+                                        assert testFramework instanceof ${testingFrameworkType.canonicalName}
+                                        assert classpath.any { it.name == "$testingFrameworkDep" }
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-            }
-            tasks.integTest {
-                doLast {
-                    assert testFramework instanceof ${testingFrameworkType.canonicalName}
-                    assert classpath.any { it.name == "$testingFrameworkDep" }
                 }
             }
         """
@@ -372,7 +381,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                         useJUnit()
                         targets {
                             all {
-                                testTask {
+                                testTask.configure {
                                     doLast {
                                         assert testFramework instanceof ${JUnitTestFramework.canonicalName}
                                         assert classpath.size() == 2
@@ -638,13 +647,16 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     integTest {
                         useJUnit('4.12')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    doLast {
+                                        assert classpath.any { it.name == "junit-4.12.jar" }
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-            }
-
-            tasks.integTest {
-                doLast {
-                    assert classpath.any { it.name == "junit-4.12.jar" }
                 }
             }
         """

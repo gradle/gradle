@@ -537,10 +537,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public void discoverTasks() {
         project.fireDeferredConfiguration();
+        // Register deferred tasks now, so they're available to be discovered
         Set<DeferredTaskProvider<?>> set = deferredTaskProviders;
         deferredTaskProviders = null;
-        for (DeferredTaskProvider<?> provider : set) {
-            provider.get();
+        if (set != null) {
+            for (DeferredTaskProvider<?> provider : set) {
+                addLaterInternal(provider);
+            }
         }
         if (modelNode != null) {
             project.getModelRegistry().atStateOrLater(modelNode.getPath(), ModelNode.State.SelfClosed);
@@ -729,7 +732,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         protected void tryCreate() {
             if (deferredTaskProviders != null) {
-                throw new IllegalStateException(String.format("Cannot create task '%s' manually", identity.identityPath));
+                throw new IllegalStateException(String.format("Triggering the creation of task '%s' early is not allowed", identity.identityPath));
             }
             super.tryCreate();
         }

@@ -234,8 +234,7 @@ public class SomeIntegTestClass {
                 integTest(JvmTestSuite) {
                     useJUnitJupiter()
                     targets.all {
-                        // explicitly realize the task now to cause this configuration to run now
-                        testTask.get().configure {
+                        testTask.configure {
                             options {
                                 includeTags 'fast'
                             }
@@ -281,9 +280,19 @@ public class SomeIntegTestClass {
 
         when:
         buildFile << """
-        integTest {
-           options {
-               includeTags 'slow'
+        testing {
+           suites {
+               integTest(JvmTestSuite) {
+                   targets {
+                       all {
+                           testTask.configure {
+                               options {
+                                   includeTags 'slow'
+                               }
+                           }
+                       }
+                   }
+               }
            }
         }""".stripMargin()
 
