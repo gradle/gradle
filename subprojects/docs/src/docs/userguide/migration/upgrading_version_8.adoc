@@ -88,14 +88,17 @@ JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[
 
 A plugin compiled with Gradle >= 8.2 that makes use of the Kotlin DSL functions link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the<T>()`], link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the(KClass)`] or link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/configure.html[`Project.configure<T> {}`] cannot run on Gradle <= 6.1.
 
-==== Lazier construction of `RootComponentMetadata`
+==== Deferred or avoided configuration of some tasks
 
-During resolution, when Gradle constructs root `ComponentMetadata` objects it now does so more lazily, without causing tasks that create artifacts to be realized.
-This can change the timing of when certain attributes are added to a `Configuration`, such as the `LibraryElements` attribute added by internal methods of the `java` plugin.
+When performing dependency resolution, Gradle creates an internal representation of the available link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]s. This required inspecting all configurations and all artifacts. Processing artifacts created by tasks would cause those tasks to be realized and configured.
 
-If your build relies on modifying this or other attributes added by a Gradle core plugin, you should double-check that your modifications are still applied at the right time for your use cases.
+This internal representation is now created more lazily, which can cause changes to the order that tasks are configured. Some tasks may never be configured. 
 
-We recommend not modifying attributes on Gradle-created configurations to avoid being surprised by implementation changes in internal behavior.
+This change may cause code paths that relied on a particular order to no longer function, such as conditionally adding attributes to a configuration based on the presence of certain attributes.
+
+This impacted the link:https://github.com/bndtools/bnd/issues/5695[bnd plugin and JUnit5 build].
+
+We recommend not modifying domain objects (configurations, source sets, tasks, etc) from configuration blocks for other domain objects that may not be configured. 
 
 === Deprecations
 
