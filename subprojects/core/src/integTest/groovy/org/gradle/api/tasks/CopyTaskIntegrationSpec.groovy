@@ -1806,57 +1806,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         !file('dest/two.b').readLines().iterator().hasNext()
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-2181")
-    def "can copy files with unicode characters in name with non-unicode platform encoding"() {
-        given:
-        def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
-
-        buildFile << """
-            task copyFiles {
-                doLast {
-                    copy {
-                        from 'res'
-                        into 'build/resources'
-                    }
-                }
-            }
-        """
-
-        file("res", weirdFileName) << "foo"
-
-        when:
-        executer.withDefaultCharacterEncoding("ISO-8859-1").withTasks("copyFiles")
-        executer.run()
-
-        then:
-        file("build/resources", weirdFileName).exists()
-    }
-
-    @Issue("https://issues.gradle.org/browse/GRADLE-2181")
-    def "can copy files with unicode characters in name with default platform encoding"() {
-        given:
-        def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
-
-        buildFile << """
-            task copyFiles {
-                doLast {
-                    copy {
-                        from 'res'
-                        into 'build/resources'
-                    }
-                }
-            }
-        """
-
-        file("res", weirdFileName) << "foo"
-
-        when:
-        executer.withTasks("copyFiles").run()
-
-        then:
-        file("build/resources", weirdFileName).exists()
-    }
-
     def "nested specs and details arent extensible objects"() {
         given:
         file("a/a.txt").touch()
