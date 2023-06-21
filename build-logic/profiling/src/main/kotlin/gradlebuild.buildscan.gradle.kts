@@ -23,7 +23,7 @@ import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.isPromotionBuild
-import gradlebuild.basics.kotlindsl.execAndGetStdout
+import gradlebuild.basics.kotlindsl.execAndGetStdoutIgnoringError
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
@@ -86,7 +86,7 @@ fun Project.extractCiData() {
     if (isCiServer) {
         buildScan {
             background {
-                setCompileAllScanSearch(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
+                setCompileAllScanSearch(execAndGetStdoutIgnoringError("git", "rev-parse", "--verify", "HEAD"))
             }
             if (isEc2Agent()) {
                 tag("EC2")
