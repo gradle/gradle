@@ -44,7 +44,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
 
             task lenientCheck {
                 doLast {
-                    def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                    def artifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts.artifacts
                     assert artifacts.size() == 0
                     assert candidates.empty
                 }
@@ -492,9 +492,9 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
 
             checkDeps.doLast {
-                def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
+                def artifacts = configurations.conf.incoming.artifacts.artifacts
                 assert artifacts.size() == 1
-                assert artifacts[0].moduleVersion.id.version == '1.1'
+                assert artifacts[0].id.componentIdentifier.version == '1.1'
                 assert ruleSource.candidates == ['1.2', '1.1']
             }
 

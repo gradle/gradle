@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -338,7 +339,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         expectResolved(failure)
 
         when:
-        configuration.getResolvedConfiguration()
+        ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
+            view.setLenient(true)
+        })
+        lenientView.files.files // Force resolution
 
         then:
         configuration.getState() == RESOLVED_WITH_FAILURES
@@ -872,7 +876,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def copy = config.copy()
 
         when:
-        copy.resolvedConfiguration
+        copy.files
 
         then:
         interaction { resolveConfig(copy) }
@@ -997,7 +1001,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.beforeResolve(action)
 
         when:
-        config.resolvedConfiguration
+        config.files
 
         then:
         interaction { resolveConfig(config) }
@@ -1016,7 +1020,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         when:
-        config.resolvedConfiguration
+        config.files
 
         then:
         called
@@ -1030,7 +1034,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.afterResolve(action)
 
         when:
-        config.resolvedConfiguration
+        config.files
 
         then:
         interaction { resolveConfig(config) }
@@ -1050,7 +1054,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         when:
-        config.resolvedConfiguration
+        config.files
 
         then:
         called

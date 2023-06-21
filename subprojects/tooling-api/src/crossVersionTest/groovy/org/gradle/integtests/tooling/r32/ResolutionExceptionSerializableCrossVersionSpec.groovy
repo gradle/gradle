@@ -45,7 +45,7 @@ class CustomBuilder implements ToolingModelBuilder {
     }
     Object buildAll(String modelName, Project project) {
         try {
-            List<File> compileDependencies = project.configurations.getByName('compileClasspath').resolvedConfiguration.resolvedArtifacts.collect { it.file }
+            List<File> compileDependencies = project.configurations.getByName('compileClasspath').files
             return new CustomArtifactModel(files: compileDependencies)
         } catch (e) {
             return new CustomArtifactModel(failure: e)
@@ -83,8 +83,7 @@ dependencies {
 
         then:
         failure != null
-        failure.getClass().name == 'org.gradle.api.artifacts.ResolveException'
+        failure.getClass().name in ['org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration$ArtifactResolveException', 'org.gradle.api.artifacts.ResolveException']
         failure.cause.toString().contains('Cannot resolve external dependency commons-lang:commons-lang:10.0-NOTEXISTS because no repositories are defined.')
     }
-
 }

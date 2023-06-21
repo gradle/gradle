@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -38,10 +37,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
                 doLast {
                     println "resolved files=" + files*.name.toSorted()
-                    if (!${GradleContextualExecuter.configCache}) {
-                        // Hit legacy API to trigger both result loading logic
-                        configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
-                    }
                 }
             }
         """

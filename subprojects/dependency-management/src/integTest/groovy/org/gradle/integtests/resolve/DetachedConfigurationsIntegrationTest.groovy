@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.resolve
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -28,7 +26,6 @@ import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2889")
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "detached configurations may have separate dependencies"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -36,6 +33,20 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "bar").publish()
 
         buildFile << """
+            abstract class CheckDependencies extends DefaultTask {
+                @Internal
+                abstract Property<ResolvedComponentResult> getResult()
+
+                @Internal
+                abstract SetProperty<String> getDeclared()
+
+                @TaskAction
+                void test() {
+                    def resolved = result.get().dependencies
+                    assert declared.get() == resolved*.selected*.moduleVersion*.name as Set
+                }
+            }
+
             allprojects {
                 configurations {
                     foo
@@ -43,15 +54,11 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                task checkDependencies {
-                    doLast {
-                        configurations.each { conf ->
-                            def declared = conf.dependencies
-                            def detached = project.configurations.detachedConfiguration(declared as Dependency[])
-                            def resolved = detached.resolvedConfiguration.getFirstLevelModuleDependencies()
-                            assert declared*.name == resolved*.moduleName
-                        }
-                    }
+
+                tasks.register("checkDependencies", CheckDependencies) {
+                    def detached = project.configurations.detachedConfiguration(project.configurations.foo.dependencies as Dependency[])
+                    result = detached.incoming.resolutionResult.rootComponent
+                    declared = provider { project.configurations.foo.dependencies*.name }
                 }
             }
             project(":a") {
@@ -67,10 +74,9 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        run "checkDependencies"
+        run "checkDependencies", "-S"
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "detached configurations may have dependencies on other projects"() {
         given:
         settingsFile << "include 'other'"
@@ -79,15 +85,31 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 id 'java-library'
             }
 
+            abstract class CheckDependencies extends DefaultTask {
+                @Internal
+                abstract Property<ResolvedComponentResult> getResult()
+
+                @Internal
+                ArtifactCollection artifacts
+
+                @TaskAction
+                void test() {
+                    def depModuleNames = result.get().dependencies*.selected*.moduleVersion*.name
+                    def artifactNames = artifacts.artifacts.collect { it.file.name }
+
+                    assert depModuleNames.contains('other')
+                    assert artifactNames.contains("other.jar")
+                }
+            }
+
             def detached = project.configurations.detachedConfiguration()
             detached.dependencies.add(project.dependencies.create(project(':other')))
 
-            task checkDependencies {
-                doLast {
-                    assert detached.resolvedConfiguration.getFirstLevelModuleDependencies().moduleName.contains('other')
-                    assert detached.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }.contains("other.jar")
-                }
+            task checkDependencies(type: CheckDependencies) {
+                result = detached.incoming.resolutionResult.rootComponent
+                artifacts = detached.incoming.artifacts
             }
+
         """
 
         file("other/build.gradle") << """
@@ -102,7 +124,6 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     // This behavior will be removed in Gradle 9.0
     @Deprecated
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "detached configurations can contain artifacts and resolve them during a self-dependency scenario"() {
         given:
         settingsFile << """
@@ -126,9 +147,14 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             detached.outgoing.artifact(tasks.makeArtifact)
 
             task checkDependencies {
+                def result = detached.incoming.resolutionResult.rootComponent
+                def artifacts = detached.incoming.artifacts
+
                 doLast {
-                    assert detached.resolvedConfiguration.getFirstLevelModuleDependencies().moduleName.contains('test')
-                    assert detached.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }.contains("artifact.zip")
+                    def depModuleNames = result.get().dependencies*.selected*.moduleVersion*.name
+                    def artifactNames = artifacts.artifacts.collect { it.file.name }
+                    assert depModuleNames.contains('test')
+                    assert artifactNames.contains("artifact.zip")
                 }
             }
         """

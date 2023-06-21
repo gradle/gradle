@@ -137,7 +137,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
 
             task checkLenient {
                 doLast {
-                    def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                    def artifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts.artifacts
                     assert artifacts.size() == 0
                     assert candidates == ${candidates}
                 }
@@ -275,7 +275,7 @@ Required by:
 
             task checkLenient {
                 doLast {
-                    def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                    def artifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts.artifacts
                     assert artifacts.size() == 0
                     assert candidates == ${candidates}
                 }
@@ -399,9 +399,9 @@ Required by:
             }
 
             checkDeps.doLast {
-                def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
+                def artifacts = configurations.conf.incoming.artifacts.artifacts
                 assert artifacts.size() == 2
-                assert artifacts[0].moduleVersion.id.version == '${chosen}'
+                assert artifacts[0].id.componentIdentifier.version == '${chosen}'
                 assert candidates == ${candidates}
             }
         """

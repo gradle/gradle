@@ -39,11 +39,11 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation("org.gradle.repro:lib@pom")
             }
-            
+
             abstract class Resolve extends DefaultTask {
                 @InputFiles
                 abstract ConfigurableFileCollection getArtifactFiles()
-                
+
                 @TaskAction
                 void printThem() {
                     assert artifactFiles.size() == 0
