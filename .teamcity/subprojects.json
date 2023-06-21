@@ -127,7 +127,7 @@
   },
   {
     "name": "code-quality",
-    "path": "subprojects/code-quality",
+    "path": "platforms/jvm/code-quality",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
