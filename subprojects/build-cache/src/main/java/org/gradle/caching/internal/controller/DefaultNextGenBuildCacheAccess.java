@@ -50,6 +50,8 @@ import java.util.stream.Stream;
  * async operations to finish before returning.
  */
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
+    public static final int THREAD_POOL_SIZE = 256;
+
     private final NextGenBuildCacheService local;
     private final RemoteNextGenBuildCacheServiceHandler remote;
     private final BufferProvider bufferProvider;
@@ -68,7 +70,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         this.remote = remote;
         this.bufferProvider = bufferProvider;
         // TODO Configure this properly, or better yet, replace with async HTTP and no thread pool
-        this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 256, 256, 10, TimeUnit.SECONDS);
+        this.remoteProcessor = executorFactory.createThreadPool("Build cache access", THREAD_POOL_SIZE, THREAD_POOL_SIZE, 10, TimeUnit.SECONDS);
         this.logger = logger;
         this.counter = new ConcurrencyCounter(remoteProcessor);
     }
