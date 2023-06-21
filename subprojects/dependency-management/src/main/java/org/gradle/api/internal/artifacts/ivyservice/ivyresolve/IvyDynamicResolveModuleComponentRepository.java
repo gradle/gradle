@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -28,18 +28,17 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
  * attribute is used for versions instead of the 'rev' attribute.
  */
 class IvyDynamicResolveModuleComponentRepository extends BaseModuleComponentRepository<ModuleComponentGraphResolveState> {
-    IvyDynamicResolveModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, ModuleComponentGraphResolveStateFactory resolveStateFactory) {
+
+    IvyDynamicResolveModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate) {
         super(delegate,
-            new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getLocalAccess(), resolveStateFactory),
-            new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getRemoteAccess(), resolveStateFactory));
+            new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getLocalAccess()),
+            new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getRemoteAccess()));
     }
 
     private static class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
-        private final ModuleComponentGraphResolveStateFactory resolveStateFactory;
 
-        IvyDynamicResolveModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate, ModuleComponentGraphResolveStateFactory resolveStateFactory) {
+        IvyDynamicResolveModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate) {
             super(delegate);
-            this.resolveStateFactory = resolveStateFactory;
         }
 
         @Override
@@ -59,7 +58,7 @@ class IvyDynamicResolveModuleComponentRepository extends BaseModuleComponentRepo
             ModuleComponentResolveMetadata metadata = result.getMetaData().getModuleResolveMetadata();
             if (metadata instanceof IvyModuleResolveMetadata) {
                 IvyModuleResolveMetadata transformedMetadata = ((IvyModuleResolveMetadata) metadata).withDynamicConstraintVersions();
-                result.setMetadata(resolveStateFactory.stateFor(transformedMetadata));
+                result.setMetadata(new DefaultModuleComponentGraphResolveState(transformedMetadata));
             }
         }
     }

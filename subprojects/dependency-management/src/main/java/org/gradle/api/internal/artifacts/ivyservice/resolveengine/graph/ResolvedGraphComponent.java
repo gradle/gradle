@@ -61,11 +61,12 @@ public interface ResolvedGraphComponent {
      *
      * @return the resolved/selected variant(s) for this component
      */
-    List<ResolvedVariantResult> getSelectedVariants();
+    List<ResolvedVariantResult> getResolvedVariants();
 
     /**
-     * Returns all the variants of this component available for selection. Does not include variants that cannot be consumed, which means this
-     * may not include all the variants returned by {@link #getSelectedVariants()}.
+     * Returns all variant(s) for this component, including all {@linkplain #getResolvedVariants() resolved variants}.
+     *
+     * @return all variant(s) for this component
      */
-    List<ResolvedVariantResult> getAvailableVariants();
+    List<ResolvedVariantResult> getAllVariants();
 }

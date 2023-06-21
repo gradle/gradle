@@ -269,8 +269,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
         String repositoryId
-        List<ResolvedVariantResult> selectedVariants = []
-        List<ResolvedVariantResult> availableVariants = []
+        List<ResolvedVariantResult> resolvedVariants = []
+        List<ResolvedVariantResult> allVariants = []
     }
 
     class DummyInternalDependencyResult implements ResolvedGraphDependency {

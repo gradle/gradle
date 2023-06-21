@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependenciesMetadata
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -37,7 +36,6 @@ import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ComponentGraphResolveState
-import org.gradle.internal.component.model.GraphSelectionCandidates
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -280,13 +278,8 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
-        def candidates = Stub(GraphSelectionCandidates)
-        candidates.useVariants >> { immutable.variantsForGraphTraversal.isPresent() }
-        candidates.variants >> { immutable.variantsForGraphTraversal.get() }
-        candidates.legacyConfiguration >> { immutable.getConfiguration(Dependency.DEFAULT_CONFIGURATION) }
         def state = Stub(ComponentGraphResolveState)
         state.metadata >> immutable
-        state.candidatesForGraphVariantSelection >> candidates
 
         consumer.selectVariants(attributes, state, schema, [] as Set).variants[0]
     }

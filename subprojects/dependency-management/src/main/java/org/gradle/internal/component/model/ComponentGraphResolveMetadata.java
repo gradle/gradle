@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.base.Optional;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -23,7 +25,6 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -44,6 +45,7 @@ public interface ComponentGraphResolveMetadata {
 
     ModuleVersionIdentifier getModuleVersionId();
 
+    @Nullable
     AttributesSchemaInternal getAttributesSchema();
 
     boolean isChanging();

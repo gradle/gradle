@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -38,7 +37,7 @@ public class DetachedComponentResult implements ResolvedGraphComponent {
     private final List<ResolvedVariantResult> allVariants;
     private final String repositoryName;
 
-    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, List<ResolvedVariantResult> resolvedVariants, List<ResolvedVariantResult> allVariants, @Nullable String repositoryName) {
+    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, List<ResolvedVariantResult> resolvedVariants, List<ResolvedVariantResult> allVariants, String repositoryName) {
         this.resultId = resultId;
         this.id = id;
         this.reason = reason;
@@ -74,12 +73,12 @@ public class DetachedComponentResult implements ResolvedGraphComponent {
     }
 
     @Override
-    public List<ResolvedVariantResult> getSelectedVariants() {
+    public List<ResolvedVariantResult> getResolvedVariants() {
         return resolvedVariants;
     }
 
     @Override
-    public List<ResolvedVariantResult> getAvailableVariants() {
+    public List<ResolvedVariantResult> getAllVariants() {
         return allVariants;
     }
 }

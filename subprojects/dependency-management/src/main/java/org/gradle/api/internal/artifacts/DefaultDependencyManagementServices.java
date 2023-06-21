@@ -515,7 +515,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        DependencyVerificationOverride dependencyVerificationOverride,
                                                        ProjectDependencyResolver projectDependencyResolver,
                                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                                       AttributeDesugaring attributeDesugaring,
                                                        WorkerLeaseService workerLeaseService) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
@@ -541,7 +540,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     componentSelectorConverter,
                                     attributeContainerSerializer,
                                     currentBuild.getBuildIdentifier(),
-                                    attributeDesugaring,
+                                    new AttributeDesugaring(attributesFactory),
                                     dependencyVerificationOverride,
                                     projectDependencyResolver,
                                     componentSelectionDescriptorFactory,

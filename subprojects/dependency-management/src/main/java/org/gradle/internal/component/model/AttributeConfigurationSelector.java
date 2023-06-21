@@ -16,10 +16,12 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.Attribute;
@@ -53,17 +55,17 @@ public abstract class AttributeConfigurationSelector {
 
     private static VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
-        GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(targetComponent.getAttributesSchema());
 
-        boolean variantAware = candidates.isUseVariants();
+        Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
+        boolean variantAware = variantsForGraphTraversal.isPresent();
 
         // Fallback to the default configuration if there are no variants or if variant aware resolution is not supported.
-        if (!variantAware) {
-            return selectDefaultConfiguration(consumerAttributes, consumerSchema, targetComponent, attributeMatcher, candidates);
+        if (!variantAware || variantsForGraphTraversal.get().isEmpty()) {
+            return selectDefaultConfiguration(consumerAttributes, consumerSchema, targetComponent, attributeMatcher, variantAware);
         }
 
-        List<? extends VariantGraphResolveMetadata> allConsumableVariants = candidates.getVariants();
+        List<? extends VariantGraphResolveMetadata> allConsumableVariants = variantsForGraphTraversal.get();
         ImmutableList<VariantGraphResolveMetadata> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allConsumableVariants, true);
         if (variantsProvidingRequestedCapabilities.isEmpty()) {
             throw new NoMatchingCapabilitiesException(targetComponent, explicitRequestedCapabilities, allConsumableVariants);
@@ -112,24 +114,24 @@ public abstract class AttributeConfigurationSelector {
             }
         } else {
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-            throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+            throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, true);
         }
     }
 
     private static VariantSelectionResult selectDefaultConfiguration(
         ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema,
-        ComponentGraphResolveMetadata targetComponent, AttributeMatcher attributeMatcher, GraphSelectionCandidates candidates
+        ComponentGraphResolveMetadata targetComponent, AttributeMatcher attributeMatcher, boolean variantAware
     ) {
-        ConfigurationGraphResolveMetadata fallbackConfiguration = candidates.getLegacyConfiguration();
+        ConfigurationGraphResolveMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
         if (fallbackConfiguration != null &&
             fallbackConfiguration.isCanBeConsumed() &&
             attributeMatcher.isMatching(fallbackConfiguration.getAttributes(), consumerAttributes)
         ) {
-            return singleVariant(candidates.isUseVariants(), ImmutableList.of(fallbackConfiguration));
+            return singleVariant(variantAware, ImmutableList.of(fallbackConfiguration));
         }
 
         AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-        throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+        throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, variantAware);
     }
 
     @Nullable

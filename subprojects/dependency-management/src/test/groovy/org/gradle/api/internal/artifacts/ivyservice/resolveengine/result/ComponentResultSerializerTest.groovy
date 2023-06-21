@@ -86,7 +86,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
         result.selectionReason == ComponentSelectionReasons.requested()
         result.moduleVersion == newId('org', 'foo', '2.0')
         result.componentId == componentIdentifier
-        for (def variants : [result.selectedVariants, result.availableVariants]) {
+        for (def variants : [result.resolvedVariants, result.allVariants]) {
             variants.size() == 2
             variants[0].displayName == 'v1'
             variants[0].attributes == ImmutableAttributes.EMPTY

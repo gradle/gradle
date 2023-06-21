@@ -16,11 +16,11 @@
 
 package org.gradle.internal.component;
 
+import com.google.common.base.Optional;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -38,15 +38,14 @@ public class NoMatchingConfigurationSelectionException extends StyledException {
         AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
         ComponentGraphResolveMetadata targetComponent,
-        GraphSelectionCandidates candidates
-    ) {
-        super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates));
+        boolean variantAware) {
+        super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
-        boolean variantAware = candidates.isUseVariants();
+    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, boolean variantAware) {
         Map<String, VariantGraphResolveMetadata> variants = new TreeMap<>();
-        List<? extends VariantGraphResolveMetadata> variantsParticipatingInSelection = variantAware ? candidates.getVariants() : candidates.getCandidateConfigurations();
+        Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
+        List<? extends VariantGraphResolveMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
         for (VariantGraphResolveMetadata variant : variantsParticipatingInSelection) {
             variants.put(variant.getName(), variant);
         }

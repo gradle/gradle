@@ -25,9 +25,9 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
@@ -40,18 +40,15 @@ import javax.annotation.Nullable;
  */
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final LocalConfigurationMetadataBuilder metadataBuilder;
-    private final LocalComponentGraphResolveStateFactory resolveStateFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public DefaultProjectLocalComponentProvider(
         LocalConfigurationMetadataBuilder metadataBuilder,
-        LocalComponentGraphResolveStateFactory resolveStateFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.metadataBuilder = metadataBuilder;
-        this.resolveStateFactory = resolveStateFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
@@ -61,7 +58,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
     public LocalComponentGraphResolveState getComponent(ProjectState projectState) {
         projectState.ensureConfigured();
         LocalComponentMetadata metadata = projectState.fromMutableState(p -> getLocalComponentMetadata(projectState, p));
-        return resolveStateFactory.stateFor(metadata);
+        return new DefaultLocalComponentGraphResolveState(metadata);
     }
 
     private LocalComponentMetadata getLocalComponentMetadata(ProjectState projectState, ProjectInternal project) {

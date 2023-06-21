@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -53,7 +54,6 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -242,7 +242,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
             // if there are more configurations than definitions, configurations have been added by rules and thus they are variants
             derivedVariants = Optional.of(allConfigurationsThatAreVariants());
         } else {
-            derivedVariants = Optional.empty();
+            derivedVariants = Optional.absent();
         }
         return derivedVariants;
     }

@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -41,17 +41,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultLocalComponentInAnotherBuildProvider implements LocalComponentInAnotherBuildProvider, HoldsProjectState {
     private final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
-    private final LocalComponentGraphResolveStateFactory resolveStateFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentGraphResolveState, ?>> projects = new ConcurrentHashMap<>();
 
     public DefaultLocalComponentInAnotherBuildProvider(
         IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder,
-        LocalComponentGraphResolveStateFactory resolveStateFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.dependencyMetadataBuilder = dependencyMetadataBuilder;
-        this.resolveStateFactory = resolveStateFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
@@ -86,7 +83,7 @@ public class DefaultLocalComponentInAnotherBuildProvider implements LocalCompone
             }
             // Metadata builder uses mutable project state, so synchronize access to the project state
             LocalComponentMetadata metadata = projectState.fromMutableState(p -> dependencyMetadataBuilder.build(buildState, projectState.getComponentIdentifier()));
-            return resolveStateFactory.stateFor(metadata);
+            return new DefaultLocalComponentGraphResolveState(metadata);
         }
     }
 }

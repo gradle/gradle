@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -43,7 +44,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -107,11 +107,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     @Override
     protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
-        return Optional.ofNullable(getDerivedVariants());
+        return Optional.fromNullable(getDerivedVariants());
     }
 
     protected Optional<List<? extends ModuleConfigurationMetadata>> deriveVariants() {
-        return Optional.ofNullable(getDerivedVariants());
+        return Optional.fromNullable(getDerivedVariants());
     }
 
     private ImmutableList<? extends ModuleConfigurationMetadata> getDerivedVariants() {

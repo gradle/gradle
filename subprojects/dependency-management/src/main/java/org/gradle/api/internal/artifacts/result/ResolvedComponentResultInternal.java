@@ -36,17 +36,17 @@ public interface ResolvedComponentResultInternal extends ResolvedComponentResult
     String getRepositoryId();
 
     /**
-     * Returns all the variants of this component available for selection. Does not include variants that cannot be consumed, which means this
-     * may not include all the variants returned by {@link #getVariants()}.
+     * Returns all the variants for this component, even ones that weren't selected.
      *
      * <p>
      * Note: for performance reasons,
-     * {@link org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal#setReturnAllVariants(boolean)}
+     * {@link org.gradle.api.internal.artifacts.configurations.ConfigurationInternal#setReturnAllVariants(boolean)}
      * must be set to {@code true} for this to actually return all variants in all cases.
      * </p>
      *
      * @return all variants for this component
      * @since 7.5
      */
-    List<ResolvedVariantResult> getAvailableVariants();
+    List<ResolvedVariantResult> getAllVariants();
+
 }
