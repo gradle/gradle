@@ -47,18 +47,24 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
         def ignoreFailures = parameters.ignoreFailures.get()
         def source = parameters.source
 
+        setLifecycleLogLevel(ant, null)
         ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask')
         try {
             ant.codenarc(ruleSetFiles: "file:${configFile}", maxPriority1Violations: maxPriority1Violations, maxPriority2Violations: maxPriority2Violations, maxPriority3Violations: maxPriority3Violations) {
                 reports.each {  r ->
-                    // See http://codenarc.sourceforge.net/codenarc-TextReportWriter.html
+                    // See https://codenarc.org/codenarc-text-report-writer.html
                     if (r.name.get() == 'console') {
+                        // The output from Ant is written at INFO level
                         setLifecycleLogLevel(ant, 'INFO')
-                        report(type: 'text') {
+                        // Prefer to use the IDE based formatter because this produces a useful/clickable link to the violation on the console
+                        report(type: 'ide') {
                             option(name: 'writeToStandardOut', value: true)
                         }
+                    } else if (r.name.get() == 'html') {
+                        report(type: 'sortable') {
+                            option(name: 'outputFile', value: r.outputLocation.asFile.get())
+                        }
                     } else {
-                        setLifecycleLogLevel(ant, null)
                         report(type: r.name.get()) {
                             option(name: 'outputFile', value: r.outputLocation.asFile.get())
                         }
@@ -74,11 +80,21 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
         } catch (Exception e) {
             if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
                 def message = "CodeNarc rule violations were found."
-                def report = reports.isEmpty() ? null : reports.get(0)
-                if (report && report.name.get() != 'console') {
-                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.outputLocation.asFile.get())
-                    message += " See the report at: $reportUrl"
+
+                // Find all reports that produced a file
+                def reportsWithFiles = reports.findAll { it.name.get() != 'console' }
+                // a report file was generated
+                if (!reportsWithFiles.isEmpty()) {
+                    def humanReadableReport = reportsWithFiles.find { it.name.get() == 'html' }
+                    humanReadableReport = humanReadableReport ?: reportsWithFiles.find { it.name.get() == 'text' }
+                    humanReadableReport = humanReadableReport ?: reportsWithFiles.find { it.name.get() == 'xml' }
+                    // Prefer HTML > text > XML and don't include a link if we don't recognize the report format
+                    if (humanReadableReport) {
+                        def reportUrl = new ConsoleRenderer().asClickableFileUrl(humanReadableReport.outputLocation.asFile.get())
+                        message += " See the report at: $reportUrl"
+                    }
                 }
+
                 if (ignoreFailures) {
                     LOGGER.warn(message)
                     return
