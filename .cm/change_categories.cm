@@ -197,7 +197,6 @@ platforms:
   - jvm:
     name: 'jvm'
     subprojects:
-      - 'platforms/code-quality/'
       - 'subprojects/distributions-jvm/'
       - 'subprojects/distributions-publishing/'
       - 'platforms/jvm/ear/'

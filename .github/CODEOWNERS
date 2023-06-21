@@ -30,7 +30,6 @@ subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt
 
 # JVM platform
 platforms/jvm/                              @gradle/bt-jvm
-platforms/code-quality/                     @gradle/bt-jvm
 subprojects/distributions-jvm/              @gradle/bt-jvm
 subprojects/distributions-publishing/       @gradle/bt-jvm
 subprojects/jacoco/                         @gradle/bt-jvm
