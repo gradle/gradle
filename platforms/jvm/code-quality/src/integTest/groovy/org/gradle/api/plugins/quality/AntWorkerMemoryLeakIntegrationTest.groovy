@@ -174,4 +174,3 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
         iteration << (0..10)
     }
 }
-

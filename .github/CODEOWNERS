@@ -30,7 +30,6 @@ subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt
 
 # JVM platform
 platforms/jvm/                              @gradle/bt-jvm
-subprojects/code-quality/                   @gradle/bt-jvm
 subprojects/distributions-jvm/              @gradle/bt-jvm
 subprojects/distributions-publishing/       @gradle/bt-jvm
 subprojects/jacoco/                         @gradle/bt-jvm
@@ -139,4 +138,3 @@ subprojects/docs/src/docs/userguide/dep-man/                                    
 subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm @gradle/bt-devrel-education
 subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-jvm @gradle/bt-devrel-education
 subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm @gradle/bt-devrel-education
-

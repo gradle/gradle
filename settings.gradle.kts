@@ -82,7 +82,6 @@ unassigned {
     subproject("ide")
     subproject("ide-native")
     subproject("maven")
-    subproject("code-quality")
     subproject("antlr")
     subproject("tooling-api")
     subproject("build-events")
@@ -153,6 +152,7 @@ unassigned {
 
 // JVM Platform
 platform("jvm") {
+    subproject("code-quality")
     subproject("ear")
 }
 
