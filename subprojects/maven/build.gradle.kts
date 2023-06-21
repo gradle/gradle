@@ -41,6 +41,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
+    integTestImplementation(project(":war"))
     integTestImplementation(project(":enterprise-operations"))
 
     testFixturesApi(project(":base-services")) {

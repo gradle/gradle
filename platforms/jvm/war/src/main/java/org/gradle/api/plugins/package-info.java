@@ -15,6 +15,6 @@
  */
 
 /**
-* The standard {@link org.gradle.api.Plugin} implementations.
-*/
+ * Support for generating WAR archives in a Gradle build
+ */
 package org.gradle.api.plugins;

@@ -15,6 +15,6 @@
  */
 
 /**
-* Eclipse related plugins.
-*/
+ * Eclipse related plugins.
+ */
 package org.gradle.plugins.ide.eclipse;
