@@ -620,11 +620,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.repositories.size() == 2
-        op.details.repositories*.id.unique(false).size() == 2
-        op.details.repositories[0].name == 'withoutCreds'
-        op.details.repositories[1].name == 'withCreds'
-        def repo1Id = op.details.repositories[1].id
+        def repo1Id = repoId('withCreds', op.details)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 2
         resolvedComponents.'org.foo:good:1.0'.repoId == repo1Id
@@ -636,11 +632,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         then:
         // This demonstrates a bug in Gradle, where we ignore the requirement for credentials when retrieving from the cache
         def op2 = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op2.details.repositories.size() == 2
-        op2.details.repositories*.id.unique(false).size() == 2
-        op2.details.repositories[0].name == 'withoutCreds'
-        op2.details.repositories[1].name == 'withCreds'
-        def repo2Id = op2.details.repositories[0].id
+        def repo2Id = repoId('withoutCreds', op.details)
         def resolvedComponents2 = op2.result.components
         resolvedComponents2.size() == 2
         resolvedComponents2.'org.foo:good:1.0'.repoId == repo2Id
@@ -704,14 +696,12 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         def op = ops[0]
         op.details.configurationName == 'compileClasspath'
-        op.details.repositories.size() == 1
         def repo1Id = repoId('one', op.details)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 2
         resolvedComponents.'org.foo:good:1.0'.repoId == repo1Id
         def op2 = ops[1]
         op2.details.configurationName == 'testCompileClasspath'
-        op2.details.repositories.size() == 2
         def repo2Id = repoId('two', op2.details)
         def resolvedComponents2 = op2.result.components
         resolvedComponents2.size() == 4

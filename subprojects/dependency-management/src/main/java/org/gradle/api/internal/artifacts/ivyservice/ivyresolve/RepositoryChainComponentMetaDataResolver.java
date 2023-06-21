@@ -95,8 +95,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                 LOGGER.debug("Discarding resolve failure.", error);
             }
 
-            String repositoryName = latestResolved.repository.getName();
-            result.resolved(latestResolved.component, new ModuleComponentGraphSpecificResolveState(repositoryName));
+            result.resolved(latestResolved.component);
             return;
         }
         if (!errors.isEmpty()) {

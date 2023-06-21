@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -35,6 +36,7 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
+    final ComponentIdentifierFactory componentIdentifierFactory = Mock()
     final ProjectStateRegistry projectRegistry = Stub()
     final ProjectArtifactResolver projectArtifactResolver = Stub()
     final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, projectArtifactResolver)
@@ -60,7 +62,7 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * registry.getComponent(id) >> componentState
-        1 * result.resolved(componentState, _)
+        1 * result.resolved(componentState)
         0 * result._
     }
 
@@ -75,7 +77,7 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * registry.getComponent(projectComponentId) >> componentState
-        1 * result.resolved(componentState, _)
+        1 * result.resolved(componentState)
         0 * result._
     }
 

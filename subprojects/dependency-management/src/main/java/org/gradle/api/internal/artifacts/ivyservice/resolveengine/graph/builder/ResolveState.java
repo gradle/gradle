@@ -43,7 +43,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.id.IdGenerator;
@@ -140,7 +139,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         // Create root component and module
         ModuleResolveState rootModule = getModule(moduleVersionId.getModule(), true);
         ComponentState rootComponent = rootModule.getVersion(moduleVersionId, rootComponentMetadata.getId());
-        rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
+        rootComponent.setState(rootComponentState);
         rootModule.select(rootComponent);
 
         this.selectorStateResolver = new SelectorStateResolver<>(conflictResolver, this, rootComponent, resolveOptimizations, versionComparator, versionParser);
@@ -178,10 +177,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     @Override
-    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
+    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state) {
         ComponentState componentState = getModule(id.getModule()).getVersion(id, componentIdentifier);
         if (!componentState.alreadyResolved()) {
-            componentState.setState(state, graphState);
+            componentState.setState(state);
         }
         return componentState;
     }

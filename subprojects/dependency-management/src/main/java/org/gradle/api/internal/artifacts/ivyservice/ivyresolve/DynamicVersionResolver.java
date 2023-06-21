@@ -132,7 +132,7 @@ public class DynamicVersionResolver {
         for (RepositoryResolveState resolveState : resolveStates) {
             resolveState.registerAttempts(result);
         }
-        result.resolved(latestResolved.component, new ModuleComponentGraphSpecificResolveState(latestResolved.repository.getName()));
+        result.resolved(latestResolved.component);
     }
 
     private void notFound(BuildableComponentIdResolveResult result, ModuleComponentSelector requested, List<RepositoryResolveState> resolveStates) {
