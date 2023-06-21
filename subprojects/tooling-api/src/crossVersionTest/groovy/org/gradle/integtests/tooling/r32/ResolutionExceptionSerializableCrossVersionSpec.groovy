@@ -83,8 +83,7 @@ dependencies {
 
         then:
         failure != null
-        failure.getClass().name == 'org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration$ArtifactResolveException'
+        failure.getClass().name in ['org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration$ArtifactResolveException', 'org.gradle.api.artifacts.ResolveException']
         failure.cause.toString().contains('Cannot resolve external dependency commons-lang:commons-lang:10.0-NOTEXISTS because no repositories are defined.')
     }
-
 }
