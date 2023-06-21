@@ -85,7 +85,6 @@ import java.util.concurrent.TimeUnit;
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
     private static final String HTTPS_PROTOCOLS = "https.protocols";
-    private static final int MAX_HTTP_CONNECTIONS = 20;
 
     /**
      * Determines the HTTPS protocols to support for the client.
@@ -145,8 +144,8 @@ public class HttpClientConfigurer {
         configureSocketConfig(builder);
         configureRedirectStrategy(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
-        builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
-        builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
+        builder.setMaxConnTotal(httpSettings.getMaxConnTotal());
+        builder.setMaxConnPerRoute(httpSettings.getMaxConnPerRoute());
         builder.setConnectionTimeToLive(httpSettings.getTimeoutSettings().getIdleConnectionTimeoutMs(), TimeUnit.MILLISECONDS);
     }
 
