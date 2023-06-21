@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import spock.lang.Issue
 
 @TargetGradleVersion(">=4.8")
 class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
@@ -80,20 +81,9 @@ include 'a', 'b', 'c', 'd', 'e'
 """
     }
 
-    @ToolingApiVersion(">=8.2")
-    def "memory is releasing during BuildAction"() {
-        when:
-        withConnection { connection ->
-            fetchCustomModelsWithRestrictedMemoryAction(connection)
-        }
-
-        then:
-        notThrown(GradleConnectionException)
-        assertHasConfigureSuccessfulLogging()
-    }
-
     @ToolingApiVersion("<8.2")
-    def "older TAPI versions is not releasing memory during BuildAction"() {
+    @Issue("https://github.com/gradle/gradle/issues/17810")
+    def "older Tooling API versions cannot free memory when executing a build action"() {
         when:
         withConnection { connection ->
             fetchCustomModelsWithRestrictedMemoryAction(connection)
@@ -104,10 +94,20 @@ include 'a', 'b', 'c', 'd', 'e'
         caughtGradleConnectionException.cause.cause instanceof OutOfMemoryError
     }
 
+    @ToolingApiVersion(">=8.2")
+    def "can free memory when executing a build action"() {
+        when:
+        withConnection { connection ->
+            fetchCustomModelsWithRestrictedMemoryAction(connection)
+        }
+
+        then:
+        notThrown(GradleConnectionException)
+        assertHasConfigureSuccessfulLogging()
+    }
+
     private fetchCustomModelsWithRestrictedMemoryAction(ProjectConnection connection) {
-        connection.action()
-            .projectsLoaded(new FetchProjectsCustomModelsAction(), {})
-            .build()
+        connection.action(new FetchProjectsCustomModelsAction())
             .setStandardError(stderr)
             .setStandardOutput(stdout)
             .addJvmArguments("-Xmx256m")

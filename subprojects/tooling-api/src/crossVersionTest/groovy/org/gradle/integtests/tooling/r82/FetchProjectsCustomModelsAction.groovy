@@ -20,16 +20,15 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
 
-class FetchProjectsCustomModelsAction implements BuildAction {
+class FetchProjectsCustomModelsAction implements BuildAction<Void> {
 
     @Override
-    Object execute(BuildController controller) {
+    Void execute(BuildController controller) {
         def projects = controller.getModel(GradleBuild).projects
         projects.forEach { project ->
             controller.getModel(project, CustomModel)
         }
 
-        // Returning value is doesn't matter. Most important part is fetching custom models in a BuildAction classloader.
-        return 42
+        return null
     }
 }
