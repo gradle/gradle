@@ -154,6 +154,7 @@ unassigned {
 // JVM Platform
 platform("jvm") {
     subproject("ear")
+    subproject("war")
 }
 
 // Plugin portal projects
