@@ -28,7 +28,7 @@ import java.util.zip.ZipOutputStream
  * Ensures Gradle core tasks and types are not subject to the
  * <a href="https://snyk.io/research/zip-slip-vulnerability">Zip Slip Vulnerability</a>.
  */
-class ZipSlipIntegrationTest extends AbstractIntegrationSpec {
+class PathTraversalCheckerIntegrationTest extends AbstractIntegrationSpec {
 
     private TestFile getEvilZip() {
         file("evil.zip")

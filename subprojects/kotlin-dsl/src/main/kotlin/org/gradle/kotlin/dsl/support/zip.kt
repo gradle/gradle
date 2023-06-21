@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
 
-import org.gradle.util.internal.ZipSlip.safeZipEntryName
+import org.gradle.util.internal.PathTraversalChecker.safePathName
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 import java.io.File
@@ -113,7 +113,7 @@ fun unzipTo(outputDirectory: File, zipFile: File) {
 
 private
 fun unzipEntryTo(outputDirectory: File, zip: ZipFile, entry: ZipEntry) {
-    val output = outputDirectory.resolve(safeZipEntryName(entry.name))
+    val output = outputDirectory.resolve(safePathName(entry.name))
     if (entry.isDirectory) {
         output.mkdirs()
     } else {

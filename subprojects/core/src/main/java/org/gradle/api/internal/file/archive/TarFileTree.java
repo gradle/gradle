@@ -34,14 +34,13 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.PathTraversalChecker;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
 
 public class TarFileTree extends AbstractArchiveFileTree {
     private final Provider<File> tarFileProvider;
@@ -225,7 +224,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         private String safeEntryName() {
-            return safeZipEntryName(entry.getName());
+            return PathTraversalChecker.safePathName(entry.getName());
         }
     }
 

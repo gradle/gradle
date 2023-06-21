@@ -48,7 +48,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
-import org.gradle.util.internal.ZipSlip;
+import org.gradle.util.internal.PathTraversalChecker;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
@@ -314,10 +314,10 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     /**
      * Returns a safe name for the name of a tar archive entry.
      *
-     * @see ZipSlip#safeZipEntryName(String)
+     * @see PathTraversalChecker#safePathName(String)
      */
     private static String safeEntryName(TarArchiveEntry tarEntry) {
-        return ZipSlip.safeZipEntryName(tarEntry.getName());
+        return PathTraversalChecker.safePathName(tarEntry.getName());
     }
 
     private void chmodUnpackedFile(TarArchiveEntry entry, File file) {

@@ -37,7 +37,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static java.lang.String.format;
-import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
+import static org.gradle.util.internal.PathTraversalChecker.safePathName;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
@@ -255,7 +255,7 @@ public class Install {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
-                File destFile = new File(dest, safeZipEntryName(entry.getName()));
+                File destFile = new File(dest, safePathName(entry.getName()));
                 if (entry.isDirectory()) {
                     destFile.mkdirs();
                     continue;

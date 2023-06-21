@@ -26,8 +26,8 @@ import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.PathTraversalChecker;
 import org.gradle.util.internal.RelativePathUtil;
-import org.gradle.util.internal.ZipSlip;
 
 import java.io.File;
 import java.util.Arrays;
@@ -85,7 +85,7 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
                 .filter(((Predicate<String>) String::isEmpty).negate())
                 .collect(Collectors.joining(File.separator));
         }
-        return new File(baseDir, ZipSlip.safeZipEntryName(trimLeadingSlash(composedPath)));
+        return new File(baseDir, PathTraversalChecker.safePathName(trimLeadingSlash(composedPath)));
     }
 
 
