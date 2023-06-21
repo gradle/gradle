@@ -49,10 +49,13 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.13.2'
                 testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
                 testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
                 testImplementation 'org.opentest4j:opentest4j:1.3.0-RC2'
+            }
+
+            test {
+                useJUnitPlatform()
             }
         """
 
@@ -65,7 +68,8 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
             public class JUnitJupiterTest {
 
-                 @Test void testingFileComparisonFailure() {
+                 @Test
+                 void testingFileComparisonFailure() {
                     FileInfo from = new FileInfo("/path/from", new byte[]{ 0x0 });
                     FileInfo to = new FileInfo("/path/to", new byte[]{ 0x1 });
                     throw new AssertionFailedError("Different files detected",  from, to);
@@ -96,6 +100,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             connection.newBuild()
                 .addProgressListener(progressEventCollector)
                 .forTasks('test')
+                .setStandardOutput(System.out)
                 .run()
         }
     }
