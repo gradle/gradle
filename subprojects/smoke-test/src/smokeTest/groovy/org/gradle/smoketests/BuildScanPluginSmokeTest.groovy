@@ -155,6 +155,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         then:
         scanRunner()
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "Gradle Enterprise plugin $version has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "The BuildIdentifier.getName() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Use getBuildPath() to get a unique identifier for the build. " +

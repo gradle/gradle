@@ -17,11 +17,13 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING
+import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
@@ -92,7 +94,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.serviceCreatedOnce(output)
     }
 
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "shows warning message when unsupported Gradle Enterprise plugin version is used with configuration caching enabled"() {
         given:
         plugin.runtimeVersion = plugin.artifactVersion = pluginVersion
@@ -102,6 +104,9 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
+        if (applied && VersionNumber.parse(pluginVersion) < MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9) {
+            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $pluginVersion has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
+        }
         succeeds("t", "--configuration-cache")
 
         then:
