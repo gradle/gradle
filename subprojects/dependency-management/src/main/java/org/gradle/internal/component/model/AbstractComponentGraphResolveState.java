@@ -81,7 +81,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return new GraphSelectionCandidates() {
             @Override
             public boolean isUseVariants() {
-                return variants.isPresent() && !variants.get().isEmpty();
+                return variants.isPresent();
             }
 
             @Override
