@@ -51,7 +51,7 @@ public class DocumentedFailure {
         }
 
         @Override
-        protected Builder withDocumentation(Documentation documentation) {
+        public Builder withDocumentation(Documentation documentation) {
             this.documentation = documentation;
             return this;
         }

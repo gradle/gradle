@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
+import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
@@ -39,6 +40,11 @@ public class DefaultPropertyValidationContext implements PropertyValidationConte
     @Override
     public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {
         delegate.visitTypeProblem(problemSpec);
+    }
+
+    @Override
+    public void visitNewTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        delegate.visitNewTypeProblem(problemSpec);
     }
 
     @Override

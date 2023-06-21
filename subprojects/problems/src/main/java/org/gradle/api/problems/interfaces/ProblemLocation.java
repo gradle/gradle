@@ -27,22 +27,8 @@ import javax.annotation.Nullable;
  */
 @Incubating
 public interface ProblemLocation {
-    @Nullable
     String getPath();
 
     @Nullable
     Integer getLine();
-
-    // TODO (donat) the fields as copied here verbatim. We should consider better modeling for different kind of problem locations
-    @Nullable
-    String getTypeName();
-
-    @Nullable
-    PluginId getPluginId();
-
-    @Nullable
-    String getParentPropertyName();
-
-    @Nullable
-    String getPropertyName();
 }

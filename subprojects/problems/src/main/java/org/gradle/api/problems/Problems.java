@@ -38,6 +38,10 @@ import static org.gradle.api.problems.interfaces.Severity.ERROR;
 @Incubating
 public class Problems {
 
+    public static ProblemBuilder create() {
+        return new DefaultProblemBuilder();
+    }
+
     public static ProblemBuilder create(ProblemGroup problemGroup, String message, Severity severity, String type) {
         return new DefaultProblemBuilder(problemGroup, message, severity, type);
     }

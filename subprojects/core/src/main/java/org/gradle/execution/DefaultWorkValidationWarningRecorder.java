@@ -48,7 +48,8 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
         warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning, false, false)))
             .withContext("Execution optimizations are disabled to ensure correctness.")
             .willBeRemovedInGradle9()
-            .withUserManual(warning.getDocumentationLink().getPage(), warning.getDocumentationLink().getSection())
+//            .withDocumentation(warning.getUserManualReference()) TODO (Reinhold) fix it
+            .undocumented()
             .nagUser()
         );
     }

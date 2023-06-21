@@ -109,7 +109,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected WithDocumentation withDocumentation(Documentation documentation) {
+        public WithDocumentation withDocumentation(Documentation documentation) {
             builder.setDocumentation(documentation);
             return new WithDocumentation(builder);
         }

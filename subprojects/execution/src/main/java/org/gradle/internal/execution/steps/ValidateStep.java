@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.MutableReference;
@@ -69,13 +70,16 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         context.getBeforeExecutionState()
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
-        Map<Severity, List<Problem>> problems = validationContext.getProblems()
+        List<Problem> problems = validationContext.getProblems();
+        Problems.collect(problems);
+
+        Map<Severity, List<Problem>> problemsMap = problems
             .stream()
             .collect(
                 groupingBy(Problem::getSeverity,
                     mapping(Function.identity(), toList())));
-        ImmutableList<Problem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
-        ImmutableList<Problem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
+        ImmutableList<Problem> warnings = ImmutableList.copyOf(problemsMap.getOrDefault(Severity.WARNING, ImmutableList.of()));
+        ImmutableList<Problem> errors = ImmutableList.copyOf(problemsMap.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);

@@ -15,12 +15,13 @@
  */
 package org.gradle.internal.reflect.validation;
 
-import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.PluginId;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.internal.DefaultPluginId;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.problems.BaseProblem;
 import org.gradle.problems.Solution;
@@ -55,17 +56,30 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
     }
 
     public Problem toNewProblem() {
-        ProblemBuilder builder = Problems.createNew(ProblemGroup.TYPE_VALIDATION,
+        ProblemBuilder builder = Problems.create(
+                ProblemGroup.TYPE_VALIDATION,
                 getShortDescription(),
-                org.gradle.api.problems.interfaces.Severity.valueOf(getSeverity().name()))
-            .type(getId().name())
-            .documentedAt(getUserManualReference().getId(), getUserManualReference().getSection());
+                org.gradle.api.problems.interfaces.Severity.valueOf(getSeverity().name()),
+                getId().name()
+            )
+            .documentedAt(Documentation.userManual(getUserManualReference().getId(), getUserManualReference().getSection()));
         getWhy().ifPresent(builder::description);
         String typeName = getWhere().getType().map(Class::getName).map(t -> t.replaceAll("\\$", ".")).orElse(null);
         PluginId pluginId = getWhere().getPlugin().map(p -> new DefaultPluginId(p.getId())).orElse(null);
         String parentPropertyName = getWhere().getParentPropertyName().orElse(null);
         String propertyName = getWhere().getPropertyName().orElse(null);
-        builder.location(typeName, pluginId,  parentPropertyName, propertyName);
+        if (typeName != null) {
+            builder.withMetadata("typeName", typeName);
+        }
+        if (pluginId != null) {
+            builder.withMetadata("pluginId", pluginId.getId());
+        }
+        if (parentPropertyName != null) {
+            builder.withMetadata("parentPropertyName", parentPropertyName);
+        }
+        if (propertyName != null) {
+            builder.withMetadata("propertyName", propertyName);
+        }
         getPossibleSolutions().forEach(s -> builder.solution(s.getShortDescription())); // TODO we may need more here
         return builder.build();
     }

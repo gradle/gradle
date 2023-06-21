@@ -18,11 +18,12 @@ package org.gradle.internal.reflect.validation;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.interfaces.PluginId;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemLocation;
+import org.gradle.api.problems.internal.DefaultPluginId;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.problems.Solution;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -53,7 +54,7 @@ public class TypeValidationProblemRenderer {
 
     public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getWhere()) + endLineWithDot(problem.getMessage()));
+        formatter.node(introductionFor(problem.getAdditionalMetadata()) + endLineWithDot(problem.getMessage()));
         Optional.ofNullable(problem.getDescription()).ifPresent(reason -> {
             formatter.blankLine();
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDescription())));
@@ -64,7 +65,7 @@ public class TypeValidationProblemRenderer {
         if (renderDocLink) {
             Optional.ofNullable(problem.getDocumentationLink()).ifPresent(docLink -> {
                 formatter.blankLine();
-                formatter.node(new DocumentationRegistry().getDocumentationRecommendationFor("information", docLink.getPage(), docLink.getSection()));
+                formatter.node(new DocumentationRegistry().getDocumentationRecommendationFor("information", docLink));
             });
         }
         return formatter.toString();
@@ -132,12 +133,13 @@ public class TypeValidationProblemRenderer {
             .replaceAll(": ?[. ]", ": ");
     }
 
-    private static String introductionFor(ProblemLocation location) {
+    private static String introductionFor(Map<String, String> additionalMetadata) {
         StringBuilder builder = new StringBuilder();
-        String rootType = Optional.ofNullable(location.getTypeName())
+        String rootType = Optional.ofNullable(additionalMetadata.get("typeName"))
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
-        PluginId pluginId = location.getPluginId();
+        String pluginIdString = additionalMetadata.get("pluginId");
+        PluginId pluginId = pluginIdString == null ? null : new DefaultPluginId(pluginIdString);
         if (rootType != null) {
             if (pluginId != null) {
                 builder.append("In plugin '").append(pluginId).append("' type '");
@@ -146,7 +148,8 @@ public class TypeValidationProblemRenderer {
             }
             builder.append(rootType).append("' ");
         }
-        String property = Optional.ofNullable(location.getPropertyName()).orElse(null);
+
+        String property = Optional.ofNullable(additionalMetadata.get("propertyName")).orElse(null);
         if (property != null) {
             if (rootType == null) {
                 if (pluginId != null) {
@@ -157,7 +160,7 @@ public class TypeValidationProblemRenderer {
             } else {
                 builder.append("property '");
             }
-            Optional.ofNullable(location.getParentPropertyName()).ifPresent(parentProperty -> {
+            Optional.ofNullable(additionalMetadata.get("parentPropertyName")).ifPresent(parentProperty -> {
                 builder.append(parentProperty);
                 builder.append('.');
             });

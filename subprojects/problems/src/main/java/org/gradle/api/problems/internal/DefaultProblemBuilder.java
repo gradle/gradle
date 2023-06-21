@@ -18,7 +18,6 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.DocLink;
-import org.gradle.api.problems.interfaces.PluginId;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
@@ -27,7 +26,9 @@ import org.gradle.api.problems.interfaces.Severity;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Builder for problems.
@@ -37,23 +38,19 @@ import java.util.List;
 @Incubating
 public class DefaultProblemBuilder implements ProblemBuilder {
 
-    private final ProblemGroup problemGroup;
+    private ProblemGroup problemGroup;
     private String message;
     private String problemType;
-    private final Severity severity;
+    private Severity severity;
     private String path;
     private Integer line;
     private boolean noLocation = false;
-
     private String description;
     private DocLink documentationUrl;
     private boolean explicitlyUndocumented = false;
     private List<String> solution;
     private Throwable cause;
-    private String typeName;
-    private PluginId pluginId;
-    private String parentPropertyName;
-    private String propertyName;
+    private final Map<String, String> additionalMetadata = new HashMap<>();
 
     public DefaultProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) { //add type
         this.problemGroup = problemGroup;
@@ -83,6 +80,25 @@ public class DefaultProblemBuilder implements ProblemBuilder {
         }
     }
 
+    public DefaultProblemBuilder() {
+    }
+
+    public ProblemBuilder group(ProblemGroup group) {
+        this.problemGroup = group;
+        return this;
+    }
+
+    public ProblemBuilder message(String message) {
+        this.message = message;
+        return this;
+    }
+
+    @Override
+    public ProblemBuilder severity(Severity severity) {
+        this.severity = severity;
+        return this;
+    }
+
     public ProblemBuilder location(String path, Integer line) {
         this.path = path;
         this.line = line;
@@ -92,14 +108,6 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     @Override
     public ProblemBuilder noLocation() {
         this.noLocation = true;
-        return this;
-    }
-
-    public ProblemBuilder location(@Nullable String typeName, @Nullable PluginId pluginId, @Nullable String parentPropertyName, @Nullable String propertyName) {
-        this.typeName = typeName;
-        this.pluginId = pluginId;
-        this.parentPropertyName = parentPropertyName;
-        this.propertyName = propertyName;
         return this;
     }
 
@@ -137,6 +145,11 @@ public class DefaultProblemBuilder implements ProblemBuilder {
         return this;
     }
 
+    public ProblemBuilder withMetadata(String key, String value) {
+        this.additionalMetadata.put(key, value);
+        return this;
+    }
+
     public Problem build() {
         if (!explicitlyUndocumented && documentationUrl == null) {
             throw new IllegalStateException("Problem is not documented: " + message);
@@ -150,12 +163,13 @@ public class DefaultProblemBuilder implements ProblemBuilder {
             problemGroup,
             message,
             severity,
-            new DefaultProblemLocation(path, line, typeName, pluginId, parentPropertyName, propertyName),
+            path == null ? null : new DefaultProblemLocation(path, line),
             documentationUrl,
             description,
             solution,
             cause,
-            problemType);
+            problemType,
+            additionalMetadata);
     }
 
     public void report() {

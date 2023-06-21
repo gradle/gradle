@@ -45,15 +45,12 @@ public abstract class Documentation implements DocLink {
     }
 
     @Nullable
-    public abstract String documentationUrl();
-
-    @Nullable
     public String consultDocumentationMessage() {
         return String.format(RECOMMENDATION, "information", documentationUrl());
     }
 
     public static abstract class AbstractBuilder<T> {
-        protected abstract T withDocumentation(Documentation documentation);
+        public abstract T withDocumentation(Documentation documentation);
 
         /**
          * Allows proceeding without including any documentation reference.

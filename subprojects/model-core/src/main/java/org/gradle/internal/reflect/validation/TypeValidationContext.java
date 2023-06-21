@@ -17,7 +17,6 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.interfaces.Problem;
 
 public interface TypeValidationContext {
 
@@ -28,7 +27,9 @@ public interface TypeValidationContext {
      *
      * @param problemSpec the problem builder
      */
-    void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec);
+    void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec); // TODO (Reinhold) delete
+
+    void visitNewTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec); // TODO (Reinhold) rename to visitTypeProblem
 
     /**
      * Visits a validation problem associated with the given property.
@@ -37,7 +38,7 @@ public interface TypeValidationContext {
      *
      * @param problemSpec the problem builder
      */
-    void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec);
+    void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec); // TODO (Reinhold) replace it with visitPropertyProblem(Action<? super TypeAwareProblemBuilder>)
 
     TypeValidationContext NOOP = new TypeValidationContext() {
         @Override
@@ -45,6 +46,9 @@ public interface TypeValidationContext {
 
         @Override
         public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {}
+
+        @Override
+        public void visitNewTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) { }
     };
 
 }

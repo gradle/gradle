@@ -27,6 +27,10 @@ import javax.annotation.Nullable;
  */
 @Incubating
 public interface ProblemBuilder {
+    ProblemBuilder message(String message);
+
+    ProblemBuilder severity(Severity severity);
+
     ProblemBuilder location(String path, Integer line);
 
     ProblemBuilder noLocation();
@@ -43,8 +47,9 @@ public interface ProblemBuilder {
 
     ProblemBuilder cause(Throwable cause);
 
-    Problem build();
+    ProblemBuilder withMetadata(String key, String value);
 
+    Problem build();
 
     void report();
 

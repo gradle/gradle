@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Problem description.
@@ -54,4 +55,6 @@ public interface Problem {
      * Mandotory field for problem type.
      */
     String getProblemType();
+
+    Map<String, String> getAdditionalMetadata();
 }

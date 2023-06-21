@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.PluginId;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 
 @NonNullApi
@@ -25,18 +24,10 @@ public class DefaultProblemLocation implements ProblemLocation {
 
     private final String path;
     private final Integer line;
-    private final String typeName;
-    private final PluginId pluginId;
-    private final String parentPropertyName;
-    private final String propertyName;
 
-    public DefaultProblemLocation(String path, Integer line, String typeName, PluginId pluginId, String parentPropertyName, String propertyName) {
+    public DefaultProblemLocation(String path, Integer line) {
         this.path = path;
         this.line = line;
-        this.typeName = typeName;
-        this.pluginId = pluginId;
-        this.parentPropertyName = parentPropertyName;
-        this.propertyName = propertyName;
     }
 
     @Override
@@ -49,23 +40,4 @@ public class DefaultProblemLocation implements ProblemLocation {
         return line;
     }
 
-    @Override
-    public String getTypeName() {
-        return typeName;
-    }
-
-    @Override
-    public PluginId getPluginId() {
-        return pluginId;
-    }
-
-    @Override
-    public String getParentPropertyName() {
-        return parentPropertyName;
-    }
-
-    @Override
-    public String getPropertyName() {
-        return propertyName;
-    }
 }

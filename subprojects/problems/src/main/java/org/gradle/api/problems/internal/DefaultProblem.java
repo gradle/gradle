@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @NonNullApi
 public class DefaultProblem implements Problem {
@@ -40,9 +41,10 @@ public class DefaultProblem implements Problem {
     private final List<String> solutions;
     private final Throwable cause;
     private final String problemType;
+    private final Map<String, String> additionalMetadata;
 
     public DefaultProblem(ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl,
-                          @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType) {
+                          @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType, Map<String, String> additionalMetadata) {
         this.problemGroup = problemGroup;
         this.message = message;
         this.severity = severity;
@@ -52,6 +54,7 @@ public class DefaultProblem implements Problem {
         this.solutions = solutions == null ? Collections.<String>emptyList() : solutions;
         this.cause = cause;
         this.problemType = problemType;
+        this.additionalMetadata = additionalMetadata;
     }
 
     @Override
@@ -100,6 +103,11 @@ public class DefaultProblem implements Problem {
         return problemType;
     }
 
+    @Override
+    public Map<String, String> getAdditionalMetadata() {
+        return additionalMetadata;
+    }
+
     private static boolean equals(@Nullable  Object a, @Nullable Object b) {
         return (a == b) || (a != null && a.equals(b));
     }
@@ -120,11 +128,12 @@ public class DefaultProblem implements Problem {
             equals(documentationLink, that.documentationLink) &&
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&
-            equals(cause, that.cause);
+            equals(cause, that.cause) &&
+            equals(additionalMetadata, that.additionalMetadata);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{problemGroup, message, severity, where, documentationLink, description, solutions, cause});
+        return Arrays.hashCode(new Object[]{problemGroup, message, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
     }
 }

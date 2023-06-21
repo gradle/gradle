@@ -65,7 +65,8 @@ public class DefaultNodeValidator implements NodeValidator {
                 DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
                     .willBeRemovedInGradle9()
-                    .withUserManual(problem.getDocumentationLink().getPage(), problem.getDocumentationLink().getSection())
+                    // .withUserManual(problem.getDocumentationLink().getPage(), problem.getDocumentationLink().getSection()) // TODO (Reinhold)
+                    .undocumented()
                     .nagUser();
             });
     }
