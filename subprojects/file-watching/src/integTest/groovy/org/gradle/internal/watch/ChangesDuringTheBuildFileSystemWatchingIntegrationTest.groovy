@@ -17,6 +17,7 @@
 package org.gradle.internal.watch
 
 import com.gradle.enterprise.testing.annotations.LocalOnly
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -140,7 +141,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         vfsLogs.receivedFileSystemEventsInCurrentBuild >= 1
-        projectFilesInVfs == 2
+        assertExpectedProjectFilesInVfs(2)
     }
 
     def "detects input file change after the task has been executed"() {
@@ -173,7 +174,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "initial"
-        projectFilesInVfs == 1
+        assertExpectedProjectFilesInVfs(1)
 
         when:
         runWithFileSystemWatchingAndMakeChangesWhen("waitForUserChanges", "userInput") {
@@ -184,7 +185,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         executedAndNotSkipped(":consumer")
         outputFile.text == "changed"
         vfsLogs.receivedFileSystemEventsInCurrentBuild >= 1
-        projectFilesInVfs == 1
+        assertExpectedProjectFilesInVfs(1)
 
         when:
         server.expect("userInput")
@@ -193,7 +194,15 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "changedAgain"
-        projectFilesInVfs == 2
+        assertExpectedProjectFilesInVfs(2)
+    }
+
+    private void assertExpectedProjectFilesInVfs(int expected) {
+        if (GradleContextualExecuter.isConfigCache()) {
+            // Cc watches also settings.gradle and build.gradle, so they are added to VFS.
+            expected += 2
+        }
+        assert getProjectFilesInVfs() == expected
     }
 
     private void runWithFileSystemWatchingAndMakeChangesWhen(String task, String expectedCall, Closure action) {
