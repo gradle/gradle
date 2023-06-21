@@ -32,17 +32,17 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
         TEAM_CITY(
-            "v0.33",
+            AbstractSmokeTest.TestedVersions.teamCityGradlePluginRef,
             "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/build-scan-init.gradle",
             "teamCityBuildScanPlugin"
         ),
         JENKINS(
-            "gradle-2.8",
+            AbstractSmokeTest.TestedVersions.jenkinsGradlePluginRef,
             "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle",
             "jenkinsGradlePlugin"
         ),
         BAMBOO(
-            "gradle-enterprise-bamboo-plugin-1.1.0",
+            AbstractSmokeTest.TestedVersions.bambooGradlePluginRef,
             "https://raw.githubusercontent.com/gradle/gradle-enterprise-bamboo-plugin/%s/src/main/resources/gradle-enterprise/gradle/gradle-enterprise-init-script.gradle",
             "ge-plugin"
         );
