@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.plugins.jvm.JvmTestSuiteTarget",
+            "member": "Method org.gradle.api.plugins.jvm.JvmTestSuiteTarget.getCompileTask()",
+            "acceptation": "Adding new method for Test Suites",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke$default(org.gradle.kotlin.dsl.DependencyHandlerScope,org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
             "acceptation": "https://github.com/gradle/gradle/issues/24503",
