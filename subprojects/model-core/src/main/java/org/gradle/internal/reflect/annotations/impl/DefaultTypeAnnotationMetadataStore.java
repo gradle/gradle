@@ -59,9 +59,10 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadataStore {
     private static final TypeAnnotationMetadata EMPTY_TYPE_ANNOTATION_METADATA = new TypeAnnotationMetadata() {
@@ -251,7 +252,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private ImmutableList<PropertyAnnotationMetadataBuilder> convertMethodToPropertyBuilders(Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
         Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders = new LinkedHashMap<>();
         List<PropertyAnnotationMetadataBuilder> metadataBuilders = Ordering.<PropertyAnnotationMetadataBuilder>from(
-            comparing(metadataBuilder -> metadataBuilder.getGetter().getName()))
+                comparing(metadataBuilder -> metadataBuilder.getGetter().getName()))
             .sortedCopy(methodBuilders.values());
         for (PropertyAnnotationMetadataBuilder metadataBuilder : metadataBuilders) {
             String propertyName = metadataBuilder.getPropertyName();
@@ -275,7 +276,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 }
                 previouslySeenBuilder.visitPropertyProblem(problem -> {
                     problem.withId(ValidationProblemId.REDUNDANT_GETTERS)
-                        .reportAs(ERROR)
+                        .reportAs(org.gradle.internal.reflect.validation.Severity.ERROR)
                         .forProperty(propertyName)
                         .withDescription(() -> String.format("has redundant getters: '%s()' and '%s()'",
                             previouslySeenBuilder.getter.getName(),
@@ -333,17 +334,29 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach(entry -> {
                     String fieldName = entry.getKey();
                     ImmutableMap<Class<? extends Annotation>, Annotation> fieldAnnotations = entry.getValue();
-                    validationContext.visitTypeProblem(problem ->
-                        problem.withId(ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD)
-                            .forType(type)
-                            .reportAs(ERROR)
-                            .withDescription(() -> String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
-                            .happensBecause("Annotations on fields are only used if there's a corresponding getter for the field")
-                            .withLongDescription("If a field is annotated but there's no corresponding getter, then the annotations are ignored")
-                            .addPossibleSolution(() -> "Add a getter for field '" + fieldName + "'")
-                            .addPossibleSolution(() -> "Remove the annotations on '" + fieldName + "'")
-                            .documentedAt("validation_problems", "ignored_annotations_on_field")
+                    validationContext.visitNewTypeProblem(problem ->
+                        problem
+                            .withAnnotationType(type)
+                            .type(ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD.name())
+                            .severity(ERROR)
+                            .message(String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
+                            .description("Annotations on fields are only used if there's a corresponding getter for the field")
+                            .solution("Add a getter for field '" + fieldName + "'")
+                            .solution("Remove the annotations on '" + fieldName + "'")
+                            .documentedAt(userManual("validation_problems", "ignored_annotations_on_field"))
+                            .noLocation()
                     );
+//                    validationContext.visitTypeProblem(problem ->
+//                        problem.withId(ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD)
+//                            .forType(type)
+//                            .reportAs(org.gradle.internal.reflect.validation.Severity.ERROR)
+//                            .withDescription(() -> String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
+//                            .happensBecause("Annotations on fields are only used if there's a corresponding getter for the field")
+//                            .withLongDescription("If a field is annotated but there's no corresponding getter, then the annotations are ignored")
+//                            .addPossibleSolution(() -> "Add a getter for field '" + fieldName + "'")
+//                            .addPossibleSolution(() -> "Remove the annotations on '" + fieldName + "'")
+//                            .documentedAt("validation_problems", "ignored_annotations_on_field")
+//                    );
                 });
         }
         return propertiesMetadata;
@@ -421,7 +434,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             metadataBuilder.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED)
                     .forProperty(propertyName)
-                    .reportAs(ERROR)
+                    .reportAs(org.gradle.internal.reflect.validation.Severity.ERROR)
                     .withDescription(() -> String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .happensBecause("Annotations on private getters are ignored")
                     .withLongDescription("Private getters are ignored for up-to-date checking, meaning that you might think you have declared an input when it's not the case")
@@ -441,7 +454,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (isSetterProhibitedForType(setterType)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.MUTABLE_TYPE_WITH_SETTER)
-                    .reportAs(ERROR)
+                    .reportAs(org.gradle.internal.reflect.validation.Severity.ERROR)
                     .forProperty(propertyName)
                     .withDescription(() -> String.format("of mutable type '%s' is writable", setterType.getName()))
                     .happensBecause(() -> "Properties of type '" + setterType.getName() + "' are already mutable")
@@ -473,17 +486,28 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static void validateNotAnnotated(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
-            validationContext.visitTypeProblem(problem ->
-                problem.forType(method.getDeclaringClass())
-                    .withId(ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD)
-                    .reportAs(ERROR)
-                    .withDescription(() -> String.format("%s '%s()' should not be annotated with: %s",
+            validationContext.visitNewTypeProblem(problem ->
+                problem.withAnnotationType(method.getDeclaringClass())
+                    .type(ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD.name())
+                    .severity(ERROR)
+                    .message(String.format("%s '%s()' should not be annotated with: %s",
                         methodKind.getDisplayName(), method.getName(), simpleAnnotationNames(annotationTypes.stream())
                     ))
-                    .happensBecause(() -> "Input/Output annotations are ignored if they are placed on something else than a getter")
-                    .addPossibleSolution("Remove the annotations")
-                    .addPossibleSolution("Rename the method")
-                    .documentedAt("validation_problems", "ignored_annotations_on_method")
+                    .description("Input/Output annotations are ignored if they are placed on something else than a getter")
+                    .solution("Remove the annotations")
+                    .solution("Rename the method")
+                    .documentedAt(userManual("validation_problems", "ignored_annotations_on_method"))
+                    .noLocation()
+//                problem.forType(method.getDeclaringClass())
+//                    .withId(ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD)
+//                    .reportAs(org.gradle.internal.reflect.validation.Severity.ERROR)
+//                    .withDescription(() -> String.format("%s '%s()' should not be annotated with: %s",
+//                        methodKind.getDisplayName(), method.getName(), simpleAnnotationNames(annotationTypes.stream())
+//                    ))
+//                    .happensBecause(() -> "Input/Output annotations are ignored if they are placed on something else than a getter")
+//                    .addPossibleSolution("Remove the annotations")
+//                    .addPossibleSolution("Rename the method")
+//                    .documentedAt("validation_problems", "ignored_annotations_on_method")
             );
         }
     }
@@ -573,7 +597,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     if (declaredAnnotations.values().size() > 1) {
                         visitPropertyProblem(problem ->
                             problem.withId(ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED)
-                                .reportAs(ERROR)
+                                .reportAs(org.gradle.internal.reflect.validation.Severity.ERROR)
                                 .forProperty(propertyName)
                                 .withDescription(() -> String.format("annotated with @%s should not be also annotated with %s",
                                     ignoredMethodAnnotation.getSimpleName(),
@@ -627,7 +651,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 visitPropertyProblem(problem ->
                     problem.withId(ValidationProblemId.CONFLICTING_ANNOTATIONS)
                         .forProperty(propertyName)
-                        .reportAs(ERROR)
+                        .reportAs(org.gradle.internal.reflect.validation.Severity.ERROR)
                         .withDescription(() -> String.format("has conflicting %s annotations %s: %s",
                             category.getDisplayName(),
                             source,

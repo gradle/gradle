@@ -21,13 +21,14 @@ import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.internal.DefaultPluginId;
-import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.problems.BaseProblem;
 import org.gradle.problems.Solution;
 
 import java.util.List;
 import java.util.function.Supplier;
+
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation> {
     private final UserManualReference userManualReference;
@@ -62,7 +63,7 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
                 org.gradle.api.problems.interfaces.Severity.valueOf(getSeverity().name()),
                 getId().name()
             )
-            .documentedAt(Documentation.userManual(getUserManualReference().getId(), getUserManualReference().getSection()));
+            .documentedAt(userManual(getUserManualReference().getId(), getUserManualReference().getSection()));
         getWhy().ifPresent(builder::description);
         String typeName = getWhere().getType().map(Class::getName).map(t -> t.replaceAll("\\$", ".")).orElse(null);
         PluginId pluginId = getWhere().getPlugin().map(p -> new DefaultPluginId(p.getId())).orElse(null);
@@ -80,6 +81,7 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
         if (propertyName != null) {
             builder.withMetadata("propertyName", propertyName);
         }
+        builder.noLocation();
         getPossibleSolutions().forEach(s -> builder.solution(s.getShortDescription())); // TODO we may need more here
         return builder.build();
     }

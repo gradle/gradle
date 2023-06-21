@@ -44,14 +44,6 @@ public class DocumentationRegistry {
     public String getDocumentationFor(String id, String section) {
         return getDocumentationFor(id) + "#" + section;
     }
-//    public String getDocumentationFor(DocLink docLink) {
-//        String page = docLink.getPage();
-//        String section = docLink.getSection();
-//        if(section == null) {
-//            return getDocumentationFor(page);
-//        }
-//        return getDocumentationFor(page, section);
-//    }
 
     public String getDslRefForProperty(Class<?> clazz, String property) {
         String className = clazz.getName();

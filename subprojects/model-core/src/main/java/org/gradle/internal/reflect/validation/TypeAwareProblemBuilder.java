@@ -16,6 +16,7 @@
 
 package org.gradle.internal.reflect.validation;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
@@ -23,6 +24,7 @@ import org.gradle.api.problems.interfaces.Severity;
 
 import javax.annotation.Nullable;
 
+@NonNullApi
 public class TypeAwareProblemBuilder implements ProblemBuilder {
 
     private final ProblemBuilder delegate;

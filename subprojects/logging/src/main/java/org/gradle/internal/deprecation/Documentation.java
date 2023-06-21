@@ -50,7 +50,7 @@ public abstract class Documentation implements DocLink {
     }
 
     public static abstract class AbstractBuilder<T> {
-        public abstract T withDocumentation(Documentation documentation);
+        public abstract T withDocumentation(DocLink documentation);
 
         /**
          * Allows proceeding without including any documentation reference.
@@ -109,9 +109,18 @@ public abstract class Documentation implements DocLink {
         private final String page;
         private final String section;
 
+        private final String topic;
+
         private UserGuide(String id, @Nullable String section) {
             this.page = Preconditions.checkNotNull(id);
             this.section = section;
+            this.topic = null;
+        }
+
+        private UserGuide(String topic, String id, @Nullable String section) {
+            this.page = Preconditions.checkNotNull(id);
+            this.section = section;
+            this.topic = topic;
         }
 
         @Override
@@ -119,7 +128,10 @@ public abstract class Documentation implements DocLink {
             if(section == null) {
                 return DOCUMENTATION_REGISTRY.getDocumentationFor(page);
             }
-            return DOCUMENTATION_REGISTRY.getDocumentationFor(page, section);
+            if (topic == null) {
+                return DOCUMENTATION_REGISTRY.getDocumentationFor(page, section);
+            }
+            return DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor(topic, page, section);
         }
     }
 

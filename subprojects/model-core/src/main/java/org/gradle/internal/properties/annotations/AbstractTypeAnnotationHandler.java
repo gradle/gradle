@@ -54,6 +54,7 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
                     .map(Class::getSimpleName)
                     .collect(Collectors.joining(", "))))
                 .documentedAt(Documentation.userManual("validation_problems", "invalid_use_of_cacheable_annotation"))
+                .noLocation()
                 .solution("Remove the annotation")
         );
     }

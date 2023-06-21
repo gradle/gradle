@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.problems.interfaces.Problem;
@@ -27,7 +26,10 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import java.util.List;
+import java.util.Set;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static org.gradle.internal.deprecation.DeprecationMessageBuilder.withDocumentation;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
@@ -62,17 +64,15 @@ public class DefaultNodeValidator implements NodeValidator {
                 // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
                 // and rendering
                 String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
-                DeprecationLogger.deprecateBehaviour(warning)
+                withDocumentation(problem, DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
-                    .willBeRemovedInGradle9()
-                    // .withUserManual(problem.getDocumentationLink().getPage(), problem.getDocumentationLink().getSection()) // TODO (Reinhold)
-                    .undocumented()
+                    .willBeRemovedInGradle9())
                     .nagUser();
             });
     }
 
     private void reportErrors(List<Problem> problems, TaskInternal task, WorkValidationContext validationContext) {
-        ImmutableSet<String> uniqueErrors = getUniqueErrors(problems);
+        Set<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
                 .withSummaryForContext(task.toString(), validationContext)
@@ -80,10 +80,10 @@ public class DefaultNodeValidator implements NodeValidator {
         }
     }
 
-    private static ImmutableSet<String> getUniqueErrors(List<Problem> problems) {
+    private static Set<String> getUniqueErrors(List<Problem> problems) {
         return problems.stream()
             .filter(problem -> !problem.getSeverity().isWarning())
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-            .collect(ImmutableSet.toImmutableSet());
+            .collect(toImmutableSet());
     }
 }

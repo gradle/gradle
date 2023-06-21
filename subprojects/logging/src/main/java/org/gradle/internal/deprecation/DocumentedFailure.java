@@ -18,6 +18,7 @@ package org.gradle.internal.deprecation;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.internal.exceptions.Contextual;
 
 import javax.annotation.Nullable;
@@ -31,7 +32,7 @@ public class DocumentedFailure {
         private String summary;
         private String advice;
         private String contextualAdvice;
-        private Documentation documentation;
+        private DocLink documentation;
 
         private Builder() {}
 
@@ -51,7 +52,7 @@ public class DocumentedFailure {
         }
 
         @Override
-        public Builder withDocumentation(Documentation documentation) {
+        public Builder withDocumentation(DocLink documentation) {
             this.documentation = documentation;
             return this;
         }

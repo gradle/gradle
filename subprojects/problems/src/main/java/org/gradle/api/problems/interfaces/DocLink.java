@@ -30,4 +30,7 @@ import javax.annotation.Nullable;
 public interface DocLink {
     @Nullable
     String documentationUrl();
+
+    @Nullable
+    String consultDocumentationMessage();
 }

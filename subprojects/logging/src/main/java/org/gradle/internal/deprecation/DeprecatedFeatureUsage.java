@@ -30,7 +30,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
     private final String removalDetails;
     private final String advice;
     private final String contextualAdvice;
-    private final Documentation documentation;
+    private final DocLink documentation;
 
     private final Type type;
 
@@ -39,7 +39,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         String removalDetails,
         @Nullable String advice,
         @Nullable String contextualAdvice,
-        Documentation documentation,
+        DocLink documentation,
         Type type,
         Class<?> calledFrom
     ) {
