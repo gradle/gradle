@@ -63,8 +63,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
+                def namedParam = testObject
                 parameters {
-                    testParam = testObject
+                    testParam = namedParam
                 }
             }
         """
@@ -131,8 +132,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
+                def arrayParam = testObject
                 parameters {
-                    testParam = testObject
+                    testParam = arrayParam
                 }
             }
         """
@@ -155,8 +157,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
+                def arrayParam = testObject
                 parameters {
-                    testParam = testObject
+                    testParam = arrayParam
                 }
             }
         """
@@ -366,8 +369,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
+                def objectParam = testObject
                 parameters {
-                    testParam = testObject
+                    testParam = objectParam
                 }
             }
         """
