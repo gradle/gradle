@@ -27,7 +27,9 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftMainWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftSum
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
+@DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     @ToBeFixedForConfigurationCache
     def "can compile and link against a #linkage.toLowerCase() c++ library"() {

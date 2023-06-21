@@ -21,12 +21,14 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
+@DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeIntegrationSpec implements SourceDependencies {
     @Rule
     GitFileRepository repo = new GitFileRepository('greeter', temporaryFolder.getTestDirectory())

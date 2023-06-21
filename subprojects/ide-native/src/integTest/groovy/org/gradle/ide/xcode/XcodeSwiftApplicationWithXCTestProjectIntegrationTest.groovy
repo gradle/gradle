@@ -18,7 +18,9 @@ package org.gradle.ide.xcode
 
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
+@DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class XcodeSwiftApplicationWithXCTestProjectIntegrationTest extends AbstractXcodeSwiftWithXCTestProjectIntegrationTest {
     @Override
     void makeSingleProject() {

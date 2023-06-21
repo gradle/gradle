@@ -22,7 +22,9 @@ import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
+@DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
 
     @ToBeFixedForConfigurationCache

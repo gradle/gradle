@@ -19,7 +19,9 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
+@DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
         settingsFile << """
