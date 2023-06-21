@@ -43,6 +43,8 @@ Class <org.gradle.language.scala.tasks.AbstractScalaCompile> extends/implements 
 Class <org.gradle.platform.base.binary.BaseBinarySpec> extends/implements org.gradle.api.internal.AbstractBuildableComponentSpec, org.gradle.platform.base.internal.BinarySpecInternal that are Gradle Internal API in (BaseBinarySpec.java:0)
 Class <org.gradle.platform.base.component.BaseComponentSpec> extends/implements org.gradle.platform.base.component.internal.DefaultComponentSpec that is Gradle Internal API in (BaseComponentSpec.java:0)
 Class <org.gradle.plugins.ide.api.GeneratorTask> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (GeneratorTask.java:0)
+Class <org.gradle.plugins.ide.eclipse.EclipsePlugin> extends/implements org.gradle.plugins.ide.internal.IdePlugin that is Gradle Internal API in (EclipsePlugin.java:0)
+Class <org.gradle.plugins.ide.eclipse.EclipseWtpPlugin> extends/implements org.gradle.plugins.ide.internal.IdePlugin that is Gradle Internal API in (EclipseWtpPlugin.java:0)
 Class <org.gradle.plugins.ide.eclipse.model.Classpath> extends/implements org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject that is Gradle Internal API in (Classpath.java:0)
 Class <org.gradle.plugins.ide.eclipse.model.Jdt> extends/implements org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject that is Gradle Internal API in (Jdt.java:0)
 Class <org.gradle.plugins.ide.eclipse.model.Project> extends/implements org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject that is Gradle Internal API in (Project.java:0)
