@@ -176,6 +176,13 @@ public class FinalizerGroup extends HasFinalizers {
         // There are some finalized nodes that are also members
         // For each member, determine which finalized nodes to wait for
         ImmutableMap.Builder<Node, MemberSuccessors> blockingNodesBuilder = ImmutableMap.builder();
+
+        // Determine whether any dependencies of a finalized node are also members, in which case treat the dependency as if it were a finalized member
+        Set<Node> dependenciesThatAreMembers = getDependenciesThatAreMembers(blockedFinalizedMembers);
+        dependenciesThatAreMembers.stream()
+                .filter(member -> !blockedFinalizedMembers.contains(member))
+                .forEach(member -> blockingNodesBuilder.put(member, waitForFinalizers));
+
         for (Node member : members) {
             if (isFinalizerNode(member) || memberCanStartAtAnyTime(member)) {
                 // Short-circuit for these, they are handled separately
@@ -190,22 +197,12 @@ public class FinalizerGroup extends HasFinalizers {
                     blockingNodesBuilder.put(member, new WaitForFinalizedNodesToBecomeActive(Collections.singleton(member)));
                 }
             } else {
-                // Determine whether this member is a dependency of a finalized node, in which case treat it as if it were a finalized member
-                boolean requiredByBlockedFinalizedMember = false;
-                for (Node finalizedMember : blockedFinalizedMembers) {
-                    if (dependsOn(finalizedMember, member)) {
-                        requiredByBlockedFinalizedMember = true;
-                        break;
-                    }
+                if (!dependenciesThatAreMembers.contains(member)) {
+                    // Wait for the finalized nodes that don't introduce a cycle
+                    Set<Node> blockOn = new LinkedHashSet<>(finalizedNodesToBlockOn);
+                    blockOn.addAll(blockedFinalizedMembers);
+                    blockingNodesBuilder.put(member, new WaitForNodesToComplete(blockOn));
                 }
-                if (requiredByBlockedFinalizedMember) {
-                    blockingNodesBuilder.put(member, waitForFinalizers);
-                    continue;
-                }
-                // Wait for the finalized nodes that don't introduce a cycle
-                Set<Node> blockOn = new LinkedHashSet<>(finalizedNodesToBlockOn);
-                blockOn.addAll(blockedFinalizedMembers);
-                blockingNodesBuilder.put(member, new WaitForNodesToComplete(blockOn));
             }
         }
         ImmutableMap<Node, MemberSuccessors> blockingNodes = blockingNodesBuilder.build();
@@ -260,20 +257,29 @@ public class FinalizerGroup extends HasFinalizers {
         return successors.getNodesThatBlock(node);
     }
 
-    private boolean dependsOn(Node fromNode, Node toNode) {
+    private Set<Node> getDependenciesThatAreMembers(Set<Node> fromNodes) {
+        Set<Node> dependenciesThatAreMembers = new HashSet<>();
         Set<Node> seen = new HashSet<>();
-        List<Node> queue = new ArrayList<>();
-        Iterables.addAll(queue, fromNode.getHardSuccessors());
-        while (!queue.isEmpty()) {
-            Node node = queue.remove(0);
-            if (node == toNode) {
-                return true;
+
+        for (Node fromNode : fromNodes) {
+            List<Node> queue = new ArrayList<>();
+            Iterables.addAll(queue, fromNode.getHardSuccessors());
+            while (!queue.isEmpty()) {
+                Node toNode = queue.remove(0);
+                if (members.contains(toNode)) {
+                    dependenciesThatAreMembers.add(toNode);
+                }
+                if (!seen.add(toNode)) {
+                    continue;
+                }
+                Iterables.addAll(queue, toNode.getHardSuccessors());
             }
-            if (!seen.add(node)) {
-                continue;
-            }
-            Iterables.addAll(queue, node.getHardSuccessors());
         }
+        return dependenciesThatAreMembers;
+    }
+
+    private boolean dependsOn(Node fromNode, Node toNode) {
+
         return false;
     }
 
