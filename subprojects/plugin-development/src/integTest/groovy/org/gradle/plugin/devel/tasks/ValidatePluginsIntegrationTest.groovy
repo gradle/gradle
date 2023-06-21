@@ -606,6 +606,69 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         "InputFiles" | _
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24979")
+    @ValidationTestFor(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
+    def "cannot annotate type 'java.net.URL' with @Input"() {
+        given:
+        source("src/main/java/NestedBean.java") << """
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import java.net.URL;
+
+            public interface NestedBean {
+
+                @Input
+                Property<URL> getNestedInput();
+            }
+        """
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.net.URL;
+
+            @DisableCachingByDefault
+            public abstract class MyTask extends DefaultTask {
+
+                private final NestedBean nested = getProject().getObjects().newInstance(NestedBean.class);
+
+                @Input
+                public URL getDirect() { return null; }
+
+                @Input
+                public Provider<URL> getProviderInput() { return getPropertyInput(); }
+
+                @Input
+                public abstract Property<URL> getPropertyInput();
+
+                @Input
+                public abstract SetProperty<URL> getSetPropertyInput();
+
+                @Input
+                public abstract ListProperty<URL> getListPropertyInput();
+
+                @Input
+                public abstract MapProperty<String, URL> getMapPropertyInput();
+
+                @Nested
+                public NestedBean getNestedBean() { return nested; }
+            }
+        """
+
+        expect:
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
+        assertValidationFailsWith([
+            warning(unsupportedValueType { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueType { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+        ])
+    }
+
     @ValidationTestFor([
             ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
             ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
