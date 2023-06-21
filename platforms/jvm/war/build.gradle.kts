@@ -19,3 +19,19 @@ plugins {
 }
 
 description = "Adds support for assembling JVM web application WAR files"
+
+dependencies {
+    implementation(project(":base-services"))
+    implementation(project(":core"))
+    implementation(project(":core-api"))
+    implementation(project(":dependency-management"))
+    implementation(project(":file-collections"))
+    implementation(project(":logging"))
+    implementation(project(":model-core"))
+    implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
+    //implementation(project(":plugins")) this will be needed but creates a cycle
+    implementation(project(":testing-base"))
+
+    implementation(libs.inject)
+}

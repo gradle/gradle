@@ -29,6 +29,9 @@ dependencies {
     implementation(project(":execution")) {
         because("We need it for BuildOutputCleanupRegistry")
     }
+    implementation(project(":war")) {
+        because("Used by Idea, Eclipse, Eclipse Wtp plugins")
+    }
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
