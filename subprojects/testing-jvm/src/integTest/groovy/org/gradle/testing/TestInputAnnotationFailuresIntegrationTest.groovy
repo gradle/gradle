@@ -186,7 +186,7 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
             }
 
             tasks.register('verify', TaskWithInput) {
-                def url = new URI("https://www.foo.com").toURL()
+                def url = uri("https://gradle.org").toURL()
                 propertyInput.set(url)
                 setPropertyInput.set([url])
                 listPropertyInput.set([url])
