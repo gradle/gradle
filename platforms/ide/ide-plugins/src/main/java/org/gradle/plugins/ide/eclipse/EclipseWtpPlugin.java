@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,11 +78,11 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
     protected void onApply(Project project) {
         project.getPluginManager().apply(EclipsePlugin.class);
 
-        getLifecycleTask().configure(withDescription("Generates Eclipse wtp configuration files."));
-        getCleanTask().configure(withDescription("Cleans Eclipse wtp configuration files."));
+        getLifecycleTask().configure(IdePlugin.withDescription("Generates Eclipse wtp configuration files."));
+        getCleanTask().configure(IdePlugin.withDescription("Cleans Eclipse wtp configuration files."));
 
-        project.getTasks().named(EclipsePlugin.ECLIPSE_TASK_NAME, dependsOn(getLifecycleTask()));
-        project.getTasks().named(cleanName(EclipsePlugin.ECLIPSE_TASK_NAME), dependsOn(getCleanTask()));
+        project.getTasks().named(EclipsePlugin.ECLIPSE_TASK_NAME, IdePlugin.dependsOn(getLifecycleTask()));
+        project.getTasks().named(cleanName(EclipsePlugin.ECLIPSE_TASK_NAME), IdePlugin.dependsOn(getCleanTask()));
 
         EclipseModel model = project.getExtensions().getByType(EclipseModel.class);
 

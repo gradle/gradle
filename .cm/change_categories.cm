@@ -192,6 +192,7 @@ platforms:
     name: 'ide'
     subprojects:
       - 'subprojects/ide/'
+      - 'platforms/ide/ide-plugins/'
       - 'subprojects/tooling-api/'
       - 'subprojects/tooling-api-builders/'
   - jvm:

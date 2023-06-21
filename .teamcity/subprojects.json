@@ -357,6 +357,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "ide-plugins",
+    "path": "platforms/ide/ide-plugins",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "installation-beacon",
     "path": "subprojects/installation-beacon",
     "unitTests": false,
@@ -842,7 +849,7 @@
   {
     "name": "war",
     "path": "platforms/jvm/war",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

@@ -22,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultRunClosedProjectBuildDependencies;
@@ -76,7 +75,7 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
     }
 
     private List<TaskDependency> populate(Project project) {
-        project.getPluginManager().apply(EclipsePlugin.class);
+        project.getPluginManager().apply("eclipse");
         EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
         EclipseClasspath eclipseClasspath = eclipseModel.getClasspath();
 

@@ -15,7 +15,6 @@
  */
 
 /**
- * The standard {@link org.gradle.api.Plugin} implementations.
- */
-@org.gradle.api.NonNullApi
+* The standard {@link org.gradle.api.Plugin} implementations.
+*/
 package org.gradle.api.plugins;

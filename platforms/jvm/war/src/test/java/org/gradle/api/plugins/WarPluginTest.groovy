@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         task instanceof War
-        dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
+        org.gradle.api.tasks.TaskDependencyMatchers.dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
         task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
 
         when:
@@ -122,7 +122,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task('customWar', type: War)
 
         then:
-        dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
+        org.gradle.api.tasks.TaskDependencyMatchers.dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
         task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 

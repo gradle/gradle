@@ -41,6 +41,118 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Class org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Field ECLIPSE_CP_TASK_NAME",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Field ECLIPSE_JDT_TASK_NAME",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Field ECLIPSE_PROJECT_TASK_NAME",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Field ECLIPSE_TASK_NAME",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Method org.gradle.plugins.ide.eclipse.EclipsePlugin.getLifecycleTaskName()",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Method org.gradle.plugins.ide.eclipse.EclipsePlugin.onApply(org.gradle.api.Project)",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Class org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Field ECLIPSE_WTP_COMPONENT_TASK_NAME",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Field ECLIPSE_WTP_FACET_TASK_NAME",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Field WEB_LIBS_CONTAINER",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Field instantiator",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Method org.gradle.plugins.ide.eclipse.EclipseWtpPlugin.getLifecycleTaskName()",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Method org.gradle.plugins.ide.eclipse.EclipseWtpPlugin.onApply(org.gradle.api.Project)",
+            "acceptation": "Extracting ide-plugins project",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.util.SingleMessageLogger",
             "member": "Class org.gradle.util.SingleMessageLogger",
             "acceptation": "Changed the signature of internal method",

@@ -20,10 +20,11 @@ dependencies {
     implementation(project(":language-jvm"))
     implementation(project(":language-java"))
     implementation(project(":scala"))
-    implementation(project(":ear"))
     implementation(project(":tooling-api"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":ear"))
+    implementation(project(":war"))
 
     implementation(libs.groovy)
     implementation(libs.groovyXml)
@@ -42,7 +43,7 @@ dependencies {
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.groovyXml)
 
-    testImplementation(project(":dependency-management"))
+    testImplementation(project(":ide-plugins"))
     testImplementation(libs.xmlunit)
     testImplementation(libs.equalsverifier)
     testImplementation(testFixtures(project(":core")))

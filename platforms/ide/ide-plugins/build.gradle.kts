@@ -18,21 +18,22 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Adds support for assembling JVM web application WAR files"
-
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core"))
     implementation(project(":core-api"))
     implementation(project(":dependency-management"))
-    implementation(project(":file-collections"))
-    implementation(project(":logging"))
+    implementation(project(":ear"))
+    implementation(project(":ide"))
     implementation(project(":model-core"))
-    implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":plugins"))
+    implementation(project(":scala"))
     implementation(project(":testing-base"))
+    implementation(project(":war"))
 
+    implementation(libs.groovy)
+    implementation(libs.guava)
     implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))

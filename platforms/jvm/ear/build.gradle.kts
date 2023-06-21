@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":platform-base"))
     implementation(project(":plugins"))
+    implementation(project(":war"))
 
     implementation(libs.groovy)
     implementation(libs.groovyXml)

@@ -38,7 +38,6 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -104,7 +103,6 @@ public abstract class WarPlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("deprecation")
-    @NotNull
     private WarPluginConvention setupPluginConvention(Project project) {
         final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
         DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));

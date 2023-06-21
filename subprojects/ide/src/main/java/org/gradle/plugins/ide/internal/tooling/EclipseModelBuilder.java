@@ -34,7 +34,6 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
 import org.gradle.plugins.ide.eclipse.model.AccessRule;
@@ -172,7 +171,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     private void applyEclipsePlugin(ProjectInternal root, List<GradleInternal> alreadyProcessed) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
-            p.getPluginManager().apply(EclipsePlugin.class);
+            p.getPluginManager().apply("eclipse");
         }
         for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
             BuildState target = reference.getTarget();

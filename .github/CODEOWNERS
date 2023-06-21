@@ -29,6 +29,7 @@ subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt
 subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
 
 # JVM platform
+platforms/ide/                              @gradle/bt-ide-experience
 platforms/jvm/                              @gradle/bt-jvm
 subprojects/code-quality/                   @gradle/bt-jvm
 subprojects/distributions-jvm/              @gradle/bt-jvm
@@ -139,4 +140,3 @@ subprojects/docs/src/docs/userguide/dep-man/                                    
 subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm @gradle/bt-devrel-education
 subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-jvm @gradle/bt-devrel-education
 subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm @gradle/bt-devrel-education
-
