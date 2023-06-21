@@ -21,10 +21,12 @@ import java.util.Locale;
 
 import static java.lang.String.format;
 
-public class ZipSlip {
+public class PathTraversalChecker {
 
     /**
-     * Checks the entry name for zip-slip vulnerable sequences.
+     * Checks the entry name for path traversal vulnerable sequences.
+     *
+     * This code is used for path traversal, ZipSlip and TarSlip detection.
      *
      * <b>IMPLEMENTATION NOTE</b>
      * We do it this way instead of the way recommended in <a href="https://snyk.io/research/zip-slip-vulnerability"></a>
@@ -32,14 +34,14 @@ public class ZipSlip {
      *
      * @throws IllegalArgumentException if the entry contains vulnerable sequences
      */
-    public static String safeZipEntryName(String name) {
-        if (isUnsafeZipEntryName(name)) {
+    public static String safePathName(String name) {
+        if (isUnsafePathName(name)) {
             throw new IllegalArgumentException(format("'%s' is not a safe zip entry name.", name));
         }
         return name;
     }
 
-    public static boolean isUnsafeZipEntryName(String name) {
+    public static boolean isUnsafePathName(String name) {
         return name.isEmpty()
             || name.startsWith("/")
             || name.startsWith("\\")
