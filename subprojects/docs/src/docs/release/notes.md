@@ -91,7 +91,7 @@ Add `-Pkotlin.experimental.tryK2=true` to your command line invocations or add i
 kotlin.experimental.tryK2=true
 ```
 
-This Gradle property automatically sets the language version to 2.0.
+Setting this Gradle property also sets the language version to 2.0.
 
 Starting with this version of Gradle the compilation of `.gradle.kts` build scripts accept dependencies compiled with Kotlin K2 compiler.
 This allows for example to try out K2 in builds that use Kotlin 1.9 and have Kotlin code in `buildSrc` or in included builds for build logic.
