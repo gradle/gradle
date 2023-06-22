@@ -40,6 +40,7 @@ abstract class KotlinDslStandaloneScriptCompilationConfiguration protected const
         "-Xjsr305=strict",
         "-Xskip-metadata-version-check",
         "-Xskip-prerelease-check",
+        "-Xallow-unstable-dependencies",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
         "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
     ))

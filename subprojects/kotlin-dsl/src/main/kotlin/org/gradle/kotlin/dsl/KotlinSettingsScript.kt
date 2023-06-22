@@ -45,6 +45,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-Xjsr305=strict",
         "-Xskip-metadata-version-check",
         "-Xskip-prerelease-check",
+        "-Xallow-unstable-dependencies",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
         "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
     ],
