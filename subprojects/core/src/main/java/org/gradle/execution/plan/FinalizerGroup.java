@@ -179,9 +179,7 @@ public class FinalizerGroup extends HasFinalizers {
 
         // Determine whether any dependencies of a finalized node are also members, in which case treat the dependency as if it were a finalized member
         Set<Node> dependenciesThatAreMembers = getDependenciesThatAreMembers(blockedFinalizedMembers);
-        dependenciesThatAreMembers.stream()
-                .filter(member -> !blockedFinalizedMembers.contains(member))
-                .forEach(member -> blockingNodesBuilder.put(member, waitForFinalizers));
+        dependenciesThatAreMembers.forEach(member -> blockingNodesBuilder.put(member, waitForFinalizers));
 
         for (Node member : members) {
             if (isFinalizerNode(member) || memberCanStartAtAnyTime(member)) {
@@ -257,22 +255,22 @@ public class FinalizerGroup extends HasFinalizers {
         return successors.getNodesThatBlock(node);
     }
 
-    private Set<Node> getDependenciesThatAreMembers(Set<Node> fromNodes) {
-        Set<Node> dependenciesThatAreMembers = new HashSet<>();
-        Set<Node> seen = new HashSet<>();
+    private Set<Node> getDependenciesThatAreMembers(Set<Node> blockedFinalizedMembers) {
+        Set<Node> dependenciesThatAreMembers = new HashSet<>(members.size());
+        Set<Node> seen = new HashSet<>(1024);
 
-        for (Node fromNode : fromNodes) {
-            List<Node> queue = new ArrayList<>();
-            Iterables.addAll(queue, fromNode.getHardSuccessors());
+        for (Node fromNode : blockedFinalizedMembers) {
+            List<Node> queue = new ArrayList<>(100);
+            fromNode.visitHardSuccessors(queue::add);
             while (!queue.isEmpty()) {
                 Node toNode = queue.remove(0);
-                if (members.contains(toNode)) {
-                    dependenciesThatAreMembers.add(toNode);
-                }
                 if (!seen.add(toNode)) {
                     continue;
                 }
-                Iterables.addAll(queue, toNode.getHardSuccessors());
+                if (members.contains(toNode) && !blockedFinalizedMembers.contains(toNode)) {
+                    dependenciesThatAreMembers.add(toNode);
+                }
+                toNode.visitHardSuccessors(queue::add);
             }
         }
         return dependenciesThatAreMembers;
