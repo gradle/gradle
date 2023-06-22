@@ -178,4 +178,3 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         assert project.cleanEclipse.taskDependencies.getDependencies(project.cleanEclipse).contains(dependsOnTask)
     }
 }
-

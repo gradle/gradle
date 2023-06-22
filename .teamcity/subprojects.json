@@ -359,7 +359,7 @@
   {
     "name": "ide-plugins",
     "path": "platforms/ide/ide-plugins",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
