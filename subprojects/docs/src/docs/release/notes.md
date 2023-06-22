@@ -93,7 +93,7 @@ kotlin.experimental.tryK2=true
 
 Setting this Gradle property also sets the language version to 2.0.
 
-Starting with this version of Gradle the compilation of `.gradle.kts` build scripts accept dependencies compiled with Kotlin K2 compiler.
+Starting with this version of Gradle, the compilation of `.gradle.kts` build scripts accepts dependencies compiled with Kotlin K2 compiler.
 This allows for example to try out K2 in builds that use Kotlin 1.9 and have Kotlin code in `buildSrc` or in included builds for build logic.
 
 Note that if you use the [`kotlin-dsl` plugin](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) in your build logic, you will also need to explicitly set the Kotlin language version to 2.0:
