@@ -37,3 +37,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 }
+
+packageCycles {
+    excludePatterns.add("org/gradle/api/plugins/internal/*")
+}
