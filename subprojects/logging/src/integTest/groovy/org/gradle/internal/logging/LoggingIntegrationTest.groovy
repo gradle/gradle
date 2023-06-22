@@ -17,9 +17,9 @@
 package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
@@ -177,11 +177,13 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
         checkOutput(this.&run, logOutput.debug)
     }
 
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
     @Test @UsesSample('tutorial/logging/groovy')
     void sampleQuietLogging() {
         checkOutput(this.&runSample, sample.quiet)
     }
 
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
     @Test @UsesSample('tutorial/logging/groovy')
     void sampleLifecycleLogging() {
         checkOutput(this.&runSample, sample.lifecycle)
