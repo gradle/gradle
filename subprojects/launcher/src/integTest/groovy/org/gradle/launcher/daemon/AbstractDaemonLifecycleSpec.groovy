@@ -72,13 +72,15 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
                 executer.withDefaultCharacterEncoding(buildEncoding)
             }
             executer.usingProjectDirectory buildDirWithScript(builds.size(), """
+                def stopFile = file("stop")
+                def existsFile = file("exists")
                 task('watch') {
                     doLast {
                         println "waiting for stop file"
                         long sanityCheck = System.currentTimeMillis() + 120000L
-                        while(!file("stop").exists()) {
+                        while (!stopFile.exists()) {
                             sleep 100
-                            if (file("exit").exists()) {
+                            if (existsFile.exists()) {
                                 println "found exit file, exiting"
                                 System.exit(1)
                             }
