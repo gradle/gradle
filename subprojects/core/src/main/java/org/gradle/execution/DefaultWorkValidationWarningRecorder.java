@@ -42,6 +42,7 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
         String uniqueWarnings = warnings.stream()
             .map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false)))
             .map(warning -> "\n  - " + warning)
+            .distinct()
             .collect(joining());
         LOGGER.warn("Execution optimizations have been disabled for {} to ensure correctness due to the following reasons:{}", work.getDisplayName(), uniqueWarnings);
 
