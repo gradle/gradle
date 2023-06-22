@@ -850,7 +850,7 @@
     "name": "war",
     "path": "platforms/jvm/war",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
