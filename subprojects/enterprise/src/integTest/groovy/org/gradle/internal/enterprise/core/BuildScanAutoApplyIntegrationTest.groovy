@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
@@ -117,7 +118,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << fixture.plugins()
 
         and:
-        if (VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
+        if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
             executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
 
@@ -151,7 +152,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         """
 
         and:
-        if (VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
+        if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
             executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
 
@@ -189,7 +190,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         """
 
         and:
-        if (VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
+        if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
             executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
 
