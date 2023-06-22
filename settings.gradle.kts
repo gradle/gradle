@@ -147,6 +147,11 @@ unassigned {
     subproject("instrumentation-declarations")
 }
 
+// IDE Platform
+platform("ide") {
+    subproject("ide-plugins")
+}
+
 // JVM Platform
 platform("jvm") {
     subproject("code-quality")
