@@ -101,7 +101,8 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
 
     @Requires(
         value = IntegTestPreconditions.NotConfigCached,
-        reason = "With cc it can happen on Mac that cc touches FS before we setup logger and some events are logged as [DEBUG] before we manage to disable debug logging"
+        reason = """With cc it can happen on Mac that cc touches FS before we setup logger and some events
+            are logged as [DEBUG] before we manage to disable debug logging, see also https://github.com/gradle/gradle/issues/25462"""
     )
     def "debug logging can be enabled and then disabled again"() {
         buildFile << """
