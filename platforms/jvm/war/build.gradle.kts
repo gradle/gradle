@@ -37,6 +37,8 @@ dependencies {
     implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
+
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 packageCycles {
