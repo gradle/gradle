@@ -21,7 +21,6 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
-import org.gradle.api.tasks.bundling.War
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
