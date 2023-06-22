@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing.failure.mappers;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.ThrowableToFailureMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@NonNullApi
 public class AssertjMultipleAssertionsErrorMapper extends FailureMapper {
 
     @Override

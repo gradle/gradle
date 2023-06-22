@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 
 import javax.annotation.Nullable;
 
@@ -27,6 +28,7 @@ import javax.annotation.Nullable;
  * @since 8.3
  */
 @Incubating
+@NonNullApi
 public interface InternalFileComparisonTestAssertionFailure extends InternalTestAssertionFailure {
 
     /**

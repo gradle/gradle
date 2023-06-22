@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
@@ -23,8 +24,8 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.failure.ThrowableToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.ThrowableToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestFailureFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestMultipleFailuresMapper;
@@ -54,9 +55,10 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 
+@NonNullApi
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener, ThrowableToFailureMapper {
 
-    private static List<FailureMapper> MAPPERS = Arrays.asList(
+    private final static List<FailureMapper> MAPPERS = Arrays.asList(
         new OpentestFailureFailedMapper(),
         new OpentestMultipleFailuresMapper(),
         new JUnitComparisonFailureMapper()

@@ -15,12 +15,14 @@
  */
 package org.gradle.internal.build.event.types;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
 
 import java.util.Collections;
 import java.util.List;
 
+@NonNullApi
 public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssertionFailure implements InternalFileComparisonTestAssertionFailure {
 
     private final byte[] expectedContent;
@@ -32,7 +34,17 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
         this.actualContent = actualContent;
     }
 
-    public static DefaultFileComparisonTestAssertionFailure create(Throwable t, String message, String className, String stacktrace, String expected, String actual, List<InternalFailure> causes, byte[] expectedContent, byte[] actualContent) {
+    public static DefaultFileComparisonTestAssertionFailure create(
+        Throwable t,
+        String message,
+        String className,
+        String stacktrace,
+        String expected,
+        String actual,
+        List<InternalFailure> causes,
+        byte[] expectedContent,
+        byte[] actualContent
+    ) {
         List<InternalFailure> causeFailure;
         if (causes.isEmpty()) {
             Throwable cause = t.getCause();
@@ -42,6 +54,7 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
         }
         return new DefaultFileComparisonTestAssertionFailure(message, stacktrace, causeFailure, expected, actual, className, stacktrace, expectedContent, actualContent);
     }
+
     @Override
     public byte[] getExpectedContent() {
         return expectedContent;

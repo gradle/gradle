@@ -16,12 +16,14 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.FileComparisonTestAssertionFailure;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
+@NonNullApi
 public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssertionFailure implements FileComparisonTestAssertionFailure {
 
     private final byte[] expectedContent;

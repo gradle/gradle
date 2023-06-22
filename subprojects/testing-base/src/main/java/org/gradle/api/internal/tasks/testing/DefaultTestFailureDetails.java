@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestFailureDetails;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 public class DefaultTestFailureDetails implements TestFailureDetails {

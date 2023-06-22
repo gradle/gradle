@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.failure;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestFailure;
 
+@NonNullApi
 public interface ThrowableToFailureMapper {
 
-    public TestFailure createFailure(Throwable throwable) throws Exception;
+    TestFailure createFailure(Throwable throwable) throws Exception;
 
 }
