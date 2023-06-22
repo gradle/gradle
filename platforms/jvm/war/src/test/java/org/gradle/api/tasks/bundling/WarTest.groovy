@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class WarTest extends AbstractArchiveTaskTest {
@@ -49,5 +50,15 @@ class WarTest extends AbstractArchiveTaskTest {
 
         then:
         new JarTestFixture(war.archiveFile.get().asFile).assertContainsFile('WEB-INF/file.txt')
+    }
+
+    def "java base plugin configures destinationDirectory for war tasks"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+        project.version = '1.0'
+
+        then:
+        def someWar = project.tasks.create('someWar', War)
+        someWar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 }

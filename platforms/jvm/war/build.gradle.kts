@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":testing-base"))
 
+    implementation(libs.groovy)
     implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
