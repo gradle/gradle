@@ -33,8 +33,6 @@ dependencies {
     testImplementation(testFixtures(project(":platform-base")))
     testImplementation(testFixtures(project(":dependency-management")))
 
-    integTestImplementation(project(":ear"))
-    integTestImplementation(project(":war"))
     integTestImplementation(libs.slf4jApi)
 
     integTestRuntimeOnly(project(":resources-s3"))
