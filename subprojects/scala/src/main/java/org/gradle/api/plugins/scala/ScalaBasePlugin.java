@@ -285,7 +285,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         if (rawTargetCompatibility != null) {
             return rawTargetCompatibility;
         }
-        return JavaVersion.toVersion(compileTask.getSourceCompatibility());
+        return JavaVersion.toVersion(compileTask.getSourceCompatibility().getOrNull());
     }
 
     private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {

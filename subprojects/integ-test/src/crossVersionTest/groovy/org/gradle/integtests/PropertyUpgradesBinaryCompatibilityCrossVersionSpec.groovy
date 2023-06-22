@@ -42,6 +42,14 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
                 int currentMaxErrors = it.getMaxErrors();
                 assert currentMaxErrors == 1;
             });
+            project.getTasks().register("myJavaCompile", JavaCompile.class, it -> {
+                it.setSourceCompatibility("8");
+                String sourceCompatibility = it.getSourceCompatibility();
+                assert sourceCompatibility == "8";
+                it.setTargetCompatibility("8");
+                String targetCompatibility = it.getTargetCompatibility();
+                assert targetCompatibility == "8";
+            });
         """
 
         expect:

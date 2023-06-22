@@ -18,12 +18,14 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
@@ -35,8 +37,6 @@ import java.io.File;
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
     private FileCollection classpath;
-    private String sourceCompatibility;
-    private String targetCompatibility;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
@@ -136,18 +136,8 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The source language level.
      */
     @Input
-    public String getSourceCompatibility() {
-        return sourceCompatibility;
-    }
-
-    /**
-     * Sets the Java language level to use to compile the source files.
-     *
-     * @param sourceCompatibility The source language level. Must not be null.
-     */
-    public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
-    }
+    @UpgradedProperty
+    public abstract Property<String> getSourceCompatibility();
 
     /**
      * Returns the target JVM to generate the {@code .class} files for.
@@ -155,16 +145,6 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The target JVM.
      */
     @Input
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    /**
-     * Sets the target JVM to generate the {@code .class} files for.
-     *
-     * @param targetCompatibility The target JVM. Must not be null.
-     */
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
-    }
+    @UpgradedProperty
+    public abstract Property<String> getTargetCompatibility();
 }

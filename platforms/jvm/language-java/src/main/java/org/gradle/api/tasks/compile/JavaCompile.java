@@ -292,13 +292,13 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             spec.setRelease(compileOptions.getRelease().get());
         } else {
             String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
-            String sourceCompatibility = getSourceCompatibility();
+            String sourceCompatibility = getSourceCompatibility().getOrNull();
             // Compatibility can be null if no convention was configured, e.g. when JavaBasePlugin is not applied
             if (sourceCompatibility == null) {
                 sourceCompatibility = toolchainVersion;
             }
 
-            String targetCompatibility = getTargetCompatibility();
+            String targetCompatibility = getTargetCompatibility().getOrNull();
             if (targetCompatibility == null) {
                 targetCompatibility = sourceCompatibility;
             }

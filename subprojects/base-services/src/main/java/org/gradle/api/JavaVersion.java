@@ -17,6 +17,7 @@ package org.gradle.api;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -156,7 +157,8 @@ public enum JavaVersion {
      * @return The version, or null if the provided value is null.
      * @throws IllegalArgumentException when the provided value cannot be converted.
      */
-    public static JavaVersion toVersion(Object value) throws IllegalArgumentException {
+    @Nullable
+    public static JavaVersion toVersion(@Nullable Object value) throws IllegalArgumentException {
         if (value == null) {
             return null;
         }

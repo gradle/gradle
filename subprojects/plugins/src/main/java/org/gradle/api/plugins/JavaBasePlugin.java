@@ -303,10 +303,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
-            ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("sourceCompatibility", () -> computeSourceCompatibilityConvention(javaExtension, compile).toString());
-            conventionMapping.map("targetCompatibility", () -> computeTargetCompatibilityConvention(javaExtension, compile).toString());
-
+            compile.getSourceCompatibility().convention(computeSourceCompatibilityConvention(javaExtension, compile).toString());
+            compile.getTargetCompatibility().convention(computeTargetCompatibilityConvention(javaExtension, compile).toString());
             compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }
@@ -318,7 +316,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     private static JavaVersion computeTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, AbstractCompile compileTask) {
         JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
         if (rawTargetCompatibility == null) {
-            rawTargetCompatibility = JavaVersion.toVersion(compileTask.getSourceCompatibility());
+            rawTargetCompatibility = JavaVersion.toVersion(compileTask.getSourceCompatibility().getOrNull());
         }
         return computeCompatibilityConvention(compileTask, rawTargetCompatibility, javaExtension::getTargetCompatibility);
     }
