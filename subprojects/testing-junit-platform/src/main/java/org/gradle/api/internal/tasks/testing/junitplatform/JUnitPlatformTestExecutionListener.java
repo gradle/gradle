@@ -23,6 +23,8 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.assertion.mappers.OpentestAssertionFailedErrorMapper;
+import org.gradle.api.internal.tasks.testing.assertion.mappers.OpentestMultipleFailuresErrorMapper;
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
@@ -134,7 +136,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         if (failure instanceof AssertionError) {
             List<Throwable> causes = getFailureListFromMultipleFailuresError(failure);
             List<TestFailure> causeFailures = causes == null ? Collections.emptyList() : causes.stream().map(f -> createFailure(f)).collect(Collectors.toList());
-            if (isAssertionFailedErrorOrSubclass(failure.getClass())) {
+            if (OpentestAssertionFailedErrorMapper.accepts(failure.getClass())) {
                 try {
                     // TODO cleanup reflective calls
                     Object expectedValueWrapper =  failure.getClass().getMethod("getExpected").invoke(failure);
@@ -148,7 +150,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                             byte[] expectedContent = (byte[]) expectedValue.getClass().getMethod("getContents").invoke(expectedValue);
                             String actualPath = (String) actualValue.getClass().getMethod("getPath").invoke(actualValue);
                             byte[] actualContent = (byte[]) actualValue.getClass().getMethod("getContents").invoke(actualValue);
-                            return TestFailure.fromFileComparisonFailure(failure,  expectedPath, actualPath, expectedContent, actualContent, causeFailures);
+                            return TestFailure.fromFileComparisonFailure(failure, expectedPath, actualPath, expectedContent, actualContent, causeFailures);
                         }
                     }
                 } catch (Exception e) {
@@ -173,7 +175,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private static String reflectivelyRead(Object target, String methodName) {
-        String toStringMethod = isAssertionFailedErrorOrSubclass(target.getClass()) ? "getStringRepresentation" : "toString";
+        String toStringMethod = OpentestMultipleFailuresErrorMapper.accepts(target.getClass()) ? "getStringRepresentation" : "toString";
         try {
             Object value = target.getClass().getMethod(methodName).invoke(target);
             return value == null ? null : (String) value.getClass().getMethod(toStringMethod).invoke(value);
@@ -186,9 +188,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private static List<Throwable> getFailureListFromMultipleFailuresError(Throwable f) {
         try {
             String className = f.getClass().getCanonicalName();
-            if (className.equals("org.opentest4j.MultipleFailuresError")) {
-                Method getFailures = f.getClass().getMethod("getFailures");
-                return (List<Throwable>) getFailures.invoke(f);
+            if (OpentestMultipleFailuresErrorMapper.accepts(f.getClass())) {
+                return OpentestMultipleFailuresErrorMapper.getInnerFailures(f);
             } else if (className.equals("org.assertj.core.error.MultipleAssertionsError")) {
                 Method getFailures = f.getClass().getMethod("getErrors");
                 return (List<Throwable>) getFailures.invoke(f);
@@ -197,18 +198,6 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             }
         } catch (Exception ignore) {
             return null;
-        }
-    }
-
-    // if not multiple failures or reflection fails then return null;
-
-    private static boolean isAssertionFailedErrorOrSubclass(Class<?> cls) {
-        if (cls.getCanonicalName().equals("org.opentest4j.AssertionFailedError")) {
-            return true;
-        } else if (cls.getSuperclass() != null) {
-            return isAssertionFailedErrorOrSubclass(cls.getSuperclass());
-        } else {
-            return false;
         }
     }
 

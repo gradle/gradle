@@ -20,14 +20,17 @@ package org.gradle.integtests.tooling.r83
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.FileComparisonTestAssertionFailure
+import org.gradle.tooling.TestAssertionFailure
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.test.TestFailureResult
 import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestOperationResult
+import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure
 
 @ToolingApiVersion(">=8.3")
 @TargetGradleVersion(">=8.3")
@@ -37,10 +40,6 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def setup() {
         progressEventCollector = new ProgressEventCollector()
-    }
-
-    def "Emits test failure events for Junit 5 tests"() {
-        setup:
         buildFile << """
             plugins {
                 id 'java-library'
@@ -56,9 +55,52 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
             test {
                 useJUnitPlatform()
+
+                debugOptions {
+                    enabled = true
+                    host = 'localhost'
+                    port = 4455
+                    server = false
+                    suspend = true
+                }
             }
         """
+    }
 
+    def "Emits test failure events for org.opentest4j.MultipleAssertionError assertion errors in Junit 5 tests"() {
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.Test;
+            import org.opentest4j.AssertionFailedError;
+            import org.opentest4j.FileInfo;
+
+            public class JUnitJupiterTest {
+
+                 @Test
+                 void testingFileComparisonFailure() {
+                    final List<Throwable> innerFailures = List.of(
+                        new AssertionFailedError("First failure", "a", "b"),
+                        new AssertionFailedError("Second failure", "a", "b")
+                    );
+                    throw new MultipleFailuresError("Multiple errors detected", innerFailures);
+                }
+            }
+        '''
+
+        when:
+        runTestTaskWithFailureCollection()
+
+        then:
+        thrown(BuildException)
+        failures.size() == 2
+        failures[0] instanceof DefaultTestAssertionFailure
+        FileComparisonTestAssertionFailure f = failures[0]
+        f.expected == 'a'
+        f.actual == 'b'
+    }
+
+    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 5 tests"() {
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
 

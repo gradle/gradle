@@ -21,6 +21,8 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.assertion.mappers.OpentestAssertionFailedErrorMapper;
+import org.gradle.api.internal.tasks.testing.assertion.mappers.OpentestMultipleFailuresErrorMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
@@ -31,8 +33,10 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -64,7 +68,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     @Override
-    public void testFailure(Failure failure) {
+    public void testFailure(Failure failure) throws Exception {
         TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
         TestDescriptorInternal testInternal;
         synchronized (lock) {
@@ -85,7 +89,7 @@ public class JUnitTestEventAdapter extends RunListener {
         }
     }
 
-    private void reportFailure(Object descriptorId, Throwable failure) {
+    private TestFailure createFailure(Throwable failure) throws Exception {
         // According to https://junit.org/junit4/javadoc/latest/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
         // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
         // - org.junit.ComparisonFailure: when assertEquals (and similar assertion) fails; test code can throw it directly
@@ -93,15 +97,29 @@ public class JUnitTestEventAdapter extends RunListener {
         // All assertion errors are subclasses of the AssertionError class. If the received failure is not an instance of AssertionError then it is categorized as a framework failure.
         if (failure instanceof ComparisonFailure) {
             ComparisonFailure comparisonFailure = (ComparisonFailure) failure;
-            resultProcessor.failure(descriptorId, TestFailure.fromTestAssertionFailure(failure, comparisonFailure.getExpected(), comparisonFailure.getActual()));
+            return TestFailure.fromTestAssertionFailure(failure, comparisonFailure.getExpected(), comparisonFailure.getActual());
         } else if (failure instanceof junit.framework.ComparisonFailure) {
             junit.framework.ComparisonFailure comparisonFailure = (junit.framework.ComparisonFailure) failure;
-            resultProcessor.failure(descriptorId, TestFailure.fromTestAssertionFailure(failure, getValueOfStringField("fExpected", comparisonFailure), getValueOfStringField("fActual", comparisonFailure)));
+            return TestFailure.fromTestAssertionFailure(failure, getValueOfStringField("fExpected", comparisonFailure), getValueOfStringField("fActual", comparisonFailure));
         } else if (failure instanceof AssertionError) {
-            resultProcessor.failure(descriptorId, TestFailure.fromTestAssertionFailure(failure, null, null));
+            if (OpentestMultipleFailuresErrorMapper.accepts(failure.getClass())) {
+                List<TestFailure> innerFailures = new ArrayList<TestFailure>();
+                for(Throwable innerCause: OpentestMultipleFailuresErrorMapper.getInnerFailures(failure)) {
+                    innerFailures.add(createFailure(innerCause));
+                }
+                return OpentestMultipleFailuresErrorMapper.map(failure, innerFailures);
+            } else if (OpentestAssertionFailedErrorMapper.accepts(failure.getClass())) {
+                return OpentestAssertionFailedErrorMapper.map(failure, null);
+            } else {
+                return TestFailure.fromTestFrameworkFailure(failure);
+            }
         } else {
-            resultProcessor.failure(descriptorId, TestFailure.fromTestFrameworkFailure(failure));
+            return TestFailure.fromTestFrameworkFailure(failure);
         }
+    }
+
+    private void reportFailure(Object descriptorId, Throwable failure) throws Exception {
+        resultProcessor.failure(descriptorId, createFailure(failure));
     }
 
     private String getValueOfStringField(String name, junit.framework.ComparisonFailure comparisonFailure) {
