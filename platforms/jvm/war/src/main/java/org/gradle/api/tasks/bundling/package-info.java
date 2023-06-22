@@ -15,10 +15,6 @@
  */
 
 /**
- * Support for generating WAR archives in a Gradle build
- */
-
-/**
  * Tasks for generating WAR archives in a Gradle build
  */
 package org.gradle.api.tasks.bundling;
