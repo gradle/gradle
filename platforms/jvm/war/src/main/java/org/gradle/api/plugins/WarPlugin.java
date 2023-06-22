@@ -31,7 +31,6 @@ import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.internal.DefaultWarPluginConvention;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
@@ -104,7 +103,7 @@ public abstract class WarPlugin implements Plugin<Project> {
 
     @SuppressWarnings("deprecation")
     private WarPluginConvention setupPluginConvention(Project project) {
-        final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
+        final WarPluginConvention pluginConvention = objectFactory.newInstance(org.gradle.api.plugins.internal.DefaultWarPluginConvention.class, project);
         DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
         return pluginConvention;
     }

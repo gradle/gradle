@@ -26,7 +26,8 @@ import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings("DeprecatedIsStillUsed")
+@Deprecated
 public abstract class DefaultWarPluginConvention extends org.gradle.api.plugins.WarPluginConvention implements HasPublicType {
     private String webAppDirName;
     private final Project project;
