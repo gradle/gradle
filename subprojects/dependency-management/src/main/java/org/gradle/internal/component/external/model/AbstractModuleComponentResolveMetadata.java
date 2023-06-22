@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -33,7 +34,6 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
     private final ImmutableAttributesFactory attributesFactory;
@@ -146,6 +146,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return componentIdentifier.getDisplayName();
     }
 
+    @Nullable
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return schema;
@@ -183,7 +184,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
      * If it can not provide variants, absent must be returned to fall back to traditional configuration selection.
      */
     protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
-        return Optional.empty();
+        return Optional.absent();
     }
 
     @Override

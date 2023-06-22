@@ -38,10 +38,10 @@ import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
@@ -60,7 +60,6 @@ internal
 class ProjectMetadataController(
     private val host: DefaultConfigurationCache.Host,
     private val cacheIO: ConfigurationCacheIO,
-    private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     store: ConfigurationCacheStateStore
 ) : ProjectStateStore<Path, LocalComponentGraphResolveState>(store, StateType.ProjectMetadata) {
 
@@ -132,7 +131,7 @@ class ProjectMetadataController(
             val configurationsFactory = DefaultLocalComponentMetadata.ConfigurationsMapMetadataFactory(configurations)
 
             val metadata = DefaultLocalComponentMetadata(moduleVersionId, id, Project.DEFAULT_STATUS, EmptySchema.INSTANCE, configurationsFactory, null)
-            resolveStateFactory.stateFor(metadata)
+            DefaultLocalComponentGraphResolveState(metadata)
         }
     }
 

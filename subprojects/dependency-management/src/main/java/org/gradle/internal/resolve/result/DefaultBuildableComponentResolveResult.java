@@ -21,13 +21,11 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
     private ComponentGraphResolveState state;
-    private ComponentGraphSpecificResolveState graphState;
     private ModuleVersionResolveException failure;
 
     public DefaultBuildableComponentResolveResult() {
@@ -46,9 +44,8 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     }
 
     @Override
-    public void resolved(ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
+    public void resolved(ComponentGraphResolveState state) {
         this.state = state;
-        this.graphState = graphState;
     }
 
     @Override
@@ -73,12 +70,6 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     public ComponentGraphResolveState getState() throws ModuleVersionResolveException {
         assertResolved();
         return state;
-    }
-
-    @Override
-    public ComponentGraphSpecificResolveState getGraphState() throws ModuleVersionResolveException {
-        assertResolved();
-        return graphState;
     }
 
     @Override
@@ -111,7 +102,8 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
             idResolve.failed(failure);
         }
         if (state != null) {
-            idResolve.resolved(state, graphState);
+            idResolve.resolved(state);
         }
     }
+
 }

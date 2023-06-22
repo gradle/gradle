@@ -22,6 +22,8 @@ import java.util.Set;
 
 /**
  * Represents all variants available for artifact selection.
+ *
+ * TODO: Combine this with ComponentArtifactResolveState
  */
 public interface ComponentArtifactResolveVariantState {
     Set<ResolvedVariant> getAllVariants();

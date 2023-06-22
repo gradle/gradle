@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
@@ -40,15 +39,13 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         def state = Stub(ComponentGraphResolveState) {
             getMetadata() >> metadata
         }
-        def graphState = Stub(ComponentGraphSpecificResolveState)
 
         when:
-        result.resolved(state, graphState)
+        result.resolved(state)
 
         then:
         result.moduleVersionId == id
         result.state == state
-        result.graphState == graphState
     }
 
     def "cannot get id when no result has been specified"() {
@@ -60,18 +57,9 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         e.message == 'No result has been specified.'
     }
 
-    def "cannot get state when no result has been specified"() {
+    def "cannot get meta-data when no result has been specified"() {
         when:
         result.state
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'No result has been specified.'
-    }
-
-    def "cannot get graph state when no result has been specified"() {
-        when:
-        result.graphState
 
         then:
         IllegalStateException e = thrown()
@@ -100,7 +88,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         e == failure
     }
 
-    def "cannot get state when resolve failed"() {
+    def "cannot get meta-data when resolve failed"() {
         org.gradle.internal.Factory<String> broken = { "too bad" }
         def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
 
@@ -113,22 +101,9 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         e == failure
     }
 
-    def "cannot get graph state when resolve failed"() {
-        org.gradle.internal.Factory<String> broken = { "too bad" }
-        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
-
-        when:
-        result.failed(failure)
-        result.graphState
-
-        then:
-        ModuleVersionResolveException e = thrown()
-        e == failure
-    }
-
     def "failure is null when successfully resolved"() {
         when:
-        result.resolved(Mock(ComponentGraphResolveState), Mock(ComponentGraphSpecificResolveState))
+        result.resolved(Mock(ComponentGraphResolveState))
 
         then:
         result.failure == null
@@ -151,12 +126,11 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
     def "copies results to an id resolve result"() {
         def idResult = Mock(BuildableComponentIdResolveResult)
         def state = Stub(ComponentGraphResolveState)
-        def graphState = Stub(ComponentGraphSpecificResolveState)
 
         given:
         result.attempted("a")
         result.attempted("b")
-        result.resolved(state, graphState)
+        result.resolved(state)
 
         when:
         result.applyTo(idResult)
@@ -164,7 +138,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         then:
         1 * idResult.attempted("a")
         1 * idResult.attempted("b")
-        1 * idResult.resolved(state, graphState)
+        1 * idResult.resolved(state)
     }
 
     def "copies failure result to an id resolve result"() {

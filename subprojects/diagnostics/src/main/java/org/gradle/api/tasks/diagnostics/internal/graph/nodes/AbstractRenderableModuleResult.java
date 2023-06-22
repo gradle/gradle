@@ -50,7 +50,7 @@ public abstract class AbstractRenderableModuleResult extends AbstractRenderableD
 
     @Override
     public List<ResolvedVariantResult> getAllVariants() {
-        return ((ResolvedComponentResultInternal) module).getAvailableVariants();
+        return ((ResolvedComponentResultInternal) module).getAllVariants();
     }
 
     @Override

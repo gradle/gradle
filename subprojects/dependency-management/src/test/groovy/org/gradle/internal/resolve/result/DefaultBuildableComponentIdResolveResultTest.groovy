@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -40,7 +39,6 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.id == id
         result.moduleVersionId == mvId
         result.state == null
-        result.graphState == null
         result.failure == null
     }
 
@@ -54,17 +52,15 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
             getId() >> id
             getMetadata() >> metadata
         }
-        def graphState = Stub(ComponentGraphSpecificResolveState)
 
         when:
-        result.resolved(state, graphState)
+        result.resolved(state)
 
         then:
         result.hasResult()
         result.id == id
         result.moduleVersionId == mvId
         result.state == state
-        result.graphState == graphState
         result.failure == null
     }
 
@@ -85,19 +81,5 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         then:
         ModuleVersionResolveException e = thrown()
         e == failure
-
-        when:
-        result.state
-
-        then:
-        ModuleVersionResolveException e2 = thrown()
-        e2 == failure
-
-        when:
-        result.graphState
-
-        then:
-        ModuleVersionResolveException e3 = thrown()
-        e3 == failure
     }
 }

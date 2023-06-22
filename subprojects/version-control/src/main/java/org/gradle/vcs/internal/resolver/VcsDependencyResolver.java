@@ -35,7 +35,6 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
@@ -118,7 +117,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     result.failed(new ModuleVersionResolveException(depSelector, () -> spec.getDisplayName() + " did not contain a project publishing the specified dependency."));
                 } else {
                     LocalComponentGraphResolveState component = localComponentRegistry.getComponent(entry.right);
-                    result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
+                    result.resolved(component);
                 }
             }
         }

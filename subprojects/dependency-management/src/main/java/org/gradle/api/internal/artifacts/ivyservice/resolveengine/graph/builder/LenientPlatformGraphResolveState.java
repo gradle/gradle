@@ -18,15 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 
 import javax.annotation.Nullable;
 
 public class LenientPlatformGraphResolveState extends DefaultComponentGraphResolveState<LenientPlatformResolveMetadata, LenientPlatformResolveMetadata> {
-    private final AttributeDesugaring attributeDesugaring;
-
     public static LenientPlatformGraphResolveState of(
         ModuleComponentIdentifier moduleComponentIdentifier,
         ModuleVersionIdentifier moduleVersionIdentifier,
@@ -35,17 +32,16 @@ public class LenientPlatformGraphResolveState extends DefaultComponentGraphResol
         ResolveState resolveState
     ) {
         LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier, platformState, platformNode, resolveState);
-        return new LenientPlatformGraphResolveState(metadata, resolveState.getAttributeDesugaring());
+        return new LenientPlatformGraphResolveState(metadata);
     }
 
-    private LenientPlatformGraphResolveState(LenientPlatformResolveMetadata metadata, AttributeDesugaring attributeDesugaring) {
-        super(metadata, metadata, attributeDesugaring);
-        this.attributeDesugaring = attributeDesugaring;
+    private LenientPlatformGraphResolveState(LenientPlatformResolveMetadata metadata) {
+        super(metadata, metadata);
     }
 
     @Nullable
     @Override
     public ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new LenientPlatformGraphResolveState(getMetadata().withVersion(componentIdentifier, moduleVersionIdentifier), attributeDesugaring);
+        return new LenientPlatformGraphResolveState(getMetadata().withVersion(componentIdentifier, moduleVersionIdentifier));
     }
 }

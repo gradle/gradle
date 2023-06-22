@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -41,14 +42,17 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.capabilities.ShadowedCapability;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -599,7 +603,7 @@ public class NodeState implements DependencyGraphNode {
         if (state == null) {
             // the platform doesn't exist, so we're building a lenient one
             state = LenientPlatformGraphResolveState.of(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
-            potentialEdge.component.setState(state, ComponentGraphSpecificResolveState.EMPTY_STATE);
+            potentialEdge.component.setState(state);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
         }
@@ -1245,12 +1249,24 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
+    ImmutableAttributes desugar(ImmutableAttributes attributes) {
+        return resolveState.desugar(attributes);
+    }
+
     public ResolvedVariantResult getResolvedVariant() {
         if (cachedVariantResult != null) {
             return cachedVariantResult;
         }
-        ResolvedVariantResult externalVariant = findExternalVariant();
-        cachedVariantResult = component.getResolveState().getVariantResult(metadata, externalVariant);
+        DisplayName name = Describables.of(metadata.getName());
+        List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
+        AttributeContainer attributes = desugar(metadata.getAttributes());
+        List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(component.getImplicitCapability()) : ImmutableList.copyOf(capabilities);
+        cachedVariantResult = new DefaultResolvedVariantResult(
+            component.getComponentId(),
+            name,
+            attributes,
+            resolvedVariantCapabilities,
+            findExternalVariant());
         return cachedVariantResult;
     }
 

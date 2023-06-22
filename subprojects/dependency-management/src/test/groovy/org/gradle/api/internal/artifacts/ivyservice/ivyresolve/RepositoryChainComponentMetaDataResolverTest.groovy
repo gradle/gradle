@@ -24,7 +24,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
@@ -77,9 +76,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo.name
         }
 
         and:
@@ -100,9 +98,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo.name
         }
 
         and:
@@ -126,9 +123,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo.name
         }
 
         and:
@@ -196,9 +192,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo1.name
         }
 
         and:
@@ -224,9 +219,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo2.name
         }
 
         and:
@@ -253,9 +247,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo2.name
         }
 
         and:
@@ -283,9 +276,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo2.name
         }
 
         and:
@@ -319,9 +311,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo2.name
         }
 
         and:
@@ -351,9 +342,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo2.name
         }
 
         and:
@@ -384,9 +374,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo1.name
         }
 
         and:
@@ -412,9 +401,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo2.name
         }
 
         and:
@@ -442,9 +430,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(componentState)
         }
-        1 * result.resolved(_, _) >> { ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState ->
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state == componentState
-            assert graphState.repositoryName == repo2.name
         }
 
         and:

@@ -31,10 +31,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
@@ -67,6 +67,7 @@ class ModuleResolveState implements CandidateModule {
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
     private final ConflictResolution conflictResolution;
+    private final AttributeDesugaring attributeDesugaring;
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
@@ -95,7 +96,8 @@ class ModuleResolveState implements CandidateModule {
         SelectorStateResolver<ComponentState> selectorStateResolver,
         ResolveOptimizations resolveOptimizations,
         boolean rootModule,
-        ConflictResolution conflictResolution
+        ConflictResolution conflictResolution,
+        AttributeDesugaring attributeDesugaring
     ) {
         this.idGenerator = idGenerator;
         this.id = id;
@@ -109,6 +111,7 @@ class ModuleResolveState implements CandidateModule {
         this.selectorStateResolver = selectorStateResolver;
         this.selectors = new ModuleSelectors<>(versionComparator, versionParser);
         this.conflictResolution = conflictResolution;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
@@ -302,7 +305,7 @@ class ModuleResolveState implements CandidateModule {
         assert id.getModule().equals(this.id);
         ComponentState moduleRevision = versions.get(id);
         if (moduleRevision == null) {
-            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver);
+            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver, attributeDesugaring);
             versions.put(id, moduleRevision);
         }
         return moduleRevision;
@@ -462,7 +465,7 @@ class ModuleResolveState implements CandidateModule {
         for (ComponentState componentState : versions.values()) {
             if (componentState.getMetadataOrNull() == null) {
                 // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
-                componentState.setState(LenientPlatformGraphResolveState.of((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState), ComponentGraphSpecificResolveState.EMPTY_STATE);
+                componentState.setState(LenientPlatformGraphResolveState.of((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
             }
         }
     }

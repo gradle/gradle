@@ -51,7 +51,7 @@ public interface ComponentArtifactResolveState {
     ComponentArtifactResolveMetadata getResolveMetadata();
 
     /**
-     * Returns the state required to resolve artifacts for the given variant that was selected during graph resolution.
+     * Returns the state required to resolve artifacts, given a variant that was selected during graph resolution.
      */
     VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant);
 
