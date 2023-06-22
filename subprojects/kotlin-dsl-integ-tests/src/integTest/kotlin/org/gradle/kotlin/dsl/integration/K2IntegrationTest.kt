@@ -30,6 +30,8 @@ class K2IntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can try k2 with included build for build logic using kotlin-jvm plugin`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withDefaultSettingsIn("build-logic")
         withBuildScriptIn("build-logic", """
             plugins {
@@ -55,6 +57,8 @@ class K2IntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `can try k2 with included build for build logic using kotlin-dsl plugin`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         // This test doesn't use a .gradle.kts precompiled script because K2 doesn't support scripts yet
 
