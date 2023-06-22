@@ -7,7 +7,6 @@ import org.gradle.api.Project
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -941,7 +940,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/12955")
-    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
     fun `captures output of schema collection and displays it on errors`() {
 
         fun outputFrom(origin: String, logger: Boolean = true) = buildString {
@@ -1022,7 +1020,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/12955")
-    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
     fun `captures output of schema collection but not of concurrent tasks`() {
 
         val repeatOutput = 50
