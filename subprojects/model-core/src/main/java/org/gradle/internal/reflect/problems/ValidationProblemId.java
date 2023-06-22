@@ -53,4 +53,9 @@ public enum ValidationProblemId {
     public boolean onlyAffectsCacheableWork() {
         return this == MISSING_NORMALIZATION_ANNOTATION;
     }
+
+    public static boolean onlyAffectsCacheableWork(String type) {
+        return MISSING_NORMALIZATION_ANNOTATION.name().equals(type);
+    }
+
 }

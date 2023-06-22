@@ -64,7 +64,9 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     public interface Params extends WorkParameters {
         ConfigurableFileCollection getClasses();
+
         RegularFileProperty getOutputFile();
+
         Property<Boolean> getEnableStricterValidation();
     }
 
@@ -164,7 +166,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             validationContext.visitNewTypeProblem(problem -> {
                     ProblemBuilder builder = problem
                         .withAnnotationType(topLevelBean)
-                .severity(WARNING)
+                        .severity(WARNING)
                         .type(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON.name())
                         .message("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                         .description("The " + workType + " author should make clear why a " + workType + " is not cacheable")

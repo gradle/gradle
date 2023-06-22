@@ -30,6 +30,8 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.reflect.problems.ValidationProblemId.onlyAffectsCacheableWork;
+
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     private final boolean reportCacheabilityProblems;
     private final ImmutableMap.Builder<String, Severity> problems = ImmutableMap.builder();
@@ -57,7 +59,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
     @Override
     protected void recordProblem(Problem problem) {
-        if (/*problem.getId().onlyAffectsCacheableWork() &&*/ !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
+        if (onlyAffectsCacheableWork(problem.getProblemType()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }
         problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), problem.getSeverity());

@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.interfaces.Problem
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
@@ -25,10 +26,12 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
 
+import static com.google.common.collect.ImmutableList.of
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
+import static org.gradle.problems.internal.RenderingUtils.oxfordListOf
 
 class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements ValidationMessageChecker {
 
@@ -94,7 +97,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         WorkValidationExceptionChecker.check(ex) {
             def validationProblem1 = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error #1', 'Test')
             def validationProblem2 = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error #2', 'Test')
-            hasMessage """Some problems were found with the configuration of job ':test' (types 'ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType').
+            hasMessage """Some problems were found with the configuration of job ':test' (types ${oxfordListOf(of('ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType'), 'and')}).
   - ${validationProblem1.trim()}
   - ${validationProblem2.trim()}"""
         }
@@ -138,13 +141,14 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         }
 
         then:
-        1 * warningReporter.recordValidationWarnings(work, { warnings ->
-            convertToSingleLine(renderMinimalInformationAbout(warnings.first().toNewProblem(), false, false)) == expectedWarning })
+        1 * warningReporter.recordValidationWarnings(work, { List<Problem> warnings ->
+            convertToSingleLine(renderMinimalInformationAbout(warnings.first(), false, false)) == expectedWarning
+        })
         1 * virtualFileSystem.invalidateAll()
 
         then:
         1 * delegate.execute(work, { ValidationFinishedContext context ->
-            convertToSingleLine(renderMinimalInformationAbout(context.validationProblems.first().toNewProblem(), false, false)) == expectedWarning })
+            convertToSingleLine(renderMinimalInformationAbout(context.validationProblems.first(), false, false)) == expectedWarning })
         0 * _
     }
 
@@ -179,7 +183,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         }
 
         then:
-        1 * warningReporter.recordValidationWarnings(work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first().toNewProblem(), true, false)) == expectedWarning })
+        1 * warningReporter.recordValidationWarnings(work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first(), true, false)) == expectedWarning })
 
         then:
         def ex = thrown WorkValidationException

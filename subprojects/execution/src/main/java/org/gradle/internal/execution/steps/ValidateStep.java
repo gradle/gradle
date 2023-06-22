@@ -40,11 +40,14 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
+import static com.google.common.collect.ImmutableList.of;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
+import static org.gradle.api.problems.interfaces.Severity.WARNING;
 
 public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
@@ -73,13 +76,12 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         List<Problem> problems = validationContext.getProblems();
         Problems.collect(problems);
 
-        Map<Severity, List<Problem>> problemsMap = problems
-            .stream()
+        Map<Severity, ImmutableList<Problem>> problemsMap = problems.stream()
             .collect(
                 groupingBy(Problem::getSeverity,
-                    mapping(Function.identity(), toList())));
-        ImmutableList<Problem> warnings = ImmutableList.copyOf(problemsMap.getOrDefault(Severity.WARNING, ImmutableList.of()));
-        ImmutableList<Problem> errors = ImmutableList.copyOf(problemsMap.getOrDefault(Severity.ERROR, ImmutableList.of()));
+                    mapping(identity(), toImmutableList())));
+        ImmutableList<Problem> warnings = problemsMap.getOrDefault(WARNING, of());
+        ImmutableList<Problem> errors = problemsMap.getOrDefault(ERROR, of());
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
