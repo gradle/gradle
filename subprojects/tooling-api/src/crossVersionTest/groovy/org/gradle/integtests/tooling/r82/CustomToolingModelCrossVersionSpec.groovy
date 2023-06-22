@@ -110,7 +110,7 @@ include 'a', 'b', 'c', 'd', 'e'
         connection.action(new FetchProjectsCustomModelsAction())
             .setStandardError(stderr)
             .setStandardOutput(stdout)
-            .addJvmArguments("-Xmx256m")
+            .setJvmArguments("-Xmx256m")
             .run()
     }
 }
