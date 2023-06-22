@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  * Provides the means of specifying file and directory access permissions for all classes of system users.
  * <p>
  * For details on classes of users and file/directory permissions see {@link FilePermissions}.
-§§ * <p>
+ * <p>
  * An example usage of this functionality would be configuring a copy task and explicitly specifying the destination file permissions:
  * <pre>
  * from(...)
