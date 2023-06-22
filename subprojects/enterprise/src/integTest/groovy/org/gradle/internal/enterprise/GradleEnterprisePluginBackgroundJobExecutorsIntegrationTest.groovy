@@ -286,7 +286,7 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
     }
 
     @Requires(IntegTestPreconditions.IsConfigCached)
-    @ToBeImplemented
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/25474")
     def "value sources are not tracked for the job"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 
