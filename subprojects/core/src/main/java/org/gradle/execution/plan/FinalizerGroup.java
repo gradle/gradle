@@ -177,9 +177,8 @@ public class FinalizerGroup extends HasFinalizers {
         // For each member, determine which finalized nodes to wait for
         ImmutableMap.Builder<Node, MemberSuccessors> blockingNodesBuilder = ImmutableMap.builder();
 
-        // Determine whether any dependencies of a finalized node are also members, in which case treat the dependency as if it were a finalized member
+        // Calculate the set of dependencies of finalized nodes that are also members of this group
         Set<Node> dependenciesThatAreMembers = getDependenciesThatAreMembers(blockedFinalizedMembers);
-        dependenciesThatAreMembers.forEach(member -> blockingNodesBuilder.put(member, waitForFinalizers));
 
         for (Node member : members) {
             if (isFinalizerNode(member) || memberCanStartAtAnyTime(member)) {
@@ -195,7 +194,10 @@ public class FinalizerGroup extends HasFinalizers {
                     blockingNodesBuilder.put(member, new WaitForFinalizedNodesToBecomeActive(Collections.singleton(member)));
                 }
             } else {
-                if (!dependenciesThatAreMembers.contains(member)) {
+                if (dependenciesThatAreMembers.contains(member)) {
+                    // This member is a dependency of a finalized member. Treat is as if it were a finalized member.
+                    blockingNodesBuilder.put(member, waitForFinalizers);
+                } else {
                     // Wait for the finalized nodes that don't introduce a cycle
                     Set<Node> blockOn = new LinkedHashSet<>(finalizedNodesToBlockOn);
                     blockOn.addAll(blockedFinalizedMembers);
@@ -260,7 +262,7 @@ public class FinalizerGroup extends HasFinalizers {
         Set<Node> seen = new HashSet<>(1024);
 
         for (Node fromNode : blockedFinalizedMembers) {
-            List<Node> queue = new ArrayList<>(100);
+            List<Node> queue = new ArrayList<>(1024);
             fromNode.visitHardSuccessors(queue::add);
             while (!queue.isEmpty()) {
                 Node toNode = queue.remove(0);
