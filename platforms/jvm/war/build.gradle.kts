@@ -36,8 +36,11 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.inject)
 
-    testImplementation(testFixtures(project(":jvm")))
+    testImplementation(testFixtures(project(":core")))
 
+    testRuntimeOnly(project(":distributions-jvm")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
