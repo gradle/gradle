@@ -18,13 +18,21 @@ package org.gradle.internal.deprecation;
 
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
+
 class DeprecationTimeline {
     private final String messagePattern;
     private final GradleVersion targetVersion;
+    private final String message;
 
-    private DeprecationTimeline(String messagePattern, GradleVersion targetVersion) {
+    private DeprecationTimeline(String messagePattern, GradleVersion targetVersion, @Nullable String message) {
         this.messagePattern = messagePattern;
         this.targetVersion = targetVersion;
+        this.message = message;
+    }
+
+    private DeprecationTimeline(String messagePattern, GradleVersion targetVersion) {
+        this(messagePattern, targetVersion, null);
     }
 
     static DeprecationTimeline willBeRemovedInVersion(GradleVersion version) {
@@ -43,8 +51,12 @@ class DeprecationTimeline {
         return new DeprecationTimeline("This will change in %s.", version);
     }
 
+    static DeprecationTimeline startingWithVersion(GradleVersion version, String message) {
+        return new DeprecationTimeline("Starting with %s, %s.", version, message);
+    }
+
     @Override
     public String toString() {
-        return String.format(messagePattern, targetVersion);
+        return message == null ? String.format(messagePattern, targetVersion) : String.format(messagePattern, targetVersion, message);
     }
 }
