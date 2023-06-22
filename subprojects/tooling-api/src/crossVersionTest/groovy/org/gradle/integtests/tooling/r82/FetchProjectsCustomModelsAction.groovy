@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.adapter;
+package org.gradle.integtests.tooling.r82
 
-import javax.annotation.Nullable;
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.model.gradle.GradleBuild
 
-/**
- * Converts or adapts objects to views over the objects.
- */
-public interface ObjectGraphAdapter {
-    @Nullable
-    <T> T adapt(Class<T> targetType, Object sourceObject);
+class FetchProjectsCustomModelsAction implements BuildAction<Void> {
 
-    <T> ViewBuilder<T> builder(Class<T> viewType);
+    @Override
+    Void execute(BuildController controller) {
+        def projects = controller.getModel(GradleBuild).projects
+        projects.forEach { project ->
+            controller.getModel(project, CustomModel)
+        }
+
+        return null
+    }
 }
