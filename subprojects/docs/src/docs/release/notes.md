@@ -107,7 +107,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
-Moreover, at this stage K2 doesn't support scripting, it will not work with [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins).
+Moreover, at this stage, K2 doesn't support scripting, so it will not work with [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins).
 
 ### Improved CodeNarc output
 
