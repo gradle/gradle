@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,11 +64,11 @@ public abstract class War extends Jar {
         webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
         webInf.into("classes", spec -> spec.from((Callable<Iterable<File>>) () -> {
             FileCollection classpath = getClasspath();
-            return classpath != null ? classpath.filter(spec(File::isDirectory)) : Collections.<File>emptyList();
+            return classpath != null ? classpath.filter(spec(File::isDirectory)) : Collections.emptyList();
         }));
         webInf.into("lib", spec -> spec.from((Callable<Iterable<File>>) () -> {
             FileCollection classpath = getClasspath();
-            return classpath != null ? classpath.filter(spec(File::isFile)) : Collections.<File>emptyList();
+            return classpath != null ? classpath.filter(spec(File::isFile)) : Collections.emptyList();
         }));
 
         CopySpecInternal renameSpec = webInf.addChild();
@@ -97,7 +97,7 @@ public abstract class War extends Jar {
      * @param configureClosure The closure to execute
      * @return The newly created {@code CopySpec}.
      */
-    public CopySpec webInf(@DelegatesTo(CopySpec.class) Closure configureClosure) {
+    public CopySpec webInf(@DelegatesTo(CopySpec.class) Closure<CopySpec> configureClosure) {
         return ConfigureUtil.configure(configureClosure, getWebInf());
     }
 
@@ -155,7 +155,7 @@ public abstract class War extends Jar {
      */
     public void classpath(Object... classpath) {
         FileCollection oldClasspath = getClasspath();
-        this.classpath = getProject().files(oldClasspath != null ? oldClasspath : new ArrayList(), classpath);
+        this.classpath = getProject().files(oldClasspath != null ? oldClasspath : new ArrayList<Object>(), classpath);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -78,14 +79,13 @@ public abstract class WarPlugin implements Plugin<Project> {
         this.project = project;
         this.mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
-        final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
-        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
+        @SuppressWarnings("deprecation") final WarPluginConvention pluginConvention = setupPluginConvention(project);
 
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(() -> pluginConvention.getWebAppDir()))));
+            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(pluginConvention::getWebAppDir))));
             task.from(task.getWebAppDirectory());
-            task.dependsOn((Callable) () -> mainFeature.getSourceSet().getRuntimeClasspath());
-            task.classpath((Callable) () -> {
+            task.dependsOn((Callable<FileCollection>) () -> mainFeature.getSourceSet().getRuntimeClasspath());
+            task.classpath((Callable<FileCollection>) () -> {
                 Configuration providedRuntime = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME);
                 return mainFeature.getSourceSet().getRuntimeClasspath().minus(providedRuntime);
             });
@@ -100,6 +100,13 @@ public abstract class WarPlugin implements Plugin<Project> {
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
         configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
+    }
+
+    @SuppressWarnings("deprecation")
+    private WarPluginConvention setupPluginConvention(Project project) {
+        final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
+        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
+        return pluginConvention;
     }
 
     /**

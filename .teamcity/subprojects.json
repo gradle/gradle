@@ -840,6 +840,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "war",
+    "path": "platforms/jvm/war",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "worker-processes",
     "path": "subprojects/worker-processes",
     "unitTests": true,

@@ -41,6 +41,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
+    integTestImplementation(project(":war"))
     integTestImplementation(project(":enterprise-operations"))
 
     testFixturesApi(project(":base-services")) {
@@ -55,7 +56,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {

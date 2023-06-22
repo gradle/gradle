@@ -34,6 +34,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
+    integTestImplementation(project(":war"))
     integTestImplementation(libs.slf4jApi)
 
     integTestRuntimeOnly(project(":resources-s3"))
@@ -58,7 +59,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 integTest.usesJavadocCodeSnippets = true

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
-import org.gradle.api.plugins.WarPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -27,7 +26,8 @@ import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public abstract class DefaultWarPluginConvention extends WarPluginConvention implements HasPublicType {
+@SuppressWarnings("deprecation")
+public abstract class DefaultWarPluginConvention extends org.gradle.api.plugins.WarPluginConvention implements HasPublicType {
     private String webAppDirName;
     private final Project project;
 
@@ -39,7 +39,7 @@ public abstract class DefaultWarPluginConvention extends WarPluginConvention imp
 
     @Override
     public TypeOf<?> getPublicType() {
-        return typeOf(WarPluginConvention.class);
+        return typeOf(org.gradle.api.plugins.WarPluginConvention.class);
     }
 
     @Override
@@ -56,18 +56,18 @@ public abstract class DefaultWarPluginConvention extends WarPluginConvention imp
 
     @Override
     public void setWebAppDirName(String webAppDirName) {
-       logDeprecation();
+        logDeprecation();
         this.webAppDirName = webAppDirName;
     }
 
     @Override
     public Project getProject() {
-       logDeprecation();
+        logDeprecation();
         return project;
     }
 
     private static void logDeprecation() {
-        DeprecationLogger.deprecateType(WarPluginConvention.class)
+        DeprecationLogger.deprecateType(org.gradle.api.plugins.WarPluginConvention.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "war_convention_deprecation")
             .nagUser();
