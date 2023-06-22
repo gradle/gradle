@@ -72,9 +72,8 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             package org.gradle;
 
             import org.junit.jupiter.api.Test;
+            import org.opentest4j.MultipleFailuresError;
             import org.opentest4j.AssertionFailedError;
-            import org.opentest4j.FileInfo;
-
             public class JUnitJupiterTest {
 
                  @Test
