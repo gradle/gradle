@@ -23,7 +23,19 @@ import org.gradle.api.Incubating;
  * Provides the means of specifying file and directory access permissions for all classes of system users.
  * <p>
  * For details on classes of users and file/directory permissions see {@link FilePermissions}.
- *
+§§ * <p>
+ * An example usage of this functionality would be configuring a copy task and explicitly specifying the destination file permissions:
+ * <pre>
+ * from(...)
+ * into(...)
+ * filePermissions {
+ *     user {
+ *         read = true
+ *         execute = true
+ *     }
+ *     other.execute = false
+ * }
+ * </pre>
  * @since 8.3
  */
 @Incubating
@@ -182,6 +194,13 @@ public interface ConfigurableFilePermissions extends FilePermissions {
      *     <td>owner can read, write &amp; execute; group can only read; others have no permissions</td>
      *   </tr>
      * </table>
+     * <p>
+     * An example usage of this method would be configuring a copy task and explicitly specifying the destination file permissions:
+     * <pre>
+     * from(...)
+     * into(...)
+     * filePermissions { unix("r--r--r--") }
+     * </pre>
      */
     void unix(String unixNumericOrSymbolic);
 
