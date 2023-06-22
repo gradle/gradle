@@ -16,7 +16,7 @@
 
 package gradlebuild.quickcheck.tasks
 
-import gradlebuild.basics.kotlindsl.execAndGetStdout
+import gradlebuild.basics.kotlindsl.execAndGetStdoutIgnoringError
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
@@ -48,7 +48,7 @@ abstract class QuickCheckTask : DefaultTask() {
 
     private
     fun getChangedFiles(): List<String> =
-        project.execAndGetStdout("git", "diff", "--cached", "--name-status", "HEAD")
+        project.execAndGetStdoutIgnoringError("git", "diff", "--cached", "--name-status", "HEAD")
             .lines()
             .map { it.trim() }
             .filter { it.isNotBlank() && !it.startsWith("D") }
