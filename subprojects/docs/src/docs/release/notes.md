@@ -81,6 +81,34 @@ plugins {
 }
 ```
 
+#### Build scripts now accept dependencies compiled with Kotlin K2 compiler
+
+The Kotlin team continues to stabilize the [K2 compiler](https://blog.jetbrains.com/kotlin/2023/02/k2-kotlin-2-0/).
+Starting with Kotlin 1.9.0-RC and until the release of Kotlin 2.0, you can easily test the K2 compiler in your projects.
+Add `-Pkotlin.experimental.tryK2=true` to your command line invocations or add it to your `gradle.properties` file:
+
+```properties
+kotlin.experimental.tryK2=true
+```
+
+This Gradle property automatically sets the language version to 2.0.
+
+Starting with this version of Gradle the compilation of `.gradle.kts` build scripts accept dependencies compiled with Kotlin K2 compiler.
+This allows for example to try out K2 in builds that use Kotlin 1.9 and have Kotlin code in `buildSrc` or in included builds for build logic.
+
+Note that if you use the [`kotlin-dsl` plugin](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) in your build logic, you will also need to explicitly set the Kotlin language version to 2.0:
+
+```kotlin
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        apiVersion = KotlinVersion.KOTLIN_2_0
+        languageVersion = KotlinVersion.KOTLIN_2_0
+    }
+}
+```
+
+Moreover, at this stage K2 doesn't support scripting, it will not work with [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins).
+
 ### Improved CodeNarc output
 
 The `CodeNarc` plugin produces IDE-clickable links when reporting failures to the console.
