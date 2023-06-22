@@ -255,7 +255,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                     }
                 }
             }
-            return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
+            if (node.getType().isTest()) {
+                return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
+            } else {
+                return createTestClassDescriptor(node);
+            }
         });
         return wasCreated.get();
     }
