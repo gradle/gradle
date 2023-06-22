@@ -97,7 +97,7 @@ public abstract class War extends Jar {
      * @param configureClosure The closure to execute
      * @return The newly created {@code CopySpec}.
      */
-    public CopySpec webInf(@DelegatesTo(CopySpec.class) Closure<CopySpec> configureClosure) {
+    public CopySpec webInf(@SuppressWarnings("rawtypes") @DelegatesTo(CopySpec.class) Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getWebInf());
     }
 
@@ -153,9 +153,10 @@ public abstract class War extends Jar {
      *
      * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      */
+    @SuppressWarnings("rawtypes")
     public void classpath(Object... classpath) {
         FileCollection oldClasspath = getClasspath();
-        this.classpath = getProject().files(oldClasspath != null ? oldClasspath : new ArrayList<Object>(), classpath);
+        this.classpath = getProject().files(oldClasspath != null ? oldClasspath : new ArrayList(), classpath);
     }
 
     /**
