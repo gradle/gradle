@@ -16,15 +16,12 @@
 
 package org.gradle.integtests.tooling.r83
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.FileComparisonTestAssertionFailure
-import org.gradle.tooling.TestAssertionFailure
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.test.TestFailureResult
@@ -73,16 +70,18 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
             import org.junit.jupiter.api.Test;
             import org.opentest4j.MultipleFailuresError;
-            import org.opentest4j.AssertionFailedError;
+
+            import java.util.List;
+
             public class JUnitJupiterTest {
 
-                 @Test
-                 void testingFileComparisonFailure() {
-                    final List<Throwable> innerFailures = List.of(
-                        new AssertionFailedError("First failure", "a", "b"),
-                        new AssertionFailedError("Second failure", "a", "b")
-                    );
-                    throw new MultipleFailuresError("Multiple errors detected", innerFailures);
+                @Test
+                void testingFileComparisonFailure() {
+                    throw new MultipleFailuresError("Multiple errors detected", List.of(
+                            new Exception("Exception 1"),
+                            new Exception("Exception 2"),
+                            new Exception("Exception 3")
+                    ));
                 }
             }
         '''
@@ -92,11 +91,10 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        failures.size() == 2
+        failures.size() == 1
         failures[0] instanceof DefaultTestAssertionFailure
-        FileComparisonTestAssertionFailure f = failures[0]
-        f.expected == 'a'
-        f.actual == 'b'
+        DefaultTestAssertionFailure f = failures[0]
+        f.causes.size() == 3
     }
 
     def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 5 tests"() {

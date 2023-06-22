@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.assertion.mappers;
+package org.gradle.api.internal.tasks.testing.failure;
 
-import java.lang.reflect.Field;
+import org.gradle.api.internal.tasks.testing.failure.ThrowableToFailureMapper;
+import org.gradle.api.tasks.testing.TestFailure;
+
 import java.lang.reflect.Method;
+import java.util.List;
 
-public class AssertionMapper {
+public abstract class FailureMapper {
 
-    protected static boolean isClassOrSubclass(String className, Class<?> cls) {
-        if (className.equals(cls.getName())) {
+    public boolean accepts(Class<?> cls) {
+        if (getSupportedClassNames().contains(cls.getName())) {
             return true;
         }
 
@@ -30,9 +33,15 @@ public class AssertionMapper {
         if (superclass == null) {
             return false;
         } else {
-            return isClassOrSubclass(className, superclass);
+            return accepts(superclass);
         }
     }
+
+    protected abstract List<String> getSupportedClassNames();
+
+    public abstract TestFailure map(Throwable throwable, ThrowableToFailureMapper mapper) throws Exception;
+
+    // Utility methods ------------------------------------
 
     protected static <T> T invokeMethod(Object obj, String methodName, Class<T> targetClass) throws Exception {
         Method method = obj.getClass().getDeclaredMethod(methodName);
