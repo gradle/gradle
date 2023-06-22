@@ -40,4 +40,5 @@ dependencies {
     implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":ide")))
 }
