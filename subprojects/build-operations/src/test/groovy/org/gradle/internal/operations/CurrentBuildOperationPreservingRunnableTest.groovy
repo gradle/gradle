@@ -26,7 +26,7 @@ class CurrentBuildOperationPreservingRunnableTest extends Specification {
     def currentBuildOperationRef = new CurrentBuildOperationRef()
 
     def runner() {
-        new CurrentBuildOperationPreservingRunnable(delegate, currentBuildOperationRef)
+        CurrentBuildOperationPreservingRunnable.wrapIfNeeded(delegate, currentBuildOperationRef)
     }
 
     def "forward execution to delegate runnable"() {

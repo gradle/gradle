@@ -23,7 +23,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.process.ExecResult;
@@ -152,15 +151,13 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
             @Override
             public WorkerProcess start() {
                 // Temporarily un-set the current build operation, since it shouldn't be leaked to the worker management code.
-                BuildOperationRef currentRef = CurrentBuildOperationRef.instance().get();
-                CurrentBuildOperationRef.instance().clear();
-                try {
-                    workerProcess.start();
-                } catch (Exception e) {
-                    throw WorkerProcessException.runFailed(getBaseName(), e);
-                } finally {
-                    CurrentBuildOperationRef.instance().set(currentRef);
-                }
+                CurrentBuildOperationRef.instance().with(null, () -> {
+                    try {
+                        workerProcess.start();
+                    } catch (Exception e) {
+                        throw WorkerProcessException.runFailed(getBaseName(), e);
+                    }
+                });
                 workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
                 workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
                 workerProcess.getConnection().useParameterSerializers(RequestSerializerRegistry.create(workerImplementation.getClassLoader(), argumentSerializers));
