@@ -18,8 +18,10 @@ package org.gradle.plugins.ear
 
 import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
+import org.gradle.api.tasks.bundling.War
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
@@ -85,6 +87,16 @@ class EarTest extends AbstractArchiveTaskTest {
         then:
         ear.archiveFile.get().asFile.isFile()
         new JarTestFixture(ear.archiveFile.get().asFile).assertContainsFile('lib/file.txt')
+    }
+
+    def "configures destinationDirectory for ear tasks"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+        project.version = '1.0'
+
+        then:
+        def someEar = project.tasks.create('someEar', Ear)
+        someEar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 
     private static DeploymentDescriptor makeDeploymentDescriptor(Ear e) {

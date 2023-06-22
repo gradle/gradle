@@ -36,7 +36,7 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.inject)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":jvm")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
