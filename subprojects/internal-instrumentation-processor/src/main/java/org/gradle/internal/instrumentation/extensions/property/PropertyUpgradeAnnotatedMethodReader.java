@@ -196,7 +196,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private static String getPropertyName(ExecutableElement method) {
-        String property = method.getSimpleName().toString().replace("get", "");
+        String property = method.getSimpleName().toString().replaceFirst("get", "");
         return Character.toLowerCase(property.charAt(0)) + property.substring(1);
     }
 
