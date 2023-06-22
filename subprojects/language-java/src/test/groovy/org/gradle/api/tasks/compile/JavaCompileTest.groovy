@@ -188,8 +188,8 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
         given:
         javaCompile.javaCompiler.set(compiler)
-        javaCompile.setSourceCompatibility('11')
-        javaCompile.setTargetCompatibility('14')
+        javaCompile.getSourceCompatibility().set('11')
+        javaCompile.getTargetCompatibility().set('14')
 
         when:
         def spec = javaCompile.createSpec()
@@ -208,7 +208,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def prevJavaVersion = JavaVersion.toVersion(Jvm.current().javaVersion.majorVersion.toInteger() - 1).toString()
 
         given:
-        javaCompile.setSourceCompatibility(prevJavaVersion)
+        javaCompile.getSourceCompatibility().set(prevJavaVersion)
 
         when:
         def spec = javaCompile.createSpec()
@@ -231,7 +231,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
         given:
         javaCompile.javaCompiler.set(compiler)
-        javaCompile.setSourceCompatibility('11')
+        javaCompile.getSourceCompatibility().set('11')
 
         when:
         def spec = javaCompile.createSpec()

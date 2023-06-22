@@ -67,7 +67,7 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         file("producer/src/main/java/SomePlugin.java") << """
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            ${importClasses().collect { "import " + it.name + ";" }.join("\\n")}
+            ${importClasses().collect { "import " + it.name + ";" }.join("\n")}
 
             class SomePlugin implements Plugin<Project> {
                 public void apply(Project project) {

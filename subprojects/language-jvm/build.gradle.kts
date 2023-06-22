@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
+    implementation(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
     implementation(libs.guava)

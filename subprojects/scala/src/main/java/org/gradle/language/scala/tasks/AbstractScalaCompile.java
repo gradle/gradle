@@ -182,11 +182,11 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
 
     private void configureCompatibilityOptions(DefaultScalaJavaJointCompileSpec spec) {
         String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
-        String sourceCompatibility = getSourceCompatibility();
+        String sourceCompatibility = getSourceCompatibility().getOrNull();
         if (sourceCompatibility == null) {
             sourceCompatibility = toolchainVersion;
         }
-        String targetCompatibility = getTargetCompatibility();
+        String targetCompatibility = getTargetCompatibility().getOrNull();
         if (targetCompatibility == null) {
             targetCompatibility = sourceCompatibility;
         }

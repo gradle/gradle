@@ -62,8 +62,8 @@ class ScalaCompileTest extends AbstractConventionTaskTest {
 
         expect:
         !compile.getDestinationDirectory().isPresent()
-        compile.getSourceCompatibility() == null
-        compile.getTargetCompatibility() == null
+        compile.getSourceCompatibility().getOrNull() == null
+        compile.getTargetCompatibility().getOrNull() == null
         compile.getSource().isEmpty()
     }
 
