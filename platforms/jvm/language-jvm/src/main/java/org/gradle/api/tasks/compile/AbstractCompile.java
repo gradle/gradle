@@ -15,8 +15,8 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
@@ -34,12 +35,13 @@ import java.io.File;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
-    private FileCollection classpath;
+    private final ConfigurableFileCollection classpath;
     private String sourceCompatibility;
     private String targetCompatibility;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
+        this.classpath = getProject().getObjects().fileCollection();
     }
 
     /**
@@ -48,17 +50,9 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The classpath.
      */
     @Classpath
-    public FileCollection getClasspath() {
+    @UpgradedProperty
+    public ConfigurableFileCollection getClasspath() {
         return classpath;
-    }
-
-    /**
-     * Sets the classpath to use to compile the source files.
-     *
-     * @param configuration The classpath. Must not be null, but may be empty.
-     */
-    public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
     }
 
     /**

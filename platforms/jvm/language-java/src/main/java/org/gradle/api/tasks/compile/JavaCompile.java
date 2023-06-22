@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -341,7 +342,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @Override
     @CompileClasspath
     @Incremental
-    public FileCollection getClasspath() {
+    public ConfigurableFileCollection getClasspath() {
         return super.getClasspath();
     }
 

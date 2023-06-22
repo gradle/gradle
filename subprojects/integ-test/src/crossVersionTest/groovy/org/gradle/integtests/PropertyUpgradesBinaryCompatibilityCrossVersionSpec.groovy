@@ -42,6 +42,13 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
                 int currentMaxErrors = it.getMaxErrors();
                 assert currentMaxErrors == 1;
             });
+
+            project.getTasks().register("myJavaCompile", JavaCompile.class, it -> {
+                // Classpath
+                it.setClasspath(project.files("foo"));
+                FileCollection classpath = it.getClasspath();
+                assert classpath.getFiles().contains(project.file("foo"));
+            });
         """
 
         expect:

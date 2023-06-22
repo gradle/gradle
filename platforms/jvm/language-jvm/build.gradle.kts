@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = "Contains some base and shared classes for JVM language support, like AbstractCompile class and BaseForkOptions class"
@@ -16,6 +17,7 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
+    implementation(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
     implementation(libs.guava)
