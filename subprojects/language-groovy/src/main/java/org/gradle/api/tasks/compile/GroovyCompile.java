@@ -104,14 +104,14 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
+    /**
+     * Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
+     * ee https://github.com/gradle/gradle/pull/9513
+     */
     @Override
     @CompileClasspath
     @Incremental
-    public FileCollection getClasspath() {
-        // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
-        // See https://github.com/gradle/gradle/pull/9513
-        return super.getClasspath();
-    }
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * The classpath containing AST transformations and their dependencies.

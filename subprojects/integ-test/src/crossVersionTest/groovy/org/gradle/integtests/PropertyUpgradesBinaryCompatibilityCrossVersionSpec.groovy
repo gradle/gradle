@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests
 
+import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.integtests.fixtures.TargetVersions
@@ -24,7 +25,7 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
 
     @Override
     protected List<Class<?>> importClasses() {
-        return [Checkstyle, JavaCompile]
+        return [Checkstyle, JavaCompile, FileCollection, File, System]
     }
 
     def "can use upgraded Checkstyle in a Groovy plugin compiled with a previous Gradle version"() {
@@ -51,12 +52,18 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
                 assert currentMaxErrors == 1;
             });
             project.getTasks().register("myJavaCompile", JavaCompile.class, it -> {
+                // Source and target compatibility
                 it.setSourceCompatibility("8");
                 String sourceCompatibility = it.getSourceCompatibility();
                 assert sourceCompatibility == "8";
                 it.setTargetCompatibility("8");
                 String targetCompatibility = it.getTargetCompatibility();
                 assert targetCompatibility == "8";
+
+                // Classpath
+                it.setClasspath(project.files("foo"));
+                FileCollection classpath = it.getClasspath();
+                assert classpath.getFiles().contains(project.file("foo"));
             });
         """
 

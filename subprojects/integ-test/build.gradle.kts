@@ -31,6 +31,7 @@ dependencies {
 
     crossVersionTestImplementation(project(":base-services"))
     crossVersionTestImplementation(project(":core"))
+    crossVersionTestImplementation(project(":core-api"))
     crossVersionTestImplementation(project(":plugins"))
     crossVersionTestImplementation(project(":platform-jvm"))
     crossVersionTestImplementation(project(":language-java"))

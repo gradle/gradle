@@ -15,8 +15,8 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -36,7 +36,6 @@ import java.io.File;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
-    private FileCollection classpath;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
@@ -48,18 +47,8 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The classpath.
      */
     @Classpath
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * Sets the classpath to use to compile the source files.
-     *
-     * @param configuration The classpath. Must not be null, but may be empty.
-     */
-    public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
-    }
+    @UpgradedProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Returns the directory property that represents the directory to generate the {@code .class} files into.

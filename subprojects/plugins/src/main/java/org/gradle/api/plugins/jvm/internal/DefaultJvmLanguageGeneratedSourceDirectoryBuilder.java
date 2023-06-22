@@ -69,7 +69,7 @@ public class DefaultJvmLanguageGeneratedSourceDirectoryBuilder implements JvmLan
             return project.getTasks().register(compileTaskName, JavaCompile.class, compileTask -> {
                 compileTask.setDescription("Compile task for " + description);
                 compileTask.source(sourceDirectory);
-                compileTask.setClasspath(sourceSet.getCompileClasspath());
+                compileTask.getClasspath().setFrom(sourceSet.getCompileClasspath());
                 compileTask.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir(
                     "classes/" + compileTaskName + "/" + sourceSet.getName()
                 ));
