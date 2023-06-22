@@ -29,6 +29,7 @@ import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.state.ModelObject
 import java.io.IOException
 import java.lang.reflect.Field
 
@@ -67,6 +68,9 @@ class BeanPropertyReader(
             readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
                 set(bean, field, fieldValue)
             }
+        }
+        if (bean is ModelObject) {
+            bean.attachModelProperties()
         }
     }
 
