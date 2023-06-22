@@ -36,7 +36,7 @@ class CompileOptionsTest extends Specification {
     def "default compile options"() {
         expect:
         compileOptions.debug
-        compileOptions.failOnError
+        compileOptions.failOnError.get()
         compileOptions.warnings
 
         !compileOptions.deprecation

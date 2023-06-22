@@ -60,11 +60,11 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.forkOptions = new MinimalJavaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.debugOptions = compileOptions.getDebugOptions();
         this.debug = compileOptions.isDebug();
-        this.deprecation = compileOptions.isDeprecation();
-        this.failOnError = compileOptions.isFailOnError();
-        this.listFiles = compileOptions.isListFiles();
-        this.verbose = compileOptions.isVerbose();
-        this.warnings = compileOptions.isWarnings();
+        this.deprecation = compileOptions.getDeprecation().get();
+        this.failOnError = compileOptions.getFailOnError().get();
+        this.listFiles = compileOptions.getListFiles().get();
+        this.verbose = compileOptions.getVerbose().get();
+        this.warnings = compileOptions.getWarnings().get();
         this.annotationProcessorGeneratedSourcesDirectory = compileOptions.getGeneratedSourceOutputDirectory().getAsFile().getOrNull();
         this.headerOutputDirectory = compileOptions.getHeaderOutputDirectory().getAsFile().getOrNull();
         this.javaModuleVersion = compileOptions.getJavaModuleVersion().getOrNull();
