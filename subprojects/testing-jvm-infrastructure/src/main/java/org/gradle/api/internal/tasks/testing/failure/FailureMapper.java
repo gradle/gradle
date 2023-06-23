@@ -40,7 +40,7 @@ public abstract class FailureMapper {
 
     protected abstract List<String> getSupportedClassNames();
 
-    public abstract TestFailure map(Throwable throwable, ThrowableToFailureMapper mapper) throws Exception;
+    public abstract TestFailure map(Throwable throwable, AssertionToFailureMapper mapper) throws Exception;
 
     // Utility methods ------------------------------------
 

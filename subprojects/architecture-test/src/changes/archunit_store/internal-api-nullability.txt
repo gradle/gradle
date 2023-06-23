@@ -945,7 +945,6 @@ Class <org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClas
 Class <org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor$CollectAllTestClassesExecutor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitPlatformTestClassProcessor.java:0)
 Class <org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitPlatformTestClassProcessor.java:0)
 Class <org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessorFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitPlatformTestClassProcessorFactory.java:0)
-Class <org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestExecutionListener> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitPlatformTestExecutionListener.java:0)
 Class <org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitPlatformTestFramework.java:0)
 Class <org.gradle.api.internal.tasks.testing.logging.AbstractTestLogger$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractTestLogger.java:0)
 Class <org.gradle.api.internal.tasks.testing.logging.AbstractTestLogger> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractTestLogger.java:0)

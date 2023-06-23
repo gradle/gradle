@@ -20,8 +20,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestFailure;
 
 @NonNullApi
-public interface ThrowableToFailureMapper {
+public interface AssertionToFailureMapper {
 
-    TestFailure createFailure(Throwable throwable) throws Exception;
+    TestFailure createFailure(Throwable throwable);
 
 }

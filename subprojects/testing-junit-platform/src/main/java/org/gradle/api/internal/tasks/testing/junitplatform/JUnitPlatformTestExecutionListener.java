@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.failure.AssertionToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.ThrowableToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestFailureFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestMultipleFailuresMapper;
@@ -56,7 +56,7 @@ import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 
 @NonNullApi
-public class JUnitPlatformTestExecutionListener implements TestExecutionListener, ThrowableToFailureMapper {
+public class JUnitPlatformTestExecutionListener implements TestExecutionListener, AssertionToFailureMapper {
 
     private final static List<FailureMapper> MAPPERS = Arrays.asList(
         new OpentestFailureFailedMapper(),
@@ -136,12 +136,6 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     public TestFailure createFailure(Throwable failure) {
-        // According to https://ota4j-team.github.io/opentest4j/docs/current/api/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
-        // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
-        // - org.opentest4j.AssertionFailedError: when an assertEquals fails
-        // - org.opentest4j.MultipleFailuresError: when multiple assertion fails at the same time
-        // All assertion errors are subclasses of the AssertionError class. If the received failure is not an instance of AssertionError then it is categorized as a framework failure.
-        // Also, openTest4j classes are not on the worker compile classpath so we need to resort to using reflection.
         for (FailureMapper mapper : MAPPERS) {
             if (mapper.accepts(failure.getClass())) {
                 try {

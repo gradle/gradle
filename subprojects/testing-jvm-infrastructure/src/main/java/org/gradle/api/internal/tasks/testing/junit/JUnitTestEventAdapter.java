@@ -16,11 +16,18 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.failure.AssertionToFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestFailureFailedMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestMultipleFailuresMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
@@ -30,14 +37,25 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class JUnitTestEventAdapter extends RunListener {
+@NonNullApi
+public class JUnitTestEventAdapter extends RunListener implements AssertionToFailureMapper {
+
+    public static final List<FailureMapper> MAPPERS = Arrays.asList(
+        new JUnitComparisonFailureMapper(),
+        new OpentestFailureFailedMapper(),
+        new OpentestMultipleFailuresMapper(),
+        new AssertjMultipleAssertionsErrorMapper()
+    );
+
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)(\\[\\d+])?", Pattern.DOTALL);
     private final IdGenerator<?> idGenerator;
     private final TestResultProcessor resultProcessor;
@@ -84,33 +102,19 @@ public class JUnitTestEventAdapter extends RunListener {
         }
     }
 
-    private TestFailure createFailure(Throwable failure) throws Exception {
-        // According to https://junit.org/junit4/javadoc/latest/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
-        // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
-        // - org.junit.ComparisonFailure: when assertEquals (and similar assertion) fails; test code can throw it directly
-        // - junit.framework.ComparisonFailure: for older JUnit tests using JUnit 3.x fixtures
-        // All assertion errors are subclasses of the AssertionError class. If the received failure is not an instance of AssertionError then it is categorized as a framework failure.
-//        if (failure instanceof ComparisonFailure) {
-//            ComparisonFailure comparisonFailure = (ComparisonFailure) failure;
-//            return TestFailure.fromTestAssertionFailure(failure, comparisonFailure.getExpected(), comparisonFailure.getActual());
-//        } else if (failure instanceof junit.framework.ComparisonFailure) {
-//            junit.framework.ComparisonFailure comparisonFailure = (junit.framework.ComparisonFailure) failure;
-//            return TestFailure.fromTestAssertionFailure(failure, getValueOfStringField("fExpected", comparisonFailure), getValueOfStringField("fActual", comparisonFailure));
-//        } else if (failure instanceof AssertionError) {
-//            if (OpentestMultipleFailuresMapper.accepts(failure.getClass())) {
-//                List<TestFailure> innerFailures = new ArrayList<TestFailure>();
-//                for(Throwable innerCause: OpentestMultipleFailuresMapper.getInnerFailures(failure)) {
-//                    innerFailures.add(createFailure(innerCause));
-//                }
-//                return OpentestMultipleFailuresMapper.map(failure, innerFailures);
-//            } else if (OpentestFailureFailedMapper.accepts(failure.getClass())) {
-//                return OpentestFailureFailedMapper.map(failure, null);
-//            } else {
-//                return TestFailure.fromTestFrameworkFailure(failure);
-//            }
-//        } else {
-            return TestFailure.fromTestFrameworkFailure(failure);
-//        }
+    @Override
+    public TestFailure createFailure(Throwable failure) {
+        for (FailureMapper mapper : MAPPERS) {
+            if (mapper.accepts(failure.getClass())) {
+                try {
+                    return mapper.map(failure, this);
+                } catch (Exception ignored) {
+                    // ignore
+                }
+            }
+        }
+
+        return TestFailure.fromTestFrameworkFailure(failure);
     }
 
     private void reportFailure(Object descriptorId, Throwable failure) throws Exception {
