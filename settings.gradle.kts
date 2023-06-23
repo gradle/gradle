@@ -154,6 +154,7 @@ unassigned {
 platform("jvm") {
     subproject("code-quality")
     subproject("ear")
+    subproject("war")
 }
 
 // Plugin portal projects

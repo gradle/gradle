@@ -16,4 +16,5 @@ dependencies {
     pluginsRuntimeOnly(project(":code-quality"))
     pluginsRuntimeOnly(project(":jacoco"))
     pluginsRuntimeOnly(project(":ide"))
+    pluginsRuntimeOnly(project(":war"))
 }

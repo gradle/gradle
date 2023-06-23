@@ -169,6 +169,7 @@ dependencies {
     integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":plugins"))
+    integTestImplementation(project(":war"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.jetty)
@@ -180,8 +181,8 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
-        because("Some tests utilise the 'java-gradle-plugin' and with that TestKit")
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 
