@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -24,14 +24,13 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import org.junit.Test
 
-class LoggingIntegrationTest extends AbstractIntegrationTest {
+class LoggingIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
     @Rule public final Sample sampleResources = new Sample(testDirectoryProvider)
 
-    private final LogOutput logOutput = new LogOutput() {{
+    final LogOutput logOutput = new LogOutput() {{
         quiet(
                 'An info log message which is always logged.',
                 'A message which is logged at QUIET level',
@@ -129,7 +128,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
         )
     }}
 
-    private final LogOutput sample = new LogOutput() {{
+    final LogOutput sample = new LogOutput() {{
         error('An error log message.')
         quiet('An info log message which is always logged.')
         quiet('A message which is logged at QUIET level')
@@ -143,7 +142,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
         forbidden('A trace log message.')
     }}
 
-    private final LogOutput multiThreaded = new LogOutput() {{
+    final LogOutput multiThreaded = new LogOutput() {{
         (1..10).each { thread ->
             (1..100).each { iteration ->
                 lifecycle("log message from thread $thread iteration $iteration")
@@ -153,64 +152,68 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
         }
     }}
 
-    @Test
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
-    void quietLogging() {
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    def quietLogging() {
+        expect:
         checkOutput(this.&run, logOutput.quiet)
     }
 
-    @Test
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
-    void lifecycleLogging() {
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    def lifecycleLogging() {
+        expect:
         checkOutput(this.&run, logOutput.lifecycle)
     }
 
-    @Test
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
-    void infoLogging() {
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    def infoLogging() {
+        expect:
         checkOutput(this.&run, logOutput.info)
     }
 
-    @Test
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
-    void debugLogging() {
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    def debugLogging() {
+        expect:
         checkOutput(this.&run, logOutput.debug)
     }
 
     @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
-    @Test @UsesSample('tutorial/logging/groovy')
-    void sampleQuietLogging() {
+    @UsesSample('tutorial/logging/groovy')
+    def sampleQuietLogging() {
+        expect:
         checkOutput(this.&runSample, sample.quiet)
     }
 
     @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
-    @Test @UsesSample('tutorial/logging/groovy')
-    void sampleLifecycleLogging() {
+    @UsesSample('tutorial/logging/groovy')
+    def sampleLifecycleLogging() {
+        expect:
         checkOutput(this.&runSample, sample.lifecycle)
     }
 
-    @Test @UsesSample('tutorial/logging/groovy')
-    void sampleInfoLogging() {
+    @UsesSample('tutorial/logging/groovy')
+    def sampleInfoLogging() {
+        expect:
         checkOutput(this.&runSample, sample.info)
     }
 
-    @Test @UsesSample('tutorial/logging/groovy')
-    void sampleDebugLogging() {
+    @UsesSample('tutorial/logging/groovy')
+    def sampleDebugLogging() {
+        expect:
         checkOutput(this.&runSample, sample.debug)
     }
 
-    @Test
-    void multiThreadedQuietLogging() {
+    def multiThreadedQuietLogging() {
+        expect:
         checkOutput(this.&runMultiThreaded, multiThreaded.quiet)
     }
 
-    @Test
-    void multiThreadedlifecycleLogging() {
+    def multiThreadedlifecycleLogging() {
+        expect:
         checkOutput(this.&runMultiThreaded, multiThreaded.lifecycle)
     }
 
-    @Test
-    void multiThreadedDebugLogging() {
+    def multiThreadedDebugLogging() {
+        expect:
         checkOutput(this.&runMultiThreaded, multiThreaded.debug)
     }
 
