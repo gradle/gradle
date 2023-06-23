@@ -235,7 +235,7 @@ tasks.register('filter', Copy) {
 // end::filter-files[]
 
 // tag::file-permissions[]
-tasks.register('rename', Copy) {
+tasks.register('permissions', Copy) {
     from 'src/main/webapp'
     into layout.buildDirectory.dir('explodedWar')
     filePermissions {

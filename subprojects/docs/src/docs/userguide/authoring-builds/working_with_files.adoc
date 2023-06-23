@@ -645,8 +645,8 @@ NOTE: It's good practice to specify the character set when reading and writing t
 [[sec:setting_file_permissions]]
 === Setting file permissions
 
-For any `CopySpec` involved in copying files, may it be the `Copy` task itself, or any child specifications, you can explicitly set the permissions the destination files will have, via the link:{javadocPath}/org/gradle/api/file/CopySpec.html#filePermissions-org.gradle.api.Action-[CopySpec.filePermissions {}] configurations block.
-You can do the same for directories too, independently of files, via the link:{javadocPath}/org/gradle/api/file/CopySpec.html#dirPermissions-org.gradle.api.Action-[CopySpec.dirPermissions {}] configurations block.
+For any `CopySpec` involved in copying files, may it be the `Copy` task itself, or any child specifications, you can explicitly set the permissions the destination files will have, via the link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#filePermissions-org.gradle.api.Action-[CopySpec.filePermissions {}] configurations block.
+You can do the same for directories too, independently of files, via the link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#dirPermissions-org.gradle.api.Action-[CopySpec.dirPermissions {}] configurations block.
 
 NOTE: Not setting permissions explicitly will preserve the permissions of the original files or directories.
 
