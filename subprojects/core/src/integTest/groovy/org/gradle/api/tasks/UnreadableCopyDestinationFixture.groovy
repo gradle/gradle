@@ -25,7 +25,7 @@ trait UnreadableCopyDestinationFixture {
     private static final String COPY_UNREADABLE_DESTINATION_FAILURE = "Cannot access a file in the destination directory. " +
         "Copying to a directory which contains unreadable content is not supported. " +
         "Declare the task as untracked by using Task.doNotTrackState(). " +
-        new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "disable-state-tracking")
+        new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking")
 
     void expectUnreadableCopyDestinationFailure() {
         failure.assertHasDocumentedCause(COPY_UNREADABLE_DESTINATION_FAILURE)

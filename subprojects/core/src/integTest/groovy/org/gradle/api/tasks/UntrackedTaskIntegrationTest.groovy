@@ -289,7 +289,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
     }
 
     def getDisableStateTrackingLink() {
-        documentationRegistry.getDocumentationRecommendationFor("information", "incremental_build", "disable-state-tracking")
+        documentationRegistry.getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking")
     }
 
     def "does not clean up stale outputs for untracked tasks"() {
