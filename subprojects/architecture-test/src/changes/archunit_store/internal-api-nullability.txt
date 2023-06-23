@@ -2531,6 +2531,7 @@ Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$Class
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$ClassBuilderImpl$41> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$ClassBuilderImpl$42> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$ClassBuilderImpl$43> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
+Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$ClassBuilderImpl$44> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$ClassBuilderImpl$4> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$ClassBuilderImpl$5> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$ClassBuilderImpl$6> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
