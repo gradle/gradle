@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.smoketests
+package samples
 
-import org.gradle.test.fixtures.dsl.GradleDsl
-
-class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractKotlinPluginAndroidSmokeTest {
-    @Override
-    String getSampleName() {
-        return "android-kotlin-example-kotlin-dsl"
+interface Base64Encoder {
+    fun encode(src: ByteArray): ByteArray
+    fun encodeToString(src: ByteArray): String {
+        val encoded = encode(src)
+        return buildString(encoded.size) {
+            encoded.forEach { append(it.toChar()) }
+        }
     }
+}
 
-    @Override
-    GradleDsl getDSL() {
-        return GradleDsl.KOTLIN
-    }
+expect object Base64Factory {
+    fun createEncoder(): Base64Encoder
 }

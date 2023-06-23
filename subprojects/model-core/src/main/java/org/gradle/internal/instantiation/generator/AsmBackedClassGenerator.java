@@ -752,23 +752,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _PUTFIELD(generatedType, FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE);
                 }
 
-                for (AttachedProperty entry : propertiesToAttach) {
-                    // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
-                    PropertyMetadata property = entry.property;
-                    boolean applyRole = entry.applyRole;
-                    MethodMetadata getter = property.getMainGetter();
-                    _ALOAD(0);
-                    _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
-                    if (applyRole) {
-                        _DUP();
-                    }
-                    _ALOAD(0);
-                    _LDC(property.getName());
-                    _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
-                    if (applyRole) {
-                        applyRole();
-                    }
-                }
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, "attachModelProperties", RETURN_VOID);
 
                 // For classes that could have convention mapping, but implement IConventionAware themselves, we need to
                 // mark ineligible-for-convention-mapping properties in a different way.
@@ -1410,6 +1395,27 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(0);
                 _ALOAD(2);
                 _PUTFIELD(generatedType, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE);
+                _RETURN();
+            }});
+
+            publicMethod("attachModelProperties", RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                for (AttachedProperty entry : propertiesToAttach) {
+                    // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
+                    PropertyMetadata property = entry.property;
+                    boolean applyRole = entry.applyRole;
+                    MethodMetadata getter = property.getMainGetter();
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
+                    if (applyRole) {
+                        _DUP();
+                    }
+                    _ALOAD(0);
+                    _LDC(property.getName());
+                    _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
+                    if (applyRole) {
+                        applyRole();
+                    }
+                }
                 _RETURN();
             }});
         }
