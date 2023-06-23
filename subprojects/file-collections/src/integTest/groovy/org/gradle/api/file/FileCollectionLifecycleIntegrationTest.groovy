@@ -19,6 +19,7 @@ package org.gradle.api.file
 import groovy.test.NotYetImplemented
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "finalized file collection resolves locations and ignores later changes to source paths"() {
@@ -124,6 +125,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         succeeds()
     }
 
+    @ToBeFixedForConfigurationCache(because = "Seems like finalizeValue() isn't stored in the CC")
     def "cannot mutate finalized file collection"() {
         buildFile """
             def files = objects.fileCollection()
@@ -210,6 +212,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
             }
 
             task show {
+                def thing = project.thing
                 // Task graph calculation is ok
                 dependsOn {
                     println("value = " + thing.prop.files)
@@ -253,6 +256,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
             thing.prop.disallowUnsafeRead()
 
             task show {
+                def thing = project.thing
                 dependsOn {
                     thing.prop.from("some-file")
                     println("value = " + thing.prop.files)
@@ -296,6 +300,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
             thing.prop.from("some-file")
 
             task show {
+                def thing = project.thing
                 dependsOn {
                     thing.prop.finalizeValue()
                     println("value = " + thing.prop.files)
@@ -320,26 +325,26 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
             abstract class Generate extends DefaultTask {
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDirectory()
-                
+
                 @TaskAction
                 void generate() {
                     def outputFile = outputDirectory.get().file("generated.txt").asFile
                     outputFile.text = "generated file"
                 }
             }
-            
+
             def generateFile = tasks.register('generate', Generate) {
                 outputDirectory.convention(layout.buildDirectory)
             }
-            
+
             interface ProjectModel {
                 ConfigurableFileCollection getGeneratedFiles()
             }
-            
+
             def thing = project.extensions.create("thing", ProjectModel)
             thing.generatedFiles.from(generateFile)
             thing.generatedFiles.finalizeValueOnRead()
-            
+
             task show {
                 dependsOn thing.generatedFiles
             }
