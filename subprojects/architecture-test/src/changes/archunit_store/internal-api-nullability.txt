@@ -2493,6 +2493,7 @@ Class <org.gradle.internal.instantiation.generator.AbstractClassGenerator$Servic
 Class <org.gradle.internal.instantiation.generator.AbstractClassGenerator$UnclaimedPropertyHandler> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AbstractClassGenerator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
+Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$AttachedProperty$Trigger> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$AttachedProperty> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$ClassBuilderImpl$10> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
 Class <org.gradle.internal.instantiation.generator.AsmBackedClassGenerator$ClassBuilderImpl$11> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmBackedClassGenerator.java:0)
