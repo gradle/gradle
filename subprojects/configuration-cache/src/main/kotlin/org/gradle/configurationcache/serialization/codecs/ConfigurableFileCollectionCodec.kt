@@ -19,6 +19,8 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -36,6 +38,7 @@ class ConfigurableFileCollectionCodec(
             codec.run {
                 encodeContents(value as FileCollectionInternal)
             }
+            writeBoolean(value.uncheckedCast<DefaultConfigurableFileCollection>().isFinalizing())
         }
     }
 
@@ -44,6 +47,9 @@ class ConfigurableFileCollectionCodec(
             val contents = codec.run { decodeContents() }
             val fileCollection = fileCollectionFactory.configurableFiles()
             fileCollection.from(contents)
+            if (readBoolean()) {
+                fileCollection.finalizeValue()
+            }
             isolate.identities.putInstance(id, fileCollection)
             fileCollection
         }
