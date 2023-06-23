@@ -272,7 +272,11 @@ public class FinalizerGroup extends HasFinalizers {
                 if (members.contains(toNode) && !blockedFinalizedMembers.contains(toNode)) {
                     dependenciesThatAreMembers.add(toNode);
                 }
-                toNode.visitHardSuccessors(queue::add);
+                toNode.visitHardSuccessors(node -> {
+                    if (!seen.contains(node)) {
+                        queue.add(node);
+                    }
+                });
             }
         }
         return dependenciesThatAreMembers;
