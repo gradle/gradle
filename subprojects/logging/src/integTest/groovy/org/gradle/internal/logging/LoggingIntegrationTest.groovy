@@ -153,99 +153,53 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
     }}
 
     @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
-    def quietLogging() {
-        expect:
-        checkOutput(this.&run, logOutput.quiet)
-    }
-
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
-    def lifecycleLogging() {
-        expect:
-        checkOutput(this.&run, logOutput.lifecycle)
-    }
-
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
-    def infoLogging() {
-        expect:
-        checkOutput(this.&run, logOutput.info)
-    }
-
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
-    def debugLogging() {
-        expect:
-        checkOutput(this.&run, logOutput.debug)
-    }
-
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
-    @UsesSample('tutorial/logging/groovy')
-    def sampleQuietLogging() {
-        expect:
-        checkOutput(this.&runSample, sample.quiet)
-    }
-
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
-    @UsesSample('tutorial/logging/groovy')
-    def sampleLifecycleLogging() {
-        expect:
-        checkOutput(this.&runSample, sample.lifecycle)
-    }
-
-    @UsesSample('tutorial/logging/groovy')
-    def sampleInfoLogging() {
-        expect:
-        checkOutput(this.&runSample, sample.info)
-    }
-
-    @UsesSample('tutorial/logging/groovy')
-    def sampleDebugLogging() {
-        expect:
-        checkOutput(this.&runSample, sample.debug)
-    }
-
-    def multiThreadedQuietLogging() {
-        expect:
-        checkOutput(this.&runMultiThreaded, multiThreaded.quiet)
-    }
-
-    def multiThreadedlifecycleLogging() {
-        expect:
-        checkOutput(this.&runMultiThreaded, multiThreaded.lifecycle)
-    }
-
-    def multiThreadedDebugLogging() {
-        expect:
-        checkOutput(this.&runMultiThreaded, multiThreaded.debug)
-    }
-
-    def run(LogLevel level) {
+    def "build emits #level logging"() {
+        LogLevel logLevel = logOutput."$level"
         resources.maybeCopy('LoggingIntegrationTest/logging')
         TestFile loggingDir = testDirectory
         loggingDir.file("buildSrc/build/.gradle").deleteDir()
         loggingDir.file("nestedBuild/buildSrc/.gradle").deleteDir()
 
         String initScript = new File(loggingDir, 'init.gradle').absolutePath
-        String[] allArgs = level.args + ['-I', initScript]
-        return executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
+        List<String> allArgs = logLevel.args + ['-I', initScript]
+
+        when:
+        executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs)
+        run "log"
+        then:
+        logLevel.checkOuts(result)
+
+        where:
+        level << ['quiet', 'lifecycle', 'info', 'debug']
     }
 
-    def runBroken(LogLevel level) {
-        TestFile loggingDir = testDirectory
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483", iterationMatchers = 'sample emits (quiet|lifecycle) logging')
+    @UsesSample('tutorial/logging/groovy')
+    def "sample emits #level logging"() {
+        LogLevel logLevel = sample."$level"
 
-        return executer.noExtraLogging().inDirectory(loggingDir).withTasks('broken').runWithFailure()
+        when:
+        executer.noExtraLogging().inDirectory(sampleResources.dir).withArguments(logLevel.args)
+        run 'log'
+        then:
+        logLevel.checkOuts(result)
+
+        where:
+        level << ['quiet', 'lifecycle', 'info', 'debug']
     }
 
-    def runMultiThreaded(LogLevel level) {
+    def "multi threaded #level logging works"() {
+        LogLevel logLevel = multiThreaded."$level"
         resources.maybeCopy('LoggingIntegrationTest/multiThreaded')
-        return executer.noExtraLogging().withArguments(level.args).withTasks('log').run()
-    }
 
-    def runSample(LogLevel level) {
-        return executer.noExtraLogging().inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
-    }
+        when:
+        executer.noExtraLogging().withArguments(logLevel.args)
+        run 'log'
+        then:
+        logLevel.checkOuts(result)
 
-    void checkOutput(Closure run, LogLevel level) {
-        ExecutionResult result = run.call(level)
-        level.checkOuts(result)
+        where:
+        level << ['quiet', 'lifecycle', 'info', 'debug']
     }
 }
 
@@ -263,7 +217,7 @@ class LogLevel {
         allMessages - (infoMessages + errorMessages)
     }
 
-    def checkOuts(ExecutionResult result) {
+    void checkOuts(ExecutionResult result) {
         infoMessages.each {List<String> messages ->
             checkOuts(true, result.output, messages, validator)
         }
