@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
+import org.gradle.api.Incubating;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
@@ -31,6 +32,14 @@ import java.util.List;
  * Creates the .settings/org.eclipse.wst.common.project.facet.core.xml file for WTP projects.
  */
 public class WtpFacet extends XmlPersistableConfigurationObject {
+    /**
+     * The id of the Eclipse J2EE Web Library container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    public static final String WEB_LIBS_CONTAINER = "org.eclipse.jst.j2ee.internal.web.container";
+
     private List<Facet> facets = Lists.newArrayList(); // TODO: turn into Set?
 
     public WtpFacet(XmlTransformer xmlTransformer) {

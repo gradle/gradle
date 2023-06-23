@@ -18,6 +18,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins that add support for generating IDE project files used for importing Gradle projects into IDEs"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core"))
@@ -41,4 +43,8 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":ide")))
+
+    testRuntimeOnly(project(":distributions-jvm")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
 }

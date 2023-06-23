@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.plugins.ide.eclipse.model.WtpFacet
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -468,7 +469,7 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then the container is configured
-        assert getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
+        assert getClasspathFile().text.contains(WtpFacet.WEB_LIBS_CONTAINER)
     }
 
     @Test
@@ -485,7 +486,7 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then container is added only once:
-        assert !getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
+        assert !getClasspathFile().text.contains(WtpFacet.WEB_LIBS_CONTAINER)
     }
 
     @Test
