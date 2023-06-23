@@ -16,10 +16,10 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.PluginId;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.interfaces.ProblemsPluginId;
 import org.gradle.api.problems.internal.DefaultPluginId;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.problems.BaseProblem;
@@ -66,7 +66,7 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
             .documentedAt(userManual(getUserManualReference().getId(), getUserManualReference().getSection()));
         getWhy().ifPresent(builder::description);
         String typeName = getWhere().getType().map(Class::getName).map(t -> t.replaceAll("\\$", ".")).orElse(null);
-        PluginId pluginId = getWhere().getPlugin().map(p -> new DefaultPluginId(p.getId())).orElse(null);
+        ProblemsPluginId pluginId = getWhere().getPlugin().map(p -> new DefaultPluginId(p.getId())).orElse(null);
         String parentPropertyName = getWhere().getParentPropertyName().orElse(null);
         String propertyName = getWhere().getPropertyName().orElse(null);
         if (typeName != null) {

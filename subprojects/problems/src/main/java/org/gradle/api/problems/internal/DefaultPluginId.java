@@ -15,12 +15,12 @@
  */
 
 package org.gradle.api.problems.internal;
-import org.gradle.api.problems.interfaces.PluginId;
+import org.gradle.api.problems.interfaces.ProblemsPluginId;
 
 import javax.annotation.Nullable;
 
 
-public class DefaultPluginId implements PluginId {
+public class DefaultPluginId implements ProblemsPluginId {
     private static final String SEPARATOR = ".";
     private final String value;
 

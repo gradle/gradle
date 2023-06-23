@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  * @since 8.3
  */
 @Incubating
-public interface PluginId {
+public interface ProblemsPluginId {
 
     /**
      * The fully qualified plugin ID.

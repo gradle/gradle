@@ -16,8 +16,8 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.interfaces.PluginId;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemsPluginId;
 import org.gradle.api.problems.internal.DefaultPluginId;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.problems.Solution;
@@ -139,7 +139,7 @@ public class TypeValidationProblemRenderer {
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
         String pluginIdString = additionalMetadata.get("pluginId");
-        PluginId pluginId = pluginIdString == null ? null : new DefaultPluginId(pluginIdString);
+        ProblemsPluginId pluginId = pluginIdString == null ? null : new DefaultPluginId(pluginIdString);
         if (rootType != null) {
             if (pluginId != null) {
                 builder.append("In plugin '").append(pluginId).append("' type '");
