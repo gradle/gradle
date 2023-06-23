@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -34,13 +35,13 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
 
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
@@ -109,15 +110,16 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validateUnsupportedInputPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
-            validationContext.visitPropertyProblem(problem -> {
+            validationContext.visitPropertyNewProblem(problem -> {
                 String propertyName = propertyMetadata.getPropertyName();
-                problem.withId(ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION)
-                    .reportAs(Severity.ERROR)
+                problem
                     .forProperty(propertyName)
-                    .withDescription(() -> String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
-                    .happensBecause("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
-                    .addPossibleSolution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath")
-                    .documentedAt("validation_problems", "missing_normalization_annotation");
+                    .type(ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION)
+                    .severity(Severity.ERROR)
+                    .message(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
+                    .description("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
+                    .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath")
+                    .documentedAt(userManual("validation_problems", "missing_normalization_annotation"));
             });
         }
     }

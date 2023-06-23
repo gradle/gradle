@@ -18,12 +18,13 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
  * Utility methods for validating {@link org.gradle.api.tasks.Nested} properties.
@@ -52,14 +53,14 @@ public class NestedValidationUtil  {
         Class<?> beanType
     ) {
         if (!isSupportedType(beanType)) {
-            validationContext.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
-                    .reportAs(WARNING)
+            validationContext.visitPropertyNewProblem(problem ->
+                problem.type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
                     .forProperty(propertyName)
-                    .withDescription(() -> "with nested type '" + beanType.getName() + "' is not supported")
-                    .happensBecause("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input")
-                    .addPossibleSolution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input")
-                    .documentedAt("validation_problems", "unsupported_nested_type")
+                    .severity(Severity.WARNING)
+                    .message("with nested type '" + beanType.getName() + "' is not supported")
+                    .description("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input")
+                    .solution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input")
+                    .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
             );
         }
     }
@@ -93,14 +94,14 @@ public class NestedValidationUtil  {
         Class<?> keyType
     ) {
         if (!SUPPORTED_KEY_TYPES.contains(keyType)) {
-            validationContext.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
-                    .reportAs(WARNING)
+            validationContext.visitPropertyNewProblem(problem ->
+                problem.type(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
                     .forProperty(propertyName)
-                    .withDescription(() -> "where key of nested map is of type '" + keyType.getName() + "'")
-                    .happensBecause("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
-                    .addPossibleSolution("Change type of key to one of the following types: " + getSupportedKeyTypes())
-                    .documentedAt("validation_problems", "unsupported_key_type_of_nested_map")
+                    .severity(Severity.WARNING)
+                    .message("where key of nested map is of type '" + keyType.getName() + "'")
+                    .description("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
+                    .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())
+                    .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
             );
         }
     }

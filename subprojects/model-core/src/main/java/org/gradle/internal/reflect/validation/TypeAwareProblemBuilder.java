@@ -21,6 +21,7 @@ import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 
 import javax.annotation.Nullable;
 
@@ -28,6 +29,7 @@ import javax.annotation.Nullable;
 public class TypeAwareProblemBuilder implements ProblemBuilder {
 
     private final ProblemBuilder delegate;
+    private boolean typeIrrelevantInErrorMessage = false;
 
     public TypeAwareProblemBuilder(ProblemBuilder delegate) {
         this.delegate = delegate;
@@ -105,6 +107,22 @@ public class TypeAwareProblemBuilder implements ProblemBuilder {
 
     public TypeAwareProblemBuilder withAnnotationType(Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
         delegate.withMetadata("typeName", classWithAnnotationAttached.getName().replaceAll("\\$", "."));
+        return this;
+    }
+
+    public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage(){
+        this.typeIrrelevantInErrorMessage = true;
+//        return Cast.uncheckedCast(this)
+        return this;
+    }
+
+    public TypeAwareProblemBuilder type(ValidationProblemId problemType) {
+        delegate.type(problemType.name());
+        return this;
+    }
+
+    public TypeAwareProblemBuilder forProperty(String propertyName) {
+        delegate.withMetadata("propertyName", propertyName);
         return this;
     }
 }

@@ -24,14 +24,14 @@ import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
-import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.impl.DefaultInputFingerprinter
-import org.gradle.internal.execution.impl.FingerprinterRegistration
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
+import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
+import org.gradle.internal.execution.impl.FingerprinterRegistration
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
@@ -275,7 +275,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         def invalidWork = builder
             .withValidator {context -> context
                 .forType(UnitOfWork, false)
-                .visitPropertyProblem{
+                .visitPropertyNewProblem{
                     it.withId(ValidationProblemId.TEST_PROBLEM)
                         .reportAs(WARNING)
                         .withDescription("Validation problem")

@@ -18,6 +18,7 @@ package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
@@ -29,7 +30,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     protected AbstractInputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
@@ -59,16 +60,17 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
         String... possibleSolutions
     ) {
         if (valueTypes.stream().anyMatch(unsupportedType::isAssignableFrom)) {
-            validationContext.visitPropertyProblem(problem -> {
-                    problem.withId(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
+            validationContext.visitPropertyNewProblem(problem -> {
+                    problem
                         .forProperty(propertyMetadata.getPropertyName())
-                        .reportAs(ERROR)
-                        .withDescription(() -> String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
-                        .happensBecause(() -> String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
+                        .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
+                        .severity(Severity.ERROR)
+                        .message(String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
+                        .description(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
                     for (String possibleSolution : possibleSolutions) {
-                        problem.addPossibleSolution(possibleSolution);
+                        problem.solution(possibleSolution);
                     }
-                    problem.documentedAt("validation_problems", "unsupported_value_type");
+                    problem.documentedAt(userManual("validation_problems", "unsupported_value_type"));
                 }
             );
         }

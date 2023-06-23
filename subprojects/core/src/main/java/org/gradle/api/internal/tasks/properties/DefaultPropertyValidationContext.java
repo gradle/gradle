@@ -53,6 +53,11 @@ public class DefaultPropertyValidationContext implements PropertyValidationConte
     }
 
     @Override
+    public void visitPropertyNewProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        delegate.visitPropertyNewProblem(problemSpec);
+    }
+
+    @Override
     public PathToFileResolver getFileResolver() {
         return fileResolver;
     }

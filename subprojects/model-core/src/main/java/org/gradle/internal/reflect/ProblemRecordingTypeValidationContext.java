@@ -75,6 +75,14 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         recordProblem(builder.build());
     }
 
+    @Override
+    public void visitPropertyNewProblem(Action<? super TypeAwareProblemBuilder> problemSpec){
+        TypeAwareProblemBuilder problemBuilder = new TypeAwareProblemBuilder(Problems.create());
+        problemSpec.execute(problemBuilder);
+//        problemBuilder.forType(rootType);
+        recordProblem(problemBuilder.build());
+    }
+
 
     abstract protected void recordProblem(TypeValidationProblem problem);
 
