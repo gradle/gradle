@@ -252,16 +252,27 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
     private static class AttachedProperty {
 
-        public static AttachedProperty of(PropertyMetadata property, boolean applyRole) {
-            return new AttachedProperty(property, applyRole);
+        public enum Trigger {
+            Construction,
+            Demand
+        }
+
+        public static AttachedProperty of(PropertyMetadata property, boolean applyRole, Trigger trigger) {
+            return new AttachedProperty(property, applyRole, trigger);
         }
 
         public final PropertyMetadata property;
         public final boolean applyRole;
+        public final Trigger trigger;
 
-        private AttachedProperty(PropertyMetadata property, boolean applyRole) {
+        private AttachedProperty(PropertyMetadata property, boolean applyRole, Trigger trigger) {
             this.property = property;
             this.applyRole = applyRole;
+            this.trigger = trigger;
+        }
+
+        public boolean atConstruction() {
+            return trigger == Trigger.Construction;
         }
     }
 
@@ -334,7 +345,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void attachDuringConstruction(PropertyMetadata property, boolean applyRole) {
-            propertiesToAttach.add(AttachedProperty.of(property, applyRole));
+            attach(property, applyRole, AttachedProperty.Trigger.Construction);
+        }
+
+        @Override
+        public void attachOnDemand(PropertyMetadata property, boolean applyRole) {
+            attach(property, applyRole, AttachedProperty.Trigger.Demand);
+        }
+
+        private void attach(PropertyMetadata property, boolean applyRole, AttachedProperty.Trigger trigger) {
+            propertiesToAttach.add(AttachedProperty.of(property, applyRole, trigger));
             if (applyRole) {
                 requiresFactory = true;
             }
@@ -752,8 +772,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _PUTFIELD(generatedType, FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE);
                 }
 
-                _ALOAD(0);
-                _INVOKEVIRTUAL(generatedType, "attachModelProperties", RETURN_VOID);
+                for (AttachedProperty attached : propertiesToAttach) {
+                    if (attached.atConstruction()) {
+                        attachProperty(attached);
+                    }
+                }
 
                 // For classes that could have convention mapping, but implement IConventionAware themselves, we need to
                 // mark ineligible-for-convention-mapping properties in a different way.
@@ -1264,6 +1287,24 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 super(methodVisitor);
             }
 
+            protected void attachProperty(AttachedProperty attached) {
+                // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
+                PropertyMetadata property = attached.property;
+                boolean applyRole = attached.applyRole;
+                MethodMetadata getter = property.getMainGetter();
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
+                if (applyRole) {
+                    _DUP();
+                }
+                _ALOAD(0);
+                _LDC(property.getName());
+                _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
+                if (applyRole) {
+                    applyRole();
+                }
+            }
+
             // Caller should place property value on the top of the stack
             protected void applyRole() {
                 // GENERATE getFactory().applyRole(<value>)
@@ -1399,22 +1440,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
 
             publicMethod("attachModelProperties", RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
-                for (AttachedProperty entry : propertiesToAttach) {
-                    // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
-                    PropertyMetadata property = entry.property;
-                    boolean applyRole = entry.applyRole;
-                    MethodMetadata getter = property.getMainGetter();
-                    _ALOAD(0);
-                    _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
-                    if (applyRole) {
-                        _DUP();
-                    }
-                    _ALOAD(0);
-                    _LDC(property.getName());
-                    _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
-                    if (applyRole) {
-                        applyRole();
-                    }
+                for (AttachedProperty attached : propertiesToAttach) {
+                    attachProperty(attached);
                 }
                 _RETURN();
             }});
