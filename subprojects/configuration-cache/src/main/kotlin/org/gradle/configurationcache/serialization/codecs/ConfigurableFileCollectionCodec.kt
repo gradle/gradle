@@ -18,9 +18,7 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
-import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -34,11 +32,12 @@ class ConfigurableFileCollectionCodec(
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<ConfigurableFileCollection> {
     override suspend fun WriteContext.encode(value: ConfigurableFileCollection) {
+        require(value is DefaultConfigurableFileCollection)
         encodePreservingIdentityOf(value) {
             codec.run {
-                encodeContents(value as FileCollectionInternal)
+                encodeContents(value)
             }
-            writeBoolean(value.uncheckedCast<DefaultConfigurableFileCollection>().isFinalizing())
+            writeBoolean(value.isFinalizing)
         }
     }
 
