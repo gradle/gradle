@@ -31,7 +31,9 @@ dependencyResolutionManagement {
                 includeVersionByRegex("com.gradle.internal", "test-selection-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        jcenter {
+        maven {
+            name = "Gradle public repository"
+            url = uri("https://repo.gradle.org/gradle/public")
             content {
                 includeModule("org.openmbee.junit", "junit-xml-parser")
                 includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
