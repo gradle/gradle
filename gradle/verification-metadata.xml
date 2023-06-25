@@ -187,7 +187,6 @@
             <trusting group="com.github.javaparser"/>
             <trusting group="info.picocli"/>
             <trusting group="io.github.http-builder-ng"/>
-            <trusting group="org.codehaus.groovy.modules" name="http-builder-ng-core"/>
             <trusting group="org.testcontainers"/>
             <trusting group="^com[.]diffplug($|([.].*))" regex="true"/>
             <trusting group="^org[.]jetbrains($|([.].*))" regex="true"/>
@@ -1303,9 +1302,9 @@
             <sha256 value="5ef4102929b54c1b368be19178475c941bff09322c838484bb4dee66b6649419" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.21">
-         <artifact name="gradle-guides-plugin-0.21.jar">
-            <sha256 value="c136d7744951e1541a121377a34d36e83f09f732c0e2b8d8deffbd48aa125c5d" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.22">
+         <artifact name="gradle-guides-plugin-0.22.jar">
+            <sha256 value="d6609bba9739659fb2cff4d3750ae97cabc4df4b1ffe7ca3211bc39517efadfb" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-conventions" version="0.8.0">
