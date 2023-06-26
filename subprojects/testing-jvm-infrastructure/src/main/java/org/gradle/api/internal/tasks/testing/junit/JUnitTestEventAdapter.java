@@ -33,7 +33,6 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
-import org.jetbrains.annotations.NotNull;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -60,9 +59,9 @@ public class JUnitTestEventAdapter extends RunListener implements AssertionToFai
     );
 
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)(\\[\\d+])?", Pattern.DOTALL);
-    private final @NotNull IdGenerator<?> idGenerator;
-    private final @NotNull TestResultProcessor resultProcessor;
-    private final @NotNull Clock clock;
+    private final IdGenerator<?> idGenerator;
+    private final TestResultProcessor resultProcessor;
+    private final Clock clock;
     private final Object lock = new Object();
     private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
     private final Set<Description> assumptionFailed = new HashSet<Description>();
