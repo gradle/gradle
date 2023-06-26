@@ -46,7 +46,7 @@ dependencies {
     }
     testImplementation("org.opentest4j:opentest4j") {
         version {
-            // Multiple
+            // MultipleFailuresError appears only since 1.3.0-RC2
             require("1.3.0-RC2")
         }
         because("We test assertion errors coming from OpenTest4J")
