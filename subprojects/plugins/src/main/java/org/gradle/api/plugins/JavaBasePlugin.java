@@ -74,6 +74,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -178,7 +179,9 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             if (!attributes.contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
                 String libraryElements;
                 // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
-                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularity().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
+                Boolean modulePath = compileTaskProvider.get().getModularity().getInferModulePath().get();
+                List<File> sourceSetFiles = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree());
+                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(modulePath, sourceSetFiles)) {
                     libraryElements = LibraryElements.JAR;
                 } else {
                     libraryElements = LibraryElements.CLASSES;
@@ -313,8 +316,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
-            compile.getSourceCompatibility().convention(computeSourceCompatibilityConvention(javaExtension, compile).toString());
-            compile.getTargetCompatibility().convention(computeTargetCompatibilityConvention(javaExtension, compile).toString());
+            compile.getSourceCompatibility().convention(project.provider(() -> computeSourceCompatibilityConvention(javaExtension, compile).toString()));
+            compile.getTargetCompatibility().convention(project.provider(() -> computeTargetCompatibilityConvention(javaExtension, compile).toString()));
             compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }
