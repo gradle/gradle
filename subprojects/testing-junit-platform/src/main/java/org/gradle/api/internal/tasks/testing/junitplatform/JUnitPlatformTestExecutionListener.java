@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.failure.AssertionToFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
@@ -44,6 +44,7 @@ import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,7 +59,7 @@ import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 
 @NonNullApi
-public class JUnitPlatformTestExecutionListener implements TestExecutionListener, AssertionToFailureMapper {
+public class JUnitPlatformTestExecutionListener implements TestExecutionListener, RootAssertionToFailureMapper {
 
     private final static List<FailureMapper> MAPPERS = Arrays.asList(
         new OpentestFailureFailedMapper(),
@@ -185,7 +186,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return startEvent(idOfClosestStartedAncestor);
     }
 
-    private TestStartEvent startEvent(Object parentId) {
+    private TestStartEvent startEvent(@Nullable Object parentId) {
         return new TestStartEvent(clock.getCurrentTime(), parentId);
     }
 
@@ -193,7 +194,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return completeEvent(null);
     }
 
-    private TestCompleteEvent completeEvent(ResultType resultType) {
+    private TestCompleteEvent completeEvent(@Nullable ResultType resultType) {
         return new TestCompleteEvent(clock.getCurrentTime(), resultType);
     }
 
@@ -263,6 +264,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return result;
     }
 
+    @Nullable
     private TestIdentifier findTestClassIdentifier(TestIdentifier testIdentifier) {
         // For tests in default method of interface,
         // we might not be able to get the implementation class directly.
@@ -281,7 +283,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return hasClassSource(testIdentifier) && hasDifferentSourceThanAncestor(testIdentifier);
     }
 
-    private String className(TestIdentifier testClassIdentifier) {
+    private String className(@Nullable TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null) {
             Optional<ClassSource> classSource = getClassSource(testClassIdentifier);
             if (classSource.isPresent()) {
@@ -291,7 +293,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return JUnitSupport.UNKNOWN_CLASS;
     }
 
-    private String classDisplayName(TestIdentifier testClassIdentifier) {
+    private String classDisplayName(@Nullable TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null) {
             return testClassIdentifier.getDisplayName();
         }

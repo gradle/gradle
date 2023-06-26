@@ -19,12 +19,28 @@ package org.gradle.api.internal.tasks.testing.failure;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestFailure;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+/**
+ * A mapper that maps a {@link Throwable} thrown from a test engine into a {@link TestFailure}.
+ * <p>
+ * Implementors of this class should not depend on classes outside the standard library, as there is no guarantee that they will be on the test VM's classpath.
+ * Instead, they should rely completely on reflection.
+ */
 @NonNullApi
 public abstract class FailureMapper {
 
+    /**
+     * Decides whether this mapper supports the given {@link Throwable}.
+     * A {@link Throwable} is supported if its class name, or any of its superclasses, is present in the list returned by {@link #getSupportedClassNames()}.
+     * <p>
+     * This method does the check purely by reflective means, and don't need the checked class to be on the classpath.
+     *
+     * @param cls the {@link Class} to checked
+     * @return {@code true} if cls or one of its superclasses is contained in the list returned by {@link #getSupportedClassNames()}, {@code false} otherwise
+     */
     public boolean supports(Class<?> cls) {
         if (getSupportedClassNames().contains(cls.getName())) {
             return true;
@@ -38,13 +54,35 @@ public abstract class FailureMapper {
         }
     }
 
+    /**
+     * Returns a list of fully qualified class names that this mapper supports.
+     * <p>
+     * See {@link #supports(Class)} for more information.
+     *
+     * @return a list of fully qualified class names that this mapper supports
+     */
     protected abstract List<String> getSupportedClassNames();
 
-    public abstract TestFailure map(Throwable throwable, AssertionToFailureMapper mapper) throws Exception;
+    /**
+     * Maps the given {@link Throwable} to a {@link TestFailure}.
+     * <p>
+     * Implementors of this method should not depend on classes outside the standard library, as there is no guarantee that they are on the JVM's classpath.
+     * <p>
+     * If needed, {@code rootMapper} can be used to recursively map inner failures by platform-specific means.
+     *
+     * @param throwable the {@link Throwable} to be mapped
+     * @param rootMapper the {@link RootAssertionToFailureMapper} to be used to recursively map inner failures.
+     * @return a {@link TestFailure} representing the given {@link Throwable}
+     * @throws Exception if an error occurs while mapping the {@link Throwable}
+     */
+    public abstract TestFailure map(Throwable throwable, RootAssertionToFailureMapper rootMapper) throws Exception;
 
     // Utility methods ------------------------------------
 
-    protected static <T> T invokeMethod(Object obj, String methodName, Class<T> targetClass) throws Exception {
+    /**
+     * Utility method to invoke a method on an object by reflective means.
+     */
+    protected static <T> T invokeMethod(Object obj, String methodName, Class<T> targetClass) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Method method = obj.getClass().getDeclaredMethod(methodName);
         return targetClass.cast(method.invoke(obj));
     }

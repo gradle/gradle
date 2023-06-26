@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.failure.mappers;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.failure.AssertionToFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 
@@ -35,12 +34,12 @@ public class AssertjMultipleAssertionsErrorMapper extends FailureMapper {
     }
 
     @Override
-    public TestFailure map(Throwable throwable, AssertionToFailureMapper mapper) throws Exception {
-        return TestFailure.fromTestFrameworkFailure(throwable, mapInnerFailures(throwable, mapper));
+    public TestFailure map(Throwable throwable, RootAssertionToFailureMapper rootMapper) throws Exception {
+        return TestFailure.fromTestFrameworkFailure(throwable, mapInnerFailures(throwable, rootMapper));
     }
 
     @SuppressWarnings("unchecked")
-    private static List<TestFailure> mapInnerFailures(Throwable throwable, AssertionToFailureMapper mapper) throws Exception {
+    private static List<TestFailure> mapInnerFailures(Throwable throwable, RootAssertionToFailureMapper mapper) throws Exception {
         List<TestFailure> failures = new ArrayList<TestFailure>();
 
         List<Throwable> innerThrowable = invokeMethod(throwable, "getAssertionError", List.class);

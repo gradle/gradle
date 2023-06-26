@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.failure.AssertionToFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
@@ -48,7 +48,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @NonNullApi
-public class JUnitTestEventAdapter extends RunListener implements AssertionToFailureMapper {
+public class JUnitTestEventAdapter extends RunListener implements RootAssertionToFailureMapper {
 
     public static final List<FailureMapper> MAPPERS = Arrays.asList(
         new JUnitComparisonFailureMapper(),
