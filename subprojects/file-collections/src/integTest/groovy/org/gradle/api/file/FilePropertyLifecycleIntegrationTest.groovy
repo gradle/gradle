@@ -432,7 +432,7 @@ task thing {
         failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
     }
 
-    @ToBeFixedForConfigurationCache(because = "mapped task output property can be read before task completed")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/19252")
     def "querying the value of a mapped task output file property before the task has completed is not supported"() {
         taskTypeWithOutputFileProperty()
         buildFile << """
@@ -470,7 +470,7 @@ task thing {
         failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
     }
 
-    @ToBeFixedForConfigurationCache(because = "mapped task output property can be read before task completed")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/19252")
     def "querying the value of a mapped task output directory property before the task has completed is not supported"() {
         taskTypeWithOutputDirectoryProperty()
         buildFile << """
