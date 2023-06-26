@@ -105,6 +105,8 @@ A https://scans.gradle.com/[Build Scan] is a shareable and centralized record of
 
 Click the link provided in the prompt: `https://gradle.com/s/link`.
 
+WARNING: You will have to accept the terms of service to use Build Scans.
+
 You will need to activate the Build Scan by using your email:
 
 image::tutorial/build-scan-prompt.png[]

@@ -34,7 +34,7 @@ Learn the basics of Gradle tasks by running one and looking at its output.
 == Step 1. Viewing available Tasks
 A _task_ is a basic unit of work that can be done by Gradle as part of the build.
 
-In the `tutorial` directory, enter the command below to list all the available tasks in the root project:
+In the `tutorial` directory, enter the command below to list all the available tasks in the project:
 [source]
 ----
 $ ./gradlew tasks
@@ -71,6 +71,8 @@ A task might be responsible for compilation, copying, and moving files around, c
 
 You can also list the tasks only available in the `app` subproject by running `./gradlew :app:tasks`.
 
+TIP: You can obtain more information in the task listing using the `--all` option: `./gradlew tasks --all`.
+
 In <<part1_gradle_init.adoc#part1_begin,part 1>> of the tutorial, we ran the `build` task using the `./gradlew build` command.
 
 == Step 2. Understanding Tasks
@@ -100,15 +102,14 @@ If task B uses the output of task A, then task A must complete before task B beg
 Here is an example of explicit task dependency:
 [source]
 ----
-task hello {
+tasks.register("hello") {
     println('Hello!')
 }
 
-task greet {
+tasks.register("greet") {
     println('How are you?')
+    dependsOn("hello")
 }
-
-greet.dependsOn(hello)
 ----
 
 In this case, `hello` prints before `greet`. The output is `Hello! How are you?`.
@@ -179,10 +180,10 @@ Gradle tasks are typed.
 This example shows a task of type `Copy`:
 [source]
 ----
-task copyTask(type: Copy) {
-    from('source')
-    into('target')
-    include('*.war')
+tasks.register("copyTask",Copy) {
+    from("source")
+    into("target")
+    include("*.war")
 }
 ----
 

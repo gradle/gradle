@@ -97,7 +97,7 @@ Enter target version of Java (min. 7) (default: 17): 17
 Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no] no
 ----
 
-NOTE: In this tutorial, Kotlin DSL is used to build a simple Java project. All examples are macOS based.
+NOTE: In this tutorial, Kotlin DSL is used to build a simple Java project (as it is the default DSL starting in Gradle 8.2). All examples are macOS based.
 
 When you are done, the directory should look as follows:
 
@@ -140,6 +140,12 @@ Use the wrapper by entering the following command:
 [source]
 ----
 $ ./gradlew build
+----
+
+In Windows, the command is:
+[source]
+----
+$ gradlew.bat build
 ----
 
 The first time you run the wrapper, it downloads and caches the Gradle binaries if they are not already installed on your machine.

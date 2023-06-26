@@ -24,7 +24,9 @@ You can find all Gradle releases and their checksums on the link:{website}/relea
 
 [[sec:prerequisites]]
 == Prerequisites
-Gradle runs on all major operating systems. It requires link:{jdkDownloadUrl}[Java Development Kit] (JDK) version {minJdkVersion} or higher to run. To check, run `java -version`:
+Gradle runs on all major operating systems. It requires link:{jdkDownloadUrl}[Java Development Kit] (JDK) version {minJdkVersion} or higher to run. You can check the <<compatibility.adoc#compatibility,compatibility matrix>> for more information.
+
+To check, run `java -version`:
 
 ----
 ❯ java -version

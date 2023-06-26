@@ -36,7 +36,7 @@ Learn the basics of Gradle's incremental builds.
 It's important to know that Gradle optimizes your build in a variety of ways.
 One such optimization is called _incremental builds_.
 
-An _incremental build_ is a build that avoids running tasks whose inputs and outputs did not change since the previous build, making the execution of such tasks unnecessary.
+An _incremental build_ is a build that avoids running tasks whose inputs did not change (and therefore the same outputs would be produced) since the previous build, making the execution of such tasks unnecessary.
 
 To re-iterate, tasks can define their own inputs and outputs. At build time, Gradle will determine whether they have changed or not. If the inputs have changed, Gradle will execute the task. Otherwise, it won’t.
 
