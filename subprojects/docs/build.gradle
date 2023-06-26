@@ -702,6 +702,8 @@ tasks.named("docsTest") { task ->
                 "snippet-ant-rename-task_kotlin_renameAntDelegate.sample",
                 "snippet-ant-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig.sample",
                 "snippet-ant-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig.sample",
+                "snippet-ant-ant-logging_groovy_antLogging.sample",
+                "snippet-ant-ant-logging_kotlin_antLogging.sample",
                 "snippet-buildlifecycle-task-execution-events_groovy_sanityCheck.sample",
                 "snippet-buildlifecycle-task-execution-events_groovy_taskExecutionEvents.groovy.sample",
                 "snippet-buildlifecycle-task-execution-events_kotlin_sanityCheck.sample",
