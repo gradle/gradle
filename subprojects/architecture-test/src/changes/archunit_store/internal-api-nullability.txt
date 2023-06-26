@@ -882,7 +882,6 @@ Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor$Method
 Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitTestClassExecutor.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitTestClassProcessor.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessorFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitTestClassProcessorFactory.java:0)
-Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestEventAdapter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitTestEventAdapter.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitTestFramework.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.TestClassExecutionEventGenerator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestClassExecutionEventGenerator.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.TestClassExecutionListener> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestClassExecutionListener.java:0)

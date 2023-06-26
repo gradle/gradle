@@ -32,11 +32,12 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jetbrains.annotations.NotNull;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-import java.lang.reflect.Field;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,9 +58,9 @@ public class JUnitTestEventAdapter extends RunListener implements AssertionToFai
     );
 
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)(\\[\\d+])?", Pattern.DOTALL);
-    private final IdGenerator<?> idGenerator;
-    private final TestResultProcessor resultProcessor;
-    private final Clock clock;
+    private final @NotNull IdGenerator<?> idGenerator;
+    private final @NotNull TestResultProcessor resultProcessor;
+    private final @NotNull Clock clock;
     private final Object lock = new Object();
     private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
     private final Set<Description> assumptionFailed = new HashSet<Description>();
@@ -81,7 +82,7 @@ public class JUnitTestEventAdapter extends RunListener implements AssertionToFai
     }
 
     @Override
-    public void testFailure(Failure failure) throws Exception {
+    public void testFailure(Failure failure) {
         TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
         TestDescriptorInternal testInternal;
         synchronized (lock) {
@@ -117,18 +118,8 @@ public class JUnitTestEventAdapter extends RunListener implements AssertionToFai
         return TestFailure.fromTestFrameworkFailure(failure);
     }
 
-    private void reportFailure(Object descriptorId, Throwable failure) throws Exception {
+    private void reportFailure(Object descriptorId, Throwable failure) {
         resultProcessor.failure(descriptorId, createFailure(failure));
-    }
-
-    private String getValueOfStringField(String name, junit.framework.ComparisonFailure comparisonFailure) {
-        try {
-            Field f = comparisonFailure.getClass().getDeclaredField(name);
-            f.setAccessible(true);
-            return (String) f.get(comparisonFailure);
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     @Override
@@ -176,11 +167,11 @@ public class JUnitTestEventAdapter extends RunListener implements AssertionToFai
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
     }
 
-    private TestDescriptorInternal descriptor(Object id, Description description) {
+    private static TestDescriptorInternal descriptor(Object id, Description description) {
         return new DefaultTestDescriptor(id, className(description), methodName(description));
     }
 
-    private TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
+    private static TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
         String methodName = methodName(description);
         if (methodName != null) {
             return new DefaultTestDescriptor(id, className(description), methodName);
@@ -190,10 +181,12 @@ public class JUnitTestEventAdapter extends RunListener implements AssertionToFai
     }
 
     // Use this instead of Description.getMethodName(), it is not available in JUnit <= 4.5
+    @Nullable
     public static String methodName(Description description) {
         return methodName(description.toString());
     }
 
+    @Nullable
     public static String methodName(String description) {
         Matcher matcher = methodStringMatcher(description);
         if (matcher.matches()) {
