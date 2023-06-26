@@ -30,8 +30,40 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
     @Rule public final Sample sampleResources = new Sample(testDirectoryProvider)
 
-    final LogOutput logOutput = new LogOutput() {{
+    final LogOutput logOutput = createLogOutput()
+
+    final LogOutput customLoggerOutput = createLogOutput().tap {
         quiet(
+            'init callback quiet out')
+        lifecycle(
+            'LOGGER: evaluating :',
+            'LOGGER: evaluating :project1',
+            'LOGGER: evaluating :project2',
+            'LOGGER: executing :project1:logInfo',
+            'LOGGER: executing :project1:logLifecycle',
+            'LOGGER: executing :project1:nestedBuildLog',
+            'LOGGER: executing :project1:log'
+        )
+        info(
+            'LOGGER: build finished',
+            'LOGGER: evaluated project :',
+            'LOGGER: evaluated project :project1',
+            'LOGGER: evaluated project :project2',
+            'LOGGER: executed task :project1:log',
+            'LOGGER: executed task :project1:logInfo',
+            'LOGGER: executed task :project1:logLifecycle',
+            'LOGGER: task :project1:log starting work',
+            'LOGGER: task :project1:log completed work',
+        )
+        forbidden(
+            // the custom logger should override this
+            'BUILD SUCCESSFUL'
+        )
+    }
+
+    private static createLogOutput() {
+        new LogOutput() {{
+            quiet(
                 'An info log message which is always logged.',
                 'A message which is logged at QUIET level',
                 'Text which is logged at QUIET level',
@@ -41,13 +73,13 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
                 'settings quiet out',
                 'init : QUIET out',
                 'init :buildSrc QUIET out',
-                'init callback quiet out',
                 'main buildSrc quiet',
                 'nestedBuild buildSrc quiet',
                 'nestedBuild quiet',
                 'nestedBuild task quiet',
-                'external QUIET message')
-        error(
+                'external QUIET message'
+            )
+            error(
                 'An error log message.',
                 'An error message which is logged at ERROR level',
                 'external ERROR error message',
@@ -55,14 +87,14 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
                 'A severe log message logged using JUL',
                 'init : ERROR err',
                 'init :buildSrc ERROR err'
-        )
-        warning(
+            )
+            warning(
                 'A warning log message.',
                 'A task error message which is logged at WARN level',
                 '[ant:echo] A warn message logged from Ant',
                 'A warning log message logged using JUL'
-        )
-        lifecycle(
+            )
+            lifecycle(
                 'A lifecycle info log message.',
                 'An error message which is logged at LIFECYCLE level',
                 'A task message which is logged at LIFECYCLE level',
@@ -70,16 +102,9 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
                 'init : lifecycle log',
                 'init :buildSrc lifecycle log',
                 'external LIFECYCLE error message',
-                'external LIFECYCLE log message',
-                'LOGGER: evaluating :',
-                'LOGGER: evaluating :project1',
-                'LOGGER: evaluating :project2',
-                'LOGGER: executing :project1:logInfo',
-                'LOGGER: executing :project1:logLifecycle',
-                'LOGGER: executing :project1:nestedBuildLog',
-                'LOGGER: executing :project1:log'
-        )
-        info(
+                'external LIFECYCLE log message'
+            )
+            info(
                 'An info log message.',
                 'A message which is logged at INFO level',
                 'Text which is logged at INFO level',
@@ -98,35 +123,25 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
                 'init :buildSrc INFO out',
                 'init :buildSrc INFO err',
                 'init :buildSrc info log',
-                'LOGGER: build finished',
-                'LOGGER: evaluated project :',
-                'LOGGER: evaluated project :project1',
-                'LOGGER: evaluated project :project2',
-                'LOGGER: executed task :project1:log',
-                'LOGGER: executed task :project1:logInfo',
-                'LOGGER: executed task :project1:logLifecycle',
-                'LOGGER: task :project1:log starting work',
-                'LOGGER: task :project1:log completed work',
                 'main buildSrc info',
                 'nestedBuild buildSrc info',
                 'nestedBuild info',
                 'external INFO message'
-        )
-        debug(
+            )
+            debug(
                 'A debug log message.',
                 '[ant:echo] A debug message logged from Ant',
                 'A fine log message logged using JUL'
-        )
-        trace(
+            )
+            trace(
                 'A trace log message.'
-        )
-        forbidden(
+            )
+            forbidden(
                 // the default message generated by JUL
-                'INFO: An info log message logged using JUL',
-                // the custom logger should override this
-                'BUILD SUCCESSFUL'
-        )
-    }}
+                'INFO: An info log message logged using JUL'
+            )
+        }}
+    }
 
     final LogOutput sample = new LogOutput() {{
         error('An error log message.')
@@ -162,6 +177,28 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
 
         String initScript = new File(loggingDir, 'init.gradle').absolutePath
         List<String> allArgs = logLevel.args + ['-I', initScript]
+
+        when:
+        executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs)
+        run "log"
+        then:
+        logLevel.checkOuts(result)
+
+        where:
+        level << ['quiet', 'lifecycle', 'info', 'debug']
+    }
+
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/24182")
+    def "custom logger emits #level logging"() {
+        LogLevel logLevel = customLoggerOutput."$level"
+        resources.maybeCopy('LoggingIntegrationTest/logging')
+        TestFile loggingDir = testDirectory
+        loggingDir.file("buildSrc/build/.gradle").deleteDir()
+        loggingDir.file("nestedBuild/buildSrc/.gradle").deleteDir()
+
+        String initScript = new File(loggingDir, 'init.gradle').absolutePath
+        String customLoggerInitScript = new File(loggingDir, 'custom-logger-init.gradle').absolutePath
+        List<String> allArgs = logLevel.args + ['-I', initScript] + ['-I', customLoggerInitScript]
 
         when:
         executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs)
