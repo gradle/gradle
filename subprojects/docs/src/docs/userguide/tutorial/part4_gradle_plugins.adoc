@@ -64,9 +64,9 @@ It can also publish to Maven local which is a repository located on your machine
 
 The default location for Maven local repository may vary but is typically:
 
-- **Mac**: /Users/\<<username>>/.m2
-- **Linux**: /home/\<<username>>/.m2
-- **Windows**: C:\Users\\<<username>>\.m2
+- **Mac**: /Users/\[username]/.m2
+- **Linux**: /home/\[username]/.m2
+- **Windows**: C:\Users\[username]\.m2
 
 A publication destined for a Maven repository normally includes:
 
