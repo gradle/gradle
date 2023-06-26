@@ -33,7 +33,7 @@ import java.io.File;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
 
-    private static final String KEEP_DAEMON_ALIVE_PROPERTY = "org.gradle.internal.java.compile.daemon.keepAlive";
+    public static final String KEEP_DAEMON_ALIVE_PROPERTY = "org.gradle.internal.java.compile.daemon.keepAlive";
     private final Class<? extends Compiler<JavaCompileSpec>> compilerClass;
     private final Object[] compilerConstructorArguments;
     private final JavaForkOptionsFactory forkOptionsFactory;

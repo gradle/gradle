@@ -53,7 +53,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
             task writeCompilerIdentities {
                 def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
                 doLast { task ->
-                    compilerDaemonIdentityFile << services.get(WorkerDaemonClientsManager).allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
+                    compilerDaemonIdentityFile.text = services.get(WorkerDaemonClientsManager).allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }
             }
 
