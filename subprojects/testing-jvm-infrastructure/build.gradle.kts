@@ -41,6 +41,16 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
+    testImplementation(libs.assertj) {
+        because("We test assertion errors coming from AssertJ")
+    }
+    testImplementation("org.opentest4j:opentest4j") {
+        version {
+            // Multiple
+            require("1.3.0-RC2")
+        }
+        because("We test assertion errors coming from OpenTest4J")
+    }
     testRuntimeOnly(libs.guice) {
         because("Used by TestNG")
     }

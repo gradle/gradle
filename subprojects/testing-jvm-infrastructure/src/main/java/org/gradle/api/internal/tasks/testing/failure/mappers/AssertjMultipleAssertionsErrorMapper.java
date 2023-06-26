@@ -40,16 +40,16 @@ public class AssertjMultipleAssertionsErrorMapper extends FailureMapper {
 
     @Override
     public TestFailure map(Throwable throwable, RootAssertionToFailureMapper rootMapper) throws Exception {
-        return TestFailure.fromTestFrameworkFailure(throwable, mapInnerFailures(throwable, rootMapper));
+        return TestFailure.fromTestAssertionFailure(throwable, null, null, mapInnerFailures(throwable, rootMapper));
     }
 
     @SuppressWarnings("unchecked")
-    private static List<TestFailure> mapInnerFailures(Throwable throwable, RootAssertionToFailureMapper mapper) throws Exception {
+    protected static List<TestFailure> mapInnerFailures(Throwable throwable, RootAssertionToFailureMapper mapper) throws Exception {
         List<TestFailure> failures = new ArrayList<TestFailure>();
 
-        List<Throwable> innerThrowable = invokeMethod(throwable, "getAssertionError", List.class);
-        for (Throwable throwable1 : innerThrowable) {
-            failures.add(mapper.createFailure(throwable1));
+        List<Throwable> innerAssertionFailures = invokeMethod(throwable, "getErrors", List.class);
+        for (Throwable failure : innerAssertionFailures) {
+            failures.add(mapper.createFailure(failure));
         }
 
         return failures;
