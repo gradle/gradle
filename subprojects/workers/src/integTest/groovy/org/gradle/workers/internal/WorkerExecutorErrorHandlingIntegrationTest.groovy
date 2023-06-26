@@ -169,7 +169,10 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << ISOLATION_MODES
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Error output not as expected when configuration cache is enabled"
+    )
     def "produces a sensible error when a parameter can't be de-serialized in the worker in #isolationMode"() {
         def parameterJar = file("parameter.jar")
         def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()

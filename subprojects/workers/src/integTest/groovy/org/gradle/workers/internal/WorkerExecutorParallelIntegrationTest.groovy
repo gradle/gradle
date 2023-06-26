@@ -700,7 +700,10 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Assumptions about project locking introduced in https://github.com/gradle/gradle/pull/2171 do not hold"
+    )
     def "does not start another task when a task awaits async work"() {
         given:
         buildFile << """
@@ -730,7 +733,10 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Assumptions about project locking introduced in https://github.com/gradle/gradle/pull/2171 do not hold"
+    )
     def "does not start task in another project when a task awaits async work"() {
         given:
         settingsFile << """

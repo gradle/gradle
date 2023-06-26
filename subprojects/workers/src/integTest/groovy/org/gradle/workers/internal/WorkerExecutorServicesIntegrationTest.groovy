@@ -235,10 +235,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
                     it.setProjectDir(projectDir)
                     it.setTestFile(testFile)
                 }
-                doLast {
-                    def classpathFiles = classpath.files
-                    assert testFile.exists()
-                }
+                doLast { assert testFile.exists() }
                 dependsOn sourceSets.main.output
             }
         """
@@ -281,10 +278,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
                     it.setProjectDir(projectDir)
                     it.setTestFile(testFile)
                 }
-                doLast {
-                    def classpathFiles = classpath.files
-                    assert testFile.exists()
-                }
+                doLast { assert testFile.exists() }
                 dependsOn sourceSets.main.output
             }
         """
