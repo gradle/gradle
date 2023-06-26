@@ -32,6 +32,10 @@ import static org.gradle.api.problems.interfaces.Severity.valueOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation> {
+    public static final String TYPE_NAME = "typeName";
+    public static final String PLUGIN_ID = "pluginId";
+    public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
+    public static final String PROPERTY_NAME = "propertyName";
     private final UserManualReference userManualReference;
 
     public TypeValidationProblem(ValidationProblemId id,
@@ -70,16 +74,16 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
         String parentPropertyName = getWhere().getParentPropertyName().orElse(null);
         String propertyName = getWhere().getPropertyName().orElse(null);
         if (typeName != null) {
-            builder.withMetadata("typeName", typeName);
+            builder.withMetadata(TYPE_NAME, typeName);
         }
         if (pluginId != null) {
-            builder.withMetadata("pluginId", pluginId.getId());
+            builder.withMetadata(PLUGIN_ID, pluginId.getId());
         }
         if (parentPropertyName != null) {
-            builder.withMetadata("parentPropertyName", parentPropertyName);
+            builder.withMetadata(PARENT_PROPERTY_NAME, parentPropertyName);
         }
         if (propertyName != null) {
-            builder.withMetadata("propertyName", propertyName);
+            builder.withMetadata(PROPERTY_NAME, propertyName);
         }
         builder.noLocation();
         getPossibleSolutions().forEach(s -> builder.solution(s.getShortDescription())); // TODO we may need more here

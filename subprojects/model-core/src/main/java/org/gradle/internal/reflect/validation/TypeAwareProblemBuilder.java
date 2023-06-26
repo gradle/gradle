@@ -105,7 +105,7 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
 
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
         if(classWithAnnotationAttached != null){
-            withMetadata("typeName", classWithAnnotationAttached.getName().replaceAll("\\$", "."));
+            withMetadata(TypeValidationProblem.TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
         }
         return this;
     }
@@ -122,12 +122,17 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
     }
 
     public TypeAwareProblemBuilder forProperty(String propertyName) {
-        withMetadata("propertyName", propertyName);
+        withMetadata(TypeValidationProblem.PROPERTY_NAME, propertyName);
         return this;
     }
 
     public TypeAwareProblemBuilder forClass(@Nullable Class<?> rootClazz) {
         this.rootClazz = rootClazz;
+        return this;
+    }
+
+    public TypeAwareProblemBuilder parentProperty(String ownerProperty) {
+        withMetadata(TypeValidationProblem.PARENT_PROPERTY_NAME, ownerProperty);
         return this;
     }
 }

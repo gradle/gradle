@@ -26,6 +26,10 @@ import java.util.Map;
 
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.internal.reflect.validation.TypeValidationProblem.PARENT_PROPERTY_NAME;
+import static org.gradle.internal.reflect.validation.TypeValidationProblem.PLUGIN_ID;
+import static org.gradle.internal.reflect.validation.TypeValidationProblem.PROPERTY_NAME;
+import static org.gradle.internal.reflect.validation.TypeValidationProblem.TYPE_NAME;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
@@ -117,11 +121,10 @@ public class TypeValidationProblemRenderer {
 
     public static String introductionFor(Map<String, String> additionalMetadata) {
         StringBuilder builder = new StringBuilder();
-        String rootType = ofNullable(additionalMetadata.get("typeName"))
+        String rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
-        String pluginIdString = additionalMetadata.get("pluginId");
-        ProblemsPluginId pluginId = pluginIdString == null ? null : new DefaultPluginId(pluginIdString);
+        ProblemsPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
         if (rootType != null) {
             if (pluginId != null) {
                 builder.append("In plugin '")
@@ -133,7 +136,7 @@ public class TypeValidationProblemRenderer {
             builder.append(rootType).append("' ");
         }
 
-        String property = additionalMetadata.get("propertyName");
+        String property = additionalMetadata.get(PROPERTY_NAME);
         if (property != null) {
             if (rootType == null) {
                 if (pluginId != null) {
@@ -144,7 +147,7 @@ public class TypeValidationProblemRenderer {
             } else {
                 builder.append("property '");
             }
-            ofNullable(additionalMetadata.get("parentPropertyName")).ifPresent(parentProperty -> {
+            ofNullable(additionalMetadata.get(PARENT_PROPERTY_NAME)).ifPresent(parentProperty -> {
                 builder.append(parentProperty);
                 builder.append('.');
             });
