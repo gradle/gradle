@@ -56,7 +56,7 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
         override val jvmTarget: Provider<JavaVersion> =
             DeprecationLogger.whileDisabled(Factory {
                 @Suppress("DEPRECATION")
-                project.kotlinDslPluginOptions.jvmTarget.map { JavaVersion.toVersion(it) }
+                project.kotlinDslPluginOptions.jvmTarget.map { JavaVersion.toVersion(it)!! }
             })!!
 
         override val kotlinSourceDirectorySet: SourceDirectorySet
