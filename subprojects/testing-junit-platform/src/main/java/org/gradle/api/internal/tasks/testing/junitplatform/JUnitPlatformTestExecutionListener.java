@@ -152,6 +152,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                 } catch (Exception ignored) {
                     // TODO before merge: Issue to do debug logging?
                     // ignore
+                    System.out.println(ignored.getMessage());
                 }
             }
         }

@@ -52,11 +52,18 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
             test {
                 useJUnitPlatform()
+                debugOptions {
+                    enabled = true
+                    host = 'localhost'
+                    port = 4455
+                    server = false
+                    suspend = true
+                }
             }
         """
     }
 
-    def "Emits test failure events for org.opentest4j.MultipleAssertionError assertion errors in Junit 5 tests"() {
+    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 5 tests"() {
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
 
@@ -85,8 +92,13 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         failures.size() == 1
         failures[0] instanceof DefaultTestAssertionFailure
+
         DefaultTestAssertionFailure f = failures[0]
         f.causes.size() == 3
+        f.causes.eachWithIndex { Failure entry, int i ->
+            assert entry.message == "Exception ${i + 1}"
+        }
+
     }
 
     def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 5 tests"() {
@@ -118,8 +130,8 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         FileComparisonTestAssertionFailure f = failures[0]
         f.expected == '/path/from'
         f.actual == '/path/to'
-        f.expectedContent == new byte[]{ 0x0 }
-        f.actualContent == new byte[]{ 0x1 }
+        f.expectedContent == new byte[]{0x0}
+        f.actualContent == new byte[]{0x1}
     }
 
     List<Failure> getFailures() {
@@ -145,7 +157,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             if (event instanceof TestFinishEvent) {
                 TestOperationResult result = ((TestFinishEvent) event).getResult();
                 if (result instanceof TestFailureResult) {
-                    failures += ((TestFailureResult)result).failures
+                    failures += ((TestFailureResult) result).failures
                 }
             }
         }
