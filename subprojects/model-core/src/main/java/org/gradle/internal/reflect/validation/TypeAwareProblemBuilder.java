@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 @NonNullApi
 public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
 
-//    private final ProblemBuilder delegate;
+    //    private final ProblemBuilder delegate;
     private boolean typeIrrelevantInErrorMessage = false;
     private Class<?> rootClazz;
 
@@ -111,7 +111,8 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
     }
 
     public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage(){
-        this.typeIrrelevantInErrorMessage = true;
+        withMetadata(TypeValidationProblem.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "true");
+//        this.typeIrrelevantInErrorMessage = true;
 //        return Cast.uncheckedCast(this)
         return this;
     }
@@ -123,11 +124,6 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
 
     public TypeAwareProblemBuilder forProperty(String propertyName) {
         withMetadata(TypeValidationProblem.PROPERTY_NAME, propertyName);
-        return this;
-    }
-
-    public TypeAwareProblemBuilder forClass(@Nullable Class<?> rootClazz) {
-        this.rootClazz = rootClazz;
         return this;
     }
 

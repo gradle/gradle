@@ -36,6 +36,7 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
     public static final String PLUGIN_ID = "pluginId";
     public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
     public static final String PROPERTY_NAME = "propertyName";
+    public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
     private final UserManualReference userManualReference;
 
     public TypeValidationProblem(ValidationProblemId id,

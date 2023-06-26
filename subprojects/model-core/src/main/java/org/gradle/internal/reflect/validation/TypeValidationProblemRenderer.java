@@ -125,7 +125,8 @@ public class TypeValidationProblemRenderer {
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
         ProblemsPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
-        if (rootType != null) {
+        boolean typeRelevant = rootType != null && !additionalMetadata.containsKey(TypeValidationProblem.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE);
+        if (typeRelevant) {
             if (pluginId != null) {
                 builder.append("In plugin '")
                     .append(pluginId)
@@ -138,14 +139,14 @@ public class TypeValidationProblemRenderer {
 
         String property = additionalMetadata.get(PROPERTY_NAME);
         if (property != null) {
-            if (rootType == null) {
+            if (typeRelevant) {
+                builder.append("property '");
+            } else {
                 if (pluginId != null) {
                     builder.append("In plugin '").append(pluginId).append("' property '");
                 } else {
                     builder.append("Property '");
                 }
-            } else {
-                builder.append("property '");
             }
             ofNullable(additionalMetadata.get(PARENT_PROPERTY_NAME)).ifPresent(parentProperty -> {
                 builder.append(parentProperty);
