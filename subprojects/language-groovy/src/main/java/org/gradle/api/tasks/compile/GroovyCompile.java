@@ -111,7 +111,9 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     @Override
     @CompileClasspath
     @Incremental
-    public abstract ConfigurableFileCollection getClasspath();
+    public ConfigurableFileCollection getClasspath() {
+        return super.getClasspath();
+    }
 
     /**
      * The classpath containing AST transformations and their dependencies.

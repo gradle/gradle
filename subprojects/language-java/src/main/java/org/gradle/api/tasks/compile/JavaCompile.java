@@ -342,7 +342,9 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @Override
     @CompileClasspath
     @Incremental
-    public abstract ConfigurableFileCollection getClasspath();
+    public ConfigurableFileCollection getClasspath() {
+        return super.getClasspath();
+    }
 
     /**
      * The sources for incremental change detection.

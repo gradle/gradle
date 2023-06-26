@@ -36,9 +36,15 @@ import java.io.File;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
+    private final ConfigurableFileCollection classpath;
+    private final Property<String> sourceCompatibility;
+    private final Property<String> targetCompatibility;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
+        this.classpath = getProject().files();
+        this.sourceCompatibility = getProject().getObjects().property(String.class);
+        this.targetCompatibility = getProject().getObjects().property(String.class);
     }
 
     /**
@@ -48,7 +54,9 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @Classpath
     @UpgradedProperty
-    public abstract ConfigurableFileCollection getClasspath();
+    public ConfigurableFileCollection getClasspath() {
+        return classpath;
+    }
 
     /**
      * Returns the directory property that represents the directory to generate the {@code .class} files into.
@@ -126,7 +134,9 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @Input
     @UpgradedProperty
-    public abstract Property<String> getSourceCompatibility();
+    public Property<String> getSourceCompatibility() {
+        return sourceCompatibility;
+    }
 
     /**
      * Returns the target JVM to generate the {@code .class} files for.
@@ -135,5 +145,7 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @Input
     @UpgradedProperty
-    public abstract Property<String> getTargetCompatibility();
+    public Property<String> getTargetCompatibility() {
+        return targetCompatibility;
+    }
 }
