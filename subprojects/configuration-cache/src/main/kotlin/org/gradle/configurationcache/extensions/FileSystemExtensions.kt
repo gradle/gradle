@@ -19,10 +19,8 @@ package org.gradle.configurationcache.extensions
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.SnapshotVisitResult
-import org.gradle.internal.vfs.FileSystemAccess
 import java.io.File
+import java.util.Arrays
 
 
 fun fileSystemEntryType(file: File): FileType =
@@ -34,21 +32,15 @@ fun fileSystemEntryType(file: File): FileType =
 
 
 internal
-fun FileSystemAccess.directoryContentHash(file: File): HashCode =
-    when (val location = read(file.path)) {
-        is DirectorySnapshot -> {
-            val hasher = Hashing.newHasher()
-            location.accept { locationOrChild ->
-                when (locationOrChild) {
-                    location -> SnapshotVisitResult.CONTINUE
-                    else -> {
-                        hasher.putString(locationOrChild.name)
-                        SnapshotVisitResult.SKIP_SUBTREE
-                    }
-                }
-            }
-            hasher.hash()
-        }
-
-        else -> HashCode.fromBytes(byteArrayOf(0, 0, 0, 0))
-    }
+fun directoryContentHash(file: File): HashCode {
+    return file.list()?.let { entries ->
+        val hasher = Hashing.newHasher()
+        // This routine is used to snapshot results of File.list(), File.listFiles() and similar calls.
+        // Technically, the relative order or entries is visible to the caller, so it might be considered when computing the hash.
+        // However, the File.list spec leaves the order undefined, so no reasonable implementation should depend on it.
+        // Making the hash order-independent by sorting the entries maximizes CC hits, even if the OS-returned order changes.
+        Arrays.sort(entries)
+        entries.forEach(hasher::putString)
+        hasher.hash()
+    } ?: HashCode.fromBytes(byteArrayOf(0, 0, 0, 0))
+}

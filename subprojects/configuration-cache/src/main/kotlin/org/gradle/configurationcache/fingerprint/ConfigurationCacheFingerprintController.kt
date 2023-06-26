@@ -337,8 +337,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun hashCodeOf(file: File) =
             fileSystemAccess.read(file.absolutePath).hash
 
-        override fun hashCodeOfDirectoryContent(file: File): HashCode =
-            fileSystemAccess.directoryContentHash(file)
+        override fun hashCodeOfDirectoryContent(file: File): HashCode = directoryContentHash(file)
 
         override fun displayNameOf(file: File): String =
             GFileUtils.relativePathOf(file, rootDirectory)
@@ -394,8 +393,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun hashCodeOf(file: File) =
             fileSystemAccess.read(file.absolutePath).hash
 
-        override fun hashCodeOfDirectoryContent(file: File): HashCode? =
-            fileSystemAccess.directoryContentHash(file)
+        override fun hashCodeOfDirectoryContent(file: File): HashCode = directoryContentHash(file)
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
