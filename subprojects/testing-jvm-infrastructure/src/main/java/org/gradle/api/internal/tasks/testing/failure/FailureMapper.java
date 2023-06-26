@@ -25,7 +25,7 @@ import java.util.List;
 @NonNullApi
 public abstract class FailureMapper {
 
-    public boolean accepts(Class<?> cls) {
+    public boolean supports(Class<?> cls) {
         if (getSupportedClassNames().contains(cls.getName())) {
             return true;
         }
@@ -34,7 +34,7 @@ public abstract class FailureMapper {
         if (superclass == null) {
             return false;
         } else {
-            return accepts(superclass);
+            return supports(superclass);
         }
     }
 
