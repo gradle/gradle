@@ -26,6 +26,8 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.failure.AssertionToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestFailureFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestMultipleFailuresMapper;
@@ -61,7 +63,9 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private final static List<FailureMapper> MAPPERS = Arrays.asList(
         new OpentestFailureFailedMapper(),
         new OpentestMultipleFailuresMapper(),
-        new JUnitComparisonFailureMapper()
+        new JUnitComparisonFailureMapper(),
+        new AssertjMultipleAssertionsErrorMapper(),
+        new AssertErrorMapper()
     );
 
     private final ConcurrentMap<String, TestDescriptorInternal> descriptorsByUniqueId = new ConcurrentHashMap<>();
@@ -137,10 +141,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     public TestFailure createFailure(Throwable failure) {
         for (FailureMapper mapper : MAPPERS) {
-            if (mapper.accepts(failure.getClass())) {
+            if (mapper.supports(failure.getClass())) {
                 try {
                     return mapper.map(failure, this);
                 } catch (Exception ignored) {
+                    // TODO before merge: Issue to do debug logging?
                     // ignore
                 }
             }

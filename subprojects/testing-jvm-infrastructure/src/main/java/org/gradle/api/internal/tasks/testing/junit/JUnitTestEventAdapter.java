@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.failure.AssertionToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestFailureFailedMapper;
@@ -54,7 +55,8 @@ public class JUnitTestEventAdapter extends RunListener implements AssertionToFai
         new JUnitComparisonFailureMapper(),
         new OpentestFailureFailedMapper(),
         new OpentestMultipleFailuresMapper(),
-        new AssertjMultipleAssertionsErrorMapper()
+        new AssertjMultipleAssertionsErrorMapper(),
+        new AssertErrorMapper()
     );
 
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)(\\[\\d+])?", Pattern.DOTALL);
@@ -106,7 +108,7 @@ public class JUnitTestEventAdapter extends RunListener implements AssertionToFai
     @Override
     public TestFailure createFailure(Throwable failure) {
         for (FailureMapper mapper : MAPPERS) {
-            if (mapper.accepts(failure.getClass())) {
+            if (mapper.supports(failure.getClass())) {
                 try {
                     return mapper.map(failure, this);
                 } catch (Exception ignored) {
