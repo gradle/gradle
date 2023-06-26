@@ -283,7 +283,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return hasClassSource(testIdentifier) && hasDifferentSourceThanAncestor(testIdentifier);
     }
 
-    private String className(@Nullable TestIdentifier testClassIdentifier) {
+    private static String className(@Nullable TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null) {
             Optional<ClassSource> classSource = getClassSource(testClassIdentifier);
             if (classSource.isPresent()) {
@@ -293,7 +293,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return JUnitSupport.UNKNOWN_CLASS;
     }
 
-    private String classDisplayName(@Nullable TestIdentifier testClassIdentifier) {
+    private static String classDisplayName(@Nullable TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null) {
             return testClassIdentifier.getDisplayName();
         }
