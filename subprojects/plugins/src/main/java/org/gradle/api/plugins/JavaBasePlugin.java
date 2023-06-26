@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
@@ -198,8 +199,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet javaSource, final Project project) {
         final TaskProvider<JavaCompile> compileTask = project.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, javaCompile -> {
-            ConventionMapping conventionMapping = javaCompile.getConventionMapping();
-            conventionMapping.map("classpath", sourceSet::getCompileClasspath);
+            javaCompile.getClasspath().setFrom((Callable<FileCollection>) sourceSet::getCompileClasspath);
 
             JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, javaSource, javaCompile.getOptions(), project);
             javaCompile.setDescription("Compiles " + javaSource + ".");
