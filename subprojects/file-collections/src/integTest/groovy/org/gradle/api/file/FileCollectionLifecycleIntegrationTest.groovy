@@ -19,7 +19,6 @@ package org.gradle.api.file
 import groovy.test.NotYetImplemented
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "finalized file collection resolves locations and ignores later changes to source paths"() {
@@ -125,7 +124,6 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Seems like finalizeValue() isn't stored in the CC")
     def "cannot mutate finalized file collection"() {
         buildFile """
             def files = objects.fileCollection()
