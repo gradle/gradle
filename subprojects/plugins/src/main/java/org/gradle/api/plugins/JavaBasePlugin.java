@@ -303,8 +303,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
-            compile.getSourceCompatibility().convention(computeSourceCompatibilityConvention(javaExtension, compile).toString());
-            compile.getTargetCompatibility().convention(computeTargetCompatibilityConvention(javaExtension, compile).toString());
+            compile.getSourceCompatibility().convention(project.provider(() -> computeSourceCompatibilityConvention(javaExtension, compile).toString()));
+            compile.getTargetCompatibility().convention(project.provider(() -> computeTargetCompatibilityConvention(javaExtension, compile).toString()));
             compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }
