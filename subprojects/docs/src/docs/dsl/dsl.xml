@@ -591,6 +591,15 @@
             <tr>
                 <td>org.gradle.api.plugins.jvm.JvmComponentDependencies</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.testing.engines.jupiter.JUnitJupiterTestEngine</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.testing.engines.vintage.JUnitVintageTestEngine</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.testing.engines.testng.TestNGTestEngine</td>
+            </tr>
         </table>
     </section>
 

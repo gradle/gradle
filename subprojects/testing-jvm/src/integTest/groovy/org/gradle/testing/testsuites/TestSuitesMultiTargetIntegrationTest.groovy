@@ -17,7 +17,9 @@
 package org.gradle.testing.testsuites
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
+import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
+import org.gradle.api.testing.engines.vintage.JUnitVintageTestEngine
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
@@ -66,16 +68,16 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
             testing {
                 suites {
                     test {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         targets {
                             all {
                                 testTask.configure {
                                     doLast {
-                                        assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                                        assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
                                         // .collect() is intentional for a better error message on failure
                                         // The 6 elements are: junit, hamcrest, test classes and resources, main classes and resources
                                         assert classpath.collect().size() == 6
-                                        assert classpath.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
+                                        assert classpath.any { it.name == "junit-${JUnitVintageTestEngine.DEFAULT_VERSION}.jar" }
                                     }
                                 }
                             }
@@ -107,10 +109,10 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
             testing {
                 suites {
                     test {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                     }
                     similarToTest(JvmTestSuite) {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         // Add a target with overlapping name to the default `test` target
                         targets {
                             test {}
@@ -134,7 +136,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
             testing {
                 suites {
                     test {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         targets {
                             testOtherJdk {
                                 testTask.configure {
@@ -162,7 +164,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
             testing {
                 suites {
                     test {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         targets {
                             testOtherJdk {
                                 testTask.configure {

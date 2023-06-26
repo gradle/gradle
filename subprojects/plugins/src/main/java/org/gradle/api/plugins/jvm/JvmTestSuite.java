@@ -22,7 +22,6 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.testing.base.TestSuite;
 
@@ -82,127 +81,6 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     Property<String> getTestType();
 
     /**
-     * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework.
-     *
-     * <p>
-     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.8.2}
-     * </p>
-     */
-    void useJUnitJupiter();
-
-    /**
-     * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework with a specific version.
-     *
-     * @param version version of JUnit Jupiter to use
-     */
-    void useJUnitJupiter(String version);
-
-    /**
-     * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework with a specific version.
-     *
-     * @param version provider supplying the version of JUnit Jupiter to use
-     *
-     * @since 7.6
-     */
-    void useJUnitJupiter(Provider<String> version);
-
-    /**
-     * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework.
-     * <p>
-     *     Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13.2}
-     * </p>
-     */
-    void useJUnit();
-
-    /**
-     * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework with a specific version.
-     *
-     * @param version version of JUnit4 to use
-     */
-    void useJUnit(String version);
-
-    /**
-     * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework with a specific version.
-     *
-     * @param version provider supplying the version of JUnit4 to use
-     *
-     * @since 7.6
-     */
-    void useJUnit(Provider<String> version);
-
-    /**
-     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
-     * <p>
-     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.2-groovy-3.0}
-     * </p>
-     */
-    void useSpock();
-
-    /**
-     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
-     *
-     * @param version the version of Spock to use
-     */
-    void useSpock(String version);
-
-    /**
-     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
-     *
-     * @param version provider supplying the version of Spock to use
-     *
-     * @since 7.6
-     */
-    void useSpock(Provider<String> version);
-
-    /**
-     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
-     * <p>
-     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.6.20}
-     * </p>
-     */
-    void useKotlinTest();
-
-    /**
-     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
-     *
-     * @param version the version of kotlin.test to use
-     */
-    void useKotlinTest(String version);
-
-    /**
-     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
-     *
-     * @param version provider supplying the version of kotlin.test to use
-     *
-     * @since 7.6
-     */
-    void useKotlinTest(Provider<String> version);
-
-    /**
-     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework.
-     * <p>
-     *     Gradle will provide the version of TestNG to use. Defaults to version {@code 7.4.0}
-     * </p>
-     */
-    void useTestNG();
-
-    /**
-     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
-     *
-     * @param version version of TestNG to use
-     */
-    void useTestNG(String version);
-
-    /**
-     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
-     *
-     * @param version provider supplying the version of TestNG to use
-     *
-     * @since 7.6
-     */
-    void useTestNG(Provider<String> version);
-
-    /**
      * Dependency handler for this component.
      *
      * @return dependency handler
@@ -213,4 +91,10 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Configure dependencies for this component.
      */
     void dependencies(Action<? super JvmComponentDependencies> dependencies);
+
+    /**
+     * Configure the test engines for this test suite.
+     * @return
+     */
+    TestEngineContainer getTestEngines();
 }

@@ -20,6 +20,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.plugins.jvm.TestEngineParametersContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -32,17 +33,19 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
     private final String name;
     private final TaskProvider<Test> testTask;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final TestEngineParametersContainer engineParameters;
 
     @Inject
-    public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultJvmTestSuiteTarget(String name, TestEngineParametersContainer engineParameters, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
+        this.engineParameters = engineParameters;
+        this.taskDependencyFactory = taskDependencyFactory;
 
         // Might not always want Test type here?
         this.testTask = tasks.register(name, Test.class, t -> {
             t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         });
-        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -57,5 +60,10 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
     @Override
     public TaskDependency getBuildDependencies() {
         return taskDependencyFactory.visitingDependencies(context -> context.add(getTestTask()));
+    }
+
+    @Override
+    public TestEngineParametersContainer getEngineParameters() {
+        return engineParameters;
     }
 }

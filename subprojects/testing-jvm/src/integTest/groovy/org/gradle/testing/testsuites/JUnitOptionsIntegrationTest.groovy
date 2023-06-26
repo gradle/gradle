@@ -25,18 +25,18 @@ class JUnitOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegratio
             testing {
                 suites {
                     test {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         targets.all {
                             testTask.configure {
                                 options {
-                                    excludeCategories "com.example.Exclude"
+                                    excludeTags "com.example.Exclude"
                                 }
                             }
                         }
                     }
                 }
             }
-            
+
         """
         writeSources(file("src/test/java"))
 
@@ -51,11 +51,11 @@ class JUnitOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegratio
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         targets.all {
                             testTask.configure {
                                 options {
-                                    excludeCategories "com.example.Exclude"
+                                    excludeTags "com.example.Exclude"
                                 }
                             }
                         }
@@ -69,6 +69,31 @@ class JUnitOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegratio
         succeeds("check")
         then:
         assertIntegrationTestsWereExecutedAndExcluded()
+    }
+
+    def "options for test framework are respected for JUnitVintage in built-in test suite"() {
+        buildFile << """
+            testing {
+                suites {
+                    test {
+                        testEngines.register(JUnitVintageTestEngine)
+                        targets.all {
+                            testTask.configure {
+                                options {
+                                    excludeTags "com.example.Exclude"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        writeSources(file("src/test/java"))
+
+        when:
+        succeeds("check")
+        then:
+        assertTestsWereExecutedAndExcluded()
     }
 
     @Override

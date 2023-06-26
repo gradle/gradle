@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,18 @@
 
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.testing.base.TestSuiteTarget;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Defines the target environment against which a {@link JvmTestSuite} will be run.
- *
- * @since 7.3
+ * The container of test engine configuration parameters for a test suite target.
  */
+@HasInternalProtocol
 @Incubating
-public interface JvmTestSuiteTarget extends TestSuiteTarget {
+public interface TestEngineParametersContainer {
     /**
-     * The {@link Test} task that runs the tests for the associated test suite.
-     *
-     * @return provider to the test task
+     * Configures the test engine configuration parameters of the given type.
      */
-    TaskProvider<Test> getTestTask();
-
-    /**
-     * The test engine configuration parameters for this target.
-     */
-    TestEngineParametersContainer getEngineParameters();
+    <T extends TestEngineConfigurationParameters> void withType(Class<T> type, Action<? super T> action);
 }

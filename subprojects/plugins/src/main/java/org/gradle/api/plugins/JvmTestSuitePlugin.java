@@ -34,10 +34,15 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
+import org.gradle.api.plugins.jvm.TestEngineContainer;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
+import org.gradle.api.plugins.jvm.internal.TestEngineParametersContainerInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.testing.engines.jupiter.JUnitJupiterTestEngine;
+import org.gradle.api.testing.engines.testng.TestNGTestEngine;
+import org.gradle.api.testing.engines.vintage.JUnitVintageTestEngine;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
@@ -102,8 +107,10 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
                 target.getTestTask().configure(test -> {
                     test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
                     test.getConventionMapping().map("classpath", () -> testSuite.getSources().getRuntimeClasspath());
+                    test.getJvmArgumentProviders().addAll(((TestEngineParametersContainerInternal)target.getEngineParameters()).getCommandLineArgumentProviders());
                 });
             });
+            configureDefaultTestEngineVersions(testSuite.getTestEngines());
         });
 
         configureTestDataElementsVariants((ProjectInternal) project);
@@ -113,6 +120,17 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         return DEFAULT_TEST_SUITE_NAME.equals(testSuite.getName()) ? TestSuiteType.UNIT_TEST : TextUtil.camelToKebabCase(testSuite.getName());
     }
 
+    private void configureDefaultTestEngineVersions(TestEngineContainer testEngineContainer) {
+        testEngineContainer.withType(JUnitJupiterTestEngine.class, registration -> registration.getVersion().convention(JUnitJupiterTestEngine.DEFAULT_VERSION));
+        testEngineContainer.withType(JUnitVintageTestEngine.class, registration -> {
+            registration.getVersion().convention(JUnitVintageTestEngine.DEFAULT_VERSION);
+            registration.getApiVersion().convention(JUnitVintageTestEngine.DEFAULT_API_VERSION);
+        });
+        testEngineContainer.withType(TestNGTestEngine.class, registration -> {
+            registration.getVersion().convention(TestNGTestEngine.DEFAULT_VERSION);
+            registration.getApiVersion().convention(TestNGTestEngine.DEFAULT_API_VERSION);
+        });
+    }
     private void configureTestDataElementsVariants(ProjectInternal project) {
         final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();

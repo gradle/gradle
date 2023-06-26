@@ -25,11 +25,11 @@ class TestNGOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegrati
             testing {
                 suites {
                     test {
-                        useTestNG()
+                        testEngines.register(TestNGTestEngine)
                         targets.all {
                             testTask.configure {
                                 options {
-                                    excludeGroups "exclude"
+                                    excludeTags "exclude"
                                 }
                             }
                         }
@@ -50,11 +50,11 @@ class TestNGOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegrati
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        useTestNG()
+                        testEngines.register(TestNGTestEngine)
                         targets.all {
                             testTask.configure {
                                 options {
-                                    excludeGroups "exclude"
+                                    excludeTags "exclude"
                                 }
                             }
                         }

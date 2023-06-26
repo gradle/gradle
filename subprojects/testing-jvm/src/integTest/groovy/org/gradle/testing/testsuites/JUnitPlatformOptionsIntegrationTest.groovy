@@ -19,13 +19,13 @@ package org.gradle.testing.testsuites
 
 import org.gradle.test.fixtures.file.TestFile
 
-class JUnitJupiterOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegrationTest {
+class JUnitPlatformOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegrationTest {
     def "options for test framework are respected for JUnitJupiter in built-in test suite"() {
         buildFile << """
             testing {
                 suites {
                     test {
-                        useJUnitJupiter()
+                        testEngines.register(JUnitJupiterTestEngine)
                         targets.all {
                             testTask.configure {
                                 options {
@@ -50,7 +50,7 @@ class JUnitJupiterOptionsIntegrationTest extends AbstractTestFrameworkOptionsInt
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        useJUnitJupiter()
+                        testEngines.register(JUnitJupiterTestEngine)
                         targets.all {
                             testTask.configure {
                                 options {
@@ -78,33 +78,6 @@ class JUnitJupiterOptionsIntegrationTest extends AbstractTestFrameworkOptionsInt
                         targets.all {
                             testTask.configure {
                                 options {
-                                    excludeTags "exclude"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        """
-        writeSources(file("src/integrationTest/java"))
-
-        when:
-        succeeds("check")
-        then:
-        assertIntegrationTestsWereExecutedAndExcluded()
-    }
-
-    def "options for test framework are respected for JUnitJupiter for custom test suite with changing test framework"() {
-        buildFile << """
-            testing {
-                suites {
-                    integrationTest(JvmTestSuite) {
-                        useJUnit() // use JUnit4
-                        useJUnitJupiter() // on second thought, use JUnit Jupiter
-                        targets.all {
-                            testTask.configure {
-                                options {
-                                    // assumes JUnit Jupiter
                                     excludeTags "exclude"
                                 }
                             }

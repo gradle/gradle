@@ -41,7 +41,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                         }
                     }
                     val integTest by registering(JvmTestSuite::class) {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine::class)
                     }
                 }
             }
@@ -87,7 +87,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine::class)
                         dependencies {
                             implementation("com.google.auto.value:auto-value-annotations:1.9")
                             annotationProcessor("com.google.auto.value:auto-value:1.9")
@@ -1892,7 +1892,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine::class)
                         dependencies {
                             implementation(platform(project(":platform")))
                             implementation("org.apache.commons:commons-lang3")
@@ -1955,7 +1955,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine::class)
                         dependencies {
                             implementation(enforcedPlatform(project(":platform")))
                             implementation("commons-collections:commons-collections:3.2.2")
@@ -2143,7 +2143,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine::class)
                         dependencies {
                             implementation(localGroovy())
                         }
@@ -2185,7 +2185,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine::class)
                         dependencies {
                             implementation(gradleApi())
                         }
@@ -2227,7 +2227,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnitJupiter()
+                        testEngines.register(JUnitJupiterTestEngine::class)
                         dependencies {
                             implementation(gradleTestKit())
                         }
@@ -2277,7 +2277,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnitJupiter()
+                        testEngines.register(JUnitJupiterTestEngine::class)
                         dependencies {
                             implementation(testFixtures(project(":util")))
                         }
@@ -2336,7 +2336,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnitJupiter()
+                        testEngines.register(JUnitJupiterTestEngine::class)
                         dependencies {
                             implementation(testFixtures(project()))
                         }

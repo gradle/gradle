@@ -39,7 +39,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     }
                 }
                 integTest(JvmTestSuite) {
-                    useJUnit()
+                    testEngines.register(JUnitVintageTestEngine)
                 }
             }
         }
@@ -79,7 +79,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         dependencies {
                             implementation 'com.google.auto.value:auto-value-annotations:1.9'
                             annotationProcessor 'com.google.auto.value:auto-value:1.9'
@@ -1843,7 +1843,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         dependencies {
                             implementation platform(project(':platform'))
                             implementation 'org.apache.commons:commons-lang3'
@@ -1906,7 +1906,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         dependencies {
                             implementation enforcedPlatform(project(':platform'))
                             implementation 'commons-collections:commons-collections:3.2.2'
@@ -2095,7 +2095,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         dependencies {
                             implementation localGroovy()
                         }
@@ -2137,7 +2137,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnit()
+                        testEngines.register(JUnitVintageTestEngine)
                         dependencies {
                             implementation gradleApi()
                         }
@@ -2179,7 +2179,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     $suiteDeclaration {
-                        useJUnitJupiter()
+                        testEngines.register(JUnitJupiterTestEngine)
                         dependencies {
                             implementation gradleTestKit()
                         }
@@ -2224,7 +2224,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        useJUnitJupiter()
+                        testEngines.register(JUnitJupiterTestEngine)
                         dependencies {
                             implementation(testFixtures(project(':util')))
                         }
@@ -2283,7 +2283,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        useJUnitJupiter()
+                        testEngines.register(JUnitJupiterTestEngine)
                         dependencies {
                             implementation(testFixtures(project()))
                         }

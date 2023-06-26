@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.process;
+package org.gradle.api.testing.engines.testng;
 
-import java.util.Collections;
+import org.gradle.api.plugins.jvm.TestEngineRegistration;
+import org.gradle.api.provider.Property;
 
 /**
- * Provides arguments to a process.
- *
- * @since 4.6
+ * Defines the user-configurable configuration parameters of the TestNG test engine.
  */
-public interface CommandLineArgumentProvider {
+public interface TestNGTestEngineRegistration extends TestEngineRegistration {
     /**
-     * The arguments which will be provided to the process.
+     * The version of the JUnit TestNG test engine to use.
      */
-    Iterable<String> asArguments();
+    Property<String> getVersion();
 
     /**
-     * An argument provider that provides no arguments.
-     *
-     * @since 8.4
+     * The version of the TestNG library to compile against.
      */
-    CommandLineArgumentProvider NONE = new CommandLineArgumentProvider() {
-        @Override
-        public Iterable<String> asArguments() {
-            return Collections.emptyList();
-        }
-    };
+    Property<String> getApiVersion();
 }
