@@ -36,9 +36,10 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
             }
             task assertZincVersion {
                 dependsOn configurations.zinc
+                def result = configurations.zinc.incoming.resolutionResult.rootComponent
+
                 doLast {
-                    def resolvedDependencies = configurations.zinc.getResolvedConfiguration().getFirstLevelModuleDependencies()
-                    assert resolvedDependencies.find { it.moduleGroup == "org.scala-sbt" && it.moduleName == "zinc_2.13" && it.moduleVersion == "${version}" }
+                    assert result.get().dependencies.find { it.selected.moduleVersion.group == "org.scala-sbt" && it.selected.moduleVersion.name == "zinc_2.13" && it.selected.moduleVersion.version == "${version}" }
                 }
             }
         """

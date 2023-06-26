@@ -23,4 +23,8 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageTestClassDetectionIntegrationTest extends AbstractJUnit4TestClassDetectionIntegrationTest implements JUnitVintageMultiVersionTest {
+    @Override
+    boolean isSupportsEmptyClassWithRunner() {
+        return true
+    }
 }

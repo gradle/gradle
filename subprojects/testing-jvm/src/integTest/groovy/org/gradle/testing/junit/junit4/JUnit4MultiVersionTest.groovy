@@ -40,7 +40,7 @@ trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
                 // dependency if not specified.
                 return """
                     ${configurationFor(sourceSet, 'compileOnly')} 'junit:junit:${MultiVersionIntegrationSpec.version}'
-                    ${configurationFor(sourceSet, 'runtimeOnly')} 'junit:junit:${JUnitCoverage.JUNIT_4_LATEST}'
+                    ${configurationFor(sourceSet, 'runtimeOnly')} 'junit:junit:${JUnitCoverage.LATEST_JUNIT4_VERSION}'
                 """
             } else {
                 return """

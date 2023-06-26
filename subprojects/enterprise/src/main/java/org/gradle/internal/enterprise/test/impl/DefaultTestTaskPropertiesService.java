@@ -116,6 +116,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
         return new DefaultTestTaskProperties(
             task.getOptions() instanceof JUnitPlatformOptions,
             task.getForkEvery(),
+            task.getDryRun().get(),
             collectFilters(task),
             collectForkOptions(task),
             collectCandidateClassFiles(task),

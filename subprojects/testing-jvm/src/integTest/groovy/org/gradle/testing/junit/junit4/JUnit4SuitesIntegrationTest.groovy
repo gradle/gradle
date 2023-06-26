@@ -18,10 +18,10 @@ package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_SUPPORTS_JUNIT3_SUITES
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT3_VERSION
 
-@TargetCoverage({ JUNIT_4_LATEST })
+@TargetCoverage({ JUNIT4_SUPPORTS_JUNIT3_SUITES })
 class JUnit4SuitesIntegrationTest extends AbstractJUnit4SuitesIntegrationTest implements JUnit4MultiVersionTest {
     @Override
     boolean supportsSuiteOutput() {

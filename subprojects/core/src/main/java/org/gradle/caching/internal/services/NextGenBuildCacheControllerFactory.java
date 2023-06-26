@@ -40,6 +40,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.IncubationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.NOPLogger;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -87,9 +90,13 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
         NextGenBuildCacheService local = localDescribedService.service;
         RemoteNextGenBuildCacheServiceHandler remote = resolveRemoteService(remoteDescribedService);
+        Logger logger = startParameter.isBuildCacheDebugLogging()
+            ? LoggerFactory.getLogger(NextGenBuildCacheController.class)
+            : NOPLogger.NOP_LOGGER;
 
         return new NextGenBuildCacheController(
             buildInvocationScopeId.getId().asString(),
+            logger,
             deleter,
             fileSystemAccess,
             bufferProvider,
@@ -100,7 +107,8 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
                     local,
                     remote,
                     bufferProvider,
-                    executorFactory
+                    executorFactory,
+                    logger
                 ),
                 bufferProvider
             )

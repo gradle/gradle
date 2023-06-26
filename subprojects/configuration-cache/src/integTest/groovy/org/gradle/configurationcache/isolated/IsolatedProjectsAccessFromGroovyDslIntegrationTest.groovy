@@ -503,7 +503,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a $kind in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot dynamically look up a $kind in the parent project ':'")
         }
 
         where:
@@ -539,8 +539,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":sub", ":sub:sub-a", ":sub:sub-b")
-            problem("Build file 'sub/sub-a/build.gradle': Project ':sub:sub-a' cannot dynamically look up a property in the parent project ':sub'")
-            problem("Build file 'sub/sub-b/build.gradle': Project ':sub:sub-b' cannot dynamically look up a property in the parent project ':sub'")
+            problem("Build file 'sub/sub-a/build.gradle': line 2: Project ':sub:sub-a' cannot dynamically look up a property in the parent project ':sub'")
+            problem("Build file 'sub/sub-b/build.gradle': line 2: Project ':sub:sub-b' cannot dynamically look up a property in the parent project ':sub'")
         }
     }
 
@@ -587,8 +587,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":sub", ":sub:sub-sub")
-            problem("Build file 'sub/sub-sub/build.gradle': Project ':sub' cannot dynamically look up a property in the parent project ':'")
-            problem("Build file 'sub/sub-sub/build.gradle': Project ':sub:sub-sub' cannot dynamically look up a property in the parent project ':sub'")
+            problem("Build file 'sub/build.gradle': line 7: Project ':sub' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'sub/sub-sub/build.gradle': line 2: Project ':sub:sub-sub' cannot dynamically look up a property in the parent project ':sub'")
         }
     }
 
@@ -618,8 +618,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a method in the parent project ':'")
-            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 6: Project ':a' cannot dynamically look up a method in the parent project ':'")
         }
     }
 

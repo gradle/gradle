@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitTestClassDetectionIntegrationTest
 
 abstract class AbstractJUnit4TestClassDetectionIntegrationTest extends AbstractJUnitTestClassDetectionIntegrationTest {
+    abstract boolean isSupportsEmptyClassWithRunner()
+
     // TODO: See if there is some way we can implement the custom runner class as a JUnit Jupiter extension
     def "detects test classes"() {
         given:
@@ -32,13 +34,15 @@ abstract class AbstractJUnit4TestClassDetectionIntegrationTest extends AbstractJ
             public abstract class AbstractHasRunWith {
             }
         """.stripIndent()
-        file('src/test/java/org/gradle/EmptyRunWithSubclass.java') << """
-            package org.gradle;
+        if (supportsEmptyClassWithRunner) {
+            file('src/test/java/org/gradle/EmptyRunWithSubclass.java') << """
+                package org.gradle;
 
-            public class EmptyRunWithSubclass extends AbstractHasRunWith {
+                public class EmptyRunWithSubclass extends AbstractHasRunWith {
 
-            }
-        """.stripIndent()
+                }
+            """.stripIndent()
+        }
         file('src/test/java/org/gradle/TestsOnInner.java') << """
             package org.gradle;
 
@@ -76,11 +80,12 @@ abstract class AbstractJUnit4TestClassDetectionIntegrationTest extends AbstractJ
 
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.EmptyRunWithSubclass', 'org.gradle.TestsOnInner', 'org.gradle.TestsOnInner$SomeInner')
-        result.testClass('org.gradle.EmptyRunWithSubclass').assertTestsExecuted('ok')
-        result.testClass('org.gradle.EmptyRunWithSubclass').assertTestPassed('ok')
         result.testClass('org.gradle.TestsOnInner').assertTestPassed('ok')
         result.testClass('org.gradle.TestsOnInner$SomeInner').assertTestPassed('ok')
+        if (supportsEmptyClassWithRunner) {
+            result.testClass('org.gradle.EmptyRunWithSubclass').assertTestsExecuted('ok')
+            result.testClass('org.gradle.EmptyRunWithSubclass').assertTestPassed('ok')
+        }
     }
 
     void writeCustomRunnerClass(String className) {

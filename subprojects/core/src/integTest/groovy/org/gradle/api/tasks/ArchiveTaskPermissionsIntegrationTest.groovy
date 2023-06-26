@@ -73,8 +73,8 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 task pack(type: $taskName) {
                     archiveFileName = "$archName"
                     destinationDirectory = projectDir
-                    fileMode = 0774
-                    dirMode = 0756
+                    filePermissions { unix("0774") }
+                    dirPermissions { unix("0756") }
                     from 'parent'
                 }
                 """

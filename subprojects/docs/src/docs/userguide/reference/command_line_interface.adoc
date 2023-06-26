@@ -328,7 +328,7 @@ This will give you a link to a web-based report, where you can find dependency i
 
 image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
-Learn more in <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Viewing and debugging dependencies>>.
+Learn more in <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Viewing and debugging dependencies>>.
 
 === Listing project dependencies
 
@@ -338,7 +338,7 @@ Running `gradle dependencies` gives you a list of the dependencies of the select
 $ gradle dependencies
 ----
 
-Concrete examples of build scripts and output available in the <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Viewing and debugging dependencies>>.
+Concrete examples of build scripts and output available in the <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Viewing and debugging dependencies>>.
 
 Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
 

@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.support.delegates
 import groovy.lang.Closure
 
 import org.gradle.api.Action
-import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
@@ -38,10 +37,12 @@ import org.gradle.api.capabilities.Capability
 /**
  * Facilitates the implementation of the [ClientModule] interface by delegation via subclassing.
  */
-abstract class ClientModuleDelegate : ClientModule {
+@Suppress("DEPRECATION")
+@Deprecated("Will be removed in Gradle 9.0")
+abstract class ClientModuleDelegate : org.gradle.api.artifacts.ClientModule {
 
     internal
-    abstract val delegate: ClientModule
+    abstract val delegate: org.gradle.api.artifacts.ClientModule
 
     override fun getGroup(): String =
         /** Because this also implements [ModuleVersionSelector.getGroup] it must not return `null` */
@@ -80,7 +81,7 @@ abstract class ClientModuleDelegate : ClientModule {
     override fun getTargetConfiguration(): String? =
         delegate.targetConfiguration
 
-    override fun copy(): ClientModule =
+    override fun copy(): org.gradle.api.artifacts.ClientModule =
         delegate.copy()
 
     override fun attributes(configureAction: Action<in AttributeContainer>): ModuleDependency =

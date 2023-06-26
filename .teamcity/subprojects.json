@@ -1,868 +1,882 @@
 [
   {
-    "dirName": "antlr",
     "name": "antlr",
+    "path": "subprojects/antlr",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "api-metadata",
     "name": "api-metadata",
+    "path": "subprojects/api-metadata",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "architecture-test",
     "name": "architecture-test",
+    "path": "subprojects/architecture-test",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "base-annotations",
     "name": "base-annotations",
+    "path": "subprojects/base-annotations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "base-services",
     "name": "base-services",
+    "path": "subprojects/base-services",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "base-services-groovy",
     "name": "base-services-groovy",
+    "path": "subprojects/base-services-groovy",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "bootstrap",
     "name": "bootstrap",
+    "path": "subprojects/bootstrap",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-cache",
     "name": "build-cache",
+    "path": "subprojects/build-cache",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-cache-base",
     "name": "build-cache-base",
+    "path": "subprojects/build-cache-base",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-cache-http",
     "name": "build-cache-http",
+    "path": "subprojects/build-cache-http",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-cache-packaging",
     "name": "build-cache-packaging",
+    "path": "subprojects/build-cache-packaging",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-events",
     "name": "build-events",
+    "path": "subprojects/build-events",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-init",
     "name": "build-init",
+    "path": "subprojects/build-init",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-operations",
     "name": "build-operations",
+    "path": "subprojects/build-operations",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-option",
     "name": "build-option",
+    "path": "subprojects/build-option",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-profile",
     "name": "build-profile",
+    "path": "subprojects/build-profile",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "build-scan-performance",
     "name": "build-scan-performance",
+    "path": "subprojects/build-scan-performance",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "cli",
     "name": "cli",
+    "path": "subprojects/cli",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "code-quality",
     "name": "code-quality",
+    "path": "platforms/jvm/code-quality",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "composite-builds",
     "name": "composite-builds",
+    "path": "subprojects/composite-builds",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "configuration-cache",
     "name": "configuration-cache",
+    "path": "subprojects/configuration-cache",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "core",
     "name": "core",
+    "path": "subprojects/core",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "core-api",
     "name": "core-api",
+    "path": "subprojects/core-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "core-platform",
     "name": "core-platform",
+    "path": "subprojects/core-platform",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "dependency-management",
     "name": "dependency-management",
+    "path": "subprojects/dependency-management",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "diagnostics",
     "name": "diagnostics",
+    "path": "subprojects/diagnostics",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions-basics",
     "name": "distributions-basics",
+    "path": "subprojects/distributions-basics",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions-core",
     "name": "distributions-core",
+    "path": "subprojects/distributions-core",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions-dependencies",
     "name": "distributions-dependencies",
+    "path": "subprojects/distributions-dependencies",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions-full",
     "name": "distributions-full",
+    "path": "subprojects/distributions-full",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions-integ-tests",
     "name": "distributions-integ-tests",
+    "path": "subprojects/distributions-integ-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions-jvm",
     "name": "distributions-jvm",
+    "path": "subprojects/distributions-jvm",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions-native",
     "name": "distributions-native",
+    "path": "subprojects/distributions-native",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions-publishing",
     "name": "distributions-publishing",
+    "path": "subprojects/distributions-publishing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "docs",
     "name": "docs",
+    "path": "subprojects/docs",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "docs-asciidoctor-extensions",
     "name": "docs-asciidoctor-extensions",
+    "path": "subprojects/docs-asciidoctor-extensions",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "docs-asciidoctor-extensions-base",
     "name": "docs-asciidoctor-extensions-base",
+    "path": "subprojects/docs-asciidoctor-extensions-base",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "ear",
     "name": "ear",
+    "path": "platforms/jvm/ear",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "enterprise",
     "name": "enterprise",
+    "path": "subprojects/enterprise",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "enterprise-logging",
     "name": "enterprise-logging",
+    "path": "subprojects/enterprise-logging",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "enterprise-operations",
     "name": "enterprise-operations",
+    "path": "subprojects/enterprise-operations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "enterprise-workers",
     "name": "enterprise-workers",
+    "path": "subprojects/enterprise-workers",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "execution",
     "name": "execution",
+    "path": "subprojects/execution",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "file-collections",
     "name": "file-collections",
+    "path": "subprojects/file-collections",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "file-temp",
     "name": "file-temp",
+    "path": "subprojects/file-temp",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "file-watching",
     "name": "file-watching",
+    "path": "subprojects/file-watching",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "files",
     "name": "files",
+    "path": "subprojects/files",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "functional",
     "name": "functional",
+    "path": "subprojects/functional",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "hashing",
     "name": "hashing",
+    "path": "subprojects/hashing",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "ide",
     "name": "ide",
+    "path": "subprojects/ide",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "ide-native",
     "name": "ide-native",
+    "path": "subprojects/ide-native",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "installation-beacon",
     "name": "installation-beacon",
+    "path": "subprojects/installation-beacon",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "instrumentation-agent",
     "name": "instrumentation-agent",
+    "path": "subprojects/instrumentation-agent",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "instrumentation-declarations",
     "name": "instrumentation-declarations",
+    "path": "subprojects/instrumentation-declarations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "integ-test",
     "name": "integ-test",
+    "path": "subprojects/integ-test",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "internal-architecture-testing",
     "name": "internal-architecture-testing",
+    "path": "subprojects/internal-architecture-testing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "internal-build-reports",
     "name": "internal-build-reports",
+    "path": "subprojects/internal-build-reports",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "internal-instrumentation-api",
     "name": "internal-instrumentation-api",
+    "path": "subprojects/internal-instrumentation-api",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "internal-instrumentation-processor",
     "name": "internal-instrumentation-processor",
+    "path": "subprojects/internal-instrumentation-processor",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "internal-integ-testing",
     "name": "internal-integ-testing",
+    "path": "subprojects/internal-integ-testing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "internal-performance-testing",
     "name": "internal-performance-testing",
+    "path": "subprojects/internal-performance-testing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "internal-testing",
     "name": "internal-testing",
+    "path": "subprojects/internal-testing",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "ivy",
     "name": "ivy",
+    "path": "subprojects/ivy",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "jacoco",
     "name": "jacoco",
+    "path": "subprojects/jacoco",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "java-compiler-plugin",
     "name": "java-compiler-plugin",
+    "path": "subprojects/java-compiler-plugin",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "jvm-services",
     "name": "jvm-services",
+    "path": "subprojects/jvm-services",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "kotlin-dsl",
     "name": "kotlin-dsl",
+    "path": "subprojects/kotlin-dsl",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "kotlin-dsl-integ-tests",
     "name": "kotlin-dsl-integ-tests",
+    "path": "subprojects/kotlin-dsl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "kotlin-dsl-plugins",
     "name": "kotlin-dsl-plugins",
+    "path": "subprojects/kotlin-dsl-plugins",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "kotlin-dsl-provider-plugins",
     "name": "kotlin-dsl-provider-plugins",
+    "path": "subprojects/kotlin-dsl-provider-plugins",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "kotlin-dsl-tooling-builders",
     "name": "kotlin-dsl-tooling-builders",
+    "path": "subprojects/kotlin-dsl-tooling-builders",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "kotlin-dsl-tooling-models",
     "name": "kotlin-dsl-tooling-models",
+    "path": "subprojects/kotlin-dsl-tooling-models",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "language-groovy",
     "name": "language-groovy",
+    "path": "subprojects/language-groovy",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "language-java",
     "name": "language-java",
+    "path": "subprojects/language-java",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "language-jvm",
     "name": "language-jvm",
+    "path": "subprojects/language-jvm",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "language-native",
     "name": "language-native",
+    "path": "subprojects/language-native",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "launcher",
     "name": "launcher",
+    "path": "subprojects/launcher",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "logging",
     "name": "logging",
+    "path": "subprojects/logging",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "logging-api",
     "name": "logging-api",
+    "path": "subprojects/logging-api",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "maven",
     "name": "maven",
+    "path": "subprojects/maven",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "messaging",
     "name": "messaging",
+    "path": "subprojects/messaging",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "model-core",
     "name": "model-core",
+    "path": "subprojects/model-core",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "model-groovy",
     "name": "model-groovy",
+    "path": "subprojects/model-groovy",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "native",
     "name": "native",
+    "path": "subprojects/native",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "normalization-java",
     "name": "normalization-java",
+    "path": "subprojects/normalization-java",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "performance",
     "name": "performance",
+    "path": "subprojects/performance",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "persistent-cache",
     "name": "persistent-cache",
+    "path": "subprojects/persistent-cache",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "platform-base",
     "name": "platform-base",
+    "path": "subprojects/platform-base",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "platform-jvm",
     "name": "platform-jvm",
+    "path": "subprojects/platform-jvm",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "platform-native",
     "name": "platform-native",
+    "path": "subprojects/platform-native",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "plugin-development",
     "name": "plugin-development",
+    "path": "subprojects/plugin-development",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "plugin-use",
     "name": "plugin-use",
+    "path": "subprojects/plugin-use",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "plugins",
     "name": "plugins",
+    "path": "subprojects/plugins",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "problems",
+    "name": "precondition-tester",
+    "path": "subprojects/precondition-tester",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
     "name": "problems",
+    "path": "subprojects/problems",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "process-services",
     "name": "process-services",
+    "path": "subprojects/process-services",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "publish",
     "name": "publish",
+    "path": "subprojects/publish",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "reporting",
     "name": "reporting",
+    "path": "subprojects/reporting",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "resources",
     "name": "resources",
+    "path": "subprojects/resources",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "resources-gcs",
     "name": "resources-gcs",
+    "path": "subprojects/resources-gcs",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "resources-http",
     "name": "resources-http",
+    "path": "subprojects/resources-http",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "resources-s3",
     "name": "resources-s3",
+    "path": "subprojects/resources-s3",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "resources-sftp",
     "name": "resources-sftp",
+    "path": "subprojects/resources-sftp",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "samples",
     "name": "samples",
+    "path": "subprojects/samples",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "scala",
     "name": "scala",
+    "path": "subprojects/scala",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "security",
     "name": "security",
+    "path": "subprojects/security",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "signing",
     "name": "signing",
+    "path": "subprojects/signing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "smoke-test",
     "name": "smoke-test",
+    "path": "subprojects/smoke-test",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "snapshots",
     "name": "snapshots",
+    "path": "subprojects/snapshots",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "soak",
     "name": "soak",
+    "path": "subprojects/soak",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "test-kit",
     "name": "test-kit",
+    "path": "subprojects/test-kit",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "testing-base",
     "name": "testing-base",
+    "path": "subprojects/testing-base",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "testing-junit-platform",
     "name": "testing-junit-platform",
+    "path": "subprojects/testing-junit-platform",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "testing-jvm",
     "name": "testing-jvm",
+    "path": "subprojects/testing-jvm",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "testing-jvm-infrastructure",
     "name": "testing-jvm-infrastructure",
+    "path": "subprojects/testing-jvm-infrastructure",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "testing-native",
     "name": "testing-native",
+    "path": "subprojects/testing-native",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "tooling-api",
     "name": "tooling-api",
+    "path": "subprojects/tooling-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "tooling-api-builders",
     "name": "tooling-api-builders",
+    "path": "subprojects/tooling-api-builders",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "tooling-native",
     "name": "tooling-native",
+    "path": "subprojects/tooling-native",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": true
   },
   {
-    "dirName": "version-control",
     "name": "version-control",
+    "path": "subprojects/version-control",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "worker-processes",
+    "name": "war",
+    "path": "platforms/jvm/war",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "worker-processes",
+    "path": "subprojects/worker-processes",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "worker-services",
     "name": "worker-services",
+    "path": "subprojects/worker-services",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "dirName": "workers",
     "name": "workers",
+    "path": "subprojects/workers",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "dirName": "wrapper",
     "name": "wrapper",
+    "path": "subprojects/wrapper",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "wrapper-shared",
     "name": "wrapper-shared",
+    "path": "subprojects/wrapper-shared",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

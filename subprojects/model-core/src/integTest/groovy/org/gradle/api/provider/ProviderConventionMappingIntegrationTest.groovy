@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 // TODO: Also do this for FileCollection types eventually
@@ -51,26 +52,45 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         expectDocumentedFailure()
     }
 
-    def "emits deprecation warning when convention mapping is used with Property"() {
+    def "convention mapping can be used with Property and an actual value"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract Property<String> getFoo()
+                @Internal abstract Property<String> getBar()
 
                 @TaskAction
                 void useIt() {
-                    // convention mapping for Property is already ignored
-                    assert foo.get() == "other"
+                    assert foo.get() == "foobar"
                 }
             }
             tasks.register("mytask", MyTask) {
-                conventionMapping.map("foo", { project.objects.property(String).convention("foobar") })
-                foo.convention("other")
+                conventionMapping.map("foo") { "foobar" }
             }
         """
 
         expect:
-        runAndFail 'mytask'
-        expectDocumentedFailure()
+        succeeds 'mytask'
+    }
+
+    def "convention mapping cannot be used with Property and a Provider value"() {
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @Internal abstract Property<String> getFoo()
+                @Internal abstract Property<String> getBar()
+
+                @TaskAction
+                void useIt() {
+                    bar.get()
+                }
+            }
+            tasks.register("mytask", MyTask) {
+                conventionMapping.map("bar") { providers.provider { "foobar" } }
+            }
+        """
+
+        expect:
+        fails 'mytask'
+        failureHasCause("Cannot get the value of task ':mytask' property 'bar' of type $String.name as the provider associated with this property returned a value of type $DefaultProvider.name.")
     }
 
     def "emits deprecation warning when convention mapping is used with MapProperty"() {
@@ -117,7 +137,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         expectDocumentedFailure()
     }
 
-    def "emits deprecation warning when convention mapping is used with Provider in a ConventionTask"() {
+    def "convention mapping works with Property in a ConventionTask"() {
         buildFile << """
             abstract class MyTask extends org.gradle.api.internal.ConventionTask {
                 @Internal abstract Property<String> getFoo()
@@ -135,8 +155,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        runAndFail 'mytask'
-        expectDocumentedFailure()
+        succeeds 'mytask'
     }
 
     def "emits deprecation warning when convention mapping is used with Provider in domain object other than task"() {

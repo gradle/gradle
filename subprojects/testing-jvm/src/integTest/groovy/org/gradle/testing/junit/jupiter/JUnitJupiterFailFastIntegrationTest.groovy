@@ -19,8 +19,8 @@ package org.gradle.testing.junit.jupiter
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
-@TargetCoverage({ [LATEST_JUPITER_VERSION] })
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements JUnitJupiterMultiVersionTest {
 }

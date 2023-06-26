@@ -367,6 +367,17 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         schemes = null;
     }
 
+    public boolean hasStandardPattern() {
+        // This is wasteful because we create a descriptor and throw it away immediately.
+        IvyRepositoryDescriptor descriptor = createDescriptor();
+        List<String> artifactPatterns = descriptor.getArtifactPatterns();
+        if (artifactPatterns.size() == 1) {
+            return artifactPatterns.get(0).equals(IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN);
+        } else {
+            return false;
+        }
+    }
+
     /**
      * Layout for applying additional patterns added via {@link #artifactPatterns} and {@link #ivyPatterns}.
      */

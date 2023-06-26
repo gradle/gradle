@@ -41,7 +41,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
                 }
                 """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileGroovy").run().output
+        executer.withJavaHome(jreJavaHome.absolutePath).withTasks("compileGroovy").run().output
         then:
         groovyClassFile("org/test/JavaClazz.class").exists()
         groovyClassFile("org/test/GroovyClazz.class").exists()

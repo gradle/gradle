@@ -1481,6 +1481,10 @@ Hello, subproject1
             }
 
             abstract class NestedBean {
+                @Input
+                String getProperty() {
+                    "some-property";
+                }
             }
 
             abstract class Greeter extends DefaultTask {

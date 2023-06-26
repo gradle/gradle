@@ -87,8 +87,8 @@ The retention period for each category can be configured independently via an in
 
 .Configuring cache retention
 ====
-include::sample[dir="snippets/initScripts/cacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/cacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 ====
 
 The frequency at which cache cleanup is invoked is also configurable.  There are three possible settings:
@@ -99,8 +99,8 @@ The frequency at which cache cleanup is invoked is also configurable.  There are
 
 .Disabling cache cleanup
 ====
-include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/disableCacheCleanup/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 ====
 
 Note that cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home.  This effectively couples the configuration of cache cleanup to the Gradle User Home those settings apply to and limits the possibility of different conflicting settings from different projects being applied to the same directory.
@@ -124,13 +124,13 @@ Note that the version-compliant script should reside somewhere other than the `i
 
 .Configuring cache cleanup in a version-safe manner
 ====
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 ====
 .Version-compliant cache configuration script
 ====
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/gradle8/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/gradle8/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/gradle8/cache-settings.gradle"]
 ====
 
 [[dir:gradle_user_home:cache_marking]]
@@ -147,8 +147,8 @@ The cache marking feature can be configured via an init script in the Gradle Use
 
 .Configuring cache marking
 ====
-include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/cacheMarking/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 ====
 
 Note that cache marking settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home. This effectively couples the configuration of cache marking to the Gradle User Home those settings apply to and limits the possibility of different conflicting settings from different projects being applied to the same directory.

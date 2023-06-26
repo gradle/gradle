@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.testing.junit.AbstractJUnitSmokeMultiVersionIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.LARGE_COVERAGE
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_LARGE_COVERAGE
 
-@TargetCoverage({ LARGE_COVERAGE })
+@TargetCoverage({ JUNIT4_LARGE_COVERAGE })
 class JUnit4SmokeMultiVersionIntegrationTest extends AbstractJUnitSmokeMultiVersionIntegrationTest implements JUnit4MultiVersionTest {
     @Override
     void assertTestSkippedOrPassed(TestClassExecutionResult testClassResult, String testName) {

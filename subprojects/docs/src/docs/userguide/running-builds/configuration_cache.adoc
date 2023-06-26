@@ -964,6 +964,19 @@ include::sample[dir="snippets/valueProviders/fileContentsDo/groovy",files="build
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
 
+[[config_cache:requirements:bytecode_modifications_and_isolation]]
+=== Bytecode modifications and Java agent
+
+To detect the configuration inputs, Gradle modifies the bytecode of classes on the build script classpath, like plugins and their dependencies.
+Gradle uses a Java agent to modify the bytecode.
+Integrity self-checks of some libraries may fail because of the changed bytecode or the agent's presence.
+
+To work around this, you can use the <<worker_api.adoc#tasks_parallel_worker, Worker API>> with classloader or process isolation to encapsulate the library code.
+The bytecode of the worker's classpath is not modified, so the self-checks should pass.
+When process isolation is used, the worker action is executed in a separate worker process that doesn't have the Gradle Java agent installed.
+
+In simple cases, when the libraries also provide command-line entry points (`public static void main()` method), you can also use the link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[JavaExec] task to isolate the library.
+
 [[config_cache:not_yet_implemented]]
 == Not yet implemented
 

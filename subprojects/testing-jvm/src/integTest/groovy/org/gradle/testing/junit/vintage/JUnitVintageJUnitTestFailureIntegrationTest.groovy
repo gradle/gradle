@@ -45,4 +45,9 @@ class JUnitVintageJUnitTestFailureIntegrationTest extends AbstractJUnit4TestFail
     Matcher<? super String>[] getBrokenBeforeAndAfterMatchers() {
         return [allOf(containsString(failureAssertionError('before failed')), containsString(failureAssertionError('after failed')))]
     }
+
+    @Override
+    boolean hasStableInitializationErrors() {
+        return true
+    }
 }

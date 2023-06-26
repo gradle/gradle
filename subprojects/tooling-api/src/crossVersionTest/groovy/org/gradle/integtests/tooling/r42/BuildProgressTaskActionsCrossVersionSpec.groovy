@@ -49,7 +49,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def task = events.operation("Task :custom")
-        task.child('Clean stale outputs')
+        task.descendant('Clean stale outputs')
     }
 
     //This is the current behavior. Snapshotting might become not-a-task-action in the future.
@@ -64,7 +64,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def task = events.operation("Task :custom")
-        task.child('Snapshot task inputs for :custom')
+        task.descendant('Snapshot task inputs for :custom')
     }
 
     @TargetGradleVersion(">=6.0")

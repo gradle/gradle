@@ -16,9 +16,11 @@
 
 package org.gradle.caching.internal;
 
+import org.gradle.cache.HasCleanupAction;
+
 import java.io.Closeable;
 
-public interface StatefulNextGenBuildCacheService extends NextGenBuildCacheService, Closeable {
+public interface StatefulNextGenBuildCacheService extends NextGenBuildCacheService, HasCleanupAction, Closeable {
     void open();
 
     @Override

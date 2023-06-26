@@ -27,7 +27,14 @@ abstract class AbstractWorkerLeaseServiceTest extends ConcurrentSpec {
     final coordinationService = new DefaultResourceLockCoordinationService()
 
     WorkerLeaseService workerLeaseService(int maxWorkers = 1) {
-        return new DefaultWorkerLeaseService(coordinationService, parallel(maxWorkers))
+        def configuration = parallel(maxWorkers)
+        return workerLeaseService(configuration)
+    }
+
+    WorkerLeaseService workerLeaseService(ParallelismConfiguration configuration) {
+        def service = new DefaultWorkerLeaseService(coordinationService, configuration)
+        service.startProjectExecution(configuration.parallelProjectExecutionEnabled)
+        return service
     }
 
     ParallelismConfiguration parallel(boolean parallelEnabled, int maxWorkers = 1) {

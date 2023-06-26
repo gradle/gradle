@@ -29,6 +29,7 @@ import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
+import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
@@ -38,6 +39,8 @@ import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.PostDiscoveryFilter;
 import org.junit.platform.launcher.TestExecutionListener;
+import org.junit.platform.launcher.TestIdentifier;
+import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
@@ -107,7 +110,36 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         private void processAllTestClasses() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses);
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
-            launcherSession.getLauncher().execute(discoveryRequest, executionListener);
+            Launcher launcher = launcherSession.getLauncher();
+            if (spec.isDryRun()) {
+                TestPlan testPlan = launcher.discover(discoveryRequest);
+                executeDryRun(testPlan, executionListener);
+            } else {
+                launcher.execute(discoveryRequest, executionListener);
+            }
+        }
+    }
+
+    private void executeDryRun(TestPlan testPlan, TestExecutionListener listener) {
+        listener.testPlanExecutionStarted(testPlan);
+
+        for (TestIdentifier root : testPlan.getRoots()) {
+            dryRun(root, testPlan, listener);
+        }
+
+        listener.testPlanExecutionFinished(testPlan);
+    }
+
+    private void dryRun(TestIdentifier testIdentifier, TestPlan testPlan, TestExecutionListener listener) {
+        if (testIdentifier.isTest()) {
+            listener.executionSkipped(testIdentifier, "Gradle test execution dry run");
+        } else {
+            listener.executionStarted(testIdentifier);
+
+            for (TestIdentifier child : testPlan.getChildren(testIdentifier)) {
+                dryRun(child, testPlan, listener);
+            }
+            listener.executionFinished(testIdentifier, TestExecutionResult.successful());
         }
     }
 

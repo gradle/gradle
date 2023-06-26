@@ -23,4 +23,8 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageJUnitIntegrationTest extends AbstractJUnit4JUnitIntegrationTest implements JUnitVintageMultiVersionTest {
+    @Override
+    boolean isSupportsBlockJUnit4ClassRunner() {
+        return true
+    }
 }

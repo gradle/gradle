@@ -439,6 +439,15 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     @Override
+    protected List<String> getValidationExtraParameters(String version) {
+        if (AGP_VERSIONS.isAgpNightly(version)) {
+            def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
+            return ["-I", init.canonicalPath]
+        }
+        return super.getValidationExtraParameters(version)
+    }
+
+    @Override
     void configureValidation(String testedPluginId, String version) {
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(version)
         if (testedPluginId != 'com.android.reporting') {

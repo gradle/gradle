@@ -32,7 +32,6 @@ tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") 
 tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment = " Generated - Update by running `./gradlew updateAgpVersions`"
     minimumSupportedMinor = "7.3"
-    fetchNightly = false
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties")
     compatibilityDocFile = layout.projectDirectory.file("subprojects/docs/src/docs/userguide/compatibility.adoc")
 }

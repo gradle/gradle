@@ -68,7 +68,7 @@ You can <<dependency_constraints.adoc#dependency-constraints,customize Gradle's 
 
 Projects with hundreds of declared dependencies can be difficult to debug.
 Gradle provides tools to visualize and analyze a project's dependency graph (i.e. dependency tree).
-You can use a link:https://scans.gradle.com/get-started[Build Scan(TM)] or <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,built-in tasks>>.
+You can use a link:https://scans.gradle.com/get-started[Build Scan(TM)] or <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,built-in tasks>>.
 
 .Build scan dependencies report
 image::gradle-core-test-build-scan-dependencies.png[]

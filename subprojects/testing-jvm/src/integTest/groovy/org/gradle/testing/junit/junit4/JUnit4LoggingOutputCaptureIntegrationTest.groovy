@@ -18,8 +18,8 @@ package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
 
-@TargetCoverage({ JUNIT_4_LATEST })
+@TargetCoverage({ JUNIT_4 })
 class JUnit4LoggingOutputCaptureIntegrationTest extends AbstractJUnit4LoggingOutputCaptureIntegrationTest implements JUnit4MultiVersionTest {
 }

@@ -31,7 +31,7 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @IntegrationTestTimeout(180)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    boolean isOracleJDK = TestPrecondition.doSatisfies(UnitTestPreconditions.JdkOracle) && (Jvm.current().jre != null)
+    boolean isOracleJDK = TestPrecondition.satisfied(UnitTestPreconditions.JdkOracle) && (Jvm.current().jre != null)
 
     WorkerExecutorFixture.WorkActionClass workActionThatPrintsWorkingDirectory
 

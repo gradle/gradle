@@ -475,6 +475,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         ValidationProblemId.VALUE_NOT_SET
     )
     def "null on nested bean is validated #description"() {
+        buildFile << nestedBeanWithStringInput()
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
@@ -504,11 +505,12 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         where:
         description               | property
-        "for plain Java property" | "Object nested"
-        "for Provider property"   | "Provider<Object> nested = project.providers.provider { null }"
+        "for plain Java property" | "NestedBean nested"
+        "for Provider property"   | "Provider<NestedBean> nested = project.providers.provider { null }"
     }
 
     def "null on optional nested bean is allowed #description"() {
+        buildFile << nestedBeanWithStringInput()
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
@@ -537,8 +539,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         where:
         description               | property
-        "for plain Java property" | "Object nested"
-        "for Provider property"   | "Provider<Object> nested = project.providers.provider { null }"
+        "for plain Java property" | "NestedBean nested"
+        "for Provider property"   | "Provider<NestedBean> nested = project.providers.provider { null }"
     }
 
     def "changes to nested bean implementation are detected"() {
@@ -787,14 +789,15 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     @Issue("https://github.com/gradle/gradle/issues/24594")
     @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
-    def "nested map with #type key is validated without deprecation warning"() {
+    def "nested map with #type key is validated without warning"() {
+        buildFile << nestedBeanWithStringInput()
         buildFile << """
             abstract class CustomTask extends DefaultTask {
                 @Nested
-                abstract MapProperty<$type, Object> getLazyMap()
+                abstract MapProperty<$type, NestedBean> getLazyMap()
 
                 @Nested
-                Map<$type, Object> eagerMap = [:]
+                Map<$type, NestedBean> eagerMap = [:]
 
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
@@ -807,8 +810,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
 
             tasks.register("customTask", CustomTask) {
-                lazyMap.put($value, "example")
-                eagerMap.put($value, "example")
+                lazyMap.put($value, new NestedBean('value1'))
+                eagerMap.put($value, new NestedBean('value2'))
                 outputFile = file("output.txt")
             }
 
@@ -820,7 +823,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         then:
         executedAndNotSkipped(":customTask")
-        file("output.txt").text == "[$expectedValue:example][$expectedValue:example]"
+        file("output.txt").text == "[$expectedValue:value1][$expectedValue:value2]"
 
         where:
         type      | value      | expectedValue
@@ -831,14 +834,15 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     @Issue("https://github.com/gradle/gradle/issues/24594")
     @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
-    def "nested map with unsupported key type is validated with deprecation warning"() {
+    def "nested map with unsupported key type is validated with warning"() {
+        buildFile << nestedBeanWithStringInput()
         buildFile << """
             abstract class CustomTask extends DefaultTask {
                 @Nested
-                abstract MapProperty<Boolean, Object> getUnsupportedLazyMap()
+                abstract MapProperty<Boolean, NestedBean> getUnsupportedLazyMap()
 
                 @Nested
-                Map<Boolean, Object> unsupportedEagerMap = [:]
+                Map<Boolean, NestedBean> unsupportedEagerMap = [:]
 
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
@@ -851,8 +855,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
 
             tasks.register("customTask", CustomTask) {
-                unsupportedLazyMap.put(true, "example")
-                unsupportedEagerMap.put(false, "example")
+                unsupportedLazyMap.put(true, new NestedBean('value1'))
+                unsupportedEagerMap.put(false, new NestedBean('value2'))
                 outputFile = file("output.txt")
             }
         """
@@ -867,7 +871,151 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         then:
         executedAndNotSkipped(":customTask")
-        file("output.txt").text == "[true:example][false:example]"
+        file("output.txt").text == "[true:value1][false:value2]"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested #type#parameterType is validated with warning"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                $type$parameterType getMy$type() {
+                    return $producer
+                }
+
+                @TaskAction
+                void execute() { }
+            }
+
+            tasks.register("customTask", CustomTask) { }
+        """
+
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'CustomTask' property 'my$type' with nested type '$className' is not supported. " +
+                "Reason: Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.",
+            'validation_problems',
+            'unsupported_nested_type')
+
+        expect:
+        succeeds("customTask")
+
+        where:
+        type       | parameterType      | producer                                               | className
+        'File'     | ''                 | 'new File("some/path")'                                | 'java.io.File'
+        'Integer'  | ''                 | 'Integer.valueOf(1)'                                   | 'java.lang.Integer'
+        'String'   | ''                 | 'new String()'                                         | 'java.lang.String'
+        'GString'  | ''                 | 'GString.EMPTY'                                        | 'groovy.lang.GString$1'
+        'Iterable' | '<Integer>'        | '[[Integer.valueOf(1)], [Integer.valueOf(2)]]'         | 'java.lang.Integer'
+        'List'     | '<String>'         | '["value1", "value2"]'                                 | 'java.lang.String'
+        'Map'      | '<String,Integer>' | '[a: Integer.valueOf(1), b: Integer.valueOf(2)]'       | 'java.lang.Integer'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested Provider<Boolean> is validated with warning"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                Provider<Boolean> myProvider = project.providers.provider { Boolean.valueOf(true) }
+
+                @TaskAction
+                void execute() { }
+            }
+
+            tasks.register("customTask", CustomTask) { }
+        """
+
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'CustomTask' property 'myProvider' with nested type 'java.lang.Boolean' is not supported. " +
+                "Reason: Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.",
+            'validation_problems',
+            'unsupported_nested_type')
+
+        expect:
+        succeeds("customTask")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested #type#parameterType is validated without warning"() {
+        buildFile << nestedBeanWithStringInput()
+        buildFile << """
+            enum SomeEnum { A, B, C }
+
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                $type$parameterType getMy$type() {
+                    return $producer
+                }
+
+                @TaskAction
+                void execute() { }
+            }
+
+            tasks.register("customTask", CustomTask) { }
+        """
+
+        expect:
+        succeeds("customTask")
+
+        where:
+        type         | parameterType         | producer
+        'NestedBean' | ''                    | 'new NestedBean("input")'
+        'SomeEnum'   | ''                    | 'SomeEnum.A'
+        'Iterable'   | '<NestedBean>'        | 'Arrays.asList(new NestedBean("input"), new NestedBean("input"))'
+        'Map'        | '<String,NestedBean>' | 'Collections.singletonMap("a", new NestedBean("input"))'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested Provider<NestedBean> is validated without warning"() {
+        buildFile << nestedBeanWithStringInput()
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                Provider<NestedBean> myProvider = project.providers.provider { new NestedBean("input") }
+
+                @TaskAction
+                void execute() { }
+            }
+
+            tasks.register("customTask", CustomTask) { }
+        """
+
+        expect:
+        succeeds("customTask")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested Kotlin #type is validated with warning"() {
+        buildKotlinFile << """
+            abstract class CustomTask : DefaultTask() {
+                @get:Nested
+                var my$type: $type = $producer
+
+                @TaskAction
+                fun execute() { }
+            }
+
+            tasks.register<CustomTask>("customTask") { }
+        """
+
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'Build_gradle.CustomTask' property 'my$type' with nested type '$className' is not supported. " +
+                "Reason: Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.",
+            'validation_problems',
+            'unsupported_nested_type')
+
+        expect:
+        succeeds("customTask")
+
+        where:
+        type                | producer                    | className
+        'DeprecationLevel'  | 'DeprecationLevel.WARNING'  | 'kotlin.DeprecationLevel'
+        'Int'               | 'Int.MIN_VALUE'             | 'java.lang.Integer'
+        'String'            | '"abc"'                     | 'java.lang.String'
     }
 
     private static String namedBeanClass() {
@@ -1000,6 +1148,10 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
                 NestedBean(String input) {
                     this.input = input
+                }
+
+                String toString() {
+                    input
                 }
             }
         """

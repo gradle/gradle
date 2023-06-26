@@ -27,4 +27,9 @@ class JUnitJupiterTestEnvironmentIntegrationTest extends AbstractTestEnvironment
     String getModuleName() {
         return "org.junit.jupiter.api"
     }
+
+    @Override
+    boolean isFrameworkSupportsModularJava() {
+        return true
+    }
 }

@@ -25,10 +25,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
 import org.gradle.internal.file.BufferProvider;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -53,25 +50,28 @@ import java.util.stream.Stream;
  * async operations to finish before returning.
  */
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNextGenBuildCacheAccess.class);
+    public static final int THREAD_POOL_SIZE = 256;
 
     private final NextGenBuildCacheService local;
     private final RemoteNextGenBuildCacheServiceHandler remote;
     private final BufferProvider bufferProvider;
     private final ManagedThreadPoolExecutor remoteProcessor;
+    private final Logger logger;
     private final ConcurrencyCounter counter;
 
     public DefaultNextGenBuildCacheAccess(
         NextGenBuildCacheService local,
         RemoteNextGenBuildCacheServiceHandler remote,
         BufferProvider bufferProvider,
-        ExecutorFactory executorFactory
+        ExecutorFactory executorFactory,
+        Logger logger
     ) {
         this.local = local;
         this.remote = remote;
         this.bufferProvider = bufferProvider;
         // TODO Configure this properly, or better yet, replace with async HTTP and no thread pool
-        this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 256, 256, 10, TimeUnit.SECONDS);
+        this.remoteProcessor = executorFactory.createThreadPool("Build cache access", THREAD_POOL_SIZE, THREAD_POOL_SIZE, 10, TimeUnit.SECONDS);
+        this.logger = logger;
         this.counter = new ConcurrencyCounter(remoteProcessor);
     }
 
@@ -90,6 +90,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 }
                 if (!foundLocally && remote.canLoad()) {
                     // TODO Improve error handling
+                    handler.ensureLoadOperationStarted(key);
                     return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteDownload<>(key, payload, handler)), remoteProcessor));
                 } else {
                     return Stream.empty();
@@ -116,6 +117,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 }
                 // TODO Improve error handling
                 if (remote.canStore()) {
+                    handler.ensureStoreOperationStarted(key);
                     return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteUpload(key, handler)), remoteProcessor));
                 } else {
                     return Stream.empty();
@@ -131,7 +133,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         Closer closer = Closer.create();
         closer.register(() -> {
             if (!remoteProcessor.getQueue().isEmpty() || remoteProcessor.getActiveCount() > 0) {
-                LOGGER.warn("Waiting for remote cache uploads to finish");
+                logger.warn("Waiting for remote cache uploads to finish");
             }
             try {
                 remoteProcessor.stop(5, TimeUnit.MINUTES);
@@ -145,7 +147,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         closer.close();
     }
 
-    private static class ConcurrencyCounter implements Closeable {
+    private class ConcurrencyCounter implements Closeable {
         private final AtomicInteger maxQueueLength = new AtomicInteger(0);
         private final AtomicInteger maxActiveCount = new AtomicInteger(0);
 
@@ -165,33 +167,12 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
         @Override
         public void close() {
-            LOGGER.warn("Max concurrency encountered while processing remote cache entries: {}, max queue length: {}",
+            logger.warn("Max concurrency encountered while processing remote cache entries: {}, max queue length: {}",
                 maxActiveCount.get(), maxQueueLength.get());
         }
     }
 
-    private static abstract class OperationPreservingRunnable implements Runnable {
-        private final BuildOperationRef mainThreadOperation;
-
-        public OperationPreservingRunnable() {
-            this.mainThreadOperation = CurrentBuildOperationRef.instance().get();
-        }
-
-        @Override
-        public void run() {
-            BuildOperationRef originalOperation = CurrentBuildOperationRef.instance().get();
-            CurrentBuildOperationRef.instance().set(mainThreadOperation);
-            try {
-                doRun();
-            } finally {
-                CurrentBuildOperationRef.instance().set(originalOperation);
-            }
-        }
-
-        abstract protected void doRun();
-    }
-
-    private class RemoteDownload<T> extends OperationPreservingRunnable {
+    private class RemoteDownload<T> implements Runnable {
         private final BuildCacheKey key;
         private final T payload;
         private final LoadHandler<T> handler;
@@ -203,14 +184,16 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         @Override
-        protected void doRun() {
-            handler.startLoadOperation(key);
+        public void run() {
             try {
+                logger.warn("Loading {} from remote", key);
                 long size = load();
                 if (size >= 0) {
                     handler.recordLoadHit(key, size);
+                    logger.warn("Found {} in remote (size: {})", key, size);
                 } else {
                     handler.recordLoadMiss(key);
+                    logger.warn("Not found {} in remote", key);
                 }
             } catch (Exception e) {
                 handler.recordLoadFailure(key, e);
@@ -219,14 +202,12 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         private long load() {
-            LOGGER.warn("Loading {} from remote", key);
             AtomicLong size = new AtomicLong(-1);
             remote.load(key, input -> {
                 // TODO Make this work for large pieces of content, too
                 UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
                 byte[] buffer = bufferProvider.getBuffer();
                 IOUtils.copyLarge(input, data, buffer);
-                LOGGER.warn("Found {} in remote (size: {})", key, data.size());
                 size.set(data.size());
 
                 // Mirror data in local cache
@@ -252,7 +233,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
     }
 
-    private class RemoteUpload extends OperationPreservingRunnable {
+    private class RemoteUpload implements Runnable {
         private final BuildCacheKey key;
         private final StoreHandler<?> handler;
 
@@ -262,10 +243,10 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         @Override
-        protected void doRun() {
+        public void run() {
             // TODO Check contains only above a threshold
             if (remote.contains(key)) {
-                LOGGER.warn("Not storing {} in remote", key);
+                logger.warn("Not storing {} in remote", key);
                 return;
             }
 
@@ -281,18 +262,19 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         private void store(UnsynchronizedByteArrayOutputStream data) {
-            handler.startStoreOperation(key);
             try {
+                logger.warn("Storing {} in remote (size: {})", key, data.size());
                 boolean stored = storeInner(data);
+                logger.warn("Stored {} in remote: {}", key, stored);
                 handler.recordStoreFinished(key, stored);
             } catch (Exception e) {
                 handler.recordStoreFailure(key, e);
+                logger.warn("Store {} failed", key, e);
                 remote.disableOnError();
             }
         }
 
         private boolean storeInner(UnsynchronizedByteArrayOutputStream data) {
-            LOGGER.warn("Storing {} in remote (size: {})", key, data.size());
             AtomicBoolean stored = new AtomicBoolean(false);
             remote.store(key, new NextGenBuildCacheService.NextGenWriter() {
                 @Override

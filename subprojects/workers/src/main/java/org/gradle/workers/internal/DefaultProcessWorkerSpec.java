@@ -16,23 +16,48 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.ProcessWorkerSpec;
 
 import javax.inject.Inject;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec implements ProcessWorkerSpec, ClassLoaderWorkerSpec {
+    /**
+     * Environment variables inherited automatically on Unix systems.
+     *
+     * See <a href="https://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html">Locale Environment Variables for gettext</a>
+     */
+    private static final Pattern INHERITED_UNIX_ENVIRONMENT = Pattern.compile("(LANG|LANGUAGE|LC_.*)");
+
     protected final JavaForkOptions forkOptions;
 
     @Inject
     public DefaultProcessWorkerSpec(JavaForkOptions forkOptions, ObjectFactory objectFactory) {
         super(objectFactory);
         this.forkOptions = forkOptions;
-        this.forkOptions.setEnvironment(Maps.newHashMap());
+        this.forkOptions.setEnvironment(sanitizeEnvironment(forkOptions));
+    }
+
+    /**
+     * Inherit as little as possible from the parent process' environment.
+     *
+     * On Unix systems we need to pass a few environment variables to make sure
+     * the file system is accessed with the right encoding.
+     */
+    private static Map<String, Object> sanitizeEnvironment(JavaForkOptions forkOptions) {
+        if (!OperatingSystem.current().isUnix()) {
+            return ImmutableMap.of();
+        }
+        return forkOptions.getEnvironment().entrySet().stream()
+            .filter(entry -> INHERITED_UNIX_ENVIRONMENT.matcher(entry.getKey()).matches())
+            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override

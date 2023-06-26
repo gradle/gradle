@@ -17,12 +17,19 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
 
-@TargetCoverage({ JUNIT_4_LATEST })
+@TargetCoverage({ JUNIT_4 })
 class JUnit4JUnitIntegrationTest extends AbstractJUnit4JUnitIntegrationTest implements JUnit4MultiVersionTest {
+    @Override
+    boolean isSupportsBlockJUnit4ClassRunner() {
+        // BlockJUnit4ClassRunner was introduced in 4.5
+        return VersionNumber.parse(version) >= VersionNumber.parse('4.5')
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-2313")
     def "can clean test after extracting class file with junit"() {
         when:

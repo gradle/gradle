@@ -1,19 +1,18 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.whenever
-
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.reflect.TypeOf
-
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -31,7 +30,7 @@ class ProjectExtensionsTest {
         val extension = mock<NamedDomainObjectContainer<List<String>>>()
         val extensionType = typeOf<NamedDomainObjectContainer<List<String>>>()
 
-        whenever(project.convention)
+        whenever(project.extensions)
             .thenReturn(convention)
         whenever(convention.findByType(eq(extensionType)))
             .thenReturn(extension)
@@ -52,7 +51,7 @@ class ProjectExtensionsTest {
         val extension = mock<NamedDomainObjectContainer<List<String>>>()
         val extensionType = typeOf<NamedDomainObjectContainer<List<String>>>()
 
-        whenever(project.convention)
+        whenever(project.extensions)
             .thenReturn(convention)
         whenever(convention.findByType(eq(extensionType)))
             .thenReturn(extension)
@@ -72,6 +71,8 @@ class ProjectExtensionsTest {
         val convention = mock<org.gradle.api.plugins.Convention>()
         val javaConvention = mock<CustomConvention>()
 
+        whenever(project.extensions)
+            .thenReturn(convention)
         whenever(project.convention)
             .thenReturn(convention)
         whenever(convention.findPlugin(eq(CustomConvention::class.java)))
@@ -81,7 +82,7 @@ class ProjectExtensionsTest {
 
         inOrder(convention) {
             verify(convention).findByType(any<TypeOf<CustomConvention>>())
-            verify(convention).findPlugin(eq(CustomConvention::class.java))
+            verify(convention, times(2)).findPlugin(eq(CustomConvention::class.java))
             verifyNoMoreInteractions()
         }
     }
@@ -93,6 +94,8 @@ class ProjectExtensionsTest {
         val convention = mock<org.gradle.api.plugins.Convention>()
         val javaConvention = mock<CustomConvention>()
 
+        whenever(project.extensions)
+            .thenReturn(convention)
         whenever(project.convention)
             .thenReturn(convention)
         whenever(convention.findByType(any<TypeOf<*>>()))
@@ -104,7 +107,7 @@ class ProjectExtensionsTest {
 
         inOrder(convention) {
             verify(convention).findByType(any<TypeOf<CustomConvention>>())
-            verify(convention).findPlugin(eq(CustomConvention::class.java))
+            verify(convention, times(2)).findPlugin(eq(CustomConvention::class.java))
             verifyNoMoreInteractions()
         }
     }
@@ -116,6 +119,8 @@ class ProjectExtensionsTest {
         val convention = mock<org.gradle.api.plugins.Convention>()
         val conventionType = typeOf<CustomConvention>()
 
+        whenever(project.extensions)
+            .thenReturn(convention)
         whenever(project.convention)
             .thenReturn(convention)
         whenever(convention.getByType(eq(conventionType)))
@@ -143,6 +148,8 @@ class ProjectExtensionsTest {
         val convention = mock<org.gradle.api.plugins.Convention>()
         val conventionType = typeOf<CustomConvention>()
 
+        whenever(project.extensions)
+            .thenReturn(convention)
         whenever(project.convention)
             .thenReturn(convention)
         whenever(convention.configure(eq(conventionType), any<Action<CustomConvention>>()))

@@ -16,16 +16,57 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
-import spock.lang.IgnoreIf
+
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
 
 // https://plugins.gradle.org/plugin/com.gradle.enterprise
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
+
+    enum CI {
+        TEAM_CITY(
+            AbstractSmokeTest.TestedVersions.teamCityGradlePluginRef,
+            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/build-scan-init.gradle",
+            "teamCityBuildScanPlugin"
+        ),
+        JENKINS(
+            AbstractSmokeTest.TestedVersions.jenkinsGradlePluginRef,
+            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle",
+            "jenkinsGradlePlugin"
+        ),
+        BAMBOO(
+            AbstractSmokeTest.TestedVersions.bambooGradlePluginRef,
+            "https://raw.githubusercontent.com/gradle/gradle-enterprise-bamboo-plugin/%s/src/main/resources/gradle-enterprise/gradle/gradle-enterprise-init-script.gradle",
+            "ge-plugin"
+        );
+
+        String gitRef
+        String urlTemplate
+        String propPrefix
+
+        CI(String gitRef, String urlTemplate, String propPrefix) {
+            this.gitRef = gitRef
+            this.urlTemplate = urlTemplate
+            this.propPrefix = propPrefix
+        }
+
+        String getUrl() {
+            return String.format(urlTemplate, gitRef)
+        }
+    }
+
+    private static final Map<CI, String> CI_INJECTION_SCRIPT_CONTENTS = new ConcurrentHashMap<>()
+
+    private static String getCiInjectionScriptContent(CI ci) {
+        return CI_INJECTION_SCRIPT_CONTENTS.computeIfAbsent(ci) { new URL(it.getUrl()).getText(StandardCharsets.UTF_8.name()) }
+    }
 
     private static final List<String> UNSUPPORTED = [
         "2.4.2",
@@ -88,14 +129,21 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.12.6",
         "3.13",
         "3.13.1",
-        "3.13.2"
+        "3.13.2",
+        "3.13.3",
+        "3.13.4"
     ]
 
+    // Current injection scripts support Gradle Enterprise plugin 3.3 and above
+    private static final List<String> SUPPORTED_BY_CI_INJECTION = SUPPORTED
+        .findAll { VersionNumber.parse("3.3") <= VersionNumber.parse(it) }
+
+    private static final VersionNumber FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE = VersionNumber.parse("3.4")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
     private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
 
-    @IgnoreIf({ !GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.IsConfigCached)
     def "can use plugin #version with Gradle 8 configuration cache"() {
         given:
         def versionNumber = VersionNumber.parse(version)
@@ -107,6 +155,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         then:
         scanRunner()
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "Gradle Enterprise plugin $version has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "The BuildIdentifier.getName() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Use getBuildPath() to get a unique identifier for the build. " +
@@ -117,7 +170,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         version << SUPPORTED
     }
 
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "can use plugin #version"() {
         given:
         def versionNumber = VersionNumber.parse(version)
@@ -128,6 +181,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         scanRunner()
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "Gradle Enterprise plugin $version has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
+            )
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "The BuildIdentifier.getName() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
@@ -153,6 +211,41 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         where:
         version << UNSUPPORTED
+    }
+
+    @Requires(IntegTestPreconditions.NotConfigCached)
+    def "can inject plugin #pluginVersion in #ci using '#ciScriptVersion' script version"() {
+        def versionNumber = VersionNumber.parse(pluginVersion)
+        def initScript = "init-script.gradle"
+        file(initScript) << getCiInjectionScriptContent(ci)
+
+        // URL is not relevant as long as it's valid due to the `-Dscan.dump` parameter
+        file("gradle.properties") << """
+            systemProp.${ci.propPrefix}.gradle-enterprise.plugin.version=$pluginVersion
+            systemProp.${ci.propPrefix}.init-script.name=$initScript
+            systemProp.${ci.propPrefix}.gradle-enterprise.url=http://localhost:5086
+        """.stripIndent()
+
+        setupJavaProject()
+
+        expect:
+        scanRunner("--init-script", initScript)
+            .expectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "Gradle Enterprise plugin $pluginVersion has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "The BuildIdentifier.getName() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Use getBuildPath() to get a unique identifier for the build. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+            )
+            .build().output.contains("Build scan written to")
+
+        where:
+        [ci, pluginVersion] << [CI.values(), SUPPORTED_BY_CI_INJECTION].combinations()
+        ciScriptVersion = ci.gitRef
     }
 
     BuildResult build(String... args) {
@@ -191,6 +284,10 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             """
         }
 
+        setupJavaProject()
+    }
+
+    private setupJavaProject() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}

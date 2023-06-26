@@ -22,10 +22,10 @@ import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitTestExecutionIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
 import static org.hamcrest.CoreMatchers.containsString
 
-@TargetCoverage({ JUNIT_4_LATEST })
+@TargetCoverage({ JUNIT_4 })
 class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationTest implements JUnit4MultiVersionTest {
     @Override
     String getJUnitVersionAssertion() {

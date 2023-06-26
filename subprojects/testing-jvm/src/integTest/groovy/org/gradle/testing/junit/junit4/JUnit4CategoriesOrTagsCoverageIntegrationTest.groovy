@@ -24,10 +24,10 @@ import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.CATEGORIES
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_CATEGORIES
 import static org.hamcrest.CoreMatchers.startsWith
 
-@TargetCoverage({ CATEGORIES })
+@TargetCoverage({ JUNIT4_CATEGORIES })
 class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest implements JUnit4MultiVersionTest {
     String singularCategoryOrTagName = "category"
     String pluralCategoryOrTagName = "categories"

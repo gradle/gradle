@@ -22,6 +22,8 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 @LocalOnly
 class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
@@ -72,6 +74,37 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
     }
 
     def "debug logging can be enabled"() {
+        buildFile << """
+            tasks.register("change") {
+                def output = file("output.txt")
+                outputs.file(output)
+                outputs.upToDateWhen { false }
+                doLast {
+                    output.text = Math.random() as String
+                }
+            }
+        """
+
+        when:
+        withWatchFs().run("change", "--debug", "-D${StartParameterBuildOptions.WatchFileSystemDebugLoggingOption.GRADLE_PROPERTY}=true")
+        waitForChangesToBePickedUp()
+        then:
+        output.contains(NativeLogger.name)
+
+        when:
+        def logLineCountBeforeChange = daemon.logLineCount
+        file("output.txt").text = "Changed"
+        waitForChangesToBePickedUp()
+        then:
+        daemon.logContains(logLineCountBeforeChange, NativeLogger.name)
+    }
+
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = """With cc it can happen on Mac that cc touches FS before we setup logger and some events
+            are logged as [DEBUG] before we manage to disable debug logging, see also https://github.com/gradle/gradle/issues/25462"""
+    )
+    def "debug logging can be enabled and then disabled again"() {
         buildFile << """
             tasks.register("change") {
                 def output = file("output.txt")

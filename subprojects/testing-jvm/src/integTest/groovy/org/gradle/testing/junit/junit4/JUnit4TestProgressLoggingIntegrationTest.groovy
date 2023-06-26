@@ -19,8 +19,8 @@ package org.gradle.testing.junit.junit4
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestProgressLoggingIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_ASSUMPTIONS
 
-@TargetCoverage({ JUNIT_4_LATEST })
+@TargetCoverage({ JUNIT4_ASSUMPTIONS })
 class JUnit4TestProgressLoggingIntegrationTest extends AbstractTestProgressLoggingIntegrationTest implements JUnit4MultiVersionTest {
 }

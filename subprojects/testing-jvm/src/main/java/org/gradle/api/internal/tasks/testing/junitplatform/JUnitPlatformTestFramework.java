@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -65,15 +66,17 @@ public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
     private final boolean useImplementationDependencies;
+    private final Provider<Boolean> dryRun;
 
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies) {
-        this(filter, useImplementationDependencies, new JUnitPlatformOptions());
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, Provider<Boolean> dryRun) {
+        this(filter, useImplementationDependencies, new JUnitPlatformOptions(), dryRun);
     }
 
-    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options) {
+    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options, Provider<Boolean> dryRun) {
         this.filter = filter;
         this.useImplementationDependencies = useImplementationDependencies;
         this.options = options;
+        this.dryRun = dryRun;
     }
 
     @UsedByScanPlugin("test-retry")
@@ -85,7 +88,8 @@ public class JUnitPlatformTestFramework implements TestFramework {
         return new JUnitPlatformTestFramework(
             (DefaultTestFilter) newTestFilters,
             useImplementationDependencies,
-            copiedOptions
+            copiedOptions,
+            dryRun
         );
     }
 
@@ -97,7 +101,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
         validateOptions();
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), options.getIncludeEngines(), options.getExcludeEngines(),
-            options.getIncludeTags(), options.getExcludeTags()
+            options.getIncludeTags(), options.getExcludeTags(), dryRun.get()
         ));
     }
 

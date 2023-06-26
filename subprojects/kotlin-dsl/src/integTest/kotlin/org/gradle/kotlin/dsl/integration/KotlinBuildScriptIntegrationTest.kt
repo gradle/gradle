@@ -1,10 +1,12 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -324,7 +326,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
             extensions.getByType(MyExtension::class).some("api.get")
             extensions.configure<MyExtension> { some("api.configure") }
-            the<MyExtension>().some("kotlin.get")
+            the<MyExtension>().some("kotlin.reified.get")
+            the(MyExtension::class).some("kotlin.kclass.get")
             configure<MyExtension> { some("kotlin.configure") }
             my.some("accessor.get")
             my { some("accessor.configure") }
@@ -336,13 +339,85 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 """
                 api.get
                 api.configure
-                kotlin.get
+                kotlin.reified.get
+                kotlin.kclass.get
                 kotlin.configure
                 accessor.get
                 accessor.configure
                 """.trimIndent()
             )
         )
+
+        // Deprecation warnings assertion
+        build("noop")
+    }
+
+    @Test
+    fun `accessing absent extension fails with reasonable error message`() {
+        listOf(
+            "the<SourceDirectorySet>()",
+            "the(SourceDirectorySet::class)",
+            "configure<SourceDirectorySet> {}",
+        ).forEach { accessFlavor ->
+            withBuildScript(accessFlavor)
+            buildAndFail("help").apply {
+                assertHasFailure("Extension of type 'SourceDirectorySet' does not exist. Currently registered extension types: [ExtraPropertiesExtension]") {}
+            }
+        }
+    }
+
+    @Test
+    @UnsupportedWithConfigurationCache(because = "test configuration phase")
+    fun `can access project conventions`() {
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/MyConvention.kt", """
+            interface MyConvention {
+                fun some(message: String) { println(message) }
+            }
+        """)
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            convention.plugins["my"] = objects.newInstance<MyConvention>()
+            tasks.register("noop")
+        """)
+        withBuildScript("""
+            plugins { id("my-plugin") }
+
+            convention.getPlugin(MyConvention::class).some("api.get")
+            the<MyConvention>().some("kotlin.reified.get")
+            the(MyConvention::class).some("kotlin.kclass.get")
+            configure<MyConvention> { some("kotlin.configure") }
+        """)
+
+        assertThat(
+            build("noop", "-q").output.trim(),
+            equalTo(
+                """
+                api.get
+                kotlin.reified.get
+                kotlin.kclass.get
+                kotlin.configure
+                """.trimIndent()
+            )
+        )
+
+        // Deprecation warnings assertion
+        repeat(4) {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+            )
+        }
+        repeat(5) {
+            executer.expectDocumentedDeprecationWarning(
+                "The Project.getConvention() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+            )
+        }
+        build("noop")
     }
 
     @Test

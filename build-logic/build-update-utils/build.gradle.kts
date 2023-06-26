@@ -7,5 +7,6 @@ description = "Provides plugins that create update tasks for the Gradle build"
 
 dependencies {
     implementation("com.google.code.gson:gson")
+    implementation("org.jsoup:jsoup")
     implementation(project(":basics"))
 }

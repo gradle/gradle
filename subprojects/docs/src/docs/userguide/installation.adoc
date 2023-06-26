@@ -228,9 +228,8 @@ Add an entry for `C:\Gradle\gradle-{gradleVersion}\bin`.
 Click `OK` to save.
 
 Alternatively, you can add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.
-Instead of adding a specific version of Gradle to your `Path`, you can add `$GRADLE_HOME/bin` to your `Path`.
+Instead of adding a specific version of Gradle to your `Path`, you can add `__%GRADLE_HOME%__\bin` to your `Path`.
 When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
-
 
 [[sec:running_and_testing_your_installation]]
 == Verify the installation

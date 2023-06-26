@@ -34,12 +34,10 @@ import org.gradle.configurationcache.problems.DocumentationSection.RequirementsS
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.Workarounds.canAccessConventions
 import org.gradle.execution.ExecutionAccessListener
-import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
@@ -56,24 +54,20 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problemFactory: ProblemFactory,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val featureFlags: FeatureFlags,
     private val inputTrackingState: InputTrackingState
 ) : ConfigurationCacheProblemsListener {
 
     override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
-        problems.onProblem(
-            PropertyProblem(
-                problemFactory.locationForCaller(consumer),
-                StructuredMessage.build {
-                    text("accessing non-serializable type ")
-                    reference(injectedServiceType)
-                    text(" caused by invocation ")
-                    reference(getterName)
-                },
-                InvalidUserCodeException("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported."),
-                DocumentationSection.RequirementsDisallowedTypes
-            )
-        )
+        val problem = problemFactory.problem(consumer) {
+            text("accessing non-serializable type ")
+            reference(injectedServiceType)
+            text(" caused by invocation ")
+            reference(getterName)
+        }
+            .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
+            .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
+            .build()
+        problems.onProblem(problem)
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
@@ -95,17 +89,14 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         if (!atConfigurationTime() || isExecutingWork() || isInputTrackingDisabled()) {
             return
         }
-        problems.onProblem(
-            PropertyProblem(
-                problemFactory.locationForCaller(consumer),
-                StructuredMessage.build {
-                    text("external process started ")
-                    reference(command)
-                },
-                InvalidUserCodeException("Starting an external process '$command' during configuration time is unsupported."),
-                documentationSection = RequirementsExternalProcess
-            )
-        )
+        val problem = problemFactory.problem(consumer) {
+            text("external process started ")
+            reference(command)
+        }
+            .exception("Starting an external process '$command' during configuration time is unsupported.")
+            .documentationSection(RequirementsExternalProcess)
+            .build()
+        problems.onProblem(problem)
     }
 
     private
@@ -207,7 +198,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 
     private
     fun atConfigurationTime() = configurationTimeBarrier.isAtConfigurationTime
-
 
     private
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()

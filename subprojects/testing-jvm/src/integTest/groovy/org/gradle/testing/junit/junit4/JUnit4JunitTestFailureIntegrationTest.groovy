@@ -17,12 +17,13 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
 import static org.hamcrest.CoreMatchers.equalTo
 
-@TargetCoverage({ JUNIT_4_LATEST })
+@TargetCoverage({ JUNIT_4 })
 class JUnit4JunitTestFailureIntegrationTest extends AbstractJUnit4TestFailureIntegrationTest implements JUnit4MultiVersionTest {
     @Override
     String getInitializationErrorTestName() {
@@ -42,5 +43,12 @@ class JUnit4JunitTestFailureIntegrationTest extends AbstractJUnit4TestFailureInt
     @Override
     Matcher<? super String>[] getBrokenBeforeAndAfterMatchers() {
         return [equalTo(failureAssertionError('before failed')), equalTo(failureAssertionError('after failed'))]
+    }
+
+    @Override
+    boolean hasStableInitializationErrors() {
+        // Prior to 4.5 test initialization errors would show up in a variety of ways, depending on the version.
+        // These stabilized into consistent errors after 4.5.
+        return VersionNumber.parse(version) >= VersionNumber.parse('4.5')
     }
 }
