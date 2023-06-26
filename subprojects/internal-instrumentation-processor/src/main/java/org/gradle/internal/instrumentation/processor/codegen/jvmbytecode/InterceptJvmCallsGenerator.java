@@ -251,8 +251,9 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static CodeBlock matchOpcodeExpression(CallableInfo interceptedCallable) {
         CodeBlock result = interceptedCallable.getKind() == CallableKindInfo.STATIC_METHOD ? CodeBlock.of("opcode == $T.INVOKESTATIC", Opcodes.class) :
-            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? CodeBlock.of("(opcode == $1T.INVOKEVIRTUAL || opcode == $1T.INVOKEINTERFACE)", Opcodes.class) :
-                interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? CodeBlock.of("opcode == $T.INVOKESPECIAL", Opcodes.class) : null;
+            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD && interceptedCallable.getOwner().isInterceptSubtypes() ? CodeBlock.of("(opcode == $1T.INVOKEVIRTUAL || opcode == $1T.INVOKEINTERFACE || opcode == $1T.INVOKESPECIAL)", Opcodes.class) :
+                interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? CodeBlock.of("(opcode == $1T.INVOKEVIRTUAL || opcode == $1T.INVOKEINTERFACE)", Opcodes.class) :
+                    interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? CodeBlock.of("opcode == $T.INVOKESPECIAL", Opcodes.class) : null;
         if (result == null) {
             throw new Failure("Could not determine the opcode for intercepting the call");
         }
