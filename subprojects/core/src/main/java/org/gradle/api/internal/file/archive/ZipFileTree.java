@@ -167,13 +167,13 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public FilePermissions getImmutablePermissions() {
+        public FilePermissions getPermissions() {
             int unixMode = entry.getUnixMode() & 0777;
             if (unixMode != 0) {
                 return new DefaultFilePermissions(unixMode);
             }
 
-            return super.getImmutablePermissions();
+            return super.getPermissions();
         }
     }
 }

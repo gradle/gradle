@@ -139,7 +139,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     private void adaptPermissions(File target) {
-        int specMode = getImmutablePermissions().toUnixNumeric();
+        int specMode = this.getPermissions().toUnixNumeric();
         getChmod().chmod(target, specMode);
     }
 
@@ -153,7 +153,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    public FilePermissions getImmutablePermissions() {
+    public FilePermissions getPermissions() {
         if (permissions != null) {
             return permissions;
         }
@@ -163,7 +163,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
             return specMode.get();
         }
 
-        return fileDetails.getImmutablePermissions();
+        return fileDetails.getPermissions();
     }
 
     private Provider<FilePermissions> getSpecMode() {
@@ -196,20 +196,20 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public void setMode(int mode) {
-        getPermissions().unix(mode);
+        getPermissionsHolder().unix(mode);
     }
 
     @Override
     public void permissions(Action<? super ConfigurableFilePermissions> configureAction) {
-        configureAction.execute(getPermissions());
+        configureAction.execute(getPermissionsHolder());
     }
 
     @Override
     public void setPermissions(FilePermissions permissions) {
-        getPermissions().unix(permissions.toUnixNumeric());
+        getPermissionsHolder().unix(permissions.toUnixNumeric());
     }
 
-    private DefaultConfigurableFilePermissions getPermissions() {
+    private DefaultConfigurableFilePermissions getPermissionsHolder() {
         if (permissions == null) {
             permissions = objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
         }

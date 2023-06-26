@@ -237,6 +237,23 @@ tasks.register<Copy>("filter") {
 }
 // end::filter-files[]
 
+// tag::file-permissions[]
+tasks.register<Copy>("permissions") {
+    from("src/main/webapp")
+    into(layout.buildDirectory.dir("explodedWar"))
+    filePermissions {
+        user {
+            read = true
+            execute = true
+        }
+        other.execute = false
+    }
+    dirPermissions {
+        unix("r-xr-x---")
+    }
+}
+// end::file-permissions[]
+
 tasks.register("test") {
     dependsOn(tasks.withType<Copy>())
     dependsOn(tasks["copyMethod"])

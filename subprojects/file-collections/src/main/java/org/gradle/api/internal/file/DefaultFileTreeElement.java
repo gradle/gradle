@@ -78,7 +78,7 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
     }
 
     @Override
-    public FilePermissions getImmutablePermissions() {
+    public FilePermissions getPermissions() {
         int unixNumeric = stat.getUnixMode(file);
         return new DefaultFilePermissions(unixNumeric);
     }

@@ -213,7 +213,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public FilePermissions getImmutablePermissions() {
+        public FilePermissions getPermissions() {
             return new DefaultFilePermissions(entry.getMode());
         }
 
