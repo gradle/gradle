@@ -43,6 +43,7 @@ public class FinalizerGroup extends HasFinalizers {
     @Nullable
     private ElementSuccessors successors;
     private boolean finalizedNodeHasStarted;
+    private boolean hasBeenScheduled;
 
     public FinalizerGroup(TaskNode node, NodeGroup delegate) {
         this.ordinal = delegate.asOrdinal();
@@ -159,6 +160,12 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     public void scheduleMembers(SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {
+        if (hasBeenScheduled) {
+            return;
+        } else {
+            hasBeenScheduled = true;
+        }
+
         Set<Node> finalizedNodesToBlockOn = findFinalizedNodesThatDoNotIntroduceACycle(reachableGroups);
         WaitForNodesToComplete waitForFinalizers = new WaitForNodesToComplete(finalizedNodesToBlockOn);
 
@@ -280,11 +287,6 @@ public class FinalizerGroup extends HasFinalizers {
             }
         }
         return dependenciesThatAreMembers;
-    }
-
-    private boolean dependsOn(Node fromNode, Node toNode) {
-
-        return false;
     }
 
     private boolean hasACycle(Node finalized, SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {
