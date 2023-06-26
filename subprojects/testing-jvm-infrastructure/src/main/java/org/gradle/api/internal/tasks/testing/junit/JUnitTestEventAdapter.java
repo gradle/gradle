@@ -47,6 +47,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * A {@link RunListener} that maps JUnit4 events to Gradle test events.
+ */
 @NonNullApi
 public class JUnitTestEventAdapter extends RunListener implements RootAssertionToFailureMapper {
 

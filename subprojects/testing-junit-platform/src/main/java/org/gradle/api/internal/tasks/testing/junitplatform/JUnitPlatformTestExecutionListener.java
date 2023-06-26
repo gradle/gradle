@@ -58,6 +58,10 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 
+/**
+ * A {@link TestExecutionListener} that maps JUnit5 events to Gradle test events.
+ * Most importantly, it will map assertion and platform failures to Gradle's {@link TestFailure} class, which we can send through the TAPI.
+ */
 @NonNullApi
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener, RootAssertionToFailureMapper {
 
