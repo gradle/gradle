@@ -47,7 +47,7 @@ Plugins can:
 - Add new properties and methods to existing types via extensions.
 
 == Step 2. Applying a Plugin
-Our project currently applies a single plugin, the `application` plugin:
+Our project currently applies a single plugin, the <<application_plugin#application_plugin,Application Plugin>>:
 [source]
 ----
 plugins {
@@ -56,27 +56,42 @@ plugins {
 }
 ----
 
-There is a plugin that is maintained and distributed by Gradle called the <<distribution_plugin#distribution_plugin,Distribution Plugin>>.
-The Distribution Plugin facilitates building archives that serve as distributions of the project.
+There is a plugin that is maintained and distributed by Gradle called the <<publishing_maven#publishing_maven,Maven Publish Plugin>>.
 
-Apply the plugin by adding `distribution` to the plugins block in `build.gradle.kts`:
+The Maven Publish Plugin provides the ability to publish build artifacts to an https://maven.apache.org/[Apache Maven repository].
+
+It can also publish to Maven local which is a repository located on your machine.
+
+The default location for Maven local repository may vary but is typically:
+
+- **Mac**: /Users/\<<username>>/.m2
+- **Linux**: /home/\<<username>>/.m2
+- **Windows**: C:\Users\\<<username>>\.m2
+
+A publication destined for a Maven repository normally includes:
+
+- One or more artifacts
+- The Gradle Module Metadata
+- The Maven POM file
+
+Apply the plugin by adding `maven-publish` to the plugins block in `build.gradle.kts`:
 [source]
 ----
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    distribution
+    `maven-publish`
 }
 ----
 
 Don't forget to sync Gradle if you are using IntelliJ IDEA.
 
-Let's make sure the plugin has been applied by looking at the new tasks it has created.
+Let's make sure the plugin has been applied by looking at the new tasks that are available.
 
 Run `./gradlew :app:tasks` in your command line:
 [source]
 ----
-./gradlew :app:tasks
+$ ./gradlew :app:tasks
 
 > Task :app:tasks
 
@@ -86,54 +101,93 @@ Tasks runnable from project ':app'
 
 ...
 
-Distribution tasks
-------------------
-assembleDist - Assembles the main distributions
-distTar - Bundles the project as a distribution.
-distZip - Bundles the project as a distribution.
-installDist - Installs the project as a distribution as-is.
+Publishing tasks
+----------------
+publish - Publishes all publications produced by this project.
+publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
 ----
 
-A new set of distribution tasks are now available called `assembleDist`, `distTar`, `distZip` and `installDist`.
+A new set of publishing tasks are now available called `publish`, and `publishToMavenLocal`.
 
-Similarly, the new tasks from the Distribution plugin are now available in IntelliJ in the Gradle right-hand pane.
+Similarly, the new tasks from the Maven Publish plugin are now available in IntelliJ in the Gradle right-hand pane.
 
 image::tutorial/intellij-idea-plugin.png[]
 
-== Step 3. Using the Plugin
-To use the plugin, run the `assembleDist` task by running `./gradlew :app:assembleDist`.
+== Step 3. Add the Publishing Block
+Add the publishing information to your `build.gradle.kts` file:
 [source]
 ----
-./gradlew :app:assembleDist
-
-BUILD SUCCESSFUL in 577ms
-----
-
-The `assembleDist` task builds the project and creates a `app.tar` and `app.zip` distribution in the `build/distributions` directory.
-
-image::tutorial/intellij-idea-dist.png[]
-
-== Step 4. Distributing the App
-A TAR or ZIP file can be used internally to distribute the app to peers.
-
-A distribution can also be published to the public using the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>> or the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>.
-
-For example, if you wanted to publish your new app to an Ivy repository with the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, you would modify your build script as follows:
-[source]
-----
-plugins {
-    `ivy-publish`
-}
-
 publishing {
     publications {
-        create<IvyPublication>("myDistribution") {
-            artifact(tasks.distZip.get())
-            artifact(tasks["customDistTar"])
+        create<MavenPublication>("maven") {
+            groupId = "org.gradle.tutorial"
+            artifactId = "tutorial"
+            version = "1.0"
+
+            from(components["java"])
         }
     }
 }
 ----
+
+Run `./gradlew :app:tasks` in your command line again, you will see additional tasks now that we have given the plugin additional information about our app:
+[source]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+...
+
+Publishing tasks
+----------------
+generateMetadataFileForMavenPublication - Generates the Gradle metadata file for publication 'maven'.
+generatePomFileForMavenPublication - Generates the Maven POM file for publication 'maven'.
+publish - Publishes all publications produced by this project.
+publishMavenPublicationToMavenLocal - Publishes Maven publication 'maven' to the local Maven repository.
+publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
+----
+
+== Step 4. Using the Plugin
+To use the plugin, run the `publishToMavenLocal` task by running `./gradlew :app:publishToMavenLocal`.
+[source]
+----
+$ ./gradlew :app:publishToMavenLocal
+
+> Task :app:compileJava FROM-CACHE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar
+> Task :app:generateMetadataFileForMavenPublication
+> Task :app:generatePomFileForMavenPublication
+> Task :app:publishMavenPublicationToMavenLocal
+> Task :app:publishToMavenLocal
+BUILD SUCCESSFUL in 331ms
+----
+
+The `publishToMavenLocal` task builds the POM file and the artifacts to be published. It then _installs_ them into the local Maven repository.
+
+You can view the POM and JAR file by perusing the `build` directory:
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gradle.tutorial</groupId>
+  <artifactId>tutorial</artifactId>
+  <version>1.0</version>
+  <packaging>pom</packaging>
+</project>
+----
+
+image::tutorial/intellij-idea-dist.png[]
+
+You can also view the files in your Maven Local directory: `.m2/repository/org/gradle/tutorial/tutorial/1.0`.
 
 == Step 5. Exploring Plugins
 Plugin authors can either keep their plugins private or distribute them to the public.
