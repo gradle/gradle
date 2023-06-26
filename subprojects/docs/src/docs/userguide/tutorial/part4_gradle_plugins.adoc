@@ -152,6 +152,8 @@ publishMavenPublicationToMavenLocal - Publishes Maven publication 'maven' to the
 publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
 ----
 
+image::tutorial/intellij-idea-pub.png[]
+
 == Step 4. Using the Plugin
 To use the plugin, run the `publishToMavenLocal` task by running `./gradlew :app:publishToMavenLocal`.
 [source]
@@ -172,6 +174,11 @@ BUILD SUCCESSFUL in 331ms
 The `publishToMavenLocal` task builds the POM file and the artifacts to be published. It then _installs_ them into the local Maven repository.
 
 You can view the POM and JAR file by perusing the `build` directory:
+
+image::tutorial/intellij-idea-dist.png[]
+
+You can also view the files in your Maven Local directory: `.m2/repository/org/gradle/tutorial/tutorial/1.0`.
+
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -184,10 +191,6 @@ You can view the POM and JAR file by perusing the `build` directory:
   <packaging>pom</packaging>
 </project>
 ----
-
-image::tutorial/intellij-idea-dist.png[]
-
-You can also view the files in your Maven Local directory: `.m2/repository/org/gradle/tutorial/tutorial/1.0`.
 
 == Step 5. Exploring Plugins
 Plugin authors can either keep their plugins private or distribute them to the public.
