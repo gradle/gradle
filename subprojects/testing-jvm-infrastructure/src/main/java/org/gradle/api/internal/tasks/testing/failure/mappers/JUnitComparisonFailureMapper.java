@@ -24,7 +24,6 @@ import org.gradle.api.tasks.testing.TestFailure;
 import java.util.Arrays;
 import java.util.List;
 
-@NonNullApi
 public class JUnitComparisonFailureMapper extends FailureMapper {
     @Override
     protected List<String> getSupportedClassNames() {
