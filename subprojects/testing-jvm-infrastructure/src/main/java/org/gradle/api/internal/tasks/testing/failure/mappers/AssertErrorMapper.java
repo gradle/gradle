@@ -24,6 +24,11 @@ import org.gradle.api.tasks.testing.TestFailure;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Maps {@link AssertionError} to {@link TestFailure}.
+ * <p>
+ * See {@link FailureMapper} for more details about failure mapping.
+ */
 @NonNullApi
 public class AssertErrorMapper extends FailureMapper {
     @Override

@@ -23,6 +23,12 @@ import org.gradle.api.tasks.testing.TestFailure;
 import java.util.Arrays;
 import java.util.List;
 
+
+/**
+ * Maps {@code junit.framework.ComparisonFailure} or {@code org.junit.ComparisonFailure} to {@link TestFailure}.
+ * <p>
+ * See {@link FailureMapper} for more details about failure mapping.
+ */
 public class JUnitComparisonFailureMapper extends FailureMapper {
     @Override
     protected List<String> getSupportedClassNames() {

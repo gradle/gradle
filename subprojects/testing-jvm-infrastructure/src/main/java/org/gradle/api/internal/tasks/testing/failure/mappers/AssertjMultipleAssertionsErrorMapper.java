@@ -24,6 +24,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Maps {@code org.assertj.core.error.MultipleAssertionsError} to {@link TestFailure}.
+ * <p>
+ * See {@link FailureMapper} for more details about failure mapping.
+ */
 public class AssertjMultipleAssertionsErrorMapper extends FailureMapper {
 
     @Override
