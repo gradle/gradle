@@ -180,6 +180,7 @@ public class MissingTaskDependencyDetector {
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
                 .documentedAt(userManual("validation_problems", "implicit_dependency"))
+                .noLocation()
         );
 //        validationContext.visitPropertyProblem(problem ->
 //            problem.withId(ValidationProblemId.IMPLICIT_DEPENDENCY)

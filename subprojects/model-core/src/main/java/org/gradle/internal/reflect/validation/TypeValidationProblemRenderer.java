@@ -20,12 +20,11 @@ import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemsPluginId;
 import org.gradle.api.problems.internal.DefaultPluginId;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.problems.Solution;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
+import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
@@ -55,7 +54,7 @@ public class TypeValidationProblemRenderer {
     public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(introductionFor(problem.getAdditionalMetadata()) + endLineWithDot(problem.getMessage()));
-        Optional.ofNullable(problem.getDescription()).ifPresent(reason -> {
+        ofNullable(problem.getDescription()).ifPresent(reason -> {
             formatter.blankLine();
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDescription())));
         });
@@ -63,29 +62,12 @@ public class TypeValidationProblemRenderer {
             renderNewSolutions(formatter, problem.getSolutions());
         }
         if (renderDocLink) {
-            Optional.ofNullable(problem.getDocumentationLink()).ifPresent(docLink -> {
+            ofNullable(problem.getDocumentationLink()).ifPresent(docLink -> {
                 formatter.blankLine();
                 formatter.node(new DocumentationRegistry().getDocumentationRecommendationFor("information", docLink));
             });
         }
         return formatter.toString();
-    }
-
-    public static void renderSolutions(TreeFormatter formatter, List<Solution> possibleSolutions) {
-        int solutionCount = possibleSolutions.size();
-        if (solutionCount > 0) {
-            formatter.blankLine();
-            if (solutionCount == 1) {
-                formatter.node("Possible solution: " + capitalize(endLineWithDot(possibleSolutions.get(0).getShortDescription())));
-            } else {
-                formatter.node("Possible solutions");
-                formatter.startNumberedChildren();
-                possibleSolutions.forEach(solution ->
-                    formatter.node(capitalize(endLineWithDot(solution.getShortDescription())))
-                );
-                formatter.endChildren();
-            }
-        }
     }
 
     private static void renderNewSolutions(TreeFormatter formatter, List<String> possibleSolutions) {
@@ -133,23 +115,25 @@ public class TypeValidationProblemRenderer {
             .replaceAll(": ?[. ]", ": ");
     }
 
-    private static String introductionFor(Map<String, String> additionalMetadata) {
+    public static String introductionFor(Map<String, String> additionalMetadata) {
         StringBuilder builder = new StringBuilder();
-        String rootType = Optional.ofNullable(additionalMetadata.get("typeName"))
+        String rootType = ofNullable(additionalMetadata.get("typeName"))
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
         String pluginIdString = additionalMetadata.get("pluginId");
         ProblemsPluginId pluginId = pluginIdString == null ? null : new DefaultPluginId(pluginIdString);
         if (rootType != null) {
             if (pluginId != null) {
-                builder.append("In plugin '").append(pluginId).append("' type '");
+                builder.append("In plugin '")
+                    .append(pluginId)
+                    .append("' type '");
             } else {
                 builder.append("Type '");
             }
             builder.append(rootType).append("' ");
         }
 
-        String property = Optional.ofNullable(additionalMetadata.get("propertyName")).orElse(null);
+        String property = additionalMetadata.get("propertyName");
         if (property != null) {
             if (rootType == null) {
                 if (pluginId != null) {
@@ -160,7 +144,7 @@ public class TypeValidationProblemRenderer {
             } else {
                 builder.append("property '");
             }
-            Optional.ofNullable(additionalMetadata.get("parentPropertyName")).ifPresent(parentProperty -> {
+            ofNullable(additionalMetadata.get("parentPropertyName")).ifPresent(parentProperty -> {
                 builder.append(parentProperty);
                 builder.append('.');
             });

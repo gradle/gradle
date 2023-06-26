@@ -136,6 +136,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                     .message(unknownImplSnapshot.getProblemDescription())
                     .description(unknownImplSnapshot.getReasonDescription())
                     .solution(unknownImplSnapshot.getSolutionDescription())
+                    .noLocation()
             );
         }
     }
@@ -148,6 +149,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                     .message(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                     .description(unknownImplSnapshot.getReasonDescription())
                     .solution(unknownImplSnapshot.getSolutionDescription())
+                    .noLocation()
             );
         }
     }

@@ -161,7 +161,8 @@ public enum ValidationActions implements ValidationAction {
                 .description("An input file was expected to be present but it doesn't exist")
                 .solution("Make sure the " + lowerKind + " exists before the task is called")
                 .solution("Make sure that the task which produces the " + lowerKind + " is declared as an input")
-                .documentedAt(userManual("validation_problems", "input_file_does_not_exist"));
+                .documentedAt(userManual("validation_problems", "input_file_does_not_exist"))
+                .noLocation();
         });
 //        context.visitPropertyProblem(problem -> {
 //            String lowerKind = kind.toLowerCase();
@@ -187,7 +188,8 @@ public enum ValidationActions implements ValidationAction {
                 .description("Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
                 .solution("Use a " + lowerKind + " as an input")
                 .solution("Declare the input as a " + actualKindOf(input) + " instead")
-                .documentedAt(userManual("validation_problems", "unexpected_input_file_type"));
+                .documentedAt(userManual("validation_problems", "unexpected_input_file_type"))
+                .noLocation();
         });
 //        context.visitPropertyProblem(problem -> {
 //            String lowerKind = kind.toLowerCase();
@@ -212,6 +214,7 @@ public enum ValidationActions implements ValidationAction {
                 .description("Expected '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
                 .solution("Make sure that the '" + propertyName + "' is configured to a directory")
                 .documentedAt(userManual("validation_problems", "cannot_write_output"))
+                .noLocation()
         );
     }
 
@@ -225,6 +228,7 @@ public enum ValidationActions implements ValidationAction {
                 .description("Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
                 .solution("Make sure that the root of the file tree '" + propertyName + "' is configured to a directory")
                 .documentedAt(userManual("validation_problems", "cannot_write_output"))
+                .noLocation()
         );
     }
 
@@ -239,6 +243,7 @@ public enum ValidationActions implements ValidationAction {
                     .solution("Configure '" + propertyName + "' to point to a file, not a directory")
                     .solution("Annotate '" + propertyName + "' with @OutputDirectory instead of @OutputFiles")
                     .documentedAt(userManual("validation_problems", "cannot_write_output"))
+                    .noLocation()
         );
     }
 
@@ -252,6 +257,7 @@ public enum ValidationActions implements ValidationAction {
                     .description("Cannot create parent directories that are existing as file")
                     .solution("Configure '" + propertyName + "' to point to the correct location")
                     .documentedAt(userManual("validation_problems", "cannot_write_output"))
+                    .noLocation()
         );
     }
 
@@ -276,6 +282,7 @@ public enum ValidationActions implements ValidationAction {
                     .description("Trying to write an output to a read-only location which is for Gradle internal use only")
                     .solution("Select a different output location")
                     .documentedAt(userManual("validation_problems", "cannot_write_to_reserved_location"))
+                    .noLocation()
             );
         }
     }
@@ -310,7 +317,8 @@ public enum ValidationActions implements ValidationAction {
                 } else {
                     candidates.forEach(candidate -> problem.solution(toCandidateSolution(candidate)));
                 }
-                problem.documentedAt(userManual("validation_problems", "unsupported_notation"));
+                problem.documentedAt(userManual("validation_problems", "unsupported_notation"))
+                    .noLocation();
             }
         );
     }

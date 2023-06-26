@@ -208,7 +208,8 @@ public class DefaultTransform implements Transform {
                         .description("This is not allowed for cacheable transforms")
 //                        .withLongDescription("Absolute path sensitivity does not allow sharing the transform result between different machines, although that is the goal of cacheable transforms.")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath")
-                        .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity")));
+                        .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
+                        .noLocation());
             }
         }
     }
@@ -363,6 +364,7 @@ public class DefaultTransform implements Transform {
                             .description("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
                             .documentedAt(userManual("validation_problems", "artifact_transform_should_not_declare_output"))
+                            .noLocation()
                     );
                 }
             })

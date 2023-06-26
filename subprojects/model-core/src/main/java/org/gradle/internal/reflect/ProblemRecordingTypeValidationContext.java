@@ -18,7 +18,6 @@ package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.reflect.validation.DefaultPropertyValidationProblemBuilder;
 import org.gradle.internal.reflect.validation.DefaultTypeValidationProblemBuilder;
@@ -57,7 +56,7 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
 
     @Override
     public void visitNewTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        TypeAwareProblemBuilder problemBuilder = new TypeAwareProblemBuilder(Problems.create());
+        TypeAwareProblemBuilder problemBuilder = new TypeAwareProblemBuilder();
         problemSpec.execute(problemBuilder);
         recordProblem(problemBuilder.build());
     }
@@ -77,9 +76,9 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
 
     @Override
     public void visitPropertyNewProblem(Action<? super TypeAwareProblemBuilder> problemSpec){
-        TypeAwareProblemBuilder problemBuilder = new TypeAwareProblemBuilder(Problems.create());
+        TypeAwareProblemBuilder problemBuilder = new TypeAwareProblemBuilder();
         problemSpec.execute(problemBuilder);
-//        problemBuilder.forType(rootType);
+        problemBuilder.withAnnotationType(rootType);
         recordProblem(problemBuilder.build());
     }
 

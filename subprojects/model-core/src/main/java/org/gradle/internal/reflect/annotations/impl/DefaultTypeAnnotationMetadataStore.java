@@ -287,6 +287,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .solution("Remove one of the getters")
                         .solution("Annotate one of the getters with @Internal")
                         .documentedAt(userManual("validation_problems", "redundant_getters"))
+                        .noLocation()
                 );
             }
         }
@@ -442,6 +443,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .solution("Make the getter public")
                     .solution("Annotate the public version of the getter")
                     .documentedAt(userManual("validation_problems", "private_getter_must_not_be_annotated"))
+                    .noLocation()
             );
         }
 
@@ -462,6 +464,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 //                    .withLongDescription(() -> "Setting mutable properties value shouldn't be done by calling a setter but using the mutation methods of '" + setterType.getName() + "', otherwise task dependencies may be lost.")
                     .solution("Remove the '" + setterMethod.getName() + "' method")
                     .documentedAt(userManual("validation_problems", "mutable_type_with_setter"))
+                    .noLocation()
             );
         }
     }
@@ -614,6 +617,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                 .solution("Remove the input annotations")
                                 .solution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
                                 .documentedAt(userManual("validation_problems", "ignored_property_must_not_be_annotated"))
+                                .noLocation()
                         );
                     }
                     return ImmutableMap.of(TYPE, declaredType);
@@ -666,6 +670,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .description("The different annotations have different semantics and Gradle cannot determine which one to pick")
                         .solution("Choose between one of the conflicting annotations")
                         .documentedAt(userManual("validation_problems", "conflicting_annotations"))
+                        .noLocation()
                 );
             }
             return declaredAnnotationForCategory;

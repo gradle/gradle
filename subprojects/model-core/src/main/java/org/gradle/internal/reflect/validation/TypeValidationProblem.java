@@ -28,6 +28,7 @@ import org.gradle.problems.Solution;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static org.gradle.api.problems.interfaces.Severity.valueOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation> {
@@ -60,9 +61,8 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
         ProblemBuilder builder = Problems.create(
                 ProblemGroup.TYPE_VALIDATION,
                 getShortDescription(),
-                org.gradle.api.problems.interfaces.Severity.valueOf(getSeverity().name()),
-                getId().name()
-            )
+                valueOf(getSeverity().name()),
+                getId().name())
             .documentedAt(userManual(getUserManualReference().getId(), getUserManualReference().getSection()));
         getWhy().ifPresent(builder::description);
         String typeName = getWhere().getType().map(Class::getName).map(t -> t.replaceAll("\\$", ".")).orElse(null);

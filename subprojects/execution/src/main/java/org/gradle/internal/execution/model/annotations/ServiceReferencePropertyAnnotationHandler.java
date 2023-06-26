@@ -69,6 +69,7 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
                     .solution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
                     .solution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
                     .documentedAt(userManual("validation_problems", "service_reference_must_be_a_build_service"))
+                    .noLocation()
             );
         }
     }

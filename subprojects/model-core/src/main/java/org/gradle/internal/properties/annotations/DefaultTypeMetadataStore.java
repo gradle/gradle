@@ -110,6 +110,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .solution("Add " + displayName)
                         .solution("Mark it as @Internal")
                         .documentedAt(userManual("validation_problems", "missing_annotation"))
+                        .noLocation()
                 );
                 continue;
             }
@@ -125,6 +126,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .solution("Remove the property")
                         .solution("Use a different annotation, e.g one of " + toListOfAnnotations(propertyAnnotationHandlers.keySet()))
                         .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
+                        .noLocation()
                 );
                 continue;
             }
@@ -145,7 +147,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .description("This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
 //                            .withLongDescription(() -> "The list of allowed modifiers for '" + propertyType.getSimpleName() + "' is " + toListOfAnnotations(allowedPropertyModifiers))
                             .solution("Remove the '@" + annotationType.getSimpleName() + "' annotation")
-                            .documentedAt(userManual("validation_problems", "incompatible_annotations")));
+                            .documentedAt(userManual("validation_problems", "incompatible_annotations"))
+                        .noLocation());
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
                     validationContext.visitPropertyNewProblem(problem ->
                         problem.type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
@@ -156,6 +159,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .solution("Remove the annotation")
                             .solution("Use a different annotation, e.g one of " + toListOfAnnotations(allowedPropertyModifiers))
                             .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
+                            .noLocation()
                     );
                 }
             }

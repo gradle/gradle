@@ -74,6 +74,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                     .solution("Remove the @Optional annotation")
                     .solution("Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
                     .documentedAt(userManual("validation_problems", "cannot_use_optional_on_primitive_types"))
+                    .noLocation()
             );
         }
     }
@@ -94,6 +95,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                         .solution("Annotate with @InputFiles for collections of files")
                         .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
                         .documentedAt(userManual("validation_problems", "incorrect_use_of_input_annotation"))
+                    .noLocation()
             );
         }
     }
@@ -109,6 +111,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                             .description("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                             .solution("Annotate with @InputDirectory for directories")
                             .documentedAt(userManual("validation_problems", "incorrect_use_of_input_annotation"))
+                        .noLocation()
             );
         }
     }

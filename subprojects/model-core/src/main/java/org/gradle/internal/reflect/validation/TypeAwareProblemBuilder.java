@@ -17,96 +17,96 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.DocLink;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 
 import javax.annotation.Nullable;
 
 @NonNullApi
-public class TypeAwareProblemBuilder implements ProblemBuilder {
+public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
 
-    private final ProblemBuilder delegate;
+//    private final ProblemBuilder delegate;
     private boolean typeIrrelevantInErrorMessage = false;
+    private Class<?> rootClazz;
 
-    public TypeAwareProblemBuilder(ProblemBuilder delegate) {
-        this.delegate = delegate;
-    }
+//    public TypeAwareProblemBuilder(ProblemBuilder delegate) {
+//        this.delegate = delegate;
+//    }
 
-    @Override
-    public ProblemBuilder message(String message) {
-        return delegate.message(message);
-    }
+//    @Override
+//    public ProblemBuilder message(String message) {
+//        return delegate.message(message);
+//    }
+//
+//    @Override
+//    public ProblemBuilder severity(Severity severity) {
+//        return delegate.severity(severity);
+//    }
+//
+//    @Override
+//    public ProblemBuilder location(String path, Integer line) {
+//        return delegate.location(path, line);
+//    }
+//
+//    @Override
+//    public ProblemBuilder noLocation() {
+//        return delegate.noLocation();
+//    }
+//
+//    @Override
+//    public ProblemBuilder description(String description) {
+//        return delegate.description(description);
+//    }
+//
+//    @Override
+//    public ProblemBuilder documentedAt(DocLink doc) {
+//        return delegate.documentedAt(doc);
+//    }
+//
+//    @Override
+//    public ProblemBuilder undocumented() {
+//        return delegate.undocumented();
+//    }
+//
+//    @Override
+//    public ProblemBuilder type(String problemType) {
+//        return delegate.type(problemType);
+//    }
+//
+//    @Override
+//    public ProblemBuilder solution(@Nullable String solution) {
+//        return delegate.solution(solution);
+//    }
+//
+//    @Override
+//    public ProblemBuilder cause(Throwable cause) {
+//        return delegate.cause(cause);
+//    }
+//
+//    @Override
+//    public ProblemBuilder withMetadata(String key, String value) {
+//        return delegate.withMetadata(key, value);
+//    }
+//
+//    @Override
+//    public Problem build() {
+//        return delegate.build();
+//    }
+//
+//    @Override
+//    public void report() {
+//        delegate.report();
+//    }
+//
+//    @Override
+//    public RuntimeException throwIt() {
+//        return delegate.throwIt();
+//    }
 
-    @Override
-    public ProblemBuilder severity(Severity severity) {
-        return delegate.severity(severity);
-    }
-
-    @Override
-    public ProblemBuilder location(String path, Integer line) {
-        return delegate.location(path, line);
-    }
-
-    @Override
-    public ProblemBuilder noLocation() {
-        return delegate.noLocation();
-    }
-
-    @Override
-    public ProblemBuilder description(String description) {
-        return delegate.description(description);
-    }
-
-    @Override
-    public ProblemBuilder documentedAt(DocLink doc) {
-        return delegate.documentedAt(doc);
-    }
-
-    @Override
-    public ProblemBuilder undocumented() {
-        return delegate.undocumented();
-    }
-
-    @Override
-    public ProblemBuilder type(String problemType) {
-        return delegate.type(problemType);
-    }
-
-    @Override
-    public ProblemBuilder solution(@Nullable String solution) {
-        return delegate.solution(solution);
-    }
-
-    @Override
-    public ProblemBuilder cause(Throwable cause) {
-        return delegate.cause(cause);
-    }
-
-    @Override
-    public ProblemBuilder withMetadata(String key, String value) {
-        return delegate.withMetadata(key, value);
-    }
-
-    @Override
-    public Problem build() {
-        return delegate.build();
-    }
-
-    @Override
-    public void report() {
-        delegate.report();
-    }
-
-    @Override
-    public RuntimeException throwIt() {
-        return delegate.throwIt();
-    }
-
-    public TypeAwareProblemBuilder withAnnotationType(Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
-        delegate.withMetadata("typeName", classWithAnnotationAttached.getName().replaceAll("\\$", "."));
+    public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
+        if(classWithAnnotationAttached != null){
+            withMetadata("typeName", classWithAnnotationAttached.getName().replaceAll("\\$", "."));
+        }
         return this;
     }
 
@@ -117,12 +117,17 @@ public class TypeAwareProblemBuilder implements ProblemBuilder {
     }
 
     public TypeAwareProblemBuilder type(ValidationProblemId problemType) {
-        delegate.type(problemType.name());
+        type(problemType.name());
         return this;
     }
 
     public TypeAwareProblemBuilder forProperty(String propertyName) {
-        delegate.withMetadata("propertyName", propertyName);
+        withMetadata("propertyName", propertyName);
+        return this;
+    }
+
+    public TypeAwareProblemBuilder forClass(@Nullable Class<?> rootClazz) {
+        this.rootClazz = rootClazz;
         return this;
     }
 }

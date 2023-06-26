@@ -53,6 +53,8 @@ public class NestedValidationUtil  {
         Class<?> beanType
     ) {
         if (!isSupportedType(beanType)) {
+//            TypeValidationProblemLocation.forProperty(typeIrrelevantInErrorMessage ? null : rootType, typeIrrelevantInErrorMessage ? null : pluginId, parentProperty, property)
+
             validationContext.visitPropertyNewProblem(problem ->
                 problem.type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
                     .forProperty(propertyName)
@@ -61,7 +63,17 @@ public class NestedValidationUtil  {
                     .description("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input")
                     .solution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input")
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
+                    .noLocation()
             );
+//            validationContext.visitPropertyProblem(problem ->
+//                problem.withId(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+//                    .reportAs(WARNING)
+//                    .forProperty(propertyName)
+//                    .withDescription(() -> "with nested type '" + beanType.getName() + "' is not supported")
+//                    .happensBecause("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input")
+//                    .addPossibleSolution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input")
+//                    .documentedAt("validation_problems", "unsupported_nested_type")
+//            );
         }
     }
 
@@ -102,6 +114,7 @@ public class NestedValidationUtil  {
                     .description("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
+                    .noLocation()
             );
         }
     }

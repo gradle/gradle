@@ -70,7 +70,8 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
                     for (String possibleSolution : possibleSolutions) {
                         problem.solution(possibleSolution);
                     }
-                    problem.documentedAt(userManual("validation_problems", "unsupported_value_type"));
+                    problem.documentedAt(userManual("validation_problems", "unsupported_value_type"))
+                        .noLocation();
                 }
             );
         }
