@@ -22,8 +22,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact
 import org.gradle.api.internal.artifacts.transform.VariantSelector
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
@@ -33,29 +31,24 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
-class DefaultArtifactSetTest extends Specification {
+class ResolvedVariantArtifactSetTest extends Specification {
     def componentId = Stub(ComponentIdentifier)
-    def schema = Stub(AttributesSchemaInternal)
-    def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
-
-    def setup() {
-        artifactTypeRegistry.mapAttributesFor(_) >> ImmutableAttributes.EMPTY
-    }
+    def selector = Mock(VariantSelector)
 
     def "returns empty set when component id does not match spec"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
-        def variant3 = Stub(ResolvedVariant)
-
         given:
-        def artifacts1 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set)
-        def artifacts2 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1] as Set), [variant1] as Set)
-        def artifacts3 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant3] as Set), [variant3] as Set)
+        def allVariants = Stub(ResolvedVariantSet)
+        def legacyVariants = Stub(ResolvedVariantSet)
 
-        expect:
-        artifacts1.select({ false }, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
-        artifacts2.select({ false }, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
-        artifacts3.select({ false }, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
+        when:
+        def selected = new ResolvedVariantArtifactSet(componentId, () -> allVariants, legacyVariants).select({ false }, selector, selectFromAll)
+
+        then:
+        0 * selector.select(_, _)
+        selected == ResolvedArtifactSet.EMPTY
+
+        where:
+        selectFromAll << [true, false]
     }
 
     def "does not access all artifacts when selecting one variant"() {
@@ -64,8 +57,12 @@ class DefaultArtifactSetTest extends Specification {
         def variant1 = makeVariantNamed("variant1", ownerId)
         def variant2 = makeVariantNamed("variant2", ownerId)
 
+        def variants = Stub(ResolvedVariantSet) {
+            getVariants() >> ([variant1, variant2] as Set)
+        }
+
         when:
-        def artifactSet = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set)
+        def artifactSet = new ResolvedVariantArtifactSet(componentId, () -> variants, variants)
         artifactSet.select({ true }, new VariantSelector() {
             @Override
             ResolvedArtifactSet select(ResolvedVariantSet candidates, VariantSelector.Factory factory) {
@@ -78,10 +75,13 @@ class DefaultArtifactSetTest extends Specification {
             ImmutableAttributes getRequestedAttributes() {
                 return ImmutableAttributes.EMPTY
             }
-        })
+        }, selectFromAll)
 
         then:
         0 * _
+
+        where:
+        selectFromAll << [true, false]
     }
 
     private static ResolvedVariant makeVariantNamed(String name, ModuleVersionIdentifier ownerId) {
@@ -94,22 +94,19 @@ class DefaultArtifactSetTest extends Specification {
     }
 
     def "selects artifacts when component id matches spec"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
-        def variant3 = Stub(ResolvedVariant)
-        def resolvedVariant1 = Stub(ResolvedArtifactSet)
-        def selector = Stub(VariantSelector)
-
         given:
-        def artifacts1 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set)
-        def artifacts2 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1] as Set), [variant1] as Set)
-        def artifacts3 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant3] as Set), [variant3] as Set)
+        def allVariants = Stub(ResolvedVariantSet)
+        def legacyVariants = Stub(ResolvedVariantSet)
+        def artifacts = Stub(ResolvedArtifactSet)
 
-        selector.select(_, _) >> resolvedVariant1
+        when:
+        def selected = new ResolvedVariantArtifactSet(componentId, () -> allVariants, legacyVariants).select({ true }, selector, selectFromAll)
 
-        expect:
-        artifacts1.select({ true }, selector) == resolvedVariant1
-        artifacts2.select({ true }, selector) == resolvedVariant1
-        artifacts3.select({ true }, selector) == resolvedVariant1
+        then:
+        1 * selector.select(selectFromAll ? allVariants : legacyVariants, _) >> artifacts
+        selected == artifacts
+
+        where:
+        selectFromAll << [true, false]
     }
 }

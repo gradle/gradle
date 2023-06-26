@@ -17,13 +17,9 @@
 package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -33,39 +29,26 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.VariantWithOverloadAttributes;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
-public class DefaultArtifactSelector implements ArtifactSelector {
+public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     private final ResolvedVariantCache resolvedVariantCache;
 
-    public DefaultArtifactSelector(ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory, ResolvedVariantCache resolvedVariantCache) {
+    public DefaultVariantArtifactResolver(ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry, ResolvedVariantCache resolvedVariantCache) {
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.resolvedVariantCache = resolvedVariantCache;
     }
 
     @Override
-    public ArtifactSet resolveLocalArtifacts(LocalFileDependencyMetadata fileDependencyMetadata) {
-        return new FileDependencyArtifactSet(fileDependencyMetadata, artifactTypeRegistry, calculatedValueContainerFactory);
-    }
-
-    @Override
-    public ArtifactSet resolveComponentArtifacts(ComponentArtifactResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
+    public ResolvedVariant resolveAdhocVariant(ComponentArtifactResolveMetadata component, ImmutableList<? extends ComponentArtifactMetadata> artifacts) {
         VariantResolveMetadata.Identifier identifier = artifacts.size() == 1
             ? new SingleArtifactVariantIdentifier(artifacts.iterator().next().getId())
             : null;
@@ -75,22 +58,17 @@ public class DefaultArtifactSelector implements ArtifactSelector {
             identifier,
             Describables.of("adhoc variant for", component.getId()),
             component.getAttributes(),
-            ImmutableList.copyOf(artifacts),
+            artifacts,
             ImmutableCapabilities.EMPTY
         );
 
-        Set<ResolvedVariant> variants = Collections.singleton(toResolvedVariant(component, adhoc));
-        return new DefaultArtifactSet(component.getId(), component.getAttributesSchema(), overriddenAttributes, () -> variants, variants);
+        return toResolvedVariant(component, adhoc);
     }
 
     @Override
-    public ImmutableSet<ResolvedVariant> resolveVariants(ComponentArtifactResolveMetadata component, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions) {
-        ImmutableSet.Builder<ResolvedVariant> resolvedVariantBuilder = ImmutableSet.builderWithExpectedSize(allVariants.size());
-        for (VariantResolveMetadata variant : allVariants) {
-            VariantResolveMetadata withExclusionsApplied = applyExclusions(component, variant, exclusions);
-            resolvedVariantBuilder.add(toResolvedVariant(component, withExclusionsApplied));
-        }
-        return resolvedVariantBuilder.build();
+    public ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata variant, ExcludeSpec exclusions) {
+        VariantResolveMetadata withExclusionsApplied = applyExclusions(component, variant, exclusions);
+        return toResolvedVariant(component, withExclusionsApplied);
     }
 
     private static VariantResolveMetadata applyExclusions(ComponentArtifactResolveMetadata component, VariantResolveMetadata variant, ExcludeSpec exclusions) {
