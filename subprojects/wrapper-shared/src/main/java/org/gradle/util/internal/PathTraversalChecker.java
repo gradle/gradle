@@ -16,11 +16,14 @@
 
 package org.gradle.util.internal;
 
+import org.gradle.api.NonNullApi;
+
 import java.io.File;
 import java.util.Locale;
 
 import static java.lang.String.format;
 
+@NonNullApi
 public class PathTraversalChecker {
 
     /**
