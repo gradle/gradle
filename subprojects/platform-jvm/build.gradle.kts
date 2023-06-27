@@ -26,6 +26,9 @@ dependencies {
     implementation(project(":process-services"))
     implementation(project(":resources"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":ivy"))
+    implementation(project(":maven"))
+    implementation(project(":publish"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
@@ -59,6 +62,7 @@ packageCycles {
     // Needed for the factory methods in the interface
     excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/internal/**")
+    excludePatterns.add("org/gradle/api/plugins/internal/**")
 }
 
 integTest.usesJavadocCodeSnippets = true

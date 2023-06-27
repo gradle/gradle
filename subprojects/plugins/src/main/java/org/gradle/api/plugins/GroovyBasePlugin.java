@@ -28,8 +28,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.GroovyRuntime;
@@ -58,17 +57,17 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
-    private final JvmPluginServices jvmPluginServices;
+    private final JvmLanguageUtilities jvmEcosystemUtilities;
 
     @Inject
     public GroovyBasePlugin(
         ObjectFactory objectFactory,
         ModuleRegistry moduleRegistry,
-        JvmEcosystemUtilities jvmPluginServices
+        JvmLanguageUtilities jvmPluginServices
     ) {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
-        this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
+        this.jvmEcosystemUtilities = jvmPluginServices;
     }
 
     @Override
@@ -138,8 +137,8 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureTargetPlatform(TaskProvider<GroovyCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
-        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
-        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
+        jvmEcosystemUtilities.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
+        jvmEcosystemUtilities.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
     }
 
     private TaskProvider<GroovyCompile> createGroovyCompileTask(Project project, SourceSet sourceSet, GroovySourceDirectorySet groovySource) {

@@ -58,6 +58,8 @@
               files=".*[/\\]language-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]platform-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platform-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
 
     <!-- These packages are duplicated in ide-native from ide, don't require a package-info.java in each place -->
     <suppress checks="JavadocPackage"

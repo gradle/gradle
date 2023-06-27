@@ -27,7 +27,7 @@ class GeneratedSourcesDirectorySetContributorIntegrationTest extends AbstractInt
             plugins {
                 id 'jvm-ecosystem'
             }
-            def jvm = project.services.get(org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities)
+            def jvm = project.services.get(org.gradle.api.plugins.jvm.internal.JvmPluginServices)
 
             group = 'com.acme'
             version = '1.4'

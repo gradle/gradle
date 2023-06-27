@@ -41,7 +41,7 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaTestFixturesPlugin;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -92,7 +92,7 @@ public abstract class EclipsePlugin extends IdePlugin {
 
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
     private final IdeArtifactRegistry artifactRegistry;
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final JvmPluginServices jvmPluginServices;
 
     private final Set<SourceSet> testSourceSetsConvention = new HashSet<>();
     private final Set<Configuration> testConfigurationsConvention = new HashSet<>();
@@ -100,10 +100,11 @@ public abstract class EclipsePlugin extends IdePlugin {
     @Inject
     public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider,
                          IdeArtifactRegistry artifactRegistry,
-                         JvmEcosystemUtilities jvmEcosystemUtilities) {
+                         JvmPluginServices jvmPluginServices
+    ) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.jvmPluginServices = jvmPluginServices;
     }
 
     @Override
@@ -377,7 +378,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                     })), dependencyInProvided));
                     if (!dependencies.isEmpty()) {
                         Configuration detachedScalaConfiguration = project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0]));
-                        jvmEcosystemUtilities.configureAsRuntimeClasspath(detachedScalaConfiguration);
+                        jvmPluginServices.configureAsRuntimeClasspath(detachedScalaConfiguration);
                         model.getClasspath().getMinusConfigurations().add(detachedScalaConfiguration);
                     }
                 });
