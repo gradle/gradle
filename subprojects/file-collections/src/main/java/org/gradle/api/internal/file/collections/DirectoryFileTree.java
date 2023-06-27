@@ -145,7 +145,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         } else {
             directoryWalker = DEFAULT_DIRECTORY_WALKER;
         }
-        directoryWalker.walkDir(file, path, visitor, spec, stopFlag, postfix);
+        directoryWalker.walkDir(file.toPath(), path, visitor, spec, stopFlag, postfix);
     }
 
     static boolean isAllowed(FileTreeElement element, Spec<? super FileTreeElement> spec) {
