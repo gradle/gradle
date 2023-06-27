@@ -16,14 +16,15 @@
 package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+
+import static org.gradle.api.problems.interfaces.Severity.WARNING;
 
 class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public ValidationProblemPropertyAnnotationHandler() {
@@ -41,20 +42,18 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-        validationContext.visitPropertyProblem(problem ->
-            problem.forProperty(propertyMetadata.getPropertyName())
-                .withId(ValidationProblemId.TEST_PROBLEM)
-                .reportAs(annotationValue(propertyMetadata))
-                .withDescription("test problem")
-                .documentedAt("id", "section")
-                .happensBecause("this is a test")
+        validationContext.visitPropertyNewProblem(problem ->
+            problem
+                .forProperty(propertyMetadata.getPropertyName())
+                .type(ValidationProblemId.TEST_PROBLEM.name())
+                .severity(annotationValue(propertyMetadata))
+                .message("test problem")
+                .documentedAt(Documentation.userManual("id", "section"))
+                .description("this is a test")
         );
     }
 
-    private Severity annotationValue(PropertyMetadata propertyMetadata) {
-        return propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE)
-            .map(ValidationProblem.class::cast)
-            .map(ValidationProblem::value)
-            .orElse(Severity.WARNING);
+    private org.gradle.api.problems.interfaces.Severity annotationValue(PropertyMetadata propertyMetadata) {
+        return WARNING;
     }
 }

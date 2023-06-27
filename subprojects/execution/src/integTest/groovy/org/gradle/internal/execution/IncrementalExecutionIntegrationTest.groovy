@@ -20,10 +20,12 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.interfaces.Severity
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
@@ -73,7 +75,6 @@ import spock.lang.Specification
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
 import static org.gradle.internal.reflect.validation.Severity.ERROR
-import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 class IncrementalExecutionIntegrationTest extends Specification implements ValidationMessageChecker {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
@@ -275,12 +276,13 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         def invalidWork = builder
             .withValidator {context -> context
                 .forType(UnitOfWork, false)
-                .visitPropertyProblem{
-                    it.withId(ValidationProblemId.TEST_PROBLEM)
-                        .reportAs(WARNING)
-                        .withDescription("Validation problem")
-                        .documentedAt("id", "section")
-                        .happensBecause("Test")
+                .visitPropertyNewProblem{
+                    it.type(ValidationProblemId.TEST_PROBLEM.name())
+                        .severity(Severity.WARNING)
+                        .message("Validation problem")
+                        .documentedAt(Documentation.userManual("id", "section"))
+                        .description("Test")
+                        .noLocation()
                 }
             }
             .build()
