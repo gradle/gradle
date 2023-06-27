@@ -131,7 +131,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
-            workValidationContext.visitPropertyNewProblem(problem ->
+            workValidationContext.visitPropertyProblem(problem ->
                 configureImplementationValidationProblem(problem.forProperty(propertyName))
                     .message(unknownImplSnapshot.getProblemDescription())
                     .description(unknownImplSnapshot.getReasonDescription())
@@ -144,7 +144,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
-            workValidationContext.visitPropertyNewProblem(problem ->
+            workValidationContext.visitPropertyProblem(problem ->
                 configureImplementationValidationProblem(problem)
                     .message(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                     .description(unknownImplSnapshot.getReasonDescription())

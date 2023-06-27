@@ -74,7 +74,6 @@ import spock.lang.Specification
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.reflect.validation.Severity.ERROR
 
 class IncrementalExecutionIntegrationTest extends Specification implements ValidationMessageChecker {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
@@ -274,16 +273,17 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         execute(unitOfWork)
 
         def invalidWork = builder
-            .withValidator {context -> context
-                .forType(UnitOfWork, false)
-                .visitPropertyNewProblem{
-                    it.type(ValidationProblemId.TEST_PROBLEM.name())
-                        .severity(Severity.WARNING)
-                        .message("Validation problem")
-                        .documentedAt(Documentation.userManual("id", "section"))
-                        .description("Test")
-                        .noLocation()
-                }
+            .withValidator { context ->
+                context
+                    .forType(UnitOfWork, false)
+                    .visitPropertyProblem {
+                        it.type(ValidationProblemId.TEST_PROBLEM.name())
+                            .severity(Severity.WARNING)
+                            .message("Validation problem")
+                            .documentedAt(Documentation.userManual("id", "section"))
+                            .description("Test")
+                            .noLocation()
+                    }
             }
             .build()
         when:
@@ -382,7 +382,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def "out-of-date when any output files properties are added"() {
         when:
         execute(unitOfWork)
-        def outputFilesAddedUnitOfWork = builder.withOutputFiles(*:outputFiles, newFile: temporaryFolder.createFile("output-file-2")).build()
+        def outputFilesAddedUnitOfWork = builder.withOutputFiles(*: outputFiles, newFile: temporaryFolder.createFile("output-file-2")).build()
 
         then:
         outOfDate(outputFilesAddedUnitOfWork, "Output property 'newFile' has been added for ${outputFilesAddedUnitOfWork.displayName}")
@@ -393,7 +393,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         execute(unitOfWork)
 
         when:
-        outputFiles.removeAll { it.key == "file"}
+        outputFiles.removeAll { it.key == "file" }
         def outputFilesRemovedUnitOfWork = builder.withOutputFiles(outputFiles).build()
         def result = execute(outputFilesRemovedUnitOfWork)
 
@@ -585,13 +585,15 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def "invalid work is not executed"() {
         def invalidWork = builder
             .withValidator { validationContext ->
-                validationContext.forType(Object, true).visitTypeProblem {
-                    it.withId(ValidationProblemId.TEST_PROBLEM)
-                        .reportAs(ERROR)
-                        .forType(Object)
-                        .withDescription("Validation error")
-                        .documentedAt("id", "section")
-                        .happensBecause("Test")
+                validationContext.forType(Object, true).visitNewTypeProblem {
+                    it
+                        .withAnnotationType(Object)
+                        .type(ValidationProblemId.TEST_PROBLEM.name())
+                        .severity(Severity.ERROR)
+                        .message("Validation error")
+                        .documentedAt(Documentation.userManual("id", "section"))
+                        .description("Test")
+                        .noLocation()
                 }
             }
             .withWork({ throw new RuntimeException("Should not get executed") })
@@ -665,7 +667,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     }
 
     ExecutionEngine.Result outOfDate(UnitOfWork unitOfWork, String... expectedReasons) {
-        return outOfDate(unitOfWork, ImmutableList.<String>copyOf(expectedReasons))
+        return outOfDate(unitOfWork, ImmutableList.<String> copyOf(expectedReasons))
     }
 
     ExecutionEngine.Result outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {

@@ -101,7 +101,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotations();
             Class<? extends Annotation> propertyType = propertyTypeResolver.resolveAnnotationType(propertyAnnotations);
             if (propertyType == null) {
-                validationContext.visitPropertyNewProblem(problem ->
+                validationContext.visitPropertyProblem(problem ->
                     problem.type(ValidationProblemId.MISSING_ANNOTATION)
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
                         .severity(Severity.ERROR)
@@ -117,7 +117,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
-                validationContext.visitPropertyNewProblem(problem ->
+                validationContext.visitPropertyProblem(problem ->
                     problem.type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
                         .severity(Severity.ERROR)
@@ -139,7 +139,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationType)) {
-                    validationContext.visitPropertyNewProblem(problem ->
+                    validationContext.visitPropertyProblem(problem ->
                         problem.type(ValidationProblemId.INCOMPATIBLE_ANNOTATIONS)
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .severity(Severity.ERROR)
@@ -150,7 +150,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .documentedAt(userManual("validation_problems", "incompatible_annotations"))
                         .noLocation());
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
-                    validationContext.visitPropertyNewProblem(problem ->
+                    validationContext.visitPropertyProblem(problem ->
                         problem.type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .severity(Severity.ERROR)

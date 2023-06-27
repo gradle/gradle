@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.problems.interfaces.Problem
+import org.gradle.api.problems.interfaces.Severity
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
@@ -27,8 +28,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
 
 import static com.google.common.collect.ImmutableList.of
-import static org.gradle.internal.reflect.validation.Severity.ERROR
-import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf
@@ -55,7 +55,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         result == delegateResult
 
         1 * delegate.execute(work, { ValidationFinishedContext context -> context.validationProblems.empty }) >> delegateResult
-        _ * work.validate(_ as  WorkValidationContext) >> { validated = true }
+        _ * work.validate(_ as WorkValidationContext) >> { validated = true }
 
         then:
         validated
@@ -74,14 +74,16 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             hasMessage """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
   - ${validationProblem}"""
         }
-        _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.forType(JobType, true).visitTypeProblem {
-                it.withId(ValidationProblemId.TEST_PROBLEM)
-                    .reportAs(ERROR)
-                    .forType(Object)
-                    .withDescription("Validation error")
-                    .documentedAt("id", "section")
-                    .happensBecause("Test")
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+            validationContext.forType(JobType, true).visitNewTypeProblem {
+                it
+                    .withAnnotationType(Object)
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .severity(Severity.ERROR)
+                    .message("Validation error")
+                    .documentedAt(userManual("id", "section"))
+                    .description("Test")
+                    .noLocation()
             }
         }
         0 * _
@@ -102,22 +104,26 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
   - ${validationProblem2.trim()}"""
         }
 
-        _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.forType(JobType, true).visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
-                    .reportAs(ERROR)
-                    .forType(Object)
-                    .withDescription("Validation error #1")
-                    .documentedAt("id", "section")
-                    .happensBecause("Test")
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+            validationContext.forType(JobType, true).visitNewTypeProblem {
+                it
+                    .withAnnotationType(Object)
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .severity(Severity.ERROR)
+                    .message("Validation error #1")
+                    .documentedAt(userManual("id", "section"))
+                    .description("Test")
+                    .noLocation()
             }
-            validationContext.forType(SecondaryJobType, true).visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
-                    .reportAs(ERROR)
-                    .forType(Object)
-                    .withDescription("Validation error #2")
-                    .documentedAt("id", "section")
-                    .happensBecause("Test")
+            validationContext.forType(SecondaryJobType, true).visitNewTypeProblem {
+                it
+                    .withAnnotationType(Object)
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .severity(Severity.ERROR)
+                    .message("Validation error #2")
+                    .documentedAt(userManual("id", "section"))
+                    .description("Test")
+                    .noLocation()
             }
         }
         0 * _
@@ -129,14 +135,16 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         step.execute(work, context)
 
         then:
-        _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.forType(JobType, true).visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
-                    .reportAs(WARNING)
-                    .forType(Object)
-                    .withDescription("Validation warning")
-                    .documentedAt("id", "section")
-                    .happensBecause("Test")
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+            validationContext.forType(JobType, true).visitNewTypeProblem {
+                it
+                    .withAnnotationType(Object)
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .severity(Severity.WARNING)
+                    .message("Validation warning")
+                    .documentedAt(userManual("id", "section"))
+                    .description("Test")
+                    .noLocation()
             }
         }
 
@@ -148,7 +156,8 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
         then:
         1 * delegate.execute(work, { ValidationFinishedContext context ->
-            convertToSingleLine(renderMinimalInformationAbout(context.validationProblems.first(), false, false)) == expectedWarning })
+            convertToSingleLine(renderMinimalInformationAbout(context.validationProblems.first(), false, false)) == expectedWarning
+        })
         0 * _
     }
 
@@ -162,23 +171,27 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         step.execute(work, context)
 
         then:
-        _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
             def typeContext = validationContext.forType(JobType, true)
-            typeContext.visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
-                    .reportAs(ERROR)
-                    .forType(Object)
-                    .withDescription("Validation error")
-                    .documentedAt("id", "section")
-                    .happensBecause("Test")
+            typeContext.visitNewTypeProblem {
+                it
+                    .withAnnotationType(Object)
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .severity(Severity.ERROR)
+                    .message("Validation error")
+                    .documentedAt(userManual("id", "section"))
+                    .description("Test")
+                    .noLocation()
             }
-            typeContext.visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
-                    .reportAs(WARNING)
-                    .forType(Object)
-                    .withDescription("Validation warning")
-                    .documentedAt("id", "section")
-                    .happensBecause("Test")
+            typeContext.visitNewTypeProblem {
+                it
+                    .withAnnotationType(Object)
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .severity(Severity.WARNING)
+                    .message("Validation warning")
+                    .documentedAt(userManual("id", "section"))
+                    .description("Test")
+                    .noLocation()
             }
         }
 

@@ -274,7 +274,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     propertyBuilders.put(propertyName, metadataBuilder);
                     continue;
                 }
-                previouslySeenBuilder.visitPropertyNewProblem(problem ->
+                previouslySeenBuilder.visitPropertyProblem(problem ->
                     problem.type(ValidationProblemId.REDUNDANT_GETTERS)
                         .forProperty(propertyName)
                         .severity(ERROR)
@@ -432,7 +432,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         if (privateGetter) {
             // At this point we must have annotations on this private getter
-            metadataBuilder.visitPropertyNewProblem(problem ->
+            metadataBuilder.visitPropertyProblem(problem ->
                 problem.type(ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED)
                     .forProperty(propertyName)
                     .severity(ERROR)
@@ -454,7 +454,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private void validateSetterForMutableType(Method setterMethod, PropertyAccessorType setterAccessorType, TypeValidationContext validationContext, String propertyName) {
         Class<?> setterType = setterAccessorType.propertyTypeFor(setterMethod);
         if (isSetterProhibitedForType(setterType)) {
-            validationContext.visitPropertyNewProblem(problem ->
+            validationContext.visitPropertyProblem(problem ->
                 problem.type(ValidationProblemId.MUTABLE_TYPE_WITH_SETTER)
                     .forProperty(propertyName)
                     .severity(ERROR)
@@ -583,8 +583,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     : inheritedSuperclassAnnotations)::put);
         }
 
-        void visitPropertyNewProblem(Action<? super TypeAwareProblemBuilder> problemSpec){
-            validationContext.visitPropertyNewProblem(problemSpec);
+        void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec){
+            validationContext.visitPropertyProblem(problemSpec);
         }
 
         public PropertyAnnotationMetadata build() {
@@ -598,7 +598,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 Class<? extends Annotation> ignoredMethodAnnotation = declaredType.annotationType();
                 if (ignoredMethodAnnotations.contains(ignoredMethodAnnotation)) {
                     if (declaredAnnotations.values().size() > 1) {
-                        visitPropertyNewProblem(problem ->
+                        visitPropertyProblem(problem ->
                             problem.type(ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED)
                                 .forProperty(propertyName)
                                 .severity(ERROR)
@@ -652,7 +652,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             // Ignore all but the first recorded annotation
             Annotation declaredAnnotationForCategory = iDeclaredAnnotationForCategory.next();
             if (iDeclaredAnnotationForCategory.hasNext()) {
-                visitPropertyNewProblem(problem ->
+                visitPropertyProblem(problem ->
                     problem.type(ValidationProblemId.CONFLICTING_ANNOTATIONS)
                         .forProperty(propertyName)
                         .severity(ERROR)

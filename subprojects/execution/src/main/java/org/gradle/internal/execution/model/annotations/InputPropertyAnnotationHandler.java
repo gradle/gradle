@@ -65,7 +65,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
 
     private void validateNotPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
-            validationContext.visitPropertyNewProblem(problem ->
+            validationContext.visitPropertyProblem(problem ->
                 problem.type(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
                     .forProperty(propertyMetadata.getPropertyName())
                     .severity(Severity.ERROR)
@@ -85,7 +85,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             || RegularFileProperty.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
-            validationContext.visitPropertyNewProblem(problem ->
+            validationContext.visitPropertyProblem(problem ->
                 problem.type(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
                         .forProperty(propertyMetadata.getPropertyName())
                         .severity(Severity.ERROR)
@@ -103,7 +103,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
     private void validateNotDirectoryType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (Directory.class.isAssignableFrom(valueType)
             || DirectoryProperty.class.isAssignableFrom(valueType)) {
-            validationContext.visitPropertyNewProblem(problem ->
+            validationContext.visitPropertyProblem(problem ->
                     problem.type(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
                             .forProperty(propertyMetadata.getPropertyName())
                             .severity(Severity.ERROR)

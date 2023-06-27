@@ -55,7 +55,7 @@ public class NestedValidationUtil  {
         if (!isSupportedType(beanType)) {
 //            TypeValidationProblemLocation.forProperty(typeIrrelevantInErrorMessage ? null : rootType, typeIrrelevantInErrorMessage ? null : pluginId, parentProperty, property)
 
-            validationContext.visitPropertyNewProblem(problem ->
+            validationContext.visitPropertyProblem(problem ->
                 problem.type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
                     .forProperty(propertyName)
                     .severity(Severity.WARNING)
@@ -97,7 +97,7 @@ public class NestedValidationUtil  {
         Class<?> keyType
     ) {
         if (!SUPPORTED_KEY_TYPES.contains(keyType)) {
-            validationContext.visitPropertyNewProblem(problem ->
+            validationContext.visitPropertyProblem(problem ->
                 problem.type(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
                     .forProperty(propertyName)
                     .severity(Severity.WARNING)

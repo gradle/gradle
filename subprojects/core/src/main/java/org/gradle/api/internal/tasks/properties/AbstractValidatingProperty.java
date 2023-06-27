@@ -42,7 +42,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     }
 
     public static void reportValueNotSet(String propertyName, TypeValidationContext context) {
-        context.visitPropertyNewProblem(problem -> {
+        context.visitPropertyProblem(problem -> {
             problem.forProperty(propertyName)
                 .type(ValidationProblemId.VALUE_NOT_SET.name())
                 .severity(org.gradle.api.problems.interfaces.Severity.ERROR)

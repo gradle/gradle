@@ -60,7 +60,7 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
         ModelType<?> propertyType = ModelType.of(propertyMetadata.getDeclaredType().getType());
         List<ModelType<?>> typeVariables = Cast.uncheckedNonnullCast(propertyType.getTypeVariables());
         if (typeVariables.size() != 1 || !BuildService.class.isAssignableFrom(typeVariables.get(0).getRawClass())) {
-            validationContext.visitPropertyNewProblem(problem ->
+            validationContext.visitPropertyProblem(problem ->
                 problem.type(ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE)
                     .forProperty(propertyMetadata.getPropertyName())
                     .severity(Severity.ERROR)

@@ -166,7 +166,7 @@ public class MissingTaskDependencyDetector {
     }
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
-        validationContext.visitPropertyNewProblem(problem ->
+        validationContext.visitPropertyProblem(problem ->
             problem.typeIsIrrelevantInErrorMessage()
                 .type(ValidationProblemId.IMPLICIT_DEPENDENCY.name())
                 .severity(org.gradle.api.problems.interfaces.Severity.ERROR)

@@ -42,7 +42,7 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-        validationContext.visitPropertyNewProblem(problem ->
+        validationContext.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyMetadata.getPropertyName())
                 .type(ValidationProblemId.TEST_PROBLEM.name())

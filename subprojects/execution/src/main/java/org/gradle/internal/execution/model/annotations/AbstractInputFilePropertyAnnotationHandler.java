@@ -110,7 +110,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validateUnsupportedInputPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
-            validationContext.visitPropertyNewProblem(problem -> {
+            validationContext.visitPropertyProblem(problem -> {
                 String propertyName = propertyMetadata.getPropertyName();
                 problem
                     .forProperty(propertyName)

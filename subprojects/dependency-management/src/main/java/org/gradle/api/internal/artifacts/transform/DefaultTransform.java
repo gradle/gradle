@@ -199,7 +199,7 @@ public class DefaultTransform implements Transform {
     public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
-                validationContext.visitPropertyNewProblem(problem ->
+                validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
                         .type(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY.name())
@@ -355,7 +355,7 @@ public class DefaultTransform implements Transform {
                     PropertyValue value,
                     OutputFilePropertyType filePropertyType
                 ) {
-                    validationContext.visitPropertyNewProblem(problem ->
+                    validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
                             .type(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)

@@ -47,7 +47,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
@@ -65,8 +64,8 @@ import spock.lang.Specification
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
+import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION
-import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeMetadataStoreTest extends Specification implements ValidationMessageChecker {
@@ -136,13 +135,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitPropertyNewProblem {
+            context.visitPropertyProblem {
                 it
                     .forProperty(metadata.propertyName)
                     .type(ValidationProblemId.TEST_PROBLEM.name())
                     .severity(Severity.WARNING)
                     .message("is broken")
-                    .documentedAt(Documentation.userManual("id", "section"))
+                    .documentedAt(userManual("id", "section"))
                     .description("Test")
                     .noLocation()
             }
@@ -166,13 +165,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * annotationHandler.propertyRelevant >> false
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitPropertyNewProblem {
+            context.visitPropertyProblem {
                 it
                     .forProperty(metadata.propertyName)
                     .type(ValidationProblemId.TEST_PROBLEM.name())
                     .severity(Severity.WARNING)
                     .message("is broken")
-                    .documentedAt(Documentation.userManual("id", "section"))
+                    .documentedAt(userManual("id", "section"))
                     .description("Test")
                     .noLocation()
             }
@@ -193,13 +192,15 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
-            context.visitTypeProblem {
-                it.reportAs(WARNING)
-                    .withId(ValidationProblemId.TEST_PROBLEM)
-                    .forType(type)
-                    .withDescription("type is broken")
-                    .documentedAt("id", "section")
-                    .happensBecause("Test")
+            context.visitNewTypeProblem {
+                it
+                    .withAnnotationType(type)
+                    .severity(Severity.WARNING)
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .message("type is broken")
+                    .documentedAt(userManual("id", "section"))
+                    .description("Test")
+                    .noLocation()
             }
         }
 

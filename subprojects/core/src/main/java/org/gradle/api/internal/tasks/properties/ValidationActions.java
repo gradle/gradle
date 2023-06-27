@@ -151,7 +151,7 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static void reportMissingInput(PropertyValidationContext context, String kind, String propertyName, File input) {
-        context.visitPropertyNewProblem(problem -> {
+        context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
             problem
                 .forProperty(propertyName)
@@ -167,7 +167,7 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static void reportUnexpectedInputKind(PropertyValidationContext context, String kind, String propertyName, File input) {
-        context.visitPropertyNewProblem(problem -> {
+        context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
             problem
                 .forProperty(propertyName)
@@ -183,7 +183,7 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static void reportCannotWriteToDirectory(String propertyName, PropertyValidationContext context, File directory, String cause) {
-        context.visitPropertyNewProblem(problem ->
+        context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
@@ -197,7 +197,7 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static void reportFileTreeWithFileRoot(String propertyName, PropertyValidationContext context, File directory) {
-        context.visitPropertyNewProblem(problem ->
+        context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
@@ -211,7 +211,7 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static void reportCannotWriteFileToDirectory(String propertyName, PropertyValidationContext context, File file) {
-        context.visitPropertyNewProblem(problem ->
+        context.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
                     .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
@@ -226,7 +226,7 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static void reportCannotCreateParentDirectories(String propertyName, PropertyValidationContext context, File file, File ancestor) {
-        context.visitPropertyNewProblem(problem ->
+        context.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
                     .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
@@ -251,7 +251,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void validateNotInReservedFileSystemLocation(String propertyName, PropertyValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {
-            context.visitPropertyNewProblem(problem ->
+            context.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
                     .type(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION.name())
@@ -283,7 +283,7 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static void reportUnsupportedValue(String propertyName, PropertyValidationContext context, String targetType, Object value, Collection<String> candidates) {
-        context.visitPropertyNewProblem(problem -> {
+        context.visitPropertyProblem(problem -> {
                 problem
                     .forProperty(propertyName)
                     .type(ValidationProblemId.UNSUPPORTED_NOTATION.name())

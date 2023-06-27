@@ -60,7 +60,7 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
         String... possibleSolutions
     ) {
         if (valueTypes.stream().anyMatch(unsupportedType::isAssignableFrom)) {
-            validationContext.visitPropertyNewProblem(problem -> {
+            validationContext.visitPropertyProblem(problem -> {
                     problem
                         .forProperty(propertyMetadata.getPropertyName())
                         .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
