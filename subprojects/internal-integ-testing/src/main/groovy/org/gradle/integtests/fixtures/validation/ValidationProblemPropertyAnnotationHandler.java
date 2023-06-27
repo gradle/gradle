@@ -50,6 +50,7 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
                 .message("test problem")
                 .documentedAt(Documentation.userManual("id", "section"))
                 .description("this is a test")
+                .noLocation()
         );
     }
 
