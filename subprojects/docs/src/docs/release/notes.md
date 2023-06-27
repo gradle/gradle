@@ -109,6 +109,27 @@ tasks.withType<KotlinCompile>().configureEach {
 
 Moreover, at this stage, K2 doesn't support scripting, so it will not work with [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins).
 
+#### Specify file permissions conveniently, even from Kotlin
+
+Since Kotlin doesn't support octal numeric literals, setting file permissions as UNIX mode values has been awkward.
+There is now a [better API](userguide/working_with_files.html#sec:setting_file_permissions) for setting file permissions and extra convenience methods for UNIX-style values.
+
+```kotlin
+tasks.register<Copy>("copy") {
+    // details omitted
+    filePermissions {
+        user {
+            read = true
+            execute = true
+        }
+        other.execute = false
+    }
+    dirPermissions {
+        unix("r-xr-x---")
+    }
+}
+```
+
 ### Improved CodeNarc output
 
 The `CodeNarc` plugin produces IDE-clickable links when reporting failures to the console.

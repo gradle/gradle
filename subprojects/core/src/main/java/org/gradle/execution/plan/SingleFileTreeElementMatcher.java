@@ -126,11 +126,11 @@ public class SingleFileTreeElementMatcher {
 
         @Override
         public int getMode() {
-            return getImmutablePermissions().toUnixNumeric();
+            return getPermissions().toUnixNumeric();
         }
 
         @Override
-        public FilePermissions getImmutablePermissions() {
+        public FilePermissions getPermissions() {
             int unixNumeric = stat.getUnixMode(file);
             return new DefaultFilePermissions(unixNumeric);
         }
