@@ -91,7 +91,6 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         f.causes.eachWithIndex { Failure entry, int i ->
             assert entry.message == "Exception ${i + 1}"
         }
-
     }
 
     def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 5 tests"() {
@@ -137,6 +136,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(progressEventCollector)
                 .forTasks('test')
                 .setStandardOutput(System.out)
+                .setStandardError(System.err)
                 .run()
         }
     }
