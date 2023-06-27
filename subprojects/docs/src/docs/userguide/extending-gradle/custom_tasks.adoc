@@ -415,7 +415,7 @@ include::{snippetsPath}/tasks/commandLineOption-optionValues/groovy/buildSrc/src
 [[sec:listing_task_options]]
 === Listing command line options
 
-Command line options using the annotations link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues] are self-documenting. You will see <<#sec:declaring_task_option,declared options>> and their <<#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order.
+Command line options using the annotations link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues] are self-documenting. You will see <<#sec:declaring_task_option,declared options>> and their <<#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order, except for boolean disable options which appear after their opposite option.
 
 === Example: Listing available values for option
 
