@@ -21,6 +21,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -52,6 +53,31 @@ public class BooleanOptionElement extends AbstractOptionElement {
         String optionName = optionElement.getOptionName();
         return optionElement.isDisableOption() ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName, optionElement.setter)
             : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName, optionElement.setter);
+    }
+
+    /**
+     * Returns a comparator that groups opposite option pairs together.
+     *
+     * <p>Options are sorted in the natural order of their names,
+     * except for disable options which are sorted after their opposite option.
+     * For example, {@code "--foo"} and {@code "--no-foo"} are grouped together
+     * and are sorted after {@code "--bar"} and {@code "--no-bar"}.
+     *
+     * @return a comparator that groups opposite option pairs together
+     */
+    public static Comparator<OptionDescriptor> groupOppositeOptions() {
+        return Comparator.comparing(optionDescriptor -> {
+            if (optionDescriptor instanceof InstanceOptionDescriptor) {
+                InstanceOptionDescriptor instanceOptionDescriptor = (InstanceOptionDescriptor) optionDescriptor;
+                if (instanceOptionDescriptor.getOptionElement() instanceof BooleanOptionElement) {
+                    BooleanOptionElement optionElement = (BooleanOptionElement) instanceOptionDescriptor.getOptionElement();
+                    if (optionElement.isDisableOption()) {
+                        return removeDisablePrefix(optionElement.getOptionName()) + "x";
+                    }
+                }
+            }
+            return optionDescriptor.getName();
+        });
     }
 
     public boolean isDisableOption() {

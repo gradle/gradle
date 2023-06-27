@@ -159,17 +159,17 @@ Type
 Options
      --myBooleanObjectOption     Configures boolean option 'myBooleanObjectOption'
 
-     --myBooleanPrimitiveOption     Configures boolean option 'myBooleanPrimitiveOption'
-
-     --myBooleanPropertyOption     Configures Property<Boolean> option 'myBooleanPropertyOption'
-
-     --myFieldOption     Configures boolean option 'myFieldOption'
-
      --no-myBooleanObjectOption     Disables option --myBooleanObjectOption
+
+     --myBooleanPrimitiveOption     Configures boolean option 'myBooleanPrimitiveOption'
 
      --no-myBooleanPrimitiveOption     Disables option --myBooleanPrimitiveOption
 
+     --myBooleanPropertyOption     Configures Property<Boolean> option 'myBooleanPropertyOption'
+
      --no-myBooleanPropertyOption     Disables option --myBooleanPropertyOption
+
+     --myFieldOption     Configures boolean option 'myFieldOption'
 
      --no-myFieldOption     Disables option --myFieldOption
 
