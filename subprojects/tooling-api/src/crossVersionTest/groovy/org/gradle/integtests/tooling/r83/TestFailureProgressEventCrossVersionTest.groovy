@@ -52,13 +52,6 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
             test {
                 useJUnitPlatform()
-                debugOptions {
-                    enabled = true
-                    host = 'localhost'
-                    port = 4455
-                    server = false
-                    suspend = true
-                }
             }
         """
     }
