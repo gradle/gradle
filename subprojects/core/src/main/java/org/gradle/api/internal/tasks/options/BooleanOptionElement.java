@@ -72,7 +72,7 @@ public class BooleanOptionElement extends AbstractOptionElement {
                 if (instanceOptionDescriptor.getOptionElement() instanceof BooleanOptionElement) {
                     BooleanOptionElement optionElement = (BooleanOptionElement) instanceOptionDescriptor.getOptionElement();
                     if (optionElement.isDisableOption()) {
-                        return removeDisablePrefix(optionElement.getOptionName()) + "x";
+                        return removeDisablePrefix(optionElement.getOptionName()) + "-";
                     }
                 }
             }

@@ -689,4 +689,24 @@ class CommandLineParserTest extends Specification {
         then:
         result.extraArguments == ['arg1', 'arg\ntwo']
     }
+
+    def "group boolean opposite option pairs together"() {
+        parser.option('a-option').hasDescription('this is option --a-option')
+        parser.option('a-option-other').hasDescription('this is option --a-option-other')
+        parser.option('no-a-option').hasDescription('Disables option --a-option')
+        parser.option('c-option')
+        parser.option('no-c-option')
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr)
+        outstr.toString().readLines() == [
+            '--a-option        this is option --a-option',
+            '--no-a-option     Disables option --a-option',
+            '--a-option-other  this is option --a-option-other',
+            '--c-option',
+            '--no-c-option',
+            '--                Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+        ]
+    }
 }
