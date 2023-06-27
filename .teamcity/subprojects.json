@@ -819,6 +819,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "toolchains-jvm",
+    "path": "platforms/jvm/toolchains-jvm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "tooling-api",
     "path": "subprojects/tooling-api",
     "unitTests": true,

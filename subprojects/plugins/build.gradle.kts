@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":execution")) {
         because("We need it for BuildOutputCleanupRegistry")
     }
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
