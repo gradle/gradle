@@ -43,6 +43,9 @@ dependencies {
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
     runtimeOnly(project(":instrumentation-declarations"))
+    // TODO: Needed when we instrument Properties,
+    //  otherwise smoke tests for configuration cache fails: Figure out how we can avoid that
+    runtimeOnly(project(":test-kit"))
 
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":base-services"))
