@@ -63,13 +63,13 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             import org.junit.jupiter.api.Test;
             import org.opentest4j.MultipleFailuresError;
 
-            import java.util.List;
+            import java.util.Arrays;
 
             public class JUnitJupiterTest {
 
                 @Test
                 void testingFileComparisonFailure() {
-                    throw new MultipleFailuresError("Multiple errors detected", List.of(
+                    throw new MultipleFailuresError("Multiple errors detected", Arrays.asList(
                             new Exception("Exception 1"),
                             new Exception("Exception 2"),
                             new Exception("Exception 3")
@@ -135,8 +135,6 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             connection.newBuild()
                 .addProgressListener(progressEventCollector)
                 .forTasks('test')
-                .setStandardOutput(stdout)
-                .setStandardError(stderr)
                 .run()
         }
     }
