@@ -35,7 +35,6 @@ import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -582,10 +581,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach((fromInterface
                     ? inheritedInterfaceAnnotations
                     : inheritedSuperclassAnnotations)::put);
-        }
-
-        public void visitPropertyProblem(Action<? super PropertyProblemBuilder> builder) {
-            validationContext.visitPropertyProblem(builder);
         }
 
         void visitPropertyNewProblem(Action<? super TypeAwareProblemBuilder> problemSpec){

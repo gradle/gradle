@@ -65,15 +65,6 @@ public class NestedValidationUtil  {
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
                     .noLocation()
             );
-//            validationContext.visitPropertyProblem(problem ->
-//                problem.withId(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
-//                    .reportAs(WARNING)
-//                    .forProperty(propertyName)
-//                    .withDescription(() -> "with nested type '" + beanType.getName() + "' is not supported")
-//                    .happensBecause("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input")
-//                    .addPossibleSolution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input")
-//                    .documentedAt("validation_problems", "unsupported_nested_type")
-//            );
         }
     }
 

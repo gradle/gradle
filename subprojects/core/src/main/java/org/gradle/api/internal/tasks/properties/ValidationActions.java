@@ -164,17 +164,6 @@ public enum ValidationActions implements ValidationAction {
                 .documentedAt(userManual("validation_problems", "input_file_does_not_exist"))
                 .noLocation();
         });
-//        context.visitPropertyProblem(problem -> {
-//            String lowerKind = kind.toLowerCase();
-//            problem.withId(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST)
-//                .forProperty(propertyName)
-//                .reportAs(ERROR)
-//                .withDescription(() -> "specifies " + lowerKind + " '" + input + "' which doesn't exist")
-//                .happensBecause("An input file was expected to be present but it doesn't exist")
-//                .addPossibleSolution(() -> "Make sure the " + lowerKind + " exists before the task is called")
-//                .addPossibleSolution(() -> "Make sure that the task which produces the " + lowerKind + " is declared as an input")
-//                .documentedAt("validation_problems", "input_file_does_not_exist");
-//        });
     }
 
     private static void reportUnexpectedInputKind(PropertyValidationContext context, String kind, String propertyName, File input) {
@@ -191,17 +180,6 @@ public enum ValidationActions implements ValidationAction {
                 .documentedAt(userManual("validation_problems", "unexpected_input_file_type"))
                 .noLocation();
         });
-//        context.visitPropertyProblem(problem -> {
-//            String lowerKind = kind.toLowerCase();
-//            problem.withId(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE)
-//                .forProperty(propertyName)
-//                .reportAs(ERROR)
-//                .withDescription(() -> lowerKind + " '" + input + "' is not a " + lowerKind)
-//                .happensBecause(() -> "Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
-//                .addPossibleSolution(() -> "Use a " + lowerKind + " as an input")
-//                .addPossibleSolution(() -> "Declare the input as a " + actualKindOf(input) + " instead")
-//                .documentedAt("validation_problems", "unexpected_input_file_type");
-//        });
     }
 
     private static void reportCannotWriteToDirectory(String propertyName, PropertyValidationContext context, File directory, String cause) {

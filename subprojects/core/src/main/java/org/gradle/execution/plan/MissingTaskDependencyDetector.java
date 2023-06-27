@@ -182,21 +182,6 @@ public class MissingTaskDependencyDetector {
                 .documentedAt(userManual("validation_problems", "implicit_dependency"))
                 .noLocation()
         );
-//        validationContext.visitPropertyProblem(problem ->
-//            problem.withId(ValidationProblemId.IMPLICIT_DEPENDENCY)
-//                .reportAs(Severity.ERROR)
-//                .withDescription(() -> "Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
-//                .happensBecause(() -> String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
-//                        + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
-//                    consumer,
-//                    producer
-//                ))
-//                .addPossibleSolution(() -> "Declare task '" + producer + "' as an input of '" + consumer + "'")
-//                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
-//                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
-//                .documentedAt("validation_problems", "implicit_dependency")
-//                .typeIsIrrelevantInErrorMessage()
-//        );
     }
 
     private static class FilteredTree {

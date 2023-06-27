@@ -53,16 +53,6 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
                 .documentedAt(userManual("validation_problems", "value_not_set"))
                 .noLocation();
         });
-//        context.visitPropertyProblem(problem -> {
-//            problem.withId(ValidationProblemId.VALUE_NOT_SET)
-//                .reportAs(Severity.ERROR)
-//                .forProperty(propertyName)
-//                .withDescription("doesn't have a configured value")
-//                .happensBecause("This property isn't marked as optional and no value has been configured")
-//                .addPossibleSolution(() -> "Assign a value to '" + propertyName + "'")
-//                .addPossibleSolution(() -> "Mark property '" + propertyName + "' as optional")
-//                .documentedAt("validation_problems", "value_not_set");
-//        });
     }
 
     @Override

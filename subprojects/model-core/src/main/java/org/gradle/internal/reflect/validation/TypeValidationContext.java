@@ -38,16 +38,11 @@ public interface TypeValidationContext {
      *
      * @param problemSpec the problem builder
      */
-    void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec); // TODO (Reinhold) replace it with visitPropertyProblem(Action<? super TypeAwareProblemBuilder>)
-
     void visitPropertyNewProblem(Action<? super TypeAwareProblemBuilder> problemSpec); // TODO (Reinhold) replace it with visitPropertyProblem(Action<? super TypeAwareProblemBuilder>)
 
     TypeValidationContext NOOP = new TypeValidationContext() {
         @Override
         public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {}
-
-        @Override
-        public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {}
 
         @Override
         public void visitPropertyNewProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
