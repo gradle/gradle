@@ -22,6 +22,8 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 
 import javax.annotation.Nullable;
 
+import static org.gradle.internal.reflect.validation.TypeValidationProblem.PARENT_PROPERTY_NAME;
+
 @NonNullApi
 public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
 
@@ -104,13 +106,13 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
 //    }
 
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
-        if(classWithAnnotationAttached != null){
+        if (classWithAnnotationAttached != null) {
             withMetadata(TypeValidationProblem.TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
         }
         return this;
     }
 
-    public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage(){
+    public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage() {
         withMetadata(TypeValidationProblem.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "true");
 //        this.typeIrrelevantInErrorMessage = true;
 //        return Cast.uncheckedCast(this)
@@ -127,8 +129,16 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
         return this;
     }
 
-    public TypeAwareProblemBuilder parentProperty(String ownerProperty) {
-        withMetadata(TypeValidationProblem.PARENT_PROPERTY_NAME, ownerProperty);
+    public TypeAwareProblemBuilder parentProperty(@Nullable String parentProperty) {
+        if (parentProperty == null) {
+            return this;
+        }
+        String existingParentProperty = additionalMetadata.get(PARENT_PROPERTY_NAME);
+        if (existingParentProperty == null) {
+            withMetadata(PARENT_PROPERTY_NAME, parentProperty);
+        } else {
+            withMetadata(PARENT_PROPERTY_NAME, existingParentProperty + "." + parentProperty);
+        }
         return this;
     }
 }

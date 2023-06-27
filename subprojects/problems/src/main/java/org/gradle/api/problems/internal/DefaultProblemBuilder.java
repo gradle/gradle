@@ -50,7 +50,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     private boolean explicitlyUndocumented = false;
     private List<String> solution;
     private Throwable cause;
-    private final Map<String, String> additionalMetadata = new HashMap<>();
+    protected final Map<String, String> additionalMetadata = new HashMap<>();
 
     public DefaultProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) { //add type
         this.problemGroup = problemGroup;
