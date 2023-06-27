@@ -91,7 +91,7 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         "@OutputDirectory" | _
     }
 
-    @ToBeFixedForConfigurationCache(because = "ends up being different properties after load")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc file property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
@@ -123,7 +123,7 @@ task thing {
         "outputs.file"     | _
     }
 
-    @ToBeFixedForConfigurationCache(because = "ends up being different properties after load")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc directory property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
@@ -210,7 +210,7 @@ task thing {
         output.count("prop = " + file("build/dir.out")) == 3
     }
 
-    @ToBeFixedForConfigurationCache(because = "Producer isn't attached to property used in before task")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25513")
     def "cannot query strict task output file property until task starts execution"() {
         taskTypeWithOutputFileProperty()
         settingsFile << "rootProject.name = 'broken'"
@@ -262,7 +262,7 @@ task thing {
         output.count("prop = " + file("build/text.out")) == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "Producer isn't attached to property used in before task")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25513")
     def "cannot query strict task output directory property until task starts execution"() {
         taskTypeWithOutputDirectoryProperty()
         settingsFile << "rootProject.name = 'broken'"
@@ -491,7 +491,7 @@ task thing {
         failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Producer isn't attached to property used in before task")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25513")
     def "cannot query strict property with upstream task output directory property until producer task starts execution"() {
         taskTypeWithOutputDirectoryProperty()
         settingsFile << "rootProject.name = 'broken'"
@@ -544,7 +544,7 @@ task thing {
         output.count("prop = " + file("build/dir.out")) == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "Producer isn't attached to property used in before task")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25513")
     def "cannot query strict property with upstream task output file property until producer task starts execution"() {
         taskTypeWithOutputFileProperty()
         settingsFile << "rootProject.name = 'broken'"
@@ -597,7 +597,7 @@ task thing {
         output.count("prop = " + file("build/text.out")) == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "Producer isn't attached to property used in before task")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/19252")
     def "cannot query strict property with mapped upstream task output file property until producer task starts execution"() {
         taskTypeWithOutputFileProperty()
         settingsFile << "rootProject.name = 'broken'"
