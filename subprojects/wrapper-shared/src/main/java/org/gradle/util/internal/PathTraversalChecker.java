@@ -36,7 +36,7 @@ public class PathTraversalChecker {
      */
     public static String safePathName(String name) {
         if (isUnsafePathName(name)) {
-            throw new IllegalArgumentException(format("'%s' is not a safe zip entry name.", name));
+            throw new IllegalArgumentException(format("'%s' is not a safe archive entry or path name.", name));
         }
         return name;
     }

@@ -140,7 +140,7 @@ class InstallTest extends Specification {
 
         then:
         def failure = thrown(IllegalArgumentException)
-        failure.message == "'../../tmp/evil.sh' is not a safe zip entry name."
+        failure.message == "'../../tmp/evil.sh' is not a safe archive entry or path name."
 
         and:
         1 * download.download(configuration.distribution, _) >> { createEvilZip(it[1]) }

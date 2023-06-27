@@ -68,7 +68,7 @@ class PathTraversalCheckerIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureDescriptionContains "Execution failed for task ':copyEvilZip'"
-        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe zip entry name"
+        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe archive entry or path name"
     }
 
     def "UnzipTransform refuses to unzip evil.zip"() {
@@ -127,6 +127,6 @@ class PathTraversalCheckerIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains 'Executing unzip transform...'
-        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe zip entry name"
+        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe archive entry or path name"
     }
 }
