@@ -35,8 +35,8 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtp;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
+import org.gradle.plugins.ide.internal.resolver.AbstractIdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
-import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 
 import java.io.File;
@@ -64,8 +64,16 @@ public class WtpClasspathAttributeSupport {
 
     private static Set<File> collectFilesFromConfigs(EclipseClasspath classpath, Set<Configuration> configs, Set<Configuration> minusConfigs) {
         WtpClasspathAttributeDependencyVisitor visitor = new WtpClasspathAttributeDependencyVisitor(classpath);
-        new IdeDependencySet(classpath.getProject().getObjects(), ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class),
-            configs, minusConfigs, false, NullGradleApiSourcesResolver.INSTANCE, classpath.getTestConfigurations().getOrElse(Collections.emptySet())).visit(visitor);
+        new IdeDependencySet(
+            classpath.getProject().getDependencies(),
+            classpath.getProject().getObjects(),
+            ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class),
+            configs,
+            minusConfigs,
+            false,
+            NullGradleApiSourcesResolver.INSTANCE,
+            classpath.getTestConfigurations().getOrElse(Collections.emptySet())
+        ).visit(visitor);
         return visitor.getFiles();
     }
 
@@ -109,11 +117,12 @@ public class WtpClasspathAttributeSupport {
         return ImmutableMap.<String, Object>of(key, value);
     }
 
-    private static class WtpClasspathAttributeDependencyVisitor implements IdeDependencyVisitor {
+    private static class WtpClasspathAttributeDependencyVisitor extends AbstractIdeDependencyVisitor {
         private final EclipseClasspath classpath;
         private final Set<File> files = Sets.newLinkedHashSet();
 
         private WtpClasspathAttributeDependencyVisitor(EclipseClasspath classpath) {
+            super(classpath.getProject());
             this.classpath = classpath;
         }
 

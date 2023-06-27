@@ -19,10 +19,12 @@ package org.gradle.plugins.ide.idea.model.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -35,9 +37,9 @@ import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.Path;
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.resolver.AbstractIdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
-import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
 import java.io.File;
@@ -101,14 +103,15 @@ public class IdeaDependenciesProvider {
 
     private IdeaDependenciesVisitor visitDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         ProjectInternal projectInternal = (ProjectInternal) ideaModule.getProject();
-        final ObjectFactory handler = projectInternal.getObjects();
+        final DependencyHandler handler = projectInternal.getDependencies();
+        final ObjectFactory objects = projectInternal.getObjects();
         final Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         final Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
         final JavaModuleDetector javaModuleDetector = projectInternal.getServices().get(JavaModuleDetector.class);
 
-        final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
+        final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(projectInternal, ideaModule, scope.name());
         return projectInternal.getOwner().fromMutableState(p -> {
-            new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
+            new IdeDependencySet(handler, objects, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver, Collections.emptySet()).visit(visitor);
             return visitor;
         });
     }
@@ -135,7 +138,7 @@ public class IdeaDependenciesProvider {
         return file != null ? ideaModule.getPathFactory().path(file) : null;
     }
 
-    private class IdeaDependenciesVisitor implements IdeDependencyVisitor {
+    private class IdeaDependenciesVisitor extends AbstractIdeDependencyVisitor {
         private final IdeaModule ideaModule;
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
         private final String scope;
@@ -145,7 +148,8 @@ public class IdeaDependenciesProvider {
         private final List<Dependency> fileDependencies = Lists.newLinkedList();
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
 
-        private IdeaDependenciesVisitor(IdeaModule ideaModule, String scope) {
+        private IdeaDependenciesVisitor(Project project, IdeaModule ideaModule, String scope) {
+            super(project);
             this.ideaModule = ideaModule;
             this.scope = scope;
         }

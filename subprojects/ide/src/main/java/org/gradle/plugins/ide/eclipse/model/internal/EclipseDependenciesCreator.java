@@ -45,9 +45,9 @@ import org.gradle.plugins.ide.eclipse.model.Library;
 import org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary;
 import org.gradle.plugins.ide.eclipse.model.Variable;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.resolver.AbstractIdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
-import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,11 +77,20 @@ public class EclipseDependenciesCreator {
     public List<AbstractClasspathEntry> createDependencyEntries() {
         EclipseDependenciesVisitor visitor = new EclipseDependenciesVisitor(classpath.getProject());
         Set<Configuration> testConfigurations = classpath.getTestConfigurations().getOrElse(Collections.emptySet());
-        new IdeDependencySet(classpath.getProject().getObjects(), ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), inferModulePath, gradleApiSourcesResolver, testConfigurations).visit(visitor);
+        new IdeDependencySet(
+            classpath.getProject().getDependencies(),
+            classpath.getProject().getObjects(),
+            ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class),
+            classpath.getPlusConfigurations(),
+            classpath.getMinusConfigurations(),
+            inferModulePath,
+            gradleApiSourcesResolver,
+            testConfigurations
+        ).visit(visitor);
         return visitor.getDependencies();
     }
 
-    private class EclipseDependenciesVisitor implements IdeDependencyVisitor {
+    private class EclipseDependenciesVisitor extends AbstractIdeDependencyVisitor {
 
         private final List<AbstractClasspathEntry> projects = Lists.newArrayList();
         private final List<AbstractClasspathEntry> modules = Lists.newArrayList();
@@ -91,6 +100,7 @@ public class EclipseDependenciesCreator {
         private final Project project;
 
         public EclipseDependenciesVisitor(Project project) {
+            super(project);
             this.project = project;
         }
 

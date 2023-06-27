@@ -43,6 +43,11 @@ public interface IdeDependencyVisitor {
     boolean downloadJavaDoc();
 
     /**
+     * Return true if all declared repositories are maven repositories.
+     */
+    boolean onlyMavenRepositoriesDeclared();
+
+    /**
      * The dependency points to an artifact built by another project.
      * The component identifier is guaranteed to be a {@link org.gradle.api.artifacts.component.ProjectComponentIdentifier}.
      */

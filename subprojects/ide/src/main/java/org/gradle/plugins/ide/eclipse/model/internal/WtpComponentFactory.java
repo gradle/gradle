@@ -34,8 +34,8 @@ import org.gradle.plugins.ide.eclipse.model.WbModuleEntry;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.WtpComponent;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.resolver.AbstractIdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
-import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
@@ -90,12 +90,20 @@ public class WtpComponentFactory {
 
     private List<WbDependentModule> getEntriesFromConfigurations(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
         WtpDependenciesVisitor visitor = new WtpDependenciesVisitor(project, wtp, deployPath);
-        new IdeDependencySet(project.getObjects(), ((ProjectInternal) project).getServices().get(JavaModuleDetector.class),
-            plusConfigurations, minusConfigurations, false, NullGradleApiSourcesResolver.INSTANCE).visit(visitor);
+        new IdeDependencySet(
+            project.getDependencies(),
+            project.getObjects(),
+            ((ProjectInternal) project).getServices().get(JavaModuleDetector.class),
+            plusConfigurations,
+            minusConfigurations,
+            false,
+            NullGradleApiSourcesResolver.INSTANCE,
+            Collections.emptySet()
+        ).visit(visitor);
         return visitor.getEntries();
     }
 
-    private class WtpDependenciesVisitor implements IdeDependencyVisitor {
+    private class WtpDependenciesVisitor extends AbstractIdeDependencyVisitor {
         private final Project project;
         private final EclipseWtpComponent wtp;
         private final String deployPath;
@@ -106,6 +114,7 @@ public class WtpComponentFactory {
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
 
         private WtpDependenciesVisitor(Project project, EclipseWtpComponent wtp, String deployPath) {
+            super(project);
             this.project = project;
             this.wtp = wtp;
             this.deployPath = deployPath;
