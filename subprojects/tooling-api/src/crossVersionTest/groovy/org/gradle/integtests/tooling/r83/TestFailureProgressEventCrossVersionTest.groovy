@@ -135,8 +135,8 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             connection.newBuild()
                 .addProgressListener(progressEventCollector)
                 .forTasks('test')
-                .setStandardOutput(System.out)
-                .setStandardError(System.err)
+                .setStandardOutput(stdout)
+                .setStandardError(stderr)
                 .run()
         }
     }
