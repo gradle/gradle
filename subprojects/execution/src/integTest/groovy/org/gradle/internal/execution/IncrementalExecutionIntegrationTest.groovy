@@ -275,7 +275,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         def invalidWork = builder
             .withValidator {context -> context
                 .forType(UnitOfWork, false)
-                .visitProperty0Problem{
+                .visitPropertyProblem{
                     it.withId(ValidationProblemId.TEST_PROBLEM)
                         .reportAs(WARNING)
                         .withDescription("Validation problem")
