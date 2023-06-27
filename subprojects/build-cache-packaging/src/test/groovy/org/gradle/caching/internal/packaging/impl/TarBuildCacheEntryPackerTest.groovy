@@ -270,7 +270,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
 
         then:
         def iae = thrown(IllegalArgumentException)
-        iae.message == "'tree-destinationDir/../evil.txt' is not a safe zip entry name."
+        iae.message == "'tree-destinationDir/../evil.txt' is not a safe archive entry or path name."
         !temporaryFolder.file("evil.txt").exists()
     }
 }
