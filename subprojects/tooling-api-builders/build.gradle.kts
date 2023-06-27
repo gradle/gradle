@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":tooling-api"))
+    implementation(project(":toolchains-jvm"))
     implementation(project(":workers"))
 
     implementation(libs.groovy) // for 'Closure'

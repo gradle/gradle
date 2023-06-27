@@ -39,7 +39,6 @@ import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
@@ -117,7 +116,6 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(DefaultJavaToolchainProvisioningService.class);
         registration.add(SecureFileDownloader.class);
         registration.add(JavaToolchainQueryService.class);
-        registration.add(DefaultJavaToolchainService.class);
     }
 
     private void registerInvalidJavaInstallationsCacheInvalidator(ServiceRegistration registration) {

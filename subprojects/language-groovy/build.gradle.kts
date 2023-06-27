@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":language-jvm"))
     implementation(project(":language-java"))
     implementation(project(":files"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)

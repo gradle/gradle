@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
+package org.gradle.jvm.internal.services;
 
-description = "Adds support for using JVM toolchains in projects"
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":jvm-services"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-jvm"))
-
-    implementation(libs.groovy)
-    implementation(libs.inject)
+public class ToolchainsJVMServices extends AbstractPluginServiceRegistry {
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(DefaultJavaToolchainService.class);
+    }
 }
