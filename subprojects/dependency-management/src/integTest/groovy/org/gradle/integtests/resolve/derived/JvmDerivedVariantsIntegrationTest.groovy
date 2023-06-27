@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.resolve.derived
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class JvmDerivedVariantsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -39,6 +39,15 @@ java {
     withSourcesJar()
 }
 
+java {
+    sourceSets {
+        foo
+    }
+    registerFeature("foo") {
+        usingSourceSet(sourceSets.foo)
+    }
+}
+
 publishing {
     repositories {
         mavenLocal()
@@ -58,10 +67,6 @@ plugins {
 repositories {
     mavenLocal()
 }
-
-dependencies {
-    implementation 'com.example:test:1.0'
-}
 """
         file('src/main/java/com/example/Foo.java').java """
 package com.example;
@@ -77,21 +82,23 @@ public class Foo {
         succeeds("publishToMavenLocal")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "sources jar attributes match derived variants attributes"() {
         file("consumer/build.gradle") << """
+dependencies {
+    implementation 'com.example:test:1.0'
+}
+
 task resolve {
-    dependsOn configurations.runtimeClasspath
+    def artifacts = configurations.runtimeClasspath.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+        }
+    }.artifacts
     doLast {
-        def artifacts = configurations.runtimeClasspath.incoming.artifactView {
-            withVariantReselection()
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
-                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
-            }
-        }.artifacts
         assert artifacts.size() == 1
         artifacts[0].with {
             def attributes = variant.attributes
@@ -124,21 +131,23 @@ task resolve {
         noExceptionThrown()
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "javadoc jar attributes match derived variants attributes"() {
         file("consumer/build.gradle") << """
+dependencies {
+    implementation 'com.example:test:1.0'
+}
+
 task resolve {
-    dependsOn configurations.runtimeClasspath
+    def artifacts = configurations.runtimeClasspath.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
+        }
+    }.artifacts
     doLast {
-        def artifacts = configurations.runtimeClasspath.incoming.artifactView {
-            withVariantReselection()
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
-                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
-            }
-        }.artifacts
         assert artifacts.size() == 1
         artifacts[0].with {
             def attributes = variant.attributes
@@ -166,6 +175,78 @@ task resolve {
         when:
         removeGMM()
         and:
+        succeeds(":consumer:resolve")
+        then:
+        noExceptionThrown()
+    }
+
+    def "can re-select artifacts if dependency has explicit artifact"() {
+        file("consumer/build.gradle") << """
+dependencies {
+    implementation 'com.example:test:1.0:foo'
+}
+
+task resolve {
+    def normal = configurations.runtimeClasspath.incoming.files
+    def reselected = configurations.runtimeClasspath.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+        }
+    }.files
+    doLast {
+        assert normal*.name == ["test-1.0-foo.jar"]
+        // We select the production sources here instead of the foo feature's sources since
+        // the user uses a classifier. The foo capability was never defined.
+        assert reselected*.name == ["test-1.0-sources.jar"]
+    }
+}
+"""
+        when:
+        succeeds(":consumer:resolve")
+        then:
+        noExceptionThrown()
+
+        when:
+        removeGMM()
+        and:
+        succeeds(":consumer:resolve")
+        then:
+        noExceptionThrown()
+    }
+
+    @NotYetImplemented // Currently we throw an exception since we can't decide between the production and foo sources
+    def "variant reselection only re-selects among variants with the same capabilities"() {
+        file("consumer/build.gradle") << """
+dependencies {
+    implementation('com.example:test:1.0') {
+        capabilities {
+            requireCapability("com.example:test-foo:1.0")
+        }
+    }
+}
+
+task resolve {
+    def normal = configurations.runtimeClasspath.incoming.files
+    def reselected = configurations.runtimeClasspath.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+        }
+    }.files
+    doLast {
+        assert normal*.name == ["test-1.0-foo.jar"]
+        assert reselected*.name == ["test-1.0-foo-sources.jar"]
+    }
+}
+"""
+        when:
         succeeds(":consumer:resolve")
         then:
         noExceptionThrown()

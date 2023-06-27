@@ -231,12 +231,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         private final LocalConfigurationGraphResolveMetadata graphSelectedConfiguration;
         private final Set<? extends VariantResolveMetadata> variants;
 
-        public DefaultLocalConfigurationArtifactResolveState(LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Set<? extends VariantResolveMetadata> variants) {
+        public DefaultLocalConfigurationArtifactResolveState(String name, LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Set<? extends VariantResolveMetadata> variants) {
             this.name = name;
             this.component = new LocalComponentArtifactResolveMetadata(component);
             this.graphSelectedConfiguration = graphSelectedConfiguration;
             this.variants = variants;
-            this.allVariants = allVariantsForArtifactSelection;
         }
 
         @Override
