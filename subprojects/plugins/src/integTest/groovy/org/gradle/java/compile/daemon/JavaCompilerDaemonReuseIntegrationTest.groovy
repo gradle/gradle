@@ -79,6 +79,8 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         compilerDaemonIdentityFile.text.trim() == firstCompilerIdentity
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "log messages from a compiler daemon are associated with the task that generates them"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
