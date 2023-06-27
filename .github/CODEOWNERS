@@ -1,5 +1,4 @@
 # Execution team and shared build cache ownership
-subprojects/base-annotations/               @gradle/bt-execution
 subprojects/build-cache/                    @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/build-cache-base/               @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/build-cache-http/               @gradle/bt-execution @gradle/bt-ge-build-cache
@@ -12,14 +11,20 @@ subprojects/files/                          @gradle/bt-execution @gradle/bt-ge-b
 subprojects/functional/                     @gradle/bt-execution @bamboo
 subprojects/hashing/                        @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/snapshots/                      @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/worker-processes/               @gradle/bt-execution
+subprojects/workers/                        @gradle/bt-execution
 
 # Configuration cache team (soon to be renamed Configuration team)
 subprojects/api-metadata/                       @gradle/bt-configuration-cache
 subprojects/base-annotations/                   @gradle/bt-configuration-cache
+subprojects/base-services-groovy/               @gradle/bt-configuration-cache
 subprojects/configuration-cache/                @gradle/bt-configuration-cache
+subprojects/file-collections/                   @gradle/bt-configuration-cache
 subprojects/instrumentation-agent/              @gradle/bt-configuration-cache
 subprojects/internal-instrumentation-api/       @gradle/bt-configuration-cache
 subprojects/internal-instrumentation-processor/ @gradle/bt-configuration-cache
+subprojects/model-core/                         @gradle/bt-configuration-cache
+subprojects/model-groovy/                       @gradle/bt-configuration-cache
 
 # Gradle Enterprise
 subprojects/build-scan-performance/         @gradle/bt-build-scan
@@ -107,6 +112,7 @@ subprojects/tooling-api-builders/ @gradle/bt-ide-experience
 
 
 # Release coordination
+subprojects/core-platform/              @gradle/bt-support
 subprojects/distributions-dependencies/ @gradle/bt-support
 subprojects/distributions-full/         @gradle/bt-support
 subprojects/performance/                @gradle/bt-support
