@@ -821,8 +821,8 @@
   {
     "name": "toolchains-jvm",
     "path": "platforms/jvm/toolchains-jvm",
-    "unitTests": false,
-    "functionalTests": false,
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

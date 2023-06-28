@@ -30,4 +30,12 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.inject)
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":language-groovy")))
+
+    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures(project(":plugins")))
+
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
