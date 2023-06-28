@@ -104,7 +104,11 @@ public interface ResolvableDependencies extends ArtifactView {
     void afterResolve(@DelegatesTo(ResolvableDependencies.class) Closure action);
 
     /**
-     * Returns the resolved dependency graph, performing the resolution if required when called on the resolution result. This will resolve the dependency graph but will not resolve or download the files.
+     * Returns the resolved dependency graph, performing the resolution lazily.
+     *
+     * <p>The lazy aspect depends on what is done with the returned {@code ResolutionResult}.</p>
+     *
+     * This will resolve the dependency graph but will not resolve or download the files.
      *
      * <p>You should note that when resolution fails, the exceptions are included in the {@link ResolutionResult} returned from this method. This method will not throw these exceptions.</p>
      *
