@@ -83,7 +83,7 @@ public abstract class FailureMapper {
      * Utility method to invoke a method on an object by reflective means.
      */
     protected static <T> T invokeMethod(Object obj, String methodName, Class<T> targetClass) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method method = obj.getClass().getDeclaredMethod(methodName);
+        Method method = obj.getClass().getMethod(methodName);
         return targetClass.cast(method.invoke(obj));
     }
 
