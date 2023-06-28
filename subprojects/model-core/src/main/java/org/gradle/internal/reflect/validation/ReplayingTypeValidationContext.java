@@ -26,8 +26,8 @@ public class ReplayingTypeValidationContext implements TypeValidationContext {
     private final List<BiConsumer<String, TypeValidationContext>> problems = new ArrayList<>();
 
     @Override
-    public void visitNewTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        problems.add((ownerProperty, validationContext) -> validationContext.visitNewTypeProblem(problemSpec));
+    public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        problems.add((ownerProperty, validationContext) -> validationContext.visitTypeProblem(problemSpec));
     }
 
     @Override

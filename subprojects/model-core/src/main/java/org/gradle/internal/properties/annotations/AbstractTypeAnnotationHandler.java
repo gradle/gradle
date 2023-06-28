@@ -45,7 +45,7 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
         Class<? extends Annotation> annotationType,
         Class<?>... appliesOnlyTo
     ) {
-        visitor.visitNewTypeProblem(problem ->
+        visitor.visitTypeProblem(problem ->
             problem.withAnnotationType(classWithAnnotationAttached)
                 .severity(Severity.ERROR)
                 .type(INVALID_USE_OF_TYPE_ANNOTATION.name())

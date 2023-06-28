@@ -163,7 +163,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 //                    }
 //                }
 //            );
-            validationContext.visitNewTypeProblem(problem -> {
+            validationContext.visitTypeProblem(problem -> {
                     ProblemBuilder builder = problem
                         .withAnnotationType(topLevelBean)
                         .severity(WARNING)

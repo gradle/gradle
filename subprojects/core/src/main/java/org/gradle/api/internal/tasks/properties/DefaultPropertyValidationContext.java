@@ -36,8 +36,8 @@ public class DefaultPropertyValidationContext implements PropertyValidationConte
     }
 
     @Override
-    public void visitNewTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        delegate.visitNewTypeProblem(problemSpec);
+    public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        delegate.visitTypeProblem(problemSpec);
     }
 
     @Override

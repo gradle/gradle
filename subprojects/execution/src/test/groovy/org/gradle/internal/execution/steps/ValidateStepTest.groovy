@@ -75,7 +75,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
   - ${validationProblem}"""
         }
         _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
-            validationContext.forType(JobType, true).visitNewTypeProblem {
+            validationContext.forType(JobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
                     .type(ValidationProblemId.TEST_PROBLEM.name())
@@ -105,7 +105,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         }
 
         _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
-            validationContext.forType(JobType, true).visitNewTypeProblem {
+            validationContext.forType(JobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
                     .type(ValidationProblemId.TEST_PROBLEM.name())
@@ -115,7 +115,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .description("Test")
                     .noLocation()
             }
-            validationContext.forType(SecondaryJobType, true).visitNewTypeProblem {
+            validationContext.forType(SecondaryJobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
                     .type(ValidationProblemId.TEST_PROBLEM.name())
@@ -136,7 +136,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
         then:
         _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
-            validationContext.forType(JobType, true).visitNewTypeProblem {
+            validationContext.forType(JobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
                     .type(ValidationProblemId.TEST_PROBLEM.name())
@@ -173,7 +173,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         then:
         _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
             def typeContext = validationContext.forType(JobType, true)
-            typeContext.visitNewTypeProblem {
+            typeContext.visitTypeProblem {
                 it
                     .withAnnotationType(Object)
                     .type(ValidationProblemId.TEST_PROBLEM.name())
@@ -183,7 +183,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .description("Test")
                     .noLocation()
             }
-            typeContext.visitNewTypeProblem {
+            typeContext.visitTypeProblem {
                 it
                     .withAnnotationType(Object)
                     .type(ValidationProblemId.TEST_PROBLEM.name())

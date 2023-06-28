@@ -46,7 +46,7 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
     }
 
     @Override
-    public void visitNewTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
+    public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
         TypeAwareProblemBuilder problemBuilder = new TypeAwareProblemBuilder();
         problemSpec.execute(problemBuilder);
         recordProblem(problemBuilder.build());

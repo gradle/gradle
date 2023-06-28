@@ -335,7 +335,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach(entry -> {
                     String fieldName = entry.getKey();
                     ImmutableMap<Class<? extends Annotation>, Annotation> fieldAnnotations = entry.getValue();
-                    validationContext.visitNewTypeProblem(problem ->
+                    validationContext.visitTypeProblem(problem ->
                         problem
                             .withAnnotationType(type)
                             .type(ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD.name())
@@ -489,7 +489,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static void validateNotAnnotated(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
-            validationContext.visitNewTypeProblem(problem ->
+            validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
                     .type(ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD.name())
                     .severity(ERROR)

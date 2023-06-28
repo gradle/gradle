@@ -84,7 +84,7 @@ trait TestAnnotationHandlingSupport {
         @Override
         void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
             if (classWithAnnotationAttached.getAnnotation(ThisIsAThing)?.invalid()) {
-                visitor.visitNewTypeProblem {
+                visitor.visitTypeProblem {
                     it.message("Annotated as invalid thing!")
                     .noLocation()
                     .undocumented()

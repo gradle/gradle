@@ -27,7 +27,7 @@ public interface TypeValidationContext {
      *
      * @param problemSpec the problem builder
      */
-    void visitNewTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec); // TODO (Reinhold) rename to visitTypeProblem
+    void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec); // TODO (Reinhold) rename to visitTypeProblem
 
     /**
      * Visits a validation problem associated with the given property.
@@ -43,7 +43,7 @@ public interface TypeValidationContext {
         public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
 
         @Override
-        public void visitNewTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) { }
+        public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) { }
     };
 
 }

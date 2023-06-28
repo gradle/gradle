@@ -192,7 +192,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
-            context.visitNewTypeProblem {
+            context.visitTypeProblem {
                 it
                     .withAnnotationType(type)
                     .severity(Severity.WARNING)

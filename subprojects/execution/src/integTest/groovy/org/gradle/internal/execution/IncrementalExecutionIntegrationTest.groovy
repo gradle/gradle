@@ -585,7 +585,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def "invalid work is not executed"() {
         def invalidWork = builder
             .withValidator { validationContext ->
-                validationContext.forType(Object, true).visitNewTypeProblem {
+                validationContext.forType(Object, true).visitTypeProblem {
                     it
                         .withAnnotationType(Object)
                         .type(ValidationProblemId.TEST_PROBLEM.name())
