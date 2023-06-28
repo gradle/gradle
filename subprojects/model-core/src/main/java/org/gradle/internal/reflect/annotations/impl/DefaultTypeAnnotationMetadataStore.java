@@ -347,17 +347,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             .documentedAt(userManual("validation_problems", "ignored_annotations_on_field"))
                             .noLocation()
                     );
-//                    validationContext.visitTypeProblem(problem ->
-//                        problem.withId(ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD)
-//                            .forType(type)
-//                            .reportAs(org.gradle.internal.reflect.validation.Severity.ERROR)
-//                            .withDescription(() -> String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
-//                            .happensBecause("Annotations on fields are only used if there's a corresponding getter for the field")
-//                            .withLongDescription("If a field is annotated but there's no corresponding getter, then the annotations are ignored")
-//                            .addPossibleSolution(() -> "Add a getter for field '" + fieldName + "'")
-//                            .addPossibleSolution(() -> "Remove the annotations on '" + fieldName + "'")
-//                            .documentedAt("validation_problems", "ignored_annotations_on_field")
-//                    );
                 });
         }
         return propertiesMetadata;

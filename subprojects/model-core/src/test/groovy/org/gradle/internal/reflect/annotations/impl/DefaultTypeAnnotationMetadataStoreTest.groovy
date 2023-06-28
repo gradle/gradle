@@ -40,7 +40,6 @@ import java.lang.annotation.Target
 import java.lang.reflect.Method
 
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
-import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
