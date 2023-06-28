@@ -118,7 +118,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         Configuration enforcedRuntimeElements = createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
         enforcedRuntimeElements.getOutgoing().capability(enforcedCapability);
 
-        Configuration classpath = configurations.createWithRole(CLASSPATH_CONFIGURATION_NAME, ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
+        @SuppressWarnings("deprecation") Configuration classpath = configurations.createWithRole(CLASSPATH_CONFIGURATION_NAME, ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
         classpath.extendsFrom(runtimeElements);
         declareConfigurationUsage(project.getObjects(), classpath, Usage.JAVA_RUNTIME, LibraryElements.JAR);
 
@@ -126,7 +126,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private Configuration createConsumableRuntime(ProjectInternal project, Configuration apiElements, String name, String platformKind) {
-        Configuration runtimeElements = project.getConfigurations().createWithRole(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        @SuppressWarnings("deprecation") Configuration runtimeElements = project.getConfigurations().createWithRole(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
         runtimeElements.extendsFrom(apiElements);
         declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
         declareConfigurationCategory(project.getObjects(), runtimeElements, platformKind);
@@ -134,7 +134,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private Configuration createConsumableApi(ProjectInternal project, Configuration api, String name, String platformKind) {
-        Configuration apiElements = project.getConfigurations().createWithRole(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        @SuppressWarnings("deprecation") Configuration apiElements = project.getConfigurations().createWithRole(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
         apiElements.extendsFrom(api);
         declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);
         declareConfigurationCategory(project.getObjects(), apiElements, platformKind);

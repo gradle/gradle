@@ -26,9 +26,6 @@ dependencies {
     implementation(project(":process-services"))
     implementation(project(":resources"))
     implementation(project(":enterprise-operations"))
-    implementation(project(":ivy"))
-    implementation(project(":maven"))
-    implementation(project(":publish"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
