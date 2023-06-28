@@ -14,32 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.interfaces.Severity
+import spock.lang.Specification
 
-/**
- * Severity.
- *
- * @since 8.3
- */
-@Incubating
-public enum Severity {
-    WARNING("Warning"),
-    ERROR("Error");
-
-    private final String displayName;
-
-    Severity(String displayName) {
-
-        this.displayName = displayName;
-    }
-
-    @Override
-    public String toString() {
-        return displayName;
-    }
-    public boolean isWarning() {
-        return this == WARNING;
+class SeverityTest extends Specification{
+    def "severity toString() should be a capitalized word"() {
+        expect:
+        Severity.ERROR.toString() == "Error"
+        Severity.WARNING.toString() == "Warning"
     }
 }
