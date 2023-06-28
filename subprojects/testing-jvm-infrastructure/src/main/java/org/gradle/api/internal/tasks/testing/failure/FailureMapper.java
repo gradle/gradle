@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 /**
- * A mapper that maps a {@link Throwable} thrown from a test engine into a {@link TestFailure}.
+ * A mapper that maps a {@link Throwable} thrown during test execution into a {@link TestFailure}.
  * <p>
  * Implementors of this class should not depend on classes outside the standard library, as there is no guarantee that they will be on the test VM's classpath.
  * Instead, they should rely completely on reflection.
