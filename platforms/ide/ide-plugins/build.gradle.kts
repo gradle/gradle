@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":scala"))
     implementation(project(":testing-base"))
     implementation(project(":tooling-api"))
+    implementation(project(":war"))
 
     implementation(libs.commonsLang)
     implementation(libs.groovy)
