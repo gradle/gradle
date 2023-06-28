@@ -837,6 +837,43 @@ Instead, tasks should be connected using <<lazy_configuration#working_with_task_
 
 Note that this requirement makes it unsupported to write tasks that configure other tasks at execution time.
 
+[[config_cache:requirements:shared_objects]]
+=== Sharing mutable objects
+When storing a task to the configuration cache, all objects directly or indirectly referenced through the task's fields are serialized.
+In most cases, deserialization preserves reference equality: if two fields `a` and `b` referenced the same instance at configuration time, then upon deserialization they will reference the same instance again, so `a == b` (or `a === b` in Groovy and Kotlin syntax) still holds.
+However, for performance reasons, some classes, in particular `java.lang.String`, `java.io.File`, and many implementations of `java.util.Collection` interface, are serialized without preserving the reference equality.
+Upon deserialization, fields that referred to the object of such a class can refer to different but equal objects.
+
+Let's look at a task that stores a user-defined object and an `ArrayList` in task fields.
+====
+include::sample[dir="snippets/configurationCache/sharedObjects/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/configurationCache/sharedObjects/groovy",files="build.gradle[]"]
+====
+<1> `doLast` action captures the references from the enclosing scope. These captured references are also serialized to the configuration cache.
+<2> Compare the reference to an object of user-defined class stored in the task field and the reference captured in the `doLast` action.
+<3> Compare the reference to `ArrayList` instance stored in the task field and the reference captured in the `doLast` action.
+<4> Check the equality of stored and captured lists.
+
+Running the build without configuration cache shows that reference equality is preserved in both cases.
+----
+❯ gradle --no-configuration-cache checkEquality
+include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWithoutConfigurationCache.out[]
+----
+
+However, with the configuration cache enabled, only the user-defined object references are the same.
+List references are different, though the referenced lists are equal.
+----
+❯ gradle --configuration-cache checkEquality
+include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWithConfigurationCache.out[]
+----
+
+In general, it isn't recommended to share mutable objects between configuration and execution phases.
+If you need to do this, you should always wrap the state in a class you define.
+There's no guarantee that the reference equality is preserved for standard Java, Groovy, and Kotlin types, or for Gradle-defined types.
+
+Note that no reference equality is preserved between tasks: each task is its own "realm", so it is not possible to share objects between tasks.
+Instead, you can use a <<build_services#build_services,build service>> to wrap the shared state.
+
 [[config_cache:requirements:task_extensions]]
 === Accessing task extensions or conventions
 
