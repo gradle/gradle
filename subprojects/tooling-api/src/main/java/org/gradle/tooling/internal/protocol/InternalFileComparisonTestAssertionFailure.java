@@ -32,13 +32,17 @@ import javax.annotation.Nullable;
 public interface InternalFileComparisonTestAssertionFailure extends InternalTestAssertionFailure {
 
     /**
-     * Todo.
+     * Returns the expected file contents.
+     *
+     * @return the expected file contents or {@code null} if the test framework doesn't supply detailed information on assertion failures
      */
     @Nullable
     byte[] getExpectedContent();
 
     /**
-     * Todo.
+     * Returns the actual file contents.
+     *
+     * @return the actual file contents or {@code null} if the test framework doesn't supply detailed information on assertion failures
      */
     @Nullable
     byte[] getActualContent();
