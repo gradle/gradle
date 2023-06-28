@@ -108,7 +108,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     @Override
     public void visit(FileVisitor visitor) {
-        visitFrom(visitor, dir, RelativePath.EMPTY_ROOT);
+        visitFrom(visitor, dir, RelativePath.EMPTY_ROOT, new AtomicBoolean());
     }
 
     /**
@@ -116,8 +116,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
      * (but not the directory itself) will be checked with {@link #isAllowed(FileTreeElement, Spec)} and notified to
      * the listener.  If it is a file, the file will be checked and notified.
      */
-    public void visitFrom(FileVisitor visitor, File fileOrDirectory, RelativePath path) {
-        AtomicBoolean stopFlag = new AtomicBoolean();
+    public void visitFrom(FileVisitor visitor, File fileOrDirectory, RelativePath path, AtomicBoolean stopFlag) {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         if (fileOrDirectory.exists()) {
             if (fileOrDirectory.isFile()) {
