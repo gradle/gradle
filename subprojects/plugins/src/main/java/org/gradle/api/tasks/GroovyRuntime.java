@@ -178,7 +178,7 @@ public abstract class GroovyRuntime {
 
             private Configuration detachedRuntimeClasspath(Dependency... dependencies) {
                 Configuration classpath = project.getConfigurations().detachedConfiguration(dependencies);
-                jvmEcosystemUtilities().configureAsRuntimeClasspath(classpath);
+                getJvmPluginServices().configureAsRuntimeClasspath(classpath);
                 return classpath;
             }
 
@@ -215,7 +215,7 @@ public abstract class GroovyRuntime {
         return null;
     }
 
-    private JvmPluginServices jvmEcosystemUtilities() {
+    private JvmPluginServices getJvmPluginServices() {
         return project.getServices().get(JvmPluginServices.class);
     }
 }

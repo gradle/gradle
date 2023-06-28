@@ -57,7 +57,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
-    private final JvmLanguageUtilities jvmEcosystemUtilities;
+    private final JvmLanguageUtilities jvmLanguageUtils;
 
     @Inject
     public GroovyBasePlugin(
@@ -67,7 +67,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     ) {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
-        this.jvmEcosystemUtilities = jvmPluginServices;
+        this.jvmLanguageUtils = jvmPluginServices;
     }
 
     @Override
@@ -137,8 +137,8 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureTargetPlatform(TaskProvider<GroovyCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
-        jvmEcosystemUtilities.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
-        jvmEcosystemUtilities.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
+        jvmLanguageUtils.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
+        jvmLanguageUtils.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
     }
 
     private TaskProvider<GroovyCompile> createGroovyCompileTask(Project project, SourceSet sourceSet, GroovySourceDirectorySet groovySource) {
