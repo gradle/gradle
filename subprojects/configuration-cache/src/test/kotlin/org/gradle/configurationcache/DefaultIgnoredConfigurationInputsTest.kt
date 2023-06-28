@@ -1,0 +1,89 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.configurationcache
+
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.io.File
+
+
+class DefaultIgnoredConfigurationInputsTest {
+
+    private
+    val rootDir = File("/test/rootDir")
+
+    private
+    fun createFromPaths(paths: List<String>): DefaultIgnoredConfigurationInputs {
+        return DefaultIgnoredConfigurationInputs(paths.joinToString(";"), rootDir)
+    }
+
+    @Test
+    fun `does not recognize arbitrary paths by default`() {
+        val instance = createFromPaths(emptyList())
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("test")))
+    }
+
+    @Test
+    fun `recognizes relative paths against rootDirectory`() {
+        val instance = createFromPaths(listOf("test/123"))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(rootDir.resolve("test/123")))
+    }
+
+    @Test
+    fun `recognizes multiple paths`() {
+        val instance = createFromPaths(listOf("path/one", "path/two"))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("path/one")))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("path/two")))
+    }
+
+    @Test
+    fun `recognizes path specified with a wildcard but only within one segment`() {
+        val instance = createFromPaths(listOf("path/*"))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("path/a")))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("path/a.txt")))
+
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("path/")))
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("path/two/segments")))
+    }
+
+    @Test
+    fun `recognizes segments that are partially wildcarded`() {
+        val instance = createFromPaths(listOf("foo*/*bar*/*baz/*.xml"))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("foo/bar/baz/.xml")))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("foo1/2bar3/4baz/abc.xml")))
+    }
+
+    @Test
+    fun `recognizes double-asterisk wildcards across path segments`() {
+        val instance = createFromPaths(listOf("foo/**/bar/**"))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("foo/one/two/bar/three")))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("foo/2/bar/3/4")))
+    }
+
+    @Test
+    fun `recognizes user-home-based paths against the user home dir`() {
+        val instance = createFromPaths(listOf("~/.gradle/foo.bar"))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File(System.getProperty("user.home"), ".gradle/foo.bar")))
+    }
+
+    @Test
+    fun `recognizes relative paths pointing outside the root directory`() {
+        val instance = createFromPaths(listOf("../../test1"))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(rootDir.parentFile.parentFile.resolve("test1")))
+    }
+}

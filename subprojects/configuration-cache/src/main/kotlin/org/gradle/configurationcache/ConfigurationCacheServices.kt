@@ -62,6 +62,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheRepository::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedInputAccessListener::class.java)
+            add(DefaultIgnoredConfigurationInputs::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
