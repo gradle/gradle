@@ -35,6 +35,17 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)
+
+    testImplementation(project(":language-java")) {
+        because("need to access JavaCompile task")
+    }
+    testImplementation(project(":plugins")) {
+        because("need to access JavaPluginExtension")
+    }
+
+    testImplementation(testFixtures(project(":core")))
+
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 packageCycles {

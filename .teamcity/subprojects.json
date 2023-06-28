@@ -457,8 +457,8 @@
   {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
-    "unitTests": false,
-    "functionalTests": false,
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

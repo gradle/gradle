@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.AttributeTestUtil
+import spock.lang.Specification
 
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
 import static org.gradle.api.attributes.Bundling.EMBEDDED
@@ -74,7 +75,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         1 * attrs.getAttributes() >> mutable
-        0 * _
+        0 * Specification._
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
@@ -92,7 +93,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         1 * attrs.getAttributes() >> mutable
-        0 * _
+        0 * Specification._
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
@@ -111,7 +112,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         1 * attrs.getAttributes() >> mutable
-        0 * _
+        0 * Specification._
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
@@ -130,7 +131,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         1 * attrs.getAttributes() >> mutable
-        0 * _
+        0 * Specification._
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
@@ -164,7 +165,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         1 * artifacts2.clear()
         1 * outgoing.artifact(artifact1)
         1 * outgoing.artifact(artifact2)
-        0 * _
+        0 * Specification._
     }
 
     def "can setup a classes directory secondary variant"() {
@@ -191,17 +192,17 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         1 * outgoing.getVariants() >> variants
         1 * variants.maybeCreate('classes') >> variant
         1 * variant.getAttributes() >> attrs
-        1 * variant.artifactsProvider(_) >> {
+        1 * variant.artifactsProvider(Specification._) >> {
             def artifacts = it[0].create()
             assert artifacts.size() == 1
             PublishArtifact artifact = artifacts[0]
             assert artifact.name == 'toto'
         }
-        1 * variant.setDescription(_)
-        _ * sourceSet.getOutput() >> output
+        1 * variant.setDescription(Specification._)
+        Specification._ * sourceSet.getOutput() >> output
         1 * output.getClassesDirs() >> classes
         1 * sourceSet.getName()
-        0 * _
+        0 * Specification._
     }
 
     def "configures attributes"() {
