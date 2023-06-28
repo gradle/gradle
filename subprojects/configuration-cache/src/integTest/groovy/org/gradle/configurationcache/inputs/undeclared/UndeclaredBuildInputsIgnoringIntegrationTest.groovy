@@ -75,5 +75,14 @@ class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfiguration
         }
     }
 
+    def 'paths ignored in file system checks are included in the configuration cache fingerprint'() {
+        when:
+        configurationCacheRun()
+        configurationCacheRun("-D$IGNORE_FS_CHECKS_PROPERTY=test")
+
+        then:
+        outputContains("the set of paths ignored in file-system-check input tracking has changed")
+    }
+
     private static final String IGNORE_FS_CHECKS_PROPERTY = StartParameterBuildOptions.ConfigurationCacheIgnoredFileSystemCheckInputs.PROPERTY_NAME
 }
