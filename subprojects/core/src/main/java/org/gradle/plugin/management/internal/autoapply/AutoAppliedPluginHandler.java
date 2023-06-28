@@ -31,13 +31,9 @@ import org.gradle.plugin.management.internal.PluginRequests;
  * <li> The plugin was already applied (e.g. through an init script)
  * <li> The plugin was already requested in the <code>plugins {}</code> block </li>
  * <li> The plugin was already requested in the <code>buildscript {}</code> block </li>
- *</ul>
+ * </ul>
  */
 public interface AutoAppliedPluginHandler {
 
-    /**
-     * Merges the provided user requests with other plugin requests that should be auto-applied
-     * based on the current build invocation and the given target.
-     */
-    PluginRequests mergeWithAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget);
+    PluginRequests getAutoAppliedPlugins(Object pluginTarget);
 }

@@ -123,6 +123,13 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         }
     }
 
+    public void dropClassloaders() {
+        exportingClassLoader = null;
+        effectiveExportClassLoader = null;
+        localClassLoader = null;
+        effectiveLocalClassLoader = null;
+    }
+
     @Override
     public ClassLoader getExportClassLoader() {
         buildEffectiveLoaders();

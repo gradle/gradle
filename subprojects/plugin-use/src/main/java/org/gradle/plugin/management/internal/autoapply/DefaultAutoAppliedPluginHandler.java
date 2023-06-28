@@ -41,27 +41,26 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
         this.registry = registry;
     }
 
-    @Override
-    public PluginRequests mergeWithAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget) {
+    public PluginRequests getAutoAppliedPlugins(Object pluginTarget) {
         if (pluginTarget instanceof Project) {
             Project project = (Project) pluginTarget;
 
             PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(project);
             if (autoAppliedPlugins.isEmpty()) {
-                return initialRequests;
+                return PluginRequests.EMPTY;
             }
-            return mergePluginRequests(autoAppliedPlugins, initialRequests, project.getPlugins(), project.getBuildscript());
+            return autoAppliedPlugins;
         } else if (pluginTarget instanceof Settings) {
             Settings settings = (Settings) pluginTarget;
 
             PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(settings);
             if (autoAppliedPlugins.isEmpty()) {
-                return initialRequests;
+                return PluginRequests.EMPTY;
             }
-            return mergePluginRequests(autoAppliedPlugins, initialRequests, settings.getPlugins(), settings.getBuildscript());
+            return autoAppliedPlugins;
         } else {
             // No auto-applied plugins available
-            return initialRequests;
+            return PluginRequests.EMPTY;
         }
 
     }

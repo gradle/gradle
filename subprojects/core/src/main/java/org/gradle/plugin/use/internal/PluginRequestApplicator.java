@@ -39,6 +39,7 @@ public interface PluginRequestApplicator {
      * A null target indicates that no plugin requests should be resolved but only the setup of the given
      * {@link ClassLoaderScope}.
      */
+    void applyPlugins(PluginRequests requests, PluginRequests autoAppliedPlugins, ScriptHandlerInternal scriptHandler, @Nullable PluginManagerInternal target, ClassLoaderScope classLoaderScope);
     void applyPlugins(PluginRequests requests, ScriptHandlerInternal scriptHandler, @Nullable PluginManagerInternal target, ClassLoaderScope classLoaderScope);
 
     @EventScope(Scopes.Build.class)

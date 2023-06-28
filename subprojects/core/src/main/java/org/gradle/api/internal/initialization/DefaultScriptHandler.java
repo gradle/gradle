@@ -98,6 +98,10 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         return resolvedClasspath;
     }
 
+    public void dropInstrumentedScriptClassPath() {
+        resolvedClasspath = null;
+    }
+
     @Override
     public DependencyHandler getDependencies() {
         defineConfiguration();

@@ -52,6 +52,8 @@ public interface PluginResolutionResult {
      */
     void found(String sourceDescription, PluginResolution pluginResolution);
 
+    void alreadyApplied(String sourceDescription);
+
     /**
      * Whether the plugin has been found (i.e. has {@link #found(String, PluginResolution)} has been called)
      *

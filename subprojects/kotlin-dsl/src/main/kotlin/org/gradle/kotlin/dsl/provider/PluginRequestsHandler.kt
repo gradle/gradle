@@ -40,20 +40,12 @@ class PluginRequestsHandler @Inject constructor(
         target: PluginAwareInternal,
         targetScope: ClassLoaderScope
     ) {
-
-        val effectivePluginRequests = pluginRequests
-            ?.let { withAutoAppliedPluginsFor(target, it) }
-            ?: PluginRequests.EMPTY
-
         pluginRequestApplicator.applyPlugins(
-            effectivePluginRequests,
+            pluginRequests ?: PluginRequests.EMPTY,
+            autoAppliedPluginHandler.getAutoAppliedPlugins(target),
             scriptHandler,
             target.pluginManager,
             targetScope
         )
     }
-
-    private
-    fun withAutoAppliedPluginsFor(target: Any, pluginRequests: PluginRequests): PluginRequests =
-        autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(pluginRequests, target)
 }
