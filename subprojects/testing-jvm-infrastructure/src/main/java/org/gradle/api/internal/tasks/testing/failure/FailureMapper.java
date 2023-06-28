@@ -77,8 +77,6 @@ public abstract class FailureMapper {
      */
     public abstract TestFailure map(Throwable throwable, RootAssertionToFailureMapper rootMapper) throws Exception;
 
-    // Utility methods ------------------------------------
-
     /**
      * Utility method to invoke a method on an object by reflective means.
      */
