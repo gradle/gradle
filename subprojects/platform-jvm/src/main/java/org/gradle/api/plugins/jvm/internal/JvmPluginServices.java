@@ -29,8 +29,8 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @NonNullApi
 @HasInternalProtocol
-@SuppressWarnings("UnusedReturnValue")
-public interface JvmPluginServices {
+@SuppressWarnings({"UnusedReturnValue", "deprecation"})
+public interface JvmPluginServices extends JvmEcosystemUtilities {
 
     /**
      * Registers a variant on {@code configuration} which exposes the resources defined by {@code sourceSet}.
@@ -54,13 +54,6 @@ public interface JvmPluginServices {
      * @param configuration the configuration to be configured
      */
     void configureAsCompileClasspath(HasConfigurableAttributes<?> configuration);
-
-    /**
-     * Configures a configuration with reasonable defaults to be resolved as a runtime classpath.
-     *
-     * @param configuration the configuration to be configured
-     */
-    void configureAsRuntimeClasspath(HasConfigurableAttributes<?> configuration);
 
     /**
      * Configures a consumable configuration to provide an API compile classpath.
