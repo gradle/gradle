@@ -840,7 +840,7 @@ Note that this requirement makes it unsupported to write tasks that configure ot
 [[config_cache:requirements:shared_objects]]
 === Sharing mutable objects
 When storing a task to the configuration cache, all objects directly or indirectly referenced through the task's fields are serialized.
-In most cases, deserialization preserves reference equality: if two fields `a` and `b` referenced the same instance at configuration time, then upon deserialization they will reference the same instance again, so `a == b` (or `a === b` in Groovy and Kotlin syntax) still holds.
+In most cases, deserialization preserves reference equality: if two fields `a` and `b` reference the same instance at configuration time, then upon deserialization they will reference the same instance again, so `a == b` (or `a === b` in Groovy and Kotlin syntax) still holds.
 However, for performance reasons, some classes, in particular `java.lang.String`, `java.io.File`, and many implementations of `java.util.Collection` interface, are serialized without preserving the reference equality.
 Upon deserialization, fields that referred to the object of such a class can refer to different but equal objects.
 
@@ -854,7 +854,7 @@ include::sample[dir="snippets/configurationCache/sharedObjects/groovy",files="bu
 <3> Compare the reference to `ArrayList` instance stored in the task field and the reference captured in the `doLast` action.
 <4> Check the equality of stored and captured lists.
 
-Running the build without configuration cache shows that reference equality is preserved in both cases.
+Running the build without the configuration cache shows that reference equality is preserved in both cases.
 ----
 ❯ gradle --no-configuration-cache checkEquality
 include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWithoutConfigurationCache.out[]
@@ -869,7 +869,7 @@ include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWit
 
 In general, it isn't recommended to share mutable objects between configuration and execution phases.
 If you need to do this, you should always wrap the state in a class you define.
-There's no guarantee that the reference equality is preserved for standard Java, Groovy, and Kotlin types, or for Gradle-defined types.
+There is no guarantee that the reference equality is preserved for standard Java, Groovy, and Kotlin types, or for Gradle-defined types.
 
 Note that no reference equality is preserved between tasks: each task is its own "realm", so it is not possible to share objects between tasks.
 Instead, you can use a <<build_services#build_services,build service>> to wrap the shared state.
