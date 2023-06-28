@@ -28,6 +28,8 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.reflect.validation.TypeValidationProblem.PLUGIN_ID;
+
 abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
     private final DocumentationRegistry documentationRegistry;
     private final Class<?> rootType;
@@ -50,9 +52,8 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         recordProblem(problemBuilder.build());
     }
 
-    @Nullable
-    private PluginId pluginId() {
-        return pluginId.get().orElse(null);
+    private Optional<PluginId> pluginId() {
+        return pluginId.get();
     }
 
 
@@ -61,6 +62,9 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         TypeAwareProblemBuilder problemBuilder = new TypeAwareProblemBuilder();
         problemSpec.execute(problemBuilder);
         problemBuilder.withAnnotationType(rootType);
+        pluginId()
+            .map(PluginId::getId)
+            .ifPresent(id -> problemBuilder.withMetadata(PLUGIN_ID, id));
         recordProblem(problemBuilder.build());
     }
 

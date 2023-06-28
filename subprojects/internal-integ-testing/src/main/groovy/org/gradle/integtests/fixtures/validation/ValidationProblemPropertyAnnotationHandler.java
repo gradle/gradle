@@ -16,15 +16,15 @@
 package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-
-import static org.gradle.api.problems.interfaces.Severity.WARNING;
 
 class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public ValidationProblemPropertyAnnotationHandler() {
@@ -54,7 +54,10 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
         );
     }
 
-    private org.gradle.api.problems.interfaces.Severity annotationValue(PropertyMetadata propertyMetadata) {
-        return WARNING;
+    private Severity annotationValue(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE)
+            .map(ValidationProblem.class::cast)
+            .map(ValidationProblem::value)
+            .orElse(Severity.WARNING);
     }
 }
