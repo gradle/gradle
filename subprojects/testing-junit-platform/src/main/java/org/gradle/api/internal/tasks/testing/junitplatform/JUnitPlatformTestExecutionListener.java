@@ -43,6 +43,8 @@ import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -64,6 +66,8 @@ import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
  */
 @NonNullApi
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener, RootAssertionToFailureMapper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
 
     private final static List<FailureMapper> MAPPERS = Arrays.asList(
         new OpentestFailureFailedMapper(),
@@ -149,10 +153,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             if (mapper.supports(failure.getClass())) {
                 try {
                     return mapper.map(failure, this);
-                } catch (Exception ignored) {
-                    // TODO before merge: Issue to do debug logging?
-                    // ignore
-                    System.out.println(ignored.getMessage());
+                } catch (Exception ex) {
+                    LOGGER.error("Failed to map supported failure '{}' with mapper '{}': {}", failure, mapper, ex.getMessage());
                 }
             }
         }
