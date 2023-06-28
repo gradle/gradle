@@ -50,7 +50,7 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
             Throwable cause = t.getCause();
             causeFailure = cause != null && cause != t ? Collections.singletonList(DefaultFailure.fromThrowable(cause)) : Collections.emptyList();
         } else {
-            causeFailure = causes;
+            causeFailure = Collections.unmodifiableList(causes);
         }
         return new DefaultFileComparisonTestAssertionFailure(message, stacktrace, causeFailure, expected, actual, className, stacktrace, expectedContent, actualContent);
     }
