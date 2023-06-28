@@ -26,10 +26,10 @@ import java.util.Map;
 
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.internal.reflect.validation.TypeValidationProblem.PARENT_PROPERTY_NAME;
-import static org.gradle.internal.reflect.validation.TypeValidationProblem.PLUGIN_ID;
-import static org.gradle.internal.reflect.validation.TypeValidationProblem.PROPERTY_NAME;
-import static org.gradle.internal.reflect.validation.TypeValidationProblem.TYPE_NAME;
+import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PARENT_PROPERTY_NAME;
+import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PLUGIN_ID;
+import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PROPERTY_NAME;
+import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.TYPE_NAME;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
@@ -39,17 +39,17 @@ public class TypeValidationProblemRenderer {
     // whatever asks for it, when it should be the responisiblity of the
     // consumer to render it as they need. For example, an HTML renderer
     // may use the same information differently
-    public static String renderMinimalInformationAbout(TypeValidationProblem problem) {
-        return renderMinimalInformationAbout(problem, true);
-    }
+//    public static String renderMinimalInformationAbout(TypeValidationProblem problem) {
+//        return renderMinimalInformationAbout(problem, true);
+//    }
 
     public static String renderMinimalInformationAbout(Problem problem) {
         return renderMinimalInformationAbout(problem, true);
     }
 
-    public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink) {
-        return renderMinimalInformationAbout(problem.toNewProblem(), renderDocLink, true);
-    }
+//    public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink) {
+//        return renderMinimalInformationAbout(problem.toNewProblem(), renderDocLink, true);
+//    }
 
     public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink) {
         return renderMinimalInformationAbout(problem, renderDocLink, true);
@@ -125,7 +125,7 @@ public class TypeValidationProblemRenderer {
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
         ProblemsPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
-        boolean typeRelevant = rootType != null && !additionalMetadata.containsKey(TypeValidationProblem.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE);
+        boolean typeRelevant = rootType != null && !additionalMetadata.containsKey(TypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE);
         if (typeRelevant) {
             if (pluginId != null) {
                 builder.append("In plugin '")

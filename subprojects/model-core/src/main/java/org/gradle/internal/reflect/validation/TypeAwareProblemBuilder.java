@@ -22,11 +22,14 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.reflect.validation.TypeValidationProblem.PARENT_PROPERTY_NAME;
-
 @NonNullApi
 public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
 
+    public static final String TYPE_NAME = "typeName";
+    public static final String PLUGIN_ID = "pluginId";
+    public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
+    public static final String PROPERTY_NAME = "propertyName";
+    public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
     //    private final ProblemBuilder delegate;
     private boolean typeIrrelevantInErrorMessage = false;
     private Class<?> rootClazz;
@@ -107,13 +110,13 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
 
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
         if (classWithAnnotationAttached != null) {
-            withMetadata(TypeValidationProblem.TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
+            withMetadata(TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
         }
         return this;
     }
 
     public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage() {
-        withMetadata(TypeValidationProblem.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "true");
+        withMetadata(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "true");
 //        this.typeIrrelevantInErrorMessage = true;
 //        return Cast.uncheckedCast(this)
         return this;
@@ -125,7 +128,7 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
     }
 
     public TypeAwareProblemBuilder forProperty(String propertyName) {
-        withMetadata(TypeValidationProblem.PROPERTY_NAME, propertyName);
+        withMetadata(PROPERTY_NAME, propertyName);
         return this;
     }
 

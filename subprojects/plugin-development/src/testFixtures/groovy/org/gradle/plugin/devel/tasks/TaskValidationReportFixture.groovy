@@ -17,7 +17,7 @@
 package org.gradle.plugin.devel.tasks
 
 import groovy.transform.CompileStatic
-import org.gradle.internal.reflect.validation.Severity
+import org.gradle.api.problems.interfaces.Severity
 
 @CompileStatic
 class TaskValidationReportFixture {

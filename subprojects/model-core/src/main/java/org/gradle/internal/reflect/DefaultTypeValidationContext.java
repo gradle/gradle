@@ -22,7 +22,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
 
@@ -47,14 +46,6 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     private DefaultTypeValidationContext(DocumentationRegistry documentationRegistry, @Nullable Class<?> rootType, boolean reportCacheabilityProblems) {
         super(documentationRegistry, rootType, Optional::empty);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
-    }
-
-    @Override
-    protected void recordProblem(TypeValidationProblem problem) {
-        if (problem.getId().onlyAffectsCacheableWork() && !reportCacheabilityProblems) {
-            return;
-        }
-        problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem.toNewProblem()), problem.toNewProblem().getSeverity());
     }
 
     @Override

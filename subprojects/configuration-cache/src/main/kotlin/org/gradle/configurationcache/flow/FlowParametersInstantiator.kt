@@ -32,7 +32,6 @@ import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
-import org.gradle.internal.reflect.validation.TypeValidationProblem
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
@@ -60,13 +59,6 @@ class FlowParametersInstantiator(
         inspection.propertyWalker.visitProperties(
             parameters,
             object : ProblemRecordingTypeValidationContext(DocumentationRegistry(), type, { Optional.empty() }) {
-                override fun recordProblem(problem: TypeValidationProblem) {
-                    problems.put(
-                        TypeValidationProblemRenderer.renderMinimalInformationAbout(problem.toNewProblem()),
-                        problem.toNewProblem().severity
-                    )
-                }
-
                 override fun recordProblem(problem: Problem) {
                     problems.put(
                         TypeValidationProblemRenderer.renderMinimalInformationAbout(problem),
@@ -117,14 +109,5 @@ class FlowParametersInstantiator(
             ),
             instantiatorFactory.decorateScheme()
         )
-    }
-
-    private
-    fun where(problem: TypeValidationProblem): String = problem.where.run {
-        type.map { type ->
-            propertyName.map { propName ->
-                "${type.name}.$propName"
-            }.orElse(type.name)
-        }.orElse("unknown location")
     }
 }

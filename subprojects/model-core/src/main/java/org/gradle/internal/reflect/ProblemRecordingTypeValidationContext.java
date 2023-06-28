@@ -21,14 +21,13 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static org.gradle.internal.reflect.validation.TypeValidationProblem.PLUGIN_ID;
+import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PLUGIN_ID;
 
 abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
     private final DocumentationRegistry documentationRegistry;
@@ -67,9 +66,6 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
             .ifPresent(id -> problemBuilder.withMetadata(PLUGIN_ID, id));
         recordProblem(problemBuilder.build());
     }
-
-
-    abstract protected void recordProblem(TypeValidationProblem problem);
 
     abstract protected void recordProblem(Problem problem);
 }

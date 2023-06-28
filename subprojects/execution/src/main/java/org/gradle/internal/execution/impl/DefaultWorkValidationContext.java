@@ -23,7 +23,6 @@ import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.plugin.use.PluginId;
 
 import java.util.Comparator;
@@ -52,15 +51,6 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         types.add(type);
         Supplier<Optional<PluginId>> pluginId = () -> typeOriginInspector.findPluginDefining(type);
         return new ProblemRecordingTypeValidationContext(documentationRegistry, type, pluginId) {
-
-            @Override
-            protected void recordProblem(TypeValidationProblem problem) {
-                if (problem.getId().onlyAffectsCacheableWork() && !cacheable) {
-                    return;
-                }
-                problems.add(problem.toNewProblem());
-            }
-
             @Override
             protected void recordProblem(Problem problem) {
                 if (onlyAffectsCacheableWork(problem.getProblemType()) && !cacheable) {
