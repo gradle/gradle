@@ -218,7 +218,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        protected String safeEntryName() {
+        protected String getEntryName() {
             return entry.getName();
         }
 

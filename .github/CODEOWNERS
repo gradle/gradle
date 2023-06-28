@@ -91,7 +91,6 @@ subprojects/kotlin-dsl-tooling-models/                                          
 /build.gradle*                              @gradle/bt-developer-productivity
 /settings.gradle*                           @gradle/bt-developer-productivity
 gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
-subprojects/*/build.gradle*                 @gradle/bt-developer-productivity
 subprojects/internal-architecture-testing/  @gradle/bt-developer-productivity
 subprojects/internal-build-reports/         @gradle/bt-developer-productivity
 subprojects/internal-integ-testing/         @gradle/bt-developer-productivity
