@@ -23,7 +23,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.ReproducibleFileVisitor;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.AttributeBasedFileVisitDetailsFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -131,7 +131,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     private void processSingleFile(File file, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         RelativePath path = new RelativePath(true, file.getName());
-        FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
+        FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem);
         if (isAllowed(details, spec)) {
             visitor.visitFile(details);
         }

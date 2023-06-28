@@ -21,15 +21,11 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.AttributeBasedFileVisitDetails;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
-import org.gradle.api.internal.file.UnauthorizedFileVisitDetails;
+import org.gradle.api.internal.file.AttributeBasedFileVisitDetailsFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.os.OperatingSystem;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystemLoopException;
 import java.nio.file.FileVisitResult;
@@ -63,7 +59,7 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
 
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-        FileVisitDetails details = getFileVisitDetails(dir, attrs, true);
+        FileVisitDetails details = getFileVisitDetails(dir, attrs);
         if (directoryDetailsHolder.size() == 0 || shouldVisit(details)) {
             directoryDetailsHolder.push(details);
             if (directoryDetailsHolder.size() > 1 && !postfix) {
@@ -83,7 +79,7 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-        FileVisitDetails details = getFileVisitDetails(file, attrs, false);
+        FileVisitDetails details = getFileVisitDetails(file, attrs);
         if (shouldVisit(details)) {
             if (attrs.isSymbolicLink()) {
                 // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
@@ -94,27 +90,18 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
         return checkStopFlag();
     }
 
-    private FileVisitDetails getFileVisitDetails(Path file, @Nullable BasicFileAttributes attrs, boolean isDirectory) {
-        File child = file.toFile();
+    private FileVisitDetails getFileVisitDetails(Path file, @Nullable BasicFileAttributes attrs) {
         FileVisitDetails dirDetails = directoryDetailsHolder.peek();
-        RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, child.getName()) : rootPath;
-        if (attrs == null) {
-            return new UnauthorizedFileVisitDetails(child, childPath);
-        } else if (isDirectory && OperatingSystem.current() == OperatingSystem.WINDOWS) {
-            // Workaround for https://github.com/gradle/gradle/issues/11577
-            return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem);
+        if (dirDetails != null) {
+            return AttributeBasedFileVisitDetailsFactory.getFileVisitDetails(file, dirDetails.getRelativePath(), attrs, stopFlag, fileSystem);
         } else {
-            return new AttributeBasedFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, attrs);
+            return AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file, rootPath, attrs, stopFlag, fileSystem);
         }
-    }
-
-    private FileVisitDetails getUnauthorizedFileVisitDetails(Path file) {
-        return getFileVisitDetails(file, null, false);
     }
 
     @Override
     public FileVisitResult visitFileFailed(Path file, IOException exc) {
-        FileVisitDetails details = getUnauthorizedFileVisitDetails(file);
+        FileVisitDetails details = getFileVisitDetails(file, null);
         if (isNotFileSystemLoopException(exc) && shouldVisit(details)) {
             throw new GradleException(String.format("Could not read path '%s'.", file), exc);
         }
