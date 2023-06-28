@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 /**
  * Contains serializable structural information about a test failure.
  *
+ * @see org.gradle.api.internal.tasks.testing.junit.result.TestFailure
  * @since 7.6
  */
 @Incubating
@@ -59,17 +60,18 @@ public interface TestFailureDetails {
      */
     boolean isAssertionFailure();
 
-    // TODO can we restructure this to a proper type hierarchy?
-
     /**
-     * Todo.
+     * Returns true if the represented failure is recognized as a file comparison failure.
+     * <p>
+     * If this field is {@code true}, then the {@link #getExpectedContent()} and {@link #getActualContent()} methods <i>might</i> return non-null values.
      *
      * @since 8.3
      */
     boolean isFileComparisonFailure();
 
     /**
-     * Todo.
+     * <i>Might</i> return the expected content of the file comparison if {@link #isFileComparisonFailure()} is {@code true}.
+     * Otherwise, returns {@code null}.
      *
      * @since 8.3
      */
@@ -77,7 +79,8 @@ public interface TestFailureDetails {
     byte[] getExpectedContent();
 
     /**
-     * Todo.
+     * <i>Might</i> return the actual content of the file comparison if {@link #isFileComparisonFailure()} is {@code true}.
+     * Otherwise, returns {@code null}.
      *
      * @since 8.3
      */
