@@ -158,7 +158,7 @@ class ZipCopyActionTest extends Specification {
         mock.getRelativePath() >> RelativePath.parse(false, path)
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> false
-        mock.getImmutablePermissions() >> new DefaultFilePermissions(1)
+        mock.getPermissions() >> new DefaultFilePermissions(1)
         mock.copyTo(_ as OutputStream) >> { OutputStream out ->
             out << "contents of $path"
         }
@@ -170,7 +170,7 @@ class ZipCopyActionTest extends Specification {
         mock.getRelativePath() >> RelativePath.parse(false, path)
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> true
-        mock.getImmutablePermissions() >> new DefaultFilePermissions(2)
+        mock.getPermissions() >> new DefaultFilePermissions(2)
         mock
     }
 
@@ -179,7 +179,7 @@ class ZipCopyActionTest extends Specification {
         mock.getRelativePath() >> RelativePath.parse(false, path)
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> false
-        mock.getImmutablePermissions() >> new DefaultFilePermissions(1)
+        mock.getPermissions() >> new DefaultFilePermissions(1)
         mock.copyTo(_ as OutputStream) >> { OutputStream out ->
             failure.fillInStackTrace()
             throw failure

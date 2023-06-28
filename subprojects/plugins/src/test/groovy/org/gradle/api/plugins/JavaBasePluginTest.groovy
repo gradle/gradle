@@ -27,7 +27,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.War
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
@@ -429,7 +428,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
     }
 
-    def "configures destinationDirectory for jar and war tasks"() {
+    def "configures destinationDirectory for jar tasks"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.version = '1.0'
@@ -437,12 +436,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         def someJar = project.tasks.create('someJar', Jar)
         someJar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
-
-        and:
-        def someWar = project.tasks.create('someWar', War)
-        someWar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
-
-        // Should also test ear but then we would need a test dependency on :ear
     }
 
     @Issue("gradle/gradle#8700")

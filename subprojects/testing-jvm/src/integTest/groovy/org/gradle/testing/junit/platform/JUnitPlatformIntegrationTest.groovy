@@ -461,4 +461,51 @@ public class StaticInnerTest {
         where:
         version << ["5.9.2", "5.6.3"]
     }
+
+    def 'properly fails when engine fails during execution'() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'org.junit.platform:junit-platform-engine:${LATEST_PLATFORM_VERSION}'
+            }
+            test {
+                afterSuite { descriptor, result ->
+                    println("afterSuite: \$descriptor -> \$result")
+                }
+            }
+        """
+        file('src/test/java/EngineFailingExecution.java') << '''
+            import org.junit.platform.engine.*;
+            import org.junit.platform.engine.support.descriptor.*;
+            public class EngineFailingExecution implements TestEngine {
+                @Override
+                public String getId() {
+                    return "EngineFailingExecution";
+                }
+
+                @Override
+                public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
+                    return new EngineDescriptor(uniqueId, getId()) {
+                        @Override
+                        public boolean mayRegisterTests() {
+                            return true; // to avoid the engine from being skipped
+                        }
+                    };
+                }
+
+                @Override
+                public void execute(ExecutionRequest request) {
+                    throw new RuntimeException("oops");
+                }
+            }
+        '''
+        file('src/test/resources/META-INF/services/org.junit.platform.engine.TestEngine') << 'EngineFailingExecution'
+
+        when:
+        fails('test')
+
+        then:
+        failureCauseContains('There were failing tests.')
+        outputContains("afterSuite: Test class UnknownClass -> FAILURE")
+    }
 }

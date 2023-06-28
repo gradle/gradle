@@ -19,10 +19,10 @@ package org.gradle.util.internal
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
-import static org.gradle.util.internal.ZipSlip.isUnsafeZipEntryName
+import static PathTraversalChecker.isUnsafePathName
 import static org.junit.Assume.assumeFalse
 
-class ZipSlipTest extends Specification {
+class PathTraversalCheckerTest extends Specification {
 
     def "identifies potentially unsafe zip entry names"() {
         setup:
@@ -32,8 +32,8 @@ class ZipSlipTest extends Specification {
         )
 
         expect:
-        isUnsafeZipEntryName(unsafePath)
-        !isUnsafeZipEntryName(safePath)
+        isUnsafePathName(unsafePath)
+        !isUnsafePathName(safePath)
 
         where:
         unsafePath     | safePath

@@ -25,11 +25,11 @@
                 <td><literal>true</literal></td>
             </tr>
             <tr>
-                <td>dirMode</td>
+                <td>dirPermissions</td>
                 <td><literal>null</literal></td>
             </tr>
             <tr>
-                <td>fileMode</td>
+                <td>filePermissions</td>
                 <td><literal>null</literal></td>
             </tr>
             <tr>

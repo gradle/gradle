@@ -595,8 +595,6 @@ tasks.named("docsTest") { task ->
     testClassesDirs = sourceSets.docsTest.output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
     systemProperties.clear()
-    // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 
     filter {
         // workaround for https://github.com/gradle/dotcom/issues/5958
@@ -704,6 +702,8 @@ tasks.named("docsTest") { task ->
                 "snippet-ant-rename-task_kotlin_renameAntDelegate.sample",
                 "snippet-ant-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig.sample",
                 "snippet-ant-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig.sample",
+                "snippet-ant-ant-logging_groovy_antLogging.sample",
+                "snippet-ant-ant-logging_kotlin_antLogging.sample",
                 "snippet-buildlifecycle-task-execution-events_groovy_sanityCheck.sample",
                 "snippet-buildlifecycle-task-execution-events_groovy_taskExecutionEvents.groovy.sample",
                 "snippet-buildlifecycle-task-execution-events_kotlin_sanityCheck.sample",
@@ -764,6 +764,10 @@ tasks.named("docsTest") { task ->
                 // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
                 "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",
                 "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
+
+                // TODO(https://github.com/gradle/gradle/issues/22545)
+                "snippet-developing-plugins-plugin-with-variants_groovy_localPublish.sample",
+                "snippet-developing-plugins-plugin-with-variants_kotlin_localPublish.sample",
             ]
 
             // Tests that can and has to be fixed to run with the configuration cache enabled.

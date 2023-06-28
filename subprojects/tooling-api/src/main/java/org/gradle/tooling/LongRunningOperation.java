@@ -129,8 +129,8 @@ public interface LongRunningOperation {
      * <p>
      * System properties can be also defined in the build scripts (and in the gradle.properties file), or with a JVM argument. In case of an overlapping system property definition the precedence is as follows:
      * <ul>
-     *     <li>{@code withSystemProperties()} (highest)</li>
-     *     <li>{@code withJvmArguments()}</li>
+     *     <li>{@code withSystemProperties(...)} (highest)</li>
+     *     <li>{@code addJvmArguments(...)} and {@code setJvmArguments(...)}</li>
      *     <li>build scripts</li>
      * </ul>
      * <p>
