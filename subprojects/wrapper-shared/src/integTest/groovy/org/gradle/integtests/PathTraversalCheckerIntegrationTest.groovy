@@ -28,7 +28,7 @@ import java.util.zip.ZipOutputStream
  * Ensures Gradle core tasks and types are not subject to the
  * <a href="https://snyk.io/research/zip-slip-vulnerability">Zip Slip Vulnerability</a>.
  */
-class ZipSlipIntegrationTest extends AbstractIntegrationSpec {
+class PathTraversalCheckerIntegrationTest extends AbstractIntegrationSpec {
 
     private TestFile getEvilZip() {
         file("evil.zip")
@@ -70,7 +70,7 @@ class ZipSlipIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureDescriptionContains "Execution failed for task ':copyEvilZip'"
-        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe zip entry name"
+        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe archive entry or path name"
     }
 
     def "UnzipTransform refuses to unzip evil.zip"() {
@@ -129,6 +129,6 @@ class ZipSlipIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains 'Executing unzip transform...'
-        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe zip entry name"
+        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe archive entry or path name"
     }
 }

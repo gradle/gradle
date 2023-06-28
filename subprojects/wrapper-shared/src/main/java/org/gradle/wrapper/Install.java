@@ -40,7 +40,7 @@ import java.util.zip.ZipFile;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
+import static org.gradle.util.internal.PathTraversalChecker.safePathName;
 import static org.gradle.wrapper.Download.safeUri;
 
 public class Install {
@@ -321,7 +321,7 @@ public class Install {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
-                File destFile = new File(dest, safeZipEntryName(entry.getName()));
+                File destFile = new File(dest, safePathName(entry.getName()));
                 if (entry.isDirectory()) {
                     destFile.mkdirs();
                     continue;
