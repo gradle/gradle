@@ -23,7 +23,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -34,6 +34,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -168,7 +169,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     @Override
-    public PatternFilterable include(Spec<FileTreeElement> includeSpec) {
+    public PatternFilterable include(Spec<ReadOnlyFileTreeElement> includeSpec) {
         patterns.include(includeSpec);
         return this;
     }
@@ -192,7 +193,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     @Override
-    public PatternFilterable exclude(Spec<FileTreeElement> excludeSpec) {
+    public PatternFilterable exclude(Spec<ReadOnlyFileTreeElement> excludeSpec) {
         patterns.exclude(excludeSpec);
         return this;
     }
@@ -206,6 +207,11 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     @Override
     public PatternFilterable getFilter() {
         return filter;
+    }
+
+    @Override
+    public Spec<ReadOnlyFileTreeElement> getSpec() {
+        return new AndSpec<>(patterns.getAsSpec(), filter.getAsSpec());
     }
 
     @Override

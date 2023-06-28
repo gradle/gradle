@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks.util.internal
 
-import org.gradle.api.file.FileTreeElement
+import org.gradle.api.file.ReadOnlyFileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
-
 
 class PatternSpecFactoryTest extends Specification {
     def factory = new PatternSpecFactory()
@@ -71,8 +70,8 @@ class PatternSpecFactoryTest extends Specification {
         !spec.isSatisfiedBy(element("/.git/refs"))
     }
 
-    FileTreeElement element(String path) {
-        return Stub(FileTreeElement) {
+    ReadOnlyFileTreeElement element(String path) {
+        return Stub(ReadOnlyFileTreeElement) {
             getRelativePath() >> new RelativePath(true, path.split("/"))
         }
     }

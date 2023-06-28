@@ -16,7 +16,7 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -87,7 +87,7 @@ public class MissingTaskDependencyDetector {
             collectValidationProblemsForConsumer(node, validationContext, locationConsumedByThisTask, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
         }
         for (FilteredTree filteredFileTreeInput : filteredFileTreeTaskInputs) {
-            Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
+            Spec<ReadOnlyFileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
             inputHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
             collectValidationProblemsForConsumer(
                 node,

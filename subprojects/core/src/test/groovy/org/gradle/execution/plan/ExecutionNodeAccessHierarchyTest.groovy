@@ -17,7 +17,7 @@
 package org.gradle.execution.plan
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.file.FileTreeElement
+import org.gradle.api.file.ReadOnlyFileTreeElement
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.file.Stat
@@ -209,11 +209,11 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         return hierarchy.getNodesAccessing(location.absolutePath)
     }
 
-    static Spec<FileTreeElement> includes(String include) {
+    static Spec<ReadOnlyFileTreeElement> includes(String include) {
         return new PatternSet().include(include).asSpec
     }
 
-    static Spec<FileTreeElement> excludes(String exclude) {
+    static Spec<ReadOnlyFileTreeElement> excludes(String exclude) {
         return new PatternSet().exclude(exclude).asSpec
     }
 

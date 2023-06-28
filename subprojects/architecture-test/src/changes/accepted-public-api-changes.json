@@ -1,6 +1,54 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.file.ReadOnlyFileTreeElement",
+            "member": "Class org.gradle.api.file.ReadOnlyFileTreeElement",
+            "acceptation": "The interface was extracted from FileTreeElement",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.ReadOnlyFileTreeElement",
+            "member": "Method org.gradle.api.file.ReadOnlyFileTreeElement.getLastModified()",
+            "acceptation": "The method was extracted from FileTreeElement",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.ReadOnlyFileTreeElement",
+            "member": "Method org.gradle.api.file.ReadOnlyFileTreeElement.getMode()",
+            "acceptation": "The method was extracted from FileTreeElement",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.ReadOnlyFileTreeElement",
+            "member": "Method org.gradle.api.file.ReadOnlyFileTreeElement.getName()",
+            "acceptation": "The method was extracted from FileTreeElement",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.ReadOnlyFileTreeElement",
+            "member": "Method org.gradle.api.file.ReadOnlyFileTreeElement.getPath()",
+            "acceptation": "The method was extracted from FileTreeElement",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.ReadOnlyFileTreeElement",
+            "member": "Method org.gradle.api.file.ReadOnlyFileTreeElement.getRelativePath()",
+            "acceptation": "The method was extracted from FileTreeElement",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.ReadOnlyFileTreeElement",
+            "member": "Method org.gradle.api.file.ReadOnlyFileTreeElement.getSize()",
+            "acceptation": "The method was extracted from FileTreeElement",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.ReadOnlyFileTreeElement",
+            "member": "Method org.gradle.api.file.ReadOnlyFileTreeElement.isDirectory()",
+            "acceptation": "The method was extracted from FileTreeElement",
+            "changes": []
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke$default(org.gradle.kotlin.dsl.DependencyHandlerScope,org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
             "acceptation": "https://github.com/gradle/gradle/issues/24503",

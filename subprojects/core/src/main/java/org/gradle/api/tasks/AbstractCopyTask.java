@@ -27,9 +27,9 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
@@ -358,7 +358,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask include(Spec<FileTreeElement> includeSpec) {
+    public AbstractCopyTask include(Spec<ReadOnlyFileTreeElement> includeSpec) {
         getMainSpec().include(includeSpec);
         return this;
     }
@@ -394,7 +394,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask exclude(Spec<FileTreeElement> excludeSpec) {
+    public AbstractCopyTask exclude(Spec<ReadOnlyFileTreeElement> excludeSpec) {
         getMainSpec().exclude(excludeSpec);
         return this;
     }

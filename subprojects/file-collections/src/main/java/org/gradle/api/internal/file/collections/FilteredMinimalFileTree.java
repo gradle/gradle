@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -80,7 +80,7 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
 
     @Override
     public void visit(FileVisitor visitor) {
-        Spec<FileTreeElement> spec = patterns.getAsSpec();
+        Spec<ReadOnlyFileTreeElement> spec = patterns.getAsSpec();
         tree.visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {

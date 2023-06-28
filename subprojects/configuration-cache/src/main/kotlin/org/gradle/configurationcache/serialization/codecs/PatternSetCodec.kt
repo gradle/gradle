@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.file.FileTreeElement
+import org.gradle.api.file.ReadOnlyFileTreeElement
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.IntersectionPatternSet
@@ -76,9 +76,9 @@ suspend fun ReadContext.readPatternSet(value: PatternSet) {
     value.setIncludes(readStrings())
     value.setExcludes(readStrings())
     readCollection {
-        value.include(readNonNull<Spec<FileTreeElement>>())
+        value.include(readNonNull<Spec<ReadOnlyFileTreeElement>>())
     }
     readCollection {
-        value.exclude(readNonNull<Spec<FileTreeElement>>())
+        value.exclude(readNonNull<Spec<ReadOnlyFileTreeElement>>())
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.util.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
@@ -36,7 +36,7 @@ public class IntersectionPatternSet extends PatternSet {
     }
 
     @Override
-    public Spec<FileTreeElement> getAsSpec() {
+    public Spec<ReadOnlyFileTreeElement> getAsSpec() {
         return Specs.intersect(super.getAsSpec(), other.getAsSpec());
     }
 

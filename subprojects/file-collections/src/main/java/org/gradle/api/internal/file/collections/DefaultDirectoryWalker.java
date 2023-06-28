@@ -17,9 +17,9 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AttributeBasedFileVisitDetails;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
@@ -49,12 +49,12 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
         this.fileSystem = fileSystem;
     }
 
-    static boolean shouldVisit(FileTreeElement element, Spec<? super FileTreeElement> spec) {
+    static boolean shouldVisit(ReadOnlyFileTreeElement element, Spec<? super ReadOnlyFileTreeElement> spec) {
         return spec.isSatisfiedBy(element);
     }
 
     @Override
-    public void walkDir(File rootDir, RelativePath rootPath, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
+    public void walkDir(File rootDir, RelativePath rootPath, FileVisitor visitor, Spec<? super ReadOnlyFileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
         Deque<FileVisitDetails> directoryDetailsHolder = new ArrayDeque<>();
 
         try {
@@ -67,14 +67,14 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
 
     private static class PathVisitor implements java.nio.file.FileVisitor<Path> {
         private final Deque<FileVisitDetails> directoryDetailsHolder;
-        private final Spec<? super FileTreeElement> spec;
+        private final Spec<? super ReadOnlyFileTreeElement> spec;
         private final boolean postfix;
         private final FileVisitor visitor;
         private final AtomicBoolean stopFlag;
         private final RelativePath rootPath;
         private final FileSystem fileSystem;
 
-        public PathVisitor(Deque<FileVisitDetails> directoryDetailsHolder, Spec<? super FileTreeElement> spec, boolean postfix, FileVisitor visitor, AtomicBoolean stopFlag, RelativePath rootPath, FileSystem fileSystem) {
+        public PathVisitor(Deque<FileVisitDetails> directoryDetailsHolder, Spec<? super ReadOnlyFileTreeElement> spec, boolean postfix, FileVisitor visitor, AtomicBoolean stopFlag, RelativePath rootPath, FileSystem fileSystem) {
             this.directoryDetailsHolder = directoryDetailsHolder;
             this.spec = spec;
             this.postfix = postfix;

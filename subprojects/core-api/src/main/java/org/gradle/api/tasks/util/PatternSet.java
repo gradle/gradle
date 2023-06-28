@@ -18,7 +18,7 @@ package org.gradle.api.tasks.util;
 
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.AntBuilderAware;
@@ -43,8 +43,8 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     private Set<String> includes;
     private Set<String> excludes;
-    private Set<Spec<FileTreeElement>> includeSpecs;
-    private Set<Spec<FileTreeElement>> excludeSpecs;
+    private Set<Spec<ReadOnlyFileTreeElement>> includeSpecs;
+    private Set<Spec<ReadOnlyFileTreeElement>> excludeSpecs;
     private boolean caseSensitive = true;
 
     public PatternSet() {
@@ -161,15 +161,15 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
             && (excludeSpecs == null || excludeSpecs.isEmpty());
     }
 
-    public Spec<FileTreeElement> getAsSpec() {
+    public Spec<ReadOnlyFileTreeElement> getAsSpec() {
         return patternSpecFactory.createSpec(this);
     }
 
-    public Spec<FileTreeElement> getAsIncludeSpec() {
+    public Spec<ReadOnlyFileTreeElement> getAsIncludeSpec() {
         return patternSpecFactory.createIncludeSpec(this);
     }
 
-    public Spec<FileTreeElement> getAsExcludeSpec() {
+    public Spec<ReadOnlyFileTreeElement> getAsExcludeSpec() {
         return patternSpecFactory.createExcludeSpec(this);
     }
 
@@ -181,7 +181,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return includes;
     }
 
-    public Set<Spec<FileTreeElement>> getIncludeSpecs() {
+    public Set<Spec<ReadOnlyFileTreeElement>> getIncludeSpecs() {
         if (includeSpecs == null) {
             includeSpecs = Sets.newLinkedHashSet();
         }
@@ -209,7 +209,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     @Override
-    public PatternSet include(Spec<FileTreeElement> spec) {
+    public PatternSet include(Spec<ReadOnlyFileTreeElement> spec) {
         getIncludeSpecs().add(spec);
         return this;
     }
@@ -222,7 +222,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return excludes;
     }
 
-    public Set<Spec<FileTreeElement>> getExcludeSpecs() {
+    public Set<Spec<ReadOnlyFileTreeElement>> getExcludeSpecs() {
         if (excludeSpecs == null) {
             excludeSpecs = Sets.newLinkedHashSet();
         }
@@ -247,14 +247,14 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     /*
     This can't be called just include, because it has the same erasure as include(Iterable<String>).
      */
-    public PatternSet includeSpecs(Iterable<Spec<FileTreeElement>> includeSpecs) {
+    public PatternSet includeSpecs(Iterable<Spec<ReadOnlyFileTreeElement>> includeSpecs) {
         CollectionUtils.addAll(getIncludeSpecs(), includeSpecs);
         return this;
     }
 
     @Override
     public PatternSet include(Closure closure) {
-        include(Specs.<FileTreeElement>convertClosureToSpec(closure));
+        include(Specs.<ReadOnlyFileTreeElement>convertClosureToSpec(closure));
         return this;
     }
 
@@ -273,19 +273,19 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     @Override
-    public PatternSet exclude(Spec<FileTreeElement> spec) {
+    public PatternSet exclude(Spec<ReadOnlyFileTreeElement> spec) {
         getExcludeSpecs().add(spec);
         return this;
     }
 
-    public PatternSet excludeSpecs(Iterable<Spec<FileTreeElement>> excludes) {
+    public PatternSet excludeSpecs(Iterable<Spec<ReadOnlyFileTreeElement>> excludes) {
         CollectionUtils.addAll(getExcludeSpecs(), excludes);
         return this;
     }
 
     @Override
     public PatternSet exclude(Closure closure) {
-        exclude(Specs.<FileTreeElement>convertClosureToSpec(closure));
+        exclude(Specs.<ReadOnlyFileTreeElement>convertClosureToSpec(closure));
         return this;
     }
 

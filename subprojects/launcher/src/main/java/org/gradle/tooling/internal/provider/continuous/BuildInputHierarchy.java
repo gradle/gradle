@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider.continuous;
 
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.SingleFileTreeElementMatcher;
 import org.gradle.execution.plan.ValuedVfsHierarchy;
@@ -69,7 +69,7 @@ public class BuildInputHierarchy {
      *
      * Only children of the fileTreeRoot that match the filter are considered inputs.
      */
-    public synchronized void recordFilteredInput(String fileTreeRoot, Spec<FileTreeElement> filter) {
+    public synchronized void recordFilteredInput(String fileTreeRoot, Spec<ReadOnlyFileTreeElement> filter) {
         VfsRelativePath relativePath = VfsRelativePath.of(fileTreeRoot);
         root = root.recordValue(relativePath, new FilteredInputDeclaration(filter));
     }
@@ -114,9 +114,9 @@ public class BuildInputHierarchy {
     private static final InputDeclaration ALL_CHILDREN_ARE_INPUTS = childPath -> true;
 
     private class FilteredInputDeclaration implements InputDeclaration {
-        private final Spec<FileTreeElement> spec;
+        private final Spec<ReadOnlyFileTreeElement> spec;
 
-        public FilteredInputDeclaration(Spec<FileTreeElement> spec) {
+        public FilteredInputDeclaration(Spec<ReadOnlyFileTreeElement> spec) {
             this.spec = spec;
         }
 

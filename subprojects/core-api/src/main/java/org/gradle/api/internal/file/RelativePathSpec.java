@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.specs.Spec;
 
-public class RelativePathSpec implements Spec<FileTreeElement> {
+public class RelativePathSpec implements Spec<ReadOnlyFileTreeElement> {
     private final PatternMatcher matcher;
 
     public RelativePathSpec(PatternMatcher matcher) {
@@ -28,7 +28,7 @@ public class RelativePathSpec implements Spec<FileTreeElement> {
     }
 
     @Override
-    public boolean isSatisfiedBy(FileTreeElement element) {
+    public boolean isSatisfiedBy(ReadOnlyFileTreeElement element) {
         RelativePath relativePath = element.getRelativePath();
         return matcher.test(relativePath.getSegments(), relativePath.isFile());
     }

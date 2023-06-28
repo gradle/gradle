@@ -16,9 +16,11 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.model.internal.core.UnmanagedStruct;
@@ -106,6 +108,15 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @return The filter patterns.
      */
     PatternFilterable getFilter();
+
+    /**
+     * Returns the spec which combines patterns from {#include} and {#exclude} with the patterns from {#getFilter}.
+     *
+     * @return Spec
+     * @since 8.3
+     */
+    @Incubating
+    Spec<ReadOnlyFileTreeElement> getSpec();
 
     /**
      * Configure the directory to assemble the compiled classes into.

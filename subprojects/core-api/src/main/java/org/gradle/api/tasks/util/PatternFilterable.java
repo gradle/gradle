@@ -16,7 +16,7 @@
 package org.gradle.api.tasks.util;
 
 import groovy.lang.Closure;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.specs.Spec;
 
 import java.util.Set;
@@ -56,7 +56,7 @@ import java.util.Set;
  * </pre>
  *
  * <p>You may also use a closure or {@link Spec} to specify which files to include or exclude. The closure or {@link Spec}
- * is passed a {@link org.gradle.api.file.FileTreeElement}, and must return a boolean value.</p>
+ * is passed a {@link org.gradle.api.file.ReadOnlyFileTreeElement}, and must return a boolean value.</p>
  *
  * <p>If no include patterns or specs are specified, then all files in this container will be included. If any include
  * patterns or specs are specified, then a file is included if it matches any of the patterns or specs.</p>
@@ -136,11 +136,11 @@ public interface PatternFilterable {
      * @return this
      * @see PatternFilterable Pattern Format
      */
-    PatternFilterable include(Spec<FileTreeElement> includeSpec);
+    PatternFilterable include(Spec<ReadOnlyFileTreeElement> includeSpec);
 
     /**
      * Adds an include spec. This method may be called multiple times to append new specs. The given closure is passed a
-     * {@link org.gradle.api.file.FileTreeElement} as its parameter.
+     * {@link org.gradle.api.file.ReadOnlyFileTreeElement} as its parameter.
      *
      * If includes are not provided, then all files in this container will be included. If includes are provided, then a
      * file must match at least one of the include patterns or specs to be included.
@@ -187,11 +187,11 @@ public interface PatternFilterable {
      * @return this
      * @see PatternFilterable Pattern Format
      */
-    PatternFilterable exclude(Spec<FileTreeElement> excludeSpec);
+    PatternFilterable exclude(Spec<ReadOnlyFileTreeElement> excludeSpec);
 
     /**
      * Adds an exclude spec. This method may be called multiple times to append new specs.The given closure is passed a
-     * {@link org.gradle.api.file.FileTreeElement} as its parameter. The closure should return true or false. Example:
+     * {@link org.gradle.api.file.ReadOnlyFileTreeElement} as its parameter. The closure should return true or false. Example:
      *
      * <pre class='autoTested'>
      * copySpec {
@@ -207,7 +207,7 @@ public interface PatternFilterable {
      *
      * @param excludeSpec the spec to add
      * @return this
-     * @see FileTreeElement
+     * @see ReadOnlyFileTreeElement
      */
     PatternFilterable exclude(Closure excludeSpec);
 }

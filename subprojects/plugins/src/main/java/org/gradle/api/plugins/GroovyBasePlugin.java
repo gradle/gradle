@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
@@ -32,6 +33,7 @@ import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GroovyRuntime;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
@@ -98,11 +100,8 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             sourceSet.getExtensions().add(GroovySourceDirectorySet.class, "groovy", groovySource);
             groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");
 
-            // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
-            final FileCollection groovySourceFiles = groovySource;
-            sourceSet.getResources().getFilter().exclude(
-                spec(element -> groovySourceFiles.contains(element.getFile()))
-            );
+            Spec<ReadOnlyFileTreeElement> sourcesSpec = groovySource.getSpec();
+            sourceSet.getResources().getFilter().exclude(spec(sourcesSpec::isSatisfiedBy));
             sourceSet.getAllJava().source(groovySource);
             sourceSet.getAllSource().source(groovySource);
 

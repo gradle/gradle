@@ -30,6 +30,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -46,6 +47,7 @@ import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
@@ -178,11 +180,8 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             sourceSet.getExtensions().add(ScalaSourceDirectorySet.class, "scala", scalaSource);
             scalaSource.srcDir(project.file("src/" + sourceSet.getName() + "/scala"));
 
-            // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
-            final FileCollection scalaSourceFiles = scalaSource;
-            sourceSet.getResources().getFilter().exclude(
-                spec(element -> scalaSourceFiles.contains(element.getFile()))
-            );
+            Spec<ReadOnlyFileTreeElement> sourcesSpec = scalaSource.getSpec();
+            sourceSet.getResources().getFilter().exclude(spec(sourcesSpec::isSatisfiedBy));
             sourceSet.getAllJava().source(scalaSource);
             sourceSet.getAllSource().source(scalaSource);
 

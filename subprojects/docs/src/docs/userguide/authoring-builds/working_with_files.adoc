@@ -19,7 +19,7 @@ Almost every Gradle build interacts with files in some way: think source files, 
 
 The API has two parts to it:
 
- * Specifying which files and directories to process
+* Specifying which files and directories to process
  * Specifying what to do with them
 
 The <<#sec:locating_files,File paths in depth>> section covers the first of these in detail, while subsequent sections, like <<#sec:copying_files,File copying in depth>>, cover the second. To begin with, we'll show you examples of the most common scenarios that users encounter.
@@ -526,7 +526,7 @@ As this is a common convention, we recommend that you follow it in your own cust
 
 The basic process of copying files in Gradle is a simple one:
 
- * Define a task of type link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]
+* Define a task of type link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]
  * Specify which files (and potentially directories) to copy
  * Specify a destination for the copied files
 
@@ -534,14 +534,14 @@ But this apparent simplicity hides a rich API that allows fine-grained control o
 
 Let's start with the last two items on the list, which form what is known as a _copy specification_. This is formally based on the link:{javadocPath}/org/gradle/api/file/CopySpec.html[CopySpec] interface, which the `Copy` task implements, and offers:
 
- * A link:{javadocPath}/org/gradle/api/file/CopySpec.html#from-java.lang.Object++...++-[CopySpec.from(java.lang.Object...)] method to define what to copy
+* A link:{javadocPath}/org/gradle/api/file/CopySpec.html#from-java.lang.Object++...++-[CopySpec.from(java.lang.Object...)] method to define what to copy
  * An link:{javadocPath}/org/gradle/api/file/CopySpec.html#into-java.lang.Object-[CopySpec.into(java.lang.Object)] method to define the destination
 
 `CopySpec` has several additional methods that allow you to control the copying process, but these two are the only required ones. `into()` is straightforward, requiring a directory path as its argument in any form supported by the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method. The `from()` configuration is far more flexible.
 
 Not only does `from()` accept multiple arguments, it also allows several different types of argument. For example, some of the most common types are:
 
- * A `String` — treated as a file path or, if it starts with "file://", a file URI
+* A `String` — treated as a file path or, if it starts with "file://", a file URI
  * A `File` — used as a file path
  * A `FileCollection` or `FileTree` — all files in the collection are included in the copy
  * A task — the files or directories that form a task's <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>> are included
@@ -550,7 +550,7 @@ In fact, `from()` accepts all the same arguments as link:{groovyDslPath}/org.gra
 
 Something else to consider is what type of thing a file path refers to:
 
- * A file — the file is copied as is
+* A file — the file is copied as is
  * A directory — this is effectively treated as a file tree: everything in it, including subdirectories, is copied. However, the directory itself is not included in the copy.
  * A non-existent file — the path is ignored
 
@@ -569,7 +569,9 @@ Note that the lazy configuration of `into()` is different from a <<#sub:using_ch
 
 You've already seen that you can filter file collections and file trees directly in a `Copy` task, but you can also apply filtering in any copy specification through the link:{javadocPath}/org/gradle/api/file/CopySpec.html#include-java.lang.String++...++-[CopySpec.include(java.lang.String...)] and link:{javadocPath}/org/gradle/api/file/CopySpec.html#exclude-java.lang.String++...++-[CopySpec.exclude(java.lang.String...)] methods.
 
-Both of these methods are normally used with Ant-style include or exclude patterns, as described in link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable]. You can also perform more complex logic by using a closure that takes a link:{javadocPath}/org/gradle/api/file/FileTreeElement.html[FileTreeElement] and returns `true` if the file should be included or `false` otherwise. The following example demonstrates both forms, ensuring that only .html and .jsp files are copied, except for those .html files with the word "DRAFT" in their content:
+Both of these methods are normally used with Ant-style include or exclude patterns, as described in link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable].
+You can also perform more complex logic by using a closure that takes a link:{javadocPath}/org/gradle/api/file/ReadOnlyFileTreeElement.html[ReadOnlyFileTreeElement] and returns `true` if the file should be included or `false` otherwise.
+The following example demonstrates both forms, ensuring that only .html and .jsp files are copied, except for those .html files with the word "DRAFT" in their content:
 
 .Selecting the files to copy
 ====
@@ -577,15 +579,15 @@ include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=co
 include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=copy-task-with-patterns]"]
 ====
 
-A question you may ask yourself at this point is what happens when inclusion and exclusion patterns overlap? Which pattern wins? Here are the basic rules:
+A question you may ask yourself at this point is what happens when inclusion and exclusion patterns overlap?Which pattern wins?Here are the basic rules:
 
- * If there are no explicit inclusions or exclusions, everything is included
- * If at least one inclusion is specified, only files and directories matching the patterns are included
- * Any exclusion pattern overrides any inclusions, so if a file or directory matches at least one exclusion pattern, it won't be included, regardless of the inclusion patterns
+* If there are no explicit inclusions or exclusions, everything is included
+* If at least one inclusion is specified, only files and directories matching the patterns are included
+* Any exclusion pattern overrides any inclusions, so if a file or directory matches at least one exclusion pattern, it won't be included, regardless of the inclusion patterns
 
 Bear these rules in mind when creating combined inclusion and exclusion specifications so that you end up with the exact behavior you want.
 
-Note that the inclusions and exclusions in the above example will apply to _all_ `from()` configurations. If you want to apply filtering to a subset of the copied files, you'll need to use <<sub:using_child_copy_specifications,child specifications>>.
+Note that the inclusions and exclusions in the above example will apply to _all_ `from()` configurations.If you want to apply filtering to a subset of the copied files, you'll need to use <<sub:using_child_copy_specifications,child specifications>>.
 
 [[sec:renaming_files]]
 === Renaming files

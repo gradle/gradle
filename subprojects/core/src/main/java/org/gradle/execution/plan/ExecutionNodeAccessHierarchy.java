@@ -17,7 +17,7 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
 import org.gradle.internal.collect.PersistentList;
@@ -77,7 +77,7 @@ public class ExecutionNodeAccessHierarchy {
      * That includes nodes which access ancestors or children of the location.
      * Nodes accessing children of the location are only included if the children match the filter.
      */
-    public ImmutableSet<Node> getNodesAccessing(String location, Spec<FileTreeElement> filter) {
+    public ImmutableSet<Node> getNodesAccessing(String location, Spec<ReadOnlyFileTreeElement> filter) {
         return visitValues(location, new CollectingNodeAccessVisitor() {
             @Override
             boolean acceptChildren(Supplier<String> relativePathSupplier) {
@@ -103,7 +103,7 @@ public class ExecutionNodeAccessHierarchy {
      * The node only accesses children of the fileTreeRoot if they match the filter.
      * This is taken into account when using {@link #getNodesAccessing(String)} and {@link #getNodesAccessing(String, Spec)}.
      */
-    public synchronized void recordNodeAccessingFileTree(Node node, String fileTreeRoot, Spec<FileTreeElement> filter) {
+    public synchronized void recordNodeAccessingFileTree(Node node, String fileTreeRoot, Spec<ReadOnlyFileTreeElement> filter) {
         VfsRelativePath relativePath = VfsRelativePath.of(fileTreeRoot);
         root = root.recordValue(relativePath, new FilteredNodeAccess(node, filter));
     }
@@ -190,9 +190,9 @@ public class ExecutionNodeAccessHierarchy {
 
     private class FilteredNodeAccess implements NodeAccess {
         private final Node node;
-        private final Spec<FileTreeElement> spec;
+        private final Spec<ReadOnlyFileTreeElement> spec;
 
-        public FilteredNodeAccess(Node node, Spec<FileTreeElement> spec) {
+        public FilteredNodeAccess(Node node, Spec<ReadOnlyFileTreeElement> spec) {
             this.node = node;
             this.spec = spec;
         }

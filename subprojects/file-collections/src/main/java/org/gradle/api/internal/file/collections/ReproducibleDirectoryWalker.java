@@ -18,9 +18,9 @@ package org.gradle.api.internal.file.collections;
 
 import org.apache.commons.io.comparator.PathFileComparator;
 import org.gradle.api.GradleException;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.specs.Spec;
@@ -48,7 +48,7 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
     }
 
     @Override
-    public void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
+    public void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<? super ReadOnlyFileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
         File[] children = getChildren(file);
         if (children == null) {
             if (file.isDirectory() && !file.canRead()) {

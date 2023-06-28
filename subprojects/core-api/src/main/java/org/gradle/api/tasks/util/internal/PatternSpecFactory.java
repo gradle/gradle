@@ -18,7 +18,7 @@ package org.gradle.api.tasks.util.internal;
 
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.internal.file.RelativePathSpec;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
@@ -47,19 +47,19 @@ import java.util.Map;
 public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
     private String[] previousDefaultExcludes;
-    private final Map<CaseSensitivity, Spec<FileTreeElement>> defaultExcludeSpecCache = new EnumMap<>(CaseSensitivity.class);
+    private final Map<CaseSensitivity, Spec<ReadOnlyFileTreeElement>> defaultExcludeSpecCache = new EnumMap<>(CaseSensitivity.class);
 
     @Override
     public void onDefaultExcludesChanged(List<String> excludes) {
         setDefaultExcludesFromSettings(excludes.toArray(new String[0]));
     }
 
-    public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
+    public Spec<ReadOnlyFileTreeElement> createSpec(PatternSet patternSet) {
         return Specs.intersect(createIncludeSpec(patternSet), Specs.negate(createExcludeSpec(patternSet)));
     }
 
-    public Spec<FileTreeElement> createIncludeSpec(PatternSet patternSet) {
-        List<Spec<FileTreeElement>> allIncludeSpecs = new ArrayList<>(1 + patternSet.getIncludeSpecs().size());
+    public Spec<ReadOnlyFileTreeElement> createIncludeSpec(PatternSet patternSet) {
+        List<Spec<ReadOnlyFileTreeElement>> allIncludeSpecs = new ArrayList<>(1 + patternSet.getIncludeSpecs().size());
 
         if (!patternSet.getIncludes().isEmpty()) {
             allIncludeSpecs.add(createSpec(patternSet.getIncludes(), true, patternSet.isCaseSensitive()));
@@ -70,8 +70,8 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         return Specs.union(allIncludeSpecs);
     }
 
-    public Spec<FileTreeElement> createExcludeSpec(PatternSet patternSet) {
-        List<Spec<FileTreeElement>> allExcludeSpecs = new ArrayList<>(2 + patternSet.getExcludeSpecs().size());
+    public Spec<ReadOnlyFileTreeElement> createExcludeSpec(PatternSet patternSet) {
+        List<Spec<ReadOnlyFileTreeElement>> allExcludeSpecs = new ArrayList<>(2 + patternSet.getExcludeSpecs().size());
 
         if (!patternSet.getExcludes().isEmpty()) {
             allExcludeSpecs.add(createSpec(patternSet.getExcludes(), false, patternSet.isCaseSensitive()));
@@ -87,7 +87,7 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         }
     }
 
-    private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(CaseSensitivity caseSensitivity) {
+    private synchronized Spec<ReadOnlyFileTreeElement> getDefaultExcludeSpec(CaseSensitivity caseSensitivity) {
         String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
         if (defaultExcludeSpecCache.isEmpty()) {
             updateDefaultExcludeSpecCache(defaultExcludes);
@@ -124,7 +124,7 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         }
     }
 
-    protected Spec<FileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
+    protected Spec<ReadOnlyFileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
         if (patterns.isEmpty()) {
             return include ? Specs.satisfyAll() : Specs.satisfyNone();
         }

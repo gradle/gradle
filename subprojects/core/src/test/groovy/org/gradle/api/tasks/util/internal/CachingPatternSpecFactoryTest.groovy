@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.util.internal
 
-import org.gradle.api.file.FileTreeElement
+import org.gradle.api.file.ReadOnlyFileTreeElement
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.NotSpec
 import org.gradle.api.specs.Spec
@@ -24,16 +24,16 @@ import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
 
 class CachingPatternSpecFactoryTest extends Specification {
-    def "check that Spec<FileTreeElement> instances added to include/exclude aren't cached"() {
+    def "check that Spec<ReadOnlyFileTreeElement> instances added to include/exclude aren't cached"() {
         given:
         def patternSet = new PatternSet(new CachingPatternSpecFactory())
         boolean desiredResult = true
-        def includeSpecClosure = { FileTreeElement e -> desiredResult } as Spec
+        def includeSpecClosure = { ReadOnlyFileTreeElement e -> desiredResult } as Spec
         patternSet.include(includeSpecClosure)
-        def excludeSpecClosure = { FileTreeElement e -> false } as Spec
+        def excludeSpecClosure = { ReadOnlyFileTreeElement e -> false } as Spec
         patternSet.exclude(excludeSpecClosure)
         def spec = patternSet.getAsSpec()
-        def fileTreeElement = Stub(FileTreeElement) {
+        def fileTreeElement = Stub(ReadOnlyFileTreeElement) {
             isFile() >> {
                 true
             }

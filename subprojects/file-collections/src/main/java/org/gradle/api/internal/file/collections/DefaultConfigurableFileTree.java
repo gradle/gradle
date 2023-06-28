@@ -19,8 +19,8 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -153,7 +153,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     @Override
-    public DefaultConfigurableFileTree include(Spec<FileTreeElement> includeSpec) {
+    public DefaultConfigurableFileTree include(Spec<ReadOnlyFileTreeElement> includeSpec) {
         patternSet.include(includeSpec);
         return this;
     }
@@ -171,7 +171,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     @Override
-    public DefaultConfigurableFileTree exclude(Spec<FileTreeElement> excludeSpec) {
+    public DefaultConfigurableFileTree exclude(Spec<ReadOnlyFileTreeElement> excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }

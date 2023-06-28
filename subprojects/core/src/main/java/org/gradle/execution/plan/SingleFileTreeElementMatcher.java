@@ -16,19 +16,14 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Stat;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
 
 public class SingleFileTreeElementMatcher {
 
@@ -38,19 +33,19 @@ public class SingleFileTreeElementMatcher {
         this.stat = stat;
     }
 
-    public boolean elementWithRelativePathMatches(Spec<FileTreeElement> filter, File element, String relativePathString) {
+    public boolean elementWithRelativePathMatches(Spec<ReadOnlyFileTreeElement> filter, File element, String relativePathString) {
         // A better solution for output files would be to record the type of the output file and then using this type here instead of looking at the disk.
         // Though that is more involved and as soon as the file has been produced, the right file type will be detected here as well.
         boolean elementIsFile = !element.isDirectory();
         RelativePath relativePath = RelativePath.parse(elementIsFile, relativePathString);
-        if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(element, relativePath, stat))) {
+        if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElementImpl(element, relativePath, stat))) {
             return false;
         }
         // All parent paths need to match the spec as well, since this is how we implement the file system walking for file tree.
         RelativePath parentRelativePath = relativePath.getParent();
         File parentFile = element.getParentFile();
         while (parentRelativePath != null && parentRelativePath != RelativePath.EMPTY_ROOT) {
-            if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(parentFile, parentRelativePath, stat))) {
+            if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElementImpl(parentFile, parentRelativePath, stat))) {
                 return false;
             }
             parentRelativePath = parentRelativePath.getParent();
@@ -59,20 +54,15 @@ public class SingleFileTreeElementMatcher {
         return true;
     }
 
-    private static class ReadOnlyFileTreeElement implements FileTreeElement {
+    private static class ReadOnlyFileTreeElementImpl implements ReadOnlyFileTreeElement {
         private final File file;
         private final RelativePath relativePath;
         private final Stat stat;
 
-        public ReadOnlyFileTreeElement(File file, RelativePath relativePath, Stat stat) {
+        public ReadOnlyFileTreeElementImpl(File file, RelativePath relativePath, Stat stat) {
             this.file = file;
             this.relativePath = relativePath;
             this.stat = stat;
-        }
-
-        @Override
-        public File getFile() {
-            return file;
         }
 
         @Override
@@ -88,25 +78,6 @@ public class SingleFileTreeElementMatcher {
         @Override
         public long getSize() {
             return file.length();
-        }
-
-        @Override
-        public InputStream open() {
-            try {
-                return Files.newInputStream(file.toPath());
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        @Override
-        public void copyTo(OutputStream output) {
-            throw new UnsupportedOperationException("Copy to not supported for filters");
-        }
-
-        @Override
-        public boolean copyTo(File target) {
-            throw new UnsupportedOperationException("Copy to not supported for filters");
         }
 
         @Override

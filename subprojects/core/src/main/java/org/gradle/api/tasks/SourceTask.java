@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -124,7 +124,7 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
      * {@inheritDoc}
      */
     @Override
-    public SourceTask include(Spec<FileTreeElement> includeSpec) {
+    public SourceTask include(Spec<ReadOnlyFileTreeElement> includeSpec) {
         patternSet.include(includeSpec);
         return this;
     }
@@ -160,7 +160,7 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
      * {@inheritDoc}
      */
     @Override
-    public SourceTask exclude(Spec<FileTreeElement> excludeSpec) {
+    public SourceTask exclude(Spec<ReadOnlyFileTreeElement> excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }

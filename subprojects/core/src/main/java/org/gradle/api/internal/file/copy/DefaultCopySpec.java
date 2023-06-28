@@ -32,9 +32,9 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -350,7 +350,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec include(Spec<FileTreeElement> includeSpec) {
+    public CopySpec include(Spec<ReadOnlyFileTreeElement> includeSpec) {
         patternSet.include(includeSpec);
         return this;
     }
@@ -385,7 +385,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec exclude(Spec<FileTreeElement> excludeSpec) {
+    public CopySpec exclude(Spec<ReadOnlyFileTreeElement> excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }
@@ -715,8 +715,8 @@ public class DefaultCopySpec implements CopySpecInternal {
 
 
         @Override
-        public List<Spec<FileTreeElement>> getAllExcludeSpecs() {
-            List<Spec<FileTreeElement>> result = new ArrayList<>();
+        public List<Spec<ReadOnlyFileTreeElement>> getAllExcludeSpecs() {
+            List<Spec<ReadOnlyFileTreeElement>> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludeSpecs());
             }
@@ -802,8 +802,8 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        public List<Spec<FileTreeElement>> getAllIncludeSpecs() {
-            List<Spec<FileTreeElement>> result = new ArrayList<>();
+        public List<Spec<ReadOnlyFileTreeElement>> getAllIncludeSpecs() {
+            List<Spec<ReadOnlyFileTreeElement>> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludeSpecs());
             }

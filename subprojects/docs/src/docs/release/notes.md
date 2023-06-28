@@ -155,6 +155,17 @@ Disable options are now sorted after their enable option, for example the option
 
 See the [task options](userguide/custom_tasks.html#sec:listing_task_options) user manual section for more information.
 
+### Changes in Files API
+
+In previous versions of Gradle, the `org.gradle.api.file.FileTreeElement` interface was used to represent a file or a directory in a file tree. 
+File tree filtering was managed by `Spec<FileTreeElement>` (see `org.gradle.api.tasks.util.PatternFilterable` for more details).
+However, the `org.gradle.api.file.FileTreeElement` interface exposes methods like `copyTo` or `getFile` which can write data on disk.
+To discourage their usage in filtering and have a read-only view of a file tree element, 
+`org.gradle.api.file.ReadOnlyFileTreeElement` interface was extracted from `org.gradle.api.file.FileTreeElement`.
+The `org.gradle.api.file.FileTreeElement` interface now extends `org.gradle.api.file.ReadOnlyFileTreeElement`.
+All `Spec<FileTreeElement>` usages are changed to `Spec<ReadOnlyFileTreeElement>`. 
+Generally, it shouldn't affect most users in any way, but if you have custom lambdas for filtering, you might need to update their argument type.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

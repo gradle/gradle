@@ -19,7 +19,7 @@ package org.gradle.api.tasks.util
 import groovy.transform.CompileStatic
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.InvalidUserCodeException
-import org.gradle.api.file.FileTreeElement
+import org.gradle.api.file.ReadOnlyFileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
@@ -166,7 +166,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForIncludeSpecs() {
         when:
-        patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
+        patternSet.include({ ReadOnlyFileTreeElement element -> element.name.contains('a') } as Spec)
         then:
         included file('a')
         excluded file('b')
@@ -174,7 +174,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForExcludeSpecs() {
         when:
-        patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
+        patternSet.exclude({ ReadOnlyFileTreeElement element -> element.name.contains('b') } as Spec)
         then:
         included file('a')
         excluded file('b')
@@ -182,8 +182,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForIncludeAndExcludeSpecs() {
         when:
-        patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
-        patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
+        patternSet.include({ ReadOnlyFileTreeElement element -> element.name.contains('a') } as Spec)
+        patternSet.exclude({ ReadOnlyFileTreeElement element -> element.name.contains('b') } as Spec)
         then:
         included file('a')
         excluded file('ab')
@@ -193,7 +193,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForIncludeClosure() {
         when:
-        patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
+        patternSet.include { ReadOnlyFileTreeElement element -> element.name.contains('a') }
         then:
         included file('a')
         excluded file('b')
@@ -201,7 +201,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForExcludeClosure() {
         when:
-        patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
+        patternSet.exclude { ReadOnlyFileTreeElement element -> element.name.contains('b') }
         then:
         included file('a')
         excluded file('b')
@@ -209,8 +209,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForIncludeAndExcludeClosures() {
         when:
-        patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
-        patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
+        patternSet.include { ReadOnlyFileTreeElement element -> element.name.contains('a') }
+        patternSet.exclude { ReadOnlyFileTreeElement element -> element.name.contains('b') }
         then:
         included file('a')
         excluded file('ab')
@@ -244,15 +244,15 @@ class PatternSetTest extends AbstractTestForPatternSet {
         when:
         PatternSet basePatternSet = new PatternSet()
         basePatternSet.include '*a*'
-        basePatternSet.include { FileTreeElement element -> element.file.name.contains('1') }
+        basePatternSet.include { ReadOnlyFileTreeElement element -> element.name.contains('1') }
         basePatternSet.exclude '*b*'
-        basePatternSet.exclude { FileTreeElement element -> element.file.name.contains('2') }
+        basePatternSet.exclude { ReadOnlyFileTreeElement element -> element.name.contains('2') }
 
         patternSet = basePatternSet.intersect()
         patternSet.include '*c*'
-        patternSet.include { FileTreeElement element -> element.file.name.contains('3') }
+        patternSet.include { ReadOnlyFileTreeElement element -> element.name.contains('3') }
         patternSet.exclude '*d*'
-        patternSet.exclude { FileTreeElement element -> element.file.name.contains('4') }
+        patternSet.exclude { ReadOnlyFileTreeElement element -> element.name.contains('4') }
 
         then:
         included file('ac')
@@ -358,26 +358,27 @@ class PatternSetTest extends AbstractTestForPatternSet {
         !patternSet.intersect().isEmpty()
     }
 
-    boolean included(FileTreeElement file) {
+    boolean included(ReadOnlyFileTreeElement file) {
         patternSet.asSpec.isSatisfiedBy(file)
     }
 
-    boolean excluded(FileTreeElement file) {
+    boolean excluded(ReadOnlyFileTreeElement file) {
         !patternSet.asSpec.isSatisfiedBy(file)
     }
 
-    private static FileTreeElement element(boolean isFile, String... elements) {
+    private static ReadOnlyFileTreeElement element(boolean isFile, String... elements) {
+        File file = new File(elements.join('/'))
         [
             getRelativePath: { return new RelativePath(isFile, elements) },
-            getFile        : { return new File(elements.join('/')) }
-        ] as FileTreeElement
+            getName: { return file.name }
+        ] as ReadOnlyFileTreeElement
     }
 
-    private static FileTreeElement file(String... elements) {
+    private static ReadOnlyFileTreeElement file(String... elements) {
         element(true, elements)
     }
 
-    private static FileTreeElement dir(String... elements) {
+    private static ReadOnlyFileTreeElement dir(String... elements) {
         element(false, elements)
     }
 

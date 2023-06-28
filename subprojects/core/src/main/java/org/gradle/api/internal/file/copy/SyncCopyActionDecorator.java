@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
@@ -85,7 +85,7 @@ public class SyncCopyActionDecorator implements CopyAction {
 
     private static class SyncCopyActionDecoratorFileVisitor implements FileVisitor {
         private final Set<RelativePath> visited;
-        private final Spec<FileTreeElement> preserveSpec;
+        private final Spec<ReadOnlyFileTreeElement> preserveSpec;
         private final PatternSet preserveSet;
         private final Deleter deleter;
         private boolean didWork;

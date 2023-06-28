@@ -17,9 +17,9 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.file.DirectoryTree;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -47,14 +47,14 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
     private final File baseDir;
     private final String includePattern;
     private final List<String> patternSegments;
-    private final Spec<FileTreeElement> excludeSpec;
+    private final Spec<ReadOnlyFileTreeElement> excludeSpec;
     private final FileSystem fileSystem = FileSystems.getDefault();
 
     public SingleIncludePatternFileTree(File baseDir, String includePattern) {
         this(baseDir, includePattern, Specs.satisfyNone());
     }
 
-    public SingleIncludePatternFileTree(File baseDir, String includePattern, Spec<FileTreeElement> excludeSpec) {
+    public SingleIncludePatternFileTree(File baseDir, String includePattern, Spec<ReadOnlyFileTreeElement> excludeSpec) {
         this.baseDir = baseDir;
         if (includePattern.endsWith("/") || includePattern.endsWith("\\")) {
             includePattern += "**";

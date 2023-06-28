@@ -28,7 +28,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -768,7 +768,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test include(Spec<FileTreeElement> includeSpec) {
+    public Test include(Spec<ReadOnlyFileTreeElement> includeSpec) {
         patternSet.include(includeSpec);
         return this;
     }
@@ -808,7 +808,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test exclude(Spec<FileTreeElement> excludeSpec) {
+    public Test exclude(Spec<ReadOnlyFileTreeElement> excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }

@@ -117,6 +117,7 @@ Method <org.gradle.api.file.FileCopyDetails.getSourceName()> does not have raw r
 Method <org.gradle.api.file.FileCopyDetails.getSourcePath()> does not have raw return type assignable to org.gradle.api.provider.Provider in (FileCopyDetails.java:0)
 Method <org.gradle.api.file.SourceDirectorySet.getFilter()> does not have raw return type assignable to org.gradle.api.provider.Provider in (SourceDirectorySet.java:0)
 Method <org.gradle.api.file.SourceDirectorySet.getName()> does not have raw return type assignable to org.gradle.api.provider.Provider in (SourceDirectorySet.java:0)
+Method <org.gradle.api.file.SourceDirectorySet.getSpec()> does not have raw return type assignable to org.gradle.api.provider.Provider in (SourceDirectorySet.java:0)
 Method <org.gradle.api.file.SourceDirectorySet.getSrcDirTrees()> does not have raw return type assignable to org.gradle.api.provider.Provider in (SourceDirectorySet.java:0)
 Method <org.gradle.api.file.SourceDirectorySet.getSrcDirs()> does not have raw return type assignable to org.gradle.api.provider.Property in (SourceDirectorySet.java:0)
 Method <org.gradle.api.file.SyncSpec.getPreserve()> does not have raw return type assignable to org.gradle.api.provider.Provider in (SyncSpec.java:0)
