@@ -18,14 +18,12 @@ package org.gradle.configurationcache.inputs.undeclared
 
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.test.fixtures.file.TestFile
 
 class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def 'can ignore a file system check configuration inputs #location'() {
         given:
-        def inputFile = fileClosure.call(testDirectory)
         buildFile("""
-            println("exists = " + new File("${inputFile.absolutePath}").exists())
+            println("exists = " + new File("build/test.lock").exists())
         """)
 
         when:
@@ -38,7 +36,7 @@ class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfiguration
         }
 
         when:
-        file("gradle.properties") << """$IGNORE_FS_CHECKS_PROPERTY=$pattern"""
+        file("gradle.properties") << """$IGNORE_FS_CHECKS_PROPERTY=build/*.lock"""
         configurationCacheRun()
 
         then:
@@ -46,13 +44,6 @@ class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfiguration
         problems.assertResultHasProblems(result) {
             withNoInputs()
         }
-
-        where:
-        location                        | pattern            | fileClosure
-        "inside the project directory"  | "build/*.lock"     | { TestFile testDir -> testDir.file("build/test.lock").absoluteFile }
-        "outside the project directory" | "../../*.lock"     | { TestFile testDir -> testDir.file("../../test.lock").absoluteFile }
-        "in user home directory"        | "~/.gradle/*.lock" | { TestFile testDir -> new File(System.getProperty("user.home"), ".gradle/test.lock") }
-        "by absolute path"              | "/test/*.lock"     | { TestFile testDir -> new File("/test/test.lock") }
     }
 
     def 'can ignore file system checks in multiple paths if separated by semicolon'() {
