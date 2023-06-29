@@ -26,23 +26,23 @@ import javax.inject.Inject
 
 @ServiceScope(BuildTree::class)
 class DefaultIgnoredConfigurationInputs(
-    ignoredPathsString: String,
+    ignoredPathsString: String?,
     private val rootDirectory: File
 ) : IgnoredConfigurationInputs {
 
     @Inject
     @Suppress("unused") // used in DI
     constructor(configurationCacheStartParameter: ConfigurationCacheStartParameter) :
-        this(configurationCacheStartParameter.ignoredFileSystemCheckInputs.orEmpty(), configurationCacheStartParameter.rootDirectory)
+        this(configurationCacheStartParameter.ignoredFileSystemCheckInputs, configurationCacheStartParameter.rootDirectory)
 
     private
     val userHome = File(System.getProperty("user.home"))
 
     private
-    val jointRegex = createJointRegexForPatterns(ignoredPathsString)
+    val jointRegex: Regex? = maybeCreateJointRegexForPatterns(ignoredPathsString)
 
     override fun isFileSystemCheckIgnoredFor(file: File): Boolean =
-        jointRegex.matches(normalizeActualInputPath(file))
+        jointRegex?.matches(normalizeActualInputPath(file)) ?: false
 
     private
     fun normalizeActualInputPath(file: File): String =
@@ -78,10 +78,14 @@ class DefaultIgnoredConfigurationInputs(
         }
 
     private
-    fun createJointRegexForPatterns(paths: String) =
-        paths.split(PATHS_SEPARATOR).joinToString("|") {
-            wildcardsToRegexPatternString(normalizeFilePattern(it).invariantSeparatorsPath)
-        }.toRegex()
+    fun maybeCreateJointRegexForPatterns(paths: String?) =
+        if (paths.isNullOrEmpty()) {
+            null
+        } else {
+            paths.split(PATHS_SEPARATOR).joinToString("|") {
+                wildcardsToRegexPatternString(normalizeFilePattern(it).invariantSeparatorsPath)
+            }.toRegex()
+        }
 
     internal
     companion object {

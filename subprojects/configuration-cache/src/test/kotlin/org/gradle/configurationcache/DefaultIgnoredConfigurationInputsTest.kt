@@ -33,6 +33,15 @@ class DefaultIgnoredConfigurationInputsTest {
     }
 
     @Test
+    fun `if created with an empty or null paths list, does not recognize an empty string`() {
+        val instance = createFromPaths(emptyList())
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("")))
+
+        val instanceFromNull = DefaultIgnoredConfigurationInputs(null, rootDir)
+        assertFalse(instanceFromNull.isFileSystemCheckIgnoredFor(File("")))
+    }
+
+    @Test
     fun `does not recognize arbitrary paths by default`() {
         val instance = createFromPaths(emptyList())
         assertFalse(instance.isFileSystemCheckIgnoredFor(File("test")))
