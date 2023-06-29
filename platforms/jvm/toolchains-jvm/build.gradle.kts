@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.api-kotlin")
 }
 
 description = "Adds support for using JVM toolchains in projects"
@@ -24,18 +25,54 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":core"))
     implementation(project(":core-api"))
+    implementation(project(":dependency-management"))
+    implementation(project(":diagnostics"))
+    implementation(project(":enterprise-operations"))
+    implementation(project(":file-collections"))
     implementation(project(":jvm-services"))
+    implementation(project(":logging"))
     implementation(project(":model-core"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
+    implementation(project(":resources"))
 
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
     implementation(libs.groovy)
+    implementation(libs.guava)
     implementation(libs.inject)
+    implementation(libs.nativePlatform) {
+        because("Required for SystemInfo")
+    }
+    implementation(libs.futureKotlin("stdlib-jdk8"))
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":language-groovy")))
+    testImplementation(testFixtures(project(":logging")))
+
+    testRuntimeOnly(project(":distributions-core")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
 
     integTestImplementation(testFixtures(project(":model-core")))
     integTestImplementation(testFixtures(project(":plugins")))
 
+    integTestImplementation(libs.slf4jApi)
+
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+}
+
+configurations {
+    integTestImplementation {
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.CLASSES))
+        }
+    }
+}
+
+packageCycles {
+    // Needed for the factory methods in the interface
+    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
+    excludePatterns.add("org/gradle/jvm/toolchain/**")
 }

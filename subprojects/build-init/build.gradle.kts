@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":wrapper"))
     implementation(project(":wrapper-shared"))
     implementation(project(":testing-base"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
