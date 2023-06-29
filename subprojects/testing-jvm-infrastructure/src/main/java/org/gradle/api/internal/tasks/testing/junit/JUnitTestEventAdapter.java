@@ -16,29 +16,51 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestFailureFailedMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestMultipleFailuresMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
-import org.junit.ComparisonFailure;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-import java.lang.reflect.Field;
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class JUnitTestEventAdapter extends RunListener {
+/**
+ * A {@link RunListener} that maps JUnit4 events to Gradle test events.
+ */
+@NonNullApi
+public class JUnitTestEventAdapter extends RunListener implements RootAssertionToFailureMapper {
+
+    public static final List<FailureMapper> MAPPERS = Arrays.asList(
+        new JUnitComparisonFailureMapper(),
+        new OpentestFailureFailedMapper(),
+        new OpentestMultipleFailuresMapper(),
+        new AssertjMultipleAssertionsErrorMapper(),
+        new AssertErrorMapper()
+    );
+
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)(\\[\\d+])?", Pattern.DOTALL);
     private final IdGenerator<?> idGenerator;
     private final TestResultProcessor resultProcessor;
@@ -85,33 +107,23 @@ public class JUnitTestEventAdapter extends RunListener {
         }
     }
 
-    private void reportFailure(Object descriptorId, Throwable failure) {
-        // According to https://junit.org/junit4/javadoc/latest/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
-        // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
-        // - org.junit.ComparisonFailure: when assertEquals (and similar assertion) fails; test code can throw it directly
-        // - junit.framework.ComparisonFailure: for older JUnit tests using JUnit 3.x fixtures
-        // All assertion errors are subclasses of the AssertionError class. If the received failure is not an instance of AssertionError then it is categorized as a framework failure.
-        if (failure instanceof ComparisonFailure) {
-            ComparisonFailure comparisonFailure = (ComparisonFailure) failure;
-            resultProcessor.failure(descriptorId, TestFailure.fromTestAssertionFailure(failure, comparisonFailure.getExpected(), comparisonFailure.getActual()));
-        } else if (failure instanceof junit.framework.ComparisonFailure) {
-            junit.framework.ComparisonFailure comparisonFailure = (junit.framework.ComparisonFailure) failure;
-            resultProcessor.failure(descriptorId, TestFailure.fromTestAssertionFailure(failure, getValueOfStringField("fExpected", comparisonFailure), getValueOfStringField("fActual", comparisonFailure)));
-        } else if (failure instanceof AssertionError) {
-            resultProcessor.failure(descriptorId, TestFailure.fromTestAssertionFailure(failure, null, null));
-        } else {
-            resultProcessor.failure(descriptorId, TestFailure.fromTestFrameworkFailure(failure));
+    @Override
+    public TestFailure createFailure(Throwable failure) {
+        for (FailureMapper mapper : MAPPERS) {
+            if (mapper.supports(failure.getClass())) {
+                try {
+                    return mapper.map(failure, this);
+                } catch (Exception ignored) {
+                    // ignore
+                }
+            }
         }
+
+        return TestFailure.fromTestFrameworkFailure(failure);
     }
 
-    private String getValueOfStringField(String name, junit.framework.ComparisonFailure comparisonFailure) {
-        try {
-            Field f = comparisonFailure.getClass().getDeclaredField(name);
-            f.setAccessible(true);
-            return (String) f.get(comparisonFailure);
-        } catch (Exception e) {
-            return null;
-        }
+    private void reportFailure(Object descriptorId, Throwable failure) {
+        resultProcessor.failure(descriptorId, createFailure(failure));
     }
 
     @Override
@@ -159,11 +171,11 @@ public class JUnitTestEventAdapter extends RunListener {
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
     }
 
-    private TestDescriptorInternal descriptor(Object id, Description description) {
+    private static TestDescriptorInternal descriptor(Object id, Description description) {
         return new DefaultTestDescriptor(id, className(description), methodName(description));
     }
 
-    private TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
+    private static TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
         String methodName = methodName(description);
         if (methodName != null) {
             return new DefaultTestDescriptor(id, className(description), methodName);
@@ -173,10 +185,12 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     // Use this instead of Description.getMethodName(), it is not available in JUnit <= 4.5
+    @Nullable
     public static String methodName(Description description) {
         return methodName(description.toString());
     }
 
+    @Nullable
     public static String methodName(String description) {
         Matcher matcher = methodStringMatcher(description);
         if (matcher.matches()) {
