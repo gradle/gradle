@@ -16,10 +16,12 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
+@NonNullApi
 public class AlreadyOnClasspathIgnoringPluginResolver implements PluginResolver {
     private final PluginResolver delegate;
     private final PluginDescriptorLocator pluginDescriptorLocator;
