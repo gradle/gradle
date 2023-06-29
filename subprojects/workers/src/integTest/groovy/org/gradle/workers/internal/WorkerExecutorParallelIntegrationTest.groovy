@@ -702,7 +702,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     @Requires(
         value = IntegTestPreconditions.NotConfigCached,
-        reason = "Assumptions about project locking introduced in https://github.com/gradle/gradle/pull/2171 do not hold"
+        reason = """Assumptions about project locking introduced in https://github.com/gradle/gradle/pull/2171 do not hold.
+With CC enabled, the project is immutable so tasks run in parallel.
+This means task1-1 and task2 would be expected to run concurrently in this case."""
     )
     def "does not start another task when a task awaits async work"() {
         given:
@@ -735,7 +737,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     @Requires(
         value = IntegTestPreconditions.NotConfigCached,
-        reason = "Assumptions about project locking introduced in https://github.com/gradle/gradle/pull/2171 do not hold"
+        reason = """Assumptions about project locking introduced in https://github.com/gradle/gradle/pull/2171 do not hold.
+With CC enabled, the project is immutable so tasks run in parallel.
+This means task1-1 and task2 would be expected to run concurrently in this case."""
     )
     def "does not start task in another project when a task awaits async work"() {
         given:
