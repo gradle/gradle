@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
+import kotlin.collections.ArrayDeque;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -269,18 +270,15 @@ public class FinalizerGroup extends HasFinalizers {
         Set<Node> seen = new HashSet<>(1024);
 
         for (Node fromNode : blockedFinalizedMembers) {
-            List<Node> queue = new ArrayList<>(1024);
-            fromNode.visitHardSuccessors(queue::add);
+            ArrayDeque<Node> queue = new ArrayDeque<>(1024);
+            queue.add(fromNode);
             while (!queue.isEmpty()) {
-                Node toNode = queue.remove(0);
-                if (!seen.add(toNode)) {
-                    continue;
-                }
+                Node toNode = queue.removeFirst();
                 if (members.contains(toNode) && !blockedFinalizedMembers.contains(toNode)) {
                     dependenciesThatAreMembers.add(toNode);
                 }
                 toNode.visitHardSuccessors(node -> {
-                    if (!seen.contains(node)) {
+                    if (seen.add(node)) {
                         queue.add(node);
                     }
                 });
