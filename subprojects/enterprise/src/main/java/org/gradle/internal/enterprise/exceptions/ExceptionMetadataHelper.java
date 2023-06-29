@@ -18,7 +18,6 @@ package org.gradle.internal.enterprise.exceptions;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.api.tasks.VerificationException;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.exceptions.MultiCauseException;
@@ -37,7 +36,6 @@ public final class ExceptionMetadataHelper {
     private static final String METADATA_KEY_LOCATION = "location";
     private static final String METADATA_KEY_LINE_NUMBER = "lineNumber";
     private static final String METADATA_KEY_IS_MULTICAUSE = "isMultiCause";
-    private static final String METADATA_KEY_IS_VERIFICATION_EXCEPTION = "isVerificationException";
 
     public static Map<String, String> getMetadata(Throwable t) {
         Map<String, String> metadata = new LinkedHashMap<>();
@@ -69,10 +67,6 @@ public final class ExceptionMetadataHelper {
 
         if (t instanceof MultiCauseException) {
             metadata.put(METADATA_KEY_IS_MULTICAUSE, String.valueOf(true));
-        }
-
-        if (t instanceof VerificationException) {
-            metadata.put(METADATA_KEY_IS_VERIFICATION_EXCEPTION, String.valueOf(true));
         }
 
         return metadata;
