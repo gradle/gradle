@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.os.OperatingSystem
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -25,7 +26,7 @@ import java.io.File
 class DefaultIgnoredConfigurationInputsTest {
 
     private
-    val rootDir = File("/test/rootDir")
+    val rootDir = File(if (OperatingSystem.current().isWindows) "C:/test/rootDir" else "/test/rootDir")
 
     private
     fun createFromPaths(paths: List<String>): DefaultIgnoredConfigurationInputs {
