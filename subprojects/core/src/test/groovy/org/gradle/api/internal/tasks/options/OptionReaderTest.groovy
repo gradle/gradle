@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.options
 
 import org.gradle.api.internal.tasks.TaskOptionsGenerator
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
 import spock.lang.Issue
@@ -106,6 +108,32 @@ class OptionReaderTest extends Specification {
         options[4].description == "string value"
         options[4].argumentType == String
         options[4].availableValues == ["dynValue1", "dynValue2"] as Set
+    }
+
+    def "can read options linked to property getter methods of type ListProperty of a task"() {
+        when:
+        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithListProperties(), reader).getAll()
+        then:
+        options[0].name == "enumValue"
+        options[0].description == "enum value"
+        options[0].argumentType == List
+
+        options[1].name == "stringValue"
+        options[1].description == "string value"
+        options[1].argumentType == List
+    }
+
+    def "can read options linked to property getter methods of type SetProperty of a task"() {
+        when:
+        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithSetProperties(), reader).getAll()
+        then:
+        options[0].name == "enumValue"
+        options[0].description == "enum value"
+        options[0].argumentType == List
+
+        options[1].name == "stringValue"
+        options[1].description == "string value"
+        options[1].argumentType == List
     }
 
     def "built-in options appear last"() {
@@ -274,6 +302,31 @@ class OptionReaderTest extends Specification {
         options[3].availableValues.isEmpty()
     }
 
+    def "handles property field options of type ListProperty"() {
+        when:
+        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithListPropertyField(), reader).getAll()
+        then:
+        options[0].name == "customOptionName"
+        options[0].description == "custom description"
+        options[0].argumentType == List
+
+        options[1].name == "field2"
+        options[1].description == "Descr Field2"
+        options[1].argumentType == List
+    }
+
+    def "handles property field options of type SetProperty"() {
+        when:
+        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithSetPropertyField(), reader).getAll()
+        then:
+        options[0].name == "customOptionName"
+        options[0].description == "custom description"
+        options[0].argumentType == List
+
+        options[1].name == "field2"
+        options[1].description == "Descr Field2"
+        options[1].argumentType == List
+    }
 
     def "throws decent error when description not set"() {
         when:
@@ -527,6 +580,30 @@ class OptionReaderTest extends Specification {
         }
     }
 
+    public static class TestClassWithListProperties {
+        @Option(option = "stringValue", description = "string value")
+        public ListProperty<String> getStringValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "enumValue", description = "enum value")
+        public ListProperty<TestEnum> getEnumValue() {
+            throw new UnsupportedOperationException()
+        }
+    }
+
+    public static class TestClassWithSetProperties {
+        @Option(option = "stringValue", description = "string value")
+        public SetProperty<String> getStringValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "enumValue", description = "enum value")
+        public SetProperty<TestEnum> getEnumValue() {
+            throw new UnsupportedOperationException()
+        }
+    }
+
     public static class CustomClass {
         String value
 
@@ -629,6 +706,22 @@ class OptionReaderTest extends Specification {
         List<String> getField2Options() {
             return Arrays.asList("dynValue1", "dynValue2")
         }
+    }
+
+    public static class TestClassWithListPropertyField {
+        @Option(option = 'customOptionName', description = "custom description")
+        final ListProperty<String> field1
+
+        @Option(description = "Descr Field2")
+        final ListProperty<TestEnum> field2
+    }
+
+    public static class TestClassWithSetPropertyField {
+        @Option(option = 'customOptionName', description = "custom description")
+        final SetProperty<String> field1
+
+        @Option(description = "Descr Field2")
+        final SetProperty<TestEnum> field2
     }
 
     public static class TestClass7 {

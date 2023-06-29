@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.NonNullApi;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaMethod;
@@ -41,6 +44,12 @@ public class MethodOptionElement {
             PropertySetter setter = mutateUsingReturnValue(method);
             return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
         }
+        if (ListProperty.class.isAssignableFrom(method.getReturnType()) || SetProperty.class.isAssignableFrom(method.getReturnType())) {
+            assertCanUseMethodReturnType(optionName, method);
+            PropertySetter setter = mutateUsingReturnValue(method);
+            Class<?> elementType = setter.getRawType();
+            return new MultipleValueOptionElement(optionName, option, elementType, setter, optionValueNotationParserFactory);
+        }
         if (method.getParameterTypes().length == 0) {
             return new BooleanOptionElement(optionName, option, setFlagUsingMethod(method));
         }
@@ -59,6 +68,12 @@ public class MethodOptionElement {
     }
 
     private static PropertySetter mutateUsingReturnValue(Method method) {
+        if (ListProperty.class.isAssignableFrom(method.getReturnType())) {
+            return new ListPropertyValueSetter(method);
+        }
+        if (SetProperty.class.isAssignableFrom(method.getReturnType())) {
+            return new SetPropertyValueSetter(method);
+        }
         return new PropertyValueSetter(method);
     }
 
@@ -134,6 +149,36 @@ public class MethodOptionElement {
         public void setValue(Object target, Object value) {
             Property<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, method).invoke(target));
             property.set(value);
+        }
+
+        protected Method getMethod() {
+            return method;
+        }
+    }
+
+    @NonNullApi
+    private static class ListPropertyValueSetter extends PropertyValueSetter {
+        public ListPropertyValueSetter(Method method) {
+            super(method);
+        }
+
+        @Override
+        public void setValue(Object target, Object value) {
+            ListProperty<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
+            property.set((Iterable<?>) value);
+        }
+    }
+
+    @NonNullApi
+    private static class SetPropertyValueSetter extends PropertyValueSetter {
+        public SetPropertyValueSetter(Method method) {
+            super(method);
+        }
+
+        @Override
+        public void setValue(Object target, Object value) {
+            SetProperty<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
+            property.set((Iterable<?>) value);
         }
     }
 

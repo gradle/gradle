@@ -140,6 +140,102 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
+    String taskWithListPropertyOption(String optionType) {
+        """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.Internal;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.tasks.options.Option;
+            import org.gradle.api.provider.ListProperty;
+
+            public class SampleTask extends DefaultTask {
+                private final ListProperty<$optionType> myProp = getProject().getObjects().listProperty(${optionType}.class);
+
+                @Internal
+                @Option(option = "myProp", description = "Configures command line option 'myProp'.")
+                public ListProperty<$optionType> getMyProp() {
+                    return myProp;
+                }
+
+                @TaskAction
+                public void renderOptionValue() {
+                    System.out.println("Value of myProp: " + myProp.getOrNull());
+                }
+
+                private static enum TestEnum {
+                    OPT_1, OPT_2, OPT_3
+                }
+            }
+        """
+    }
+
+    String groovyTaskWithListPropertyOption(String optionType) {
+        """
+            public class SampleTask extends DefaultTask {
+                @Internal
+                @Option(option = "myProp", description = "Configures command line option 'myProp'.")
+                final ListProperty<$optionType> myProp = project.objects.listProperty($optionType)
+
+                @TaskAction
+                public void renderOptionValue() {
+                    println("Value of myProp: " + myProp.getOrNull())
+                }
+
+                private static enum TestEnum {
+                    OPT_1, OPT_2, OPT_3
+                }
+            }
+        """
+    }
+
+    String taskWithSetPropertyOption(String optionType) {
+        """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.Internal;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.tasks.options.Option;
+            import org.gradle.api.provider.SetProperty;
+
+            public class SampleTask extends DefaultTask {
+                private final SetProperty<$optionType> myProp = getProject().getObjects().setProperty(${optionType}.class);
+
+                @Internal
+                @Option(option = "myProp", description = "Configures command line option 'myProp'.")
+                public SetProperty<$optionType> getMyProp() {
+                    return myProp;
+                }
+
+                @TaskAction
+                public void renderOptionValue() {
+                    System.out.println("Value of myProp: " + myProp.getOrNull());
+                }
+
+                private static enum TestEnum {
+                    OPT_1, OPT_2, OPT_3
+                }
+            }
+        """
+    }
+
+    String groovyTaskWithSetPropertyOption(String optionType) {
+        """
+            public class SampleTask extends DefaultTask {
+                @Internal
+                @Option(option = "myProp", description = "Configures command line option 'myProp'.")
+                final SetProperty<$optionType> myProp = project.objects.setProperty($optionType)
+
+                @TaskAction
+                public void renderOptionValue() {
+                    println("Value of myProp: " + myProp.getOrNull())
+                }
+
+                private static enum TestEnum {
+                    OPT_1, OPT_2, OPT_3
+                }
+            }
+        """
+    }
+
     String taskWithMultipleOptions() {
         """
             import org.gradle.api.DefaultTask;

@@ -246,6 +246,86 @@ Options
         'TestEnum' | []                             | 'null'              | 'not provided'
     }
 
+    def "set value of property of type ListProperty of type #optionType when #description for Java task"() {
+        given:
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithListPropertyOption(optionType)
+        buildFile << sampleTask()
+
+        when:
+        run(['sample'] + options as String[])
+
+        then:
+        outputContains("Value of myProp: $optionValue")
+
+        where:
+        optionType | options                              | optionValue        | description
+        'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'           | 'provided'
+        'String'   | []                                   | '[]'               | 'not provided'
+        'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'   | 'provided with upper case'
+        'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'   | 'provided with lower case'
+        'TestEnum' | []                                   | '[]'               | 'not provided'
+    }
+
+    def "set value of property of type ListProperty of type #optionType when #description for Groovy task"() {
+        given:
+        buildFile << groovyTaskWithListPropertyOption(optionType)
+        buildFile << sampleTask()
+
+        when:
+        run(['sample'] + options as String[])
+
+        then:
+        outputContains("Value of myProp: $optionValue")
+
+        where:
+        optionType | options                              | optionValue      | description
+        'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'         | 'provided'
+        'String'   | []                                   | '[]'             | 'not provided'
+        'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]' | 'provided with upper case'
+        'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]' | 'provided with lower case'
+        'TestEnum' | []                                   | '[]'             | 'not provided'
+    }
+
+    def "set value of property of type SetProperty of type #optionType when #description for Java task"() {
+        given:
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithSetPropertyOption(optionType)
+        buildFile << sampleTask()
+
+        when:
+        run(['sample'] + options as String[])
+
+        then:
+        outputContains("Value of myProp: $optionValue")
+
+        where:
+        optionType | options                              | optionValue        | description
+        'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'           | 'provided'
+        'String'   | []                                   | '[]'               | 'not provided'
+        'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'   | 'provided with upper case'
+        'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'   | 'provided with lower case'
+        'TestEnum' | []                                   | '[]'               | 'not provided'
+    }
+
+    def "set value of property of type SetProperty of type #optionType when #description for Groovy task"() {
+        given:
+        buildFile << groovyTaskWithSetPropertyOption(optionType)
+        buildFile << sampleTask()
+
+        when:
+        run(['sample'] + options as String[])
+
+        then:
+        outputContains("Value of myProp: $optionValue")
+
+        where:
+        optionType | options                              | optionValue      | description
+        'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'         | 'provided'
+        'String'   | []                                   | '[]'             | 'not provided'
+        'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]' | 'provided with upper case'
+        'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]' | 'provided with lower case'
+        'TestEnum' | []                                   | '[]'             | 'not provided'
+    }
+
     static String sampleTask() {
         """
             task sample(type: SampleTask)
