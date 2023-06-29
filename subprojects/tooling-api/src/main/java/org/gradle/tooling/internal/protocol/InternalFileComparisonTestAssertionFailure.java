@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
- * Todo.
+ * Interface for describing test assertion failures that contain detailed information about the expected and actual file contents.
  *
  * @since 8.3
  */
