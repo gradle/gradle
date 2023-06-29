@@ -98,7 +98,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         return resolvedClasspath;
     }
 
-    public void dropInstrumentedScriptClassPath() {
+    public void dropResolvedClassPath() {
         resolvedClasspath = null;
     }
 

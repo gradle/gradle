@@ -119,7 +119,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             List<Result> autoAppliedPluginResults = resolvePluginRequests(autoAppliedPlugins, alreadyOnClasspathIgnoringPluginResolver);
             if (!autoAppliedPluginResults.isEmpty()) {
                 ((DefaultClassLoaderScope) classLoaderScope).dropClassloaders();
-                scriptHandler.dropInstrumentedScriptClassPath();
+                scriptHandler.dropResolvedClassPath();
 
                 applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplsFromOtherLoaders, autoAppliedPluginResults);
                 exportBuildLogicClassPathTo(classLoaderScope, scriptHandler.getInstrumentedScriptClassPath());

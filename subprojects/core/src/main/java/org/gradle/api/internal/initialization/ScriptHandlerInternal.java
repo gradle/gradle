@@ -33,5 +33,5 @@ public interface ScriptHandlerInternal extends ScriptHandler {
      */
     ClassPath getInstrumentedScriptClassPath();
 
-    void dropInstrumentedScriptClassPath();
+    void dropResolvedClassPath();
 }
