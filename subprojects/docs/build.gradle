@@ -764,10 +764,6 @@ tasks.named("docsTest") { task ->
                 // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
                 "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",
                 "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/22545)
-                "snippet-developing-plugins-plugin-with-variants_groovy_localPublish.sample",
-                "snippet-developing-plugins-plugin-with-variants_kotlin_localPublish.sample",
             ]
 
             // Tests that can and has to be fixed to run with the configuration cache enabled.

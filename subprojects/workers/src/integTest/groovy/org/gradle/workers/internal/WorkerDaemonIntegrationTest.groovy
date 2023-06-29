@@ -126,6 +126,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
             task runInDaemon(type: WorkerTask) {
                 isolationMode = 'processIsolation'
                 workActionClass = ${workActionThatVerifiesOptions.name}.class
+                def fileTree = (${isOracleJDK}) ? project.fileTree(new File(Jvm.current().jre, "lib")).include("*.jar") : null
                 additionalForkOptions = { options ->
                     options.with {
                         ${optionsVerifier.toDsl()}
