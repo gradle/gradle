@@ -19,7 +19,6 @@ package org.gradle.internal.scan.config
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.UnsupportedBuildScanPluginVersionException
@@ -88,8 +87,8 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
 
     def "fails if plugin version is not supported"() {
         when:
-        // 1.16 is older than BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION, hence not supported
-        config("1.16")
+        // Earliest plugin version that does not cause an exception is 3.0
+        config("2.4.2")
 
         then:
         thrown(UnsupportedBuildScanPluginVersionException)
@@ -106,7 +105,6 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
 
         new LegacyGradleEnterprisePluginCheckInService(
             gradle,
-            Stub(BuildModelParameters),
             new GradleEnterprisePluginManager(),
             BuildType.TASKS
         )
