@@ -18,13 +18,7 @@ package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING
-import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
-import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
 
@@ -92,37 +86,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
 
         then:
         plugin.serviceCreatedOnce(output)
-    }
-
-    @Requires(IntegTestPreconditions.NotConfigCached)
-    def "shows warning message when unsupported Gradle Enterprise plugin version is used with configuration caching enabled"() {
-        given:
-        plugin.runtimeVersion = plugin.artifactVersion = pluginVersion
-        applyPlugin()
-        settingsFile << """
-            println "present: " + services.get($GradleEnterprisePluginManager.name).present
-        """
-
-        when:
-        if (applied && VersionNumber.parse(pluginVersion) < MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $pluginVersion has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
-        }
-        succeeds("t", "--configuration-cache")
-
-        then:
-        output.contains("present: ${applied}")
-
-        and:
-        output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE") != applied
-
-        where:
-        pluginVersion                                    | applied
-        '3.11.4'                                         | false
-        getMinimumPluginVersionForConfigurationCaching() | true
-    }
-
-    private static String getMinimumPluginVersionForConfigurationCaching() {
-        "${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor()}.${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor()}"
     }
 
 }

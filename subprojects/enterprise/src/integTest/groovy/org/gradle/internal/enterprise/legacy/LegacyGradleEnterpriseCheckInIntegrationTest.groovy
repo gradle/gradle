@@ -17,22 +17,19 @@
 package org.gradle.internal.enterprise.legacy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.configCache })
-class LegacyGradleEnterpriseCheckInConfigCachingIntegTest extends AbstractIntegrationSpec {
+class LegacyGradleEnterpriseCheckInIntegrationTest extends AbstractIntegrationSpec {
 
     def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
 
-    def "configuration caching is unsupported"() {
+    def "plugin #pluginVersion is unsupported"() {
         given:
         settingsFile << scanPlugin.pluginManagement()
 
         scanPlugin.with {
             logConfig = true
             logApplied = true
-            runtimeVersion = "3.3.4"
+            runtimeVersion = pluginVersion
             publishDummyPlugin(executer)
         }
 
@@ -41,10 +38,14 @@ class LegacyGradleEnterpriseCheckInConfigCachingIntegTest extends AbstractIntegr
         """
 
         when:
-        succeeds "t", "--configuration-cache"
+        succeeds "t"
 
         then:
-        scanPlugin.assertUnsupportedMessage(output, "Build scans have been disabled due to incompatibility between your Gradle Enterprise plugin version (3.3.4) and configuration caching. Please use Gradle Enterprise plugin version 3.4 or later for compatibility with configuration caching.")
+        scanPlugin.assertUnsupportedMessage(output, "Gradle Enterprise plugin $pluginVersion has been disabled as it is incompatible with this version of Gradle. Upgrade to Gradle Enterprise plugin 3.13.1 or newer to restore functionality.")
+
+        where:
+        // Legacy check-in with graceful unsupported message works with this plugin versions range:
+        pluginVersion << ["3.0", "3.3.4"]
     }
 
 }
