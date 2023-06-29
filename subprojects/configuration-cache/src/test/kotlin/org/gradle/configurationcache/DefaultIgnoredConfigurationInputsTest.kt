@@ -39,6 +39,16 @@ class DefaultIgnoredConfigurationInputsTest {
     }
 
     @Test
+    fun `does not recognize partial matches unless wildcarded`() {
+        val instance = createFromPaths(listOf("abc"))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("abc")))
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("abcdef")))
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("123abc")))
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("abc/def")))
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("xyz/abc")))
+    }
+
+    @Test
     fun `recognizes relative paths against rootDirectory`() {
         val instance = createFromPaths(listOf("test/123"))
         assertTrue(instance.isFileSystemCheckIgnoredFor(rootDir.resolve("test/123")))

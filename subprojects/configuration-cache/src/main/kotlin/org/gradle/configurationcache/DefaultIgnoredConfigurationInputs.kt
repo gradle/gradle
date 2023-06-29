@@ -71,7 +71,7 @@ class DefaultIgnoredConfigurationInputs(
 
     private
     fun wildcardsToRegexPatternString(pathWithWildcards: String): String =
-        pathWithWildcards.split("**").joinToString(".*") { outerPart ->
+        pathWithWildcards.split("**").joinToString(separator = ".*", prefix = "^", postfix = "$") { outerPart ->
             outerPart.takeIf { it.isNotEmpty() }?.split("*")?.joinToString("[^/]*") { innerPart ->
                 innerPart.takeIf { it.isNotEmpty() }?.let(Regex::escape).orEmpty()
             }.orEmpty()
