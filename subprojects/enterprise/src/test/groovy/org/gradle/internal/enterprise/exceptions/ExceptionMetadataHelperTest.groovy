@@ -18,7 +18,6 @@ package org.gradle.internal.enterprise.exceptions
 
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.tasks.TaskExecutionException
-import org.gradle.api.tasks.VerificationException
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.groovy.scripts.ScriptCompilationException
 import org.gradle.groovy.scripts.TextResourceScriptSource
@@ -119,19 +118,4 @@ class ExceptionMetadataHelperTest extends Specification {
         }
     }
 
-    def "extracts verification exception status"() {
-        given:
-        def c = new CustomVerificationException("some verification exception")
-
-        expect:
-        with(ExceptionMetadataHelper.getMetadata(c)) {
-            get("isVerificationException") == true.toString()
-        }
-    }
-
-    class CustomVerificationException extends VerificationException {
-        CustomVerificationException(String message) {
-            super(message)
-        }
-    }
 }
