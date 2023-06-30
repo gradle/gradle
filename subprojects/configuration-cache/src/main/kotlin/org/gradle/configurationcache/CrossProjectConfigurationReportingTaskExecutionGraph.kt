@@ -187,9 +187,9 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     }
 
     private
-    fun Action<in TaskExecutionGraph>.wrap(): Action<TaskExecutionGraph> = Action {
-        require(this@Action is TaskExecutionGraphInternal) { "Expected the TaskExecutionGraph instance to be TaskExecutionGraphInternal" }
-        val wrappedGraph = crossProjectModelAccess.taskGraphForProject(referrerProject, this@Action)
+    fun Action<in TaskExecutionGraph>.wrap(): Action<TaskExecutionGraph> = Action inner@ {
+        require(this@inner is TaskExecutionGraphInternal) { "Expected the TaskExecutionGraph instance to be TaskExecutionGraphInternal" }
+        val wrappedGraph = crossProjectModelAccess.taskGraphForProject(referrerProject, this@inner)
         this@wrap.execute(wrappedGraph)
     }
 

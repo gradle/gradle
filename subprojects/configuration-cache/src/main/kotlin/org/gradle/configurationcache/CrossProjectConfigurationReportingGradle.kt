@@ -176,8 +176,8 @@ class CrossProjectConfigurationReportingGradle private constructor(
     private
     fun Action<in Project>.withCrossProjectModelAccessCheck(): Action<Project> {
         val originalAction = this@withCrossProjectModelAccessCheck
-        return Action<Project> {
-            val originalProject = this@Action
+        return Action<Project> inner@ {
+            val originalProject = this@inner
             check(originalProject is ProjectInternal) { "Expected the projects in the model to be ProjectInternal" }
             originalAction.execute(crossProjectModelAccess.access(referrerProject, originalProject))
         }
@@ -186,8 +186,8 @@ class CrossProjectConfigurationReportingGradle private constructor(
     private
     fun Action<in Gradle>.withCrossProjectModelGradleAccessCheck(): Action<Gradle> {
         val originalAction = this@withCrossProjectModelGradleAccessCheck
-        return Action<Gradle> {
-            val originalGradle = this@Action
+        return Action<Gradle> inner@ {
+            val originalGradle = this@inner
             check(originalGradle is GradleInternal) { "Expected the Gradle instance to be GradleInternal" }
             originalAction.execute(crossProjectModelAccess.gradleInstanceForProject(referrerProject, originalGradle))
         }
