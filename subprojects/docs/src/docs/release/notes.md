@@ -104,7 +104,7 @@ extension {
 This feature is still incubating.
 In case of any issues you can opt-out by adding  `systemProp.org.gradle.unsafe.kotlin.assignment=false` to the `gradle.properties` file.
 
-For more information see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment) and [Lazy property assignment is now the default](https://blog.gradle.org/kotlin-lazy-property-assignment) blog post.
+For more information see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment) and [Simpler Kotlin DSL Property Assignment](https://blog.gradle.org/simpler-kotlin-dsl-property-assignment) blog post.
 
 #### Gradle `init` defaults to the Kotlin DSL
 
