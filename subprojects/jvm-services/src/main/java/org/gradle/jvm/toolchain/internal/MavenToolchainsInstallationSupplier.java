@@ -91,7 +91,7 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                         String nodeValue = item.getNodeValue().trim();
                         Matcher matcher = ENV_VARIABLE_PATTERN.matcher(nodeValue);
                         StringBuffer resolvedValue = new StringBuffer();
-                        if (matcher.find()) {
+                        while (matcher.find()) {
                             String envVariableName = matcher.group(1);
                             Provider<String> envVariableValue = getEnvironmentProperty(envVariableName);
                             if (envVariableValue == null || envVariableValue.getOrNull() == null) {
