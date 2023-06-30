@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":dependency-management"))
     implementation(project(":plugin-use"))
+    implementation(projects.persistentCache)
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

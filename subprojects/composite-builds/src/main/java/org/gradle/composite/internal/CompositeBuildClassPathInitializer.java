@@ -21,19 +21,33 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 
+import javax.annotation.Nullable;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final BuildState currentBuild;
+    private final FileLockManager fileLockManager;
 
-    public CompositeBuildClassPathInitializer(BuildTreeWorkGraphController buildTreeWorkGraphController, BuildState currentBuild) {
+    public CompositeBuildClassPathInitializer(
+        BuildTreeWorkGraphController buildTreeWorkGraphController,
+        BuildState currentBuild,
+        FileLockManager fileLockManager
+    ) {
         this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.currentBuild = currentBuild;
+        this.fileLockManager = fileLockManager;
     }
 
     @Override
@@ -46,13 +60,29 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
         }
         if (!tasksToBuild.isEmpty()) {
-            buildTreeWorkGraphController.withNewWorkGraph(graph -> {
-                graph
-                    .scheduleWork(builder -> builder.scheduleTasks(tasksToBuild))
-                    .runWork()
-                    .rethrow();
-                return null;
-            });
+            buildTreeWorkGraphController.withNewWorkGraph(graph -> buildBuildLogic(graph, tasksToBuild));
         }
     }
+
+    @Nullable
+    @SuppressWarnings("try")
+    private Void buildBuildLogic(BuildTreeWorkGraph graph, List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild) {
+        BuildTreeWorkGraph.FinalizedGraph finalizedGraph = graph.scheduleWork(builder -> builder.scheduleTasks(tasksToBuild));
+        try (FileLock ignored = buildLogicBuildLockFor(currentBuild)) {
+            finalizedGraph
+                .runWork()
+                .rethrow();
+            return null;
+        }
+    }
+
+    private FileLock buildLogicBuildLockFor(BuildState build) {
+        return fileLockManager.lock(
+            new File(build.getBuildRootDir(), ".gradle/noVersion/buildLogic"),
+            LOCK_OPTIONS,
+            "buildSrc build lock"
+        );
+    }
+
+    private static final LockOptions LOCK_OPTIONS = mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation();
 }
