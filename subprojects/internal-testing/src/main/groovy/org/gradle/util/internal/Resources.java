@@ -20,8 +20,10 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
+import org.testcontainers.shaded.com.google.common.io.Files;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,8 +31,8 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -40,7 +42,11 @@ import static org.junit.Assert.assertNotNull;
  * A JUnit rule which helps locate test resources.
  */
 public class Resources implements MethodRule {
-    private final Set<String> extractedJars = new HashSet<>();
+    /**
+     * Map from test class -> (map from jar file name -> temp directory containing extracted jar))
+     */
+    @GuardedBy("itself")
+    private final Map<Class<?>, Map<String, File>> extractedJars = new HashMap<>();
     private Class<?> testClass;
 
     /**
@@ -91,24 +97,31 @@ public class Resources implements MethodRule {
         try {
             int indexOfJarSeparator = resourceUrl.getPath().indexOf("!/");
             String jarFilePath = resourceUrl.getPath().substring(5, indexOfJarSeparator);
-            String outputDirPath = jarFilePath.substring(0, jarFilePath.lastIndexOf('.')); // remove .jar extension
+            File outputDir;
 
             synchronized (extractedJars) {
-                if (!extractedJars.contains(jarFilePath)) {
-                    extractJarContents(jarFilePath, outputDirPath);
-                    extractedJars.add(jarFilePath);
+                if (!extractedJars.containsKey(testClass)) {
+                    extractedJars.put(testClass, new HashMap<>());
+                }
+
+                Map<String, File> extractedJarsForTestClass = extractedJars.get(testClass);
+                if (!extractedJarsForTestClass.containsKey(jarFilePath)) {
+                    outputDir = Files.createTempDir();
+                    extractJarContents(jarFilePath, outputDir);
+                    extractedJarsForTestClass.put(jarFilePath, outputDir);
+                } else {
+                    outputDir = extractedJarsForTestClass.get(jarFilePath);
                 }
             }
 
             String pathWithinJar = resourceUrl.getPath().substring(indexOfJarSeparator + 2);
-            return new TestFile(new File(outputDirPath, pathWithinJar));
+            return new TestFile(new File(outputDir, pathWithinJar));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void extractJarContents(String sourceJarPath, String destDirPath) throws IOException {
-        File destDir = new File(destDirPath);
+    private void extractJarContents(String sourceJarPath, File destDir) throws IOException {
         FileUtils.deleteDirectory(destDir);
         if (!destDir.mkdir()) {
             throw new IOException("Could not create root unzip directory " + destDir);
