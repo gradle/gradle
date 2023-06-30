@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.lazy;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.function.Supplier;
 
-@NotThreadSafe
-class UnsafeLazy<T> implements Lazy<T> {
+class NonAtomicLazy<T> implements Lazy<T> {
+
     @Nullable
-    private Supplier<T> supplier;
+    private volatile Supplier<T> supplier;
+
+    // "value" does not need to be volatile;
+    // visibility piggybacks  on volatile read of "supplier".
     private T value;
 
-    public UnsafeLazy(Supplier<T> supplier) {
+    public NonAtomicLazy(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
     @Override
     public T get() {
-        if (supplier != null) {
-            value = supplier.get();
+        Supplier<T> s = supplier;
+        if (s != null) {
+            T t = s.get();
+            value = t;
             supplier = null;
+            return t;
         }
         return value;
     }

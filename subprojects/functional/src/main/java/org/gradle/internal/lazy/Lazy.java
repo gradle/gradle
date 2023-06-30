@@ -67,6 +67,21 @@ public interface Lazy<T> extends Supplier<T> {
         return UnsafeLazy::new;
     }
 
+    /**
+     * A non-atomic {@link Lazy} allows concurrent access from multiple threads without locking.
+     * <br />
+     * The given {@code Supplier} might be executed more than once when multiple threads access a
+     * non-initialized {@link Lazy} at the same time but one value will eventually be cached and the
+     * {@code Supplier} discarded.
+     * <br />
+     * <b>WARNING:</b> Given the above, this flavor of {@code Lazy} initialization should not be used
+     * with a {@code Supplier} that can return different values in scenarios that require a single
+     * stable identity to be observed from all threads.
+     */
+    static Factory nonAtomic() {
+        return NonAtomicLazy::new;
+    }
+
     static Factory locking() {
         return LockingLazy::new;
     }
