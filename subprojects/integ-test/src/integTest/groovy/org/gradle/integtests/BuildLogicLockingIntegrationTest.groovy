@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -34,10 +35,11 @@ import org.junit.Rule
 import spock.lang.Issue
 
 @IntegrationTestTimeout(600)
-class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
+class BuildLogicLockingIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     @Issue("https://issues.gradle.org/browse/GRADLE-2032")
     def "can simultaneously run gradle on projects with buildSrc"() {
         def initScript = file("init.gradle")
@@ -59,6 +61,9 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
             def listener = new TraceListener(pid: pid, timer: timer)
             def manager = gradle.services.get(BuildOperationListenerManager)
             manager.addListener(listener)
+            gradle.buildFinished {
+                manager.removeListener(listener)
+            }
 
             class TraceListener implements BuildOperationListener {
                 Long pid
@@ -117,6 +122,110 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         cleanup:
         runReleaseHandle?.abort()
         runBlockingHandle?.abort()
+    }
+
+    def "can simultaneously run gradle on projects with included build logic builds"() {
+        buildTestFixture.withBuildInSubDir()
+        def pluginBuild = singleProjectBuild("pluginBuild") {
+            buildFile.prepend("apply plugin: 'java-gradle-plugin'")
+            settingsFile << """
+                rootProject.name = 'pluginBuild'
+            """
+            writeSharedClassFile(delegate)
+        }
+        server.start()
+
+        given:
+        buildFile.text = """
+            buildscript {
+                dependencies {
+                    classpath "org.test:pluginBuild:1.0"
+                }
+            }
+        """
+
+        settingsFile << """
+            includeBuild("pluginBuild")
+        """
+        pluginBuild.buildFile << """
+            import org.gradle.api.services.BuildServiceParameters
+            import org.gradle.tooling.events.FinishEvent;
+            import org.gradle.tooling.events.OperationCompletionListener;
+            import org.gradle.tooling.events.task.TaskFinishEvent;
+
+            abstract class TaskEventsService implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
+
+                @Override
+                public void onFinish(FinishEvent finishEvent) {
+                    if (finishEvent instanceof TaskFinishEvent) {
+                        println("\${finishEvent.descriptor.taskPath} finished at \${finishEvent.eventTime}")
+                    }
+                }
+            }
+
+            def taskEvents = project.gradle.sharedServices.registerIfAbsent("taskEvents", TaskEventsService) {}
+            gradle.services.get(BuildEventsListenerRegistry).onTaskCompletion(taskEvents)
+            ${server.callFromBuild("pluginBuildStarted")}
+        """
+        buildFile << """
+        import org.gradle.integtest.test.BuildSrcTask
+
+        task warmup(type: BuildSrcTask) { }
+
+        task build1(type:BuildSrcTask) {
+            doLast {
+                ${server.callFromBuild('build1')}
+            }
+        }
+
+        task build2(type:BuildSrcTask) {
+            doLast {
+                ${server.callFromBuild('build2')}
+            }
+        }
+        """
+
+        when:
+        // https://github.com/gradle/gradle-private/issues/3639 warmup to avoid potential timeout.
+        server.expect("pluginBuildStarted")
+        executer.withTasks("warmup").run()
+        server.expect("pluginBuildStarted")
+        executer.withTasks(":pluginBuild:clean").run()
+
+        server.expectConcurrent( "pluginBuildStarted", "pluginBuildStarted")
+        server.expectConcurrent("build1", "build2")
+        def runBlockingHandle = executer.withTasks("build1").start()
+        def runReleaseHandle = executer.withTasks("build2").start()
+
+        and:
+        def releaseResult = runReleaseHandle.waitForFinish()
+        def blockingResult = runBlockingHandle.waitForFinish()
+
+        then:
+        blockingResult.assertTaskExecuted(":build1")
+        releaseResult.assertTaskExecuted(":build2")
+
+        def taskTimesFromBuilds = [blockingResult, releaseResult].collect { finishedPluginBuildTaskTimes(it.output) }
+        def (firstBuild, lastBuild) = taskTimesFromBuilds.toSorted { it.values().min() }
+        def lastTaskTimeFromFirstBuild = firstBuild.values().max()
+        def firstTaskTimeFromSecondBuild = lastBuild.values().min()
+
+        lastTaskTimeFromFirstBuild < firstTaskTimeFromSecondBuild
+
+        cleanup:
+        runReleaseHandle?.abort()
+        runBlockingHandle?.abort()
+    }
+
+    Map<String, Long> finishedPluginBuildTaskTimes(String output) {
+        output.readLines().collect {
+            it =~ /:pluginBuild(.*) finished at (\d*)/
+        }.findAll {
+            it.matches()
+        }.collectEntries {
+            def match = it[0]
+            [(match[1]): Long.parseLong(match[2])]
+        }
     }
 
     void writeSharedClassFile(TestFile targetDirectory) {
