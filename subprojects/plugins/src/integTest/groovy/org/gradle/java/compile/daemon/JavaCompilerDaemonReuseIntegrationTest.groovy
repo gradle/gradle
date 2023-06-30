@@ -61,7 +61,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         and:
         def firstCompilerIdentity = compilerDaemonIdentityFile.text.trim()
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -72,7 +72,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         and:
         compilerDaemonIdentityFile.text.trim() == firstCompilerIdentity
@@ -104,7 +104,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         and:
         def firstCompilerIdentity = compilerDaemonIdentityFile.text.trim()
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -115,7 +115,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         and:
         compilerDaemonIdentityFile.text.trim() == firstCompilerIdentity

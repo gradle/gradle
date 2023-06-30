@@ -75,7 +75,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -90,7 +90,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -106,7 +106,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -127,17 +127,17 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertTwoCompilerDaemonsAreCreated()
+        assertTwoCompilerDaemonsAreRunning()
     }
 
-    void assertOneCompilerDaemonIsCreated() {
+    void assertOneCompilerDaemonIsRunning() {
         def compilerDaemonSets = compilerDaemonIdentityFile.readLines()
         assert compilerDaemonSets.size() > 0
         assert compilerDaemonSets[0].trim() != ""
         assert compilerDaemonSets[0].split(" ").size() == 1
     }
 
-    void assertTwoCompilerDaemonsAreCreated() {
+    void assertTwoCompilerDaemonsAreRunning() {
         def compilerDaemonSets = compilerDaemonIdentityFile.readLines()
         assert compilerDaemonSets.size() > 0
         assert compilerDaemonSets[0].split(" ").size() == 2

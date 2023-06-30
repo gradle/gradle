@@ -63,7 +63,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
         def firstDaemonId = compilerDaemonIdentityFile.text
 
         when:
@@ -74,7 +74,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         and:
         compilerDaemonIdentityFile.text == firstDaemonId
@@ -94,7 +94,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -104,7 +104,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         and:
         compilerDaemonIdentityFile.text == firstDaemonId
@@ -126,7 +126,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -136,7 +136,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         and:
         compilerDaemonIdentityFile.text == firstDaemonId
@@ -156,7 +156,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
         def firstDaemonId = compilerDaemonIdentityFile.text
 
         when:
@@ -168,7 +168,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
 
         and:
         compilerDaemonIdentityFile.text == firstDaemonId
