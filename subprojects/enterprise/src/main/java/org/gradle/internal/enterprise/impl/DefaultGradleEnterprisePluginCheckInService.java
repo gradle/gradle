@@ -33,6 +33,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     private final GradleEnterprisePluginManager manager;
     private final DefaultGradleEnterprisePluginAdapter adapter;
     private final boolean isConfigurationCacheEnabled;
+    private final boolean isIsolatedProjectsEnabled;
 
     public DefaultGradleEnterprisePluginCheckInService(
         BuildModelParameters buildModelParameters,
@@ -42,6 +43,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         this.manager = manager;
         this.adapter = adapter;
         this.isConfigurationCacheEnabled = buildModelParameters.isConfigurationCache();
+        this.isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
     }
 
     // Used just for testing
@@ -55,20 +57,24 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor(),
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor());
 
+    public static final String UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE = "The Gradle Enterprise plugin has been disabled as it is incompatible with isolated projects feature";
+
     // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9 = VersionNumber.parse("3.13.1");
 
     @Override
     public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
-            manager.unsupported();
             return checkInUnsupportedResult(UNSUPPORTED_TOGGLE_MESSAGE);
+        }
+
+        if (isIsolatedProjectsEnabled) {
+            return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE);
         }
 
         String pluginVersion = pluginMetadata.getVersion();
         VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
         if (isUnsupportedWithConfigurationCaching(pluginBaseVersion)) {
-            manager.unsupported();
             return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE);
         }
 
@@ -81,7 +87,8 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         return checkInResult(null, () -> ref);
     }
 
-    private static GradleEnterprisePluginCheckInResult checkInUnsupportedResult(String unsupportedMessage) {
+    private GradleEnterprisePluginCheckInResult checkInUnsupportedResult(String unsupportedMessage) {
+        manager.unsupported();
         return checkInResult(unsupportedMessage, () -> {
             throw new IllegalStateException();
         });
