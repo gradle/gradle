@@ -47,7 +47,6 @@ public class NativeProjectPublication implements ProjectComponentPublication {
         return null;
     }
 
-    @Nullable
     @Override
     public Provider<SoftwareComponentInternal> getComponent() {
         return Providers.notDefined();

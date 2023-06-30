@@ -273,7 +273,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasCause("The value for property 'component' is final and cannot be changed any further.")
+        failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
     def "publishes to all defined repositories"() {

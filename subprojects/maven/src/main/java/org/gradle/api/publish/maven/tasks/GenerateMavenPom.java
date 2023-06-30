@@ -139,30 +139,31 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
         MavenPomDependencies dependencies = pomInternal.getDependencies().get();
         for (MavenDependencyInternal mavenDependency : dependencies.getApiDependencyManagement()) {
-            pomGenerator.addDependencyManagement(mavenDependency, "compile");
+            pomGenerator.addCompileDependencyManagement(mavenDependency);
         }
 
         for (MavenDependencyInternal mavenDependency : dependencies.getRuntimeDependencyManagement()) {
-            pomGenerator.addDependencyManagement(mavenDependency, "runtime");
+            pomGenerator.addRuntimeDependencyManagement(mavenDependency);
         }
 
         for (MavenDependencyInternal mavenDependency : dependencies.getImportDependencyManagement()) {
-            pomGenerator.addDependencyManagement(mavenDependency, "import");
+            pomGenerator.addImportDependencyManagement(mavenDependency);
         }
 
         for (MavenDependencyInternal apiDependency : dependencies.getApiDependencies()) {
-            pomGenerator.addDependency(apiDependency, "compile", false);
+            pomGenerator.addCompileDependency(apiDependency);
         }
 
         for (MavenDependencyInternal runtimeDependency : dependencies.getRuntimeDependencies()) {
-            pomGenerator.addDependency(runtimeDependency, "runtime", false);
+            pomGenerator.addRuntimeDependency(runtimeDependency);
         }
 
         for (MavenDependencyInternal optionalApiDependency : dependencies.getOptionalApiDependencies()) {
-            pomGenerator.addDependency(optionalApiDependency, "compile", true);
+            pomGenerator.addOptionalCompileDependency(optionalApiDependency);
         }
+
         for (MavenDependencyInternal optionalRuntimeDependency : dependencies.getOptionalRuntimeDependencies()) {
-            pomGenerator.addDependency(optionalRuntimeDependency, "runtime", true);
+            pomGenerator.addOptionalRuntimeDependency(optionalRuntimeDependency);
         }
 
         pomGenerator.withXml(pomInternal.getXmlAction());

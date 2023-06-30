@@ -258,6 +258,34 @@ public class MavenPomFileGenerator {
         return target;
     }
 
+    public void addCompileDependencyManagement(MavenDependencyInternal apiDependency) {
+        addDependencyManagement(apiDependency, "compile");
+    }
+
+    public void addRuntimeDependencyManagement(MavenDependencyInternal dependency) {
+        addDependencyManagement(dependency, "runtime");
+    }
+
+    public void addImportDependencyManagement(MavenDependencyInternal dependency) {
+        addDependencyManagement(dependency, "import");
+    }
+
+    public void addRuntimeDependency(MavenDependencyInternal dependency) {
+        addDependency(dependency, "runtime", false);
+    }
+
+    public void addOptionalRuntimeDependency(MavenDependencyInternal optionalDependency) {
+        addDependency(optionalDependency, "runtime", true);
+    }
+
+    public void addCompileDependency(MavenDependencyInternal apiDependency) {
+        addDependency(apiDependency, "compile", false);
+    }
+
+    public void addOptionalCompileDependency(MavenDependencyInternal optionalDependency) {
+        addDependency(optionalDependency, "compile", true);
+    }
+
     public void addDependency(MavenDependencyInternal mavenDependency, String scope, boolean optional) {
         if (mavenDependency.getArtifacts().size() == 0) {
             addDependency(mavenDependency, mavenDependency.getArtifactId(), scope, null, null, optional);

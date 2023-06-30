@@ -16,6 +16,7 @@
 package org.gradle.api.publish.maven.internal.publication
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencyArtifact
@@ -444,8 +445,8 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(Mock(SoftwareComponentInternal))
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "The value for property 'component' is final and cannot be changed any further."
+        def e = thrown(InvalidUserDataException)
+        e.message == "Maven publication 'pub-name' cannot include multiple components"
     }
 
     def "attaches artifacts parsed by notation parser"() {

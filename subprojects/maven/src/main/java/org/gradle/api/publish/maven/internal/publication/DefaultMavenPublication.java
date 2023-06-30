@@ -19,10 +19,12 @@ package org.gradle.api.publish.maven.internal.publication;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -283,6 +285,9 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
     @Override
     public void from(SoftwareComponent component) {
+        if (getComponent().isPresent()) {
+            throw new InvalidUserDataException(String.format("Maven publication '%s' cannot include multiple components", name));
+        }
         getComponent().set((SoftwareComponentInternal) component);
         getComponent().finalizeValue();
         artifactsOverridden = false;
@@ -424,8 +429,13 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             return new ParsedComponent(
                 artifacts,
                 new DefaultMavenPomDependencies(
-                    runtimeDependencies, apiDependencies, optionalApiDependencies, optionalRuntimeDependencies,
-                    runtimeDependencyConstraints, apiDependencyConstraints, importDependencyConstraints
+                    ImmutableList.copyOf(runtimeDependencies),
+                    ImmutableList.copyOf(apiDependencies),
+                    ImmutableList.copyOf(optionalApiDependencies),
+                    ImmutableList.copyOf(optionalRuntimeDependencies),
+                    ImmutableList.copyOf(runtimeDependencyConstraints),
+                    ImmutableList.copyOf(apiDependencyConstraints),
+                    ImmutableList.copyOf(importDependencyConstraints)
                 ),
                 publicationWarningsCollector
             );

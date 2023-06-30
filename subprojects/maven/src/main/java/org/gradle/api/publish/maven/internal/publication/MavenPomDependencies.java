@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven.internal.publication;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * The dependencies of a Maven POM.
@@ -33,18 +33,18 @@ import java.util.Set;
  */
 public interface MavenPomDependencies {
 
-    Set<MavenDependencyInternal> getRuntimeDependencies();
+    List<MavenDependencyInternal> getRuntimeDependencies();
 
-    Set<MavenDependencyInternal> getApiDependencies();
+    List<MavenDependencyInternal> getApiDependencies();
 
-    Set<MavenDependencyInternal> getOptionalApiDependencies();
+    List<MavenDependencyInternal> getOptionalApiDependencies();
 
-    Set<MavenDependencyInternal> getOptionalRuntimeDependencies();
+    List<MavenDependencyInternal> getOptionalRuntimeDependencies();
 
-    Set<MavenDependencyInternal> getRuntimeDependencyManagement();
+    List<MavenDependencyInternal> getRuntimeDependencyManagement();
 
-    Set<MavenDependencyInternal> getApiDependencyManagement();
+    List<MavenDependencyInternal> getApiDependencyManagement();
 
-    Set<MavenDependencyInternal> getImportDependencyManagement();
+    List<MavenDependencyInternal> getImportDependencyManagement();
 
 }
