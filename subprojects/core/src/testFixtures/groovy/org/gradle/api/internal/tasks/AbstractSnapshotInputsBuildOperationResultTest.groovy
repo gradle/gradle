@@ -1,21 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,12 +22,8 @@ import org.gradle.caching.BuildCacheKey
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.model.InputNormalizer
-import org.gradle.internal.execution.model.OutputNormalizer
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.FileNormalizer
-import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.TestSnapshotFixture
@@ -51,57 +31,13 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.BaseSnapshotInputsBuildOperationResult.FilePropertyAttribute.FINGERPRINTING_STRATEGY_ABSOLUTE_PATH
-import static org.gradle.api.internal.tasks.BaseSnapshotInputsBuildOperationResult.FilePropertyAttribute.FINGERPRINTING_STRATEGY_CLASSPATH
-import static org.gradle.api.internal.tasks.BaseSnapshotInputsBuildOperationResult.FilePropertyAttribute.FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH
-import static org.gradle.api.internal.tasks.BaseSnapshotInputsBuildOperationResult.FilePropertyAttribute.FINGERPRINTING_STRATEGY_IGNORED_PATH
-import static org.gradle.api.internal.tasks.BaseSnapshotInputsBuildOperationResult.FilePropertyAttribute.FINGERPRINTING_STRATEGY_NAME_ONLY
-import static org.gradle.api.internal.tasks.BaseSnapshotInputsBuildOperationResult.FilePropertyAttribute.FINGERPRINTING_STRATEGY_RELATIVE_PATH
-import static org.gradle.api.internal.tasks.BaseSnapshotInputsBuildOperationResult.FilePropertyAttribute.from
-import static org.gradle.api.internal.tasks.BaseSnapshotInputsBuildOperationResult.FilePropertyAttribute.fromNormalizer
 import static org.gradle.internal.fingerprint.DirectorySensitivity.DEFAULT
 import static org.gradle.internal.fingerprint.DirectorySensitivity.IGNORE_DIRECTORIES
 import static org.gradle.internal.fingerprint.LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
 
-class SnapshotTaskInputsBuildOperationResultTest extends Specification implements TestSnapshotFixture {
+abstract class AbstractSnapshotInputsBuildOperationResultTest<T extends BaseSnapshotInputsBuildOperationResult> extends Specification implements TestSnapshotFixture {
 
-    def "can convert line ending sensitivity into a PropertyAttribute"(LineEndingSensitivity lineEndingSensitivity) {
-        expect:
-        from(lineEndingSensitivity)
-
-        where:
-        lineEndingSensitivity << LineEndingSensitivity.values()
-    }
-
-    def "can convert directory sensitivity into a PropertyAttribute"(DirectorySensitivity directorySensitivity) {
-        expect:
-        from(directorySensitivity)
-
-        where:
-        directorySensitivity << DirectorySensitivity.values()
-    }
-
-    def "can convert normalizer class into a PropertyAttribute"(FileNormalizer normalizer, BaseSnapshotInputsBuildOperationResult.FilePropertyAttribute expectedPropertyAttribute) {
-        expect:
-        fromNormalizer(normalizer) == expectedPropertyAttribute
-
-        where:
-        normalizer                       | expectedPropertyAttribute
-        InputNormalizer.RUNTIME_CLASSPATH | FINGERPRINTING_STRATEGY_CLASSPATH
-        InputNormalizer.COMPILE_CLASSPATH | FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH
-        InputNormalizer.ABSOLUTE_PATH     | FINGERPRINTING_STRATEGY_ABSOLUTE_PATH
-        InputNormalizer.RELATIVE_PATH     | FINGERPRINTING_STRATEGY_RELATIVE_PATH
-        InputNormalizer.NAME_ONLY         | FINGERPRINTING_STRATEGY_NAME_ONLY
-        InputNormalizer.IGNORE_PATH       | FINGERPRINTING_STRATEGY_IGNORED_PATH
-    }
-
-    def "throws when converting an unsupported normalizer class into a PropertyAttribute"() {
-        when:
-        fromNormalizer(OutputNormalizer.INSTANCE)
-
-        then:
-        def t = thrown(IllegalStateException)
-    }
+    abstract T createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs)
 
     @Requires(UnitTestPreconditions.NotWindows)
     def "properly visits structure when ignoring directories"() {
@@ -135,7 +71,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
             )
         }
         def cachingState = CachingState.enabled(Mock(BuildCacheKey), beforeExecutionState)
-        def buildOpResult = new SnapshotTaskInputsBuildOperationResult(
+        def buildOpResult = createSnapshotInputsBuildOperationResult(
             cachingState,
             [inputFileProperty] as Set
         )
@@ -193,7 +129,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
             )
         }
         def cachingState = CachingState.enabled(Mock(BuildCacheKey), beforeExecutionState)
-        def buildOpResult = new SnapshotTaskInputsBuildOperationResult(
+        def buildOpResult = createSnapshotInputsBuildOperationResult(
             cachingState,
             [inputFileProperty] as Set
         )
@@ -256,7 +192,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
             )
         }
         def cachingState = CachingState.enabled(Mock(BuildCacheKey), beforeExecutionState)
-        def buildOpResult = new SnapshotTaskInputsBuildOperationResult(
+        def buildOpResult = createSnapshotInputsBuildOperationResult(
             cachingState,
             [inputFileProperty] as Set
         )
@@ -300,5 +236,4 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         and:
         0 * visitor._
     }
-
 }
