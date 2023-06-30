@@ -171,13 +171,18 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         useProperty << [true, false]
     }
 
-    def "supplies multiple paths for a single toolchain with resolvable environment variable"(boolean useProperty) {
+    def "supplies multiple paths for multiple toolchains with resolvable environment variable"(boolean useProperty) {
         given:
         def toolchain = '''<toolchains>
                                 <toolchain>
                                 <type>jdk</type>
                                 <configuration>
                                 <jdkHome>${env.JDK16}</jdkHome>
+                                </configuration>
+                                </toolchain>
+                                <toolchain>
+                                <type>jdk</type>
+                                <configuration>
                                 <jdkHome>${env.JDK17}</jdkHome>
                                 </configuration>
                                 </toolchain>
@@ -200,14 +205,19 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         useProperty << [true, false]
     }
 
-    def "supplies multiple paths for a single toolchain with un/resolvable environment variable"(boolean useProperty) {
+    def "supplies multiple paths for multiple toolchains with un/resolvable environment variable"(boolean useProperty) {
         given:
         def toolchain = '''<toolchains>
                                 <toolchain>
                                 <type>jdk</type>
                                 <configuration>
                                 <jdkHome>${env.JDK16}</jdkHome>
-                                <jdkHome>${env.JDK_UNKNOWN}</jdkHome>
+                                </configuration>
+                                </toolchain>
+                                <toolchain>
+                                <type>jdk</type>
+                                <configuration>
+                                <jdkHome>${env.JAVA_UNKNOWN}</jdkHome>
                                 </configuration>
                                 </toolchain>
                                 </toolchains>'''
@@ -217,12 +227,14 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
 
         when:
         def directories = supplier.get()
+        
 
         then:
         directoriesAsStablePaths(directories) == stablePaths([
-            new File("/usr/lib/jvm/adoptopenjdk-16.jdk").absolutePath
-        ])
-        directories*.source == ["Maven Toolchains"]
+            new File("/usr/lib/jvm/adoptopenjdk-16.jdk").absolutePath,
+            new File("\${env.JAVA_UNKNOWN}").absolutePath
+        ]).sort()
+        directories*.source == ["Maven Toolchains", "Maven Toolchains"]
 
         where:
         useProperty << [true, false]
@@ -245,8 +257,38 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories.isEmpty()
+        directoriesAsStablePaths(directories) == stablePaths([
+            new File("\${env.JAVA_UNKNOWN}").absolutePath
+        ])
+        directories*.source == ["Maven Toolchains"]
         
+        where:
+        useProperty << [true, false]
+    }
+
+    def "supplies single path for a single toolchain with more than one environment variable"(boolean useProperty) {
+        given:
+        def toolchain = '''<toolchains>
+                                <toolchain>
+                                <type>jdk</type>
+                                <configuration>
+                                <jdkHome>${env.JDKHOMES}/${env.OPEN_JDK16}</jdkHome>
+                                </configuration>
+                                </toolchain>
+                                </toolchains>'''
+        def toolchains = mavenHome.createFile(new File("toolchains.xml"))
+        toolchains.write(toolchain)
+        def supplier = useProperty ? createSupplier(toolchains.getCanonicalPath(), null) : createSupplier(null, userHome)
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directoriesAsStablePaths(directories) == stablePaths([
+            new File("/usr/lib/jvm/adoptopenjdk-16.jdk").absolutePath
+        ])
+        directories*.source == ["Maven Toolchains"]
+
         where:
         useProperty << [true, false]
     }
@@ -278,6 +320,8 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         providerFactory.gradleProperty("org.gradle.java.installations.maven-toolchains-file") >> Providers.ofNullable(propertyValue)
         providerFactory.environmentVariable("JDK16") >> Providers.of("/usr/lib/jvm/adoptopenjdk-16.jdk")
         providerFactory.environmentVariable("JDK17") >> Providers.of("/usr/lib/jvm/temurin-17.jdk")
+        providerFactory.environmentVariable("JDKHOMES") >> Providers.of("/usr/lib/jvm")
+        providerFactory.environmentVariable("OPEN_JDK16") >> Providers.of("adoptopenjdk-16.jdk")
         providerFactory
     }
 
