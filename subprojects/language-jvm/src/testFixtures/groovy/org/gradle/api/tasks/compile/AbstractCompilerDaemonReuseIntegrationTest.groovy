@@ -130,11 +130,20 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertTwoCompilerDaemonsAreRunning()
     }
 
-    void assertOneCompilerDaemonIsRunning() {
+    String assertOneCompilerDaemonIsRunning() {
         def compilerDaemonSets = compilerDaemonIdentityFile.readLines()
         assert compilerDaemonSets.size() > 0
         assert compilerDaemonSets[0].trim() != ""
         assert compilerDaemonSets[0].split(" ").size() == 1
+        return compilerDaemonSets[0].trim()
+    }
+
+    void assertRunningCompilerDaemonIs(String whichOne) {
+        def compilerDaemonSets = compilerDaemonIdentityFile.readLines()
+        assert compilerDaemonSets.size() > 0
+        assert compilerDaemonSets[0].trim() != ""
+        assert compilerDaemonSets[0].split(" ").size() == 1
+        assert compilerDaemonSets[0].trim() == whichOne
     }
 
     void assertTwoCompilerDaemonsAreRunning() {

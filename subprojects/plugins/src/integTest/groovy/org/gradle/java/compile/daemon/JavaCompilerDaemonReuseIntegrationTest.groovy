@@ -60,8 +60,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        def firstCompilerIdentity = compilerDaemonIdentityFile.text.trim()
-        assertOneCompilerDaemonIsRunning()
+        def firstCompilerIdentity = assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -72,10 +71,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
-
-        and:
-        compilerDaemonIdentityFile.text.trim() == firstCompilerIdentity
+        assertRunningCompilerDaemonIs(firstCompilerIdentity)
     }
 
     def "log messages from a compiler daemon are associated with the task that generates them"() {
@@ -103,8 +99,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        def firstCompilerIdentity = compilerDaemonIdentityFile.text.trim()
-        assertOneCompilerDaemonIsRunning()
+        def firstCompilerIdentity = assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -115,10 +110,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
-
-        and:
-        compilerDaemonIdentityFile.text.trim() == firstCompilerIdentity
+        assertRunningCompilerDaemonIs(firstCompilerIdentity)
 
         and:
         def compilerOperations = buildOperations.all(ExecuteWorkItemBuildOperationType)

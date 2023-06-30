@@ -63,8 +63,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
-        def firstDaemonId = compilerDaemonIdentityFile.text
+        def firstDaemonId = assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -74,10 +73,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
-
-        and:
-        compilerDaemonIdentityFile.text == firstDaemonId
+        assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -88,13 +84,12 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
 
         when:
         succeeds("compileAll")
-        def firstDaemonId = compilerDaemonIdentityFile.text
 
         then:
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
+        def firstDaemonId = assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -104,10 +99,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
-
-        and:
-        compilerDaemonIdentityFile.text == firstDaemonId
+        assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -120,13 +112,12 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
 
         when:
         succeeds("compileAll")
-        def firstDaemonId = compilerDaemonIdentityFile.text
 
         then:
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
+        def firstDaemonId = assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -136,10 +127,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
-
-        and:
-        compilerDaemonIdentityFile.text == firstDaemonId
+        assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -156,8 +144,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
-        def firstDaemonId = compilerDaemonIdentityFile.text
+        def firstDaemonId = assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -168,10 +155,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsRunning()
-
-        and:
-        compilerDaemonIdentityFile.text == firstDaemonId
+        assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
     private TestFile withPersistentScalaCompilerDaemons(TestFile buildDir = testDirectory) {
