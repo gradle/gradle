@@ -30,6 +30,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.util.internal.PathTraversalChecker;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +42,6 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
-import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
 
 public class ZipFileTree extends AbstractArchiveFileTree {
     private final Provider<File> fileProvider;
@@ -169,7 +169,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         }
 
         private String safeEntryName() {
-            return safeZipEntryName(entry.getName());
+            return PathTraversalChecker.safePathName(entry.getName());
         }
 
         @Override

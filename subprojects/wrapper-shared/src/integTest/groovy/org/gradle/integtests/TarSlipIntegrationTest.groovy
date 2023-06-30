@@ -73,6 +73,6 @@ class TarSlipIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureDescriptionContains "Execution failed for task ':copyEvilTar'"
-        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe zip entry name"
+        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe archive entry or path name"
     }
 }
