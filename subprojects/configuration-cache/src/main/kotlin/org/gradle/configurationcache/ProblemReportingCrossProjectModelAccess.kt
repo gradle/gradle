@@ -27,6 +27,7 @@ import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
@@ -537,6 +538,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun configurations(configureClosure: Closure<*>) {
             onAccess()
             delegate.configurations(configureClosure)
+        }
+
+        override fun configurations(configureAction: Action<in ConfigurationContainer>) {
+            onAccess()
+            delegate.configurations(configureAction)
         }
 
         override fun getArtifacts(): ArtifactHandler {

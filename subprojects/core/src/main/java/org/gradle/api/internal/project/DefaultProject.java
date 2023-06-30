@@ -1291,6 +1291,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    public void configurations(Action<? super ConfigurationContainer> configureAction) {
+        configureAction.execute(getConfigurations());
+    }
+
+    @Override
     public void repositories(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getRepositories());
     }

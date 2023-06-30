@@ -1196,6 +1196,18 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void configurations(Closure configureClosure);
 
     /**
+     * <p>Configures the dependency configurations for this project.
+     *
+     * <p>This method executes the given action against the {@link ConfigurationContainer}
+     * for this project.
+     *
+     * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
+     *
+     * @param configureAction the action to use to configure the dependency configurations.
+     */
+    void configurations(Action<? super ConfigurationContainer> configureAction);
+
+    /**
      * Returns a handler for assigning artifacts produced by the project to configurations.
      * <h3>Examples:</h3>See docs for {@link ArtifactHandler}
      */

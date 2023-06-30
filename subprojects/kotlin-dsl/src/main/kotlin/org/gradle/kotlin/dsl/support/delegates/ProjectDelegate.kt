@@ -211,6 +211,10 @@ abstract class ProjectDelegate : Project {
     override fun configurations(configureClosure: Closure<*>) =
         delegate.configurations(configureClosure)
 
+    override fun configurations(configureAction: Action<in ConfigurationContainer>) {
+        delegate.configurations(configureAction)
+    }
+
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions
 
