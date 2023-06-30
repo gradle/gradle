@@ -16,10 +16,8 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Default implementation of {@link MavenPomDependencies}.
@@ -27,26 +25,26 @@ import java.util.List;
 public class DefaultMavenPomDependencies implements MavenPomDependencies {
 
     public static final DefaultMavenPomDependencies EMPTY = new DefaultMavenPomDependencies(
-        Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-        Collections.emptyList(), Collections.emptyList(), Collections.emptyList()
+        ImmutableList.of(), ImmutableList.of(), ImmutableList.of(), ImmutableList.of(),
+        ImmutableList.of(), ImmutableList.of(), ImmutableList.of()
     );
 
-    private final List<MavenDependencyInternal> runtimeDependencies;
-    private final List<MavenDependencyInternal> apiDependencies;
-    private final List<MavenDependencyInternal> optionalApiDependencies;
-    private final List<MavenDependencyInternal> optionalRuntimeDependencies;
-    private final List<MavenDependencyInternal> runtimeDependencyConstraints;
-    private final List<MavenDependencyInternal> apiDependencyConstraints;
-    private final List<MavenDependencyInternal> importDependencyConstraints;
+    private final ImmutableList<MavenDependencyInternal> runtimeDependencies;
+    private final ImmutableList<MavenDependencyInternal> apiDependencies;
+    private final ImmutableList<MavenDependencyInternal> optionalApiDependencies;
+    private final ImmutableList<MavenDependencyInternal> optionalRuntimeDependencies;
+    private final ImmutableList<MavenDependencyInternal> runtimeDependencyConstraints;
+    private final ImmutableList<MavenDependencyInternal> apiDependencyConstraints;
+    private final ImmutableList<MavenDependencyInternal> importDependencyConstraints;
 
     public DefaultMavenPomDependencies(
-        List<MavenDependencyInternal> runtimeDependencies,
-        List<MavenDependencyInternal> apiDependencies,
-        List<MavenDependencyInternal> optionalApiDependencies,
-        List<MavenDependencyInternal> optionalRuntimeDependencies,
-        List<MavenDependencyInternal> runtimeDependencyConstraints,
-        List<MavenDependencyInternal> apiDependencyConstraints,
-        List<MavenDependencyInternal> importDependencyConstraints
+        ImmutableList<MavenDependencyInternal> runtimeDependencies,
+        ImmutableList<MavenDependencyInternal> apiDependencies,
+        ImmutableList<MavenDependencyInternal> optionalApiDependencies,
+        ImmutableList<MavenDependencyInternal> optionalRuntimeDependencies,
+        ImmutableList<MavenDependencyInternal> runtimeDependencyConstraints,
+        ImmutableList<MavenDependencyInternal> apiDependencyConstraints,
+        ImmutableList<MavenDependencyInternal> importDependencyConstraints
     ) {
         this.runtimeDependencies = runtimeDependencies;
         this.apiDependencies = apiDependencies;
@@ -58,37 +56,37 @@ public class DefaultMavenPomDependencies implements MavenPomDependencies {
     }
 
     @Override
-    public List<MavenDependencyInternal> getRuntimeDependencies() {
+    public ImmutableList<MavenDependencyInternal> getRuntimeDependencies() {
         return runtimeDependencies;
     }
 
     @Override
-    public List<MavenDependencyInternal> getApiDependencies() {
+    public ImmutableList<MavenDependencyInternal> getApiDependencies() {
         return apiDependencies;
     }
 
     @Override
-    public List<MavenDependencyInternal> getOptionalApiDependencies() {
+    public ImmutableList<MavenDependencyInternal> getOptionalApiDependencies() {
         return optionalApiDependencies;
     }
 
     @Override
-    public List<MavenDependencyInternal> getOptionalRuntimeDependencies() {
+    public ImmutableList<MavenDependencyInternal> getOptionalRuntimeDependencies() {
         return optionalRuntimeDependencies;
     }
 
     @Override
-    public List<MavenDependencyInternal> getRuntimeDependencyManagement() {
+    public ImmutableList<MavenDependencyInternal> getRuntimeDependencyManagement() {
         return runtimeDependencyConstraints;
     }
 
     @Override
-    public List<MavenDependencyInternal> getApiDependencyManagement() {
+    public ImmutableList<MavenDependencyInternal> getApiDependencyManagement() {
         return apiDependencyConstraints;
     }
 
     @Override
-    public List<MavenDependencyInternal> getImportDependencyManagement() {
+    public ImmutableList<MavenDependencyInternal> getImportDependencyManagement() {
         return importDependencyConstraints;
     }
 }
