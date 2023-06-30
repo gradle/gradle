@@ -8,6 +8,12 @@ Finally, Kotlin DSL is now the [default option](#gradle-init-defaults-to-the-kot
 This release also brings a number of usability improvements including better [error messages](#improved-console-output), automated validation of [distribution URL](#wrapper-task-validates-distribution-url) in the wrapper task,
 [progress display](#java-toolchains-discovery-progress-display) for discovery of Java toolchains, more efficient [dependency verification](#dependency-verification-improvements) and more.
 
+In addition, this release addresses two security vulnerabilities:
+
+* [Dependency cache path traversal](https://github.com/gradle/gradle/security/advisories/GHSA-2h6c-rv6q-494v)
+* [Path traversal vulnerabilities in handling of Tar archives](https://github.com/gradle/gradle/security/advisories/GHSA-84mw-qh6q-v842)
+
+Check their details to learn about workarounds if you are not able to upgrade to this version.
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
