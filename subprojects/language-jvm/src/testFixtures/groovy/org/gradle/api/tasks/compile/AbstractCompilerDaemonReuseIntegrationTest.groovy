@@ -130,26 +130,23 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertTwoCompilerDaemonsAreRunning()
     }
 
-    String assertOneCompilerDaemonIsRunning() {
+    List<String> getRunningCompilerDaemons() {
         def compilerDaemonSets = compilerDaemonIdentityFile.readLines()
-        assert compilerDaemonSets.size() > 0
+        assert compilerDaemonSets.size() == 1
         assert compilerDaemonSets[0].trim() != ""
-        assert compilerDaemonSets[0].split(" ").size() == 1
-        return compilerDaemonSets[0].trim()
+        return Arrays.asList(compilerDaemonSets[0].split(" "))
     }
 
-    void assertRunningCompilerDaemonIs(String whichOne) {
-        def compilerDaemonSets = compilerDaemonIdentityFile.readLines()
-        assert compilerDaemonSets.size() > 0
-        assert compilerDaemonSets[0].trim() != ""
-        assert compilerDaemonSets[0].split(" ").size() == 1
-        assert compilerDaemonSets[0].trim() == whichOne
+    void assertOneCompilerDaemonIsRunning() {
+        assert runningCompilerDaemons.size() == 1
+    }
+
+    void assertRunningCompilerDaemonIs(String expected) {
+        assert runningCompilerDaemons == [ expected ]
     }
 
     void assertTwoCompilerDaemonsAreRunning() {
-        def compilerDaemonSets = compilerDaemonIdentityFile.readLines()
-        assert compilerDaemonSets.size() > 0
-        assert compilerDaemonSets[0].split(" ").size() == 2
+        assert runningCompilerDaemons.size() == 2
     }
 
     String newSourceSet(String name) {

@@ -60,7 +60,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        def firstCompilerIdentity = assertOneCompilerDaemonIsRunning()
+        assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -71,6 +71,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
+        def firstCompilerIdentity = old(runningCompilerDaemons[0])
         assertRunningCompilerDaemonIs(firstCompilerIdentity)
     }
 
@@ -99,7 +100,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        def firstCompilerIdentity = assertOneCompilerDaemonIsRunning()
+        assertOneCompilerDaemonIsRunning()
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
@@ -110,6 +111,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
+        def firstCompilerIdentity = old(runningCompilerDaemons[0])
         assertRunningCompilerDaemonIs(firstCompilerIdentity)
 
         and:
