@@ -128,6 +128,12 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         effectiveExportClassLoader = null;
         localClassLoader = null;
         effectiveLocalClassLoader = null;
+
+        ownLoaders = null;
+        exportLoaders = null;
+
+        export = ClassPath.EMPTY;
+        local = ClassPath.EMPTY;
     }
 
     @Override
@@ -229,6 +235,11 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     @Override
     public ClassLoaderScope lock() {
         locked = true;
+        return this;
+    }
+
+    public ClassLoaderScope unlock() {
+        locked = false;
         return this;
     }
 

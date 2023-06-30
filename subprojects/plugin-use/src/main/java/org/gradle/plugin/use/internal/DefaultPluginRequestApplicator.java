@@ -109,7 +109,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplsFromOtherLoaders, results);
         }
 
-        exportBuildLogicClassPathTo(classLoaderScope, scriptHandler.getInstrumentedScriptClassPath());
+        defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplsFromOtherLoaders.values());
 
         if (!autoAppliedPlugins.isEmpty()) {
             final PluginResolver alreadyOnClasspathIgnoringPluginResolver = new AlreadyOnClasspathIgnoringPluginResolver(effectivePluginResolver,
@@ -119,15 +119,15 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             List<Result> autoAppliedPluginResults = resolvePluginRequests(autoAppliedPlugins, alreadyOnClasspathIgnoringPluginResolver);
             if (!autoAppliedPluginResults.isEmpty()) {
                 ((DefaultClassLoaderScope) classLoaderScope).dropClassloaders();
+                ((DefaultClassLoaderScope) classLoaderScope).unlock();
                 scriptHandler.dropResolvedClassPath();
 
-                applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplsFromOtherLoaders, autoAppliedPluginResults);
-                exportBuildLogicClassPathTo(classLoaderScope, scriptHandler.getInstrumentedScriptClassPath());
+                final Map<Result, PluginImplementation<?>> pluginImplementations = newLinkedHashMap();
+                applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplementations, autoAppliedPluginResults);
+                defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplementations.values());
             }
         }
 
-        definePluginImplementations(classLoaderScope, pluginImplsFromOtherLoaders.values());
-        classLoaderScope.lock();
         pluginApplyActions.forEach(pluginApplyAction -> pluginApplyAction.accept(target));
     }
 
@@ -206,14 +206,11 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private static void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, Iterable<PluginImplementation<?>> pluginsFromOtherLoaders) {
         exportBuildLogicClassPathTo(classLoaderScope, scriptHandler.getInstrumentedScriptClassPath());
-        definePluginImplementations(classLoaderScope, pluginsFromOtherLoaders);
-        classLoaderScope.lock();
-    }
-
-    private static void definePluginImplementations(ClassLoaderScope classLoaderScope, Iterable<PluginImplementation<?>> pluginsFromOtherLoaders) {
         for (PluginImplementation<?> pluginImplementation : pluginsFromOtherLoaders) {
             classLoaderScope.export(pluginImplementation.asClass().getClassLoader());
         }
+
+        classLoaderScope.lock();
     }
 
     private static void exportBuildLogicClassPathTo(ClassLoaderScope classLoaderScope, ClassPath classPath) {
