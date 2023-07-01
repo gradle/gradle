@@ -25,7 +25,6 @@ Class <org.gradle.ide.xcode.plugins.XcodePlugin> extends/implements org.gradle.p
 Class <org.gradle.jvm.application.tasks.CreateStartScripts> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (CreateStartScripts.java:0)
 Class <org.gradle.kotlin.dsl.ArtifactHandlerScope> extends/implements org.gradle.kotlin.dsl.support.delegates.ArtifactHandlerDelegate that is Gradle Internal API in (ArtifactHandlerScope.kt:0)
 Class <org.gradle.kotlin.dsl.ClientModuleScope> extends/implements org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate that is Gradle Internal API in (DependencyHandlerExtensions.kt:0)
-Class <org.gradle.kotlin.dsl.ConfigurationContainerScope> extends/implements org.gradle.kotlin.dsl.support.delegates.NamedDomainObjectContainerDelegate that is Gradle Internal API in (ConfigurationContainerExtensions.kt:0)
 Class <org.gradle.kotlin.dsl.DependencyConstraintHandlerScope> extends/implements org.gradle.kotlin.dsl.support.delegates.DependencyConstraintHandlerDelegate that is Gradle Internal API in (DependencyConstraintHandlerScope.kt:0)
 Class <org.gradle.kotlin.dsl.DependencyHandlerScope> extends/implements org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate that is Gradle Internal API in (DependencyHandlerScope.kt:0)
 Class <org.gradle.kotlin.dsl.InitScriptApi> extends/implements org.gradle.kotlin.dsl.support.delegates.GradleDelegate that is Gradle Internal API in (InitScriptApi.kt:0)
