@@ -269,8 +269,8 @@ public class FinalizerGroup extends HasFinalizers {
         Set<Node> dependenciesThatAreMembers = new HashSet<>(members.size());
         Set<Node> seen = new HashSet<>(1024);
 
+        ArrayDeque<Node> queue = new ArrayDeque<>(1024);
         for (Node fromNode : blockedFinalizedMembers) {
-            ArrayDeque<Node> queue = new ArrayDeque<>(1024);
             queue.add(fromNode);
             while (!queue.isEmpty()) {
                 Node toNode = queue.removeFirst();
