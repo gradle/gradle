@@ -43,6 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -68,7 +69,7 @@ class ModuleMetadataSpecBuilder {
 
     private final PublicationInternal<?> publication;
     private final ModuleVersionIdentifier publicationCoordinates;
-    private final SoftwareComponentInternal component;
+    private final Provider<SoftwareComponentInternal> component;
     private final Collection<? extends PublicationInternal<?>> publications;
     private final Map<SoftwareComponent, ComponentData> componentCoordinates = new HashMap<>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
@@ -101,7 +102,7 @@ class ModuleMetadataSpecBuilder {
         Map<SoftwareComponent, SoftwareComponent> owners = new HashMap<>();
         collectOwners(publications, owners);
 
-        SoftwareComponent owner = owners.get(component);
+        SoftwareComponent owner = owners.get(component.get());
         ComponentData ownerData = owner == null ? null : componentCoordinates.get(owner);
         ComponentData componentData = new ComponentData(publication.getCoordinates(), publication.getAttributes());
 
@@ -120,7 +121,7 @@ class ModuleMetadataSpecBuilder {
 
     private List<ModuleMetadataSpec.Variant> variants() {
         ArrayList<ModuleMetadataSpec.Variant> variants = new ArrayList<>();
-        for (SoftwareComponentVariant variant : component.getUsages()) {
+        for (SoftwareComponentVariant variant : component.get().getUsages()) {
             checkVariant(variant);
             variants.add(
                 new ModuleMetadataSpec.LocalVariant(
@@ -133,8 +134,8 @@ class ModuleMetadataSpecBuilder {
                 )
             );
         }
-        if (component instanceof ComponentWithVariants) {
-            for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
+        if (component.get() instanceof ComponentWithVariants) {
+            for (SoftwareComponent childComponent : ((ComponentWithVariants) component.get()).getVariants()) {
                 ModuleVersionIdentifier childCoordinates = coordinatesOf(childComponent);
                 assert childCoordinates != null;
                 if (childComponent instanceof SoftwareComponentInternal) {
@@ -460,15 +461,16 @@ class ModuleMetadataSpecBuilder {
         );
     }
 
-    private void collectOwners(
+    private static void collectOwners(
         Collection<? extends PublicationInternal<?>> publications,
         Map<SoftwareComponent, SoftwareComponent> owners
     ) {
         for (PublicationInternal<?> publication : publications) {
-            if (publication.getComponent() instanceof ComponentWithVariants) {
-                ComponentWithVariants componentWithVariants = (ComponentWithVariants) publication.getComponent();
+            SoftwareComponent component = publication.getComponent().getOrNull();
+            if (component instanceof ComponentWithVariants) {
+                ComponentWithVariants componentWithVariants = (ComponentWithVariants) component;
                 for (SoftwareComponent child : componentWithVariants.getVariants()) {
-                    owners.put(child, publication.getComponent());
+                    owners.put(child, component);
                 }
             }
         }
@@ -476,7 +478,7 @@ class ModuleMetadataSpecBuilder {
 
     private void collectCoordinates(Map<SoftwareComponent, ComponentData> coordinates) {
         for (PublicationInternal<?> publication : publications) {
-            SoftwareComponentInternal component = publication.getComponent();
+            SoftwareComponentInternal component = publication.getComponent().getOrNull();
             if (component != null) {
                 coordinates.put(
                     component,

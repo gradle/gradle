@@ -210,7 +210,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def "writes regular dependency"() {
         def dependency = Mock(MavenDependencyInternal)
         when:
-        generator.addRuntimeDependency(dependency)
+        generator.addDependency(dependency, "runtime", false)
 
         then:
         dependency.artifacts >> new HashSet<DependencyArtifact>()
@@ -235,7 +235,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def "writes regular dependency without exclusions"() {
         def dependency = Mock(MavenDependencyInternal)
         when:
-        generator.addRuntimeDependency(dependency)
+        generator.addDependency(dependency, "runtime", false)
 
         then:
         dependency.artifacts >> new HashSet<DependencyArtifact>()
@@ -258,7 +258,7 @@ class MavenPomFileGeneratorTest extends Specification {
         def exclude3 = Mock(ExcludeRule)
 
         when:
-        generator.addRuntimeDependency(dependency)
+        generator.addDependency(dependency, "runtime", false)
 
         then:
         dependency.artifacts >> new HashSet<DependencyArtifact>()
@@ -297,7 +297,7 @@ class MavenPomFileGeneratorTest extends Specification {
         def artifact2 = Mock(DependencyArtifact)
 
         when:
-        generator.addRuntimeDependency(dependency)
+        generator.addDependency(dependency, "runtime", false)
 
         then:
         dependency.artifacts >> CollectionUtils.toSet([artifact1, artifact2])

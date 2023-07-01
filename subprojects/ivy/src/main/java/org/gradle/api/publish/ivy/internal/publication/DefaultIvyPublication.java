@@ -45,10 +45,12 @@ import org.gradle.api.internal.component.IvyPublishingAwareVariant;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
@@ -195,10 +197,9 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return false;
     }
 
-    @Nullable
     @Override
-    public SoftwareComponentInternal getComponent() {
-        return component;
+    public Provider<SoftwareComponentInternal> getComponent() {
+        return Providers.ofNullable(component);
     }
 
     @Override
@@ -635,7 +636,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private boolean canPublishModuleMetadata() {
         // Cannot yet publish module metadata without component
-        return getComponent() != null;
+        return getComponent().isPresent();
     }
 
     private File getIvyDescriptorFile() {
