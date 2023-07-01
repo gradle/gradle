@@ -22,17 +22,13 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ConsumableConfiguration
-import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
-import org.gradle.kotlin.dsl.support.delegates.NamedDomainObjectContainerDelegate
-import kotlin.reflect.KClass
 
 
 /**
@@ -61,46 +57,12 @@ inline operator fun ConfigurationContainer.invoke(
 class ConfigurationContainerScope
 private constructor(
     override val delegate: ConfigurationContainer
-) : NamedDomainObjectContainerDelegate<Configuration>(), ConfigurationContainer {
+) : NamedDomainObjectContainerScope<Configuration>(delegate), ConfigurationContainer {
 
     companion object {
         fun of(container: ConfigurationContainer) =
             ConfigurationContainerScope(container)
     }
-
-    /**
-     * Configures a configuration by name, without triggering its creation or configuration, failing if there is no such configuration.
-     *
-     * @see [NamedDomainObjectContainer.named]
-     * @see [NamedDomainObjectProvider.configure]
-     */
-    operator fun String.invoke(configuration: Configuration.() -> Unit): NamedDomainObjectProvider<Configuration> =
-        this().apply { configure(configuration) }
-
-    /**
-     * Locates a configuration by name, without triggering its creation or configuration, failing if there is no such configuration.
-     *
-     * @see [NamedDomainObjectContainer.named]
-     */
-    operator fun String.invoke(): NamedDomainObjectProvider<Configuration> =
-        delegate.named(this)
-
-    /**
-     * Configures a configuration by name, without triggering its creation or configuration, failing if there is no such configuration.
-     *
-     * @see [PolymorphicDomainObjectContainer.named]
-     * @see [NamedDomainObjectProvider.configure]
-     */
-    operator fun <U : Configuration> String.invoke(type: KClass<U>, configuration: U.() -> Unit): NamedDomainObjectProvider<U> =
-        delegate.named(this, type, configuration)
-
-    /**
-     * Locates a configuration by name and type, without triggering its creation or configuration, failing if there is no such configuration.
-     *
-     * @see [PolymorphicDomainObjectContainer.named]
-     */
-    operator fun <U : Configuration> String.invoke(type: KClass<U>): NamedDomainObjectProvider<U> =
-        delegate.named(this, type)
 
     override fun detachedConfiguration(vararg dependencies: Dependency?): Configuration =
         delegate.detachedConfiguration(*dependencies)
