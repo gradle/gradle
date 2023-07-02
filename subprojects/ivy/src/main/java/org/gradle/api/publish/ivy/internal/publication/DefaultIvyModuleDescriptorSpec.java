@@ -22,6 +22,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
@@ -51,11 +52,17 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<IvyModuleDescriptorAuthor>();
     private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
     private IvyModuleDescriptorDescription description;
+    private final SetProperty<IvyDependencyInternal> dependencies;
+    private final SetProperty<IvyExcludeRule> globalExcludes;
+    private final SetProperty<IvyConfiguration> configurations;
 
     public DefaultIvyModuleDescriptorSpec(IvyPublicationInternal ivyPublication, Instantiator instantiator, ObjectFactory objectFactory) {
         this.ivyPublication = ivyPublication;
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
+        this.dependencies = objectFactory.setProperty(IvyDependencyInternal.class);
+        this.globalExcludes = objectFactory.setProperty(IvyExcludeRule.class);
+        this.configurations = objectFactory.setProperty(IvyConfiguration.class);
     }
 
     @Override
@@ -110,8 +117,8 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     }
 
     @Override
-    public Set<IvyConfiguration> getConfigurations() {
-        return ivyPublication.getConfigurations();
+    public SetProperty<IvyConfiguration> getConfigurations() {
+        return configurations;
     }
 
     @Override
@@ -120,13 +127,13 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     }
 
     @Override
-    public Set<IvyDependencyInternal> getDependencies() {
-        return ivyPublication.getDependencies();
+    public SetProperty<IvyDependencyInternal> getDependencies() {
+        return dependencies;
     }
 
     @Override
-    public Set<IvyExcludeRule> getGlobalExcludes() {
-        return ivyPublication.getGlobalExcludes();
+    public SetProperty<IvyExcludeRule> getGlobalExcludes() {
+        return globalExcludes;
     }
 
     @Override
