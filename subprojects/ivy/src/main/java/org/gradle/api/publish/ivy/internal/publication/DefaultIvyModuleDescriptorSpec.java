@@ -36,6 +36,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +49,7 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     private final ObjectFactory objectFactory;
     private String status = Module.DEFAULT_STATUS;
     private String branch;
-    private IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
+    private final IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
     private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<IvyModuleDescriptorAuthor>();
     private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
     private IvyModuleDescriptorDescription description;
@@ -65,23 +66,25 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
         this.configurations = objectFactory.setProperty(IvyConfiguration.class);
     }
 
+    @Nullable
     @Override
     public String getStatus() {
         return status;
     }
 
     @Override
-    public void setStatus(String status) {
+    public void setStatus(@Nullable String status) {
         this.status = status;
     }
 
+    @Nullable
     @Override
     public String getBranch() {
         return branch;
     }
 
     @Override
-    public void setBranch(String branch) {
+    public void setBranch(@Nullable String branch) {
         this.branch = branch;
     }
 

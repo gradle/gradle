@@ -282,9 +282,11 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
             return;
         }
         populated = true;
-        if (!artifactsOverridden && parsedComponent.isPresent()) {
-            mainArtifacts.addAll(parsedComponent.get().getArtifacts());
+        if (parsedComponent.isPresent()) {
             configurations.addAll(parsedComponent.get().getConfigurations());
+            if (!artifactsOverridden) {
+                mainArtifacts.addAll(parsedComponent.get().getArtifacts());
+            }
         }
     }
 
@@ -293,7 +295,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         // See issue https://github.com/gradle/gradle/issues/20581
         component.finalizeValue();
 
-        ComponentParser.ParsedComponent result = componentParserFactory.create().build(component, getCoordinates(), versionMappingInUse);
+        ComponentParser.ParsedComponent result = componentParserFactory.create().build(component, versionMappingInUse);
 
         if (!silenceAllPublicationWarnings) {
             result.getWarnings().complete(getDisplayName() + " ivy metadata", silencedVariants);
@@ -337,7 +339,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
             this.ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
         }
 
-        private ParsedComponent build(SoftwareComponentInternal component, ModuleVersionIdentifier coordinates, boolean versionMappingInUse) {
+        private ParsedComponent build(SoftwareComponentInternal component, boolean versionMappingInUse) {
             PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
             Set<? extends SoftwareComponentVariant> variants = component.getUsages();
@@ -461,7 +463,10 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
 
         private static String confMappingFor(SoftwareComponentVariant variant, ModuleDependency dependency) {
             String conf = mapVariantNameToIvyConfiguration(variant.getName());
-            String confMappingTarget = mapVariantNameToIvyConfiguration(dependency.getTargetConfiguration());
+            String targetConfiguration = dependency.getTargetConfiguration();
+            String confMappingTarget = targetConfiguration == null ?
+                Dependency.DEFAULT_CONFIGURATION :
+                mapVariantNameToIvyConfiguration(dependency.getTargetConfiguration());
 
             // If the following code is activated implementation/runtime separation will be published to ivy. This however is a breaking change.
             //
@@ -477,9 +482,6 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
             //     }
             // }
 
-            if (confMappingTarget == null) {
-                confMappingTarget = Dependency.DEFAULT_CONFIGURATION;
-            }
             return conf + "->" + confMappingTarget;
         }
 
@@ -774,7 +776,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         return getArtifactFileName(source.getClassifier(), source.getExtension());
     }
 
-    private String getArtifactFileName(String classifier, String extension) {
+    private String getArtifactFileName(@Nullable String classifier, String extension) {
         StringBuilder artifactPath = new StringBuilder();
         ModuleVersionIdentifier coordinates = getCoordinates();
         artifactPath.append(coordinates.getName());
