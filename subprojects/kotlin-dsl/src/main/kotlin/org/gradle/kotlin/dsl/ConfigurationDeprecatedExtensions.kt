@@ -281,6 +281,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.resolvedConfiguration
 /**
  * See [Configuration.getTaskDependencyFromProjectDependency].
  */
+@Suppress("DEPRECATION")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().getTaskDependencyFromProjectDependency(useDependedOn, taskName)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.getTaskDependencyFromProjectDependency(useDependedOn: Boolean, taskName: String): TaskDependency =
     get().getTaskDependencyFromProjectDependency(useDependedOn, taskName)

@@ -23,6 +23,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
@@ -118,6 +119,19 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
                     .anyMatch(ci -> ci.isDeclarableByExtension());
         }
     }
+
+    /**
+     * Returns a TaskDependency object containing dependencies on all tasks with the specified name from project
+     * dependencies related to this configuration or one of its super configurations.  These other projects may be
+     * projects this configuration depends on or projects with a similarly named configuration that depend on this one
+     * based on the useDependOn argument.
+     *
+     * @param useDependedOn if true, add tasks from project dependencies in this configuration, otherwise use projects
+     *                      from configurations with the same name that depend on this one.
+     * @param taskName name of task to depend on
+     * @return the populated TaskDependency object
+     */
+    TaskDependency getTaskDependencyFromProjectDependencyInternal(boolean useDependedOn, final String taskName);
 
     interface VariantVisitor {
         // The artifacts to use when this configuration is used as a configuration

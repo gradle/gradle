@@ -936,11 +936,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         context.add(intrinsicFiles);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
+    @Deprecated
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
+        DeprecationLogger.deprecateMethod(Configuration.class, "getTaskDependencyFromProjectDependency(boolean, String)")
+            .withAdvice("This method will be removed without replacement.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "get_task_dependency_from_project_dependency_deprecated")
+            .nagUser();
+
+        return getTaskDependencyFromProjectDependencyInternal(useDependedOn, taskName);
+    }
+
+    @Override
+    public TaskDependency getTaskDependencyFromProjectDependencyInternal(boolean useDependedOn, String taskName) {
         if (useDependedOn) {
             return new TasksFromProjectDependencies(taskName, this::getAllDependencies, taskDependencyFactory);
         } else {

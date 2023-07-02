@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -343,7 +344,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
      */
     private static void addDependsOnTaskInOtherProjects(final Task task, boolean useDependedOn, String otherProjectTaskName, String configurationName) {
         Project project = task.getProject();
-        final Configuration configuration = project.getConfigurations().getByName(configurationName);
-        task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
+        ConfigurationInternal configuration = (ConfigurationInternal) project.getConfigurations().getByName(configurationName);
+        task.dependsOn(configuration.getTaskDependencyFromProjectDependencyInternal(useDependedOn, otherProjectTaskName));
     }
 }

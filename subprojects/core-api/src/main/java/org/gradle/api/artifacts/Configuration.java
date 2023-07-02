@@ -52,7 +52,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * Returns the resolution strategy used by this configuration.
      * The resolution strategy provides extra details on how to resolve this configuration.
      * See docs for {@link ResolutionStrategy} for more info and examples.
-     * 
+     *
      * @implSpec Usage: This method should only be called on resolvable configurations, but will not warn if used otherwise.
      *
      * @return resolution strategy
@@ -63,7 +63,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * The resolution strategy provides extra details on how to resolve this configuration.
      * See docs for {@link ResolutionStrategy} for more info and examples.
-     * 
+     *
      * @implSpec Usage: This method should only be called on resolvable configurations, but will not warn if used otherwise.
      *
      * @param closure closure applied to the {@link ResolutionStrategy}
@@ -75,7 +75,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * The resolution strategy provides extra details on how to resolve this configuration.
      * See docs for {@link ResolutionStrategy} for more info and examples.
-     * 
+     *
      * @implSpec Usage: This method should only be called on resolvable configurations, but will not warn if used otherwise.
      *
      * @param action action applied to the {@link ResolutionStrategy}
@@ -92,7 +92,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Returns the state of the configuration.
-     * 
+     *
      * @implSpec Usage: This method should only be called on resolvable configurations, but will not warn if used otherwise.
      *
      * @see org.gradle.api.artifacts.Configuration.State
@@ -128,7 +128,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Sets the visibility of this configuration. When visible is set to true, this configuration is visible outside
      * the project it belongs to. The default value is true.
-     * 
+     *
      * @implSpec Usage: This method should only be called on consumable configurations, but will not warn if used otherwise.
      *
      * @param visible true if this is a visible configuration
@@ -204,7 +204,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
      * the resulting set of files.
-     * 
+     *
      * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
      * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
@@ -215,7 +215,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as
      * {@link #files(org.gradle.api.specs.Spec)}.
-     * 
+     *
      * @implSpec Usage: This method should only be called on resolvable configurations and should fail if
      * called on a configuration that does not permit this usage.  It should warn if called on a configuration that has
      * allowed this usage but marked it as deprecated.
@@ -319,7 +319,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Returns a {@code TaskDependency} object containing all required dependencies to build the local dependencies
      * (e.g. project dependencies) belonging to this configuration or to one of its super configurations.
-     * 
+     *
      * @implSpec Usage: This method should only be called on resolvable configurations, but will not warn if used otherwise.
      *
      * @return a TaskDependency object
@@ -336,8 +336,12 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param useDependedOn if true, add tasks from project dependencies in this configuration, otherwise use projects
      *                      from configurations with the same name that depend on this one.
      * @param taskName name of task to depend on
+     *
      * @return the populated TaskDependency object
+     *
+     * @deprecated This method will be removed without replacement in Gradle 9.0
      */
+    @Deprecated
     TaskDependency getTaskDependencyFromProjectDependency(boolean useDependedOn, final String taskName);
 
     /**
@@ -346,7 +350,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * <p>
      * This method does not resolve the configuration. Therefore, the return value does not include
      * transitive dependencies.
-     * 
+     *
      * @implSpec Usage: This method should only be called on declarable configurations, but will not warn if used otherwise.
      *
      * @return the set of dependencies
@@ -390,7 +394,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Returns the artifacts of this configuration excluding the artifacts of extended configurations.
-     * 
+     *
      * @implSpec Usage: This method should only be called on consumable configurations, but will not warn if used otherwise.
      *
      * @return The set.
@@ -443,8 +447,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * <p>
      * If multiple actions are supplied, each action will be executed until the set of dependencies is no longer empty.
      * Remaining actions will be ignored.
-     * 
-     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if 
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
      * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @param action the action to execute when the configuration has no defined dependencies.
@@ -493,7 +497,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Returns the incoming dependencies of this configuration.
-     * 
+     *
      * @implSpec Usage: This method should only be called on consumable and resolvable configurations, but will not warn if used otherwise.
      *
      * @return The incoming dependencies of this configuration. Never {@code null}.
@@ -504,7 +508,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * Returns the outgoing {@link ConfigurationPublications} instance that advertises and allows configuring the artifacts and variants published by this configuration.
      * <p>
      * This allows adding additional artifacts and accessing and configuring variants to publish.
-     * 
+     *
      * @implSpec Usage: This method should only be called on consumable configurations, but will not warn if used otherwise.
      *
      * @return The outgoing publications object containing artifacts and variants published by this configuration.
@@ -514,7 +518,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Configures the outgoing {@link ConfigurationPublications} instance that advertises and allows configuring the artifacts and variants published by this configuration.
-     * 
+     *
      * @implSpec Usage: This method should only be called on consumable configurations, but will not warn if used otherwise.
      *
      * @param action The action to perform the configuration.
@@ -663,7 +667,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * from the resolution result of another resolvable configuration. For example, it's
      * expected that the versions of the runtime classpath are the same as the versions
      * from the compile classpath.
-     * 
+     *
      * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
      * called on a configuration that does not permit this usage, or has had allowed this usage but marked it as deprecated.
      *
@@ -677,7 +681,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Disables consistent resolution for this configuration.
-     * 
+     *
      * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
      * called on a configuration that does not permit this usage, or has had allowed this usage but marked it as deprecated.
      *

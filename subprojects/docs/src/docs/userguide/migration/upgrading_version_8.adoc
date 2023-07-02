@@ -235,6 +235,12 @@ Upgrade to version 3.13.1 or later of the Gradle Enterprise plugin.
 You can find the link:https://plugins.gradle.org/plugin/com.gradle.enterprise[latest available version on the Gradle Plugin Portal].
 More information on the compatibility can be found link:https://docs.gradle.com/enterprise/compatibility/#build_scans[here].
 
+[[get_task_dependency_from_project_dependency_deprecated]]
+==== Deprecated `Configuration#getTaskDependencyFromProjectDependency`
+
+link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getTaskDependencyFromProjectDependency-boolean-java.lang.String-[`Configuration#getTaskDependencyFromProjectDependency`] has been deprecated and will be removed in Gradle 9.0, without replacement.
+This method is inherently incompatible with project isolation.
+
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 
