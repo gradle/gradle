@@ -17,29 +17,38 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.scopes.Scopes.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.GFileUtils
 import java.io.File
+import java.util.EnumSet
 import javax.inject.Inject
 
 
 @ServiceScope(BuildTree::class)
 class DefaultIgnoredConfigurationInputs(
     ignoredPathsString: String?,
+    isCaseSensitive: Boolean,
     private val rootDirectory: File
 ) : IgnoredConfigurationInputs {
 
     @Inject
     @Suppress("unused") // used in DI
-    constructor(configurationCacheStartParameter: ConfigurationCacheStartParameter) :
-        this(configurationCacheStartParameter.ignoredFileSystemCheckInputs, configurationCacheStartParameter.rootDirectory)
+    constructor(
+        configurationCacheStartParameter: ConfigurationCacheStartParameter,
+        fileSystem: FileSystem
+    ) : this(
+        ignoredPathsString = configurationCacheStartParameter.ignoredFileSystemCheckInputs,
+        isCaseSensitive = fileSystem.isCaseSensitive,
+        rootDirectory = configurationCacheStartParameter.rootDirectory
+    )
 
     private
     val userHome = File(System.getProperty("user.home"))
 
     private
-    val jointRegex: Regex? = maybeCreateJointRegexForPatterns(ignoredPathsString)
+    val jointRegex: Regex? = maybeCreateJointRegexForPatterns(ignoredPathsString, isCaseSensitive)
 
     override fun isFileSystemCheckIgnoredFor(file: File): Boolean =
         jointRegex?.matches(normalizeActualInputPath(file)) ?: false
@@ -86,13 +95,13 @@ class DefaultIgnoredConfigurationInputs(
     }
 
     private
-    fun maybeCreateJointRegexForPatterns(paths: String?) =
+    fun maybeCreateJointRegexForPatterns(paths: String?, isCaseSensitive: Boolean) =
         if (paths.isNullOrEmpty()) {
             null
         } else {
             paths.split(PATHS_SEPARATOR).joinToString("|") {
                 wildcardsToRegexPatternString(normalizeFilePattern(it))
-            }.toRegex()
+            }.toRegex(if (!isCaseSensitive) EnumSet.of(RegexOption.IGNORE_CASE) else emptySet())
         }
 
     private

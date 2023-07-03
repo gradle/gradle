@@ -29,8 +29,8 @@ class DefaultIgnoredConfigurationInputsTest {
     val rootDir = File(if (OperatingSystem.current().isWindows) "C:/test/rootDir" else "/test/rootDir")
 
     private
-    fun createFromPaths(paths: List<String>): DefaultIgnoredConfigurationInputs {
-        return DefaultIgnoredConfigurationInputs(paths.joinToString(";"), rootDir)
+    fun createFromPaths(paths: List<String>, isCaseSensitive: Boolean = true): DefaultIgnoredConfigurationInputs {
+        return DefaultIgnoredConfigurationInputs(paths.joinToString(";"), isCaseSensitive, rootDir)
     }
 
     @Test
@@ -38,7 +38,7 @@ class DefaultIgnoredConfigurationInputsTest {
         val instance = createFromPaths(emptyList())
         assertFalse(instance.isFileSystemCheckIgnoredFor(File("")))
 
-        val instanceFromNull = DefaultIgnoredConfigurationInputs(null, rootDir)
+        val instanceFromNull = DefaultIgnoredConfigurationInputs(null, true, rootDir)
         assertFalse(instanceFromNull.isFileSystemCheckIgnoredFor(File("")))
     }
 
@@ -105,5 +105,19 @@ class DefaultIgnoredConfigurationInputsTest {
     fun `recognizes relative paths pointing outside the root directory`() {
         val instance = createFromPaths(listOf("../../test1"))
         assertTrue(instance.isFileSystemCheckIgnoredFor(rootDir.parentFile.parentFile.resolve("test1")))
+    }
+
+    @Test
+    fun `if created as case-sensitive, does not recognize paths in a different case`() {
+        val instance = createFromPaths(listOf("abc", "DEF/*/GHI"), isCaseSensitive = true)
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("Abc")))
+        assertFalse(instance.isFileSystemCheckIgnoredFor(File("Def/123/ghi")))
+    }
+
+    @Test
+    fun `if created as case-insensitive, recognizes paths in a different case`() {
+        val instance = createFromPaths(listOf("abc", "DEF/*/GHI"), isCaseSensitive = false)
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("Abc")))
+        assertTrue(instance.isFileSystemCheckIgnoredFor(File("Def/123/ghi")))
     }
 }
