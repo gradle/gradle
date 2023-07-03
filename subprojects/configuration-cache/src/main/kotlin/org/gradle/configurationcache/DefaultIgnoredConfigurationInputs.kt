@@ -46,16 +46,17 @@ class DefaultIgnoredConfigurationInputs(
 
     private
     fun normalizeActualInputPath(file: File): String =
-        file.let(::relativize)
+        file.let(::maybeRelativize)
             .let(File::normalize)
             .invariantSeparatorsPath
 
     private
-    fun normalizeFilePattern(pathWithWildcards: String): File =
+    fun normalizeFilePattern(pathWithWildcards: String): String =
         File(pathWithWildcards)
             .let(::substituteUserHome)
-            .let(::relativize)
+            .let(::maybeRelativize)
             .let(File::normalize)
+            .invariantSeparatorsPath
 
     private
     fun substituteUserHome(file: File): File =
@@ -64,18 +65,25 @@ class DefaultIgnoredConfigurationInputs(
         else file
 
     private
-    fun relativize(file: File): File {
-        val absoluteFile = if (file.isAbsolute) file else File(rootDirectory, file.path)
-        return File(GFileUtils.relativePathOf(absoluteFile, rootDirectory))
+    fun maybeRelativize(file: File): File {
+        if (!file.isAbsolute)
+            return file
+        return File(GFileUtils.relativePathOf(file, rootDirectory))
     }
 
     private
-    fun wildcardsToRegexPatternString(pathWithWildcards: String): String =
-        pathWithWildcards.split("**").joinToString(separator = ".*", prefix = "^", postfix = "$") { outerPart ->
-            outerPart.takeIf { it.isNotEmpty() }?.split("*")?.joinToString("[^/]*") { innerPart ->
-                innerPart.takeIf { it.isNotEmpty() }?.let(Regex::escape).orEmpty()
-            }.orEmpty()
+    fun wildcardsToRegexPatternString(pathWithWildcards: String): String {
+        fun String.runIfNotEmpty(action: String.() -> String): String =
+            if (this.isEmpty()) this else action()
+
+        return pathWithWildcards.split("**").joinToString(separator = ".*", prefix = "^", postfix = "$") { outerPart ->
+            outerPart.runIfNotEmpty {
+                split("*").joinToString("[^/]*") { innerPart ->
+                    innerPart.runIfNotEmpty(Regex::escape)
+                }
+            }
         }
+    }
 
     private
     fun maybeCreateJointRegexForPatterns(paths: String?) =
@@ -83,13 +91,12 @@ class DefaultIgnoredConfigurationInputs(
             null
         } else {
             paths.split(PATHS_SEPARATOR).joinToString("|") {
-                wildcardsToRegexPatternString(normalizeFilePattern(it).invariantSeparatorsPath)
+                wildcardsToRegexPatternString(normalizeFilePattern(it))
             }.toRegex()
         }
 
-    internal
+    private
     companion object {
-        internal
         const val PATHS_SEPARATOR = ";"
     }
 }

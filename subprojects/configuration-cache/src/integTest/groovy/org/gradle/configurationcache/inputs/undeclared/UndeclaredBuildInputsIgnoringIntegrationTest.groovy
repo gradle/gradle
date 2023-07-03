@@ -20,7 +20,7 @@ import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions
 
 class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    def 'can ignore a file system check configuration inputs #location'() {
+    def 'can ignore a file system check configuration input'() {
         given:
         buildFile("""
             println("exists = " + new File("build/test.lock").exists())
