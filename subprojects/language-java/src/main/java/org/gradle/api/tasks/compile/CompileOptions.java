@@ -38,7 +38,6 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -53,6 +52,16 @@ import java.util.Map;
  */
 public abstract class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
+
+    private boolean failOnError = true;
+
+    private boolean verbose;
+
+    private boolean listFiles;
+
+    private boolean deprecation;
+
+    private boolean warnings = true;
 
     private String encoding;
 
@@ -96,47 +105,82 @@ public abstract class CompileOptions extends AbstractOptions {
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
-        getFailOnError().convention(true);
-        getVerbose().convention(false);
-        getListFiles().convention(false);
-        getDeprecation().convention(false);
-        getWarnings().convention(true);
     }
 
     /**
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
      */
     @Input
-    @UpgradedProperty(originalType = boolean.class)
-    public abstract Property<Boolean> getFailOnError();
+    public boolean isFailOnError() {
+        return failOnError;
+    }
+
+    /**
+     * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
+     */
+    public void setFailOnError(boolean failOnError) {
+        this.failOnError = failOnError;
+    }
 
     /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
      */
     @Console
-    @UpgradedProperty(originalType = boolean.class)
-    public abstract Property<Boolean> getVerbose();
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    /**
+     * Sets whether to produce verbose output. Defaults to {@code false}.
+     */
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
 
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
      */
     @Console
-    @UpgradedProperty(originalType = boolean.class)
-    public abstract Property<Boolean> getListFiles();
+    public boolean isListFiles() {
+        return listFiles;
+    }
+
+    /**
+     * Sets whether to log the files to be compiled. Defaults to {@code false}.
+     */
+    public void setListFiles(boolean listFiles) {
+        this.listFiles = listFiles;
+    }
 
     /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
      */
     @Console
-    @UpgradedProperty(originalType = boolean.class)
-    public abstract Property<Boolean> getDeprecation();
+    public boolean isDeprecation() {
+        return deprecation;
+    }
+
+    /**
+     * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     */
+    public void setDeprecation(boolean deprecation) {
+        this.deprecation = deprecation;
+    }
 
     /**
      * Tells whether to log warning messages. The default is {@code true}.
      */
     @Console
-    @UpgradedProperty(originalType = boolean.class)
-    public abstract Property<Boolean> getWarnings();
+    public boolean isWarnings() {
+        return warnings;
+    }
+
+    /**
+     * Sets whether to log warning messages. The default is {@code true}.
+     */
+    public void setWarnings(boolean warnings) {
+        this.warnings = warnings;
+    }
 
     /**
      * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
