@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.internal.os.OperatingSystem
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -119,5 +120,12 @@ class DefaultIgnoredConfigurationInputsTest {
         val instance = createFromPaths(listOf("abc", "DEF/*/GHI"), isCaseSensitive = false)
         assertTrue(instance.isFileSystemCheckIgnoredFor(File("Abc")))
         assertTrue(instance.isFileSystemCheckIgnoredFor(File("Def/123/ghi")))
+    }
+
+    @Test
+    fun `accepts backslash-separated path patterns on Windows`() {
+        val instance = createFromPaths(listOf("abc\\*\\ghi"))
+        val isRecognized = instance.isFileSystemCheckIgnoredFor(File("abc/test/ghi"))
+        assertEquals(OperatingSystem.current().isWindows, isRecognized)
     }
 }
