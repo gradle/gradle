@@ -21,6 +21,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -121,7 +122,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     def "creates tasks and applies mappings for source set"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
-        project.sourceSets.create('custom')
+        SourceSet customSet = project.sourceSets.create('custom')
+        customSet.compileClasspath = TestFiles.fileCollectionFactory().fixed(new File("src/custom/java/compileClasspath"))
         new TestFile(project.file("src/custom/java/File.java")) << "foo"
         new TestFile(project.file("src/custom/resources/resource.txt")) << "foo"
 
@@ -145,7 +147,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava.description == "Compiles custom Java source."
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
-        compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
+        compileJava.classpath.files == [new File("src/custom/java/compileClasspath")] as Set
         compileJava.destinationDir == new File(project.buildDir, 'classes/java/custom')
 
         def sources = compileJava.source
@@ -220,10 +222,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.sourceSets.create('custom')
 
         then:
-        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
-        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
-        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
-        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
     }
 
     def "wires toolchain for test if toolchain is configured"() {
@@ -263,8 +265,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
 
         then:
-        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
-        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
+        javaCompileTask.sourceCompatibility.get() == prevJavaVersion.toString()
+        javaCompileTask.sourceCompatibility.get() == prevJavaVersion.toString()
     }
 
     private void setupProjectWithToolchain(JavaVersion version) {
@@ -361,7 +363,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        compile.sourceCompatibility.get() == project.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
