@@ -16,6 +16,7 @@ dependencies {
     compileOnly(project(":code-quality"))
     implementation(project(":language-jvm"))
     implementation(project(":language-java"))
+    implementation(project(":language-groovy"))
 
     // Instrumentation dependencies
     compileOnly(project(":internal-instrumentation-api"))
