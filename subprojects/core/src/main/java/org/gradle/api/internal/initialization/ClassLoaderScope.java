@@ -120,4 +120,6 @@ public interface ClassLoaderScope {
      * been discarded to reduce memory pressure.
      */
     void onReuse();
+
+    ClassLoaderScope getOriginalScope();
 }

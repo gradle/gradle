@@ -123,19 +123,6 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         }
     }
 
-    public void dropClassloaders() {
-        exportingClassLoader = null;
-        effectiveExportClassLoader = null;
-        localClassLoader = null;
-        effectiveLocalClassLoader = null;
-
-        ownLoaders = null;
-        exportLoaders = null;
-
-        export = ClassPath.EMPTY;
-        local = ClassPath.EMPTY;
-    }
-
     @Override
     public ClassLoader getExportClassLoader() {
         buildEffectiveLoaders();
@@ -258,26 +245,5 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         if (!local.isEmpty()) {
             listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader, export, null);
         }
-    }
-
-    public void lockWith(ModifyingLockActor lockActor) {
-        if (locked) {
-            throw new IllegalStateException("class loader scope is already locked, scope identifier is " + id);
-        } else {
-            lock();
-        }
-
-        if (lockActor.requiresModification()) {
-            dropClassloaders();
-            unlock();
-            lockActor.modify(this);
-            lock();
-        }
-    }
-
-    public interface ModifyingLockActor {
-        boolean requiresModification();
-
-        void modify(ClassLoaderScope scope);
     }
 }

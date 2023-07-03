@@ -19,7 +19,7 @@ package org.gradle.plugin.use.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
+import org.gradle.api.internal.initialization.MutableClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
@@ -91,7 +91,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     public void applyPlugins(final PluginRequests requests, PluginRequests autoAppliedPlugins, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, final ClassLoaderScope classLoaderScope) {
         if (target == null || noPluginsApplied(requests, autoAppliedPlugins)) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.emptyList());
-            classLoaderScope.lock();
             return;
         }
 
@@ -102,7 +101,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         final List<Consumer<PluginManagerInternal>> pluginApplyActions = newLinkedList();
 
         resolvePluginRequests(requests, scriptHandler, classLoaderScope, effectivePluginResolver, pluginApplyActions);
-        resolveAutoAppliedPlugins(autoAppliedPlugins, scriptHandler, classLoaderScope, effectivePluginResolver, pluginApplyActions);
+        if (!autoAppliedPlugins.isEmpty()) {
+            resolveAutoAppliedPlugins(autoAppliedPlugins, scriptHandler, classLoaderScope, effectivePluginResolver, pluginApplyActions);
+        }
 
         pluginApplyActions.forEach(pluginApplyAction -> pluginApplyAction.accept(target));
     }
@@ -118,11 +119,11 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private void resolveAutoAppliedPlugins(PluginRequests autoAppliedPlugins, ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, PluginResolver effectivePluginResolver, List<Consumer<PluginManagerInternal>> pluginApplyActions) {
-        ((DefaultClassLoaderScope) classLoaderScope).lockWith(new DefaultClassLoaderScope.ModifyingLockActor() {
+        ((MutableClassLoaderScope) classLoaderScope).mutate(new MutableClassLoaderScope.MutateActor() {
             private List<Result> autoAppliedPluginRequests;
 
             @Override
-            public boolean requiresModification() {
+            public boolean requiresMutation() {
                 final PluginResolver alreadyOnClasspathIgnoringPluginResolver = new AlreadyOnClasspathIgnoringPluginResolver(effectivePluginResolver,
                     new ClassloaderBackedPluginDescriptorLocator(scriptHandler.getClassLoader())
                 );
@@ -133,7 +134,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             }
 
             @Override
-            public void modify(ClassLoaderScope scope) {
+            public void mutate(ClassLoaderScope scope) {
                 scriptHandler.dropResolvedClassPath();
 
                 final Map<Result, PluginImplementation<?>> pluginImplementations = newLinkedHashMap();
@@ -221,6 +222,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         for (PluginImplementation<?> pluginImplementation : pluginsFromOtherLoaders) {
             classLoaderScope.export(pluginImplementation.asClass().getClassLoader());
         }
+
+        classLoaderScope.lock();
     }
 
     private static void exportBuildLogicClassPathTo(ClassLoaderScope classLoaderScope, ClassPath classPath) {
