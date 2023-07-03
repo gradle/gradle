@@ -68,7 +68,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 getDocumentationFor(problem),
                 problem.getDescription(),
                 problem.getSolutions(),
-                problemCause, problem.getProblemType());
+                problemCause, problem.getProblemType(), problem.getAdditionalMetadata());
             eventConsumer.progress(event);
         }
     }

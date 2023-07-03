@@ -21,7 +21,6 @@ import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.api.problems.interfaces.Severity;
 
 import javax.annotation.Nullable;
@@ -52,32 +51,11 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     private Throwable cause;
     protected final Map<String, String> additionalMetadata = new HashMap<>();
 
-    public DefaultProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) { //add type
+    public DefaultProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) {
         this.problemGroup = problemGroup;
         this.message = message;
         this.severity = severity;
         this.problemType = type;
-    }
-
-    public DefaultProblemBuilder(ProblemGroup problemGroup, Throwable cause, Severity severity) {
-        this.problemGroup = problemGroup;
-        this.cause = cause;
-        this.severity = severity;
-    }
-
-    public DefaultProblemBuilder(Problem problem) {
-        this.problemGroup = problem.getProblemGroup();
-        this.severity = problem.getSeverity();
-        this.message = problem.getMessage();
-        ProblemLocation where = problem.getWhere();
-        if (where != null) {
-            this.path = where.getPath();
-            this.line = where.getLine();
-        }
-        this.documentationUrl = problem.getDocumentationLink();
-        for (String solution : problem.getSolutions()) {
-            this.solution(solution);
-        }
     }
 
     public DefaultProblemBuilder() {

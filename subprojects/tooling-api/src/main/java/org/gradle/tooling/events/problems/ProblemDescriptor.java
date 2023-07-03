@@ -21,6 +21,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Describes a problem operation.
@@ -53,4 +54,6 @@ public interface ProblemDescriptor extends OperationDescriptor {
     Throwable getCause();
 
     String getProblemType();
+
+    Map<String, String> getAdditionalMetaData();
 }

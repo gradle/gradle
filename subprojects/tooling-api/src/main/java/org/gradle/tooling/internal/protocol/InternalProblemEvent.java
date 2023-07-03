@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -53,4 +54,6 @@ public interface InternalProblemEvent extends InternalProgressEvent {
     Throwable getCause();
 
     String getProblemType();
+
+    Map<String, String> getAdditionalMetaData();
 }

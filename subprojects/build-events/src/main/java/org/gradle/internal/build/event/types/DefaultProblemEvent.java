@@ -22,6 +22,7 @@ import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 @NonNullApi
 public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements InternalProblemEvent {
@@ -36,6 +37,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
     private Integer line;
     private String path;
     private String problemType;
+    private Map<String, String> additionalMetaData;
 
     public DefaultProblemEvent(
         InternalProblemDescriptor descriptor,
@@ -48,7 +50,8 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         @Nullable String description,
         List<String> solutions,
         @Nullable Throwable cause,
-        String problemType
+        String problemType,
+        Map<String, String> additionalMetaData
     ) {
         super(System.currentTimeMillis(), descriptor);
         this.problemId = problemId;
@@ -61,6 +64,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         this.solutions = solutions;
         this.cause = cause;
         this.problemType = problemType;
+        this.additionalMetaData = additionalMetaData;
     }
 
 
@@ -122,5 +126,9 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
     @Override
     public String getProblemType() {
         return problemType;
+    }
+
+    public Map<String, String> getAdditionalMetaData() {
+        return additionalMetaData;
     }
 }

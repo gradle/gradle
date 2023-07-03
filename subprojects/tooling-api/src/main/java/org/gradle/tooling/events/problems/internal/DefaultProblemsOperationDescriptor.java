@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 @NonNullApi
 public class DefaultProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
@@ -39,6 +40,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     private final String documentationLink;
     private final Throwable cause;
     private final String problemType;
+    private Map<String, String> additionalMetaData;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
@@ -52,7 +54,8 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         @Nullable Integer line,
         @Nullable String documentationLink,
         @Nullable Throwable cause,
-        String problemType
+        String problemType,
+        Map<String, String> additionalMetaData
     ) {
         super(internalDescriptor, parent);
         this.problemGroup = problemId;
@@ -65,6 +68,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         this.documentationLink = documentationLink;
         this.cause = cause;
         this.problemType = problemType;
+        this.additionalMetaData = additionalMetaData;
     }
 
     @Override
@@ -120,5 +124,10 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     @Override
     public String getPath() {
         return path;
+    }
+
+    @Override
+    public Map<String, String> getAdditionalMetaData() {
+        return additionalMetaData;
     }
 }
