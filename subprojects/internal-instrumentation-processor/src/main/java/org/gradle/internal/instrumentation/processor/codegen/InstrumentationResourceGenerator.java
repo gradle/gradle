@@ -18,7 +18,7 @@ package org.gradle.internal.instrumentation.processor.codegen;
 
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
-import java.io.Writer;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,7 +32,7 @@ public interface InstrumentationResourceGenerator {
         interface CanGenerateResource extends GenerationResult {
             String getPackageName();
             String getName();
-            void writeLines(Writer writer);
+            void write(OutputStream outputStream);
             Collection<CallInterceptionRequest> getCoveredRequests();
         }
 

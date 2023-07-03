@@ -34,7 +34,7 @@ import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -97,8 +97,8 @@ public class InstrumentationCodeGeneratorHost {
             try {
                 Element[] originatingElements = getOriginatingElements(resourceResult.getCoveredRequests()).toArray(new Element[0]);
                 FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, resourceResult.getPackageName(), resourceResult.getName(), originatingElements);
-                try (Writer writer = resource.openWriter()) {
-                    ((CanGenerateResource) result).writeLines(writer);
+                try (OutputStream outputStream = resource.openOutputStream()) {
+                    ((CanGenerateResource) result).write(outputStream);
                 }
             } catch (IOException e) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Failed to write generated resource file in package " + resourceResult.getPackageName() + ", named " + resourceResult.getName() + ": " + e.getMessage());

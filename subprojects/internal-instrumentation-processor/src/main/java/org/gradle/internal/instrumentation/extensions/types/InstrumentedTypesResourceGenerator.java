@@ -21,6 +21,8 @@ import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -52,13 +54,13 @@ public class InstrumentedTypesResourceGenerator implements InstrumentationResour
             }
 
             @Override
-            public void writeLines(Writer writer) {
+            public void write(OutputStream outputStream) {
                 String types = requestsForInheritedTypes.stream()
                     .map(request -> request.getInterceptedCallable().getOwner().getType().getClassName().replace(".", "/"))
                     .distinct()
                     .sorted()
                     .collect(Collectors.joining("\n"));
-                try {
+                try (Writer writer = new OutputStreamWriter(outputStream)) {
                     writer.write(types);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
