@@ -29,7 +29,7 @@ class PluginRequestsHandlerTest {
         val initialRequests = mock<PluginRequests>(name = "initialRequests")
         val autoAppliedPlugins = mock<PluginRequests>(name = "autoAppliedPlugins")
         val autoAppliedPluginHandler = mock<AutoAppliedPluginHandler> {
-            on { getAutoAppliedPlugins(target) } doReturn autoAppliedPlugins
+            on { getAutoAppliedPlugins(initialRequests, target) } doReturn autoAppliedPlugins
         }
         val pluginRequestApplicator = mock<PluginRequestApplicator>()
         val scriptHandler = mock<ScriptHandlerInternal>()
