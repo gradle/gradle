@@ -18,6 +18,8 @@ package org.gradle.operations.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails
 
 class ProjectIsolationInitializationBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -31,7 +33,8 @@ class ProjectIsolationInitializationBuildOperationsIntegrationTest extends Abstr
         succeeds("help")
 
         then:
-        events().enabled == [false]
+        projectIsolationEvents().enabled == [false]
+        configurationCacheEvents().enabled == [GradleContextualExecuter.configCache]
     }
 
     def "emits settings finalized event when explicitly #status"() {
@@ -40,15 +43,16 @@ class ProjectIsolationInitializationBuildOperationsIntegrationTest extends Abstr
 
         when:
         succeeds("help", "-Dorg.gradle.unsafe.isolated-projects=$enabled")
-
         then:
-        events().enabled == [enabled]
+        projectIsolationEvents().enabled == [enabled]
+        configurationCacheEvents().enabled == [GradleContextualExecuter.configCache || enabled]
 
+        // Ensure events are produced on CC hit as well
         when:
         succeeds("help", "-Dorg.gradle.unsafe.isolated-projects=$enabled")
-
         then:
-        events().enabled == [enabled]
+        projectIsolationEvents().enabled == [enabled]
+        configurationCacheEvents().enabled == [GradleContextualExecuter.configCache || enabled]
 
         where:
         status     | enabled
@@ -56,8 +60,12 @@ class ProjectIsolationInitializationBuildOperationsIntegrationTest extends Abstr
         "disabled" | false
     }
 
-    List<ProjectIsolationSettingsFinalizedProgressDetails> events() {
+    List<ProjectIsolationSettingsFinalizedProgressDetails> projectIsolationEvents() {
         return operations.progress(ProjectIsolationSettingsFinalizedProgressDetails).details
+    }
+
+    List<ConfigurationCacheSettingsFinalizedProgressDetails> configurationCacheEvents() {
+        return operations.progress(ConfigurationCacheSettingsFinalizedProgressDetails).details
     }
 
 }
