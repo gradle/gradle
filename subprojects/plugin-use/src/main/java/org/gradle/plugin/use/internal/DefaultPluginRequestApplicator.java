@@ -89,46 +89,58 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     @Override
     public void applyPlugins(final PluginRequests requests, PluginRequests autoAppliedPlugins, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, final ClassLoaderScope classLoaderScope) {
-        if (target == null || (requests.isEmpty() && autoAppliedPlugins.isEmpty())) {
+        if (target == null || noPluginsApplied(requests, autoAppliedPlugins)) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.emptyList());
+            classLoaderScope.lock();
             return;
         }
 
         PluginArtifactRepositories resolveContext = pluginRepositoriesProvider.createPluginResolveRepositories();
+        addPluginArtifactRepositories(resolveContext, scriptHandler.getRepositories());
 
         final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext);
-        if (!requests.isEmpty() || !autoAppliedPlugins.isEmpty()) {
-            addPluginArtifactRepositories(resolveContext, scriptHandler.getRepositories());
-        }
-
         final List<Consumer<PluginManagerInternal>> pluginApplyActions = newLinkedList();
+
+        resolvePluginRequests(requests, scriptHandler, classLoaderScope, effectivePluginResolver, pluginApplyActions);
+        resolveAutoAppliedPlugins(autoAppliedPlugins, scriptHandler, classLoaderScope, effectivePluginResolver, pluginApplyActions);
+
+        pluginApplyActions.forEach(pluginApplyAction -> pluginApplyAction.accept(target));
+    }
+
+    private void resolvePluginRequests(PluginRequests requests, ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, PluginResolver effectivePluginResolver, List<Consumer<PluginManagerInternal>> pluginApplyActions) {
         final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = newLinkedHashMap();
 
         List<Result> results = resolvePluginRequests(requests, effectivePluginResolver);
         if (!results.isEmpty()) {
             applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplsFromOtherLoaders, results);
         }
-
         defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplsFromOtherLoaders.values());
+    }
 
-        if (!autoAppliedPlugins.isEmpty()) {
-            final PluginResolver alreadyOnClasspathIgnoringPluginResolver = new AlreadyOnClasspathIgnoringPluginResolver(effectivePluginResolver,
-                new ClassloaderBackedPluginDescriptorLocator(scriptHandler.getClassLoader())
-            );
+    private void resolveAutoAppliedPlugins(PluginRequests autoAppliedPlugins, ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, PluginResolver effectivePluginResolver, List<Consumer<PluginManagerInternal>> pluginApplyActions) {
+        ((DefaultClassLoaderScope) classLoaderScope).lockWith(new DefaultClassLoaderScope.ModifyingLockActor() {
+            private List<Result> autoAppliedPluginRequests;
 
-            List<Result> autoAppliedPluginResults = resolvePluginRequests(autoAppliedPlugins, alreadyOnClasspathIgnoringPluginResolver);
-            if (!autoAppliedPluginResults.isEmpty()) {
-                ((DefaultClassLoaderScope) classLoaderScope).dropClassloaders();
-                ((DefaultClassLoaderScope) classLoaderScope).unlock();
+            @Override
+            public boolean requiresModification() {
+                final PluginResolver alreadyOnClasspathIgnoringPluginResolver = new AlreadyOnClasspathIgnoringPluginResolver(effectivePluginResolver,
+                    new ClassloaderBackedPluginDescriptorLocator(scriptHandler.getClassLoader())
+                );
+
+                autoAppliedPluginRequests = resolvePluginRequests(autoAppliedPlugins, alreadyOnClasspathIgnoringPluginResolver);
+
+                return !autoAppliedPluginRequests.isEmpty();
+            }
+
+            @Override
+            public void modify(ClassLoaderScope scope) {
                 scriptHandler.dropResolvedClassPath();
 
                 final Map<Result, PluginImplementation<?>> pluginImplementations = newLinkedHashMap();
-                applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplementations, autoAppliedPluginResults);
+                applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplementations, autoAppliedPluginRequests);
                 defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplementations.values());
             }
-        }
-
-        pluginApplyActions.forEach(pluginApplyAction -> pluginApplyAction.accept(target));
+        });
     }
 
     @Override
@@ -209,8 +221,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         for (PluginImplementation<?> pluginImplementation : pluginsFromOtherLoaders) {
             classLoaderScope.export(pluginImplementation.asClass().getClassLoader());
         }
-
-        classLoaderScope.lock();
     }
 
     private static void exportBuildLogicClassPathTo(ClassLoaderScope classLoaderScope, ClassPath classPath) {
@@ -237,6 +247,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         } catch (Exception e) {
             throw new LocationAwareException(e, request.getScriptDisplayName(), request.getLineNumber());
         }
+    }
+
+    private static boolean noPluginsApplied(PluginRequests requests, PluginRequests autoAppliedPlugins) {
+        return requests.isEmpty() && autoAppliedPlugins.isEmpty();
     }
 
     private InvalidPluginException couldNotApply(PluginRequestInternal request, PluginId id, UnknownPluginException cause) {

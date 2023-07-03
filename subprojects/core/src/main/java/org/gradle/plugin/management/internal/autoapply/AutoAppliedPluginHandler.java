@@ -35,5 +35,5 @@ import org.gradle.plugin.management.internal.PluginRequests;
  */
 public interface AutoAppliedPluginHandler {
 
-    PluginRequests getAutoAppliedPlugins(Object pluginTarget);
+    PluginRequests getAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget);
 }

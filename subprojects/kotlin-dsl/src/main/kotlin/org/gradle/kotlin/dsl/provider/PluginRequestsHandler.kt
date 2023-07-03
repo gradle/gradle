@@ -40,9 +40,10 @@ class PluginRequestsHandler @Inject constructor(
         target: PluginAwareInternal,
         targetScope: ClassLoaderScope
     ) {
+        val initialRequests = pluginRequests ?: PluginRequests.EMPTY
         pluginRequestApplicator.applyPlugins(
-            pluginRequests ?: PluginRequests.EMPTY,
-            autoAppliedPluginHandler.getAutoAppliedPlugins(target),
+            initialRequests,
+            autoAppliedPluginHandler.getAutoAppliedPlugins(initialRequests, target),
             scriptHandler,
             target.pluginManager,
             targetScope

@@ -16,7 +16,6 @@
 package org.gradle.plugin.management.internal.autoapply;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -30,6 +29,8 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
@@ -41,7 +42,7 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
         this.registry = registry;
     }
 
-    public PluginRequests getAutoAppliedPlugins(Object pluginTarget) {
+    public PluginRequests getAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget) {
         if (pluginTarget instanceof Project) {
             Project project = (Project) pluginTarget;
 
@@ -49,7 +50,7 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
             if (autoAppliedPlugins.isEmpty()) {
                 return PluginRequests.EMPTY;
             }
-            return autoAppliedPlugins;
+            return filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, project.getPlugins(), project.getBuildscript());
         } else if (pluginTarget instanceof Settings) {
             Settings settings = (Settings) pluginTarget;
 
@@ -57,7 +58,7 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
             if (autoAppliedPlugins.isEmpty()) {
                 return PluginRequests.EMPTY;
             }
-            return autoAppliedPlugins;
+            return filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, settings.getPlugins(), settings.getBuildscript());
         } else {
             // No auto-applied plugins available
             return PluginRequests.EMPTY;
@@ -65,14 +66,8 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
 
     }
 
-    PluginRequests mergePluginRequests(PluginRequests autoAppliedPlugins, PluginRequests initialRequests, PluginContainer pluginContainer, ScriptHandler scriptHandler) {
-        PluginRequests filteredAutoAppliedPlugins = filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, pluginContainer, scriptHandler);
-        return filteredAutoAppliedPlugins.mergeWith(initialRequests);
-    }
-
-    private PluginRequests filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final PluginContainer pluginContainer, final ScriptHandler scriptHandler) {
-        //noinspection StaticPseudoFunctionalStyleMethod
-        return PluginRequests.of(ImmutableList.copyOf(Iterables.filter(autoAppliedPlugins, autoAppliedPlugin -> !isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, pluginContainer, scriptHandler))));
+    private static PluginRequests filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final PluginContainer pluginContainer, final ScriptHandler scriptHandler) {
+        return PluginRequests.of(ImmutableList.copyOf(StreamSupport.stream(autoAppliedPlugins.spliterator(), false).filter(autoAppliedPlugin -> !isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, pluginContainer, scriptHandler)).collect(Collectors.toList())));
     }
 
     private static boolean isAlreadyAppliedOrRequested(PluginRequestInternal autoAppliedPlugin, PluginRequests requests, PluginContainer pluginContainer, ScriptHandler scriptHandler) {

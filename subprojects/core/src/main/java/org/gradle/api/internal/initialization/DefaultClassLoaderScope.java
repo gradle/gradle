@@ -259,4 +259,25 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader, export, null);
         }
     }
+
+    public void lockWith(ModifyingLockActor lockActor) {
+        if (locked) {
+            throw new IllegalStateException("class loader scope is already locked, scope identifier is " + id);
+        } else {
+            lock();
+        }
+
+        if (lockActor.requiresModification()) {
+            dropClassloaders();
+            unlock();
+            lockActor.modify(this);
+            lock();
+        }
+    }
+
+    public interface ModifyingLockActor {
+        boolean requiresModification();
+
+        void modify(ClassLoaderScope scope);
+    }
 }
