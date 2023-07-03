@@ -141,6 +141,7 @@ val instrumentationMetadataTask = tasks.named("findInstrumentedSuperTypes")
 extensions.configure<InstrumentationMetadataExtension>("instrumentationMetadata") {
     classpathToInspect = runtimeClasspath.toInstrumentationMetadataView()
     superTypesOutputFile = generatedPropertiesFileFor("instrumented-super-types")
+    superTypesHashFile = generatedTxtFileFor("instrumented-super-types-hash")
 }
 
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'

@@ -16,6 +16,7 @@
 
 package gradlebuild.instrumentation
 
+import org.gradle.internal.hash.HashCode
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -45,6 +46,7 @@ class InstrumentationMetadataPluginTest {
 
         // Then
         val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties").readPropertiesFileToSorterMap()
+        val instrumentedSuperTypesHash = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types-hash.txt")
         val expectedSuperTypes = mapOf(
             "org/gradle/api/AbstractTask" to "org/gradle/api/Task",
             "org/gradle/api/DefaultTask" to "org/gradle/api/DefaultTask,org/gradle/api/Task",
@@ -55,10 +57,17 @@ class InstrumentationMetadataPluginTest {
         assert(instrumentedSuperTypes == expectedSuperTypes) {
             "Expected instrumented-super-types.properties to be equal to:\n$expectedSuperTypes but was:\n$instrumentedSuperTypes"
         }
+        val hashBytes = instrumentedSuperTypesHash.readBytes()
+        assert(hashBytes.isNotEmpty()) {
+            "Expected instrumented-super-types-hash.txt to not be empty"
+        }
+        assert(HashCode.fromBytes(hashBytes).toString() == "013efe852ca15532a60e3e133c783a81") {
+            "Expected instrumented-super-types-hash.txt hash code to be: 013efe852ca15532a60e3e133c783a81, but was ${HashCode.fromBytes(hashBytes)}"
+        }
     }
 
     @Test
-    fun `should output empty instrumented-super-types properties file if none of types is instrumented`() {
+    fun `should output empty instrumented-super-types properties file and empty hash file if none of types is instrumented`() {
         // Given
         // Override the build.gradle file to not write instrumented-classes.txt file
         File(projectRoot, "core/build.gradle").writeText("""
@@ -72,8 +81,12 @@ class InstrumentationMetadataPluginTest {
 
         // Then
         val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties").readPropertiesFileToSorterMap()
+        val instrumentedSuperTypesHash = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types-hash.txt")
         assert(instrumentedSuperTypes.isEmpty()) {
             "Expected instrumented-super-types.properties to be empty but contained $instrumentedSuperTypes"
+        }
+        assert(instrumentedSuperTypesHash.length() == 0L) {
+            "Expected instrumented-super-types-hash.txt to be empty but had length ${instrumentedSuperTypesHash.length()}"
         }
     }
 
@@ -179,6 +192,7 @@ class InstrumentationMetadataPluginTest {
             instrumentationMetadata {
                 classpathToInspect = createInstrumentationMetadataViewOf(configurations.runtimeClasspath)
                 superTypesOutputFile = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
+                superTypesHashFile = layout.buildDirectory.file("instrumentation/instrumented-super-types-hash.txt")
             }
         """)
     }

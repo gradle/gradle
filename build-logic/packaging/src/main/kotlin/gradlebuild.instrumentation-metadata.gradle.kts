@@ -32,9 +32,11 @@ dependencies {
 val extension = extensions.create<InstrumentationMetadataExtension>("instrumentationMetadata").apply {
     classpathToInspect = files()
     superTypesOutputFile.convention(layout.buildDirectory.file("instrumentation/instrumented-super-types.properties"))
+    superTypesHashFile.convention(layout.buildDirectory.file("instrumentation/instrumented-super-types-hash.txt"))
 }
 
 tasks.register<FindInstrumentedSuperTypesTask>("findInstrumentedSuperTypes") {
     instrumentationMetadataDirs = extension.classpathToInspect
-    instrumentedSuperTypes.convention(extension.superTypesOutputFile)
+    instrumentedSuperTypes = extension.superTypesOutputFile
+    instrumentedSuperTypesHash = extension.superTypesHashFile
 }
