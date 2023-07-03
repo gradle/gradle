@@ -1,6 +1,58 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.plugins.ProjectReportsPlugin",
+            "member": "Field JSON_DEPENDENCY_REPORT",
+            "acceptation": "https://github.com/gradle/gradle/issues/21894",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.JsonDependencyReportTask",
+            "member": "Class org.gradle.api.reporting.dependencies.JsonDependencyReportTask",
+            "acceptation": "https://github.com/gradle/gradle/issues/21894",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.JsonDependencyReportTask",
+            "member": "Constructor org.gradle.api.reporting.dependencies.JsonDependencyReportTask()",
+            "acceptation": "https://github.com/gradle/gradle/issues/21894",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.JsonDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.JsonDependencyReportTask.generate()",
+            "acceptation": "https://github.com/gradle/gradle/issues/21894",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.JsonDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.JsonDependencyReportTask.getProjectReportDirectory()",
+            "acceptation": "https://github.com/gradle/gradle/issues/21894",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.JsonDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.JsonDependencyReportTask.getProjects()",
+            "acceptation": "https://github.com/gradle/gradle/issues/21894",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.JsonDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.JsonDependencyReportTask.setProjects(java.util.Set)",
+            "acceptation": "https://github.com/gradle/gradle/issues/21894",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke$default(org.gradle.kotlin.dsl.DependencyHandlerScope,org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
             "acceptation": "https://github.com/gradle/gradle/issues/24503",

@@ -42,6 +42,7 @@ Method <org.gradle.api.reporting.GenerateBuildDashboard.getReports()> does not h
 Method <org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getProjects()> does not have raw return type assignable to org.gradle.api.provider.Property in (HtmlDependencyReportTask.java:0)
 Method <org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (HtmlDependencyReportTask.java:0)
 Method <org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (HtmlDependencyReportTask.java:0)
+Method <org.gradle.api.reporting.dependencies.JsonDependencyReportTask.getProjects()> does not have raw return type assignable to org.gradle.api.provider.Property in (JsonDependencyReportTask.java:0)
 Method <org.gradle.api.reporting.dependents.DependentComponentsReport.getComponents()> does not have raw return type assignable to org.gradle.api.provider.Property in (DependentComponentsReport.java:0)
 Method <org.gradle.api.reporting.dependents.DependentComponentsReport.getShowAll()> does not have raw return type assignable to org.gradle.api.provider.Property in (DependentComponentsReport.java:0)
 Method <org.gradle.api.reporting.dependents.DependentComponentsReport.isShowNonBuildable()> does not have raw return type assignable to org.gradle.api.provider.Property in (DependentComponentsReport.java:0)
