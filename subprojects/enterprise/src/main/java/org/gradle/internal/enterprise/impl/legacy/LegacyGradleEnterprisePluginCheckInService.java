@@ -21,7 +21,7 @@ import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.enterprise.impl.UnsupportedGradleEnterprisePluginUtil;
+import org.gradle.internal.enterprise.impl.compat.GradleEnterprisePluginCompatibility;
 import org.gradle.internal.scan.config.BuildScanConfig;
 import org.gradle.internal.scan.config.BuildScanConfigProvider;
 import org.gradle.internal.scan.config.BuildScanPluginMetadata;
@@ -79,8 +79,8 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         String unsupportedReason = null;
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             unsupportedReason = UNSUPPORTED_TOGGLE_MESSAGE;
-        } else if (pluginBaseVersion.compareTo(UnsupportedGradleEnterprisePluginUtil.MINIMUM_SUPPORTED_PLUGIN_VERSION) < 0) {
-            unsupportedReason = UnsupportedGradleEnterprisePluginUtil.getUnsupportedPluginMessage(pluginVersion);
+        } else if (pluginBaseVersion.compareTo(GradleEnterprisePluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION) < 0) {
+            unsupportedReason = GradleEnterprisePluginCompatibility.getUnsupportedPluginMessage(pluginVersion);
         }
 
         if (unsupportedReason == null) {

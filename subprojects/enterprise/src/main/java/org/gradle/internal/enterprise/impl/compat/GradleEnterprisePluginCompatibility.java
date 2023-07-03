@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.impl;
+package org.gradle.internal.enterprise.impl.compat;
 
 import org.gradle.util.internal.VersionNumber;
 
 /**
  * Information about the earliest supported Gradle Enterprise plugin version.
  */
-public class UnsupportedGradleEnterprisePluginUtil {
+public class GradleEnterprisePluginCompatibility {
 
     // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
     public static final String MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY = "3.13.1";

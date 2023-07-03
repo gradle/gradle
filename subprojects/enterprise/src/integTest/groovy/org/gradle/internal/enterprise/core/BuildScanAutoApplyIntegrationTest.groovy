@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
-import org.gradle.internal.enterprise.impl.UnsupportedGradleEnterprisePluginUtil
+import org.gradle.internal.enterprise.impl.compat.GradleEnterprisePluginCompatibility
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.internal.VersionNumber
@@ -34,7 +34,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String PLUGIN_MINIMUM_VERSION = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
     private static final String PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
 
-    private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = UnsupportedGradleEnterprisePluginUtil.MINIMUM_SUPPORTED_PLUGIN_VERSION
+    private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = GradleEnterprisePluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
 
     private final GradleEnterprisePluginCheckInFixture fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 

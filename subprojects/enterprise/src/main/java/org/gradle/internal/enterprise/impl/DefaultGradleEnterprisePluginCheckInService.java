@@ -22,6 +22,7 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginMetadata;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
+import org.gradle.internal.enterprise.impl.compat.GradleEnterprisePluginCompatibility;
 import org.gradle.util.internal.VersionNumber;
 
 import java.util.function.Supplier;
@@ -53,9 +54,9 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         String pluginVersion = pluginMetadata.getVersion();
         VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
 
-        if (UnsupportedGradleEnterprisePluginUtil.isUnsupportedPluginVersion(pluginBaseVersion)) {
+        if (GradleEnterprisePluginCompatibility.isUnsupportedPluginVersion(pluginBaseVersion)) {
             manager.unsupported();
-            return checkInUnsupportedResult(UnsupportedGradleEnterprisePluginUtil.getUnsupportedPluginMessage(pluginVersion));
+            return checkInUnsupportedResult(GradleEnterprisePluginCompatibility.getUnsupportedPluginMessage(pluginVersion));
         }
 
         GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
