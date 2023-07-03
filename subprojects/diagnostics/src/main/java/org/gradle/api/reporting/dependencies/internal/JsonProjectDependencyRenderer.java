@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails.ProjectNameAndPath;
+import org.gradle.api.tasks.diagnostics.internal.ProjectsWithConfigurations;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
@@ -48,9 +49,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * Renderer that emits a JSON tree containing the HTML dependency report structure for a given project. The structure is the following:
+ * Renderer that emits a JSON tree containing the dependency report structure for a given project. The structure is the following:
  *
  * <pre>
  *     {
@@ -128,6 +130,18 @@ class JsonProjectDependencyRenderer {
         return json.toString();
     }
 
+    /**
+     * Generates the project dependency report structures for each project
+     *
+     * @param projectsWithConfigurations the projects with configurations for which the reports must be generated
+     * @return the generated JSON, as a String
+     */
+    public String render(ProjectsWithConfigurations<ProjectNameAndPath, ConfigurationDetails> projectsWithConfigurations) {
+        JsonBuilder json = new JsonBuilder();
+        renderProjects(projectsWithConfigurations, json);
+        return json.toString();
+    }
+
     // Historic note: this class still uses the Groovy JsonBuilder, as it was originally developed as a Groovy class.
     private void renderProject(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, JsonBuilder json) {
 
@@ -140,6 +154,26 @@ class JsonProjectDependencyRenderer {
         projectOut.put("description", project.getDescription());
         projectOut.put("configurations", createConfigurations(configurations));
         overall.put("project", projectOut);
+
+        json.call(overall);
+    }
+
+    private void renderProjects(ProjectsWithConfigurations<ProjectNameAndPath, ConfigurationDetails> projectsWithConfigurations, JsonBuilder json) {
+
+        Map<String, Object> overall = Maps.newLinkedHashMap();
+        overall.put("gradleVersion", GradleVersion.current().toString());
+        overall.put("generationDate", new Date().toString());
+
+        List<Map<String, Object>> projectsOut = projectsWithConfigurations.getProjects().stream()
+            .map(p -> {
+                Map<String, Object> projectOut = Maps.newLinkedHashMap();
+                projectOut.put("name", p.getName());
+                projectOut.put("description", p.getDescription());
+                projectOut.put("configurations", createConfigurations(projectsWithConfigurations.getConfigurationsFor(p)));
+                return projectOut;
+            })
+            .collect(Collectors.toList());
+        overall.put("projects", projectsOut);
 
         json.call(overall);
     }

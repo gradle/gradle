@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Task
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask
+import org.gradle.api.reporting.dependencies.JsonDependencyReportTask
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 import org.gradle.api.tasks.diagnostics.PropertyReportTask
 import org.gradle.api.tasks.diagnostics.TaskReportTask
@@ -59,12 +60,17 @@ class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
         dependencyReport.outputFile == new File(project.getBuildDir(), "reports/project/dependencies.txt")
         dependencyReport.projects == [project] as Set
 
+        Task jsonReport = project.tasks.getByName(ProjectReportsPlugin.JSON_DEPENDENCY_REPORT);
+        jsonReport instanceOf(JsonDependencyReportTask.class)
+        jsonReport.outputFile == new File(project.getBuildDir(), "reports/project/dependencies.json")
+        jsonReport.projects == [project] as Set
+
         Task htmlReport = project.tasks.getByName(ProjectReportsPlugin.HTML_DEPENDENCY_REPORT);
         htmlReport instanceOf(HtmlDependencyReportTask.class)
         htmlReport.reports.html.outputLocation.get().asFile == new File(project.buildDir, "reports/project/dependencies")
         htmlReport.projects == [project] as Set
 
         Task projectReport = project.getTasks().getByName(ProjectReportsPlugin.PROJECT_REPORT);
-        projectReport dependsOn(ProjectReportsPlugin.TASK_REPORT, ProjectReportsPlugin.PROPERTY_REPORT, ProjectReportsPlugin.DEPENDENCY_REPORT, ProjectReportsPlugin.HTML_DEPENDENCY_REPORT)
+        projectReport dependsOn(ProjectReportsPlugin.TASK_REPORT, ProjectReportsPlugin.PROPERTY_REPORT, ProjectReportsPlugin.DEPENDENCY_REPORT, ProjectReportsPlugin.JSON_DEPENDENCY_REPORT, ProjectReportsPlugin.HTML_DEPENDENCY_REPORT)
     }
 }

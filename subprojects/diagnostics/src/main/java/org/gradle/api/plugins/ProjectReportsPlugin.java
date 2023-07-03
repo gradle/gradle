@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
+import org.gradle.api.reporting.dependencies.JsonDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
@@ -33,6 +34,7 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
     public static final String TASK_REPORT = "taskReport";
     public static final String PROPERTY_REPORT = "propertyReport";
     public static final String DEPENDENCY_REPORT = "dependencyReport";
+    public static final String JSON_DEPENDENCY_REPORT = "jsonDependencyReport";
     public static final String HTML_DEPENDENCY_REPORT = "htmlDependencyReport";
     public static final String PROJECT_REPORT = "projectReport";
 
@@ -71,6 +73,13 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
             dependencyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
         });
 
+        project.getTasks().register(JSON_DEPENDENCY_REPORT, JsonDependencyReportTask.class, jsonDependencyReportTask -> {
+            jsonDependencyReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(() ->convention.getProjectReportDir()))));
+            jsonDependencyReportTask.setDescription("Generates an JSON report about your library dependencies.");
+            jsonDependencyReportTask.conventionMapping("outputFile", () -> jsonDependencyReportTask.getProjectReportDirectory().file("dependencies.json").get().getAsFile());
+            jsonDependencyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
+        });
+
         project.getTasks().register(HTML_DEPENDENCY_REPORT, HtmlDependencyReportTask.class, htmlDependencyReportTask -> {
             htmlDependencyReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(() ->convention.getProjectReportDir()))));
             htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
@@ -79,7 +88,7 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
         });
 
         project.getTasks().register(PROJECT_REPORT, projectReportTask -> {
-            projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT, HTML_DEPENDENCY_REPORT);
+            projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT, JSON_DEPENDENCY_REPORT, HTML_DEPENDENCY_REPORT);
             projectReportTask.setDescription("Generates a report about your project.");
             projectReportTask.setGroup("reporting");
         });

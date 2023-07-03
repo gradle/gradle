@@ -33,6 +33,7 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/project/dependencies.txt").assertExists()
+        file("build/reports/project/dependencies.json").assertExists()
         file("build/reports/project/properties.txt").assertExists()
         file("build/reports/project/tasks.txt").assertExists()
         file("build/reports/project/dependencies").assertIsDir()
@@ -54,6 +55,7 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/custom/dependencies.txt").assertExists()
+        file("build/reports/custom/dependencies.json").assertExists()
         file("build/reports/custom/properties.txt").assertExists()
         file("build/reports/custom/tasks.txt").assertExists()
         file("build/reports/custom/dependencies").assertIsDir()
@@ -67,7 +69,7 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         outputContains("See the report at:")
 
         where:
-        task << ["taskReport", "propertyReport", "dependencyReport", "htmlDependencyReport"]
+        task << ["taskReport", "propertyReport", "dependencyReport", "jsonDependencyReport", "htmlDependencyReport"]
     }
 
     def "given no output file, does not print link to default #task"(String task) {
