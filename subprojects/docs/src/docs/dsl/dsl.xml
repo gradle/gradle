@@ -500,6 +500,9 @@
                 <td>org.gradle.api.tasks.JavaExec</td>
             </tr>
             <tr>
+                <td>org.gradle.api.reporting.dependencies.JsonDependencyReportTask</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.plugins.quality.Pmd</td>
             </tr>
             <tr>
