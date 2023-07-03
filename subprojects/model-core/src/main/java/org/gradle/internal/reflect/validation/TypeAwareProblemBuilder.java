@@ -22,6 +22,8 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 
 import javax.annotation.Nullable;
 
+import static java.lang.Boolean.TRUE;
+
 @NonNullApi
 public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
 
@@ -30,83 +32,6 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
     public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
     public static final String PROPERTY_NAME = "propertyName";
     public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
-    //    private final ProblemBuilder delegate;
-    private boolean typeIrrelevantInErrorMessage = false;
-    private Class<?> rootClazz;
-
-//    public TypeAwareProblemBuilder(ProblemBuilder delegate) {
-//        this.delegate = delegate;
-//    }
-
-//    @Override
-//    public ProblemBuilder message(String message) {
-//        return delegate.message(message);
-//    }
-//
-//    @Override
-//    public ProblemBuilder severity(Severity severity) {
-//        return delegate.severity(severity);
-//    }
-//
-//    @Override
-//    public ProblemBuilder location(String path, Integer line) {
-//        return delegate.location(path, line);
-//    }
-//
-//    @Override
-//    public ProblemBuilder noLocation() {
-//        return delegate.noLocation();
-//    }
-//
-//    @Override
-//    public ProblemBuilder description(String description) {
-//        return delegate.description(description);
-//    }
-//
-//    @Override
-//    public ProblemBuilder documentedAt(DocLink doc) {
-//        return delegate.documentedAt(doc);
-//    }
-//
-//    @Override
-//    public ProblemBuilder undocumented() {
-//        return delegate.undocumented();
-//    }
-//
-//    @Override
-//    public ProblemBuilder type(String problemType) {
-//        return delegate.type(problemType);
-//    }
-//
-//    @Override
-//    public ProblemBuilder solution(@Nullable String solution) {
-//        return delegate.solution(solution);
-//    }
-//
-//    @Override
-//    public ProblemBuilder cause(Throwable cause) {
-//        return delegate.cause(cause);
-//    }
-//
-//    @Override
-//    public ProblemBuilder withMetadata(String key, String value) {
-//        return delegate.withMetadata(key, value);
-//    }
-//
-//    @Override
-//    public Problem build() {
-//        return delegate.build();
-//    }
-//
-//    @Override
-//    public void report() {
-//        delegate.report();
-//    }
-//
-//    @Override
-//    public RuntimeException throwIt() {
-//        return delegate.throwIt();
-//    }
 
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
         if (classWithAnnotationAttached != null) {
@@ -116,9 +41,7 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
     }
 
     public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage() {
-        withMetadata(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "true");
-//        this.typeIrrelevantInErrorMessage = true;
-//        return Cast.uncheckedCast(this)
+        withMetadata(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString());
         return this;
     }
 
