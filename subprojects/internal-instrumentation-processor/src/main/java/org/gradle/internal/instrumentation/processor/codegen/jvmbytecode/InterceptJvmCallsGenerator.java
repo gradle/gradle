@@ -368,6 +368,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 );
             }
         }
+
+        if (callable.getOwner().isInterceptSubtypes() && !callable.getOwner().getType().getInternalName().startsWith("org/gradle")) {
+            throw new Failure("Intercepting inherited methods is supported only for Gradle types for now, but type was: " + callable.getOwner().getType().getInternalName());
+        }
     }
 
     private static void maybeGenerateLoadBinaryClassNameCall(CodeBlock.Builder code, CallableInfo callableInfo) {
