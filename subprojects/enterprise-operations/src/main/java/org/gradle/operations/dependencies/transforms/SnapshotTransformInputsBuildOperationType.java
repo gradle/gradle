@@ -38,34 +38,18 @@ public final class SnapshotTransformInputsBuildOperationType implements BuildOpe
         byte[] getHashBytes();
 
         /**
-         * The hash of the classloader that loaded the task implementation.
+         * The hash of the classloader that loaded the transform action implementation.
          * <p>
          * Null if the classloader is not managed by Gradle.
          */
         @Nullable
         byte[] getClassLoaderHashBytes();
 
-
         /**
-         * The hashes of the classloader that loaded each of the task's actions.
-         * <p>
-         * May contain duplicates.
-         * Order corresponds to execution order of the actions.
-         * Never empty.
-         * May contain nulls (non Gradle managed classloader)
+         * The class name of the transform's action.
          */
         @Nullable
-        List<byte[]> getActionClassLoaderHashesBytes();
-
-        /**
-         * The class names of each of the task's actions.
-         * <p>
-         * May contain duplicates.
-         * Order corresponds to execution order of the actions.
-         * Never empty.
-         */
-        @Nullable
-        List<String> getActionClassNames();
+        String getImplementationClassName();
 
         @Nullable
         Map<String, byte[]> getInputValueHashesBytes();

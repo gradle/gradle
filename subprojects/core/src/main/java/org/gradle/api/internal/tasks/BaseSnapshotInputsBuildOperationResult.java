@@ -94,6 +94,14 @@ public class BaseSnapshotInputsBuildOperationResult implements CustomOperationTr
     }
 
     @Nullable
+    public String getImplementationClassName() {
+        return getBeforeExecutionState()
+            .map(InputExecutionState::getImplementation)
+            .map(ImplementationSnapshot::getClassIdentifier)
+            .orElse(null);
+    }
+
+    @Nullable
     public List<byte[]> getActionClassLoaderHashesBytes() {
         return getBeforeExecutionState()
             .map(BeforeExecutionState::getAdditionalImplementations)
@@ -169,7 +177,7 @@ public class BaseSnapshotInputsBuildOperationResult implements CustomOperationTr
         } else {
             model.put("classLoaderHash", null);
         }
-
+        model.put("implementationClassName", getImplementationClassName());
 
         model.put("inputFileProperties", fileProperties());
 
@@ -324,7 +332,7 @@ public class BaseSnapshotInputsBuildOperationResult implements CustomOperationTr
         return fileProperties;
     }
 
-    private Optional<BeforeExecutionState> getBeforeExecutionState() {
+    protected Optional<BeforeExecutionState> getBeforeExecutionState() {
         return cachingState.fold(
             enabled -> Optional.of(enabled.getBeforeExecutionState()),
             CachingState.Disabled::getBeforeExecutionState
