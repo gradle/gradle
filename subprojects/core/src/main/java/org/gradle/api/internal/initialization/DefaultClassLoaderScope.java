@@ -225,11 +225,6 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return this;
     }
 
-    public ClassLoaderScope unlock() {
-        locked = false;
-        return this;
-    }
-
     @Override
     public boolean isLocked() {
         return locked;

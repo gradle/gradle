@@ -20,8 +20,8 @@ import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.function.Function;
 
 public class MutableClassLoaderScope implements ClassLoaderScope {
