@@ -24,11 +24,13 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Boolean.parseBoolean;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PARENT_PROPERTY_NAME;
 import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PLUGIN_ID;
 import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PROPERTY_NAME;
+import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE;
 import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.TYPE_NAME;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
@@ -125,7 +127,7 @@ public class TypeValidationProblemRenderer {
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
         ProblemsPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
-        boolean typeRelevant = rootType != null && !additionalMetadata.containsKey(TypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE);
+        boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.get(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE));
         if (typeRelevant) {
             if (pluginId != null) {
                 builder.append("In plugin '")
