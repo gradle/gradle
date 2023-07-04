@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
@@ -75,7 +74,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     protected final File inputArtifact;
     private final TransformDependencies dependencies;
     private final TransformStepSubject subject;
-    private final ProjectInternal owningProject;
 
     private final TransformExecutionListener transformExecutionListener;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -93,7 +91,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
-        ProjectInternal owningProject,
 
         TransformExecutionListener transformExecutionListener,
         BuildOperationExecutor buildOperationExecutor,
@@ -107,7 +104,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.dependencies = dependencies;
         this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
         this.subject = subject;
-        this.owningProject = owningProject;
         this.transformExecutionListener = transformExecutionListener;
 
         this.buildOperationExecutor = buildOperationExecutor;
@@ -240,7 +236,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             inputArtifact,
             transformWorkspaceIdentity,
             transform,
-            owningProject,
             subject.getInitialComponentIdentifier()));
     }
 
@@ -318,36 +313,23 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         private final File inputArtifact;
         private final TransformWorkspaceIdentity transformWorkspaceIdentity;
         private final Transform transform;
-        private final ProjectInternal owningProject;
         private final ComponentIdentifier componentIdentifier;
 
         public DefaultIdentifyTransformExecutionProgressDetails(
             File inputArtifact,
             TransformWorkspaceIdentity transformWorkspaceIdentity,
             Transform transform,
-            ProjectInternal owningProject,
             ComponentIdentifier componentIdentifier
         ) {
             this.inputArtifact = inputArtifact;
             this.transformWorkspaceIdentity = transformWorkspaceIdentity;
             this.transform = transform;
-            this.owningProject = owningProject;
             this.componentIdentifier = componentIdentifier;
         }
 
         @Override
         public String getIdentity() {
             return transformWorkspaceIdentity.getUniqueId();
-        }
-
-        @Override
-        public String getConsumerBuildPath() {
-            return owningProject.getBuildPath().toString();
-        }
-
-        @Override
-        public String getConsumerProjectPath() {
-            return owningProject.getProjectPath().toString();
         }
 
         @Override

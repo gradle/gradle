@@ -36,7 +36,6 @@ class MutableTransformExecution extends AbstractTransformExecution {
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
-        ProjectInternal owningProject,
         ProjectInternal producerProject,
 
         TransformExecutionListener transformExecutionListener,
@@ -47,7 +46,7 @@ class MutableTransformExecution extends AbstractTransformExecution {
         TransformWorkspaceServices workspaceServices
     ) {
         super(
-            transform, inputArtifact, dependencies, subject, owningProject,
+            transform, inputArtifact, dependencies, subject,
             transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter, workspaceServices
         );
         this.rootProjectLocation = producerProject.getRootDir().getAbsolutePath() + File.separator;

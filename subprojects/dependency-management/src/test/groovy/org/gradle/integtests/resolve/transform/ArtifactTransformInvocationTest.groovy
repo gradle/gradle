@@ -133,7 +133,6 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
             inputArtifact,
             DefaultTransformUpstreamDependenciesResolver.NO_RESULT,
             TransformStepSubject.initial(artifact),
-            project,
             inputFingerprinter
         )
         invocation.completeAndGet()

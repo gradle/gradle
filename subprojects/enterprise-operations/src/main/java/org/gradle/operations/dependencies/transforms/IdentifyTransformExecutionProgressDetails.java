@@ -31,10 +31,6 @@ public interface IdentifyTransformExecutionProgressDetails {
 
     ComponentIdentifier getInputArtifactComponentIdentifier();
 
-    String getConsumerBuildPath();
-
-    String getConsumerProjectPath();
-
     Map<String, String> getFromAttributes();
 
     Map<String, String> getToAttributes();
