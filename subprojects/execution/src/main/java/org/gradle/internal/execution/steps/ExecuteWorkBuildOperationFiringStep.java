@@ -22,6 +22,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -165,8 +166,34 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         public String getCachingDisabledReasonCategory() {
             return getCachingDisabledReason()
                 .map(CachingDisabledReason::getCategory)
+                .map(ExecuteWorkResult::convertNoCacheReasonCategory)
                 .map(Enum::name)
                 .orElse(null);
+        }
+
+        private static org.gradle.operations.execution.CachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCategory category) {
+            switch (category) {
+                case UNKNOWN:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.UNKNOWN;
+                case BUILD_CACHE_DISABLED:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
+                case NOT_CACHEABLE:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.NOT_CACHEABLE;
+                case ENABLE_CONDITION_NOT_SATISFIED:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
+                case DISABLE_CONDITION_SATISFIED:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
+                case NO_OUTPUTS_DECLARED:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED;
+                case NON_CACHEABLE_OUTPUT:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
+                case OVERLAPPING_OUTPUTS:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS;
+                case VALIDATION_FAILURE:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.VALIDATION_FAILURE;
+                default:
+                    throw new AssertionError();
+            }
         }
 
         private Optional<CachingDisabledReason> getCachingDisabledReason() {
