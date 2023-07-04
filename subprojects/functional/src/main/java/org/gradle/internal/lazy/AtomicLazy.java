@@ -17,30 +17,37 @@
 package org.gradle.internal.lazy;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
-class NonAtomicLazy<T> implements Lazy<T> {
+/**
+ * @see Lazy#atomic()
+ */
+class AtomicLazy<T> implements Lazy<T> {
+
+    private static final Object UNINITIALIZED = new Object();
+
+    private final AtomicReference<Object> value = new AtomicReference<>(UNINITIALIZED);
 
     @Nullable
     private volatile Supplier<T> supplier;
 
-    // "value" does not need to be volatile;
-    // visibility piggybacks  on volatile read of "supplier".
-    private T value;
-
-    public NonAtomicLazy(Supplier<T> supplier) {
+    public AtomicLazy(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T get() {
         Supplier<T> s = supplier;
         if (s != null) {
             T t = s.get();
-            value = t;
+            if (value.compareAndSet(UNINITIALIZED, t)) {
+                supplier = null;
+                return t;
+            }
             supplier = null;
-            return t;
         }
-        return value;
+        return (T) value.get();
     }
 }
