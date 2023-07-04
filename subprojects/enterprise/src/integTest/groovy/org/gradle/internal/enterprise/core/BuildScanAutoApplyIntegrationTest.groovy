@@ -17,10 +17,8 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
-import org.gradle.internal.enterprise.impl.compat.GradleEnterprisePluginCompatibility
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.internal.VersionNumber
@@ -33,8 +31,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String PLUGIN_AUTO_APPLY_VERSION = AutoAppliedGradleEnterprisePlugin.VERSION
     private static final String PLUGIN_MINIMUM_VERSION = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
     private static final String PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
-
-    private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = GradleEnterprisePluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
 
     private final GradleEnterprisePluginCheckInFixture fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
@@ -119,11 +115,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << fixture.plugins()
 
         and:
-        if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
-        }
-
-        and:
         runBuildWithScanRequest()
 
         then:
@@ -151,11 +142,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             }
             apply plugin: '$fixture.id'
         """
-
-        and:
-        if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
-        }
 
         and:
         runBuildWithScanRequest()
@@ -189,11 +175,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
                 it.apply plugin: $fixture.className
             }
         """
-
-        and:
-        if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
-        }
 
         and:
         runBuildWithScanRequest('-I', 'init.gradle')
