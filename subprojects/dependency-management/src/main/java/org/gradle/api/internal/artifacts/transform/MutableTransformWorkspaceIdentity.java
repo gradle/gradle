@@ -24,11 +24,13 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 
 class MutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
     private final String inputArtifactAbsolutePath;
+    private final String producerBuildTreePath;
     private final ValueSnapshot secondaryInputsSnapshot;
     private final HashCode dependenciesHash;
 
-    public MutableTransformWorkspaceIdentity(String inputArtifactAbsolutePath, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
+    public MutableTransformWorkspaceIdentity(String inputArtifactAbsolutePath, String producerBuildTreePath, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
         this.inputArtifactAbsolutePath = inputArtifactAbsolutePath;
+        this.producerBuildTreePath = producerBuildTreePath;
         this.secondaryInputsSnapshot = secondaryInputsSnapshot;
         this.dependenciesHash = dependenciesHash;
     }
@@ -37,6 +39,7 @@ class MutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
     public String getUniqueId() {
         Hasher hasher = Hashing.newHasher();
         hasher.putString(inputArtifactAbsolutePath);
+        hasher.putString(producerBuildTreePath);
         secondaryInputsSnapshot.appendToHasher(hasher);
         hasher.putHash(dependenciesHash);
         return hasher.hash().toString();
@@ -57,6 +60,9 @@ class MutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
             return false;
         }
         if (!dependenciesHash.equals(that.dependenciesHash)) {
+            return false;
+        }
+        if (!producerBuildTreePath.equals(that.producerBuildTreePath)) {
             return false;
         }
         return inputArtifactAbsolutePath.equals(that.inputArtifactAbsolutePath);
