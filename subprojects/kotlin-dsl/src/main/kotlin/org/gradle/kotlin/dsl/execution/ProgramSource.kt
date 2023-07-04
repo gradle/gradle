@@ -87,8 +87,8 @@ fun text(string: String) = ProgramText.from(string)
 
 
 internal
-fun ProgramSource.fragment(identifier: IntRange, block: IntRange) =
-    ProgramSourceFragment(this, ScriptSection(identifier, block))
+fun ProgramSource.fragment(identifier: IntRange, block: IntRange, firstAnnotationStart: Int? = null) =
+    ProgramSourceFragment(this, ScriptSection(identifier, block, firstAnnotationStart))
 
 
 internal
@@ -129,7 +129,8 @@ data class ProgramSourceFragment internal constructor(
 internal
 data class ScriptSection(
     val identifier: IntRange,
-    val block: IntRange
+    val block: IntRange,
+    val firstAnnotationStart: Int? = null
 ) {
 
     val wholeRange

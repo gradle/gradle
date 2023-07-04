@@ -62,8 +62,8 @@ class LexerTest {
                             151..161
                         ),
                         listOf(
-                            topLevelBlock(buildscript, 62..72, 74..87),
-                            topLevelBlock(plugins, 118..124, 126..139)
+                            topLevelBlock(buildscript, 62..72, 74..87, null),
+                            topLevelBlock(plugins, 118..124, 126..139, 89)
                         )
                     )
                 )
@@ -100,7 +100,7 @@ class LexerTest {
                     LexedScript(
                         listOf(1..9, 11..56, 84..110, 148..203, 319..357),
                         listOf(),
-                        listOf(topLevelBlock(plugins, 378..384, 386..388))
+                        listOf(topLevelBlock(plugins, 378..384, 386..388, null))
                     )
                 )
             )

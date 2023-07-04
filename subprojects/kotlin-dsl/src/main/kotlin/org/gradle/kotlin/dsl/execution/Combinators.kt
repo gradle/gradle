@@ -418,7 +418,8 @@ open class Combinator(
         skipWhitespace(ignoresNewline)
     }
 
-    private fun KotlinLexer.skipWhitespace(ignoreNewLine: Boolean) {
+    private
+    fun KotlinLexer.skipWhitespace(ignoreNewLine: Boolean) {
         while (tokenType != null) {
             when {
                 tokenType == WHITE_SPACE && (ignoreNewLine || !hasNewLine()) -> {
