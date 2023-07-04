@@ -16,18 +16,15 @@
 
 package org.gradle.api.tasks
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
@@ -1232,9 +1229,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         project2.file('build/tmp/myTask/output.txt').text == "hello"
     }
 
-    @NotYetImplemented
-    // TODO: Remove IgnoreIf embedded when issue is fixed
-    @IgnoreIf({ GradleContextualExecuter.embedded })
     @Issue("https://github.com/gradle/gradle/issues/24405")
     def "nested bean as input with null string is serialized correctly"() {
         buildFile << """
@@ -1268,9 +1262,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         """
 
         expect:
-        // TODO: Remove `requireIsolatedDaemons` once the issue is fixed
-        executer.requireIsolatedDaemons()
         succeeds "crashTask"
+        succeeds "crashTask"
+
+        and:
+        result.assertTasksSkipped(':crashTask')
     }
 
     private TestFile nestedBeanWithAction(TestFile projectDir = temporaryFolder.testDirectory) {
