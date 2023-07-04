@@ -75,32 +75,25 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         void applyConfigurationTo(Hasher hasher);
 
         /**
-         * Checks if the file/directory should be instrumented. For example, legacy instrumentation doesn't support signed JARs.
+         * Returns the transformation to be applied to the given file/directory.
          *
-         * @param file the file/directory to check
-         * @return {@code true} if the file/directory should be instrumented.
+         * @param owner the owner for the returned transformation
+         * @param file the file/directory to transform
+         * @return the transformation that will transform the file upon request.
          */
-        boolean instrumentFile(File file);
+        Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file);
+    }
 
+    /**
+     * A "pending" transformation of the original file/directory.
+     */
+    private interface Transformation {
         /**
-         * Processes manifest of the instrumented JAR file. The implementation may return the manifest unprocessed.
-         * If the return value is {@code null}, then the manifest should not be added to the resulting instrumented JAR at all.
+         * Transform the file/directory into destination. The destination should be a JAR file name.
          *
-         * @param source the file/directory that contributes the manifest
-         * @param entry the entry of the manifest
-         * @return the contents of the manifest to put, or {@code null} if the resulting JAR should have no manifest at all
-         * @throws IOException if reading and parsing the manifest fail
+         * @param destination the destination file
          */
-        @Nullable
-        byte[] processManifest(File source, ClasspathEntryVisitor.Entry entry) throws IOException;
-
-        /**
-         * Checks if the entry should be included into the resulting instrumented JAR
-         *
-         * @param entry the entry to check
-         * @return {@code true} if the entry should be included.
-         */
-        boolean includeEntry(ClasspathEntryVisitor.Entry entry);
+        void transform(File destination);
     }
 
     public InstrumentingClasspathFileTransformer(
@@ -178,50 +171,124 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private void transform(File source, File dest) {
-        if (policy.instrumentFile(source)) {
-            instrument(source, dest);
-        } else {
-            LOGGER.debug("Signed archive '{}'. Skipping instrumentation.", source.getName());
-            GFileUtils.copyFile(source, dest);
+        policy.createTransformer(this, source).transform(dest);
+    }
+
+    /**
+     * A no-op transformation that copies the original file verbatim. Can be used if the original cannot be instrumented under policy.
+     */
+    private static class SkipTransformation implements Transformation {
+        private final File source;
+
+        public SkipTransformation(File source) {
+            this.source = source;
+        }
+
+        @Override
+        public void transform(File destination) {
+            LOGGER.debug("Archive '{}' rejected by policy. Skipping instrumentation.", source.getName());
+            GFileUtils.copyFile(source, destination);
         }
     }
 
-    private void instrument(File source, File dest) {
-        classpathBuilder.jar(dest, builder -> {
-            try {
-                visitEntries(source, builder);
-            } catch (FileException e) {
-                // Badly formed archive, so discard the contents and produce an empty JAR
-                LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
-            }
-        });
-    }
+    /**
+     * Base class for the transformations.
+     */
+    private abstract class BaseTransformation implements Transformation {
+        protected final File source;
 
-    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
-        classpathWalker.visit(source, entry -> {
-            try {
-                if (!policy.includeEntry(entry)) {
-                    return;
+        public BaseTransformation(File source) {
+            this.source = source;
+        }
+
+        @Override
+        public final void transform(File destination) {
+            classpathBuilder.jar(destination, builder -> {
+                try {
+                    visitEntries(builder);
+                } catch (FileException e) {
+                    // Badly formed archive, so discard the contents and produce an empty JAR
+                    LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
                 }
+            });
+        }
+
+        private void visitEntries(ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
+            classpathWalker.visit(source, entry -> {
+                visitEntry(builder, entry);
+            });
+        }
+
+        private void visitEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
+            try {
                 if (isClassFile(entry)) {
-                    ClassReader reader = new ClassReader(entry.getContent());
-                    ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter, new ClassData(reader));
-                    reader.accept(chain.right, 0);
-                    byte[] bytes = classWriter.toByteArray();
-                    builder.put(chain.left.getPathString(), bytes, entry.getCompressionMethod());
+                    processClassFile(builder, entry);
                 } else if (isManifest(entry)) {
-                    byte[] processedManifest = policy.processManifest(source, entry);
-                    if (processedManifest != null) {
-                        builder.put(entry.getName(), processedManifest, entry.getCompressionMethod());
-                    }
+                    processManifest(builder, entry);
                 } else {
-                    builder.put(entry.getName(), entry.getContent(), entry.getCompressionMethod());
+                    processResource(builder, entry);
                 }
             } catch (Throwable e) {
                 throw new IOException("Failed to process the entry '" + entry.getName() + "' from '" + source + "'", e);
             }
-        });
+        }
+
+        /**
+         * Processes a class file. The type of file is determined solely by name, so it may not be a well-formed class file.
+         * Base class implementation applies the {@link InstrumentingClasspathFileTransformer#transform} to the code.
+         *
+         * @param builder the builder for the transformed output
+         * @param classEntry the entry to process
+         * @throws IOException if reading or writing entry fails
+         */
+        protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
+            ClassReader reader = new ClassReader(classEntry.getContent());
+            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+            Pair<RelativePath, ClassVisitor> chain = transform.apply(classEntry, classWriter, new ClassData(reader));
+            reader.accept(chain.right, 0);
+            byte[] bytes = classWriter.toByteArray();
+            builder.put(chain.left.getPathString(), bytes, classEntry.getCompressionMethod());
+        }
+
+        /**
+         * Processes a JAR Manifest. Base class implementation copies the manifest unchanged.
+         *
+         * @param builder the builder for the transformed output
+         * @param manifestEntry the entry to process
+         * @throws IOException if reading or writing entry fails
+         */
+        protected void processManifest(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry manifestEntry) throws IOException {
+            processResource(builder, manifestEntry);
+        }
+
+        /**
+         * Processes a resource entry. Base class implementation copies the resource unchanged.
+         *
+         * @param builder the builder for the transformed output
+         * @param resourceEntry the entry to process
+         * @throws IOException if reading or writing entry fails
+         */
+        protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) throws IOException {
+            builder.put(resourceEntry.getName(), resourceEntry.getContent(), resourceEntry.getCompressionMethod());
+        }
+
+        private boolean isClassFile(ClasspathEntryVisitor.Entry entry) {
+            return entry.getName().endsWith(".class");
+        }
+
+        private boolean isManifest(ClasspathEntryVisitor.Entry entry) {
+            return entry.getName().equals("META-INF/MANIFEST.MF");
+        }
+    }
+
+    /**
+     * Transformation for legacy instrumentation when transformed JARs are part of the classpath.
+     * This is still used when TestKit and TAPI run Gradle in embedded or debug mode.
+     */
+    private class TransformationForClassLoader extends BaseTransformation {
+        public TransformationForClassLoader(File source) {
+            super(source);
+        }
     }
 
     private static boolean isSignedJar(File source) {
@@ -251,20 +318,8 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             }
 
             @Override
-            public boolean instrumentFile(File file) {
-                return !isSignedJar(file);
-            }
-
-            @Override
-            public byte[] processManifest(File source, ClasspathEntryVisitor.Entry entry) throws IOException {
-                // No need to modify manifest, let's put the original as is.
-                return entry.getContent();
-            }
-
-            @Override
-            public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
-                // include everything
-                return true;
+            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file) {
+                return !isSignedJar(file) ? owner.new TransformationForClassLoader(file) : new SkipTransformation(file);
             }
         };
     }
@@ -277,68 +332,71 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             }
 
             @Override
-            public boolean instrumentFile(File file) {
-                return true;
-            }
-
-            @Override
-            public byte[] processManifest(File source, ClasspathEntryVisitor.Entry entry) throws IOException {
-                try {
-                    Manifest parsedManifest = new Manifest(new ByteArrayInputStream(entry.getContent()));
-                    if (isMultiReleaseJarManifest(parsedManifest)) {
-                        // We want processed JAR to also be a proper multi-release JAR.
-                        // To do so it must have the "Multi-Release: true" attribute.
-                        // "Manifest-Version" attribute is also required.
-                        // For everything else (classpath, sealed, etc.) classloader will check the original JAR, so no need to copy it.
-                        Manifest processedManifest = new Manifest();
-                        copyManifestMainAttribute(parsedManifest, processedManifest, Attributes.Name.MANIFEST_VERSION);
-                        setManifestMainAttribute(processedManifest, MULTI_RELEASE_ATTRIBUTE, "true");
-                        return toByteArray(processedManifest);
-                    }
-
-                    return null;
-                } catch (IOException e) {
-                    LOGGER.debug("Failed to parse Manifest from JAR " + source);
-                    throw e;
-                }
-            }
-
-            @Nullable
-            private String getManifestMainAttribute(Manifest manifest, String name) {
-                return manifest.getMainAttributes().getValue(name);
-            }
-
-            private void copyManifestMainAttribute(Manifest source, Manifest destination, Attributes.Name name) {
-                destination.getMainAttributes().put(name, source.getMainAttributes().getValue(name));
-            }
-
-            private void setManifestMainAttribute(Manifest manifest, String name, String value) {
-                manifest.getMainAttributes().putValue(name, value);
-            }
-
-            private boolean isMultiReleaseJarManifest(Manifest manifest) {
-                return Boolean.parseBoolean(getManifestMainAttribute(manifest, MULTI_RELEASE_ATTRIBUTE));
-            }
-
-            private byte[] toByteArray(Manifest manifest) throws IOException {
-                ByteArrayOutputStream manifestOutput = new ByteArrayOutputStream(512);
-                manifest.write(manifestOutput);
-                return manifestOutput.toByteArray();
-            }
-
-            @Override
-            public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
-                // Only include classes in the result, resources will be loaded from the original JAR by the class loader.
-                return isClassFile(entry) || isManifest(entry);
+            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file) {
+                return owner.new TransformationForAgent(file);
             }
         };
     }
 
-    private static boolean isClassFile(ClasspathEntryVisitor.Entry entry) {
-        return entry.getName().endsWith(".class");
-    }
 
-    private static boolean isManifest(ClasspathEntryVisitor.Entry entry) {
-        return entry.getName().equals("META-INF/MANIFEST.MF");
+    /**
+     * Transformation for agent-based instrumentation.
+     */
+    private class TransformationForAgent extends BaseTransformation {
+        public TransformationForAgent(File source) {
+            super(source);
+        }
+
+        @Override
+        protected void processManifest(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry manifestEntry) throws IOException {
+            try {
+                Manifest parsedManifest = new Manifest(new ByteArrayInputStream(manifestEntry.getContent()));
+                if (!isMultiReleaseJarManifest(parsedManifest)) {
+                    // If the original JAR is not multi-release, we don't need the manifest in the transformed JAR at all.
+                    return;
+                }
+
+                // We want the transformed JAR to also be a proper multi-release JAR.
+                // To do so it must have the "Multi-Release: true" attribute.
+                // "Manifest-Version" attribute is also required.
+                // For everything else (classpath, sealed, etc.) classloader will check the original JAR, so no need to copy it.
+                Manifest processedManifest = new Manifest();
+                copyManifestMainAttribute(parsedManifest, processedManifest, Attributes.Name.MANIFEST_VERSION);
+                setManifestMainAttribute(processedManifest, MULTI_RELEASE_ATTRIBUTE, "true");
+
+                builder.put(manifestEntry.getName(), toByteArray(processedManifest), manifestEntry.getCompressionMethod());
+            } catch (IOException e) {
+                LOGGER.debug("Failed to parse Manifest from JAR " + source);
+                throw e;
+            }
+        }
+
+        @Override
+        protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) {
+            // Class loader loads resources from the original JAR, so there's no need to put them into the transformed JAR.
+        }
+
+        @Nullable
+        private String getManifestMainAttribute(Manifest manifest, String name) {
+            return manifest.getMainAttributes().getValue(name);
+        }
+
+        private void copyManifestMainAttribute(Manifest source, Manifest destination, Attributes.Name name) {
+            destination.getMainAttributes().put(name, source.getMainAttributes().getValue(name));
+        }
+
+        private void setManifestMainAttribute(Manifest manifest, String name, String value) {
+            manifest.getMainAttributes().putValue(name, value);
+        }
+
+        private boolean isMultiReleaseJarManifest(Manifest manifest) {
+            return Boolean.parseBoolean(getManifestMainAttribute(manifest, MULTI_RELEASE_ATTRIBUTE));
+        }
+
+        private byte[] toByteArray(Manifest manifest) throws IOException {
+            ByteArrayOutputStream manifestOutput = new ByteArrayOutputStream(512);
+            manifest.write(manifestOutput);
+            return manifestOutput.toByteArray();
+        }
     }
 }
