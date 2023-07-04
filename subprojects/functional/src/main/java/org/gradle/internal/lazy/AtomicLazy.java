@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.lazy;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
-@NotThreadSafe
-class UnsafeLazy<T> implements Lazy<T> {
-    @Nullable
-    private Supplier<T> supplier;
-    private T value;
+/**
+ * @see Lazy#atomic()
+ */
+class AtomicLazy<T> implements Lazy<T> {
 
-    public UnsafeLazy(Supplier<T> supplier) {
+    private static final Object UNINITIALIZED = new Object();
+
+    private final AtomicReference<Object> value = new AtomicReference<>(UNINITIALIZED);
+
+    @Nullable
+    private volatile Supplier<T> supplier;
+
+    public AtomicLazy(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T get() {
-        if (supplier != null) {
-            value = supplier.get();
+        Supplier<T> s = supplier;
+        if (s != null) {
+            T t = s.get();
+            if (value.compareAndSet(UNINITIALIZED, t)) {
+                supplier = null;
+                return t;
+            }
             supplier = null;
         }
-        return value;
+        return (T) value.get();
     }
 }

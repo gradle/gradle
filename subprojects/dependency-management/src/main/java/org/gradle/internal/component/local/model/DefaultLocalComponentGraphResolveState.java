@@ -151,7 +151,17 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         public DefaultLocalConfigurationGraphResolveState(long instanceId, LocalComponentMetadata component, LocalConfigurationMetadata configuration, Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection) {
             this.instanceId = instanceId;
             this.configuration = configuration;
-            this.artifactResolveState = Lazy.locking().of(() -> new DefaultLocalConfigurationArtifactResolveState(component, configuration, allVariantsForArtifactSelection));
+            // We deliberately avoid locking the initialization of `artifactResolveState`.
+            // This object may be shared across multiple worker threads, and the computation of
+            // `legacyVariants` below is likely to require acquiring the state lock for the
+            // project that owns this `Configuration` leading to a potential deadlock situation.
+            // For instance, a thread could acquire the `artifactResolveState` lock while another thread,
+            // which already owns the project lock, attempts to acquire the `artifactResolveState` lock.
+            // See https://github.com/gradle/gradle/issues/25416
+            this.artifactResolveState = Lazy.atomic().of(() -> {
+                Set<? extends VariantResolveMetadata> legacyVariants = configuration.prepareToResolveArtifacts().getVariants();
+                return new DefaultLocalConfigurationArtifactResolveState(component, configuration, allVariantsForArtifactSelection, legacyVariants);
+            });
         }
 
         @Override
@@ -201,10 +211,10 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         private final Set<? extends VariantResolveMetadata> legacyVariants;
         private final Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariants;
 
-        public DefaultLocalConfigurationArtifactResolveState(LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection) {
+        public DefaultLocalConfigurationArtifactResolveState(LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection, Set<? extends VariantResolveMetadata> legacyVariants) {
             this.component = component;
             this.graphSelectedConfiguration = graphSelectedConfiguration;
-            this.legacyVariants = graphSelectedConfiguration.prepareToResolveArtifacts().getVariants();
+            this.legacyVariants = legacyVariants;
             this.allVariants = allVariantsForArtifactSelection;
         }
 
