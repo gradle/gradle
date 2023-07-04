@@ -58,6 +58,8 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     public void setFromAnyValue(Object object) {
         if (object instanceof Provider) {
             set(Cast.<Provider<T>>uncheckedNonnullCast(object));
+        } else if (type.equals(String.class) && object instanceof Enum){
+            set(Cast.<T>uncheckedNonnullCast(object.toString()));
         } else {
             set(Cast.<T>uncheckedNonnullCast(object));
         }
