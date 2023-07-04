@@ -21,14 +21,12 @@ import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
-import org.gradle.api.problems.internal.DefaultProblemBuilder;
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 
 import static java.util.Collections.singleton;
-import static org.gradle.api.problems.interfaces.ProblemGroup.GENERIC;
-import static org.gradle.api.problems.interfaces.Severity.ERROR;
 
 /**
  * Prototype Problems API.
@@ -36,31 +34,42 @@ import static org.gradle.api.problems.interfaces.Severity.ERROR;
  * @since 8.3
  */
 @Incubating
-public class Problems {
+@ServiceScope(Scope.Global.class)
+public abstract class Problems {
+
+    private static Problems problemsService = new NoOpProblems();
+
+    public static void init(Problems problemsService){
+        Problems.problemsService = problemsService;
+    }
 
     public static ProblemBuilder create() {
-        return new DefaultProblemBuilder();
+        return problemsService.createProblemBuilder();
     }
+
+    abstract public ProblemBuilder createProblemBuilder();
 
     public static ProblemBuilder create(ProblemGroup problemGroup, String message, Severity severity, String type) {
-        return new DefaultProblemBuilder(problemGroup, message, severity, type);
+        return problemsService.createProblemBuilder(problemGroup, message, severity, type);
     }
+    abstract public ProblemBuilder createProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type);
+
 
     public static ProblemBuilder createError(ProblemGroup problemGroup, String message, String type) {
-        return new DefaultProblemBuilder(problemGroup, message, ERROR, type);
+        return problemsService.createErrorProblemBuilder(problemGroup, message, type);
     }
+    abstract public ProblemBuilder createErrorProblemBuilder(ProblemGroup problemGroup, String message, String type);
 
     public static void collect(Throwable failure) {
-        new DefaultProblemBuilder(GENERIC, failure.getMessage(), ERROR, "generic_exception")
-            .cause(failure)
-            .noLocation()
-            .undocumented()
-            .report();
+        problemsService.collectError(failure);
     }
+    abstract public void collectError(Throwable failure);
 
     public static void collect(Problem problem) {
-        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+        problemsService.collectError(problem);
     }
+
+    abstract public void collectError(Problem problem);
 
     public static RuntimeException throwing(ProblemBuilder problem, RuntimeException cause) {
         problem.cause(cause);
@@ -73,7 +82,34 @@ public class Problems {
 
     public static void collect(Collection<Problem> problems) {
         for (Problem problem : problems){
-            ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+            problemsService.collectError(problem);
+        }
+    }
+
+    private static class NoOpProblems extends Problems {
+        @Override
+        public ProblemBuilder createProblemBuilder() {
+            return null;
+        }
+
+        @Override
+        public ProblemBuilder createProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) {
+            return null;
+        }
+
+        @Override
+        public ProblemBuilder createErrorProblemBuilder(ProblemGroup problemGroup, String message, String type) {
+            return null;
+        }
+
+        @Override
+        public void collectError(Throwable failure) {
+
+        }
+
+        @Override
+        public void collectError(Problem problem) {
+
         }
     }
 }

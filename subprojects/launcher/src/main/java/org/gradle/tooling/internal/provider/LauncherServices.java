@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
+import org.gradle.api.problems.Problems;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
@@ -232,39 +233,41 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
             ProblemDiagnosticsFactory problemDiagnosticsFactory,
-            StartParameter startParameter
+            StartParameter startParameter,
+            Problems problemsService
         ) {
 
 
-            return new InitProblems(new InitDeprecationLoggingActionExecutor(
-                new RootBuildLifecycleBuildActionExecutor(
-                    buildStateRegistry,
-                    new BuildCompletionNotifyingBuildActionRunner(
-                        new FileSystemWatchingBuildActionRunner(
-                            eventEmitter,
-                            virtualFileSystem,
-                            deploymentRegistry,
-                            statStatisticsCollector,
-                            fileHasherStatisticsCollector,
-                            directorySnapshotterStatisticsCollector,
-                            buildOperationRunner,
-                            new BuildOutcomeReportingBuildActionRunner(
-                                styledTextOutputFactory,
-                                listenerManager,
-                                new ProblemReportingBuildActionRunner(
-                                    new ChainingBuildActionRunner(buildActionRunners),
-                                    exceptionAnalyser,
-                                    buildLayout,
-                                    problemReporters
-                                ),
-                                buildStartedTime,
-                                buildRequestMetaData,
-                                buildLoggerFactory),
-                            options),
-                        gradleEnterprisePluginManager)),
-                problemDiagnosticsFactory,
-                eventEmitter,
-                startParameter), eventEmitter);
+            return new InitProblems(
+                new InitDeprecationLoggingActionExecutor(
+                    new RootBuildLifecycleBuildActionExecutor(
+                        buildStateRegistry,
+                        new BuildCompletionNotifyingBuildActionRunner(
+                            new FileSystemWatchingBuildActionRunner(
+                                eventEmitter,
+                                virtualFileSystem,
+                                deploymentRegistry,
+                                statStatisticsCollector,
+                                fileHasherStatisticsCollector,
+                                directorySnapshotterStatisticsCollector,
+                                buildOperationRunner,
+                                new BuildOutcomeReportingBuildActionRunner(
+                                    styledTextOutputFactory,
+                                    listenerManager,
+                                    new ProblemReportingBuildActionRunner(
+                                        new ChainingBuildActionRunner(buildActionRunners),
+                                        exceptionAnalyser,
+                                        buildLayout,
+                                        problemReporters
+                                    ),
+                                    buildStartedTime,
+                                    buildRequestMetaData,
+                                    buildLoggerFactory),
+                                options),
+                            gradleEnterprisePluginManager)),
+                    problemDiagnosticsFactory,
+                    eventEmitter,
+                    startParameter), eventEmitter, problemsService);
         }
 
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {

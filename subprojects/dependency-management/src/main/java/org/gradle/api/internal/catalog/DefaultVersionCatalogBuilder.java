@@ -38,9 +38,11 @@ import org.gradle.api.internal.catalog.parser.DependenciesModelHelper;
 import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 import org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder;
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
@@ -64,7 +66,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_REGEX;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.createVersionCatalogError;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ALIAS_NOT_FINISHED;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST;
@@ -77,6 +79,9 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.T
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT;
+import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG;
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 
 public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
@@ -119,6 +124,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
     private Import importedCatalog = null;
     private final StrictVersionParser strictVersionParser;
+    private final Problems problemsService;
     private final Property<String> description;
 
     private String currentContext;
@@ -129,7 +135,8 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         Interner<String> strings,
         Interner<ImmutableVersionConstraint> versionConstraintInterner,
         ObjectFactory objects,
-        Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier
+        Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier,
+        Problems problemsService
     ) {
         this.name = name;
         this.strings = strings;
@@ -137,6 +144,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         this.objects = objects;
         this.dependencyResolutionServicesSupplier = dependencyResolutionServicesSupplier;
         this.strictVersionParser = new StrictVersionParser(strings);
+        this.problemsService = problemsService;
         this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the `" + name + "` extension.");
     }
 
@@ -167,6 +175,13 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private static RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
         throw throwErrorWithNewProblemsApi("Invalid catalog definition", ImmutableList.of(problem.build()));
+    }
+
+    @Nonnull
+    public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
+        return problemsService.createProblemBuilder(VERSION_CATALOG, message, ERROR, catalogProblemId.name())
+            .noLocation()
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
     }
 
     private DefaultVersionCatalog doBuild() {

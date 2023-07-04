@@ -88,6 +88,7 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
@@ -202,7 +203,8 @@ class DependencyManagementBuildScopeServices {
         DependencyMetaDataProvider dependencyMetaDataProvider,
         ObjectFactory objects,
         ProviderFactory providers,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        Problems problemService
     ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
@@ -212,7 +214,8 @@ class DependencyManagementBuildScopeServices {
             dependencyMetaDataProvider,
             objects,
             providers,
-            collectionCallbackActionDecorator
+            collectionCallbackActionDecorator,
+            problemService
         );
     }
 

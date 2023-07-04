@@ -17,6 +17,7 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -26,15 +27,18 @@ public class InitProblems implements BuildTreeActionExecutor  {
 
     private final BuildTreeActionExecutor delegate;
     private final BuildOperationProgressEventEmitter eventEmitter;
+    private final Problems problemsService;
 
-    public InitProblems(BuildTreeActionExecutor delegate, BuildOperationProgressEventEmitter eventEmitter) {
+    public InitProblems(BuildTreeActionExecutor delegate, BuildOperationProgressEventEmitter eventEmitter, Problems problemsService) {
         this.delegate = delegate;
         this.eventEmitter = eventEmitter;
+        this.problemsService = problemsService;
     }
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
         ProblemsProgressEventEmitterHolder.init(eventEmitter);
+        Problems.init(problemsService);
         return delegate.execute(action, buildTreeContext);
     }
 }

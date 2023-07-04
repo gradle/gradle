@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -47,6 +48,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
     private final Interner<String> strings = Interners.newStrongInterner();
     private final Interner<ImmutableVersionConstraint> versions = Interners.newStrongInterner();
     private final Supplier<DependencyResolutionServices> dependencyResolutionServices;
+    private final Problems problemService;
 
     private final ObjectFactory objects;
     private final ProviderFactory providers;
@@ -58,12 +60,14 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
                                                  ObjectFactory objects,
                                                  ProviderFactory providers,
                                                  Supplier<DependencyResolutionServices> dependencyResolutionServices,
-                                                 UserCodeApplicationContext context) {
+                                                 UserCodeApplicationContext context,
+                                                 Problems problemService) {
         super(VersionCatalogBuilder.class, instantiator, callbackActionDecorator);
         this.objects = objects;
         this.providers = providers;
         this.context = context;
         this.dependencyResolutionServices = dependencyResolutionServices;
+        this.problemService = problemService;
     }
 
     private static void validateName(String name) {
@@ -88,7 +92,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
 
     @Override
     protected VersionCatalogBuilder doCreate(String name) {
-        return objects.newInstance(DefaultVersionCatalogBuilder.class, name, strings, versions, objects, dependencyResolutionServices);
+        return objects.newInstance(DefaultVersionCatalogBuilder.class, name, strings, versions, objects, dependencyResolutionServices, problemService);
     }
 
     @Override

@@ -37,6 +37,7 @@ import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -58,8 +59,9 @@ public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalo
                                                   Interner<ImmutableVersionConstraint> versionConstraintInterner,
                                                   ObjectFactory objects,
                                                   Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier,
-                                                  Configuration dependenciesConfiguration) {
-        super(name, strings, versionConstraintInterner, objects, dependencyResolutionServicesSupplier);
+                                                  Configuration dependenciesConfiguration,
+                                                  Problems problemsService) {
+        super(name, strings, versionConstraintInterner, objects, dependencyResolutionServicesSupplier, problemsService);
         this.dependenciesConfiguration = dependenciesConfiguration;
     }
 
