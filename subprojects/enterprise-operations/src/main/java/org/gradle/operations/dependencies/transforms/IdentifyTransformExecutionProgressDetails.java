@@ -21,7 +21,13 @@ import org.gradle.operations.dependencies.variants.ComponentIdentifier;
 import java.util.Map;
 
 public interface IdentifyTransformExecutionProgressDetails {
-    String getUniqueId();
+
+    /**
+     * The identity of the transform execution.
+     * <p>
+     * Unique within the current build tree.
+     */
+    String getIdentity();
 
     ComponentIdentifier getInputArtifactComponentIdentifier();
 

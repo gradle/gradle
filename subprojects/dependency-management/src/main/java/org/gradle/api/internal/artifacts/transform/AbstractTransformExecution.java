@@ -336,7 +336,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         }
 
         @Override
-        public String getUniqueId() {
+        public String getIdentity() {
             return transformWorkspaceIdentity.getUniqueId();
         }
 
