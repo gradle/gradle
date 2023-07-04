@@ -106,6 +106,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             skipMessage == null
             failure == null
             originBuildInvocationId == null
+            executionReasons == ['No history is available.']
         }
         with(Iterables.getOnlyElement(buildOperations.children(projectExecution, SnapshotTransformInputsBuildOperationType)).result) {
             hash != null
