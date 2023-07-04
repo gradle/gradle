@@ -20,20 +20,19 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.model.ObjectFactory;
 
-public abstract class AbstractResolutionAwareArtifactRepository extends AbstractArtifactRepository implements ResolutionAwareRepository {
+public abstract class AbstractResolutionAwareArtifactRepository<T extends RepositoryDescriptor> extends AbstractArtifactRepository implements ResolutionAwareRepository {
 
-    private RepositoryDescriptor descriptor;
+    private T descriptor;
 
     protected AbstractResolutionAwareArtifactRepository(ObjectFactory objectFactory, VersionParser versionParser) {
         super(objectFactory, versionParser);
     }
 
     @Override
-    final public RepositoryDescriptor getDescriptor() {
+    final public T getDescriptor() {
         if (descriptor == null) {
             descriptor = createDescriptor();
         }
-
         return descriptor;
     }
 
@@ -41,7 +40,7 @@ public abstract class AbstractResolutionAwareArtifactRepository extends Abstract
         descriptor = null;
     }
 
-    protected abstract RepositoryDescriptor createDescriptor();
+    protected abstract T createDescriptor();
 
     @Override
     public void setName(String name) {

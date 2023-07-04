@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
@@ -39,10 +38,9 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
         archiveUri = server.uri.resolve("/path/toolchain.zip").toString()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can download without authentication"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}               
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -78,15 +76,13 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                 .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
-                .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
-                        "A problem occurred starting process 'command '")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
+               .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
+                   "A problem occurred starting process 'command '")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can download with basic authentication"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}
@@ -105,7 +101,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                         }
                     }
                 }
-            } 
+            }
         """
 
         buildFile << """
@@ -132,12 +128,11 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                 .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
-                .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
-                        "A problem occurred starting process 'command '")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
+               .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
+                   "A problem occurred starting process 'command '")
     }
 
     private static String customToolchainResolverCode(String uri) {

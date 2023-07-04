@@ -20,10 +20,10 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
 
 /**
- * A {@link BuildOperationType} for executing a scheduled transformation step.
+ * A {@link BuildOperationType} for executing a scheduled transform step.
  * <p>
- * Encompasses the execution of a transformation node.
- * A transformation node runs only one transformation step, though possibly on multiple files.
+ * Encompasses the execution of a transform step node.
+ * The node runs only one transform, though possibly on multiple files.
  *
  * @since 8.1
  */
@@ -32,7 +32,7 @@ public class ExecutePlannedTransformStepBuildOperationType implements BuildOpera
     public interface Details {
 
         /**
-         * The identity of the transformation executed in this operation.
+         * The identity of the transform step executed in this operation.
          */
         PlannedTransformStepIdentity getPlannedTransformStepIdentity();
 
@@ -50,7 +50,7 @@ public class ExecutePlannedTransformStepBuildOperationType implements BuildOpera
         String getTransformerName();
 
         /**
-         * Returns the display name of the transformation subject.
+         * Returns the display name of the transform step subject.
          *
          * Not used by build scans but for TAPI events in {@code TransformOperationMapper}.
          */

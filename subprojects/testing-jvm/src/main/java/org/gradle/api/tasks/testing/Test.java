@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
@@ -195,6 +196,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
+        getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
     }
 
@@ -525,6 +527,26 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public boolean getFailFast() {
         return super.getFailFast();
     }
+
+    /**
+     * Indicates if this task will skip individual test execution.
+     *
+     * <p>
+     *     For JUnit 4 and 5, this will report tests that would have executed as skipped.
+     *     For TestNG, this will report tests that would have executed as passed.
+     * </p>
+     *
+     * <p>
+     *     Only versions of TestNG which support native dry-running are supported, i.e. TestNG 6.14 or later.
+     * </p>
+     *
+     * @return property for whether this task will skip individual test execution
+     * @since 8.3
+     */
+    @Incubating
+    @Input
+    @Option(option = "test-dry-run", description = "Simulate test execution.")
+    public abstract Property<Boolean> getDryRun();
 
     /**
      * {@inheritDoc}
@@ -999,7 +1021,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.6
      */
     public void useJUnitPlatform() {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true));
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true, getDryRun()));
     }
 
     /**

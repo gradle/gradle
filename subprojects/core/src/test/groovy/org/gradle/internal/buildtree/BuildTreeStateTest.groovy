@@ -21,6 +21,7 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.work.ProjectParallelExecutionController
 import spock.lang.Specification
 
 import java.util.function.Function
@@ -34,6 +35,7 @@ class BuildTreeStateTest extends Specification {
         def services = new DefaultServiceRegistry()
         services.add(Mock(BuildOperationProgressEventEmitter))
         services.add(Mock(BuildModelParameters))
+        services.add(Mock(ProjectParallelExecutionController))
         services.add(BuildTreeActionExecutor, actionExecutor)
         services.add(listenerManager)
         state = new BuildTreeState(services, Stub(BuildTreeModelControllerServices.Supplier))

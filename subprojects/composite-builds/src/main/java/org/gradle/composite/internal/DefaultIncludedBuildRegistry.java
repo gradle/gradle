@@ -179,7 +179,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public NestedBuildTree addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, String buildName) {
+    public NestedBuildTree addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName) {
         if (buildDefinition.getName() != null || buildDefinition.getBuildRootDir() != null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
@@ -200,7 +200,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
     }
 
-    private void validateNameIsNotBuildSrc(String name, File dir) {
+    private static void validateNameIsNotBuildSrc(String name, File dir) {
         if (SettingsInternal.BUILD_SRC.equals(name)) {
             throw new GradleException("Included build " + dir + " has build name 'buildSrc' which cannot be used as it is a reserved name.");
         }
@@ -239,7 +239,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         return includedBuild;
     }
 
-    private BuildIdentifier idFor(Path absoluteBuildPath) {
+    private static BuildIdentifier idFor(Path absoluteBuildPath) {
         return new DefaultBuildIdentifier(absoluteBuildPath);
     }
 

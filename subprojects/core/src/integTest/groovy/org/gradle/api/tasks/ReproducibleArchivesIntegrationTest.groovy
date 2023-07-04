@@ -40,8 +40,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'src'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.${fileExtension}'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
             """
 
@@ -73,8 +73,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.${fileExtension}'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
             """
 
@@ -110,8 +110,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1', 'dir2', 'dir3'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.tar.${compression}'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
             """
 
@@ -145,8 +145,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1/file11.txt'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.${fileExtension}'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
         """
 
@@ -181,16 +181,16 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from('dir1')
                 destinationDirectory = buildDir
                 archiveFileName = 'test.tar'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
             task aZip(type: Zip) {
                 reproducibleFileOrder = true
                 from('dir2')
                 destinationDirectory = buildDir
                 archiveFileName = 'test.zip'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
 
             task ${taskName}(type: ${taskType}) {
@@ -204,8 +204,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
                 dependsOn aZip, aTar
 
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
         """
 

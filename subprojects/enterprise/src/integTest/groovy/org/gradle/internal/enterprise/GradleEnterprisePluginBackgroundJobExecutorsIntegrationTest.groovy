@@ -18,12 +18,12 @@ package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.process.ShellScript
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 import javax.inject.Inject
 import java.util.concurrent.CompletableFuture
@@ -252,7 +252,7 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         outputContains("backgroundJobExecutor.isInBackground = false")
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.IsConfigCached)
     def "configuration inputs are not tracked for the job"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 
@@ -276,9 +276,7 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
         then:
         outputContains("backgroundJob.property = value")
-        configurationCache.assertStateStored {
-            loadsOnStore = false // for now
-        }
+        configurationCache.assertStateStored()
 
         when:
         succeeds("check", "-Dproperty=other")
@@ -287,8 +285,8 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         configurationCache.assertStateLoaded()
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.configCache })
-    @ToBeImplemented
+    @Requires(IntegTestPreconditions.IsConfigCached)
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/25474")
     def "value sources are not tracked for the job"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 
@@ -313,26 +311,21 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
         then:
         outputContains("backgroundJob.property = value")
-        configurationCache.assertStateStored {
-            loadsOnStore = false // for now
-        }
+        configurationCache.assertStateStored()
 
         when:
         succeeds("check", "-Dproperty=other")
 
         then:
-        // configurationCache.assertStateLoaded()
         // TODO(mlopatkin) Accessing the value source in the background job should not make it an input,
         //  so the configuration should be loaded from the cache. A naive solution of gating the input
         //  recording will break the other test as only the first value source read is broadcasted to
         //  listeners.
-        configurationCache.assertStateStored {
-            loadsOnStore = false // for now
-        }
+        configurationCache.assertStateStored() // TODO: replace with .assertStateLoaded() once the above is implemented
         outputContains("backgroundJob.property = other")
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.IsConfigCached)
     def "value sources are tracked if also accessed outside the job"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 
@@ -360,9 +353,7 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         then:
         outputContains("backgroundJob.property = value")
         outputContains("buildscript.property = value")
-        configurationCache.assertStateStored {
-            loadsOnStore = false // for now
-        }
+        configurationCache.assertStateStored()
 
         when:
         succeeds("check", "-Dproperty=other")
@@ -370,9 +361,7 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         then:
         outputContains("backgroundJob.property = other")
         outputContains("buildscript.property = other")
-        configurationCache.assertStateStored {
-            loadsOnStore = false // for now
-        }
+        configurationCache.assertStateStored()
     }
 
     def "background job can execute external process with process API at configuration time"() {

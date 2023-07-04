@@ -17,8 +17,8 @@ package org.gradle.java.compile.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.java.compile.JavaCompilerIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -81,7 +81,10 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3098")
-    @Requires([TestPrecondition.JDK8_OR_EARLIER, TestPrecondition.JDK_ORACLE])
+    @Requires([
+        UnitTestPreconditions.Jdk8OrEarlier,
+        UnitTestPreconditions.JdkOracle
+    ])
     def "handles -bootclasspath being specified"() {
         def jre = AvailableJavaHomes.getBestJre()
         def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"

@@ -46,6 +46,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     private final ImmutableCapabilities capabilities;
     private final boolean externalVariant;
 
+    private final Object lock = new Object();
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
     private Factory<List<ModuleDependencyMetadata>> configDependenciesFactory;
@@ -144,14 +145,18 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     public void setDependencies(List<ModuleDependencyMetadata> dependencies) {
-        assert this.configDependencies == null; // Can only set once: should really be part of the constructor
-        this.configDependencies = ImmutableList.copyOf(dependencies);
+        synchronized (lock) {
+            assert this.configDependencies == null; // Can only set once: should really be part of the constructor
+            this.configDependencies = ImmutableList.copyOf(dependencies);
+        }
     }
 
     public void setConfigDependenciesFactory(Factory<List<ModuleDependencyMetadata>> dependenciesFactory) {
-        assert this.configDependencies == null; // Can only set once: should really be part of the constructor
-        assert this.configDependenciesFactory == null; // Can only set once: should really be part of the constructor
-        this.configDependenciesFactory = dependenciesFactory;
+        synchronized (lock) {
+            assert this.configDependencies == null; // Can only set once: should really be part of the constructor
+            assert this.configDependenciesFactory == null; // Can only set once: should really be part of the constructor
+            this.configDependenciesFactory = dependenciesFactory;
+        }
     }
 
     @Override
@@ -185,11 +190,13 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     ImmutableList<ModuleDependencyMetadata> getConfigDependencies() {
-        if (configDependenciesFactory != null) {
-            configDependencies = ImmutableList.copyOf(configDependenciesFactory.create());
-            configDependenciesFactory = null;
+        synchronized (lock) {
+            if (configDependenciesFactory != null) {
+                configDependencies = ImmutableList.copyOf(configDependenciesFactory.create());
+                configDependenciesFactory = null;
+            }
+            return configDependencies;
         }
-        return configDependencies;
     }
 
     protected ModuleComponentIdentifier getComponentId() {

@@ -31,27 +31,27 @@ class KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(additionalArg
     ScriptTemplateAdditionalCompilerArgumentsProvider(additionalArguments) {
 
     override fun getAdditionalCompilerArguments(environment: Environment?): Iterable<String> {
-        environment ?: return emptyList()
-        val projectRoot = environment[EnvironmentProperties.projectRoot] as? File ?: return emptyList()
-        val gradleProperties = File(projectRoot, "gradle.properties")
-        return if (gradleProperties.isKotlinDslAssignmentEnabled()) {
+        return if (environment.isKotlinDslAssignmentExplicitlyDisabled()) {
+            emptyList()
+        } else {
             // This class is loaded from the IDE, so we have to hardcode SupportsKotlinAssignmentOverloading name,
             // since SupportsKotlinAssignmentOverloading doesn't exist on the IDE classpath
             listOf("-P=plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading")
-        } else {
-            emptyList()
         }
     }
 
     private
-    fun File.isKotlinDslAssignmentEnabled(): Boolean {
-        if (!this.exists()) return false
-        return FileInputStream(this).use {
+    fun Environment?.isKotlinDslAssignmentExplicitlyDisabled(): Boolean {
+        this ?: return false
+        val projectRoot = this[EnvironmentProperties.projectRoot] as? File ?: return false
+        val gradleProperties = File(projectRoot, "gradle.properties")
+        if (!gradleProperties.exists()) return false
+        return FileInputStream(gradleProperties).use {
             val properties = Properties().apply {
                 load(it)
             }
             // This class is loaded from the IDE, so we have to hardcode system property
-            properties.getProperty("systemProp.org.gradle.unsafe.kotlin.assignment", "true").trim() != "false"
+            properties.getProperty("systemProp.org.gradle.unsafe.kotlin.assignment", "true").trim() == "false"
         }
     }
 }

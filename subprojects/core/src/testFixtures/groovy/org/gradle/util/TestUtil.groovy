@@ -300,6 +300,17 @@ class TestUtil {
 
         return cause
     }
+
+    static <T extends Throwable> boolean isOrIsCausedBy(Throwable t, Class<T> expectedCauseType) {
+        def cause = t
+        while (cause != null) {
+            if (expectedCauseType.isInstance(cause)) {
+                return true
+            }
+            cause = cause.cause
+        }
+        return false
+    }
 }
 
 interface TestClosure {

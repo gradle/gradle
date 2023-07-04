@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.collections.EventSubscriptionVerifier;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
@@ -230,11 +231,6 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public boolean addRealized(T element) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public boolean remove(Object o) {
             throw new UnsupportedOperationException();
         }
@@ -314,7 +310,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void onRealize(Action<T> action) {
+        public void onPendingAdded(Action<T> action) {
+
+        }
+
+        @Override
+        public void setSubscriptionVerifier(EventSubscriptionVerifier<T> immediateRealizationSpec) {
 
         }
 

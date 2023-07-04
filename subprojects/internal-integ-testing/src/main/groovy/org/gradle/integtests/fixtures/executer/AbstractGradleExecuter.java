@@ -39,6 +39,7 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
+import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -147,7 +148,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private String executable;
     private TestFile gradleUserHomeDir;
     private File userHomeDir;
-    private File javaHome;
+    private String javaHome;
     private File buildScript;
     private File projectDir;
     private File settingsFile;
@@ -615,18 +616,32 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
-    public File getJavaHome() {
-        return javaHome == null ? Jvm.current().getJavaHome() : javaHome;
+    protected String getJavaHome() {
+        return javaHome == null ? Jvm.current().getJavaHome().getAbsolutePath() : javaHome;
+    }
+
+    protected File getJavaHomeLocation() {
+        return new File(getJavaHome());
     }
 
     @Override
-    public GradleExecuter withJavaHome(File javaHome) {
+    public GradleExecuter withJavaHome(String javaHome) {
         this.javaHome = javaHome;
         return this;
     }
 
+    @Override
+    public GradleExecuter withJavaHome(File javaHome) {
+        this.javaHome = javaHome == null ? null : javaHome.getAbsolutePath();
+        return this;
+    }
+
     private JavaVersion getJavaVersionFromJavaHome() {
-        return JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome()));
+        try {
+            return JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHomeLocation()));
+        } catch (IllegalArgumentException | JavaHomeException e) {
+            return JavaVersion.current();
+        }
     }
 
     @Override
@@ -723,7 +738,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
+    public final GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
+        Preconditions.checkArgument(!environment.containsKey("JAVA_HOME"), "Cannot provide JAVA_HOME to withEnvironmentVars, use withJavaHome instead");
         environmentVars.clear();
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
             environmentVars.put(entry.getKey(), entry.getValue().toString());
@@ -1291,7 +1307,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter withBuildCacheNgEnabled() {
-        return withArguments("--build-cache", "-D" + NEXT_GEN_CACHE_SYSTEM_PROPERTY + "=true");
+        return withBuildCacheEnabled()
+            .withArgument("-D" + NEXT_GEN_CACHE_SYSTEM_PROPERTY + "=true");
     }
 
     protected Action<ExecutionResult> getResultAssertion() {

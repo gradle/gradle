@@ -48,7 +48,7 @@ import java.util.List;
  * TODO: This class sources Gradle metadata files, but there's no corresponding ModuleComponentResolveMetadata for this metadata yet.
  * Because of this, we will generate an empty instance (either a Ivy or Maven) based on the repository type.
  */
-public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
+public class DefaultGradleModuleMetadataSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
     private final GradleModuleMetadataParser metadataParser;
     private final GradleModuleMetadataCompatibilityConverter metadataCompatibilityConverter;
     private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;

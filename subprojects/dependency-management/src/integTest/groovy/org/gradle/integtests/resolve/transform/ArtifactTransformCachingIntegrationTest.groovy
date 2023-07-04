@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -921,6 +922,36 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
 
         output.count("Transformed") == 0
+    }
+
+    def "workspace id of project transforms independent between workspaces"() {
+        def projectDir1 = file("project1")
+        def projectDir2 = file("project2")
+        [projectDir1, projectDir2].each { dir ->
+            def project = new BuildTestFile(dir, "root")
+            project.with {
+                settingsFile << """
+                    rootProject.name = 'root'
+                    include 'lib'
+                    include 'util'
+                    include 'app'
+                """
+                buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
+            }
+        }
+
+        when:
+        executer.inDirectory(projectDir1)
+        succeeds ":app:resolve"
+        def project1OutputDir = projectOutputDir("lib1.jar", "lib1.jar.txt")
+
+        and:
+        executer.inDirectory(projectDir2)
+        succeeds ":app:resolve"
+        def project2OutputDir = projectOutputDir("lib1.jar", "lib1.jar.txt")
+
+        then:
+        projectDir1.relativePath(project1OutputDir) == projectDir2.relativePath(project2OutputDir)
     }
 
     def "transform is re-executed when input file content changes between builds"() {

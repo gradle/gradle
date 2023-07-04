@@ -23,7 +23,7 @@ import org.gradle.api.ProjectState;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
+import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
@@ -37,10 +37,10 @@ import org.gradle.internal.time.Clock;
  * Adapts various events to build a {@link BuildProfile} model.
  */
 @ListenerService
-public class ProfileEventAdapter implements InternalBuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, ArtifactTransformListener {
+public class ProfileEventAdapter implements InternalBuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, TransformExecutionListener {
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
-    private final ThreadLocal<ContinuousOperation> currentTransformation = new ThreadLocal<ContinuousOperation>();
+    private final ThreadLocal<ContinuousOperation> currentTransform = new ThreadLocal<>();
     private final BuildProfile buildProfile;
 
     public ProfileEventAdapter(BuildProfile buildProfile, BuildStartedTime buildStartedTime, Clock clock) {
@@ -123,18 +123,19 @@ public class ProfileEventAdapter implements InternalBuildListener, ProjectEvalua
         buildProfile.getDependencySetProfile(dependencies.getPath()).setFinish(now);
     }
 
+    // TransformExecutionListener
     @Override
-    public void beforeTransformerInvocation(Describable transformer, Describable subject) {
+    public void beforeTransformExecution(Describable transform, Describable subject) {
         long now = clock.getCurrentTime();
-        String transformationDescription = subject.getDisplayName() + " with " + transformer.getDisplayName();
-        FragmentedOperation transformationProfile = buildProfile.getTransformationProfile(transformationDescription);
-        currentTransformation.set(transformationProfile.start(now));
+        String transformDescription = subject.getDisplayName() + " with " + transform.getDisplayName();
+        FragmentedOperation transformProfile = buildProfile.getTransformProfile(transformDescription);
+        currentTransform.set(transformProfile.start(now));
     }
 
     @Override
-    public void afterTransformerInvocation(Describable transformer, Describable subject) {
+    public void afterTransformExecution(Describable transform, Describable subject) {
         long now = clock.getCurrentTime();
-        currentTransformation.get().setFinish(now);
-        currentTransformation.remove();
+        currentTransform.get().setFinish(now);
+        currentTransform.remove();
     }
 }

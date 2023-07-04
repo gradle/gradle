@@ -19,9 +19,9 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
@@ -63,7 +63,7 @@ public class DefaultConfigurationFactory {
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
-    private final DocumentationRegistry documentationRegistry;
+    private final ResolveExceptionContextualizer exceptionContextualizer;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final ProjectStateRegistry projectStateRegistry;
     private final WorkerThreadRegistry workerThreadRegistry;
@@ -84,7 +84,7 @@ public class DefaultConfigurationFactory {
         BuildOperationExecutor buildOperationExecutor,
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
         ImmutableAttributesFactory attributesFactory,
-        DocumentationRegistry documentationRegistry,
+        ResolveExceptionContextualizer exceptionContextualizer,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
@@ -104,7 +104,7 @@ public class DefaultConfigurationFactory {
         this.artifactNotationParser = artifactNotationParserFactory.create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.attributesFactory = attributesFactory;
-        this.documentationRegistry = documentationRegistry;
+        this.exceptionContextualizer = exceptionContextualizer;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
@@ -145,7 +145,7 @@ public class DefaultConfigurationFactory {
                 capabilityNotationParser,
                 attributesFactory,
                 rootComponentMetadataBuilder,
-                documentationRegistry,
+                exceptionContextualizer,
                 userCodeApplicationContext,
                 projectStateRegistry,
                 workerThreadRegistry,

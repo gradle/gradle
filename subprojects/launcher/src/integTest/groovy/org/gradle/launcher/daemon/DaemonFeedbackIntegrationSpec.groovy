@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -165,7 +165,7 @@ task sleep {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/8833")
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "daemon log restricts permissions to owner"() {
         given:
         file("build.gradle") << """
@@ -184,7 +184,7 @@ task sleep {
     }
 
     //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     @ToBeFixedForConfigurationCache(because = "asserts on configuration phase logging")
     def "foreground daemon log honors log levels for logging"() {
         given:

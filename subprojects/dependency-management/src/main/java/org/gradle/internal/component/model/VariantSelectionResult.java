@@ -19,15 +19,15 @@ package org.gradle.internal.component.model;
 import java.util.List;
 
 public class VariantSelectionResult {
-    private final List<? extends VariantGraphResolveMetadata> variants;
+    private final List<? extends VariantGraphResolveState> variants;
     private final boolean selectedByVariantAwareResolution;
 
-    public VariantSelectionResult(List<? extends VariantGraphResolveMetadata> variants, boolean selectedByVariantAwareResolution) {
+    public VariantSelectionResult(List<? extends VariantGraphResolveState> variants, boolean selectedByVariantAwareResolution) {
         this.variants = variants;
         this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
     }
 
-    public List<? extends VariantGraphResolveMetadata> getVariants() {
+    public List<? extends VariantGraphResolveState> getVariants() {
         return variants;
     }
 

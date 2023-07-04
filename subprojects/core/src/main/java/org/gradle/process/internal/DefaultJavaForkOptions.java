@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -203,6 +204,12 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         action.execute(options.getDebugOptions());
+    }
+
+    @Override
+    protected Map<String, ?> getInheritableEnvironment() {
+        // Filter out any environment variables that should not be inherited.
+        return Jvm.getInheritableEnvironmentVariables(super.getInheritableEnvironment());
     }
 
     @Override

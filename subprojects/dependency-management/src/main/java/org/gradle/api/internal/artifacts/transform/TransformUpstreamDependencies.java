@@ -29,14 +29,14 @@ public interface TransformUpstreamDependencies extends TaskDependencyContainer {
     ConfigurationIdentity getConfigurationIdentity();
 
     /**
-     * Returns a collection containing the future artifacts for the given transformation step.
+     * Returns a collection containing the future artifacts for the given transform step.
      */
     FileCollection selectedArtifacts();
 
     /**
-     * Computes the finalized dependency artifacts for the given transformation step.
+     * Computes the finalized dependency artifacts for the given transform step.
      */
-    Try<ArtifactTransformDependencies> computeArtifacts();
+    Try<TransformDependencies> computeArtifacts();
 
     void finalizeIfNotAlready();
 }

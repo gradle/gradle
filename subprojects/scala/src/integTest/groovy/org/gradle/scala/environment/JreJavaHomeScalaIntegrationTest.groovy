@@ -16,9 +16,13 @@
 
 package org.gradle.scala.environment
 
-import org.gradle.integtests.fixtures.*
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -51,14 +55,14 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
                     """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run()
+        executer.withJavaHome(jreJavaHome.absolutePath).withTasks("compileScala").run()
 
         then:
         scalaClassFile("org/test/JavaClazz.class").exists()
         scalaClassFile("org/test/ScalaClazz.class").exists()
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "scala compilation works when gradle is started with no java_home defined"() {
         given:
         writeScalaTestSource("src/main/scala");

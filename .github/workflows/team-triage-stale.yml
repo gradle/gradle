@@ -1,0 +1,26 @@
+name: 'Requeue stale team-triage issues'
+on:
+  schedule:
+    # Execute every day
+    - cron: '0 0 * * *'
+
+permissions:
+  issues: write
+
+jobs:
+  requeue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          operations-per-run: 30
+          only-labels: team-triage
+
+          days-before-issue-stale: 14
+
+          stale-issue-label: to-triage
+          stale-issue-message: ""
+          days-before-issue-close: -1
+
+          days-before-pr-stale: -1
+          days-before-pr-close: -1

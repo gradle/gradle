@@ -33,7 +33,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
 
     def consumerProvidedVariantFinder = Mock(ConsumerProvidedVariantFinder)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def dependenciesResolverFactory = Mock(ExtraExecutionGraphDependenciesResolverFactory)
+    def dependenciesResolverFactory = Mock(TransformUpstreamDependenciesResolverFactory)
     def attributeMatcher = Mock(AttributeMatcher)
     def attributesSchema = Mock(AttributesSchemaInternal) {
         withProducer(_) >> attributeMatcher
@@ -107,7 +107,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
 
         1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
-        1 * factory.asTransformed(variant, transformedVariants[0].getVariantChain(), dependenciesResolverFactory, transformedVariantFactory) >> transformed
+        1 * factory.asTransformed(variant, transformedVariants[0].getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory) >> transformed
         0 * attributeMatcher._
     }
 
@@ -127,7 +127,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
         1 * attributeMatcher.matches(_, _, _) >> [transformedVariants[resultNum]]
-        1 * factory.asTransformed(variants[resultNum], transformedVariants[resultNum].getVariantChain(), dependenciesResolverFactory, transformedVariantFactory) >> transformed
+        1 * factory.asTransformed(variants[resultNum], transformedVariants[resultNum].getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory) >> transformed
 
         where:
         resultNum << [0, 1, 2]
@@ -162,7 +162,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     private List<TransformedVariant> transformedVariants(List<ResolvedVariant> variants) {
         variants.collect {
             new TransformedVariant(it, Mock(VariantDefinition) {
-                transformationChain >> Mock(TransformationChain)
+                transformChain >> Mock(TransformChain)
                 targetAttributes >> ImmutableAttributes.EMPTY
             })
         }

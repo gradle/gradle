@@ -30,6 +30,7 @@ automations:
   # Also post a comment that lists the best experts for the files that were modified.
   comment_experts:
     if:
+      - {{ false }} # disabled for now
       - {{ author.using_gitstream }}
     run:
       - action: add-comment@v1

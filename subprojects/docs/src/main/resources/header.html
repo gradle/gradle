@@ -88,15 +88,16 @@
         <div class="search-container">
             <input type="search" name="q" id="search-input" class="search-input" placeholder="Search the docs"/>
         </div>
-        <h3 id="introduction">Introduction</h3>
+        <h3 id="overview">Overview</h3>
         <ul>
-            <li><a href="../userguide/what_is_gradle.html">What is Gradle?</a></li>
-            <li><a href="https://gradle.com/">Gradle Enterprise</a></li>
+            <li><a href="../userguide/userguide.html">What is Gradle?</a></li>
+            <li><a href="../userguide/about_manual.html">The User Manual</a></li>
         </ul>
 
-        <h3 id="what-is-new">What is new?</h3>
+        <h3 id="what-is-new">Releases</h3>
         <ul>
             <li><a href="../release-notes.html">Release Notes</a></li>
+            <li><a href="../userguide/compatibility.html">Compatibility Notes</a></li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#upgrading-gradle" aria-expanded="false" aria-controls="upgrading-gradle">Upgrading Gradle</a>
                 <ul id="upgrading-gradle">
                     <li><a href="../userguide/upgrading_version_8.html">version 8.X to latest</a></li>
@@ -104,10 +105,15 @@
                     <li><a href="../userguide/upgrading_version_6.html">version 6.X to 7.0</a></li>
                     <li><a href="../userguide/upgrading_version_5.html">version 5.X to 6.0</a></li>
                     <li><a href="../userguide/upgrading_version_4.html">version 4.X to 5.0</a></li>
-                    <li><a href="../userguide/feature_lifecycle.html">Gradle's Feature Lifecycle</a></li>
                 </ul>
             </li>
-            <li><a href="../userguide/compatibility.html">Compatibility Notes</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#migrating-to-gradle" aria-expanded="false" aria-controls="migrating-to-gradle">Migrating to Gradle</a>
+                <ul id="migrating-to-gradle">
+                    <li><a href="../userguide/migrating_from_maven.html">from Maven</a></li>
+                    <li><a href="../userguide/migrating_from_ant.html">from Ant</a></li>
+                </ul>
+            </li>
+            <li><a href="../userguide/feature_lifecycle.html">Gradle's Feature Lifecycle</a></li>
         </ul>
 
         <h3 id="quick-start">Quick Start</h3>
@@ -115,22 +121,6 @@
             <li><a href="../userguide/getting_started.html">Getting Started</a></li>
             <li><a href="../userguide/installation.html">Installing Gradle</a></li>
             <li><a href="../samples/index.html">Samples</a></li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#migrating-to-gradle" aria-expanded="false" aria-controls="migrating-to-gradle">Migrating to Gradle</a>
-                <ul id="migrating-to-gradle">
-                    <li><a href="../userguide/migrating_from_maven.html">from Maven</a></li>
-                    <li><a href="../userguide/migrating_from_ant.html">from Ant</a></li>
-                </ul>
-            </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#gradle-api" aria-expanded="false" aria-controls="gradle-api">Gradle DSLs and API</a>
-                <ul id="gradle-api">
-                    <li><a href="../javadoc/index.html?overview-summary.html">Javadoc</a></li>
-                    <li><a href="../userguide/groovy_build_script_primer.html">Groovy DSL Primer</a></li>
-                    <li><a href="../dsl/index.html">Groovy DSL Reference</a></li>
-                    <li><a href="../userguide/kotlin_dsl.html">Kotlin DSL Primer</a></li>
-                    <li><a href="../kotlin-dsl/index.html" target="_blank">Kotlin DSL API</a></li>
-                    <li><a href="../userguide/migrating_from_groovy_to_kotlin_dsl.html">Groovy to Kotlin DSL Migration</a></li>
-                </ul>
-            </li>
             <li><a href="../userguide/troubleshooting.html">Troubleshooting Builds</a></li>
         </ul>
 
@@ -331,6 +321,16 @@
 
         <h3 id="reference">Reference</h3>
         <ul>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#gradle-api" aria-expanded="false" aria-controls="gradle-api">Gradle DSLs and API</a>
+                <ul id="gradle-api">
+                    <li><a href="../javadoc/index.html?overview-summary.html">Javadoc</a></li>
+                    <li><a href="../userguide/groovy_build_script_primer.html">Groovy DSL Primer</a></li>
+                    <li><a href="../dsl/index.html">Groovy DSL Reference</a></li>
+                    <li><a href="../userguide/kotlin_dsl.html">Kotlin DSL Primer</a></li>
+                    <li><a href="../kotlin-dsl/index.html" target="_blank">Kotlin DSL API</a></li>
+                    <li><a href="../userguide/migrating_from_groovy_to_kotlin_dsl.html">Groovy to Kotlin DSL Migration</a></li>
+                </ul>
+            </li>
             <li><a href="../userguide/plugin_reference.html">Core Plugins</a></li>
             <li id="third-party-integration"><a href="../userguide/third_party_integration.html">Gradle &amp; Third-party Tools</a></li>
             <li><a href="../userguide/userguide.pdf">User Manual PDF</a></li>

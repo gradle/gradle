@@ -41,7 +41,7 @@ class JUnitTestClassProcessorTest extends Specification {
     def classProcessor = createProcessor([] as Set, [] as Set, [] as Set, [] as Set, [] as Set)
 
     JUnitTestClassProcessor createProcessor(Set<String> includeCategories, Set<String> excludeCategories, Set<String> includedTests, Set<String> excludedTests, Set<String> includedTestsCommandLine) {
-        def spec = new JUnitSpec(new TestFilterSpec(includedTests, excludedTests, includedTestsCommandLine), includeCategories, excludeCategories)
+        def spec = new JUnitSpec(new TestFilterSpec(includedTests, excludedTests, includedTestsCommandLine), includeCategories, excludeCategories, false)
         new JUnitTestClassProcessor(spec, new LongIdGenerator(), new TestActorFactory(), Time.clock())
     }
 

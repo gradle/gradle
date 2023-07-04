@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
-import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -39,6 +38,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+
+import static org.gradle.cache.internal.CacheInitializationAction.NO_INIT_REQUIRED;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
 
@@ -111,17 +112,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     protected CacheInitializationAction getInitAction() {
-        return new CacheInitializationAction() {
-            @Override
-            public boolean requiresInitialization(FileLock fileLock) {
-                return false;
-            }
-
-            @Override
-            public void initialize(FileLock fileLock) {
-                throw new UnsupportedOperationException();
-            }
-        };
+        return NO_INIT_REQUIRED;
     }
 
     protected CacheCleanupExecutor getCleanupExecutor() {

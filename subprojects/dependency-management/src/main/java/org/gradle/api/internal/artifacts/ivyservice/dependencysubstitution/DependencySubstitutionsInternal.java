@@ -28,4 +28,9 @@ public interface DependencySubstitutionsInternal extends DependencySubstitutions
     void setMutationValidator(MutationValidator validator);
 
     DependencySubstitutionsInternal copy();
+
+    /**
+     * Discard all state held by this container.
+     */
+    void discard();
 }

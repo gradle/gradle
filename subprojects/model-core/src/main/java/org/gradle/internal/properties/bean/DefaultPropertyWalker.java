@@ -39,6 +39,7 @@ import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker.InstanceMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
+import org.gradle.internal.properties.annotations.NestedValidationUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -75,6 +76,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
             public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value) {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
                 if (value != null) {
+                    NestedValidationUtil.validateBeanType(validationContext, propertyMetadata.getPropertyName(), typeMetadata.getType());
                     ImplementationValue implementation = implementationResolver.resolveImplementation(value);
                     visitor.visitInputProperty(qualifiedName, new ImplementationPropertyValue(implementation), false);
                 } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {

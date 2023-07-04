@@ -73,7 +73,12 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withArgument(String arg);
 
     /**
-     * Sets the environment variables to use when executing the build. Defaults to the environment of this process.
+     * Sets the additional environment variables to use when executing the build.
+     * <p>
+     * The provided environment is added to the environment variables of this process, so it is only possible to add new variables or modify values of existing ones.
+     * Not propagating a variable of this process to the executed build at all is not supported.
+     * <p>
+     * Setting "JAVA_HOME" this way is not supported.
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
@@ -114,6 +119,11 @@ public interface GradleExecuter extends Stoppable {
      * it just modifies result of DefaultGradleVersion.current() for the Gradle that is run by the executer.
      */
     GradleExecuter withGradleVersionOverride(GradleVersion gradleVersion);
+
+    /**
+     * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
+     */
+    GradleExecuter withJavaHome(String userHomeDir);
 
     /**
      * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.

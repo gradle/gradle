@@ -32,4 +32,11 @@ public interface TypeMetadata {
     boolean hasAnnotatedProperties();
 
     PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata);
+
+    /**
+     * Returns the type this {@link TypeMetadata} belongs to.
+     *
+     * @return the type
+     */
+    Class<?> getType();
 }

@@ -85,6 +85,38 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
+    def "simpler android library and application APK assembly test (agp=#agpVersion)"() {
+
+        given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
+        androidLibraryAndApplicationBuild(agpVersion)
+
+        and:
+        def runner = useAgpVersion(agpVersion, runner(
+            'assembleDebug'
+        ))
+
+        when:
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
+        def result = runner.deprecations(AbstractAndroidSantaTrackerSmokeTest.SantaTrackerDeprecations) {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            expectReportDestinationPropertyDeprecation(agpVersion)
+            expectProjectConventionDeprecationWarning(agpVersion)
+            expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            expectBasePluginConventionDeprecation(agpVersion)
+            expectBuildIdentifierNameDeprecation()
+            expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+        }.build()
+
+        then:
+        result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
+
+        where:
+        agpVersion << ["7.4.2"]
+    }
+
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
         given:
@@ -404,6 +436,15 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             'com.android.reporting': TestedVersions.androidGradle,
             'com.android.dynamic-feature': TestedVersions.androidGradle,
         ]
+    }
+
+    @Override
+    protected List<String> getValidationExtraParameters(String version) {
+        if (AGP_VERSIONS.isAgpNightly(version)) {
+            def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
+            return ["-I", init.canonicalPath]
+        }
+        return super.getValidationExtraParameters(version)
     }
 
     @Override

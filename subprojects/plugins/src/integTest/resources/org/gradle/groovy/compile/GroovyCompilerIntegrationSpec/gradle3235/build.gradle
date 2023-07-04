@@ -10,5 +10,5 @@ dependencies {
 }
 
 testing.suites.test {
-    useJUnit()
+    useJUnitJupiter()
 }

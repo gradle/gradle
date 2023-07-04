@@ -22,7 +22,6 @@ import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.lazy.Lazy;
@@ -64,6 +63,8 @@ import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
 
 class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
+
+    private final JvmBytecodeInterceptorSet externalInterceptors;
 
     /**
      * Decoration format. Increment this when making changes.
@@ -175,19 +176,33 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         hasher.putInt(DECORATION_FORMAT);
     }
 
+    public InstrumentingTransformer() {
+        this(JvmBytecodeInterceptorSet.DEFAULT);
+    }
+
+    /**
+     * This constructor can be used in tests with a set of call interceptors complemented by ones generated
+     * specifically for the tests.
+     */
+    public InstrumentingTransformer(JvmBytecodeInterceptorSet externalInterceptors) {
+        this.externalInterceptors = externalInterceptors;
+    }
+
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new LambdaSerializationTransformer(new InstrumentingBackwardsCompatibilityVisitor(visitor)), classData::readClassAsNode));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new LambdaSerializationTransformer(new InstrumentingBackwardsCompatibilityVisitor(visitor)), classData::readClassAsNode, externalInterceptors.interceptorClassNames()));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
         String className;
         private final Supplier<ClassNode> classAsNode;
         private boolean hasGroovyCallSites;
+        private final List<String> generatedInterceptorClassNames;
 
-        public InstrumentingVisitor(ClassVisitor visitor, Supplier<ClassNode> classAsNode) {
+        public InstrumentingVisitor(ClassVisitor visitor, Supplier<ClassNode> classAsNode, List<String> generatedInterceptorClassNames) {
             super(ASM_LEVEL, visitor);
             this.classAsNode = classAsNode;
+            this.generatedInterceptorClassNames = generatedInterceptorClassNames;
         }
 
         @Override
@@ -208,7 +223,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, generatedInterceptorClassNames);
         }
 
         @Override
@@ -239,30 +254,25 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private final InstrumentingVisitor owner;
         private final String className;
         private final Lazy<MethodNode> asNode;
-        private final List<JvmBytecodeCallInterceptor> generatedInterceptors;
+        private final List<JvmBytecodeCallInterceptor> externalInterceptors;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, List<String> externalInterceptors) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
             this.asNode = asNode;
-            generatedInterceptors = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAMES.stream()
+            this.externalInterceptors = externalInterceptors.stream()
                 .map(className -> newInterceptor(className, methodVisitor))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .collect(toImmutableList());
         }
 
-        private static Optional<JvmBytecodeCallInterceptor> newInterceptor(String className, MethodVisitor methodVisitor) {
+        private static JvmBytecodeCallInterceptor newInterceptor(String className, MethodVisitor methodVisitor) {
             try {
                 //noinspection Convert2MethodRef
                 InstrumentationMetadata metadata = (type, superType) -> type.equals(superType); // TODO implement properly
                 Constructor<?> constructor = Class.forName(className).getConstructor(MethodVisitor.class, InstrumentationMetadata.class);
-                return Optional.of((JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, metadata));
-            } catch (ClassNotFoundException e) {
-                // No interceptor definition for this class
-                return Optional.empty();
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                return (JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, metadata);
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -279,7 +289,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return;
             }
 
-            for (JvmBytecodeCallInterceptor generatedInterceptor : generatedInterceptors) {
+            for (JvmBytecodeCallInterceptor generatedInterceptor : externalInterceptors) {
                 if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
                     return;
                 }

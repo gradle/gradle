@@ -64,6 +64,11 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     }
 
     @Override
+    public String getBuildTreePath() {
+        return identityPath.getPath();
+    }
+
+    @Override
     public String getProjectName() {
         return projectName;
     }

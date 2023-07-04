@@ -17,9 +17,9 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
-abstract class AbstractSpecs2IntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
     def 'can run Specs2 tests'() {
         given:

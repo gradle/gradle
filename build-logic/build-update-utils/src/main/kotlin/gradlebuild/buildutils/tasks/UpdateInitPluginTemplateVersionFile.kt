@@ -76,6 +76,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
         findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
         findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)
         findLatest("commons-text", "org.apache.commons:commons-text:latest.release", versionProperties)
+        findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.4,)", versionProperties)
 
         store(versionProperties)
     }

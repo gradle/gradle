@@ -642,6 +642,30 @@ The `expand()` method treats the source files as https://docs.groovy-lang.org/la
 
 NOTE: It's good practice to specify the character set when reading and writing the file, otherwise the transformations won't work properly for non-ASCII text. You configure the character set with the link:{javadocPath}/org/gradle/api/file/CopySpec.html#setFilteringCharset-java.lang.String-[CopySpec.setFilteringCharset(String)] property. If it's not specified, the JVM default character set is used, which is likely to be different from the one you want.
 
+[[sec:setting_file_permissions]]
+=== Setting file permissions
+
+For any `CopySpec` involved in copying files, may it be the `Copy` task itself, or any child specifications, you can explicitly set the permissions the destination files will have, via the link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#filePermissions-org.gradle.api.Action-[CopySpec.filePermissions {}] configurations block.
+You can do the same for directories too, independently of files, via the link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#dirPermissions-org.gradle.api.Action-[CopySpec.dirPermissions {}] configurations block.
+
+NOTE: Not setting permissions explicitly will preserve the permissions of the original files or directories.
+
+.Setting permissions for destination files
+====
+include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=file-permissions]"]
+include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=file-permissions]"]
+====
+
+For a detailed description of file permissions see link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions] and link:{javadocPath}/org/gradle/api/file/UserClassFilePermissions.html[UserClassFilePermissions].
+For details on the convenience method used in the samples see link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html#unix-java.lang.String-[ConfigurableFilePermissions.unix(String)].
+
+Using empty configuration blocks for file or directory permissions still sets them explicitly, just to fixed default values.
+In fact everything that's inside one of these configurations blocks is relative to the default values.
+Default permissions differ for files and directories:
+
+ * *file*: read & write for *owner*, read for *group*, read for *other* (*0644*, *r-wr--r--*)
+ * *directory*: read, write & execute for *owner*, read & execute for *group*, read & execute for *other* (*0755*, *rwxr-xr-x*)
+
 [[sec:using_the_copyspec_class]]
 === Using the `CopySpec` class
 

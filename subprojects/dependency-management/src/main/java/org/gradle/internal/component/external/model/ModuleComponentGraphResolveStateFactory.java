@@ -19,25 +19,27 @@ package org.gradle.internal.component.external.model;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class ModuleComponentGraphResolveStateFactory {
+    private final ComponentIdGenerator idGenerator;
     private final AttributeDesugaring attributeDesugaring;
 
-    public ModuleComponentGraphResolveStateFactory(AttributeDesugaring attributeDesugaring) {
+    public ModuleComponentGraphResolveStateFactory(ComponentIdGenerator idFactory, AttributeDesugaring attributeDesugaring) {
+        this.idGenerator = idFactory;
         this.attributeDesugaring = attributeDesugaring;
     }
 
     public ModuleComponentGraphResolveState stateFor(ModuleComponentResolveMetadata metadata) {
-        return new DefaultModuleComponentGraphResolveState(metadata, attributeDesugaring);
+        return new DefaultModuleComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring, idGenerator);
     }
 
-    public ComponentGraphResolveState stateFor(ComponentGraphResolveMetadata graphMetadata, ComponentResolveMetadata artifactMetadata) {
-        return new DefaultComponentGraphResolveState<>(graphMetadata, artifactMetadata, attributeDesugaring);
+    public ComponentGraphResolveState stateFor(ComponentGraphResolveMetadata graphMetadata, ExternalComponentResolveMetadata artifactMetadata) {
+        return new DefaultComponentGraphResolveState<>(idGenerator.nextComponentId(), graphMetadata, artifactMetadata, attributeDesugaring, idGenerator);
     }
 }
 

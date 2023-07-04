@@ -17,8 +17,12 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
+import spock.lang.Issue
 
-class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec {
+class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def "using @Input annotation on #elementType file elements fails validation with helpful error message"() {
         given:
         buildFile << """
@@ -137,5 +141,94 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         where:
         propertyType            | propertyInitialization                                                        | propertyAssignment                                                        | propertyRead
         "Property<File>"        | "final Property<File> myProp = getObjectFactory().property(File.class)"       | "myProp.set(project.layout.projectDirectory.file('myFile').getAsFile())"  | 'myProp.get().absolutePath'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24979")
+    @ValidationTestFor(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
+    def "cannot annotate type 'java.net.URL' with @Input"() {
+
+        executer.beforeExecute {
+            executer.noDeprecationChecks()
+            executer.withArgument("-Dorg.gradle.internal.max.validation.errors=20")
+        }
+
+        given:
+        buildFile << """
+            interface NestedBean {
+                @Input
+                Property<URL> getNested()
+            }
+
+            abstract class TaskWithInput extends DefaultTask {
+
+                private final NestedBean nested = project.objects.newInstance(NestedBean.class)
+
+                @Input
+                URL getDirect() { null }
+
+                @Input
+                Provider<URL> getProviderInput() { propertyInput }
+
+                @Input
+                abstract Property<URL> getPropertyInput();
+
+                @Input
+                abstract SetProperty<URL> getSetPropertyInput();
+
+                @Input
+                abstract ListProperty<URL> getListPropertyInput();
+
+                @Input
+                abstract MapProperty<String, URL> getMapPropertyInput();
+
+                @Nested
+                abstract NestedBean getNestedInput();
+            }
+
+            tasks.register('verify', TaskWithInput) {
+                def url = uri("https://gradle.org").toURL()
+                propertyInput.set(url)
+                setPropertyInput.set([url])
+                listPropertyInput.set([url])
+                mapPropertyInput.put("some", url)
+                nestedInput.nested.set(url)
+                doLast {
+                    println(setPropertyInput.get())
+                }
+            }
+        """
+
+        when:
+        fails "verify"
+
+        then:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'TaskWithInput' property 'direct' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
+            'validation_problems', 'unsupported_value_type')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'TaskWithInput' property 'providerInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
+            'validation_problems', 'unsupported_value_type')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'TaskWithInput' property 'propertyInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
+            'validation_problems', 'unsupported_value_type')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'TaskWithInput' property 'setPropertyInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
+            'validation_problems', 'unsupported_value_type')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'TaskWithInput' property 'listPropertyInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
+            'validation_problems', 'unsupported_value_type')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'TaskWithInput' property 'mapPropertyInput' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
+            'validation_problems', 'unsupported_value_type')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'TaskWithInput' property 'nestedInput.nested' has @Input annotation used on type 'java.net.URL' or a property of this type. " +
+                "Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type",
+            'validation_problems', 'unsupported_value_type')
     }
 }

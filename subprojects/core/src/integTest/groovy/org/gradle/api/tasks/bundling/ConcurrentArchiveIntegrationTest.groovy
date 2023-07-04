@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -437,22 +438,14 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         given: "2 archive files"
         createTar('test1.tar') {
             subdir1 {
-                file ('file.txt').text = 'original text 1'
+                file('file.txt').text = 'original text 1'
             }
             subdir2 {
                 file('file2.txt').text = 'original text 2'
-                file ('file3.txt').text =  'original text 3'
+                file('file3.txt').text = 'original text 3'
             }
         }
-        createTar('test2.tar') {
-            subdir1 {
-                file ('file.txt').text = 'original text 1'
-            }
-            subdir2 {
-                file('file2.txt').text = 'original text 2'
-                file ('file3.txt').text =  'original text 3'
-            }
-        }
+        FileUtils.copyFile(file('test1.tar'), file('test2.tar'));
 
         and: "where a build edits each archive differently via a visitor"
         file('build.gradle') << """

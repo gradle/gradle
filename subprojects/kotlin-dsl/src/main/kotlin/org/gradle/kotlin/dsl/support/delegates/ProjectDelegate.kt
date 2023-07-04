@@ -163,6 +163,9 @@ abstract class ProjectDelegate : Project {
     override fun getPath(): String =
         delegate.path
 
+    override fun getBuildTreePath(): String =
+        delegate.buildTreePath
+
     override fun zipTree(zipPath: Any): FileTree =
         delegate.zipTree(zipPath)
 

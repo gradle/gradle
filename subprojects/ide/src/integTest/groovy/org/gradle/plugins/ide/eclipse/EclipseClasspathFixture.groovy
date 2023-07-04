@@ -114,6 +114,10 @@ class EclipseClasspathFixture {
         String getName() {
             return entry.@path.substring(1)
         }
+
+        void assertModularDependency() {
+            assert entry.attributes.find { it.attribute[0].@name == 'module' && it.attribute[0].@value == 'true' }
+        }
     }
 
     class EclipseSourceDir extends EclipseClasspathEntry {

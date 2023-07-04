@@ -104,7 +104,7 @@ class VersionRangeResolveTestScenarios {
         expected: "12"
     )
 
-    public static final StrictPermutationsProvider SCENARIOS_PREFER = StrictPermutationsProvider.check(
+    public static final StrictPermutationsProvider SCENARIOS_PREFER_BATCH1 = StrictPermutationsProvider.check(
         versions: [PREFER_11, PREFER_12],
         expected: "12",
         conflicts: true
@@ -137,10 +137,18 @@ class VersionRangeResolveTestScenarios {
         expectedStrict: [IGNORE, "12"],
         conflicts: true // TODO Should not be any conflict resolution here
     ).and(
-        versions: [PREFER_12, RANGE_10_11],
+        versions: [FIXED_11, PREFER_12, RANGE_10_14],
         expected: "11",
-        expectedStrict: [IGNORE, "11"]
+        expectedStrictSingle: ["11", IGNORE, "11"],
+        expectedStrictMulti: ["11", IGNORE, IGNORE]
     ).and(
+        versions: [PREFER_11, PREFER_13, RANGE_10_12],
+        expected: "11",
+        expectedStrictSingle: [IGNORE, IGNORE, "11"],
+        expectedStrictMulti: [IGNORE, IGNORE, IGNORE],
+    )
+
+    public static final StrictPermutationsProvider SCENARIOS_PREFER_BATCH2 = StrictPermutationsProvider.check(
         versions: [PREFER_12, RANGE_10_12],
         expected: "12",
         expectedStrict: [IGNORE, "12"]
@@ -163,25 +171,19 @@ class VersionRangeResolveTestScenarios {
         versions: [PREFER_11, RANGE_10_11, PREFER_13, RANGE_10_14],
         expected: "11"
     ).and(
-        versions: [FIXED_11, PREFER_12, RANGE_10_14],
-        expected: "11",
-        expectedStrictSingle: ["11", IGNORE, "11"],
-        expectedStrictMulti: ["11", IGNORE, IGNORE]
-    ).and(
-        versions: [PREFER_11, PREFER_13, RANGE_10_12],
-        expected: "11",
-        expectedStrictSingle: [IGNORE, IGNORE, "11"],
-        expectedStrictMulti: [IGNORE, IGNORE, IGNORE],
-    ).and(
         versions: [PREFER_7_8, FIXED_12],  // No version satisfies the range [7,8]
         expected: FAILED
     ).and(
         versions: [PREFER_14_16, FIXED_12], // No version satisfies the range [14,16]
         expected: FAILED
+    ).and(
+        versions: [PREFER_12, RANGE_10_11],
+        expected: "11",
+        expectedStrict: [IGNORE, "11"]
     )
 
     // Keep in mind that only versions in 9..13 are published
-    public static final StrictPermutationsProvider SCENARIOS_TWO_DEPENDENCIES = StrictPermutationsProvider.check(
+    public static final StrictPermutationsProvider SCENARIOS_TWO_DEPENDENCIES_BATCH1 = StrictPermutationsProvider.check(
         versions: [FIXED_7, FIXED_13],
         expected: "13",
         expectedStrict: [REJECTED, "13"],
@@ -254,7 +256,9 @@ class VersionRangeResolveTestScenarios {
         versions: [RANGE_10_14, RANGE_10_OR_HIGHER],
         expected: "13",
         expectedStrict: ["13", IGNORE]
-    ).and(
+    )
+
+    public static final StrictPermutationsProvider SCENARIOS_TWO_DEPENDENCIES_BATCH2 = StrictPermutationsProvider.check(
         versions: [RANGE_10_OR_HIGHER, RANGE_11_OR_HIGHER],
         expected: "13"
     ).and(

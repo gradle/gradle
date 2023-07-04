@@ -116,6 +116,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "TreeMap<String, Integer>"           | treeMapWithComparator()                   | "[b:2, a:1]"
         "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])"     | "[a:1, b:2]"
         "EnumMap<SomeEnum, String>"          | enumMapToString()                         | "[One:one, Two:two]"
+        "ArrayDeque<String>"                 | "['a', 'b', 'c'] as ArrayDeque"           | "[a, b, c]"
         "byte[]"                             | "[Byte.MIN_VALUE, Byte.MAX_VALUE]"        | "[-128, 127]"
         "short[]"                            | "[Short.MIN_VALUE, Short.MAX_VALUE]"      | "[-32768, 32767]"
         "int[]"                              | integerArray()                            | "[-2147483648, 2147483647]"

@@ -102,7 +102,7 @@ Provides code coverage metrics for your Java project using http://www.eclemma.or
 Aggregates the results of multiple JaCoCo code coverage reports (potentially spanning multiple Gradle projects) into a single HTML report.
 
 <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>::
-Performs quality checks on your Groovy source files using http://codenarc.sourceforge.net/index.html[CodeNarc] and generates associated reports.
+Performs quality checks on your Groovy source files using https://codenarc.org/[CodeNarc] and generates associated reports.
 
 == IDE integration
 

@@ -20,6 +20,7 @@ automations:
   # If someone adds a TODO, remind them about it by requesting removal
   point_out_todos:
     if:
+      - {{ false }} # disabled for now
       - {{ author.using_gitstream }}
       - {{ source.diff.files | matchDiffLines(regex=r/(TODO)|(todo)/) | some }}
     run:

@@ -170,7 +170,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
 
         @Override
         public String getId() {
-            return descriptor.name;
+            return descriptor.getName();
         }
 
         @Override
@@ -180,7 +180,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
 
         @Override
         public String getName() {
-            return descriptor.name;
+            return descriptor.getName();
         }
 
         @Override

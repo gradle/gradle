@@ -1171,22 +1171,23 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 530 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 100: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1000: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1005: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1010: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1015: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1020: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1025: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1030: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1035: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1040: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1045: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 105: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1050: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1055: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 50: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 500: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 505: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 510: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 515: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 520: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 525: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 530: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 535: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 540: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 545: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 55: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 550: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 555: invocation of 'Task.project' at execution time is unsupported.")
             totalProblemsCount = 530
+            problemsWithStackTraceCount = 50
         }
         failure.assertHasFailure("Configuration cache problems found in this build.") { failure ->
             failure.assertHasCauses(5)

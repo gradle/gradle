@@ -46,13 +46,11 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Pair;
-import org.gradle.util.internal.kotlin.KotlinDslVersion;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
@@ -71,7 +69,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 // spock-core references junit-jupiter's BOM, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),
-        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", getAppropriateKotlinVersion(), Collections.singletonList(
+        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.8.22", Collections.singletonList(
                 // kotlin-test-junit5 depends on junit-jupiter, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),
@@ -79,7 +77,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         private final String groupName;
 
-        private final Supplier<String> defaultVersion;
+        private final String defaultVersion;
         private final List<String> runtimeDependencies;
 
         TestingFramework(String group, String name, String defaultVersion) {
@@ -87,17 +85,13 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         }
 
         TestingFramework(String group, String name, String defaultVersion, List<String> runtimeDependencies) {
-            this(group, name, () -> defaultVersion, runtimeDependencies);
-        }
-
-        TestingFramework(String group, String name, Supplier<String> defaultVersion, List<String> runtimeDependencies) {
             this.groupName = group + ":" + name;
             this.defaultVersion = defaultVersion;
             this.runtimeDependencies = runtimeDependencies;
         }
 
         public String getDefaultVersion() {
-            return defaultVersion.get();
+            return defaultVersion;
         }
 
         public List<String> getImplementationDependencies(String version) {
@@ -122,10 +116,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 return "2.2-groovy-4.0";
             }
             return "2.2-groovy-3.0";
-        }
-
-        private static Supplier<String> getAppropriateKotlinVersion() {
-            return () -> KotlinDslVersion.current().getKotlinVersion();
         }
     }
 
@@ -234,7 +224,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                     case KOTLIN_TEST: // fall-through
                     case JUNIT_JUPITER: // fall-through
                     case SPOCK:
-                        return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false);
+                        return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false, task.getDryRun());
                     case TESTNG:
                         return new TestNGTestFramework(task, (DefaultTestFilter) task.getFilter(), getObjectFactory());
                     default:

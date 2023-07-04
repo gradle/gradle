@@ -18,17 +18,13 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.Action
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
@@ -40,12 +36,10 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
-import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification
 
 class DefaultConfigurationContainerSpec extends Specification {
@@ -57,18 +51,9 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DependencyMetaDataProvider metaDataProvider = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
     private ComponentIdentifierFactory componentIdentifierFactory = Mock()
-    private DependencySubstitutionRules globalSubstitutionRules = Mock()
-    private VcsMappingsStore vcsMappingsInternal = Mock()
     private BuildOperationExecutor buildOperationExecutor = Mock()
-    private ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
-        module(_, _) >> { args ->
-            DefaultModuleIdentifier.newId(*args)
-        }
-    }
-    private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DependencyLockingProvider dependencyLockingProvider = Mock()
     private ProjectStateRegistry projectStateRegistry = Mock()
-    private DocumentationRegistry documentationRegistry = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
 
@@ -95,7 +80,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         buildOperationExecutor,
         Stub(PublishArtifactNotationParserFactory),
         immutableAttributesFactory,
-        documentationRegistry,
+        Stub(ResolveExceptionContextualizer),
         userCodeApplicationContext,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
@@ -105,18 +90,10 @@ class DefaultConfigurationContainerSpec extends Specification {
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
-        globalSubstitutionRules,
-        vcsMappingsInternal,
-        componentIdentifierFactory,
-        immutableAttributesFactory,
-        moduleIdentifierFactory,
-        componentSelectorConverter,
-        dependencyLockingProvider,
         domainObjectCollectionCallbackActionDecorator,
-        Mock(NotationParser),
-        TestUtil.objectFactory(),
         rootComponentMetadataBuilderFactory,
-        configurationFactory
+        configurationFactory,
+        Mock(ResolutionStrategyFactory)
     )
 
     def "adds and gets"() {

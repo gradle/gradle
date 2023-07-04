@@ -3,7 +3,6 @@ import com.google.gson.Gson
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.buildutils.model.ReleasedVersion
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
-import gradlebuild.buildutils.tasks.UpdateKotlinEmbeddedVersion
 import gradlebuild.buildutils.tasks.UpdateKotlinVersions
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
 import java.net.URL
@@ -33,7 +32,6 @@ tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") 
 tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment = " Generated - Update by running `./gradlew updateAgpVersions`"
     minimumSupportedMinor = "7.3"
-    fetchNightly = false
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties")
     compatibilityDocFile = layout.projectDirectory.file("subprojects/docs/src/docs/userguide/compatibility.adoc")
 }
@@ -43,17 +41,6 @@ tasks.register<UpdateKotlinVersions>("updateKotlinVersions") {
     minimumSupported = "1.6.10"
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties")
     compatibilityDocFile = layout.projectDirectory.file("subprojects/docs/src/docs/userguide/compatibility.adoc")
-}
-
-tasks.register<UpdateKotlinEmbeddedVersion>("updateKotlinEmbeddedVersion") {
-    description = "Updates the embedded Kotlin version and the Kotlin version used in samples and snippets. " +
-        "When no -PnextVersion is passed to a task, latest version is fetched from MavenCentral."
-    rootDir = rootProject.layout.projectDirectory
-    nextVersion = providers.gradleProperty("nextVersion")
-    foldersWithFilesToUpdateKotlinVersion = setOf(
-        "subprojects/docs/src/snippets",
-        "subprojects/docs/src/samples",
-    )
 }
 
 data class VersionBuildTimeInfo(val version: String, val buildTime: String)

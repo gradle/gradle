@@ -23,7 +23,7 @@ import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentit
 import java.util.List;
 
 /**
- * A planned node for a {@link TransformationNode}.
+ * A planned node for a {@link TransformStepNode}.
  */
 public class DefaultPlannedTransformStep implements PlannedNodeInternal {
 

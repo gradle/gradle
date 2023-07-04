@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -24,6 +25,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
@@ -56,9 +58,11 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         FileNotationConverter fileNotationConverter = new FileNotationConverter(fileResolver);
         ArchiveTaskNotationConverter archiveTaskNotationConverter = new ArchiveTaskNotationConverter();
         PublishArtifactNotationConverter publishArtifactNotationConverter = new PublishArtifactNotationConverter();
+        ProviderNotationConverter providerNotationConverter = new ProviderNotationConverter();
 
         NotationParser<Object, IvyArtifact> sourceNotationParser = NotationParserBuilder
                 .toType(IvyArtifact.class)
+                .fromType(Provider.class, Cast.uncheckedCast(providerNotationConverter))
                 .converter(archiveTaskNotationConverter)
                 .converter(publishArtifactNotationConverter)
                 .converter(fileNotationConverter)
@@ -70,6 +74,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
                 .toType(IvyArtifact.class)
                 .converter(archiveTaskNotationConverter)
                 .converter(publishArtifactNotationConverter)
+                .fromType(Provider.class, Cast.uncheckedCast(providerNotationConverter))
                 .converter(ivyArtifactMapNotationConverter)
                 .converter(fileNotationConverter)
                 .toComposite();
@@ -94,6 +99,19 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         @Override
         protected IvyArtifact parseType(PublishArtifact publishArtifact) {
             return instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, publishArtifact, publicationIdentity, taskDependencyFactory);
+        }
+    }
+
+    private class ProviderNotationConverter implements NotationConverter<Provider<?>, IvyArtifact> {
+        @Override
+        public void convert(Provider<?> publishArtifact, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
+            IvyArtifact artifact = instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, new LazyPublishArtifact(publishArtifact, fileResolver, taskDependencyFactory), publicationIdentity, taskDependencyFactory);
+            result.converted(artifact);
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Instances of Provider.");
         }
     }
 
@@ -135,6 +153,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
             this.sourceNotationParser = sourceNotationParser;
         }
 
+        @SuppressWarnings("unused")
         protected IvyArtifact parseMap(@MapKey("source") Object source) {
             return sourceNotationParser.parseNotation(source);
         }

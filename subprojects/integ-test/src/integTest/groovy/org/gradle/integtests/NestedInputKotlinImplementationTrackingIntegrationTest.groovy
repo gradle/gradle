@@ -137,7 +137,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         project2.file('build/tmp/myTask/output.txt').text == "hello"
     }
 
-    def "task action defined in latest Kotlin can be tracked when using language version #kotlinVersion"() {
+    def "task action defined in latest Kotlin can be tracked when using language version #kotlinLanguageVersion"() {
         assumeFalse(GradleContextualExecuter.embedded)
         file("buildSrc/build.gradle.kts") << """
             plugins {
@@ -163,8 +163,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
             tasks.withType<KotlinCompile>().configureEach {
                 compilerOptions {
-                    apiVersion.set(KotlinVersion.fromVersion("${kotlinVersion}"))
-                    languageVersion.set(KotlinVersion.fromVersion("${kotlinVersion}"))
+                    apiVersion.set(KotlinVersion.fromVersion("${kotlinLanguageVersion}"))
+                    languageVersion.set(KotlinVersion.fromVersion("${kotlinLanguageVersion}"))
                 }
             }
         """
@@ -190,8 +190,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         """
 
         when:
-        if (kotlinVersion == "1.4") {
-            executer.expectDeprecationWarning("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
+        if (['1.4', '1.5'].contains(kotlinLanguageVersion)) {
+            executer.expectDeprecationWarning("w: Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
         }
         run "myTask"
 
@@ -199,7 +199,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         executedAndNotSkipped(":myTask")
 
         where:
-        kotlinVersion << KotlinGradlePluginVersions.LANGUAGE_VERSIONS
+        kotlinLanguageVersion << KotlinGradlePluginVersions.LANGUAGE_VERSIONS
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation, TestFile projectDir = temporaryFolder.testDirectory) {

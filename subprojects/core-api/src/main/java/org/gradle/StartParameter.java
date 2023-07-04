@@ -178,6 +178,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * Returns the project's cache dir.
      *
+     * <p>Note that this directory is managed by Gradle, and it assumes full ownership of its contents.
+     * Plugins and build logic should not store or modify any files or directories within this cache directory.
+     * 
      * @return project's cache dir, or null if the default location is to be used.
      */
     @Nullable

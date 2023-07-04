@@ -67,6 +67,72 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .hasSourceEquivalentTo(generatedClass)
     }
 
+    def "should auto generate adapter for upgraded property with boolean"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+
+            @VisitForInstrumentation(value = {Task.class})
+            public abstract class Task {
+                @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
+                public abstract Property<Boolean> getIncremental();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+                @Override
+                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                                               String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                         if (name.equals("isIncremental") && descriptor.equals("()Z") && opcode == Opcodes.INVOKEVIRTUAL) {
+                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_incremental", "(Lorg/gradle/test/Task;)Z");
+                             return true;
+                         }
+                     }
+                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                      if (name.equals("setIncremental") && descriptor.equals("(Z)Lorg/gradle/test/Task;") && opcode == Opcodes.INVOKEVIRTUAL) {
+                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_incremental", "(Lorg/gradle/test/Task;Z)Lorg/gradle/test/Task;");
+                             return true;
+                         }
+                     }
+                    return false;
+                }
+            }
+        """
+        def adapterClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            import org.gradle.test.Task;
+
+            public class Task_Adapter {
+                public static boolean access_get_incremental(Task self) {
+                    return self.getIncremental().get();
+                }
+
+                public static Task access_set_incremental(Task self, boolean arg0) {
+                    self.getIncremental().set(arg0);
+                    return self;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+        assertThat(compilation)
+            .generatedSourceFile(fqName(adapterClass))
+            .hasSourceEquivalentTo(adapterClass)
+    }
+
     def "should auto generate adapter for upgraded property with type #upgradedType"() {
         given:
         def givenSource = source"""
@@ -117,5 +183,53 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         "RegularFileProperty"         | "File"           | ".getAsFile().get()" | ".fileValue(arg0)" | "java.io.File"
         "DirectoryProperty"           | "File"           | ".getAsFile().get()" | ".fileValue(arg0)" | "java.io.File"
         "ConfigurableFileCollection"  | "FileCollection" | ""                   | ".setFrom(arg0)"   | "org.gradle.api.file.FileCollection"
+    }
+
+    def "should correctly generate interceptor when property name contains get"() {
+        given:
+        def givenSource = source"""
+            package org.gradle.test;
+
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+
+            @VisitForInstrumentation(value = {Task.class})
+            public abstract class Task {
+                @UpgradedProperty
+                public abstract Property<String> getTargetCompatibility();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+                @Override
+                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                                               String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                         if (name.equals("getTargetCompatibility") && descriptor.equals("()Ljava/lang/String;") && opcode == Opcodes.INVOKEVIRTUAL) {
+                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_targetCompatibility", "(Lorg/gradle/test/Task;)Ljava/lang/String;");
+                             return true;
+                         }
+                    }
+                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                       if (name.equals("setTargetCompatibility") && descriptor.equals("(Ljava/lang/String;)V") && opcode == Opcodes.INVOKEVIRTUAL) {
+                           _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_targetCompatibility", "(Lorg/gradle/test/Task;Ljava/lang/String;)V");
+                           return true;
+                       }
+                    }
+                    return false;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
     }
 }

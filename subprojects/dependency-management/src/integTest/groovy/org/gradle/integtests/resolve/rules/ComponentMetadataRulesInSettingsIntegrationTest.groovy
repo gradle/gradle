@@ -23,8 +23,8 @@ import org.gradle.integtests.resolve.PluginDslSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
-import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
@@ -219,7 +219,7 @@ class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDepe
     }
 
     // fails to delete directory under Windows otherwise
-    @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled })
+    @Requires(UnitTestPreconditions.NotWindows)
     def "rules applied in settings don't apply to plugin resolution"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()

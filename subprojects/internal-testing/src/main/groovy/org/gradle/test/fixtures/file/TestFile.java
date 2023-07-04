@@ -403,6 +403,14 @@ public class TestFile extends File {
     }
 
     /**
+     * Inserts the given text at the start of the file
+     */
+    public void prepend(String text) {
+        String original = getText();
+        setText(text + original);
+    }
+
+    /**
      * Inserts the given text on a new line before the given text
      */
     public void insertBefore(String text, String newText) {

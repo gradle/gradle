@@ -84,7 +84,11 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         UpgradedPropertyType upgradedPropertyType = implementationExtra.getUpgradedPropertyType();
         if (isSetter) {
             String setCall = getSetCall(upgradedPropertyType);
-            return CodeBlock.of("$N.$N()$N;", SELF_PARAMETER_NAME, propertyGetterName, setCall);
+            if (implementationExtra.isFluentSetter()) {
+                return CodeBlock.of("$N.$N()$N;\nreturn $N;", SELF_PARAMETER_NAME, propertyGetterName, setCall, SELF_PARAMETER_NAME);
+            } else {
+                return CodeBlock.of("$N.$N()$N;", SELF_PARAMETER_NAME, propertyGetterName, setCall);
+            }
         } else {
             String getCall = getGetCall(upgradedPropertyType);
             return CodeBlock.of("return $N.$N()$N;", SELF_PARAMETER_NAME, propertyGetterName, getCall);

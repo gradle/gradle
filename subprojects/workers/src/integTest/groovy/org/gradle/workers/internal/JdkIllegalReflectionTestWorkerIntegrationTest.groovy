@@ -18,8 +18,8 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -71,7 +71,7 @@ class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationS
         """
     }
 
-    @Requires(TestPrecondition.JDK16_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk16OrLater)
     @Issue("https://github.com/gradle/gradle/issues/19771")
     def "both tests and production code fail when application uses illegal reflection"() {
         when:
@@ -88,7 +88,7 @@ class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationS
         results.testClass("example.MainTest").assertTestFailed("runTest", containsString('module java.base does not open java.lang to unnamed module'))
     }
 
-    @Requires(TestPrecondition.JDK16_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk16OrLater)
     @Issue("https://github.com/gradle/gradle/issues/19771")
     def "can add --add-opens flag in test to permit reflection"() {
         given:

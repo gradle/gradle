@@ -21,26 +21,26 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import javax.annotation.Nullable;
 
 /**
- * Defines a variant that is the result of applying a transformation chain to produce a variant with the given attributes.
+ * Defines a variant that is the result of applying a transform chain to produce a variant with the given attributes.
  */
 public interface VariantDefinition {
     /**
-     * @return This variant's attributes after transformations are applied.
+     * @return This variant's attributes after all chain transforms are applied.
      */
     ImmutableAttributes getTargetAttributes();
 
     /**
-     * @return The transformation chain which transforms the root variant to this variant.
+     * @return The transform chain which transforms the root variant to this variant.
      */
-    TransformationChain getTransformationChain();
+    TransformChain getTransformChain();
 
     /**
-     * The single transformation step which transforms the previous variant to this variant.
+     * The single transform step which transforms the previous variant to this variant.
      */
-    TransformationStep getTransformationStep();
+    TransformStep getTransformStep();
 
     /**
-     * @return The previous variant in the transformation chain. If null, this variant uses the producer variant as its root.
+     * @return The previous variant in the transform chain. If null, this variant uses the producer variant as its root.
      */
     @Nullable
     VariantDefinition getPrevious();

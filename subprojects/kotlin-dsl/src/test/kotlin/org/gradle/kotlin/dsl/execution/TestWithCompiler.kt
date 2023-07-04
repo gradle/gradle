@@ -80,7 +80,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
             sourceHash,
             programKind,
             programTarget,
-            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.root)
+            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
         ).compile(program)
     }
 

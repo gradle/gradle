@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -69,48 +70,49 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
-    public void resolveBuildDependencies(ResolveContext resolveContext, ResolverResults result) {
+    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
         if (!resolveContext.hasDependencies()) {
-            emptyGraph(resolveContext, result, false);
+            return emptyGraph(resolveContext, false);
         } else {
-            delegate.resolveBuildDependencies(resolveContext, result);
+            return delegate.resolveBuildDependencies(resolveContext);
         }
     }
 
     @Override
-    public void resolveGraph(ResolveContext resolveContext, ResolverResults results) throws ResolveException {
+    public ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException {
         if (!resolveContext.hasDependencies()) {
-            emptyGraph(resolveContext, results, true);
+            return emptyGraph(resolveContext, true);
         } else {
-            delegate.resolveGraph(resolveContext, results);
+            return delegate.resolveGraph(resolveContext);
         }
     }
 
-    private void emptyGraph(ResolveContext resolveContext, ResolverResults results, boolean verifyLocking) {
+    private ResolverResults emptyGraph(ResolveContext resolveContext, boolean verifyLocking) {
         if (verifyLocking && resolveContext.getResolutionStrategy().isDependencyLockingEnabled()) {
             DependencyLockingProvider dependencyLockingProvider = resolveContext.getResolutionStrategy().getDependencyLockingProvider();
             DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
                 // Invalid lock state, need to do a real resolution to gather locking failures
-                delegate.resolveGraph(resolveContext, results);
-                return;
+                return delegate.resolveGraph(resolveContext);
             }
             dependencyLockingProvider.persistResolvedDependencies(resolveContext.getName(), Collections.emptySet(), Collections.emptySet());
         }
+
         Module module = resolveContext.getModule();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes());
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
-        results.graphResolved(emptyResult, emptyProjectResult, EmptyResults.INSTANCE);
+        return DefaultResolverResults.graphResolved(emptyResult, emptyProjectResult, EmptyResults.INSTANCE, null);
     }
 
     @Override
-    public void resolveArtifacts(ResolveContext resolveContext, ResolverResults results) throws ResolveException {
-        if (!resolveContext.hasDependencies() && results.getVisitedArtifacts() == EmptyResults.INSTANCE) {
-            results.artifactsResolved(new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
+    public ResolverResults resolveArtifacts(ResolveContext resolveContext, ResolverResults graphResults) throws ResolveException {
+        if (!resolveContext.hasDependencies() && graphResults.getVisitedArtifacts() == EmptyResults.INSTANCE) {
+            return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
         } else {
-            delegate.resolveArtifacts(resolveContext, results);
+            assert graphResults.getArtifactResolveState() != null;
+            return delegate.resolveArtifacts(resolveContext, graphResults);
         }
     }
 

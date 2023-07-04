@@ -48,7 +48,6 @@ import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.util.internal.DefaultGradleVersion;
-import org.gradle.util.internal.kotlin.KotlinDslVersion;
 
 import javax.annotation.Nullable;
 import java.io.PrintStream;

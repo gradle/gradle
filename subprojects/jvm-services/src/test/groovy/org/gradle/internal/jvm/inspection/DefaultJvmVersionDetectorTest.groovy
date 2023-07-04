@@ -32,7 +32,7 @@ class DefaultJvmVersionDetectorTest extends Specification {
     DefaultJvmVersionDetector detector = new DefaultJvmVersionDetector(
         new DefaultJvmMetadataDetector(
             TestFiles.execHandleFactory(),
-            TestFiles.tmpDirTemporaryFileProvider(tmpDir.root)
+            TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
         )
     )
 

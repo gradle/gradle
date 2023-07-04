@@ -22,13 +22,13 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.junit.Assume.assumeTrue
 
-@Requires(TestPrecondition.NOT_MAC_OS_X_M1)
+@Requires(UnitTestPreconditions.NotMacOsM1)
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
         def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)

@@ -36,7 +36,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
-import org.gradle.internal.component.model.VariantArtifactSelectionMetadata;
+import org.gradle.internal.component.model.VariantArtifactSelectionCandidates;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.VariantWithOverloadAttributes;
 import org.gradle.internal.lazy.Lazy;
@@ -69,7 +69,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, VariantArtifactSelectionMetadata variant, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(component, variant.getLegacyVariants(), exclusions);
         ComponentArtifactResolveVariantState allResolvedVariants = new MemoizingComponentArtifactResolveVariantState(component, variant, exclusions);
 
@@ -108,7 +108,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         );
 
         boolean hasExcludedArtifact = artifactsToResolve.size() < artifacts.size();
-        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifacts);
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifactsToResolve);
 
         if (hasExcludedArtifact) {
             // An ad hoc variant, has no identifier
@@ -147,7 +147,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     private class MemoizingComponentArtifactResolveVariantState implements ComponentArtifactResolveVariantState {
         private final Lazy<Set<ResolvedVariant>> variants;
 
-        public MemoizingComponentArtifactResolveVariantState(ComponentArtifactResolveMetadata component, VariantArtifactSelectionMetadata variant, ExcludeSpec exclusions) {
+        public MemoizingComponentArtifactResolveVariantState(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions) {
             variants = Lazy.locking().of(() -> buildResolvedVariants(component, variant.getAllVariants(), exclusions));
         }
 

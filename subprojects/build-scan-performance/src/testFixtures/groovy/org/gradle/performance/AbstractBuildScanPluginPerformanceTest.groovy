@@ -29,7 +29,6 @@ import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.performance.results.CrossBuildPerformanceResults
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -39,9 +38,6 @@ import static org.gradle.performance.fixture.BaselineVersionResolver.toBaselineV
 class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
 
     static String incomingDir = "../../incoming"
-
-    @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()

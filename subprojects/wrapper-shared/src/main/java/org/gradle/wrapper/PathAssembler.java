@@ -45,7 +45,7 @@ public class PathAssembler {
     }
 
     private String rootDirName(String distName, WrapperConfiguration configuration) {
-        String urlHash = getHash(Download.safeUri(configuration.getDistribution()).toString());
+        String urlHash = getHash(Download.safeUri(configuration.getDistribution()).toASCIIString());
         return distName + "/" + urlHash;
     }
 

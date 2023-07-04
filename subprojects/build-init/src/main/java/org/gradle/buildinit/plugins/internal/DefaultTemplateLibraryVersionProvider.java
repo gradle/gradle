@@ -16,7 +16,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.internal.kotlin.KotlinDslVersion;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -35,12 +34,8 @@ public class DefaultTemplateLibraryVersionProvider implements TemplateLibraryVer
 
     @Override
     public String getVersion(String module) {
-        if ("kotlin".equals(module)) {
-            return KotlinDslVersion.current().getKotlinVersion();
-        } else {
-            String property = libraryVersions.getProperty(module);
-            assert property != null : module + " version is not defined";
-            return property;
-        }
+        String property = libraryVersions.getProperty(module);
+        assert property != null : module + " version is not defined";
+        return property;
     }
 }

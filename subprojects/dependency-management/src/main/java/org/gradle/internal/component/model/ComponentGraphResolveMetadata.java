@@ -58,10 +58,11 @@ public interface ComponentGraphResolveMetadata {
     @Nullable
     ConfigurationGraphResolveMetadata getConfiguration(String name);
 
+    /**
+     * Returns the platforms that this component belongs to.
+     */
     List<? extends VirtualComponentIdentifier> getPlatformOwners();
 
     @Nullable
     String getStatus();
-
-    boolean isMissing();
 }

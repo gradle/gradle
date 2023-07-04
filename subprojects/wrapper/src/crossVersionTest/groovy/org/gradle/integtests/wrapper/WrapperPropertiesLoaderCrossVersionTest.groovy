@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
-import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.junit.Assume.assumeTrue
@@ -32,9 +32,10 @@ import static org.junit.Assume.assumeTrue
 class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
-    @IgnoreIf(
-        value = { TestPrecondition.WINDOWS.fulfilled && !TestPrecondition.JDK11_OR_LATER.fulfilled },
-        reason = 'https://github.com/gradle/gradle-private/issues/3758')
+    @Requires(
+        value = UnitTestPreconditions.NotWindowsJavaBefore11,
+        reason = 'https://github.com/gradle/gradle-private/issues/3758'
+    )
     void "System properties defined in gradle.properties are available in buildSrc and in included builds"() {
         given:
         GradleDistribution wrapperVersion = previous

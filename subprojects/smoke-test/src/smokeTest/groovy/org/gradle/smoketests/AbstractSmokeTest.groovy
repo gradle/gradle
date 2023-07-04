@@ -57,6 +57,9 @@ abstract class AbstractSmokeTest extends Specification {
          * @see BuildScanPluginSmokeTest
          */
 
+        // https://plugins.gradle.org/plugin/biz.aQute.bnd
+        static bnd = "6.4.0"
+
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
         static nebulaDependencyRecommender = "12.2.0"
 
@@ -96,7 +99,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "33.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of(*AGP_VERSIONS.latests)
+        static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of(*KOTLIN_VERSIONS.latests)
@@ -189,6 +192,15 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/com.palantir.consistent-versions
         static palantirConsistentVersions = "2.12.0"
+
+        // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
+        static teamCityGradlePluginRef = "v0.33"
+
+        // https://github.com/jenkinsci/gradle-plugin/releases
+        static jenkinsGradlePluginRef = "gradle-2.8"
+
+        // https://github.com/gradle/gradle-enterprise-bamboo-plugin/releases
+        static bambooGradlePluginRef = "gradle-enterprise-bamboo-plugin-1.1.0"
     }
 
     static class Versions implements Iterable<String> {
