@@ -99,8 +99,8 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         List<BuildOperationRecord> executions = getTransformExecutions()
         executions.size() == 2
-        def projectExecution = executions.find { it.details.workspaceId == projectTransformIdentification.uniqueId }
-        def externalExecution = executions.find { it.details.workspaceId == externalTransformIdentification.uniqueId }
+        def projectExecution = executions.find { it.details.identity == projectTransformIdentification.identity }
+        def externalExecution = executions.find { it.details.identity == externalTransformIdentification.identity }
 
         with(projectExecution.result) {
             skipMessage == null

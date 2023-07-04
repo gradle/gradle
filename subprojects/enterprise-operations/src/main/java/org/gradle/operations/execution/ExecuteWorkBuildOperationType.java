@@ -48,7 +48,11 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
          */
         @Nullable
         String getWorkType();
-        String getWorkspaceId();
+
+        /**
+         * The identity of the executed unit of work.
+         */
+        String getIdentity();
     }
 
     public interface Result {

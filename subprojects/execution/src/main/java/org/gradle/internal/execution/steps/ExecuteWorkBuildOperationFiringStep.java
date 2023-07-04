@@ -68,11 +68,11 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
     private static class ExecuteWorkDetails implements ExecuteWorkBuildOperationType.Details {
 
         private final String workType;
-        private final String workspaceId;
+        private final String identity;
 
-        public ExecuteWorkDetails(String workType, String workspaceId) {
+        public ExecuteWorkDetails(String workType, String identity) {
             this.workType = workType;
-            this.workspaceId = workspaceId;
+            this.identity = identity;
         }
 
         @Nullable
@@ -82,8 +82,8 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         }
 
         @Override
-        public String getWorkspaceId() {
-            return workspaceId;
+        public String getIdentity() {
+            return identity;
         }
 
     }
