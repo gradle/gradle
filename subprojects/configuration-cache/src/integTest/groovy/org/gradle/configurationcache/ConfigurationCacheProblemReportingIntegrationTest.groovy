@@ -134,6 +134,63 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)?.isDirectory()
     }
 
+    def "report is not created when there are only non-CC problems even if there are inputs"() {
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('failsDuringExecution') {
+                // just so we had something for the CC report,
+                // but one will not be created due to other non-CC problems
+                System.getenv('JAVA_HOME')
+                doLast {
+                    throw new GradleException("Some error occurred")
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails 'failsDuringExecution'
+
+        then:
+        !testDirectory.file('out/reports/configuration-cache').isDirectory()
+    }
+
+    def "report is not created when there are no CC problems or inputs"() {
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('noProblemsOrInputs') {
+                // no build configuration inputs or problems
+                doLast {
+                    println("Success")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRunLenient 'noProblemsOrInputs'
+
+        then:
+        !testDirectory.file('out/reports/configuration-cache').isDirectory()
+    }
+
+    def "report is created when there are no CC problems but there are configuration inputs"() {
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('noProblemsButWithInputs') {
+                // just so we have something for the CC report
+                System.getenv('JAVA_HOME')
+                doLast {
+                    println("Success")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRunLenient 'noProblemsButWithInputs'
+
+        then:
+        testDirectory.file('out/reports/configuration-cache').isDirectory()
+    }
+
     def "state serialization errors always halt the build and invalidate the cache"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

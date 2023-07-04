@@ -29,6 +29,7 @@ import java.io.Closeable
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.contracts.contract
 
 
@@ -54,7 +55,8 @@ class ConfigurationCacheReport(
             outputDirectory: File,
             cacheAction: String,
             requestedTasks: String,
-            totalProblemCount: Int
+            totalProblemCount: Int,
+            taskExecutionProblems: Int
         ): Pair<State, File?> =
             illegalState()
 
@@ -77,7 +79,8 @@ class ConfigurationCacheReport(
                 outputDirectory: File,
                 cacheAction: String,
                 requestedTasks: String,
-                totalProblemCount: Int
+                totalProblemCount: Int,
+                taskExecutionProblems: Int
             ): Pair<State, File?> =
                 this to null
 
@@ -132,14 +135,18 @@ class ConfigurationCacheReport(
                 return this
             }
 
-            override fun commitReportTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): Pair<State, File?> {
-                lateinit var reportFile: File
+            override fun commitReportTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int, taskExecutionProblems: Int): Pair<State, File?> {
+                val reportFile: AtomicReference<File> = AtomicReference(null)
                 executor.submit {
                     closeHtmlReport(cacheAction, requestedTasks, totalProblemCount)
-                    reportFile = moveSpoolFileTo(outputDirectory)
+                    if (totalProblemCount == 0 && taskExecutionProblems > 0) {
+                        spoolFile.delete()
+                    } else {
+                        reportFile.set(moveSpoolFileTo(outputDirectory))
+                    }
                 }
                 executor.shutdownAndAwaitTermination()
-                return Closed to reportFile
+                return Closed to reportFile.get()
             }
 
             override fun close(): State {
@@ -228,10 +235,10 @@ class ConfigurationCacheReport(
      * see [HtmlReportWriter].
      */
     internal
-    fun writeReportFileTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): File? {
+    fun writeReportFileTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int, taskExecutionProblems: Int): File? {
         var reportFile: File?
         modifyState {
-            val (newState, outputFile) = commitReportTo(outputDirectory, cacheAction, requestedTasks, totalProblemCount)
+            val (newState, outputFile) = commitReportTo(outputDirectory, cacheAction, requestedTasks, totalProblemCount, taskExecutionProblems)
             reportFile = outputFile
             newState
         }
