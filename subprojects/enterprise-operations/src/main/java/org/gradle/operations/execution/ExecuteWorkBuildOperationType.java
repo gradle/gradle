@@ -19,6 +19,7 @@ package org.gradle.operations.execution;
 import org.gradle.internal.operations.BuildOperationType;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * A {@link BuildOperationType} for executing any kind of work inside the execution engine.
@@ -65,6 +66,12 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
          */
         @Nullable
         String getSkipMessage();
+
+        /**
+         * A list of messages describing the first few reasons encountered that caused the work to be executed.
+         * An empty list means the work was up-to-date and hasn't been executed.
+         */
+        List<String> getExecutionReasons();
 
         @Nullable
         Throwable getFailure();

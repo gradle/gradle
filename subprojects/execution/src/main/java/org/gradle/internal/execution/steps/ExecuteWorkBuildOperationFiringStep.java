@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -27,6 +28,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -50,7 +52,8 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                     ExecuteWorkBuildOperationType.Result operationResult = new ExecuteWorkResult(
                         result.getExecution(),
                         result.getCachingState(),
-                        result.getReusedOutputOriginMetadata()
+                        result.getReusedOutputOriginMetadata(),
+                        result.getExecutionReasons()
                     );
                     operationContext.setResult(operationResult);
                     return result;
@@ -89,11 +92,18 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         private final Try<ExecutionEngine.Execution> execution;
         private final CachingState cachingState;
         private final Optional<OriginMetadata> originMetadata;
+        private final ImmutableList<String> executionReasons;
 
-        public ExecuteWorkResult(Try<ExecutionEngine.Execution> execution, CachingState cachingState, Optional<OriginMetadata> originMetadata) {
+        public ExecuteWorkResult(
+            Try<ExecutionEngine.Execution> execution,
+            CachingState cachingState,
+            Optional<OriginMetadata> originMetadata,
+            ImmutableList<String> executionReasons
+        ) {
             this.execution = execution;
             this.cachingState = cachingState;
             this.originMetadata = originMetadata;
+            this.executionReasons = executionReasons;
         }
 
         @Nullable
@@ -129,6 +139,11 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                 default:
                     throw new IllegalArgumentException("Unknown execution outcome: " + execution.getOutcome());
             }
+        }
+
+        @Override
+        public List<String> getExecutionReasons() {
+            return executionReasons;
         }
 
         @Nullable
