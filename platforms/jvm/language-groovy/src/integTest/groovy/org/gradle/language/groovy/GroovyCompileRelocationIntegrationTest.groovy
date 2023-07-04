@@ -48,8 +48,8 @@ class GroovyCompileRelocationIntegrationTest extends ForkCapableRelocationIntegr
 
         projectDir.file("build.gradle") << """
             task compile(type: GroovyCompile) {
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
+                sourceCompatibility = JavaVersion.current().toString()
+                targetCompatibility = JavaVersion.current().toString()
                 destinationDirectory = file("build/classes")
                 source "src/main/groovy"
                 classpath = files()

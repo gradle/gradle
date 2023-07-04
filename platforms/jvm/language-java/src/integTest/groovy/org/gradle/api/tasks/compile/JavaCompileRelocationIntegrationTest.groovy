@@ -48,8 +48,8 @@ class JavaCompileRelocationIntegrationTest extends ForkCapableRelocationIntegrat
 
         projectDir.file("build.gradle") << """
             task compile(type: JavaCompile) {
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
+                sourceCompatibility = JavaVersion.current().toString()
+                targetCompatibility = JavaVersion.current().toString()
                 destinationDirectory = file("build/classes")
                 source "src/main/java"
                 classpath = files('libs')

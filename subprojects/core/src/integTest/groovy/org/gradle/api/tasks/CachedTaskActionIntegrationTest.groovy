@@ -101,8 +101,8 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
             }
 
             tasks.withType(JavaCompile) {
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
+                sourceCompatibility = JavaVersion.current().toString()
+                targetCompatibility = JavaVersion.current().toString()
                 source "src/main/java"
                 classpath = files()
             }

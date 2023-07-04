@@ -219,10 +219,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.sourceSets.create('custom')
 
         then:
-        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
-        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
-        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
-        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
     }
 
     def "wires toolchain for test if toolchain is configured"() {
@@ -262,8 +262,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
 
         then:
-        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
-        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
+        javaCompileTask.sourceCompatibility.get() == prevJavaVersion.toString()
+        javaCompileTask.sourceCompatibility.get() == prevJavaVersion.toString()
     }
 
     private void setupProjectWithToolchain(JavaVersion version) {
@@ -360,7 +360,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        compile.sourceCompatibility.get() == project.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir

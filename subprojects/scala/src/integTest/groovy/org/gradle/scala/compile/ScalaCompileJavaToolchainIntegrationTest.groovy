@@ -177,15 +177,15 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
             compileScala {
                 scalaCompileOptions.additionalParameters = ["${targetJava8}"]
 
-                ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source)" : ''}
-                ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target)" : ''}
+                ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source).toString()" : ''}
+                ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target).toString()" : ''}
                 def projectSourceCompat = project.java.sourceCompatibility
                 def projectTargetCompat = project.java.targetCompatibility
                 doLast {
                     logger.lifecycle("project.sourceCompatibility = \$projectSourceCompat")
                     logger.lifecycle("project.targetCompatibility = \$projectTargetCompat")
-                    logger.lifecycle("task.sourceCompatibility = \$sourceCompatibility")
-                    logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
+                    logger.lifecycle("task.sourceCompatibility = \${sourceCompatibility.get()}")
+                    logger.lifecycle("task.targetCompatibility = \${targetCompatibility.get()}")
                 }
             }
         """

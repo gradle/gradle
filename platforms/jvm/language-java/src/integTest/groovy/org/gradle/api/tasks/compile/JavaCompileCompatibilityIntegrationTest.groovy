@@ -54,8 +54,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileCustomJava.doLast {
-                logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
-                logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
+                logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.get()}'")
+                logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.get()}'")
             }
         """
 
@@ -101,8 +101,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileCustomJava.doLast {
-                logger.lifecycle("task.sourceCompatibility = \$sourceCompatibility")
-                logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
+                logger.lifecycle("task.sourceCompatibility = \${sourceCompatibility.get()}")
+                logger.lifecycle("task.targetCompatibility = \${targetCompatibility.get()}")
             }
         """
 
@@ -145,8 +145,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileJava.doLast {
-                println "sourceCompatibility: '\${sourceCompatibility}'"
-                println "targetCompatibility: '\${targetCompatibility}'"
+                println "sourceCompatibility: '\${sourceCompatibility.get()}'"
+                println "targetCompatibility: '\${targetCompatibility.get()}'"
             }
         """
 
@@ -179,8 +179,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileJava {
-                ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source)" : ''}
-                ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target)" : ''}
+                ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source).toString()" : ''}
+                ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target).toString()" : ''}
             }
 
             compileJava {
@@ -189,8 +189,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 doLast {
                     logger.lifecycle("project.sourceCompatibility = '\${projectSourceCompat}'")
                     logger.lifecycle("project.targetCompatibility = '\${projectTargetCompat}'")
-                    logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
-                    logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
+                    logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.get()}'")
+                    logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.get()}'")
                 }
             }
         """
@@ -232,8 +232,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 doLast {
                     logger.lifecycle("project.sourceCompatibility = '\${projectSourceCompat}'")
                     logger.lifecycle("project.targetCompatibility = '\${projectTargetCompat}'")
-                    logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
-                    logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
+                    logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.get()}'")
+                    logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.get()}'")
                 }
             }
         """
