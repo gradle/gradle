@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.Test
 
 
 enum class TestType(val prefix: String, val executers: List<String>) {
-    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "configCache")),
+    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "configCache", "projectIsolation")),
     CROSSVERSION("crossVersion", listOf("embedded", "forking"))
 }
 

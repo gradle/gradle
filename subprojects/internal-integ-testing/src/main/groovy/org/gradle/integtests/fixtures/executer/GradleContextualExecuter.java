@@ -39,7 +39,8 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         forking(true),
         noDaemon(true),
         parallel(true, true),
-        configCache(true);
+        configCache(true),
+        projectIsolation(true);
 
         final public boolean forks;
         final public boolean executeParallel;
@@ -134,6 +135,8 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
                 return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case configCache:
                 return new ConfigurationCacheGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+            case projectIsolation:
+                return new ProjectIsolationGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }
