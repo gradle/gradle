@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -39,7 +38,6 @@ class ImmutableTransformExecution extends AbstractTransformExecution {
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
-        ProjectInternal owningProject,
 
         TransformExecutionListener transformExecutionListener,
         BuildOperationExecutor buildOperationExecutor,
@@ -50,7 +48,7 @@ class ImmutableTransformExecution extends AbstractTransformExecution {
         TransformWorkspaceServices workspaceServices
     ) {
         super(
-            transform, inputArtifact, dependencies, subject, owningProject,
+            transform, inputArtifact, dependencies, subject,
             transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter, workspaceServices
         );
         this.fileSystemAccess = fileSystemAccess;

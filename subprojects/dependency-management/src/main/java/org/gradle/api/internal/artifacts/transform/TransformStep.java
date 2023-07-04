@@ -84,7 +84,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
                     );
                 } else {
                     File inputArtifact = inputArtifacts.get(0);
-                    return transformInvocationFactory.createInvocation(transform, inputArtifact, dependencies, subjectToTransform, owningProject, inputFingerprinter)
+                    return transformInvocationFactory.createInvocation(transform, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
                         .map(result -> result.map(subjectToTransform::createSubjectFromResult));
                 }
             })
@@ -95,7 +95,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File inputArtifact : inputArtifacts) {
             Try<ImmutableList<File>> result = transformInvocationFactory
-                .createInvocation(transform, inputArtifact, dependencies, subjectToTransform, owningProject, inputFingerprinter)
+                .createInvocation(transform, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
                 .completeAndGet();
 
             if (result.getFailure().isPresent()) {

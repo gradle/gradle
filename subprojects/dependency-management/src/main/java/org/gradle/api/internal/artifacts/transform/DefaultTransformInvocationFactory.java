@@ -71,7 +71,6 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
-        ProjectInternal owningProject,
         InputFingerprinter inputFingerprinter
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
@@ -84,7 +83,6 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 inputArtifact,
                 dependencies,
                 subject,
-                owningProject,
 
                 transformExecutionListener,
                 buildOperationExecutor,
@@ -100,7 +98,6 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 inputArtifact,
                 dependencies,
                 subject,
-                owningProject,
                 producerProject,
 
                 transformExecutionListener,
