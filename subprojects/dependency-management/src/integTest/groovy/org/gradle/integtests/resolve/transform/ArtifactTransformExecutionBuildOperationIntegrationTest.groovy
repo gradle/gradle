@@ -107,6 +107,8 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             failure == null
             originBuildInvocationId == null
             executionReasons == ['No history is available.']
+            cachingDisabledReasonMessage == 'Caching not enabled.'
+            cachingDisabledReasonCategory == 'NOT_CACHEABLE'
         }
         with(Iterables.getOnlyElement(buildOperations.children(projectExecution, SnapshotTransformInputsBuildOperationType)).result) {
             hash != null
@@ -155,6 +157,24 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             }
         }
 
+        when:
+        withBuildCache().run ":consumer:resolve"
+        executions = getTransformExecutions()
+        executions.size() == 1
+        projectExecution = executions.first()
+
+        then:
+        skipped(":producer:producer")
+
+        with(projectExecution.result) {
+            skipMessage == 'UP-TO-DATE'
+            failure == null
+            originExecutionTime > 0
+            originBuildInvocationId != null
+            executionReasons.empty
+            cachingDisabledReasonMessage == 'Caching not enabled.'
+            cachingDisabledReasonCategory == 'NOT_CACHEABLE'
+        }
     }
 
     List<BuildOperationRecord> getTransformExecutions() {

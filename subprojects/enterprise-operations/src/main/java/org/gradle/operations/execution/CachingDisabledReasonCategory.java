@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.operations.execution;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 @UsedByScanPlugin("doesn't link against this type, but expects these values - See ExecuteTaskBuildOperationType")
-public enum TaskOutputCachingDisabledReasonCategory {
+public enum CachingDisabledReasonCategory {
     /**
      * Reason for disabled caching is not known.
      */
@@ -37,24 +36,31 @@ public enum TaskOutputCachingDisabledReasonCategory {
     NOT_ENABLED_FOR_TASK,
 
     /**
+     * Caching has not been enabled for the unit of work.
+     *
+     * @since 8.3
+     */
+    NOT_CACHEABLE,
+
+    /**
      * The task has no outputs declared.
      */
     NO_OUTPUTS_DECLARED,
 
     /**
-     * Task has a {@link org.gradle.api.file.FileTree} or {@link org.gradle.api.internal.file.collections.DirectoryFileTree} as an output.
+     * Task has a {@code org.gradle.api.file.FileTree} or {@code org.gradle.api.internal.file.collections.DirectoryFileTree} as an output.
      *
      * @since 5.0
      */
     NON_CACHEABLE_TREE_OUTPUT,
 
     /**
-     * Caching is disabled for the task via {@link org.gradle.api.tasks.TaskOutputs#cacheIf(Spec)}.
+     * Caching is disabled for the task via {@code org.gradle.api.tasks.TaskOutputs#cacheIf(Spec)}.
      */
     CACHE_IF_SPEC_NOT_SATISFIED,
 
     /**
-     * Caching is disabled for the task via {@link org.gradle.api.tasks.TaskOutputs#doNotCacheIf(String, Spec)}.
+     * Caching is disabled for the task via {@code org.gradle.api.tasks.TaskOutputs#doNotCacheIf(String, Spec)}.
      */
     DO_NOT_CACHE_IF_SPEC_SATISFIED,
 
@@ -67,5 +73,4 @@ public enum TaskOutputCachingDisabledReasonCategory {
      * The task failed validation.
      */
     VALIDATION_FAILURE
-
 }
