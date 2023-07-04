@@ -40,7 +40,7 @@ public class AlreadyOnClasspathIgnoringPluginResolver implements PluginResolver 
         if (!isPresentOnClasspath(pluginId)) {
             delegate.resolve(pluginRequest, result);
         } else {
-            result.alreadyApplied("Already on classpath");
+            result.alreadyApplied();
         }
     }
 

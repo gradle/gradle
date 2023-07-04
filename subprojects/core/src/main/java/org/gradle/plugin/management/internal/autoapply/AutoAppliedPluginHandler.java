@@ -35,5 +35,9 @@ import org.gradle.plugin.management.internal.PluginRequests;
  */
 public interface AutoAppliedPluginHandler {
 
+    /**
+     * Returns plugin requests that should be auto-applied
+     * based on user requests, the current build invocation and the given target.
+     */
     PluginRequests getAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget);
 }

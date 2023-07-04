@@ -40,6 +40,10 @@ public interface PluginRequestApplicator {
      * {@link ClassLoaderScope}.
      */
     void applyPlugins(PluginRequests requests, PluginRequests autoAppliedPlugins, ScriptHandlerInternal scriptHandler, @Nullable PluginManagerInternal target, ClassLoaderScope classLoaderScope);
+
+    /**
+     * @see #applyPlugins(PluginRequests, PluginRequests, ScriptHandlerInternal, PluginManagerInternal, ClassLoaderScope)
+     */
     void applyPlugins(PluginRequests requests, ScriptHandlerInternal scriptHandler, @Nullable PluginManagerInternal target, ClassLoaderScope classLoaderScope);
 
     @EventScope(Scopes.Build.class)

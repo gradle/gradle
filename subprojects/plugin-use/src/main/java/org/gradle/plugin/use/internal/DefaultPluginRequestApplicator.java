@@ -346,7 +346,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
 
         @Override
-        public void alreadyApplied(String sourceDescription) {
+        public void alreadyApplied() {
             alreadyApplied = true;
         }
 

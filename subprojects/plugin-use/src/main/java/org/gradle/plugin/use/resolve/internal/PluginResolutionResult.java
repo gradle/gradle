@@ -52,7 +52,11 @@ public interface PluginResolutionResult {
      */
     void found(String sourceDescription, PluginResolution pluginResolution);
 
-    void alreadyApplied(String sourceDescription);
+
+    /**
+     * Record that the plugin was already applied and should not be applied again.
+     */
+    void alreadyApplied();
 
     /**
      * Whether the plugin has been found (i.e. has {@link #found(String, PluginResolution)} has been called)
