@@ -57,10 +57,13 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor(),
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor());
 
+    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS = VersionNumber.version(3, 15);
     public static final String UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE = "The Gradle Enterprise plugin has been disabled as it is incompatible with isolated projects feature";
 
     // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9 = VersionNumber.parse("3.13.1");
+
+    private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
 
     @Override
     public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
@@ -68,12 +71,14 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
             return checkInUnsupportedResult(UNSUPPORTED_TOGGLE_MESSAGE);
         }
 
-        if (isIsolatedProjectsEnabled) {
+        String pluginVersion = pluginMetadata.getVersion();
+        VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
+
+        if (isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
+            System.setProperty(DISABLE_TEST_ACCELERATION_PROPERTY, "true");
             return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE);
         }
 
-        String pluginVersion = pluginMetadata.getVersion();
-        VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
         if (isUnsupportedWithConfigurationCaching(pluginBaseVersion)) {
             return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE);
         }
@@ -110,6 +115,10 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
     private boolean isUnsupportedWithConfigurationCaching(VersionNumber pluginBaseVersion) {
         return isConfigurationCacheEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(pluginBaseVersion) > 0;
+    }
+
+    private boolean isUnsupportedWithIsolatedProjects(VersionNumber pluginBaseVersion) {
+        return isIsolatedProjectsEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.compareTo(pluginBaseVersion) > 0;
     }
 
     private static boolean isDeprecatedPluginVersion(VersionNumber pluginBaseVersion) {
