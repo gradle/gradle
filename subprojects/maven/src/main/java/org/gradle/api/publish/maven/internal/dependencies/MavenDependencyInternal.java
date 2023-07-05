@@ -19,10 +19,15 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.publish.maven.MavenDependency;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface MavenDependencyInternal extends MavenDependency {
     Collection<DependencyArtifact> getArtifacts();
     Collection<ExcludeRule> getExcludeRules();
     String getProjectPath();
+
+    @Override
+    @Nullable
+    String getVersion();
 }

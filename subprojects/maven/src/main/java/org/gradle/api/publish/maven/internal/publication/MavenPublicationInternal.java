@@ -22,7 +22,6 @@ import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInte
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
-import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.tasks.TaskProvider;
 
 public interface MavenPublicationInternal extends MavenPublication, PublicationInternal<MavenArtifact> {
@@ -34,22 +33,17 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator);
 
-    MutableMavenProjectIdentity getMavenProjectIdentity();
-
     MavenNormalizedPublication asNormalisedPublication();
-
-    // TODO Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be explicitly set.
-    String determinePackagingFromArtifacts();
 
     /**
      * Some components (e.g. Native) are published such that the module metadata references the original file name,
      * rather than the Maven-standard {artifactId}-{version}-{classifier}.{extension}.
      * This method enables this behaviour for the current publication.
+     *
+     * Note: This internal API is used by KMP.
      */
     void publishWithOriginalFileName();
 
     @Override
     VersionMappingStrategyInternal getVersionMappingStrategy();
-
-    boolean writeGradleMetadataMarker();
 }

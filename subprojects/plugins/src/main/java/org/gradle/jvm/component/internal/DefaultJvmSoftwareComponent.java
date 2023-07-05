@@ -34,7 +34,7 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
+import org.gradle.api.publish.internal.component.DefaultAdhocSoftwareComponent;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;

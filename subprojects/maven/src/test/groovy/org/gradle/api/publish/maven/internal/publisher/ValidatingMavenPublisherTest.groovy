@@ -21,14 +21,17 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
+import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDependencies
+import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -238,22 +241,33 @@ class ValidatingMavenPublisherTest extends Specification {
         e.cause.message =~ "Unrecognised tag: 'invalid' .*"
     }
 
-    private def makeProjectIdentity(def groupId, def artifactId, def version) {
-        return Stub(MavenProjectIdentity) {
-            getGroupId() >> Providers.ofNullable(groupId)
-            getArtifactId() >> Providers.ofNullable(artifactId)
-            getVersion() >> Providers.ofNullable(version)
-        }
+    private def makeProjectIdentity(String groupId, String artifactId, String version) {
+        def identity = TestUtil.objectFactory().newInstance(MavenProjectIdentity)
+        identity.groupId.set(groupId)
+        identity.artifactId.set(artifactId)
+        identity.version.set(version)
+        identity
     }
 
     private def createPomFile(MavenProjectIdentity projectIdentity, Action<XmlProvider> withXmlAction = null, boolean marker = false) {
-        def pomFile = testDir.file("pom")
-        def mapper = Stub(VersionRangeMapper)
-        MavenPomFileGenerator pomFileGenerator = new MavenPomFileGenerator(projectIdentity, mapper, Stub(VersionMappingStrategyInternal), ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, marker)
+        MavenPomInternal pom = TestUtil.objectFactory().newInstance(
+            DefaultMavenPom.class,
+            TestUtil.objectFactory(),
+            Stub(VersionMappingStrategyInternal)
+        )
+
+        pom.dependencies.set(DefaultMavenPomDependencies.EMPTY)
+
+        pom.projectIdentity.artifactId.set(projectIdentity.getArtifactId())
+        pom.projectIdentity.groupId.set(projectIdentity.getGroupId())
+        pom.projectIdentity.version.set(projectIdentity.getVersion())
+        pom.getWriteGradleMetadataMarker().set(marker)
         if (withXmlAction != null) {
-            pomFileGenerator.withXml(withXmlAction)
+            pom.withXml(withXmlAction)
         }
-        pomFileGenerator.writeTo(pomFile)
+
+        def pomFile = testDir.file("pom")
+        new MavenPomFileGenerator(Stub(VersionRangeMapper), ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY).generateSpec(pom).writeTo(pomFile)
         return createArtifact(pomFile, "pom")
     }
 

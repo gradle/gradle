@@ -31,24 +31,32 @@ import org.gradle.api.publish.maven.MavenPomOrganization;
 import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface MavenPomInternal extends MavenPom {
 
+    Property<String> getPackagingProperty();
+
     List<MavenPomLicense> getLicenses();
 
+    @Nullable
     MavenPomOrganization getOrganization();
 
     List<MavenPomDeveloper> getDevelopers();
 
     List<MavenPomContributor> getContributors();
 
+    @Nullable
     MavenPomScm getScm();
 
+    @Nullable
     MavenPomIssueManagement getIssueManagement();
 
+    @Nullable
     MavenPomCiManagement getCiManagement();
 
+    @Nullable
     MavenPomDistributionManagementInternal getDistributionManagement();
 
     List<MavenPomMailingList> getMailingLists();
@@ -61,6 +69,6 @@ public interface MavenPomInternal extends MavenPom {
 
     VersionMappingStrategyInternal getVersionMappingStrategy();
 
-    boolean writeGradleMetadataMarker();
+    Property<Boolean> getWriteGradleMetadataMarker();
 
 }

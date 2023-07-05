@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.publisher;
+package org.gradle.api.publish.internal.component;
 
-import org.gradle.api.provider.Property;
+import org.gradle.api.component.SoftwareComponentVariant;
 
-public interface MutableMavenProjectIdentity extends MavenProjectIdentity {
-    @Override
-    Property<String> getGroupId();
+public interface IvyPublishingAwareVariant extends SoftwareComponentVariant {
 
-    @Override
-    Property<String> getArtifactId();
-
-    @Override
-    Property<String> getVersion();
+    boolean isOptional();
 }

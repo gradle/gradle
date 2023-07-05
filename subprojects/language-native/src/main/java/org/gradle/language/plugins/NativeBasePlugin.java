@@ -47,7 +47,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
@@ -377,7 +377,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
                     final ComponentWithVariants mainVariant = component.getMainPublication();
                     publishing.getPublications().create("main", MavenPublication.class, publication -> {
                         MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
-                        publicationInternal.getMavenProjectIdentity().getArtifactId().set(component.getBaseName());
+                        publicationInternal.getPom().getProjectIdentity().getArtifactId().set(component.getBaseName());
                         publicationInternal.from(mainVariant);
                         publicationInternal.publishWithOriginalFileName();
                     });
@@ -408,7 +408,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
 
     private void fillInCoordinates(Project project, MavenPublicationInternal publication, PublishableComponent publishableComponent) {
         final ModuleVersionIdentifier coordinates = publishableComponent.getCoordinates();
-        MutableMavenProjectIdentity identity = publication.getMavenProjectIdentity();
+        MavenProjectIdentity identity = publication.getPom().getProjectIdentity();
         identity.getGroupId().set(project.provider(() -> coordinates.getGroup()));
         identity.getArtifactId().set(project.provider(() -> coordinates.getName()));
         identity.getVersion().set(project.provider(() -> coordinates.getVersion()));
