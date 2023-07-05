@@ -135,7 +135,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)?.isDirectory()
     }
 
-    def "link to report is not shown when there are no-CC problems"() {
+    def "link to report is not shown with --warn if there are no-CC problems"() {
         file("build.gradle") << """
             buildDir = 'out'
             tasks.register('doIt') {
@@ -148,14 +148,14 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        configurationCacheRun 'doIt'
+        run(ENABLE_CLI_OPT, '--warn', 'doIt')
 
         then:
         testDirectory.file('out/reports/configuration-cache').isDirectory()
         resolveConfigurationCacheReportDirectory(testDirectory.file('out'), output) == null
     }
 
-    def "link to report is shown with --info even if there are no-CC problems"() {
+    def "link to report is shown with --info if there are no-CC problems"() {
         def reportDir = testDirectory.file('out/reports/configuration-cache')
         file("build.gradle") << """
             buildDir = 'out'
@@ -169,7 +169,30 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        configurationCacheRun 'doIt', '--info'
+        run(ENABLE_CLI_OPT, '--info', 'doIt')
+
+        then:
+        reportDir.isDirectory()
+
+        def reportLocationShown = resolveConfigurationCacheReport(testDirectory.file('out'), output)
+        reportDir.isDescendant(reportLocationShown)
+    }
+
+    def "link to report is logged as warning when there are no-CC problems if internal option is used"() {
+        def reportDir = testDirectory.file('out/reports/configuration-cache')
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('doIt') {
+                // just so we had something for the CC report,
+                System.getenv('JAVA_HOME')
+                doLast {
+                    println("Done")
+                }
+            }
+        """
+
+        when:
+        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, 'doIt')
 
         then:
         reportDir.isDirectory()

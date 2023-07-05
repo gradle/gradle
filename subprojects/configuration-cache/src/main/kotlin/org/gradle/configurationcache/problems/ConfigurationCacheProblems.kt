@@ -177,7 +177,8 @@ class ConfigurationCacheProblems(
             }
 
             else -> {
-                val log: (String) -> Unit = if (hasNoProblems) logger::info else logger::warn
+                val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
+                val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
                 log(summary.textForConsole(cacheActionText, htmlReportFile))
             }
         }
