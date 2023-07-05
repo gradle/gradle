@@ -29,8 +29,8 @@ import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestFailureFailedMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestMultipleFailuresMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
@@ -70,8 +70,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
 
     private final static List<FailureMapper> MAPPERS = Arrays.asList(
-        new OpentestFailureFailedMapper(),
-        new OpentestMultipleFailuresMapper(),
+        new OpenTestAssertionFailedMapper(),
+        new OpenTestMultipleFailuresErrorMapper(),
         new JUnitComparisonFailureMapper(),
         new AssertjMultipleAssertionsErrorMapper(),
         new AssertErrorMapper()
