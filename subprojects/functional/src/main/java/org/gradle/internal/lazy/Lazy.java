@@ -69,11 +69,11 @@ public interface Lazy<T> extends Supplier<T> {
 
     /**
      * An atomic {@link Lazy} allows concurrent access from multiple threads without locking.
-     * <br />
+     * <br>
      * The given {@code Supplier} might be executed more than once when multiple threads access a
      * non-initialized {@link Lazy} at the same time but one value will eventually be cached and
      * published to all threads.
-     * <br />
+     * <br>
      * <b>WARNING:</b> Given the above, this flavor of {@code Lazy} initialization should not be used
      * with a {@code Supplier} that can have undesirable side effects if executed more than once.
      */
