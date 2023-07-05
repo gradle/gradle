@@ -47,7 +47,6 @@ class JavaCompilationSoakTest extends AbstractIntegrationSpec {
         expect:
         10.times {
             println("Run $it")
-            args("-Dorg.gradle.internal.java.compile.daemon.keepAlive=DAEMON")
             succeeds("clean", "assemble")
         }
     }

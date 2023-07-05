@@ -51,6 +51,27 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 <a name="SSL"></a>
+### Faster Java compilation
+
+When compiling Java code, Gradle uses worker processes to run the Java compiler as a compiler daemon. 
+Compiler daemons are reused within a single build invocation. 
+This allows the Java compiler to "warm-up" and compile faster after a few uses. 
+
+In previous Gradle releases, the compiler daemons were always shut down at the end of the build.
+This caused every build to incur the cost of starting the compiler daemon and warming up the compiler.
+These start-up costs contributed to a large portion of overall build time when incrementally compiling a few source files.
+
+Starting in this release, Gradle attempts to keep Java compiler daemons around after the end of the build, so that subsequent builds are faster.
+Gradle will stop compiler daemons when too many workers are running. 
+Compiler daemons may also stop during a build if other worker processes are started and Gradle needs to free up resources.
+
+No configuration changes are required to enable this feature. 
+
+<!-- TODO: Link to blog post that details the measurements -->
+
+Persistent compiler daemons for Groovy, Scala or Kotlin will be evaluated in the future.
+
+<a name="SSL"></a>
 ### SSL improvements
 
 Gradle had multiple issues when non-standard keystores and truststores were used.
