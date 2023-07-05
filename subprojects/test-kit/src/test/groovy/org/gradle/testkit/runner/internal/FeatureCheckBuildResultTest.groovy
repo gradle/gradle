@@ -24,7 +24,6 @@ import spock.lang.Specification
 
 import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION
 
 class FeatureCheckBuildResultTest extends Specification {
 
@@ -37,7 +36,7 @@ class FeatureCheckBuildResultTest extends Specification {
     def buildTasks = [successBuildResult, failedBuildResult]
 
     def "provides expected field values for supported Gradle version"() {
-        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(MINIMUM_SUPPORTED_GRADLE_VERSION, false), output, buildTasks)
+        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(GradleVersion.version('2.6'), false), output, buildTasks)
 
         expect:
         buildResult.output == 'output'

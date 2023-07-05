@@ -44,8 +44,8 @@ import org.gradle.tooling.events.task.TaskSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.File;
@@ -110,8 +110,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             connection = gradleConnector.connect();
             targetGradleVersion = determineTargetGradleVersion(connection);
             if (targetGradleVersion.compareTo(TestKitFeature.RUN_BUILDS.getSince()) < 0) {
-                throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions %s and later.",
-                    targetGradleVersion.getVersion(), TestKitFeature.RUN_BUILDS.getSince()));
+                throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions 2.6 and later.", targetGradleVersion.getVersion()));
             }
 
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
@@ -130,6 +129,9 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.setEnvironmentVariables(parameters.getEnvironment());
 
             if (!parameters.getInjectedClassPath().isEmpty()) {
+                if (targetGradleVersion.compareTo(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince()) < 0) {
+                    throw new UnsupportedFeatureException("support plugin classpath injection", targetGradleVersion, TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince());
+                }
                 launcher.withInjectedClassPath(parameters.getInjectedClassPath());
             }
 
