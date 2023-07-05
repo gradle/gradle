@@ -175,7 +175,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         reportDir.isDirectory()
 
         def reportLocationShown = resolveConfigurationCacheReport(testDirectory.file('out'), output)
-        reportDir.isDescendent(reportLocationShown)
+        reportDir.isDescendant(reportLocationShown)
     }
 
     def "report is not created when there are no CC problems or inputs"() {
