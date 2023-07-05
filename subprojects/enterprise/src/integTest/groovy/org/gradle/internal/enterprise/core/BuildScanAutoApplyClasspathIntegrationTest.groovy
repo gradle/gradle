@@ -19,8 +19,7 @@ package org.gradle.internal.enterprise.core
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
@@ -53,7 +52,7 @@ class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 dependencies {
-                   implementation '${fixture.id}:com.gradle.enterprise.gradle.plugin:${fixture.artifactVersion}'
+                   implementation '${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${fixture.artifactVersion}'
                 }
             }
         """
