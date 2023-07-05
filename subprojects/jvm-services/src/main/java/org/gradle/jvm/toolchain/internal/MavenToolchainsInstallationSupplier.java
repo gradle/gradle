@@ -94,7 +94,7 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                         while (matcher.find()) {
                             String envVariableName = matcher.group(1);
                             Provider<String> envVariableValue = getEnvironmentProperty(envVariableName);
-                            if (envVariableValue == null || envVariableValue.getOrNull() == null) {
+                            if (envVariableValue.getOrNull() == null) {
                                 matcher.appendReplacement(resolvedValue, "\\${env." + envVariableName + "}");
                                 continue;
                             }

@@ -322,6 +322,7 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         providerFactory.environmentVariable("JDK17") >> Providers.of("/usr/lib/jvm/temurin-17.jdk")
         providerFactory.environmentVariable("JDKHOMES") >> Providers.of("/usr/lib/jvm")
         providerFactory.environmentVariable("OPEN_JDK16") >> Providers.of("adoptopenjdk-16.jdk")
+        providerFactory.environmentVariable("JAVA_UNKNOWN") >> Providers.ofNullable(null)
         providerFactory
     }
 
