@@ -17,9 +17,7 @@
 package org.gradle.configurationcache.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.logging.Logging
-import org.gradle.api.tasks.TaskState
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
 import org.gradle.configurationcache.ConfigurationCacheAction.STORE
@@ -28,10 +26,8 @@ import org.gradle.configurationcache.ConfigurationCacheKey
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
-import org.gradle.execution.taskgraph.TaskListenerInternal
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
@@ -39,7 +35,6 @@ import java.io.File
 import java.util.function.Consumer
 
 
-@ListenerService
 @ServiceScope(Scopes.BuildTree::class)
 internal
 class ConfigurationCacheProblems(
@@ -56,7 +51,7 @@ class ConfigurationCacheProblems(
     private
     val listenerManager: ListenerManager
 
-) : ProblemsListener, ProblemReporter, AutoCloseable, TaskListenerInternal {
+) : ProblemsListener, ProblemReporter, AutoCloseable {
     private
     val summarizer = ConfigurationCacheProblemsSummary()
 
@@ -79,9 +74,6 @@ class ConfigurationCacheProblems(
     var incompatibleTasks = newConcurrentHashSet<String>()
 
     private
-    var taskExecutionProblems = 0
-
-    private
     lateinit var cacheAction: ConfigurationCacheAction
 
     val shouldDiscardEntry: Boolean
@@ -102,16 +94,6 @@ class ConfigurationCacheProblems(
 
     override fun close() {
         listenerManager.removeListener(postBuildHandler)
-    }
-
-    override fun beforeExecute(taskIdentity: TaskIdentity<*>) {
-        // not interested
-    }
-
-    override fun afterExecute(taskIdentity: TaskIdentity<*>, state: TaskState) {
-        if (state.failure != null) {
-            taskExecutionProblems++
-        }
     }
 
     fun action(action: ConfigurationCacheAction) {
@@ -168,7 +150,7 @@ class ConfigurationCacheProblems(
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount, taskExecutionProblems)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(hasNoProblems)
@@ -195,7 +177,8 @@ class ConfigurationCacheProblems(
             }
 
             else -> {
-                logger.warn(summary.textForConsole(cacheActionText, htmlReportFile))
+                val log: (String) -> Unit = if (hasNoProblems) logger::info else logger::warn
+                log(summary.textForConsole(cacheActionText, htmlReportFile))
             }
         }
     }

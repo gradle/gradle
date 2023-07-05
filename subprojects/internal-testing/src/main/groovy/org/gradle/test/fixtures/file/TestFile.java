@@ -641,6 +641,10 @@ public class TestFile extends File {
         if (file.getAbsolutePath().equals(getAbsolutePath())) {
             return true;
         }
+        return isDescendent(file);
+    }
+
+    public boolean isDescendent(File file) {
         return file.getAbsolutePath().startsWith(getAbsolutePath() + File.separatorChar);
     }
 

@@ -23,6 +23,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.invocation.DefaultGradle
 import spock.lang.Ignore
 
+import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReport
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -52,7 +53,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         '''
 
         when:
-        configurationCacheRun 'help'
+        configurationCacheRun 'help', '--info'
 
         then:
         outputContains 'provider = provider'
@@ -134,24 +135,47 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)?.isDirectory()
     }
 
-    def "report is not created when there are only non-CC problems even if there are inputs"() {
+    def "link to report is not shown when there are no-CC problems"() {
         file("build.gradle") << """
             buildDir = 'out'
-            tasks.register('failsDuringExecution') {
+            tasks.register('doIt') {
                 // just so we had something for the CC report,
-                // but one will not be created due to other non-CC problems
                 System.getenv('JAVA_HOME')
                 doLast {
-                    throw new GradleException("Some error occurred")
+                    println("Done")
                 }
             }
         """
 
         when:
-        configurationCacheFails 'failsDuringExecution'
+        configurationCacheRun 'doIt'
 
         then:
-        !testDirectory.file('out/reports/configuration-cache').isDirectory()
+        testDirectory.file('out/reports/configuration-cache').isDirectory()
+        resolveConfigurationCacheReportDirectory(testDirectory.file('out'), output) == null
+    }
+
+    def "link to report is shown with --info even if there are no-CC problems"() {
+        def reportDir = testDirectory.file('out/reports/configuration-cache')
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('doIt') {
+                // just so we had something for the CC report,
+                System.getenv('JAVA_HOME')
+                doLast {
+                    println("Done")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun 'doIt', '--info'
+
+        then:
+        reportDir.isDirectory()
+
+        def reportLocationShown = resolveConfigurationCacheReport(testDirectory.file('out'), output)
+        reportDir.isDescendent(reportLocationShown)
     }
 
     def "report is not created when there are no CC problems or inputs"() {
@@ -170,25 +194,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         !testDirectory.file('out/reports/configuration-cache').isDirectory()
-    }
-
-    def "report is created when there are no CC problems but there are configuration inputs"() {
-        file("build.gradle") << """
-            buildDir = 'out'
-            tasks.register('noProblemsButWithInputs') {
-                // just so we have something for the CC report
-                System.getenv('JAVA_HOME')
-                doLast {
-                    println("Success")
-                }
-            }
-        """
-
-        when:
-        configurationCacheRunLenient 'noProblemsButWithInputs'
-
-        then:
-        testDirectory.file('out/reports/configuration-cache').isDirectory()
     }
 
     def "state serialization errors always halt the build and invalidate the cache"() {
