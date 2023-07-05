@@ -100,7 +100,8 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
     @Requires(IntegTestPreconditions.NotConfigCached)
     def "shows warning message when unsupported Gradle Enterprise plugin version is used with configuration caching enabled"() {
         given:
-        plugin.runtimeVersion = plugin.artifactVersion = pluginVersion
+        plugin.runtimeVersion = pluginVersion
+        plugin.artifactVersion = pluginVersion
         applyPlugin()
         settingsFile << """
             println "present: " + services.get($GradleEnterprisePluginManager.name).present
@@ -119,15 +120,16 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE") != applied
 
         where:
-        pluginVersion                                    | applied
-        '3.11.4'                                         | false
-        getMinimumPluginVersionForConfigurationCaching() | true
+        pluginVersion                               | applied
+        '3.11.4'                                    | false
+        minimumPluginVersionForConfigurationCaching | true
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Project isolation implies config cache")
     def "shows warning message when Gradle Enterprise plugin version is used with isolated projects enabled"() {
         given:
-        plugin.runtimeVersion = plugin.artifactVersion = pluginVersion
+        plugin.runtimeVersion = pluginVersion
+        plugin.artifactVersion = pluginVersion
         applyPlugin()
         settingsFile << """
             println "present: " + services.get($GradleEnterprisePluginManager.name).present
@@ -143,9 +145,9 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE") != applied
 
         where:
-        pluginVersion                                | applied
-        '3.11.4'                                     | false
-        getMinimumPluginVersionForIsolatedProjects() | true
+        pluginVersion                           | applied
+        '3.11.4'                                | false
+        minimumPluginVersionForIsolatedProjects | true
     }
 
     private static String getMinimumPluginVersionForConfigurationCaching() {
