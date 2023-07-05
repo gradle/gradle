@@ -68,7 +68,7 @@ No configuration changes are required to enable this feature.
 
 <!-- TODO: Link to blog post that details the measurements -->
 
-Persistent compiler daemons for Groovy, Scala or Kotlin will be evaluated in the future.
+Persistent compiler daemons for other languages will be evaluated in the future.
 
 <a name="SSL"></a>
 ### SSL improvements
