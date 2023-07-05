@@ -1261,12 +1261,15 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
         """
 
-        expect:
+        when:
         succeeds "crashTask"
-        succeeds "crashTask"
+        then:
+        executedAndNotSkipped ":crashTask"
 
-        and:
-        result.assertTasksSkipped(':crashTask')
+        when:
+        succeeds "crashTask"
+        then:
+        skipped ":crashTask"
     }
 
     private TestFile nestedBeanWithAction(TestFile projectDir = temporaryFolder.testDirectory) {
