@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInt
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata;
@@ -47,6 +48,7 @@ import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
@@ -112,7 +114,15 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         // Collect all dependencies and excludes in hierarchy.
         ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
-        DependencyState dependencies = getState(configurationsProvider, hierarchy, componentId, dependencyCache);
+
+        CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencies =
+            calculatedValueContainerFactory.create(Describables.of("Dependency state for", configuration.getDescription()), context -> {
+                // TODO: Do we need to acquire project lock from `model`? getState calls user code.
+                DependencyState state = getState(configurationsProvider, hierarchy, componentId, dependencyCache);
+                return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
+                    maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
+                );
+            });
 
         return new DefaultLocalConfigurationMetadata(
             configuration.getName(),
@@ -126,9 +136,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             configuration.isCanBeConsumed(),
             configuration.isDeprecatedForConsumption(),
             configuration.isCanBeResolved(),
-            maybeForceDependencies(dependencies.dependencies, attributes),
-            dependencies.files,
-            dependencies.excludes,
+            dependencies,
             variantsBuilder.build(),
             artifactBuilder.build(),
             model,
