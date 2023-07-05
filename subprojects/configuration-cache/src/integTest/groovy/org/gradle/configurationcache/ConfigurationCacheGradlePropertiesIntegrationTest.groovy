@@ -18,12 +18,13 @@ package org.gradle.configurationcache
 
 import org.gradle.configurationcache.fixtures.GradlePropertiesIncludedBuildFixture
 import org.gradle.configurationcache.fixtures.SystemPropertiesCompositeBuildFixture
+import org.gradle.test.fixtures.Flaky
 import spock.lang.Issue
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
 import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
 
-@org.gradle.test.fixtures.Flaky(because='https://github.com/gradle/gradle-private/issues/3859')
+@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3859')
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "invalidates cache when set of Gradle property defining system properties changes"() {

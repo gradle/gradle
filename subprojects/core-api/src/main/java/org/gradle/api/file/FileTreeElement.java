@@ -108,5 +108,5 @@ public interface FileTreeElement {
      * @since 8.3
      */
     @Incubating
-    FilePermissions getImmutablePermissions();
+    FilePermissions getPermissions();
 }

@@ -38,6 +38,7 @@ dependencies {
     crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":scala"))
     crossVersionTestImplementation(project(":ear"))
+    crossVersionTestImplementation(project(":war"))
     crossVersionTestImplementation(project(":testing-jvm"))
     crossVersionTestImplementation(project(":ide"))
     crossVersionTestImplementation(project(":code-quality"))
