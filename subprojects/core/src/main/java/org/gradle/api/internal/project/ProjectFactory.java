@@ -63,12 +63,11 @@ public class ProjectFactory implements IProjectFactory {
             selfClassLoaderScope,
             baseClassLoaderScope
         );
+        gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
         project.beforeEvaluate(p -> {
             NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
             gradle.getServices().get(DependenciesAccessors.class).createExtensions(project);
-            gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
         });
-
         gradle.getProjectRegistry().addProject(project);
         return project;
     }
