@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -43,18 +45,25 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final int CACHE_FORMAT = 5;
+    private static final int CACHE_FORMAT = 6;
     private static final int AGENT_INSTRUMENTATION_VERSION = 2;
 
     // We cannot use Attributes.Name.MULTI_RELEASE as it is only available since Java 9;
     private static final String MULTI_RELEASE_ATTRIBUTE = "Multi-Release";
+
+    // Pattern for JAR entries in the versioned directories.
+    // See https://docs.oracle.com/en/java/javase/20/docs/specs/jar/jar.html#multi-release-jar-files
+    private static final Pattern VERSIONED_JAR_ENTRY_PATH = Pattern.compile("^META-INF/versions/(\\d+)/.+$");
 
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
@@ -114,6 +123,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
+        hasher.putString(AsmConstants.MAX_SUPPORTED_JAVA_VERSION.getMajorVersion());
         policy.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
@@ -192,9 +202,9 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     /**
-     * Base class for the transformations.
+     * Base class for the transformations. Note that the order in which entries are visited is not defined.
      */
-    private abstract class BaseTransformation implements Transformation {
+    private class BaseTransformation implements Transformation {
         protected final File source;
 
         public BaseTransformation(File source) {
@@ -277,37 +287,8 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
 
         private boolean isManifest(ClasspathEntryVisitor.Entry entry) {
-            return entry.getName().equals("META-INF/MANIFEST.MF");
+            return isManifestName(entry.getName());
         }
-    }
-
-    /**
-     * Transformation for legacy instrumentation when transformed JARs are part of the classpath.
-     * This is still used when TestKit and TAPI run Gradle in embedded or debug mode.
-     */
-    private class TransformationForClassLoader extends BaseTransformation {
-        public TransformationForClassLoader(File source) {
-            super(source);
-        }
-    }
-
-    private static boolean isSignedJar(File source) {
-        if (!source.isFile()) {
-            return false;
-        }
-        try (ZipInput entries = FileZipInput.create(source)) {
-            for (ZipEntry entry : entries) {
-                String entryName = entry.getName();
-                if (entryName.startsWith("META-INF/") && entryName.endsWith(".SF")) {
-                    return true;
-                }
-            }
-        } catch (FileException e) {
-            // Ignore malformed archive
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return false;
     }
 
     public static Policy instrumentForLoadingWithClassLoader() {
@@ -318,10 +299,71 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             }
 
             @Override
-            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file) {
-                return !isSignedJar(file) ? owner.new TransformationForClassLoader(file) : new SkipTransformation(file);
+            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File source) {
+                Boolean isMultiReleaseJar = null;
+
+                if (source.isFile()) {
+                    // Walk a file to figure out if it is signed and if it is a multi-release JAR.
+                    try (ZipInput entries = FileZipInput.create(source)) {
+                        for (ZipEntry entry : entries) {
+                            String entryName = entry.getName();
+                            if (isJarSignatureFile(entryName)) {
+                                // TODO(mlopatkin) Manifest of the signed JAR contains signature information and must be the first entry in the JAR.
+                                //  Looking into the manifest here should be more effective.
+                                // This policy doesn't transform signed JARs so no further checks are necessary.
+                                return new SkipTransformation(source);
+                            }
+                            if (isMultiReleaseJar == null && isManifestName(entryName)) {
+                                isMultiReleaseJar = isMultiReleaseJarManifest(readManifest(entry.getContent()));
+                            }
+                        }
+                    } catch (FileException e) {
+                        // Ignore malformed archive, let the transformation handle it.
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+                if (isMultiReleaseJar != null && isMultiReleaseJar) {
+                    return owner.new MultiReleaseTransformationForLegacy(source);
+                }
+                return owner.new BaseTransformation(source);
+            }
+
+            private boolean isJarSignatureFile(String entryName) {
+                return entryName.startsWith("META-INF/") && entryName.endsWith(".SF");
             }
         };
+    }
+
+    /**
+     * Transformation for legacy instrumentation when transformed JARs are part of the classpath.
+     * This is still used when TestKit and TAPI run Gradle in embedded or debug mode.
+     * <p>
+     * This transformation filters out not yet supported versioned directories of the multi-release JARs.
+     */
+    private class MultiReleaseTransformationForLegacy extends BaseTransformation {
+        public MultiReleaseTransformationForLegacy(File source) {
+            super(source);
+        }
+
+        @Override
+        protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
+            if (!isInUnsupportedMrJarVersionedDirectory(classEntry)) {
+                super.processClassFile(builder, classEntry);
+            }
+        }
+
+        @Override
+        protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) throws IOException {
+            // The entries should only be filtered out if we're transforming the proper multi-release JAR.
+            // Otherwise, even if the entry path looks like it is inside the versioned directory, it may still be accessed as a
+            // resource.
+            // Of course, user code can try to access resources inside versioned directories with full paths anyway, but that's
+            // a tradeoff we're making.
+            if (!isInUnsupportedMrJarVersionedDirectory(resourceEntry)) {
+                super.processResource(builder, resourceEntry);
+            }
+        }
     }
 
     public static Policy instrumentForLoadingWithAgent() {
@@ -348,9 +390,19 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
 
         @Override
+        protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
+            // We can filter out "unsupported" classes without checking the manifest beforehand.
+            // Even if this JAR isn't multi-release per manifest, classes in META-INF/ cannot be loaded, so they are just weird resources.
+            // The agent-based instrumentation doesn't load resources from the instrumented JAR.
+            if (!isInUnsupportedMrJarVersionedDirectory(classEntry)) {
+                super.processClassFile(builder, classEntry);
+            }
+        }
+
+        @Override
         protected void processManifest(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry manifestEntry) throws IOException {
             try {
-                Manifest parsedManifest = new Manifest(new ByteArrayInputStream(manifestEntry.getContent()));
+                Manifest parsedManifest = readManifest(manifestEntry.getContent());
                 if (!isMultiReleaseJarManifest(parsedManifest)) {
                     // If the original JAR is not multi-release, we don't need the manifest in the transformed JAR at all.
                     return;
@@ -376,11 +428,6 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             // Class loader loads resources from the original JAR, so there's no need to put them into the transformed JAR.
         }
 
-        @Nullable
-        private String getManifestMainAttribute(Manifest manifest, String name) {
-            return manifest.getMainAttributes().getValue(name);
-        }
-
         private void copyManifestMainAttribute(Manifest source, Manifest destination, Attributes.Name name) {
             destination.getMainAttributes().put(name, source.getMainAttributes().getValue(name));
         }
@@ -389,14 +436,61 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             manifest.getMainAttributes().putValue(name, value);
         }
 
-        private boolean isMultiReleaseJarManifest(Manifest manifest) {
-            return Boolean.parseBoolean(getManifestMainAttribute(manifest, MULTI_RELEASE_ATTRIBUTE));
-        }
-
         private byte[] toByteArray(Manifest manifest) throws IOException {
             ByteArrayOutputStream manifestOutput = new ByteArrayOutputStream(512);
             manifest.write(manifestOutput);
             return manifestOutput.toByteArray();
         }
     }
+
+    private static boolean isManifestName(String name) {
+        return name.equals(JarFile.MANIFEST_NAME);
+    }
+
+    private static Manifest readManifest(byte[] content) throws IOException {
+        return new Manifest(new ByteArrayInputStream(content));
+    }
+
+    private static boolean isMultiReleaseJarManifest(Manifest manifest) {
+        return Boolean.parseBoolean(getManifestMainAttribute(manifest, MULTI_RELEASE_ATTRIBUTE));
+    }
+
+    @Nullable
+    private static String getManifestMainAttribute(Manifest manifest, String name) {
+        return manifest.getMainAttributes().getValue(name);
+    }
+
+    /**
+     * Checks that the given entry is in the versioned directory of the multi-release JAR and this Java version is not yet supported by the instrumentation.
+     * The function doesn't check if the entry is actually in the multi-release JAR.
+     *
+     * @param entry the entry to check
+     * @return {@code true} if the entry is in the versioned directory and the Java version isn't supported
+     * @see <a href="https://docs.oracle.com/en/java/javase/20/docs/specs/jar/jar.html#multi-release-jar-files">MR JAR specification</a>
+     */
+    private static boolean isInUnsupportedMrJarVersionedDirectory(ClasspathEntryVisitor.Entry entry) {
+        Matcher match = VERSIONED_JAR_ENTRY_PATH.matcher(entry.getName());
+        if (match.matches()) {
+            try {
+                int version = Integer.parseInt(match.group(1));
+                // JAR specification states that only versions >= 9 are valid for version directories of the MR-JARs.
+                // Everything else are just resource directories that can be reached with the full path.
+                if (version >= 9) {
+                    return isUnsupportedJavaVersion(JavaVersion.toVersion(version));
+                }
+            } catch (NumberFormatException ignored) {
+                // Even though the pattern ensures that the version name is all digits, it fails to parse, probably because it is too big.
+                // Technically it may be a valid MR JAR for Java >Integer.MAX_VALUE, but we are too far away from this.
+                // We can assume that this isn't a versioned directory and fall through.
+            }
+        }
+
+        // The entry is not in the versioned directory at all.
+        return false;
+    }
+
+    private static boolean isUnsupportedJavaVersion(JavaVersion version) {
+        return !AsmConstants.MAX_SUPPORTED_JAVA_VERSION.isCompatibleWith(version);
+    }
+
 }
