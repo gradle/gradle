@@ -39,7 +39,7 @@ class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements TestP
         requireIsolatedUserHome()
 
         when:
-        def spec = withMultiProject()
+        def spec = withMultipleSubprojects()
         spec.scripts["a"] << "throw RuntimeException(\"ex1\")"
         spec.scripts["b"] << "throw RuntimeException(\"ex2\")"
 

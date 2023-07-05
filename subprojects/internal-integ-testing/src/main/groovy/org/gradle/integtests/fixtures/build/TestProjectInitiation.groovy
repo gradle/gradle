@@ -96,11 +96,24 @@ trait TestProjectInitiation {
         )
     }
 
+    BuildSpec withSingleSubproject() {
+        def settings = withSettings("""
+            include("a")
+        """)
+        def a = withBuildScriptIn("a", """
+        """)
+        return new BuildSpec(
+            scripts: [
+                settings: settings,
+                a: a
+            ]
+        )
+    }
+
     /**
      * Initializes a new project with <i>Kotlin-based</i> build scripts.
-     * @return
      */
-    BuildSpec withMultiProject() {
+    BuildSpec withMultipleSubprojects() {
         def settings = withSettings("""
             include("a", "b")
         """)
