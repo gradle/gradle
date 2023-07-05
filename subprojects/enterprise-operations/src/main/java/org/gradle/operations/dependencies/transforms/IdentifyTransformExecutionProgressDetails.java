@@ -17,27 +17,60 @@
 package org.gradle.operations.dependencies.transforms;
 
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
+import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
 
 import java.util.Map;
 
+/**
+ * Fired each time a transform execution is identified by the execution engine.
+ * <p>
+ * The resulting invocation may be executed at a later point.
+ * Most of the time, the execution happens directly after the identification, either as
+ * part of a planned transform step or when resolving an artifact view.
+ *
+ * @since 8.3
+ */
 public interface IdentifyTransformExecutionProgressDetails {
 
     /**
-     * The identity of the transform execution.
+     * The opaque identity of the transform execution.
      * <p>
      * Unique within the current build tree.
+     *
+     * @see ExecuteWorkBuildOperationType.Details#getIdentity()
      */
     String getIdentity();
 
+    /**
+     * The component identifier of the input artifact.
+     */
     ComponentIdentifier getInputArtifactComponentIdentifier();
 
+    /**
+     * The from attributes of the registered transform.
+     */
     Map<String, String> getFromAttributes();
 
+    /**
+     * The to attributes of the registered transform.
+     */
     Map<String, String> getToAttributes();
 
+    /**
+     * The file name of the input artifact that is about to be transformed.
+     */
     String getInputArtifactName();
 
+    /**
+     * The class of the transform action.
+     */
     Class<?> getTransformActionClass();
 
+    /**
+     * The combined input hash of the secondary inputs.
+     * <p>
+     * The secondary inputs are the implementation of the transform action and
+     * the combined input hash of the parameters of the transform action.
+     */
     byte[] getSecondaryInputValueHashBytes();
 }

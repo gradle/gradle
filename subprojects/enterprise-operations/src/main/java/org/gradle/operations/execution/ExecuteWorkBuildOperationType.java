@@ -72,21 +72,52 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
         String getSkipMessage();
 
         /**
-         * A list of messages describing the first few reasons encountered that caused the work to be executed.
-         * An empty list means the work was up-to-date and hasn't been executed.
+         * If work was UP_TO_DATE or FROM_CACHE, this will convey the ID of the build that produced the outputs being reused.
+         * Value will be null for any other outcome.
+         *
+         * This value may also be null for an UP_TO_DATE outcome where the work executed, but then decided it was UP_TO_DATE.
+         * That is, it was not UP_TO_DATE due to Gradle's core input/output incremental build mechanism.
+         * This is not necessarily ideal behaviour, but it is the current.
          */
-        List<String> getExecutionReasons();
-
         @Nullable
         String getOriginBuildInvocationId();
 
+        /**
+         * If the work was UP_TO_DATE or FROM_CACHE, this will convey the execution time of the work in the build that produced the outputs being reused.
+         * Value will be null for any other outcome.
+         *
+         * This value may also be null for an UP_TO_DATE outcome where the work executed, but then decided it was UP_TO_DATE.
+         * That is, it was not UP_TO_DATE due to Gradle's core input/output incremental build mechanism,
+         * but the unit of work returns {@code false} for {@code org.gradle.internal.execution.UnitOfWork.WorkOutput#getDidWork()}.
+         * This is not necessarily ideal behaviour, but it is the current.
+         */
         @Nullable
         Long getOriginExecutionTime();
 
+        /**
+         * The human friendly description of why this work was not cacheable.
+         * Null if the work was cacheable.
+         * Not null if {@link #getCachingDisabledReasonCategory()} is not null.
+         */
         @Nullable
         String getCachingDisabledReasonMessage();
 
+        /**
+         * The categorisation of why the work was not cacheable.
+         * Null if the work was cacheable.
+         * Not null if {@link #getCachingDisabledReasonMessage()}l is not null.
+         * Values are expected to correlate to {@link org.gradle.operations.execution.CachingDisabledReasonCategory}.
+         */
         @Nullable
         String getCachingDisabledReasonCategory();
+
+        /**
+         * Opaque messages describing why the work was executed.
+         * <p>
+         * In the order emitted by Gradle.
+         * Null if execution did not get so far as to test “up-to-date-ness”.
+         * Empty if tested, but work was considered up to date.
+         */
+        List<String> getExecutionReasons();
     }
 }

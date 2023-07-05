@@ -83,6 +83,16 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         @Nullable
         List<String> getActionClassNames();
 
+        /**
+         * The input value property hashes.
+         * <p>
+         * key = property name
+         * <p>
+         * Ordered by key, lexicographically.
+         * No null keys or values.
+         * Never empty.
+         * Null if the task has no inputs.
+         */
         @Nullable
         Map<String, byte[]> getInputValueHashesBytes();
 

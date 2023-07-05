@@ -23,10 +23,22 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents the computation of capturing the before execution state and resolving the caching state for transforms.
+ * <p>
+ * Must occur as a child of {@link org.gradle.operations.execution.ExecuteWorkBuildOperationType}.
+ *
+ * @since 8.3
+ */
 public final class SnapshotTransformInputsBuildOperationType implements BuildOperationType<SnapshotTransformInputsBuildOperationType.Details, SnapshotTransformInputsBuildOperationType.Result> {
     public interface Details {
     }
 
+    /**
+     * The hashes of the inputs.
+     * <p>
+     * If the inputs were not snapshotted, all fields are null.
+     */
     public interface Result {
 
         /**
@@ -51,6 +63,15 @@ public final class SnapshotTransformInputsBuildOperationType implements BuildOpe
         @Nullable
         String getImplementationClassName();
 
+        /**
+         * The input value property hashes.
+         * <p>
+         * key = property name
+         * <p>
+         * Ordered by key, lexicographically.
+         * No null keys or values.
+         * Never empty.
+         */
         @Nullable
         Map<String, byte[]> getInputValueHashesBytes();
 
@@ -58,6 +79,9 @@ public final class SnapshotTransformInputsBuildOperationType implements BuildOpe
          * Traverses the input properties that are file types (e.g. File, FileCollection, FileTree, List of File).
          * <p>
          * If there are no input file properties, visitor will not be called at all.
+         * <p>
+         * This is using the visitor from {@link SnapshotTaskInputsBuildOperationType} since there is no difference
+         * between tasks and transforms in this regard. Later we can unify the transform and the task build operation type.
          */
         void visitInputFileProperties(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor);
 
