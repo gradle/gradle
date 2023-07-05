@@ -22,6 +22,7 @@ import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     private ProblemGroup problemGroup;
     private String message;
     private String problemType;
+    private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
     private Severity severity;
     private String path;
     private Integer line;
@@ -51,14 +53,16 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     private Throwable cause;
     protected final Map<String, String> additionalMetadata = new HashMap<>();
 
-    public DefaultProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) {
+    public DefaultProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
         this.problemGroup = problemGroup;
         this.message = message;
         this.severity = severity;
         this.problemType = type;
+        this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
     }
 
-    public DefaultProblemBuilder() {
+    public DefaultProblemBuilder(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
     }
 
     public ProblemBuilder group(ProblemGroup group) {
@@ -159,7 +163,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
         throw throwError(build());
     }
 
-    public static RuntimeException throwError(Problem problem) {
+    public RuntimeException throwError(Problem problem) {
         Throwable t = problem.getCause();
         if (t instanceof InterruptedException) {
             report(problem);
@@ -176,7 +180,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
         throw new GradleExceptionWithProblem(problem);
     }
 
-    private static void report(Problem problem) {
-        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+    private void report(Problem problem) {
+        buildOperationProgressEventEmitter.emitNowIfCurrent(problem);
     }
 }

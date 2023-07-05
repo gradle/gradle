@@ -34,19 +34,19 @@ public class DefaultProblems extends Problems {
     }
 
     public ProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder();
+        return new DefaultProblemBuilder(buildOperationProgressEventEmitter);
     }
 
     public ProblemBuilder createProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) {
-        return new DefaultProblemBuilder(problemGroup, message, severity, type);
+        return new DefaultProblemBuilder(problemGroup, message, severity, type, buildOperationProgressEventEmitter);
     }
 
     public ProblemBuilder createErrorProblemBuilder(ProblemGroup problemGroup, String message, String type) {
-        return new DefaultProblemBuilder(problemGroup, message, ERROR, type);
+        return new DefaultProblemBuilder(problemGroup, message, ERROR, type, buildOperationProgressEventEmitter);
     }
 
     public void collectError(Throwable failure) {
-        new DefaultProblemBuilder(GENERIC, failure.getMessage(), ERROR, "generic_exception")
+        new DefaultProblemBuilder(GENERIC, failure.getMessage(), ERROR, "generic_exception", buildOperationProgressEventEmitter)
             .cause(failure)
             .noLocation()
             .undocumented()
@@ -55,6 +55,7 @@ public class DefaultProblems extends Problems {
 
     @Override
     public void collectError(Problem problem) {
-        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+        buildOperationProgressEventEmitter.emitNowIfCurrent(problem);
+//        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
     }
 }

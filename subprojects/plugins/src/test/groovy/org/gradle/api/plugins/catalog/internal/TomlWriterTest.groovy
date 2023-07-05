@@ -22,7 +22,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
-import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -107,7 +108,7 @@ format.version = "1.1"
                 Interners.newStrongInterner(),
                 TestUtil.objectFactory(),
                 Stub(Supplier),
-                Stub(Problems))
+                new DefaultProblems(Stub(BuildOperationProgressEventEmitter)))
 
         TomlCatalogFileParser.parse(path, builder)
         return new Model(builder.build())

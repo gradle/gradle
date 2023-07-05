@@ -18,6 +18,7 @@ package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.DefaultProblemBuilder;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 
 import javax.annotation.Nullable;
@@ -32,6 +33,8 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
     public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
     public static final String PROPERTY_NAME = "propertyName";
     public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
+
+    public TypeAwareProblemBuilder(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {super(buildOperationProgressEventEmitter);}
 
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
         if (classWithAnnotationAttached != null) {

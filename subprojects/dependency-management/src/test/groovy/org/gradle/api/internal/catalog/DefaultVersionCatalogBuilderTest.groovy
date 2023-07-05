@@ -22,9 +22,10 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.logging.StandardOutputListener
-import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -34,7 +35,17 @@ import java.util.function.Supplier
 class DefaultVersionCatalogBuilderTest extends Specification implements VersionCatalogErrorMessages {
 
     @Subject
-    DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), Stub(Supplier), Stub(Problems))
+    DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder(
+        "libs",
+        Interners.newStrongInterner(),
+        Interners.newStrongInterner(),
+        TestUtil.objectFactory(),
+        Stub(Supplier),
+        new DefaultProblems(Stub(BuildOperationProgressEventEmitter)))
+
+//    def setup() {
+//        Problems.init(new DefaultProblems(Stub(BuildOperationProgressEventEmitter)))
+//    }
 
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION
