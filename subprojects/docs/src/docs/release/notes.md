@@ -50,7 +50,6 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="SSL"></a>
 ### Faster Java compilation
 
 When compiling Java code, Gradle uses worker processes to run the Java compiler as a compiler daemon. 
