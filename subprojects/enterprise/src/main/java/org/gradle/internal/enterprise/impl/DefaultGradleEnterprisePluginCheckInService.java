@@ -33,7 +33,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     private final GradleEnterprisePluginManager manager;
     private final DefaultGradleEnterprisePluginAdapter adapter;
     private final boolean isConfigurationCacheEnabled;
-    private final boolean isIsolatedProjectsEnabled;
+    private final boolean isProjectIsolationEnabled;
 
     public DefaultGradleEnterprisePluginCheckInService(
         BuildModelParameters buildModelParameters,
@@ -43,7 +43,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         this.manager = manager;
         this.adapter = adapter;
         this.isConfigurationCacheEnabled = buildModelParameters.isConfigurationCache();
-        this.isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
+        this.isProjectIsolationEnabled = buildModelParameters.isIsolatedProjects();
     }
 
     // Used just for testing
@@ -52,13 +52,13 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
     // For Gradle versions 8+, configuration caching builds are not compatible with Gradle Enterprise plugin < 3.12
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING = VersionNumber.version(3, 12);
-    public static final String UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE = String.format("The Gradle Enterprise plugin has been disabled as it is " +
+    public static final String UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE = String.format("Gradle Enterprise plugin has been disabled as it is " +
             "incompatible with this version of Gradle and the configuration caching feature - please upgrade to version %s.%s or later of the Gradle Enterprise plugin to restore functionality.",
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor(),
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor());
 
-    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS = VersionNumber.version(3, 15);
-    public static final String UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE = "The Gradle Enterprise plugin has been disabled as it is incompatible with isolated projects feature";
+    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_PROJECT_ISOLATION = VersionNumber.version(3, 15);
+    public static final String UNSUPPORTED_PLUGIN_DUE_TO_PROJECT_ISOLATION_MESSAGE = "Gradle Enterprise plugin has been disabled as it is incompatible with project isolation feature";
 
     // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9 = VersionNumber.parse("3.13.1");
@@ -74,9 +74,9 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         String pluginVersion = pluginMetadata.getVersion();
         VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
 
-        if (isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
+        if (isUnsupportedWithProjectIsolation(pluginBaseVersion)) {
             System.setProperty(DISABLE_TEST_ACCELERATION_PROPERTY, "true");
-            return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE);
+            return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_PROJECT_ISOLATION_MESSAGE);
         }
 
         if (isUnsupportedWithConfigurationCaching(pluginBaseVersion)) {
@@ -117,8 +117,8 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         return isConfigurationCacheEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(pluginBaseVersion) > 0;
     }
 
-    private boolean isUnsupportedWithIsolatedProjects(VersionNumber pluginBaseVersion) {
-        return isIsolatedProjectsEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.compareTo(pluginBaseVersion) > 0;
+    private boolean isUnsupportedWithProjectIsolation(VersionNumber pluginBaseVersion) {
+        return isProjectIsolationEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_PROJECT_ISOLATION.compareTo(pluginBaseVersion) > 0;
     }
 
     private static boolean isDeprecatedPluginVersion(VersionNumber pluginBaseVersion) {
