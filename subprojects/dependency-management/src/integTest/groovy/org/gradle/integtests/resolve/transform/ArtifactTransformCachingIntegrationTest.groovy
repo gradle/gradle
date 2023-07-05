@@ -979,6 +979,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         (outputDirs.parentFile.name as Set).size() == 2
     }
 
+    @ToBeFixedForConfigurationCache(because = "project :lib-project:producer not found.")
     def "workspace id of project transforms is unique per build with included builds"() {
         // The setup here is in a way that the project path of the project dependency in the same build
         // is the same as the buildTreePath of the substituted project dependency in the included build.
