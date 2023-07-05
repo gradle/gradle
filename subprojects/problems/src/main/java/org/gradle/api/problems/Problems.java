@@ -54,7 +54,6 @@ public abstract class Problems {
     }
     abstract public ProblemBuilder createProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type);
 
-
     public static ProblemBuilder createError(ProblemGroup problemGroup, String message, String type) {
         return problemsService.createErrorProblemBuilder(problemGroup, message, type);
     }

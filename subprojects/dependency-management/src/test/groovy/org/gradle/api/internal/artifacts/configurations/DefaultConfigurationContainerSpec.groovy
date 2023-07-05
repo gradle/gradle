@@ -30,11 +30,14 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.specs.Spec
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
@@ -95,6 +98,10 @@ class DefaultConfigurationContainerSpec extends Specification {
         configurationFactory,
         Mock(ResolutionStrategyFactory)
     )
+
+    def setup(){
+        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
+    }
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")

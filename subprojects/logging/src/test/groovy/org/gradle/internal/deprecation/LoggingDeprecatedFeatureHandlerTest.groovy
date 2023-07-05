@@ -18,6 +18,8 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -57,12 +59,12 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
     final BuildOperationProgressEventEmitter progressBroadcaster = new DefaultBuildOperationProgressEventEmitter(
-        clock, currentBuildOperationRef, buildOperationListener
-    )
+        clock, currentBuildOperationRef, buildOperationListener)
 
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream
         handler.init(diagnosticsFactory, WarningMode.All, progressBroadcaster)
+        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
     }
 
     def 'logs each deprecation warning only once'() {

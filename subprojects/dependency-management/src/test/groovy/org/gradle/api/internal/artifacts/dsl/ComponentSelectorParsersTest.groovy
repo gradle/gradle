@@ -25,7 +25,10 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -34,6 +37,10 @@ import static org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers.mul
 import static org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers.parser
 
 class ComponentSelectorParsersTest extends Specification {
+
+    def setup(){
+        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
+    }
 
     def "understands group:name:version notation"() {
         when:

@@ -25,11 +25,14 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.execution.ProjectExecutionServices
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -73,6 +76,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         new File(temporaryFolder.testDirectory, "settings.gradle") << ""
         rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
         executionServices = new ProjectExecutionServices(rootProject)
+        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
     }
 
     final ProjectInternal getProject() {

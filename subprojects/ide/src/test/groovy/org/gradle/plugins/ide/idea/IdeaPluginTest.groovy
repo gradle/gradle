@@ -21,8 +21,11 @@ import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.Delete
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -38,6 +41,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
     def setup() {
         childProject = TestUtil.createChildProject(project, "child")
         anotherChildProject = TestUtil.createChildProject(project, "child2")
+        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
     }
 
     def "adds extension to root project"() {
