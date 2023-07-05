@@ -240,7 +240,7 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         useProperty << [true, false]
     }
 
-    def "supplies no installations for toolchains file with non-resolvable environment variable"(boolean useProperty) {
+    def "supplies single path for a single toolchain with non-resolvable environment variable"(boolean useProperty) {
         given:
         def toolchains = mavenHome.createFile(new File("toolchains.xml"))
         toolchains.write('''<toolchains>
