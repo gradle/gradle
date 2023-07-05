@@ -898,14 +898,14 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         succeeds("customTask")
 
         where:
-        type       | parameterType      | producer                                               | className
-        'File'     | ''                 | 'new File("some/path")'                                | 'java.io.File'
-        'Integer'  | ''                 | 'Integer.valueOf(1)'                                   | 'java.lang.Integer'
-        'String'   | ''                 | 'new String()'                                         | 'java.lang.String'
-        'GString'  | ''                 | 'GString.EMPTY'                                        | 'groovy.lang.GString$1'
-        'Iterable' | '<Integer>'        | '[[Integer.valueOf(1)], [Integer.valueOf(2)]]'         | 'java.lang.Integer'
-        'List'     | '<String>'         | '["value1", "value2"]'                                 | 'java.lang.String'
-        'Map'      | '<String,Integer>' | '[a: Integer.valueOf(1), b: Integer.valueOf(2)]'       | 'java.lang.Integer'
+        type       | parameterType      | producer                                         | className
+        'File'     | ''                 | 'new File("some/path")'                          | 'java.io.File'
+        'Integer'  | ''                 | 'Integer.valueOf(1)'                             | 'java.lang.Integer'
+        'String'   | ''                 | 'new String()'                                   | 'java.lang.String'
+        'GString'  | ''                 | 'GString.EMPTY'                                  | 'groovy.lang.GString$1'
+        'Iterable' | '<Integer>'        | '[[Integer.valueOf(1)], [Integer.valueOf(2)]]'   | 'java.lang.Integer'
+        'List'     | '<String>'         | '["value1", "value2"]'                           | 'java.lang.String'
+        'Map'      | '<String,Integer>' | '[a: Integer.valueOf(1), b: Integer.valueOf(2)]' | 'java.lang.Integer'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
@@ -1009,10 +1009,10 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         succeeds("customTask")
 
         where:
-        type                | producer                    | className
-        'DeprecationLevel'  | 'DeprecationLevel.WARNING'  | 'kotlin.DeprecationLevel'
-        'Int'               | 'Int.MIN_VALUE'             | 'java.lang.Integer'
-        'String'            | '"abc"'                     | 'java.lang.String'
+        type               | producer                   | className
+        'DeprecationLevel' | 'DeprecationLevel.WARNING' | 'kotlin.DeprecationLevel'
+        'Int'              | 'Int.MIN_VALUE'            | 'java.lang.Integer'
+        'String'           | '"abc"'                    | 'java.lang.String'
     }
 
     private static String namedBeanClass() {
