@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -109,5 +110,35 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
 
         then:
         gradle.waitForFinish()
+    }
+
+    def "log messages from a worker daemon are associated with the task that invokes them"() {
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+        workActionThatProducesLotsOfOutput.writeToBuildFile()
+        buildFile << """
+            task runInWorker2(type: WorkerTask) {
+                isolationMode = 'processIsolation'
+                workActionClass = ${workActionThatProducesLotsOfOutput.name}.class
+                dependsOn(runInWorker)
+            }
+        """
+
+        expect:
+        succeeds("runInWorker2")
+
+        and:
+        def logOperations = buildOperations.all(ExecuteWorkItemBuildOperationType)
+        def taskOperations = logOperations.collect {
+            buildOperations.parentsOf(it).reverse().find { parent -> buildOperations.isType(parent, ExecuteTaskBuildOperationType) }
+        }.unique()
+        taskOperations.size() == 2
+        taskOperations.collect {it.displayName }.containsAll(['Task :runInWorker', 'Task :runInWorker2'])
+
+        and:
+        logOperations.every { operation -> operation.progress.size() == 1000 }
+
+        and:
+        assertSameDaemonWasUsed("runInWorker", "runInWorker2")
     }
 }
