@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.test.precondition.Requires
@@ -133,7 +134,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        succeeds("t", "-Dorg.gradle.unsafe.isolated-projects=true")
+        succeeds("t", "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true")
 
         then:
         output.contains("present: ${applied}")
