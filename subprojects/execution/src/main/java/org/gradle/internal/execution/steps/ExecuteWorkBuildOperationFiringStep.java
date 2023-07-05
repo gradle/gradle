@@ -57,6 +57,7 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                         result.getExecutionReasons()
                     );
                     operationContext.setResult(operationResult);
+                    result.getExecution().getFailure().ifPresent(operationContext::failed);
                     return result;
                 },
                 BuildOperationDescriptor
@@ -145,12 +146,6 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         @Override
         public List<String> getExecutionReasons() {
             return executionReasons;
-        }
-
-        @Nullable
-        @Override
-        public Throwable getFailure() {
-            return execution.getFailure().orElse(null);
         }
 
         @Nullable

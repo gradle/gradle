@@ -78,9 +78,6 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
         List<String> getExecutionReasons();
 
         @Nullable
-        Throwable getFailure();
-
-        @Nullable
         String getOriginBuildInvocationId();
 
         @Nullable

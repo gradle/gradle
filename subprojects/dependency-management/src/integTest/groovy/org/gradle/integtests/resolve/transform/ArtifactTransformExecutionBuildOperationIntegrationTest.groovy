@@ -104,12 +104,12 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         with(projectExecution.result) {
             skipMessage == null
-            failure == null
             originBuildInvocationId == null
             executionReasons == ['No history is available.']
             cachingDisabledReasonMessage == 'Caching not enabled.'
             cachingDisabledReasonCategory == 'NOT_CACHEABLE'
         }
+        projectExecution.failure == null
         with(Iterables.getOnlyElement(buildOperations.children(projectExecution, SnapshotTransformInputsBuildOperationType)).result) {
             hash != null
             classLoaderHash != null
@@ -168,7 +168,6 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         with(projectExecution.result) {
             skipMessage == 'UP-TO-DATE'
-            failure == null
             originExecutionTime > 0
             originBuildInvocationId != null
             executionReasons.empty
