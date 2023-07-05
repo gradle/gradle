@@ -95,8 +95,6 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                             String envVariableName = matcher.group(1);
                             Provider<String> envVariableValue = getEnvironmentProperty(envVariableName);
                             if (envVariableValue == null || envVariableValue.getOrNull() == null) {
-                                LOGGER.info("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}. "
-                                    + "Unable to read environment variable {} successfully", toolchainFile, envVariableName);
                                 matcher.appendReplacement(resolvedValue, "\\${env." + envVariableName + "}");
                                 continue;
                             }
