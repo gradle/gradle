@@ -86,30 +86,4 @@ public abstract class Problems {
         }
     }
 
-    private static class NoOpProblems extends Problems {
-        @Override
-        public ProblemBuilder createProblemBuilder() {
-            return null;
-        }
-
-        @Override
-        public ProblemBuilder createProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) {
-            return null;
-        }
-
-        @Override
-        public ProblemBuilder createErrorProblemBuilder(ProblemGroup problemGroup, String message, String type) {
-            return null;
-        }
-
-        @Override
-        public void collectError(Throwable failure) {
-
-        }
-
-        @Override
-        public void collectError(Problem problem) {
-
-        }
-    }
 }
