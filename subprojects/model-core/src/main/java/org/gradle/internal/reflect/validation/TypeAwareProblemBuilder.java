@@ -34,7 +34,9 @@ public class TypeAwareProblemBuilder extends DefaultProblemBuilder {
     public static final String PROPERTY_NAME = "propertyName";
     public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
 
-    public TypeAwareProblemBuilder(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {super(buildOperationProgressEventEmitter);}
+    public TypeAwareProblemBuilder(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        super(buildOperationProgressEventEmitter);
+    }
 
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
         if (classWithAnnotationAttached != null) {
