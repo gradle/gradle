@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath.types;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.classpath.ClasspathFileTransformer;
 import org.gradle.internal.classpath.ClasspathWalker;
@@ -38,12 +37,7 @@ public class DefaultInstrumentingTypeRegistryFactory implements InstrumentingTyp
     private final InstrumentingTypeRegistry gradleCoreInstrumentingRegistry;
     private final InstrumentingDirectSuperTypesCollector directSuperTypesCollector;
 
-    public DefaultInstrumentingTypeRegistryFactory(PersistentCache cache, ParallelTransformExecutor parallelTransformExecutor, ClasspathWalker classpathWalker, FileSystemAccess fileSystemAccess) {
-        this(new GradleCoreInstrumentingTypeRegistry(), cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
-    }
-
-    @VisibleForTesting
-    DefaultInstrumentingTypeRegistryFactory(InstrumentingTypeRegistry gradleCoreInstrumentingRegistry, PersistentCache cache, ParallelTransformExecutor parallelTransformExecutor, ClasspathWalker classpathWalker, FileSystemAccess fileSystemAccess) {
+    public DefaultInstrumentingTypeRegistryFactory(InstrumentingTypeRegistry gradleCoreInstrumentingRegistry, PersistentCache cache, ParallelTransformExecutor parallelTransformExecutor, ClasspathWalker classpathWalker, FileSystemAccess fileSystemAccess) {
         this.gradleCoreInstrumentingRegistry = gradleCoreInstrumentingRegistry;
         this.directSuperTypesCollector = new DefaultInstrumentingDirectSuperTypesCollector(cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
     }

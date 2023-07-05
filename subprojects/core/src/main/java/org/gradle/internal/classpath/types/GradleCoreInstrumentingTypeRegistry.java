@@ -57,7 +57,7 @@ public class GradleCoreInstrumentingTypeRegistry implements InstrumentingTypeReg
         return INSTRUMENTED_SUPER_TYPES.get().isEmpty();
     }
 
-    public static Optional<HashCode> getInstrumentedFileHash() {
+    public Optional<HashCode> getInstrumentedFileHash() {
         return INSTRUMENTED_HASH_CODE.get();
     }
 

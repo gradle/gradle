@@ -25,6 +25,7 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.types.DefaultInstrumentingTypeRegistryFactory;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistryFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -67,6 +68,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ManagedExecutor executor;
     private final ParallelTransformExecutor parallelTransformExecutor;
     private final InstrumentingTypeRegistryFactory typeRegistryFactory;
+    private final GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingRegistry;
 
     public DefaultCachedClasspathTransformer(
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
@@ -78,7 +80,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ExecutorFactory executorFactory,
         GlobalCacheLocations globalCacheLocations,
         FileLockManager fileLockManager,
-        AgentStatus agentStatus
+        AgentStatus agentStatus,
+        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingRegistry
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
@@ -90,7 +93,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(cache, fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
         this.parallelTransformExecutor = new ParallelTransformExecutor(cache, executor);
-        this.typeRegistryFactory = new DefaultInstrumentingTypeRegistryFactory(cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
+        this.gradleCoreInstrumentingRegistry = gradleCoreInstrumentingRegistry;
+        this.typeRegistryFactory = new DefaultInstrumentingTypeRegistryFactory(gradleCoreInstrumentingRegistry, cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
     }
 
     @Override
@@ -207,7 +211,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private InstrumentingClasspathFileTransformer instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.Policy policy, Transform transform) {
-        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, policy, transform);
+        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, policy, transform, gradleCoreInstrumentingRegistry);
     }
 
     private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, InstrumentingTypeRegistry typeRegistry) {

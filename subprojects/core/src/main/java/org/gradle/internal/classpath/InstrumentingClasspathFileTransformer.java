@@ -111,20 +111,21 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         Policy policy,
-        CachedClasspathTransformer.Transform transform
+        CachedClasspathTransformer.Transform transform,
+        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
     ) {
         this.fileLockManager = fileLockManager;
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.policy = policy;
         this.transform = transform;
-        this.fileHasher = new InstrumentingFileHasher(configHashFor(transform));
+        this.fileHasher = new InstrumentingFileHasher(configHashFor(transform, gradleCoreInstrumentingTypeRegistry));
     }
 
-    private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
+    private HashCode configHashFor(CachedClasspathTransformer.Transform transform, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
-        GradleCoreInstrumentingTypeRegistry.getInstrumentedFileHash().ifPresent(hasher::putHash);
+        gradleCoreInstrumentingTypeRegistry.getInstrumentedFileHash().ifPresent(hasher::putHash);
         policy.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
