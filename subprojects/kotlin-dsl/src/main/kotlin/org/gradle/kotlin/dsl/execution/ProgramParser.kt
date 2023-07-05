@@ -42,8 +42,6 @@ object ProgramParser {
             val sourceWithoutComments =
                 source.map { it.erase(comments) }
 
-            // todo: erase annotations on stage 1 blocks?
-
             val buildscriptFragment =
                 topLevelBlocks
                     .singleSectionOf(TopLevelBlockId.buildscriptIdFor(target))

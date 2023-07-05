@@ -24,9 +24,6 @@ import org.junit.Test
 
 class KotlinGrammarTest {
 
-    // TODO: more test, cover typical annotations at least
-    // TODO: everything that's a symbol("something") should be checked, most likely a token(something) needs to be used instead
-
     @Test
     fun `will not parse empty annotation`() {
         kotlinGrammar.annotation.failToConsumeFrom("""@""")

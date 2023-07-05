@@ -492,8 +492,6 @@ class KotlinGrammar : Combinator(true, true) {
                 symbol("receiver") + symbol("param") + symbol("setparam") + symbol("delgate")) * token(COLON)
         )
 
-    // todo: experiment with weird stuff, try to drop things like lambda & statement
-
     internal
     val singleAnnotation =
         debug(
