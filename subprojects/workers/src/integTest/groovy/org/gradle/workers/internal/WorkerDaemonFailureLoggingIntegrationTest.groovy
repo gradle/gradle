@@ -47,6 +47,6 @@ class WorkerDaemonFailureLoggingIntegrationTest extends AbstractDaemonWorkerExec
         taskOperation != null
         // there's only the task start progress, no failure progress
         taskOperation.progress.size() == 1
-        errorOutput.contains("Unrecognized option: --not-a-real-argument")
+        errorOutput.contains("option: --not-a-real-argument")
     }
 }
