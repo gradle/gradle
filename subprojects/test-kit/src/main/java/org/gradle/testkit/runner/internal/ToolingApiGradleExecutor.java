@@ -112,7 +112,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             connection = gradleConnector.connect();
             targetGradleVersion = determineTargetGradleVersion(connection);
             if (targetGradleVersion.compareTo(TestKitFeature.RUN_BUILDS.getSince()) < 0) {
-                throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions 2.6 and later.", targetGradleVersion.getVersion()));
+                throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions %s and later.",
+                    targetGradleVersion.getVersion(), MINIMUM_SUPPORTED_GRADLE_VERSION.getVersion()));
             } else {
                 checkDeprecationWarning(targetGradleVersion);
             }
@@ -178,9 +179,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
     private static void checkDeprecationWarning(GradleVersion targetGradleVersion) {
         if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
-            DeprecationLogger.deprecate("The version of Gradle you are using (%s) is deprecated with TestKit. TestKit will only support the last 5 major versions in future.")
+            DeprecationLogger.deprecate(String.format("The version of Gradle you are using (%s) is deprecated with TestKit. TestKit will only support the last 5 major versions in future.",
+                    targetGradleVersion.getVersion()))
                 .willBecomeAnErrorInGradle9()
-                .undocumented();
+                .withUserManual("third_party_integration", "sec:embedding_compatibility");
         }
     }
 

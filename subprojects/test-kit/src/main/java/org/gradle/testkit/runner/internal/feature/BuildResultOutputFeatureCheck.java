@@ -41,7 +41,7 @@ public class BuildResultOutputFeatureCheck implements FeatureCheck {
                 DeprecationLogger.deprecate("Capturing build output in debug mode with the GradleRunner for the version of Gradle you are using (%s) is deprecated with TestKit. " +
                         "TestKit will only support the last 5 major versions in future.")
                     .willBecomeAnErrorInGradle9()
-                    .undocumented();
+                    .withUserManual("third_party_integration", "sec:embedding_compatibility");
             }
         }
     }
