@@ -20,13 +20,13 @@ import org.gradle.internal.operations.BuildOperationType;
 
 /**
  * Executing a transform action.
+ * <p>
+ * Info about the owning transform execution can be inferred, and we don't provide any further info at this point.
+ * This is largely to expose timing information about executed transforms
  *
  * @since 8.3
  */
 public final class ExecuteTransformActionBuildOperationType implements BuildOperationType<ExecuteTransformActionBuildOperationType.Details, ExecuteTransformActionBuildOperationType.Result> {
-
-    // Info about the owning task can be inferred, and we don't provide any further info at this point.
-    // This is largely to expose timing information about executed transforms
 
     public interface Details {
     }
