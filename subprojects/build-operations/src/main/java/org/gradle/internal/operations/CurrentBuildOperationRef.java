@@ -56,4 +56,14 @@ public class CurrentBuildOperationRef {
         ref.remove();
     }
 
+    public void with(@Nullable BuildOperationRef state, Runnable block) {
+        BuildOperationRef oldState = get();
+        try {
+            set(state);
+            block.run();
+        } finally {
+            set(oldState);
+        }
+    }
+
 }

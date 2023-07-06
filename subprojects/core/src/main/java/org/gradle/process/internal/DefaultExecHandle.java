@@ -265,7 +265,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
             broadcast.getSource().beforeExecutionStarted(this);
             execHandleRunner = new ExecHandleRunner(this, new CompositeStreamsHandler(), processLauncher, executor);
-            executor.execute(new CurrentBuildOperationPreservingRunnable(execHandleRunner));
+            executor.execute(CurrentBuildOperationPreservingRunnable.wrapIfNeeded(execHandleRunner));
 
             while (stateIn(ExecHandleState.STARTING)) {
                 LOGGER.debug("Waiting until process started: {}.", displayName);

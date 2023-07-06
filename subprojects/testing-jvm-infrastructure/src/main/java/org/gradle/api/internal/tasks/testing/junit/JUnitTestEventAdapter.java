@@ -27,8 +27,8 @@ import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestFailureFailedMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.OpentestMultipleFailuresMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
@@ -55,8 +55,8 @@ public class JUnitTestEventAdapter extends RunListener implements RootAssertionT
 
     public static final List<FailureMapper> MAPPERS = Arrays.asList(
         new JUnitComparisonFailureMapper(),
-        new OpentestFailureFailedMapper(),
-        new OpentestMultipleFailuresMapper(),
+        new OpenTestAssertionFailedMapper(),
+        new OpenTestMultipleFailuresErrorMapper(),
         new AssertjMultipleAssertionsErrorMapper(),
         new AssertErrorMapper()
     );
