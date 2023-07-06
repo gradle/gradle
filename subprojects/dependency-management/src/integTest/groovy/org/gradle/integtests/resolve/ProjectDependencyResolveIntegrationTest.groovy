@@ -676,4 +676,73 @@ project(':b') {
             }
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/25579")
+    def "can lazily compute dependencies from results of another resolution which resolves current project"() {
+        buildFile << """
+            configurations {
+                a
+                b
+                create("default")
+            }
+
+            dependencies {
+                a project
+            }
+
+            configurations.b.dependencies.addAllLater provider(() -> {
+                configurations.a.files
+                []
+            })
+
+            configurations.a.files
+        """
+
+        expect:
+        succeeds(":help")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25579")
+    def "can lazily compute dependencies from results of another resolution which circularly depends on current project"() {
+        buildFile << """
+            configurations {
+                a
+                b
+                create("default")
+            }
+
+            dependencies {
+                a project(":other")
+            }
+
+            configurations.b.dependencies.addAllLater provider(() -> {
+                configurations.a.files
+                []
+            })
+
+        """
+
+        settingsFile << "include 'other'"
+        file("other/build.gradle") << """
+            configurations {
+                a
+                b
+                create("default")
+            }
+
+            dependencies {
+                a project(":")
+            }
+
+            configurations.b.dependencies.addAllLater provider(() -> {
+                configurations.a.files
+                []
+            })
+
+            configurations.a.files
+        """
+
+        expect:
+        succeeds(":help")
+    }
 }
