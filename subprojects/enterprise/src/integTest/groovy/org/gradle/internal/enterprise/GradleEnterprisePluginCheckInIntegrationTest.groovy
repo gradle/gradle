@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise
 
-import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.test.precondition.Requires
