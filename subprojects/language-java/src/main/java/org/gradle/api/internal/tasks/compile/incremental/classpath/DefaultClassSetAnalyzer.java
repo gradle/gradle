@@ -27,6 +27,8 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +63,7 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
 
     private ClassSetAnalysisData analyze(File classSet, boolean abiOnly) {
         final ClassDependentsAccumulator accumulator = new ClassDependentsAccumulator();
+        final Timer clock = Time.startTimer();
         try {
             visit(classSet, accumulator, abiOnly);
         } catch (Exception e) {
@@ -70,7 +73,10 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
             }
         }
 
-        return accumulator.getAnalysis();
+        LOGGER.info(Thread.currentThread().getName() + " only visit for " + classSet + " took " + clock.getElapsed());
+        ClassSetAnalysisData analysis = accumulator.getAnalysis();
+        LOGGER.info(Thread.currentThread().getName() + " overall analysis for " + classSet + " took " + clock.getElapsed());
+        return analysis;
     }
 
     private void visit(File classpathEntry, ClassDependentsAccumulator accumulator, boolean abiOnly) {
