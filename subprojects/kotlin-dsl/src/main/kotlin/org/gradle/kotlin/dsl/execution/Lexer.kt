@@ -118,6 +118,7 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
         }
 
         restore(startIndex)
+        advance()
 
         return null
     }
@@ -143,6 +144,7 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
                         }
                         else -> {
                             // ignore
+                            advance()
                         }
                     }
                     // no need to advance, included in annotation parsing
