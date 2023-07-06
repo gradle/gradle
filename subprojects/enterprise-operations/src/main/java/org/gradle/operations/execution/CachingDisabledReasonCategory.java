@@ -36,41 +36,47 @@ public enum CachingDisabledReasonCategory {
     NOT_ENABLED_FOR_TASK,
 
     /**
-     * Caching has not been enabled for the unit of work.
+     * Caching has not been enabled for the work.
      *
      * @since 8.3
      */
     NOT_CACHEABLE,
 
     /**
-     * The task has no outputs declared.
+     * The work has no outputs declared.
      */
     NO_OUTPUTS_DECLARED,
 
     /**
-     * Task has a {@code org.gradle.api.file.FileTree} or {@code org.gradle.api.internal.file.collections.DirectoryFileTree} as an output.
+     * The work has a {@code org.gradle.api.file.FileTree} or {@code org.gradle.api.internal.file.collections.DirectoryFileTree} as an output.
      *
      * @since 5.0
      */
     NON_CACHEABLE_TREE_OUTPUT,
 
     /**
-     * Caching is disabled for the task via {@code org.gradle.api.tasks.TaskOutputs#cacheIf(Spec)}.
+     * Condition enabling caching isn't satisfied.
+     * <p>
+     * E.g. for a task caching is disabled via {@code org.gradle.api.tasks.TaskOutputs#cacheIf(Spec)}.
      */
     CACHE_IF_SPEC_NOT_SATISFIED,
 
     /**
-     * Caching is disabled for the task via {@code org.gradle.api.tasks.TaskOutputs#doNotCacheIf(String, Spec)}.
+     * Condition disabling caching satisfied.
+     * <p>
+     * E.g. for a task, caching is disabled via {@code org.gradle.api.tasks.TaskOutputs#doNotCacheIf(String, Spec)}.
      */
     DO_NOT_CACHE_IF_SPEC_SATISFIED,
 
     /**
-     * Task's outputs overlap with another task. As Gradle cannot safely determine which task each output file belongs to it disables caching.
+     * Work's outputs overlap with other work's.
+     * <p>
+     * As Gradle cannot safely determine which work each output file belongs to it disables caching.
      */
     OVERLAPPING_OUTPUTS,
 
     /**
-     * The task failed validation.
+     * The work has failed validation.
      */
     VALIDATION_FAILURE
 }
