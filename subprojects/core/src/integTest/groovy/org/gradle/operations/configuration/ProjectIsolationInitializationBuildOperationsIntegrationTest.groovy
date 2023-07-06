@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.operations.initialization
+package org.gradle.operations.configuration
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.operations.initialization;
+package org.gradle.operations.configuration;
 
 /**
  * Signals whether Project Isolation has been enabled in the build.

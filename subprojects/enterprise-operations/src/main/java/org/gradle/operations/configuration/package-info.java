@@ -15,7 +15,7 @@
  */
 
 /**
- * Build operations used during build initialization.
+ * Build operations around configuration settings and features.
  */
 @org.gradle.api.NonNullApi
-package org.gradle.operations.initialization;
+package org.gradle.operations.configuration;

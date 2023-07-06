@@ -22,7 +22,7 @@ import org.gradle.internal.configurationcache.options.ConfigurationCacheSettings
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.operations.initialization.ProjectIsolationSettingsFinalizedProgressDetails;
+import org.gradle.operations.configuration.ProjectIsolationSettingsFinalizedProgressDetails;
 
 import javax.inject.Inject;
 
