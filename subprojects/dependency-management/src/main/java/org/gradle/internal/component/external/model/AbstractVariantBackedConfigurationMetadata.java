@@ -121,11 +121,6 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public boolean isCanBeResolved() {
-        return false;
-    }
-
-    @Override
     public boolean isTransitive() {
         return true;
     }
