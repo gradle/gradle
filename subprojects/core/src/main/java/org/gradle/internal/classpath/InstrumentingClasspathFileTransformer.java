@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
@@ -123,7 +122,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
-        hasher.putString(AsmConstants.MAX_SUPPORTED_JAVA_VERSION.getMajorVersion());
+        hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
         policy.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
@@ -473,24 +472,16 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         if (match.matches()) {
             try {
                 int version = Integer.parseInt(match.group(1));
-                // JAR specification states that only versions >= 9 are valid for version directories of the MR-JARs.
-                // Everything else are just resource directories that can be reached with the full path.
-                if (version >= 9) {
-                    return isUnsupportedJavaVersion(JavaVersion.toVersion(version));
-                }
+                return version > AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
             } catch (NumberFormatException ignored) {
                 // Even though the pattern ensures that the version name is all digits, it fails to parse, probably because it is too big.
                 // Technically it may be a valid MR JAR for Java >Integer.MAX_VALUE, but we are too far away from this.
-                // We can assume that this isn't a versioned directory and fall through.
+                // We assume that JAR author didn't intend it to be a versioned directory and keep it.
             }
         }
 
         // The entry is not in the versioned directory at all.
         return false;
-    }
-
-    private static boolean isUnsupportedJavaVersion(JavaVersion version) {
-        return !AsmConstants.MAX_SUPPORTED_JAVA_VERSION.isCompatibleWith(version);
     }
 
 }
