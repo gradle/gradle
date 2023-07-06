@@ -4,7 +4,7 @@
  *
  * To generate the Eclipse project, execute the 'buildshipEclipseProject' task. The task
  * takes the shaded Jar, analyzes its content, and assembles an Eclipse plug-in
- * project in the $buildDir/buildshipProject folder.
+ * project in the ${layout.buildDirectory}/buildshipProject folder.
  *
  * The $buildDir/buildshipProject folder can be imported into Eclipse by using the
  * File > Import > Existing Project into workspace... functionality.
@@ -20,7 +20,7 @@ tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
     toolingApiShadedJar = tasks.named('toolingApiShadedJar').flatMap { it.jarFile }
     projectVersion = project.version
-    projectDirectory = file("$buildDir/buildshipProject")
+    projectDirectory = layout.buildDirectory.dir("buildshipProject").get().asFile
 }
 
 @DisableCachingByDefault(because = "Not worth caching")
