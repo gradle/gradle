@@ -1,9 +1,5 @@
 Calculating task graph as configuration cache cannot be reused because system property 'someDestination' has changed.
 > Task :someTask
 
-0 problems were found storing the configuration cache.
-
-See the complete report at file:///home/user/gradle/samples/build/reports/configuration-cache/<hash>/configuration-cache-report.html
-
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed

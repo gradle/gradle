@@ -637,10 +637,14 @@ public class TestFile extends File {
         }
     }
 
-    public boolean isSelfOrDescendent(File file) {
+    public boolean isSelfOrDescendant(File file) {
         if (file.getAbsolutePath().equals(getAbsolutePath())) {
             return true;
         }
+        return isDescendant(file);
+    }
+
+    public boolean isDescendant(File file) {
         return file.getAbsolutePath().startsWith(getAbsolutePath() + File.separatorChar);
     }
 
