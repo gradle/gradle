@@ -618,6 +618,6 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
         run language.compileTaskName, '-d'
 
         expect:
-        result.output.contains("Recompiled classes [foo.Foo]") // does not contain 'module-info'
+        outputContains("Recompiled classes [foo.Foo]") // does not contain 'module-info'
     }
 }
