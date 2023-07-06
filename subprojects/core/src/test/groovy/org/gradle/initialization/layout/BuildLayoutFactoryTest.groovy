@@ -15,11 +15,7 @@
  */
 package org.gradle.initialization.layout
 
-
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -33,10 +29,6 @@ class BuildLayoutFactoryTest extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-
-    def setup(){
-        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
-    }
 
     def "returns current directory when it contains a #settingsFilename file"() {
         given:

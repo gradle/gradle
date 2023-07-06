@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
  */
 @Incubating
 public interface ProblemBuilder {
+    ProblemBuilder group(ProblemGroup group);
     ProblemBuilder message(String message);
 
     ProblemBuilder severity(Severity severity);

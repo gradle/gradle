@@ -37,7 +37,6 @@ import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problems;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -46,7 +45,7 @@ import java.util.function.Supplier;
 
 import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_PATTERN;
 
-public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalogBuilder {
+abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalogBuilder {
     private final static Logger LOGGER = Logging.getLogger(DependenciesAwareVersionCatalogBuilder.class);
 
     private final Configuration dependenciesConfiguration;
@@ -59,9 +58,8 @@ public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalo
                                                   Interner<ImmutableVersionConstraint> versionConstraintInterner,
                                                   ObjectFactory objects,
                                                   Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier,
-                                                  Configuration dependenciesConfiguration,
-                                                  Problems problemsService) {
-        super(name, strings, versionConstraintInterner, objects, dependencyResolutionServicesSupplier, problemsService);
+                                                  Configuration dependenciesConfiguration) {
+        super(name, strings, versionConstraintInterner, objects, dependencyResolutionServicesSupplier);
         this.dependenciesConfiguration = dependenciesConfiguration;
     }
 

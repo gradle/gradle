@@ -236,8 +236,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             StartParameter startParameter,
             Problems problemsService
         ) {
-
-
             return new InitProblems(
                 new InitDeprecationLoggingActionExecutor(
                     new RootBuildLifecycleBuildActionExecutor(
@@ -267,7 +265,10 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             gradleEnterprisePluginManager)),
                     problemDiagnosticsFactory,
                     eventEmitter,
-                    startParameter), eventEmitter, problemsService);
+                    startParameter,
+                    problemsService),
+                eventEmitter,
+                problemsService);
         }
 
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {

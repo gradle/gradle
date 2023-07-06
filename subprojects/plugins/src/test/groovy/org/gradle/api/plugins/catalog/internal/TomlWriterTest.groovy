@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.util.TestUtil
@@ -103,12 +104,19 @@ format.version = "1.1"
     }
 
     private Model parse(Path path) {
-        def builder = new DefaultVersionCatalogBuilder("libs",
-                Interners.newStrongInterner(),
-                Interners.newStrongInterner(),
-                TestUtil.objectFactory(),
-                Stub(Supplier),
-                new DefaultProblems(Stub(BuildOperationProgressEventEmitter)))
+        def stub = Stub(BuildOperationProgressEventEmitter)
+        def supplier = Stub(Supplier)
+        def builder = new DefaultVersionCatalogBuilder(
+            "libs",
+            Interners.newStrongInterner(),
+            Interners.newStrongInterner(),
+            TestUtil.objectFactory(),
+            supplier) {
+            @Override
+            protected Problems getProblemService() {
+                new DefaultProblems(stub)
+            }
+        }
 
         TomlCatalogFileParser.parse(path, builder)
         return new Model(builder.build())

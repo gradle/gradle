@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
@@ -39,13 +40,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.apache.commons.lang.StringUtils.uncapitalize;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.createVersionCatalogError;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getInVersionCatalog;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getProblemInVersionCatalog;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
@@ -54,6 +56,9 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.I
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_PLUGIN_NOTATION;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOML_SYNTAX_ERROR;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION;
+import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG;
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
@@ -90,14 +95,28 @@ public class TomlCatalogFileParser {
         "reject",
         "rejectAll"
     );
+    private final Path catalogFilePath;
+    private final VersionCatalogBuilder builder;
+    private final Supplier<ProblemBuilder> problemBuilderSupplier;
 
-    public static void parse(Path catalogFilePath, VersionCatalogBuilder builder) throws IOException {
+    public TomlCatalogFileParser(Path catalogFilePath, VersionCatalogBuilder builder, Supplier<ProblemBuilder> problemBuilderSupplier) {
+
+        this.catalogFilePath = catalogFilePath;
+        this.builder = builder;
+        this.problemBuilderSupplier = problemBuilderSupplier;
+    }
+
+    public static void parse(Path catalogFilePath, VersionCatalogBuilder builder, Supplier<ProblemBuilder> problemBuilderSupplier) throws IOException {
+        new TomlCatalogFileParser(catalogFilePath, builder, problemBuilderSupplier).parse();
+    }
+
+    private void parse() throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
         try (InputStream inputStream = Files.newInputStream(catalogFilePath)) {
             TomlParseResult result = Toml.parse(inputStream);
             assertNoParseErrors(result, catalogFilePath, builder);
             TomlTable metadataTable = result.getTable(METADATA_KEY);
-            verifyMetadata(builder, metadataTable);
+            verifyMetadata(metadataTable);
             TomlTable librariesTable = result.getTable(LIBRARIES_KEY);
             TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
             TomlTable versionsTable = result.getTable(VERSIONS_KEY);
@@ -108,14 +127,14 @@ public class TomlCatalogFileParser {
                     .description("TOML file contains an unexpected top-level element")
                     .solution("Make sure the top-level elements of your TOML file is one of " + oxfordListOf(TOP_LEVEL_ELEMENTS, "or")));
             }
-            parseLibraries(librariesTable, builder, strictVersionParser);
-            parsePlugins(pluginsTable, builder, strictVersionParser);
-            parseBundles(bundlesTable, builder);
-            parseVersions(versionsTable, builder, strictVersionParser);
+            parseLibraries(librariesTable, strictVersionParser);
+            parsePlugins(pluginsTable, strictVersionParser);
+            parseBundles(bundlesTable);
+            parseVersions(versionsTable, strictVersionParser);
         }
     }
 
-    private static void assertNoParseErrors(TomlParseResult result, Path catalogFilePath, VersionCatalogBuilder builder) {
+    private void assertNoParseErrors(TomlParseResult result, Path catalogFilePath, VersionCatalogBuilder builder) {
         if (result.hasErrors()) {
             List<TomlParseError> errors = result.errors();
             throw throwVersionCatalogProblemException(
@@ -136,7 +155,7 @@ public class TomlCatalogFileParser {
             .collect(joining("\n"));
     }
 
-    private static void verifyMetadata(VersionCatalogBuilder builder, @Nullable TomlTable metadataTable) {
+    private void verifyMetadata(@Nullable TomlTable metadataTable) {
         if (metadataTable != null) {
             String format = metadataTable.getString("format.version");
             if (format != null && !CURRENT_VERSION.equals(format)) {
@@ -147,7 +166,7 @@ public class TomlCatalogFileParser {
         }
     }
 
-    private static void parseLibraries(@Nullable TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+    private void parseLibraries(@Nullable TomlTable librariesTable, StrictVersionParser strictVersionParser) {
         if (librariesTable == null) {
             return;
         }
@@ -157,7 +176,7 @@ public class TomlCatalogFileParser {
             .forEach(alias -> parseLibrary(alias, librariesTable, builder, strictVersionParser));
     }
 
-    private static void parsePlugins(@Nullable TomlTable pluginsTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+    private void parsePlugins(@Nullable TomlTable pluginsTable, StrictVersionParser strictVersionParser) {
         if (pluginsTable == null) {
             return;
         }
@@ -167,7 +186,7 @@ public class TomlCatalogFileParser {
             .forEach(alias -> parsePlugin(alias, pluginsTable, builder, strictVersionParser));
     }
 
-    private static void parseVersions(@Nullable TomlTable versionsTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+    private void parseVersions(@Nullable TomlTable versionsTable, StrictVersionParser strictVersionParser) {
         if (versionsTable == null) {
             return;
         }
@@ -177,7 +196,7 @@ public class TomlCatalogFileParser {
             .forEach(alias -> parseVersion(alias, versionsTable, builder, strictVersionParser));
     }
 
-    private static void parseBundles(@Nullable TomlTable bundlesTable, VersionCatalogBuilder builder) {
+    private void parseBundles(@Nullable TomlTable bundlesTable) {
         if (bundlesTable == null) {
             return;
         }
@@ -185,7 +204,7 @@ public class TomlCatalogFileParser {
             .stream()
             .sorted()
             .forEach(alias -> {
-                List<String> bundled = expectArray(builder, "bundle", alias, bundlesTable, alias).toList().stream()
+                List<String> bundled = expectArray("bundle", alias, bundlesTable, alias).toList().stream()
                     .map(String::valueOf)
                     .collect(toList());
                 builder.bundle(alias, bundled);
@@ -193,39 +212,51 @@ public class TomlCatalogFileParser {
     }
 
     @Nullable
-    private static String expectString(VersionCatalogBuilder builder, String kind, String name, TomlTable table, @Nullable String element) {
+    private String expectString(String kind, String name, TomlTable table, @Nullable String element) {
         try {
             String path = name;
             if (element != null) {
                 path += "." + element;
             }
-            return notEmpty(builder, table.getString(path), element, name);
+            return notEmpty(table.getString(path), element, name);
         } catch (TomlInvalidTypeException ex) {
-            return throwUnexpectedTypeError(builder, kind, name, "a string", ex);
+            throw throwUnexpectedTypeError(kind, name, "a string", ex);
         }
     }
 
-    private static <T> T throwUnexpectedTypeError(VersionCatalogBuilder builder, String kind, String name, String typeLabel, TomlInvalidTypeException ex) {
+    private RuntimeException throwUnexpectedTypeError(String kind, String name, String typeLabel, TomlInvalidTypeException ex) {
         throw throwVersionCatalogProblemException(createVersionCatalogError("Unexpected type for " + kind + " '" + name + "'", TOML_SYNTAX_ERROR)
             .description("Expected " + typeLabel + " but " + uncapitalize(ex.getMessage()))
             .solution("Use " + typeLabel + " instead"));
     }
 
+    @Nonnull
+    public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
+        return problemBuilderSupplier.get()
+            .group(VERSION_CATALOG)
+            .message(message)
+            .severity(ERROR)
+            .type(catalogProblemId.name())
+            .noLocation()
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
+    }
+
+
     @Nullable
-    private static TomlArray expectArray(VersionCatalogBuilder builder, String kind, String alias, TomlTable table, String element) {
+    private TomlArray expectArray(String kind, String alias, TomlTable table, String element) {
         try {
             return table.getArray(element);
         } catch (TomlInvalidTypeException ex) {
-            return throwUnexpectedTypeError(builder, kind, alias, "an array", ex);
+            throw throwUnexpectedTypeError(kind, alias, "an array", ex);
         }
     }
 
     @Nullable
-    private static Boolean expectBoolean(VersionCatalogBuilder builder, String kind, String alias, TomlTable table, String element) {
+    private Boolean expectBoolean(String kind, String alias, TomlTable table, String element) {
         try {
             return table.getBoolean(element);
         } catch (TomlInvalidTypeException ex) {
-            return throwUnexpectedTypeError(builder, kind, alias, "a boolean", ex);
+            throw throwUnexpectedTypeError(kind, alias, "a boolean", ex);
         }
     }
 
@@ -239,14 +270,14 @@ public class TomlCatalogFileParser {
         }
     }
 
-    private static void parseLibrary(String alias, TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+    private void parseLibrary(String alias, TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
         Object gav = librariesTable.get(alias);
         if (gav instanceof String) {
             List<String> split = SPLITTER.splitToList((String) gav);
             if (split.size() == 3) {
-                String group = notEmpty(builder, split.get(0), "group", alias);
-                String name = notEmpty(builder, split.get(1), "name", alias);
-                String version = notEmpty(builder, split.get(2), "version", alias);
+                String group = notEmpty(split.get(0), "group", alias);
+                String name = notEmpty(split.get(1), "name", alias);
+                String version = notEmpty(split.get(2), "version", alias);
                 StrictVersionParser.RichVersion rich = strictVersionParser.parse(version);
                 registerDependency(builder, alias, group, name, null, rich.require, rich.strictly, rich.prefer, null, null);
                 return;
@@ -259,15 +290,15 @@ public class TomlCatalogFileParser {
         if (gav instanceof TomlTable) {
             expectedKeys((TomlTable) gav, LIBRARY_COORDINATES, "library declaration '" + alias + "'");
         }
-        String group = expectString(builder, "alias", alias, librariesTable, "group");
-        String name = expectString(builder, "alias", alias, librariesTable, "name");
+        String group = expectString("alias", alias, librariesTable, "group");
+        String name = expectString("alias", alias, librariesTable, "name");
         Object version = librariesTable.get(alias + ".version");
-        String mi = expectString(builder, "alias", alias, librariesTable, "module");
+        String mi = expectString("alias", alias, librariesTable, "module");
         if (mi != null) {
             List<String> split = SPLITTER.splitToList(mi);
             if (split.size() == 2) {
-                group = notEmpty(builder, split.get(0), "group", alias);
-                name = notEmpty(builder, split.get(1), "name", alias);
+                group = notEmpty(split.get(0), "group", alias);
+                name = notEmpty(split.get(1), "name", alias);
             } else {
                 throw throwVersionCatalogProblemException(createVersionCatalogError(getInVersionCatalog(builder.getName()) + ", on alias '" + alias + "' module '" + mi + "' is not a valid module notation.", INVALID_MODULE_NOTATION)
                     .description("When using a string to declare library module coordinates, you must use a valid module notation")
@@ -289,18 +320,18 @@ public class TomlCatalogFileParser {
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
             expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'");
-            versionRef = notEmpty(builder, versionTable.getString("ref"), "version reference", alias);
-            require = notEmpty(builder, versionTable.getString("require"), "required version", alias);
-            prefer = notEmpty(builder, versionTable.getString("prefer"), "preferred version", alias);
-            strictly = notEmpty(builder, versionTable.getString("strictly"), "strict version", alias);
-            TomlArray rejectedArray = expectArray(builder, "alias", alias, versionTable, "reject");
+            versionRef = notEmpty(versionTable.getString("ref"), "version reference", alias);
+            require = notEmpty(versionTable.getString("require"), "required version", alias);
+            prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
+            strictly = notEmpty(versionTable.getString("strictly"), "strict version", alias);
+            TomlArray rejectedArray = expectArray("alias", alias, versionTable, "reject");
             rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream()
                 .map(String::valueOf)
-                .map(v -> notEmpty(builder, v, "rejected version", alias))
+                .map(v -> notEmpty(v, "rejected version", alias))
                 .collect(toList()) : null;
-            rejectAll = expectBoolean(builder, "alias", alias, versionTable, "rejectAll");
+            rejectAll = expectBoolean("alias", alias, versionTable, "rejectAll");
         } else if (version != null) {
-            throw throwUnexpectedVersionSyntax(alias, builder, version);
+            throw throwUnexpectedVersionSyntax(alias, version);
         }
         if (group == null) {
             // ProblemIds for "subtypes" of a problem
@@ -313,24 +344,24 @@ public class TomlCatalogFileParser {
     }
 
     @Nonnull
-    private static RuntimeException throwVersionCatalogAliasException(String alias, String aliasType) {
-        return throwVersionCatalogProblemException(createAliasInvalid(alias)
+    private RuntimeException throwVersionCatalogAliasException(String alias, String aliasType) {
+        throw throwVersionCatalogProblemException(createAliasInvalid(alias)
             .description(capitalize(aliasType) + " for alias '" + alias + "' wasn't set")
             .solution("Add the '" + aliasType + "' element on alias '" + alias + "'"));
     }
 
     @Nonnull
-    private static ProblemBuilder createAliasInvalid(String alias) {
+    private ProblemBuilder createAliasInvalid(String alias) {
         return createVersionCatalogError("Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR);
     }
 
-    private static void parsePlugin(String alias, TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+    private void parsePlugin(String alias, TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
         Object coordinates = librariesTable.get(alias);
         if (coordinates instanceof String) {
             List<String> split = SPLITTER.splitToList((String) coordinates);
             if (split.size() == 2) {
-                String id = notEmpty(builder, split.get(0), "id", alias);
-                String version = notEmpty(builder, split.get(1), "version", alias);
+                String id = notEmpty(split.get(0), "id", alias);
+                String version = notEmpty(split.get(1), "version", alias);
                 StrictVersionParser.RichVersion rich = strictVersionParser.parse(version);
                 registerPlugin(builder, alias, id, null, rich.require, rich.strictly, rich.prefer, null, null);
                 return;
@@ -343,7 +374,7 @@ public class TomlCatalogFileParser {
         if (coordinates instanceof TomlTable) {
             expectedKeys((TomlTable) coordinates, PLUGIN_COORDINATES, "plugin declaration '" + alias + "'");
         }
-        String id = expectString(builder, "alias", alias, librariesTable, "id");
+        String id = expectString("alias", alias, librariesTable, "id");
         Object version = librariesTable.get(alias + ".version");
         String versionRef = null;
         String require = null;
@@ -360,18 +391,18 @@ public class TomlCatalogFileParser {
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
             expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'");
-            versionRef = notEmpty(builder, versionTable.getString("ref"), "version reference", alias);
-            require = notEmpty(builder, versionTable.getString("require"), "required version", alias);
-            prefer = notEmpty(builder, versionTable.getString("prefer"), "preferred version", alias);
-            strictly = notEmpty(builder, versionTable.getString("strictly"), "strict version", alias);
-            TomlArray rejectedArray = expectArray(builder, "alias", alias, versionTable, "reject");
+            versionRef = notEmpty(versionTable.getString("ref"), "version reference", alias);
+            require = notEmpty(versionTable.getString("require"), "required version", alias);
+            prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
+            strictly = notEmpty(versionTable.getString("strictly"), "strict version", alias);
+            TomlArray rejectedArray = expectArray("alias", alias, versionTable, "reject");
             rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream()
                 .map(String::valueOf)
-                .map(v -> notEmpty(builder, v, "rejected version", alias))
+                .map(v -> notEmpty(v, "rejected version", alias))
                 .collect(toList()) : null;
-            rejectAll = expectBoolean(builder, "alias", alias, versionTable, "rejectAll");
+            rejectAll = expectBoolean("alias", alias, versionTable, "rejectAll");
         } else if (version != null) {
-            throw throwUnexpectedVersionSyntax(alias, builder, version);
+            throw throwUnexpectedVersionSyntax(alias, version);
         }
         if (id == null) {
             throw throwVersionCatalogProblemException(createVersionCatalogError("Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR)
@@ -381,7 +412,7 @@ public class TomlCatalogFileParser {
         registerPlugin(builder, alias, id, versionRef, require, strictly, prefer, rejectedVersions, rejectAll);
     }
 
-    private static RuntimeException throwUnexpectedVersionSyntax(String alias, VersionCatalogBuilder builder, Object version) {
+    private RuntimeException throwUnexpectedVersionSyntax(String alias, Object version) {
         throw throwVersionCatalogProblemException(createVersionCatalogError("Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR)
             .description("expected a version as a String or a table but got " + version.getClass().getSimpleName())
             .solution("Use a String notation, e.g version = \"1.1\"")
@@ -389,7 +420,7 @@ public class TomlCatalogFileParser {
             .solution("Use a rich version table, e.g version = { require=\"[1.0, 2.0[\", prefer=\"1.5\" }"));
     }
 
-    private static void parseVersion(String alias, TomlTable versionsTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+    private void parseVersion(String alias, TomlTable versionsTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
         String require = null;
         String strictly = null;
         String prefer = null;
@@ -397,30 +428,30 @@ public class TomlCatalogFileParser {
         Boolean rejectAll = null;
         Object version = versionsTable.get(alias);
         if (version instanceof String) {
-            require = notEmpty(builder, (String) version, "version", alias);
+            require = notEmpty((String) version, "version", alias);
             StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(require);
             require = richVersion.require;
             prefer = richVersion.prefer;
             strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
-            require = notEmpty(builder, versionTable.getString("require"), "required version", alias);
-            prefer = notEmpty(builder, versionTable.getString("prefer"), "preferred version", alias);
-            strictly = notEmpty(builder, versionTable.getString("strictly"), "strict version", alias);
-            TomlArray rejectedArray = expectArray(builder, "alias", alias, versionTable, "reject");
+            require = notEmpty(versionTable.getString("require"), "required version", alias);
+            prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
+            strictly = notEmpty(versionTable.getString("strictly"), "strict version", alias);
+            TomlArray rejectedArray = expectArray("alias", alias, versionTable, "reject");
             rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream()
                 .map(String::valueOf)
-                .map(v -> notEmpty(builder, v, "rejected version", alias))
+                .map(v -> notEmpty(v, "rejected version", alias))
                 .collect(toList()) : null;
-            rejectAll = expectBoolean(builder, "alias", alias, versionTable, "rejectAll");
+            rejectAll = expectBoolean("alias", alias, versionTable, "rejectAll");
         } else if (version != null) {
-            throw throwUnexpectedVersionSyntax(alias, builder, version);
+            throw throwUnexpectedVersionSyntax(alias, version);
         }
         registerVersion(builder, alias, require, strictly, prefer, rejectedVersions, rejectAll);
     }
 
     @Nullable
-    private static String notEmpty(VersionCatalogBuilder builder, @Nullable String string, @Nullable String member, String alias) {
+    private String notEmpty(@Nullable String string, @Nullable String member, String alias) {
         if (string == null) {
             return null;
         }

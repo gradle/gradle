@@ -65,11 +65,13 @@ public class DefaultProblemBuilder implements ProblemBuilder {
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
     }
 
+    @Override
     public ProblemBuilder group(ProblemGroup group) {
         this.problemGroup = group;
         return this;
     }
 
+    @Override
     public ProblemBuilder message(String message) {
         this.message = message;
         return this;

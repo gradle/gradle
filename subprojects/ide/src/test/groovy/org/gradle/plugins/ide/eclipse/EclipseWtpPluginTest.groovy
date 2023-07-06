@@ -16,9 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
@@ -34,7 +32,6 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         wtpPlugin = TestUtil.newInstance(EclipseWtpPlugin, project.services.get(Instantiator))
-        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
     }
 
     def "has description"() {

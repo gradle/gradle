@@ -363,13 +363,18 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
+       def stub = Stub(BuildOperationProgressEventEmitter)
         DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder(
             "lib",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
-            Stub(Supplier),
-            new DefaultProblems(Stub(BuildOperationProgressEventEmitter)))
+            Stub(Supplier)) {
+            @Override
+            protected Problems getProblemService() {
+                return new DefaultProblems(stub)
+            }
+        }
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()

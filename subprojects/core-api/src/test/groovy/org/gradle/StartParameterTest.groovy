@@ -18,11 +18,8 @@ package org.gradle
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.internal.RunDefaultTasksExecutionRequest
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -34,11 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat
 class StartParameterTest extends Specification {
     @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule private SetSystemProperties systemProperties = new SetSystemProperties()
-
-    def setup(){
-        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
-    }
-
 
     void "new instance has correct state"() {
         def parameter = new StartParameter()

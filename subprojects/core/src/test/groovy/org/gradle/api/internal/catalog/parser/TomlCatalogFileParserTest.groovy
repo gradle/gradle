@@ -30,6 +30,7 @@ import org.gradle.api.internal.catalog.PluginModel
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.util.TestUtil
@@ -39,13 +40,25 @@ import java.nio.file.Paths
 import java.util.function.Supplier
 
 class TomlCatalogFileParserTest extends Specification implements VersionCatalogErrorMessages {
-    final VersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs",
+
+    def stub = Stub(BuildOperationProgressEventEmitter)
+    def supplier = Stub(Supplier)
+    def problems = new DefaultProblems(stub)
+    def createVersionCatalogBuilder() {
+        new DefaultVersionCatalogBuilder(
+            "libs",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
-            Stub(Supplier),
-            new DefaultProblems(Stub(BuildOperationProgressEventEmitter))
-    )
+            supplier) {
+            @Override
+            protected Problems getProblemService() {
+                problems
+            }
+        }
+    }
+
+    final VersionCatalogBuilder builder = createVersionCatalogBuilder()
     DefaultVersionCatalog model
 
     def "parses a file with a single dependency and nothing else"() {
@@ -420,7 +433,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         // Paths might be unusual, but we need it because of 1.8
         def tomlPath = Paths.get(tomlResource)
 
-        TomlCatalogFileParser.parse(tomlPath, builder)
+        TomlCatalogFileParser.parse(tomlPath, builder, { problems.createProblemBuilder() })
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
     }

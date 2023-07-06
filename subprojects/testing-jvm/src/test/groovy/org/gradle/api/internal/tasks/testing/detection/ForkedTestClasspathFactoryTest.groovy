@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.detection
 
-
 import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule
-import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import spock.lang.Specification
 
 import java.util.regex.Pattern
@@ -48,10 +44,6 @@ class ForkedTestClasspathFactoryTest extends Specification {
         create(_, _) >> { runtimeClasses }
     }
     ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(moduleRegistry, classDetectorFactory)
-
-    def setup(){
-        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
-    }
 
     def "creates a limited implementation classpath"() {
         when:

@@ -84,7 +84,7 @@ import static org.gradle.api.problems.interfaces.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 
-public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
+public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
 
     private enum AliasType {
         LIBRARY,
@@ -124,7 +124,9 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
     private Import importedCatalog = null;
     private final StrictVersionParser strictVersionParser;
-    private final Problems problemsService;
+
+//    @Inject
+//    private final Problems problemsService;
     private final Property<String> description;
 
     private String currentContext;
@@ -135,8 +137,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         Interner<String> strings,
         Interner<ImmutableVersionConstraint> versionConstraintInterner,
         ObjectFactory objects,
-        Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier,
-        Problems problemsService
+        Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier
     ) {
         this.name = name;
         this.strings = strings;
@@ -144,10 +145,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         this.objects = objects;
         this.dependencyResolutionServicesSupplier = dependencyResolutionServicesSupplier;
         this.strictVersionParser = new StrictVersionParser(strings);
-        this.problemsService = problemsService;
+//        this.problemsService = problemsService;
         this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the `" + name + "` extension.");
     }
 
+    @Inject
+    protected abstract Problems getProblemService();
     @Override
     public String getLibrariesExtensionName() {
         return name;
@@ -179,7 +182,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     @Nonnull
     public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
-        return problemsService.createProblemBuilder(VERSION_CATALOG, message, ERROR, catalogProblemId.name())
+        return getProblemService().createProblemBuilder(VERSION_CATALOG, message, ERROR, catalogProblemId.name())
             .noLocation()
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
     }
@@ -294,7 +297,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         Instrumented.fileOpened(modelFile, getClass().getName());
         try {
-            TomlCatalogFileParser.parse(modelFile.toPath(), this);
+            TomlCatalogFileParser.parse(modelFile.toPath(), this, () -> getProblemService().createProblemBuilder());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

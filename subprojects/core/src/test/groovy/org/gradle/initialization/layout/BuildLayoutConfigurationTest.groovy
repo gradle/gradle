@@ -16,16 +16,10 @@
 package org.gradle.initialization.layout
 
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import spock.lang.Specification
 
 class BuildLayoutConfigurationTest extends Specification {
 
-    def setup(){
-        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
-    }
     def "uses specified settings script"() {
         def startParameter = new StartParameterInternal()
         def settingsFile = new File("settings.gradle")

@@ -16,19 +16,12 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+
 import org.gradle.util.Matchers
 import org.gradle.util.Path
 import spock.lang.Specification
 
-
 class DefaultBuildIdentifierTest extends Specification {
-
-    def setup(){
-        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
-    }
 
     def "create build from name"() {
         expect:
