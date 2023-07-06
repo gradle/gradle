@@ -78,7 +78,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         javaInPackage('', classBodies)
     }
 
-    protected final File javaInPackage(String packageName, String... classBodies) {
+    protected final File javaInPackage(String packageName, @Language("java") String... classBodies) {
         File out
         def packageStatement = packageName.empty ? "" : "package ${packageName};\n"
         def packagePathPrefix = packageName.empty ? '' : "${packageName.replace('.', '/')}/"
