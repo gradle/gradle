@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.AnnotatedGeneratedClassProcessorFixture
+import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.PackageInfoGeneratedClassProcessorFixture
 import org.gradle.language.fixtures.ResourceGeneratingProcessorFixture
@@ -513,6 +514,24 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
         and:
         outputs.recompiledClasses("Unrelated")
+    }
+
+    def "module-info.java does not cause exception in annotation processor handling"() {
+        given:
+        withProcessor(new AnnotationProcessorFixture("foo", "FooAnnotation", true).withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
+        javaInPackage "foo", "class Unrelated {}"
+
+        when:
+        file("src/main/java/module-info.java") << 'module org.example.foo { exports foo; }'
+
+        then:
+        succeeds "compileJava"
+
+        and:
+        javaInPackage "foo", "class Unrelated2 {}"
+
+        then:
+        succeeds "compileJava"
     }
 
     private boolean serviceRegistryReferences(String... services) {
