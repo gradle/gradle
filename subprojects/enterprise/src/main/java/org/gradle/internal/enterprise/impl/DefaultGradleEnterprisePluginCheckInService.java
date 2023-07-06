@@ -75,6 +75,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
 
         if (isUnsupportedWithProjectIsolation(pluginBaseVersion)) {
+            // In order to disable the Test Acceleration part of GE we need to set the system property
             System.setProperty(DISABLE_TEST_ACCELERATION_PROPERTY, "true");
             return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_PROJECT_ISOLATION_MESSAGE);
         }
