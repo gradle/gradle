@@ -224,11 +224,6 @@ fun Test.configureJvmForTest() {
             jvmArgs(listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")) // Used in tests by ClassLoaderUtils
         }
     }
-    if (usesEmbeddedExecuter() && OperatingSystem.current().isWindows) {
-        // Disable incremental snapshotting for Windows, since it runs OOM,
-        // root cause: https://youtrack.jetbrains.com/issue/KT-57757
-        jvmArgs("-Dkotlin.incremental.useClasspathSnapshot=false")
-    }
 }
 
 fun Test.addOsAsInputs() {
