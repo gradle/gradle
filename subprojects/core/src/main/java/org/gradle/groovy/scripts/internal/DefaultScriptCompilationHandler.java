@@ -35,6 +35,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -62,6 +63,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -85,6 +87,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private final Deleter deleter;
     private final Map<String, List<String>> simpleNameToFQN;
 
+    @Inject
     public DefaultScriptCompilationHandler(Deleter deleter, ImportsReader importsReader) {
         this.deleter = deleter;
         this.simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
@@ -168,6 +171,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
     }
 
+    @Inject
+    protected Problems getProblemService(){
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir, boolean emptyScript, boolean hasMethods) {
         File metadataFile = new File(metadataDir, METADATA_FILE_NAME);
         try {
@@ -206,7 +214,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
-        throw Problems.createError(ProblemGroup.GENERIC, message, "script_compilation_failed")
+        throw getProblemService().createProblemBuilder(ProblemGroup.GENERIC, message, Severity.ERROR, "script_compilation_failed")
             .location(source.getFileName(), lineNumber)
             .undocumented()
             .cause(new ScriptCompilationException(message, e, source, lineNumber))

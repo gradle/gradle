@@ -98,10 +98,17 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     def setup() {
         File testProjectDir = tmpDir.createDir("projectDir")
         importsReader = Stub(ImportsReader.class)
+        def emitter = Mock(BuildOperationProgressEventEmitter)
         scriptCompilationHandler = new DefaultScriptCompilationHandler(
             TestFiles.deleter(),
             importsReader
-        )
+        ) {
+            @Override
+            Problems getProblemService() {
+                return new DefaultProblems(emitter)
+            }
+        }
+
         scriptCacheDir = new File(testProjectDir, "cache")
         scriptClassPath = DefaultClassPath.of(scriptCacheDir)
         metadataCacheDir = new File(testProjectDir, "metadata")
@@ -111,7 +118,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         scriptFileName = "script-file-name"
         cachedFile = new File(scriptCacheDir, scriptClassName + ".class")
         expectedScriptClass = TestBaseScript.class
-        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
+//        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
     }
 
     private ScriptSource scriptSource(final String scriptText) {

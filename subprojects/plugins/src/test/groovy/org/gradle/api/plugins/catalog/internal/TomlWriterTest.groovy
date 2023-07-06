@@ -106,6 +106,7 @@ format.version = "1.1"
     private Model parse(Path path) {
         def stub = Stub(BuildOperationProgressEventEmitter)
         def supplier = Stub(Supplier)
+        def problems = new DefaultProblems(stub)
         def builder = new DefaultVersionCatalogBuilder(
             "libs",
             Interners.newStrongInterner(),
@@ -114,11 +115,11 @@ format.version = "1.1"
             supplier) {
             @Override
             protected Problems getProblemService() {
-                new DefaultProblems(stub)
+                problems
             }
         }
 
-        TomlCatalogFileParser.parse(path, builder)
+        TomlCatalogFileParser.parse(path, builder, { problems.createProblemBuilder()})
         return new Model(builder.build())
     }
 
