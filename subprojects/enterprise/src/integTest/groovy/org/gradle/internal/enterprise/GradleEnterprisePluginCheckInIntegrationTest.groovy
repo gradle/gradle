@@ -136,7 +136,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        succeeds("t", "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true")
+        succeeds("t", "-Dorg.gradle.unsafe.isolated-projects=true")
 
         then:
         output.contains("present: ${applied}")

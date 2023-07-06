@@ -141,7 +141,35 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE = VersionNumber.parse("3.4")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
+    private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_PROJECT_ISOLATION = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
+
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Project isolation implies config cache")
+    def "can use plugin #version with Gradle 8 project isolation"() {
+        given:
+        def versionNumber = VersionNumber.parse(version)
+        Assume.assumeFalse(versionNumber < FIRST_VERSION_SUPPORTING_GRADLE_8_PROJECT_ISOLATION)
+
+        when:
+        usePluginVersion version
+
+        then:
+        scanRunner("-Dorg.gradle.unsafe.isolated-projects=true")
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "Gradle Enterprise plugin $version has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "The BuildIdentifier.getName() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Use getBuildPath() to get a unique identifier for the build. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+            ).build().output.contains("Build scan written to")
+
+        where:
+        version << SUPPORTED
+    }
 
     @Requires(IntegTestPreconditions.IsConfigCached)
     def "can use plugin #version with Gradle 8 configuration cache"() {
