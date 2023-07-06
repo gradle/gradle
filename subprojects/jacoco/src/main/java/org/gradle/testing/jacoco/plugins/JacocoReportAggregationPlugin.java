@@ -91,7 +91,6 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         });
 
         ArtifactView classDirectories = codeCoverageResultsConf.getIncoming().artifactView(view -> {
-            view.withVariantReselection();
             view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
             view.attributes(attributes -> {
                 attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.class, LibraryElements.CLASSES));
