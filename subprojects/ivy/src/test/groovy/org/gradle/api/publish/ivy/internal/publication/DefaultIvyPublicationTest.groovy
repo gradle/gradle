@@ -94,7 +94,7 @@ class DefaultIvyPublicationTest extends Specification {
         then:
         publication.artifacts.empty
         publication.publishableArtifacts.files.files == [ivyDescriptorFile] as Set
-        publication.dependencies.empty
+        publication.descriptor.dependencies.get().empty
     }
 
     def "adopts configurations, artifacts and publishableFiles from added component"() {
@@ -119,7 +119,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.configurations.runtime.extends == [] as Set
         publication.configurations."default".extends == ["runtime"] as Set
 
-        publication.dependencies.empty
+        publication.descriptor.dependencies.get().empty
     }
 
     def "adopts module dependency from added component"() {
@@ -146,8 +146,8 @@ class DefaultIvyPublicationTest extends Specification {
         publication.artifacts.empty
 
         and:
-        publication.dependencies.size() == 1
-        def ivyDependency = publication.dependencies.asList().first()
+        publication.descriptor.dependencies.get().size() == 1
+        def ivyDependency = publication.descriptor.dependencies.get().asList().first()
 
         with (ivyDependency) {
             organisation == "org"
@@ -181,8 +181,8 @@ class DefaultIvyPublicationTest extends Specification {
         publication.artifacts.empty
 
         and:
-        publication.dependencies.size() == 1
-        def ivyDependency = publication.dependencies.asList().first()
+        publication.descriptor.dependencies.get().size() == 1
+        def ivyDependency = publication.descriptor.dependencies.get().asList().first()
 
         with (ivyDependency) {
             organisation == "pub-org"
@@ -283,7 +283,7 @@ class DefaultIvyPublicationTest extends Specification {
 
     def "resolving the publishable files does not throw if gradle metadata is not activated"() {
         given:
-        def publication = instantiator.newInstance(DefaultIvyPublication,
+        def publication = objectFactory.newInstance(DefaultIvyPublication,
             "pub-name",
             instantiator,
             objectFactory,
@@ -363,7 +363,7 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = instantiator.newInstance(DefaultIvyPublication,
+        def publication = objectFactory.newInstance(DefaultIvyPublication,
             "pub-name",
             instantiator,
             objectFactory,
