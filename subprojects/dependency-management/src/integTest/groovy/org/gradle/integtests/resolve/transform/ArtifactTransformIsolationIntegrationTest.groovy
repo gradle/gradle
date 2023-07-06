@@ -25,7 +25,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
-
 /**
  * Ensures that artifact transform parameters are isolated from one another and the surrounding project state.
  */
@@ -254,11 +253,12 @@ class Resolve extends Copy {
                 }
             }
         """
+        def isConfigCache = GradleContextualExecuter.configCache
 
         when:
         fails ':consumer:resolve'
         then:
-        failureDescriptionContains("Execution failed for task ':consumer:resolve'.")
-        failureCauseContains("Could not isolate parameters null of artifact transform MakeGreen")
+        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve'.")
+        failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters null of artifact transform MakeGreen")
     }
 }
