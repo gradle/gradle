@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -46,7 +44,6 @@ import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStep
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 import org.gradle.operations.dependencies.variants.Capability;
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
-import org.gradle.operations.dependencies.variants.OpaqueComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -104,7 +101,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     private PlannedTransformStepIdentity createIdentity() {
         String consumerBuildPath = transformStep.getOwningProject().getBuildPath().toString();
         String consumerProjectPath = transformStep.getOwningProject().getProjectPath().toString();
-        ComponentIdentifier componentId = getComponentIdentifier(targetComponentVariant.getComponentId());
+        ComponentIdentifier componentId = ComponentToOperationConverter.convertComponentIdentifier(targetComponentVariant.getComponentId());
         Map<String, String> sourceAttributes = AttributesToMapConverter.convertToMap(this.sourceAttributes);
         Map<String, String> targetAttributes = AttributesToMapConverter.convertToMap(targetComponentVariant.getAttributes());
         List<Capability> capabilities = targetComponentVariant.getCapabilities().stream()
@@ -146,68 +143,6 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                 return getGroup() + ":" + getName() + (getVersion() == null ? "" : (":" + getVersion()));
             }
         };
-    }
-
-    public static ComponentIdentifier getComponentIdentifier(org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
-        if (componentId instanceof ProjectComponentIdentifier) {
-            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) componentId;
-            return new org.gradle.operations.dependencies.variants.ProjectComponentIdentifier() {
-                @Override
-                public String getBuildPath() {
-                    return projectComponentIdentifier.getBuild().getBuildPath();
-                }
-
-                @Override
-                public String getProjectPath() {
-                    return projectComponentIdentifier.getProjectPath();
-                }
-
-                @Override
-                public String toString() {
-                    return projectComponentIdentifier.getDisplayName();
-                }
-            };
-        } else if (componentId instanceof ModuleComponentIdentifier) {
-            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) componentId;
-            return new org.gradle.operations.dependencies.variants.ModuleComponentIdentifier() {
-                @Override
-                public String getGroup() {
-                    return moduleComponentIdentifier.getGroup();
-                }
-
-                @Override
-                public String getModule() {
-                    return moduleComponentIdentifier.getModule();
-                }
-
-                @Override
-                public String getVersion() {
-                    return moduleComponentIdentifier.getVersion();
-                }
-
-                @Override
-                public String toString() {
-                    return moduleComponentIdentifier.getDisplayName();
-                }
-            };
-        } else {
-            return new OpaqueComponentIdentifier() {
-                @Override
-                public String getDisplayName() {
-                    return componentId.getDisplayName();
-                }
-
-                @Override
-                public String getClassName() {
-                    return componentId.getClass().getName();
-                }
-
-                @Override
-                public String toString() {
-                    return componentId.getDisplayName();
-                }
-            };
-        }
     }
 
     public ResolvableArtifact getInputArtifact() {

@@ -344,7 +344,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
         @Override
         public org.gradle.operations.dependencies.variants.ComponentIdentifier getInputArtifactComponentIdentifier() {
-            return TransformStepNode.getComponentIdentifier(componentIdentifier);
+            return ComponentToOperationConverter.convertComponentIdentifier(componentIdentifier);
         }
 
         @Override
