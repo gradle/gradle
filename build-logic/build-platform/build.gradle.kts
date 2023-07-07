@@ -59,7 +59,7 @@ dependencies {
         api("org.spockframework:spock-junit4:$spockVersion")
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
-        api("dev.adamko.dokkatoo:dokkatoo-plugin:1.4.0")
+        api("dev.adamko.dokkatoo:dokkatoo-plugin:1.5.0")
         api("org.jetbrains.dokka:dokka-core:1.8.10")
         api("com.beust:jcommander:1.78")
         api("org.codehaus.groovy:$groovyVersion")
