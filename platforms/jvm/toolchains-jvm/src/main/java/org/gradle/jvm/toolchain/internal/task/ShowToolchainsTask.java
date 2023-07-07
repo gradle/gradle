@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
-import static org.gradle.internal.logging.text.StyledTextOutput.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 @UntrackedTask(because = "Produces only non-cacheable console output")
 public abstract class ShowToolchainsTask extends DefaultTask {
@@ -67,11 +69,11 @@ public abstract class ShowToolchainsTask extends DefaultTask {
     private void printOptions(StyledTextOutput output) {
         boolean detectionEnabled = getBooleanProperty(AutoDetectingInstallationSupplier.AUTO_DETECT);
         boolean downloadEnabled = getBooleanProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD);
-        output.withStyle(Style.Identifier).println(" + Options");
-        output.withStyle(Style.Normal).format("     | %s", Strings.padEnd("Auto-detection:", 20, ' '));
-        output.withStyle(Style.Description).println(detectionEnabled ? "Enabled" : "Disabled");
-        output.withStyle(Style.Normal).format("     | %s", Strings.padEnd("Auto-download:", 20, ' '));
-        output.withStyle(Style.Description).println(downloadEnabled ? "Enabled" : "Disabled");
+        output.withStyle(Identifier).println(" + Options");
+        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-detection:", 20, ' '));
+        output.withStyle(Description).println(detectionEnabled ? "Enabled" : "Disabled");
+        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-download:", 20, ' '));
+        output.withStyle(Description).println(downloadEnabled ? "Enabled" : "Disabled");
         output.println();
     }
 

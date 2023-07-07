@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,9 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import java.util.List;
 
 import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ToolchainReportRenderer extends TextReportRenderer {
 
@@ -33,7 +35,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         StyledTextOutput output = getTextOutput();
         JvmInstallationMetadata metadata = toolchain.metadata;
         String displayName = metadata.getDisplayName();
-        output.withStyle(Style.Identifier).println(" + " + displayName + " " + metadata.getRuntimeVersion());
+        output.withStyle(Identifier).println(" + " + displayName + " " + metadata.getRuntimeVersion());
         printAttribute("Location", metadata.getJavaHome().toString());
         printAttribute("Language Version", metadata.getLanguageVersion().getMajorVersion());
         printAttribute("Vendor", metadata.getVendor().getDisplayName());
@@ -45,17 +47,17 @@ public class ToolchainReportRenderer extends TextReportRenderer {
 
     private void printAttribute(String key, String value) {
         final String paddedKey = Strings.padEnd(key + ":", 20, ' ');
-        getTextOutput().withStyle(Style.Normal).format("     | %s", paddedKey);
-        getTextOutput().withStyle(Style.Description).println(value);
+        getTextOutput().withStyle(Normal).format("     | %s", paddedKey);
+        getTextOutput().withStyle(Description).println(value);
     }
 
     public void printInvalidToolchains(List<JvmToolchainMetadata> invalidToolchains) {
         if (!invalidToolchains.isEmpty()) {
             StyledTextOutput output = getTextOutput();
-            output.withStyle(Style.Identifier).println(" + Invalid toolchains");
+            output.withStyle(Identifier).println(" + Invalid toolchains");
             for (JvmToolchainMetadata toolchain : invalidToolchains) {
                 JvmInstallationMetadata metadata = toolchain.metadata;
-                output.withStyle(Style.Identifier).println("     + " + metadata.getJavaHome());
+                output.withStyle(Identifier).println("     + " + metadata.getJavaHome());
                 printInvalidToolchainErrorLines(toolchain);
             }
             output.println();
@@ -63,15 +65,15 @@ public class ToolchainReportRenderer extends TextReportRenderer {
     }
 
     private void printInvalidToolchainErrorLines(JvmToolchainMetadata invalidToolchain) {
-        getTextOutput().withStyle(Style.Normal).format("       | %s", Strings.padEnd("Error:", 20, ' '));
-        getTextOutput().withStyle(Style.Description).println(invalidToolchain.metadata.getErrorMessage());
+        getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("Error:", 20, ' '));
+        getTextOutput().withStyle(Description).println(invalidToolchain.metadata.getErrorMessage());
 
         final Throwable errorCause = invalidToolchain.metadata.getErrorCause();
         Throwable cause = errorCause != null ? errorCause.getCause() : null;
         int reportedCauseLines = 0;
         while (cause != null) {
-            getTextOutput().withStyle(Style.Normal).format("       | %s", Strings.padEnd("    Caused by:", 20, ' '));
-            getTextOutput().withStyle(Style.Description).println(cause.getMessage());
+            getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("    Caused by:", 20, ' '));
+            getTextOutput().withStyle(Description).println(cause.getMessage());
             reportedCauseLines++;
 
             cause = cause.getCause();
@@ -79,8 +81,8 @@ public class ToolchainReportRenderer extends TextReportRenderer {
             // Protect against excessively long cause-chains in the outputs.
             if (reportedCauseLines == INVALID_TOOLCHAIN_ERROR_CAUSE_LIMIT && cause != null) {
                 // Ellipsize the omitted cause lines:
-                getTextOutput().withStyle(Style.Normal).format("       | %s", Strings.padEnd("", 20, ' '));
-                getTextOutput().withStyle(Style.Description).println("...");
+                getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("", 20, ' '));
+                getTextOutput().withStyle(Description).println("...");
                 break;
             }
         }
