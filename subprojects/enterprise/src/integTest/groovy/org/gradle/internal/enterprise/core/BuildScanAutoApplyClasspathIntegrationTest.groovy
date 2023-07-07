@@ -122,14 +122,14 @@ class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec
         fixture.assertAutoApplied(output, false)
     }
 
-    def "task is fetched from cache when using --scan"() {
+    def "task is up-to-date when using --scan"() {
         when:
         succeeds "cacheableTask"
 
         then:
         fixture.appliedOnce(output)
         fixture.assertAutoApplied(output, false)
-        result.assertTaskExecuted(":cacheableTask")
+        executedAndNotSkipped(":cacheableTask")
 
         when:
         succeeds "cacheableTask", "--${BuildScanOption.LONG_OPTION}"
@@ -137,6 +137,6 @@ class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec
         then:
         fixture.appliedOnce(output)
         fixture.assertAutoApplied(output, false)
-        result.assertTaskSkipped(":cacheableTask")
+        skipped(":cacheableTask")
     }
 }
