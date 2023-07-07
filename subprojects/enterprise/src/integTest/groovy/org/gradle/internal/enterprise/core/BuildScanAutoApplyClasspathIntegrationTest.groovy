@@ -115,7 +115,7 @@ class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec
 
     def "transitively applied build scan plugin disables auto-application"() {
         when:
-        succeeds "cacheableTask", "--${BuildScanOption.LONG_OPTION}"
+        succeeds "cacheableTask", "--scan"
 
         then:
         fixture.appliedOnce(output)
@@ -132,7 +132,7 @@ class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec
         executedAndNotSkipped(":cacheableTask")
 
         when:
-        succeeds "cacheableTask", "--${BuildScanOption.LONG_OPTION}"
+        succeeds "cacheableTask", "--scan"
 
         then:
         fixture.appliedOnce(output)
