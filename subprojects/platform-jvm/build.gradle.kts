@@ -42,7 +42,6 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":platform-base")))
     testImplementation(testFixtures(project(":platform-native")))
-    testImplementation(testFixtures(project(":plugins")))
 
     integTestImplementation(libs.slf4jApi)
 
