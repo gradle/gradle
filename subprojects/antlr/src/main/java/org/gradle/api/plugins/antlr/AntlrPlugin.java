@@ -85,7 +85,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
 
                     // 3) Set up the Antlr output directory (adding to javac inputs!)
-                    final String outputDirectoryName = project.getBuildDir() + "/generated-src/antlr/" + sourceSet.getName();
+                    final String outputDirectoryName = project.getLayout().getBuildDirectory().file("generated-src/antlr/" + sourceSet.getName()).get().getAsFile().toString();
                     final File outputDirectory = new File(outputDirectoryName);
                     sourceSet.getJava().srcDir(outputDirectory);
 
