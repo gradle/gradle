@@ -24,14 +24,8 @@ import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedS
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 /**
  * This operation represents the work of analyzing the task's inputs plus the calculating the cache key.
@@ -68,130 +62,31 @@ public class SnapshotTaskInputsBuildOperationResult extends BaseSnapshotInputsBu
 
     @Override
     protected Map<String, Object> fileProperties() {
-        final Map<String, Object> fileProperties = new TreeMap<>();
-        visitInputFileProperties(new SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor() {
-            Property property;
-            final Deque<DirEntry> dirStack = new ArrayDeque<>();
-
-            class Property {
-                private final String hash;
-                private final String normalization;
-                private final Set<String> attributes;
-                private final List<Entry> roots = new ArrayList<>();
-
-                public Property(String hash, String normalization, Set<String> attributes) {
-                    this.hash = hash;
-                    this.normalization = normalization;
-                    this.attributes = attributes;
-                }
-
-                public String getHash() {
-                    return hash;
-                }
-
-                public String getNormalization() {
-                    return normalization;
-                }
-
-                public Set<String> getAttributes() {
-                    return attributes;
-                }
-
-                public Collection<Entry> getRoots() {
-                    return roots;
-                }
-            }
-
-            abstract class Entry {
-                private final String path;
-
-                public Entry(String path) {
-                    this.path = path;
-                }
-
-                public String getPath() {
-                    return path;
-                }
-
-            }
-
-            class FileEntry extends Entry {
-                private final String hash;
-
-                FileEntry(String path, String hash) {
-                    super(path);
-                    this.hash = hash;
-                }
-
-                public String getHash() {
-                    return hash;
-                }
-            }
-
-            class DirEntry extends Entry {
-                private final List<Entry> children = new ArrayList<>();
-
-                DirEntry(String path) {
-                    super(path);
-                }
-
-                public Collection<Entry> getChildren() {
-                    return children;
-                }
-            }
-
-            @SuppressWarnings("deprecation")
-            @Override
-            public void preProperty(SnapshotTaskInputsBuildOperationType.Result.VisitState state) {
-                property = new Property(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyNormalizationStrategyName(), state.getPropertyAttributes());
-                fileProperties.put(state.getPropertyName(), property);
-            }
-
-            @Override
-            public void preRoot(SnapshotTaskInputsBuildOperationType.Result.VisitState state) {
-
-            }
-
-            @Override
-            public void preDirectory(SnapshotTaskInputsBuildOperationType.Result.VisitState state) {
-                boolean isRoot = dirStack.isEmpty();
-                DirEntry dir = new DirEntry(isRoot ? state.getPath() : state.getName());
-                if (isRoot) {
-                    property.roots.add(dir);
-                } else {
-                    //noinspection ConstantConditions
-                    dirStack.peek().children.add(dir);
-                }
-                dirStack.push(dir);
-            }
-
-            @Override
-            public void file(SnapshotTaskInputsBuildOperationType.Result.VisitState state) {
-                boolean isRoot = dirStack.isEmpty();
-                FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), HashCode.fromBytes(state.getHashBytes()).toString());
-                if (isRoot) {
-                    property.roots.add(file);
-                } else {
-                    //noinspection ConstantConditions
-                    dirStack.peek().children.add(file);
-                }
-            }
-
-            @Override
-            public void postDirectory() {
-                dirStack.pop();
-            }
-
-            @Override
-            public void postRoot() {
-
-            }
-
-            @Override
-            public void postProperty() {
-
-            }
-        });
-        return fileProperties;
+        FilePropertyCollectingVisitor visitor = new FilePropertyCollectingVisitor();
+        visitInputFileProperties(visitor);
+        return visitor.getFileProperties();
     }
+
+    private static class FilePropertyCollectingVisitor extends BaseFilePropertyCollectingVisitor<VisitState> implements InputFilePropertyVisitor {
+
+        @SuppressWarnings("deprecation")
+        @Override
+        protected Property createProperty(VisitState state) {
+            return new TaskProperty(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyNormalizationStrategyName(), state.getPropertyAttributes());
+        }
+
+        static class TaskProperty extends Property {
+            private final String normalization;
+
+            public TaskProperty(String hash, String normalization, Set<String> attributes) {
+                super(hash, attributes);
+                this.normalization = normalization;
+            }
+
+            public String getNormalization() {
+                return normalization;
+            }
+        }
+    }
+
 }

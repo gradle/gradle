@@ -36,12 +36,18 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.operations.execution.FilePropertyVisitor;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -268,5 +274,132 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             return findFor(lineEndingSensitivity, BY_LINE_ENDING_SENSITIVITY);
         }
 
+    }
+
+    protected abstract static class BaseFilePropertyCollectingVisitor<STATE extends FilePropertyVisitor.VisitState> {
+
+        private final Map<String, Object> fileProperties;
+        Property property;
+        final Deque<DirEntry> dirStack;
+
+        public BaseFilePropertyCollectingVisitor() {
+            this.fileProperties = new TreeMap<>();
+            this.dirStack = new ArrayDeque<>();
+        }
+
+        public Map<String, Object> getFileProperties() {
+            return fileProperties;
+        }
+
+        protected abstract Property createProperty(STATE state);
+
+        protected static class Property {
+
+            private final String hash;
+            private final Set<String> attributes;
+            private final List<Entry> roots = new ArrayList<>();
+
+            public Property(String hash, Set<String> attributes) {
+                this.hash = hash;
+                this.attributes = attributes;
+            }
+
+            public String getHash() {
+                return hash;
+            }
+
+            public Set<String> getAttributes() {
+                return attributes;
+            }
+
+            public Collection<Entry> getRoots() {
+                return roots;
+            }
+        }
+
+        public abstract static class Entry {
+
+            private final String path;
+
+            public Entry(String path) {
+                this.path = path;
+            }
+
+            public String getPath() {
+                return path;
+            }
+
+        }
+
+        static class FileEntry extends Entry {
+
+            private final String hash;
+
+            FileEntry(String path, String hash) {
+                super(path);
+                this.hash = hash;
+            }
+
+            public String getHash() {
+                return hash;
+            }
+        }
+
+        static class DirEntry extends Entry {
+
+            private final List<Entry> children = new ArrayList<>();
+
+            DirEntry(String path) {
+                super(path);
+            }
+
+            public Collection<Entry> getChildren() {
+                return children;
+            }
+        }
+
+        public void preProperty(STATE state) {
+            property = createProperty(state);
+            fileProperties.put(state.getPropertyName(), property);
+        }
+
+        public void preRoot(STATE state) {
+
+        }
+
+        public void preDirectory(STATE state) {
+            boolean isRoot = dirStack.isEmpty();
+            DirEntry dir = new DirEntry(isRoot ? state.getPath() : state.getName());
+            if (isRoot) {
+                property.roots.add(dir);
+            } else {
+                //noinspection ConstantConditions
+                dirStack.peek().children.add(dir);
+            }
+            dirStack.push(dir);
+        }
+
+        public void file(STATE state) {
+            boolean isRoot = dirStack.isEmpty();
+            FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), HashCode.fromBytes(state.getHashBytes()).toString());
+            if (isRoot) {
+                property.roots.add(file);
+            } else {
+                //noinspection ConstantConditions
+                dirStack.peek().children.add(file);
+            }
+        }
+
+        public void postDirectory() {
+            dirStack.pop();
+        }
+
+        public void postRoot() {
+
+        }
+
+        public void postProperty() {
+
+        }
     }
 }
