@@ -53,34 +53,26 @@ val kotlinGrammar: KotlinGrammar by lazy(LazyThreadSafetyMode.PUBLICATION) {
 internal
 class KotlinGrammar : Combinator(true, true) {
 
-    @Suppress("unused")
-    private
-    val debugger: ParserDebugger = ParserDebugger()
-
-    @Suppress("UNUSED_PARAMETER")
-    private
-    fun <T> debug(name: String, parser: Parser<T>) =
-//         debugger.debug(name, parser)
-        parser
-
     // basic building blocks
-    val simpleIdentifier =
-        debug(
-            "simpleIdentifier",
-            symbol()
-        )
+    val simpleIdentifier by debug {
+        symbol()
+    }
 
-    val label =
+    val label by debug {
         simpleIdentifier * token(AT)
+    }
 
-    val comparisonOperator =
+    val comparisonOperator by debug {
         token(LT) + token(GT) + token(LTEQ) + token(GTEQ)
+    }
 
-    val equalityOperator =
+    val equalityOperator by debug {
         token(EXCLEQ) + token(EXCLEQEQEQ) + token(EQEQ) + token(EQEQEQ)
+    }
 
-    val memberAccessOperator =
+    val memberAccessOperator by debug {
         token(DOT) + token(SAFE_ACCESS) + token(COLONCOLON)
+    }
 
     val semi =
         token(SEMICOLON)
@@ -119,125 +111,86 @@ class KotlinGrammar : Combinator(true, true) {
             )
         )
 
-    val parenthesizedType = paren(type)
+    val parenthesizedType by debug {
+        paren(type)
+    }
 
-    val parenthesizedExpression =
+    val parenthesizedExpression by debug {
         paren(expression)
+    }
 
-    val valueArgument =
-        debug(
-            "valueArgument",
-            optional(annotation) *
-                debug(
-                    "optional(simpleIdentifier * token(EQ))",
-                    optional(simpleIdentifier * token(EQ))
-                ) *
-                optional(token(MUL)) *
-                expression
-        )
+    val valueArgument by debug {
+        optional(annotation) * optional(simpleIdentifier * token(EQ)) * optional(token(MUL)) * expression
+    }
 
-    val valueArguments =
-        debug(
-            "valueArguments",
-            paren(
-                optional(
-                    valueArgument * zeroOrMore(token(COMMA) * valueArgument) * optional(token(COMMA))
-                )
+    val valueArguments by debug {
+        paren(
+            optional(
+                valueArgument * zeroOrMore(token(COMMA) * valueArgument) * optional(token(COMMA))
             )
         )
+    }
 
-    val userType =
-        debug(
-            "userType",
-            simpleIdentifier * zeroOrMore(token(DOT) * simpleIdentifier)
-        )
+    val userType by debug {
+        simpleIdentifier * zeroOrMore(token(DOT) * simpleIdentifier)
+    }
 
-    val unaryPrefix =
-        debug(
-            "unaryPrefix",
-            annotation + label
-        )
+    val unaryPrefix by debug {
+        annotation + label
+    }
 
-    val assignment =
-        debug(
-            "assignment",
-            directlyAssignableExpression * token(EQ) * expression
-        )
+    val assignment by debug {
+        directlyAssignableExpression * token(EQ) * expression
+    }
 
-    val statement =
-        debug(
-            "statement",
-            zeroOrMore(label + annotation) *
-                (assignment + expression)
-        )
+    val statement by debug {
+        zeroOrMore(label + annotation) * (assignment + expression)
+    }
 
-    val statements: Parser<Any> =
-        debug(
-            "statements",
-            optional(statement * zeroOrMore(semis * statement)) * optional(semis)
-        )
+    val statements: Parser<Any> by debug {
+        optional(statement * zeroOrMore(semis * statement)) * optional(semis)
+    }
 
-    val indexingSuffix =
+    val indexingSuffix by debug {
         bracket(
-            expression *
-                zeroOrMore(token(COMMA) * expression * optional(token(COMMA)))
+            expression * zeroOrMore(token(COMMA) * expression * optional(token(COMMA)))
         )
+    }
 
-    val navigationSuffix: Parser<Any> =
-        debug(
-            "navigationSuffix",
-            memberAccessOperator * (simpleIdentifier + parenthesizedExpression + token(CLASS_KEYWORD))
-        )
+    val navigationSuffix: Parser<Any> by debug {
+        memberAccessOperator * (simpleIdentifier + parenthesizedExpression + token(CLASS_KEYWORD))
+    }
 
     val postfixUnarySuffix =
         valueArguments + indexingSuffix + navigationSuffix
 
-    val postfixUnaryExpression =
-        debug(
-            "postfixUnaryExpression",
-            primaryExpression *
-                debug(
-                    "zeroOrMore(postfixUnarySuffix)",
-                    zeroOrMore(postfixUnarySuffix)
-                )
-        )
+    val postfixUnaryExpression by debug {
+        primaryExpression * zeroOrMore(postfixUnarySuffix)
+    }
 
-    val prefixUnaryExpression =
-        debug(
-            "prefixUnaryExpression",
-            zeroOrMore(unaryPrefix) *
-                postfixUnaryExpression
-        )
+    val prefixUnaryExpression by debug {
+        zeroOrMore(unaryPrefix) * postfixUnaryExpression
+    }
 
-    val infixFunctionCall =
-        debug(
-            "infixFunctionCall",
-            prefixUnaryExpression * zeroOrMore(simpleIdentifier * prefixUnaryExpression)
-        )
+    val infixFunctionCall by debug {
+        prefixUnaryExpression * zeroOrMore(simpleIdentifier * prefixUnaryExpression)
+    }
 
-    val genericCallLikeComparison =
-        debug(
-            "genericCallLikeComparison",
-            infixFunctionCall * zeroOrMore(valueArguments)
-        )
+    val genericCallLikeComparison by debug {
+        infixFunctionCall * zeroOrMore(valueArguments)
+    }
 
-    val comparison =
-        debug(
-            "comparison",
-            genericCallLikeComparison * zeroOrMore(comparisonOperator * genericCallLikeComparison)
-        )
+    val comparison by debug {
+        genericCallLikeComparison * zeroOrMore(comparisonOperator * genericCallLikeComparison)
+    }
 
-    val equality =
-        debug(
-            "equality",
-            comparison * zeroOrMore(equalityOperator * comparison)
-        )
+    val equality by debug {
+        comparison * zeroOrMore(equalityOperator * comparison)
+    }
 
-    val conjunction =
-        debug(
-            "conjunction",
-            equality * zeroOrMore(token(ANDAND) * equality)
-        )
+    val conjunction by debug {
+        equality * zeroOrMore(token(ANDAND) * equality)
+    }
 
     val disjunction =
         conjunction * zeroOrMore(token(OROR) * conjunction)
@@ -246,45 +199,40 @@ class KotlinGrammar : Combinator(true, true) {
     val definitelyNonNullableType =
         (userType + parenthesizedUserType) * token(MUL) * (userType + parenthesizedUserType)
 
-    val constructorInvocation =
-        debug(
-            "constructorInvocation",
-            userType * valueArguments
-        )
+    val constructorInvocation by debug {
+        userType * valueArguments
+    }
 
-    val unescapedAnnotation =
-        debug("unescapedAnnotation",
-            constructorInvocation + userType
-        )
+    val unescapedAnnotation by debug {
+        constructorInvocation + userType
+    }
 
-    val listOfUnescapedAnnotations =
-        debug(
-            "listOfUnescapedAnnotations",
-            token(LBRACKET) * oneOrMore(unescapedAnnotation) * token(RBRACKET)
-        )
+    val listOfUnescapedAnnotations by debug {
+        token(LBRACKET) * oneOrMore(unescapedAnnotation) * token(RBRACKET)
+    }
 
-    val annotationUseSiteTarget =
-        debug(
-            "annotationUseSiteTarget",
-            (symbol("field") + symbol("property") + symbol("get") + symbol("set") +
-                symbol("receiver") + symbol("param") + symbol("setparam") + symbol("delgate")) * token(COLON)
-        )
+    val annotationUseSiteTarget by debug {
+        (symbol("field") + symbol("property") + symbol("get") + symbol("set") +
+            symbol("receiver") + symbol("param") + symbol("setparam") + symbol("delgate")) * token(COLON)
+    }
 
-    val singleAnnotation =
-        debug(
-            "singleAnnotation",
-            token(AT) * optional(annotationUseSiteTarget) * unescapedAnnotation
-        )
+    val singleAnnotation by debug {
+        token(AT) * optional(annotationUseSiteTarget) * unescapedAnnotation
+    }
 
-    val multiAnnotation = token(AT) * optional(annotationUseSiteTarget) * listOfUnescapedAnnotations
+    val multiAnnotation by debug {
+        token(AT) * optional(annotationUseSiteTarget) * listOfUnescapedAnnotations
+    }
 
-    val parameter =
+    val parameter by debug {
         simpleIdentifier * token(COLON) * type
+    }
 
-    val functionTypeParameters =
+    val functionTypeParameters by debug {
         paren(
             optional(parameter + type) * zeroOrMore(token(COMMA) * (parameter + type)) * optional(token(COMMA))
         )
+    }
 
     val typeReference =
         userType + symbol("dynamic")
@@ -293,34 +241,20 @@ class KotlinGrammar : Combinator(true, true) {
     val nullableType =
         (typeReference + parenthesizedType) * oneOrMore(token(QUEST))
 
-    val receiverType =
-        debug(
-            "receiverType",
-            parenthesizedType + nullableType + typeReference
-        )
+    val receiverType by debug {
+        parenthesizedType + nullableType + typeReference
+    }
 
     val functionType =
         optional(receiverType * token(DOT)) * functionTypeParameters * token(ARROW) * type
 
-    val callableReference =
-        debug(
-            "callableReference",
-            optional(receiverType) *
-                debug(
-                    "token(COLONCOLON)",
-                    token(COLONCOLON)
-                ) *
-                debug(
-                    "(simpleIdentifier + token(CLASS_KEYWORD))",
-                    (simpleIdentifier + token(CLASS_KEYWORD))
-                )
-        )
+    val callableReference by debug {
+        optional(receiverType) * token(COLONCOLON) * (simpleIdentifier + token(CLASS_KEYWORD))
+    }
 
-    val assignableSuffix =
-        debug(
-            "assignableSuffix",
-            indexingSuffix + navigationSuffix
-        )
+    val assignableSuffix by debug {
+        indexingSuffix + navigationSuffix
+    }
 
 
     init {
@@ -328,31 +262,21 @@ class KotlinGrammar : Combinator(true, true) {
         annotation = singleAnnotation + multiAnnotation
         fileAnnotation = token(AT) * symbol("file") * token(COLON) * (unescapedAnnotation + listOfUnescapedAnnotations)
         parenthesizedUserType = paren(userType + parenthesizedUserType)
-        expression =
-            debug(
-                "expression",
-                disjunction
-            )
-        primaryExpression =
-            debug("primaryExpression",
-                parenthesizedExpression +
-                    callableReference +
-                    simpleIdentifier +
-                    literalConstant +
-                    stringLiteral +
-                    collectionLiteral
-            )
-        directlyAssignableExpression =
-            debug(
-                "directlyAssignableExpression",
-                (postfixUnaryExpression * assignableSuffix) +
-                    simpleIdentifier +
-                    paren(directlyAssignableExpression)
-            )
-        assignableExpression =
-            debug(
-                "assignableExpression",
-                prefixUnaryExpression + paren(assignableExpression)
-            )
+
+        expression = debugReference {
+            disjunction
+        }
+
+        primaryExpression = debugReference {
+            parenthesizedExpression + callableReference + simpleIdentifier + literalConstant + stringLiteral + collectionLiteral
+        }
+
+        directlyAssignableExpression = debugReference {
+            (postfixUnaryExpression * assignableSuffix) + simpleIdentifier + paren(directlyAssignableExpression)
+        }
+
+        assignableExpression = debugReference {
+            prefixUnaryExpression + paren(assignableExpression)
+        }
     }
 }

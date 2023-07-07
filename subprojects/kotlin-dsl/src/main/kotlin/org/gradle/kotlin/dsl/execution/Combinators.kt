@@ -39,7 +39,13 @@ internal
 typealias Parser<T> = KotlinLexer.() -> ParserResult<T>
 
 
-internal
+@Suppress("unused")
+private
+val debugger: ParserDebugger = ParserDebugger()
+
+
+@Suppress("unused")
+private
 class ParserDebugger {
     var level = 0
 
@@ -52,6 +58,26 @@ class ParserDebugger {
         println("${levelString}Parsing with $name done @ ${this.currentPosition.offset}, ${if (result is ParserResult.Success) "successful (${result.result})" else "failed"}")
         result
     }
+}
+
+
+internal
+class DebugDelegate<T>(val parserBuilder: () -> Parser<T>) {
+
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): Parser<T> =
+//        debugger.debug(property.name, parserBuilder())
+        parserBuilder()
+}
+
+
+internal
+fun <T> debug(parserBuilder: () -> Parser<T>) = DebugDelegate(parserBuilder)
+
+
+internal
+fun <T> debugReference(parserBuilder: () -> Parser<T>): Parser<T> {
+    val a by debug(parserBuilder)
+    return a
 }
 
 

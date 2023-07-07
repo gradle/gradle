@@ -54,18 +54,6 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
 }
 
 
-@Suppress("unused")
-private
-val debugger: ParserDebugger = ParserDebugger()
-
-
-@Suppress("UNUSED_PARAMETER")
-private
-fun <T> debug(name: String, parser: Parser<T>) =
-//    debugger.debug(name, parser)
-    parser
-
-
 private
 val combinator = Combinator(ignoresComments = true, ignoresNewline = false)
 
@@ -75,79 +63,79 @@ val pluginsBlockParser = run {
 
     combinator.run {
 
-        val parenString = debug("parenString",
+        val parenString by debug {
             paren(stringLiteral)
-        )
+        }
 
-        val parenBool = debug("parenBool",
+        val parenBool by debug {
             paren(booleanLiteral)
-        )
-        val kotlinPluginId = debug("kotlinPluginId",
+        }
+
+        val kotlinPluginId by debug {
             symbol("kotlin") * parenString.map { "org.jetbrains.kotlin.$it" }
-        )
+        }
 
-        val pluginId = debug("pluginId",
+        val pluginId by debug {
             (symbol("id") * parenString + kotlinPluginId)
-        )
+        }
 
-        val dot = debug("dot",
+        val dot by debug {
             wsOrNewLine() * token(DOT)
-        )
+        }
 
-        val version = debug("version",
+        val version by debug {
             symbol("version")
-        )
+        }
 
-        val apply = debug("apply",
+        val apply by debug {
             symbol("apply")
-        )
+        }
 
-
-        val dotVersion = debug("dotVersion",
+        val dotVersion by debug {
             dot * version * parenString
-        )
+        }
 
-        val dotApply = debug("dotApply",
+        val dotApply by debug {
             dot * apply * parenBool
-        )
+        }
 
-        val infixVersion = debug("infixVersion",
+        val infixVersion by debug {
             version * (parenString + stringLiteral)
-        )
+        }
 
-        val infixApply = debug("infixApply",
+        val infixApply by debug {
             apply * (parenBool + booleanLiteral)
-        )
+        }
 
-        val optionalApply = debug("optionalApply",
+        val optionalApply by debug {
             optional(dotApply + infixApply)
-        )
+        }
 
-        val optionalVersion = debug("optionalVersion",
+        val optionalVersion by debug {
             optional(dotVersion + infixVersion)
-        )
+        }
 
-        val infixVersionApply = debug("infixVersionApply",
+        val infixVersionApply by debug {
             infixVersion * optionalApply
-        )
+        }
 
-        val infixApplyVersion = debug("infixApplyVersion",
+        val infixApplyVersion by debug {
             flip(infixApply, optionalVersion)
-        )
+        }
 
-        val dotVersionApply = debug("dotVersionApply",
+        val dotVersionApply by debug {
             dotVersion * optionalApply
-        )
+        }
 
-        val dotApplyVersion = debug("dotApplyVersion",
+        val dotApplyVersion by debug {
             flip(dotApply, optionalVersion)
-        )
+        }
 
-        val optionalVersionAndApply = debug("optionalVersionAndApply",
+        val optionalVersionAndApply by debug {
             optional(infixVersionApply + infixApplyVersion + dotVersionApply + dotApplyVersion)
-        )
+        }
 
-        val pluginIdSpec = debug("pluginIdSpec",
+        val pluginIdSpec by debug {
             zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
                 when (versionAndApply) {
                     null -> ResidualProgram.PluginRequestSpec(id)
@@ -156,9 +144,9 @@ val pluginsBlockParser = run {
                     }
                 }
             }
-        )
+        }
 
-        val kotlinDslSpec = debug("kotlinDslSpec",
+        val kotlinDslSpec by debug {
             zip(symbol("`kotlin-dsl`"), optionalApply) { _, a ->
                 ResidualProgram.PluginRequestSpec(
                     "org.gradle.kotlin.kotlin-dsl",
@@ -166,19 +154,19 @@ val pluginsBlockParser = run {
                     apply = a ?: true
                 )
             }
-        )
+        }
 
-        val pluginSpec = debug("pluginSpec",
+        val pluginSpec by debug {
             pluginIdSpec + kotlinDslSpec
-        )
+        }
 
-        val firstLines = debug("firstLines",
-            zeroOrMore(pluginSpec * debug("statementSeparator", statementSeparator()))
-        )
+        val firstLines by debug {
+            zeroOrMore(pluginSpec * statementSeparator())
+        }
 
-        val lastLine = debug("lastLine",
+        val lastLine by debug {
             optional(pluginSpec * wsOrNewLine())
-        )
+        }
 
         token(LBRACE) * wsOrNewLine() *
             firstLines *
