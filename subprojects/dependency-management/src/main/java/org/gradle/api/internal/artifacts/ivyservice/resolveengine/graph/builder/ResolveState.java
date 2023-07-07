@@ -139,7 +139,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         // Create root component and module
         ModuleResolveState rootModule = getModule(moduleVersionId.getModule(), true);
         ComponentState rootComponent = rootModule.getVersion(moduleVersionId, rootComponentMetadata.getId());
-        rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
+        rootComponent.setState(new DefaultLocalComponentGraphResolveState(rootComponentMetadata), ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
 
         this.selectorStateResolver = new SelectorStateResolver<>(conflictResolver, this, rootComponent, resolveOptimizations, versionComparator, versionParser);
