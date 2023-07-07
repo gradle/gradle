@@ -60,7 +60,7 @@ public class DaemonForkOptionsBuilder {
         if (OperatingSystem.current().isWindows() && keepAliveMode == KeepAliveMode.DAEMON) {
             List<String> jvmArgs = forkOptions.getAllJvmArgs();
             if (containsUnreliableOptions(jvmArgs)) {
-                LOGGER.info("Worker requested to be persistent, but its JVM arguments may make the worker unreliable. Worker will expire at the end of the build.");
+                LOGGER.info("Worker requested to be persistent, but its JVM arguments may make the worker unreliable. Worker will expire at the end of the build session.");
                 return new DaemonForkOptions(forkOptions, KeepAliveMode.SESSION, classLoaderStructure);
             }
         }
