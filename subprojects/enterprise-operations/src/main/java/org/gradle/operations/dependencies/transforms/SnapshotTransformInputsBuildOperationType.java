@@ -18,6 +18,7 @@ package org.gradle.operations.dependencies.transforms;
 
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.operations.execution.FilePropertyVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -83,7 +84,7 @@ public final class SnapshotTransformInputsBuildOperationType implements BuildOpe
          * This is using the visitor from {@link SnapshotTaskInputsBuildOperationType} since there is no difference
          * between tasks and transforms in this regard. Later we can unify the transform and the task build operation type.
          */
-        void visitInputFileProperties(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor);
+        void visitInputFileProperties(FilePropertyVisitor visitor);
 
         /**
          * The names of the output properties.

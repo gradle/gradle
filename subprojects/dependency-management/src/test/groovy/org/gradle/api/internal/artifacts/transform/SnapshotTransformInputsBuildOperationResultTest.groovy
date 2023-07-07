@@ -19,10 +19,16 @@ package org.gradle.api.internal.artifacts.transform
 import org.gradle.api.internal.tasks.AbstractSnapshotInputsBuildOperationResultTest
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec
 import org.gradle.internal.execution.caching.CachingState
+import org.gradle.operations.execution.FilePropertyVisitor
 
-class SnapshotTransformInputsBuildOperationResultTest extends AbstractSnapshotInputsBuildOperationResultTest<SnapshotTransformInputsBuildOperationResult> {
+class SnapshotTransformInputsBuildOperationResultTest extends AbstractSnapshotInputsBuildOperationResultTest<SnapshotTransformInputsBuildOperationResult, FilePropertyVisitor> {
     @Override
     SnapshotTransformInputsBuildOperationResult createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs) {
         return new SnapshotTransformInputsBuildOperationResult(cachingState, inputFilePropertySpecs)
+    }
+
+    @Override
+    FilePropertyVisitor createMockVisitor() {
+        Mock(FilePropertyVisitor)
     }
 }

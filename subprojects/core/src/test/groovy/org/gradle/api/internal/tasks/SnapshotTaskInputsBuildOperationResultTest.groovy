@@ -19,9 +19,14 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec
 import org.gradle.internal.execution.caching.CachingState
 
-class SnapshotTaskInputsBuildOperationIntegrationTest extends AbstractSnapshotInputsBuildOperationResultTest<SnapshotTaskInputsBuildOperationResult> {
+class SnapshotTaskInputsBuildOperationResultTest extends AbstractSnapshotInputsBuildOperationResultTest<SnapshotTaskInputsBuildOperationResult, SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor> {
     @Override
     SnapshotTaskInputsBuildOperationResult createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs) {
         return new SnapshotTaskInputsBuildOperationResult(cachingState, inputFilePropertySpecs)
+    }
+
+    @Override
+    SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor createMockVisitor() {
+        Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
     }
 }

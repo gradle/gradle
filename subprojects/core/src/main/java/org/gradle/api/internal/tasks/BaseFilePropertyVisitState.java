@@ -16,28 +16,17 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.PropertySpec;
-import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.RelativePathFingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.operations.execution.FilePropertyVisitor;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -45,33 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 @NonNullApi
-public class SnapshotInputsResultFilePropertiesVisitState implements SnapshotTaskInputsBuildOperationType.Result.VisitState, FileSystemSnapshotHierarchyVisitor {
-    private static final Map<FileNormalizer, String> FINGERPRINTING_STRATEGIES_BY_NORMALIZER = ImmutableMap.<FileNormalizer, String>builder()
-        .put(InputNormalizer.RUNTIME_CLASSPATH, FingerprintingStrategy.CLASSPATH_IDENTIFIER)
-        .put(InputNormalizer.COMPILE_CLASSPATH, FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER)
-        .put(InputNormalizer.ABSOLUTE_PATH, AbsolutePathFingerprintingStrategy.IDENTIFIER)
-        .put(InputNormalizer.RELATIVE_PATH, RelativePathFingerprintingStrategy.IDENTIFIER)
-        .put(InputNormalizer.NAME_ONLY, NameOnlyFingerprintingStrategy.IDENTIFIER)
-        .put(InputNormalizer.IGNORE_PATH, IgnoredPathFingerprintingStrategy.IDENTIFIER)
-        .build();
-
-    public static void visitInputFileProperties(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,  SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor, Set<InputFilePropertySpec> inputFilePropertySpecs) {
-        ImmutableMap<String, InputFilePropertySpec> propertySpecsByName = Maps.uniqueIndex(inputFilePropertySpecs, PropertySpec::getPropertyName);
-        SnapshotInputsResultFilePropertiesVisitState state = new SnapshotInputsResultFilePropertiesVisitState(visitor, propertySpecsByName);
-        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFileProperties.entrySet()) {
-            CurrentFileCollectionFingerprint fingerprint = entry.getValue();
-
-            state.propertyName = entry.getKey();
-            state.propertyHash = fingerprint.getHash();
-            state.fingerprints = fingerprint.getFingerprints();
-
-            visitor.preProperty(state);
-            fingerprint.getSnapshot().accept(state);
-            visitor.postProperty();
-        }
-    }
-
-    private final SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor;
+public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.VisitState, FileSystemSnapshotHierarchyVisitor {
     private final Map<String, InputFilePropertySpec> propertySpecsByName;
     private final Deque<DirectorySnapshot> unvisitedDirectories = new ArrayDeque<>();
 
@@ -83,10 +46,16 @@ public class SnapshotInputsResultFilePropertiesVisitState implements SnapshotTas
     HashCode hash;
     int depth;
 
-    public SnapshotInputsResultFilePropertiesVisitState(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor, Map<String, InputFilePropertySpec> propertySpecsByName) {
-        this.visitor = visitor;
+    protected BaseFilePropertyVisitState(Map<String, InputFilePropertySpec> propertySpecsByName) {
         this.propertySpecsByName = propertySpecsByName;
     }
+
+    protected abstract void preRoot();
+    protected abstract void postRoot();
+    protected abstract void preDirectory();
+    protected abstract void preUnvisitedDirectory(DirectorySnapshot unvisited);
+    protected abstract void postDirectory();
+    protected abstract void file();
 
     @Override
     public String getPropertyName() {
@@ -106,18 +75,6 @@ public class SnapshotInputsResultFilePropertiesVisitState implements SnapshotTas
             SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.from(propertySpec.getDirectorySensitivity()).name(),
             SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.from(propertySpec.getLineEndingNormalization()).name()
         );
-    }
-
-    @Override
-    @Deprecated
-    public String getPropertyNormalizationStrategyName() {
-        InputFilePropertySpec propertySpec = propertySpec(propertyName);
-        FileNormalizer normalizer = propertySpec.getNormalizer();
-        String normalizationStrategy = FINGERPRINTING_STRATEGIES_BY_NORMALIZER.get(normalizer);
-        if (normalizationStrategy == null) {
-            throw new IllegalStateException("No strategy name for " + normalizer);
-        }
-        return normalizationStrategy;
     }
 
     @Override
@@ -142,7 +99,7 @@ public class SnapshotInputsResultFilePropertiesVisitState implements SnapshotTas
         this.hash = null;
 
         if (depth++ == 0) {
-            visitor.preRoot(this);
+            preRoot();
         }
 
         FileSystemLocationFingerprint fingerprint = fingerprints.get(path);
@@ -152,7 +109,7 @@ public class SnapshotInputsResultFilePropertiesVisitState implements SnapshotTas
             unvisitedDirectories.add(physicalSnapshot);
         } else {
             visitUnvisitedDirectories();
-            visitor.preDirectory(this);
+            preDirectory();
         }
     }
 
@@ -175,13 +132,13 @@ public class SnapshotInputsResultFilePropertiesVisitState implements SnapshotTas
 
         boolean isRoot = depth == 0;
         if (isRoot) {
-            visitor.preRoot(this);
+            preRoot();
         }
 
-        visitor.file(this);
+        file();
 
         if (isRoot) {
-            visitor.postRoot();
+            postRoot();
         }
         return SnapshotVisitResult.CONTINUE;
     }
@@ -190,22 +147,22 @@ public class SnapshotInputsResultFilePropertiesVisitState implements SnapshotTas
     public void leaveDirectory(DirectorySnapshot directorySnapshot) {
         DirectorySnapshot lastUnvisitedDirectory = unvisitedDirectories.pollLast();
         if (lastUnvisitedDirectory == null) {
-            visitor.postDirectory();
+            postDirectory();
         }
 
         if (--depth == 0) {
-            visitor.postRoot();
+            postRoot();
         }
     }
 
     private void visitUnvisitedDirectories() {
         DirectorySnapshot unvisited;
         while ((unvisited = unvisitedDirectories.poll()) != null) {
-            visitor.preDirectory(new DirectoryVisitState(unvisited, this));
+            preUnvisitedDirectory(unvisited);
         }
     }
 
-    private InputFilePropertySpec propertySpec(String propertyName) {
+    protected InputFilePropertySpec propertySpec(String propertyName) {
         InputFilePropertySpec propertySpec = propertySpecsByName.get(propertyName);
         if (propertySpec == null) {
             throw new IllegalStateException("Unknown input property '" + propertyName + "' (known: " + propertySpecsByName.keySet() + ")");
@@ -213,11 +170,11 @@ public class SnapshotInputsResultFilePropertiesVisitState implements SnapshotTas
         return propertySpec;
     }
 
-    private static class DirectoryVisitState implements SnapshotTaskInputsBuildOperationType.Result.VisitState {
-        private final SnapshotTaskInputsBuildOperationType.Result.VisitState delegate;
+    protected static class DirectoryVisitState<T extends FilePropertyVisitor.VisitState> implements FilePropertyVisitor.VisitState {
+        protected final T delegate;
         private final DirectorySnapshot directorySnapshot;
 
-        public DirectoryVisitState(DirectorySnapshot unvisited, SnapshotTaskInputsBuildOperationType.Result.VisitState delegate) {
+        public DirectoryVisitState(DirectorySnapshot unvisited, T delegate) {
             this.directorySnapshot = unvisited;
             this.delegate = delegate;
         }
@@ -245,12 +202,6 @@ public class SnapshotInputsResultFilePropertiesVisitState implements SnapshotTas
         @Override
         public byte[] getPropertyHashBytes() {
             return delegate.getPropertyHashBytes();
-        }
-
-        @SuppressWarnings("deprecation")
-        @Override
-        public String getPropertyNormalizationStrategyName() {
-            return delegate.getPropertyNormalizationStrategyName();
         }
 
         @Override

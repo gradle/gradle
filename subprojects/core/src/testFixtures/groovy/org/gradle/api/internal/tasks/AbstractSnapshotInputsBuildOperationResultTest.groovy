@@ -35,14 +35,15 @@ import static org.gradle.internal.fingerprint.DirectorySensitivity.DEFAULT
 import static org.gradle.internal.fingerprint.DirectorySensitivity.IGNORE_DIRECTORIES
 import static org.gradle.internal.fingerprint.LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
 
-abstract class AbstractSnapshotInputsBuildOperationResultTest<T extends BaseSnapshotInputsBuildOperationResult> extends Specification implements TestSnapshotFixture {
+abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends BaseSnapshotInputsBuildOperationResult, VISITOR> extends Specification implements TestSnapshotFixture {
 
-    abstract T createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs)
+    abstract RESULT createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs)
+    abstract VISITOR createMockVisitor()
 
     @Requires(UnitTestPreconditions.NotWindows)
     def "properly visits structure when ignoring directories"() {
         given:
-        def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
+        def visitor = createMockVisitor()
         def inputFileProperty = Mock(InputFilePropertySpec) {
             getDirectorySensitivity() >> IGNORE_DIRECTORIES
             getLineEndingNormalization() >> NORMALIZE_LINE_ENDINGS
@@ -107,7 +108,7 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<T extends BaseSnap
     @Requires(UnitTestPreconditions.NotWindows)
     def "properly visits structure when ignoring only the root directory"() {
         given:
-        def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
+        def visitor = createMockVisitor()
         def inputFileProperty = Mock(InputFilePropertySpec) {
             getDirectorySensitivity() >> DEFAULT
             getLineEndingNormalization() >> NORMALIZE_LINE_ENDINGS
@@ -159,7 +160,7 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<T extends BaseSnap
     @Requires(UnitTestPreconditions.NotWindows)
     def "properly visits structure when not ignoring directories"() {
         given:
-        def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
+        def visitor = createMockVisitor()
         def inputFileProperty = Mock(InputFilePropertySpec) {
             getDirectorySensitivity() >> DEFAULT
             getLineEndingNormalization() >> NORMALIZE_LINE_ENDINGS

@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -39,31 +38,26 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @NonNullApi
-public class BaseSnapshotInputsBuildOperationResult implements CustomOperationTraceSerialization {
+public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOperationTraceSerialization {
 
     @VisibleForTesting
     final CachingState cachingState;
-    private final Set<InputFilePropertySpec> inputFilePropertySpecs;
 
-    public BaseSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs) {
+    public BaseSnapshotInputsBuildOperationResult(CachingState cachingState) {
         this.cachingState = cachingState;
-        this.inputFilePropertySpecs = inputFilePropertySpecs;
     }
+
+    protected abstract Map<String, Object> fileProperties();
 
     @Nullable
     public Map<String, byte[]> getInputValueHashesBytes() {
@@ -77,12 +71,6 @@ public class BaseSnapshotInputsBuildOperationResult implements CustomOperationTr
                     return hasher.hash().toByteArray();
                 })))
             .orElse(null);
-    }
-
-    public void visitInputFileProperties(final SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor) {
-        getBeforeExecutionState()
-            .map(BeforeExecutionState::getInputFileProperties)
-            .ifPresent(inputFileProperties -> SnapshotInputsResultFilePropertiesVisitState.visitInputFileProperties(inputFileProperties, visitor, inputFilePropertySpecs));
     }
 
     @Nullable
@@ -202,134 +190,6 @@ public class BaseSnapshotInputsBuildOperationResult implements CustomOperationTr
             (a, b) -> b,
             LinkedHashMap::new
         );
-    }
-
-    protected Map<String, Object> fileProperties() {
-        final Map<String, Object> fileProperties = new TreeMap<>();
-        visitInputFileProperties(new SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor() {
-            Property property;
-            final Deque<DirEntry> dirStack = new ArrayDeque<>();
-
-            class Property {
-                private final String hash;
-                private final String normalization;
-                private final Set<String> attributes;
-                private final List<Entry> roots = new ArrayList<>();
-
-                public Property(String hash, String normalization, Set<String> attributes) {
-                    this.hash = hash;
-                    this.normalization = normalization;
-                    this.attributes = attributes;
-                }
-
-                public String getHash() {
-                    return hash;
-                }
-
-                public String getNormalization() {
-                    return normalization;
-                }
-
-                public Set<String> getAttributes() {
-                    return attributes;
-                }
-
-                public Collection<Entry> getRoots() {
-                    return roots;
-                }
-            }
-
-            abstract class Entry {
-                private final String path;
-
-                public Entry(String path) {
-                    this.path = path;
-                }
-
-                public String getPath() {
-                    return path;
-                }
-
-            }
-
-            class FileEntry extends Entry {
-                private final String hash;
-
-                FileEntry(String path, String hash) {
-                    super(path);
-                    this.hash = hash;
-                }
-
-                public String getHash() {
-                    return hash;
-                }
-            }
-
-            class DirEntry extends Entry {
-                private final List<Entry> children = new ArrayList<>();
-
-                DirEntry(String path) {
-                    super(path);
-                }
-
-                public Collection<Entry> getChildren() {
-                    return children;
-                }
-            }
-
-            @SuppressWarnings("deprecation")
-            @Override
-            public void preProperty(SnapshotTaskInputsBuildOperationType.Result.VisitState state) {
-                property = new Property(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyNormalizationStrategyName(), state.getPropertyAttributes());
-                fileProperties.put(state.getPropertyName(), property);
-            }
-
-            @Override
-            public void preRoot(SnapshotTaskInputsBuildOperationType.Result.VisitState state) {
-
-            }
-
-            @Override
-            public void preDirectory(SnapshotTaskInputsBuildOperationType.Result.VisitState state) {
-                boolean isRoot = dirStack.isEmpty();
-                DirEntry dir = new DirEntry(isRoot ? state.getPath() : state.getName());
-                if (isRoot) {
-                    property.roots.add(dir);
-                } else {
-                    //noinspection ConstantConditions
-                    dirStack.peek().children.add(dir);
-                }
-                dirStack.push(dir);
-            }
-
-            @Override
-            public void file(SnapshotTaskInputsBuildOperationType.Result.VisitState state) {
-                boolean isRoot = dirStack.isEmpty();
-                FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), HashCode.fromBytes(state.getHashBytes()).toString());
-                if (isRoot) {
-                    property.roots.add(file);
-                } else {
-                    //noinspection ConstantConditions
-                    dirStack.peek().children.add(file);
-                }
-            }
-
-            @Override
-            public void postDirectory() {
-                dirStack.pop();
-            }
-
-            @Override
-            public void postRoot() {
-
-            }
-
-            @Override
-            public void postProperty() {
-
-            }
-        });
-        return fileProperties;
     }
 
     protected Optional<BeforeExecutionState> getBeforeExecutionState() {
