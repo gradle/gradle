@@ -10,7 +10,7 @@ automations:
       - action: add-comment@v1
         args:
           comment: |
-            This PR is {{ changes.ratio }}% new code.
+            This PR is {{ changes.ratio | round(2) }}% new code.
             There are {{ changes.additions }} added lines and {{ changes.deletions }} deleted lines.
 
 changes:
