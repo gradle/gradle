@@ -36,6 +36,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
+    integTestImplementation(testFixtures(project(":dependency-management")))
+    integTestImplementation(testFixtures(project(":resources-http")))
+
     testImplementation(project(":language-java")) {
         because("need to access JavaCompile task")
     }
@@ -44,6 +47,8 @@ dependencies {
     }
 
     testImplementation(testFixtures(project(":core")))
+
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 packageCycles {
