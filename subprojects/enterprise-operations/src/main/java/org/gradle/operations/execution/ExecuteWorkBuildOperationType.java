@@ -51,6 +51,11 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
 
         /**
          * The identity of the executed unit of work.
+         * <p>
+         * The identity needs to be unique per build tree, so consumers of this
+         * build operation attribute them to the corresponding domain object.
+         * Note that this identity is different from the raw identity in the execution engine,
+         * since the execution engine does not guarantee uniqueness within the build tree.
          */
         String getIdentity();
     }
