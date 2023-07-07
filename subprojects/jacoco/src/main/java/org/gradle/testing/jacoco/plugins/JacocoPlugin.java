@@ -117,23 +117,22 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     }
 
     private void createCoverageDataVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, variant -> {
-            variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
-            variant.setVisible(false);
+        @SuppressWarnings("deprecation") final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
+        variant.setVisible(false);
 
-            final ObjectFactory objects = project.getObjects();
-            variant.attributes(attributes -> {
-                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
-                attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
-                attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
-                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
-            });
+        final ObjectFactory objects = project.getObjects();
+        variant.attributes(attributes -> {
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+            attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
+            attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
+            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
+        });
 
-            variant.getOutgoing().artifact(target.getTestTask().map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()), artifact -> {
-                artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE);
-                artifact.builtBy(target.getTestTask());
-            });
+        variant.getOutgoing().artifact(target.getTestTask().map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()), artifact -> {
+            artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE);
+            artifact.builtBy(target.getTestTask());
         });
     }
 
@@ -143,18 +142,14 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private void addJacocoConfigurations() {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
-
-        configurations.resolvableDependencyScopeUnlocked(AGENT_CONFIGURATION_NAME, agentConf -> {
-            agentConf.setVisible(false);
-            agentConf.setTransitive(true);
-            agentConf.setDescription("The Jacoco agent to use to get coverage data.");
-        });
-
-        configurations.resolvableDependencyScopeUnlocked(ANT_CONFIGURATION_NAME, antConf -> {
-            antConf.setVisible(false);
-            antConf.setTransitive(true);
-            antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
-        });
+        Configuration agentConf = configurations.resolvableDependencyScopeUnlocked(AGENT_CONFIGURATION_NAME);
+        agentConf.setVisible(false);
+        agentConf.setTransitive(true);
+        agentConf.setDescription("The Jacoco agent to use to get coverage data.");
+        Configuration antConf = configurations.resolvableDependencyScopeUnlocked(ANT_CONFIGURATION_NAME);
+        antConf.setVisible(false);
+        antConf.setTransitive(true);
+        antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
     }
 
     /**

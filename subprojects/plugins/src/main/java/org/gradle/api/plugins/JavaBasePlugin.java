@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -264,45 +263,39 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        NamedDomainObjectProvider<? extends Configuration> implementationConfiguration = configurations.maybeRegisterDependencyScopeUnlocked(implementationConfigurationName, conf -> {
-            conf.setVisible(false);
-            conf.setDescription("Implementation only dependencies for " + sourceSetName + ".");
-        });
+        Configuration implementationConfiguration = configurations.maybeCreateDependencyScopeUnlocked(implementationConfigurationName);
+        implementationConfiguration.setVisible(false);
+        implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
-        NamedDomainObjectProvider<? extends Configuration> compileOnlyConfiguration = configurations.maybeRegisterDependencyScopeUnlocked(compileOnlyConfigurationName, conf -> {
-            conf.setVisible(false);
-            conf.setDescription("Compile only dependencies for " + sourceSetName + ".");
-        });
+        Configuration compileOnlyConfiguration = configurations.maybeCreateDependencyScopeUnlocked(compileOnlyConfigurationName);
+        compileOnlyConfiguration.setVisible(false);
+        compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        NamedDomainObjectProvider<? extends Configuration> compileClasspathConfiguration = configurations.maybeRegisterResolvableUnlocked(compileClasspathConfigurationName, conf -> {
-            conf.setVisible(false);
-            conf.extendsFrom(compileOnlyConfiguration.get(), implementationConfiguration.get());
-            conf.setDescription("Compile classpath for " + sourceSetName + ".");
-            jvmPluginServices.configureAsCompileClasspath(conf);
-        });
+        Configuration compileClasspathConfiguration = configurations.maybeCreateResolvableUnlocked(compileClasspathConfigurationName);
+        compileClasspathConfiguration.setVisible(false);
+        compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
+        compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
+        jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
         @SuppressWarnings("deprecation")
-        NamedDomainObjectProvider<? extends Configuration> annotationProcessorConfiguration = configurations.maybeRegisterResolvableDependencyScopeUnlocked(annotationProcessorConfigurationName, conf -> {
-            conf.setVisible(false);
-            conf.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
-            jvmPluginServices.configureAsRuntimeClasspath(conf);
-        });
+        Configuration annotationProcessorConfiguration = configurations.maybeCreateResolvableDependencyScopeUnlocked(annotationProcessorConfigurationName);
+        annotationProcessorConfiguration.setVisible(false);
+        annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
+        jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
-        NamedDomainObjectProvider<? extends Configuration> runtimeOnlyConfiguration = configurations.maybeRegisterDependencyScopeUnlocked(runtimeOnlyConfigurationName, conf -> {
-            conf.setVisible(false);
-            conf.setDescription("Runtime only dependencies for " + sourceSetName + ".");
-        });
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateDependencyScopeUnlocked(runtimeOnlyConfigurationName);
+        runtimeOnlyConfiguration.setVisible(false);
+        runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        NamedDomainObjectProvider<? extends Configuration> runtimeClasspathConfiguration = configurations.maybeRegisterResolvableUnlocked(runtimeClasspathConfigurationName, conf -> {
-            conf.setVisible(false);
-            conf.setDescription("Runtime classpath of " + sourceSetName + ".");
-            conf.extendsFrom(runtimeOnlyConfiguration.get(), implementationConfiguration.get());
-            jvmPluginServices.configureAsRuntimeClasspath(conf);
-        });
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreateResolvableUnlocked(runtimeClasspathConfigurationName);
+        runtimeClasspathConfiguration.setVisible(false);
+        runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
+        runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
+        jvmPluginServices.configureAsRuntimeClasspath(runtimeClasspathConfiguration);
 
-        sourceSet.setCompileClasspath(compileClasspathConfiguration.get());
-        sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration.get()));
-        sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration.get());
+        sourceSet.setCompileClasspath(compileClasspathConfiguration);
+        sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
+        sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {

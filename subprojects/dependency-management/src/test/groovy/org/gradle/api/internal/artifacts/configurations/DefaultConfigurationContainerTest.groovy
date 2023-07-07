@@ -217,7 +217,7 @@ class DefaultConfigurationContainerTest extends Specification {
             resolvableUnlocked("d", {})
         }
         verifyUnlocked(ConfigurationRoles.RESOLVABLE, "e") {
-            maybeRegisterResolvableUnlocked("e", {})
+            maybeCreateResolvableUnlocked("e")
         }
     }
 
@@ -236,7 +236,7 @@ class DefaultConfigurationContainerTest extends Specification {
             consumableUnlocked("d", {})
         }
         verifyUnlocked(ConfigurationRoles.CONSUMABLE, "e") {
-            maybeRegisterConsumableUnlocked("e", {})
+            maybeCreateConsumableUnlocked("e")
         }
     }
 
@@ -255,10 +255,10 @@ class DefaultConfigurationContainerTest extends Specification {
             dependencyScopeUnlocked("d", {})
         }
         verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "e") {
-            maybeRegisterDependencyScopeUnlocked("e", {})
+            maybeCreateDependencyScopeUnlocked("e")
         }
         verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "f") {
-            maybeRegisterDependencyScopeUnlocked("f", false, {})
+            maybeCreateDependencyScopeUnlocked("f", false)
         }
     }
 
@@ -271,7 +271,7 @@ class DefaultConfigurationContainerTest extends Specification {
             resolvableDependencyScopeUnlocked("b", {})
         }
         verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "c") {
-            maybeRegisterResolvableDependencyScopeUnlocked("c", {})
+            maybeCreateResolvableDependencyScopeUnlocked("c")
         }
     }
 
@@ -284,7 +284,7 @@ class DefaultConfigurationContainerTest extends Specification {
             migratingUnlocked("b", role) {}
         }
         verifyUnlocked(role, "c") {
-            maybeRegisterMigratingUnlocked("c", role) {}
+            maybeCreateMigratingUnlocked("c", role)
         }
 
         where:
@@ -310,7 +310,7 @@ class DefaultConfigurationContainerTest extends Specification {
         thrown(InvalidUserDataException)
 
         when:
-        configurationContainer.maybeRegisterMigratingUnlocked("baz", role) {}
+        configurationContainer.maybeCreateMigratingUnlocked("baz", role)
 
         then:
         thrown(InvalidUserDataException)
@@ -325,7 +325,7 @@ class DefaultConfigurationContainerTest extends Specification {
         ]
     }
 
-    def "#name calls configure action with new configuration"() {
+    def "#name calls configure action with new configuration for lazy methods"() {
         when:
         action.delegate = configurationContainer
         def arg = null
@@ -340,18 +340,32 @@ class DefaultConfigurationContainerTest extends Specification {
         del == value
 
         where:
-        name                                                             | action
-        "consumable(String, Action)"                                     | { consumable("foo", it) }
-        "resolvable(String, Action)"                                     | { resolvable("foo", it) }
-        "dependencyScope(String, Action)"                                | { dependencyScope("foo", it) }
-        "consumableUnlocked(String, Action)"                             | { consumableUnlocked("foo", it) }
-        "resolvableUnlocked(String, Action)"                             | { resolvableUnlocked("foo", it) }
-        "dependencyScopeUnlocked(String, Action)"                        | { dependencyScopeUnlocked("foo", it) }
-        "resolvableDependencyScopeUnlocked(String, Action)"              | { resolvableDependencyScopeUnlocked("foo", it) }
-        "maybeRegisterConsumableUnlocked(String, Action)"                | { maybeRegisterConsumableUnlocked("foo", it) }
-        "maybeRegisterResolvableUnlocked(String, Action)"                | { maybeRegisterResolvableUnlocked("foo", it) }
-        "maybeRegisterDependencyScopeUnlocked(String, Action)"           | { maybeRegisterDependencyScopeUnlocked("foo", it) }
-        "maybeRegisterResolvableDependencyScopeUnlocked(String, Action)" | { maybeRegisterResolvableDependencyScopeUnlocked("foo", it) }
+        name                              | action
+        "consumable(String, Action)"      | { consumable("foo", it) }
+        "resolvable(String, Action)"      | { resolvable("foo", it) }
+        "dependencyScope(String, Action)" | { dependencyScope("foo", it) }
+    }
+
+    def "#name calls configure action with new configuration for eager methods"() {
+        when:
+        action.delegate = configurationContainer
+        def arg = null
+        def del = null
+        def value = action({
+            arg = it
+            del = delegate
+        })
+
+        then:
+        arg == value
+        del == value
+
+        where:
+        name                                                | action
+        "consumableUnlocked(String, Action)"                | { consumableUnlocked("foo", it) }
+        "resolvableUnlocked(String, Action)"                | { resolvableUnlocked("foo", it) }
+        "dependencyScopeUnlocked(String, Action)"           | { dependencyScopeUnlocked("foo", it) }
+        "resolvableDependencyScopeUnlocked(String, Action)" | { resolvableDependencyScopeUnlocked("foo", it) }
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements
@@ -365,7 +379,7 @@ class DefaultConfigurationContainerTest extends Specification {
     }
 
     def verifyRole(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
-        verifyConfiguration(name, producer) {
+        verifyLazyConfiguration(name, producer) {
             assert role.resolvable == it instanceof ResolvableConfiguration
             assert role.declarable == it instanceof DependencyScopeConfiguration
             assert role.consumable == it instanceof ConsumableConfiguration
@@ -376,7 +390,7 @@ class DefaultConfigurationContainerTest extends Specification {
     }
 
     def verifyUnlocked(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
-        verifyConfiguration(name, producer) {
+        verifyEagerConfiguration(name, producer) {
             assert !(it instanceof ResolvableConfiguration)
             assert !(it instanceof DependencyScopeConfiguration)
             assert !(it instanceof ConsumableConfiguration)
@@ -386,7 +400,23 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
 
-    def verifyConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {
+    def verifyEagerConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {
+        producer.delegate = configurationContainer
+        def value = producer()
+
+        assert value.name == name
+
+        def value2 = configurationContainer.getByName(name)
+
+        assert value2.name == name
+
+        action(value)
+        action(value2)
+
+        true
+    }
+
+    def verifyLazyConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {
         producer.delegate = configurationContainer
         def provider = producer()
 

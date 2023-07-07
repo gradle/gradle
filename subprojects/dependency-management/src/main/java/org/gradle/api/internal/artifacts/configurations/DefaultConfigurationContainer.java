@@ -23,8 +23,8 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConsumableConfiguration;
-import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
@@ -156,15 +156,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name) {
+    public Configuration resolvableUnlocked(String name) {
         assertMutable("resolvableUnlocked(String)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
+        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
     }
 
     @Override
-    public NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name, Action<? super Configuration> action) {
+    public Configuration resolvableUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("resolvableUnlocked(String, Action)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
+        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
     }
 
     @Override
@@ -180,15 +180,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public NamedDomainObjectProvider<Configuration> consumableUnlocked(String name) {
+    public Configuration consumableUnlocked(String name) {
         assertMutable("consumableUnlocked(String)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
+        return createUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
     }
 
     @Override
-    public NamedDomainObjectProvider<Configuration> consumableUnlocked(String name, Action<? super Configuration> action) {
+    public Configuration consumableUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("consumableUnlocked(String, Action)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
+        return createUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
     }
 
     @Override
@@ -204,103 +204,104 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name) {
+    public Configuration dependencyScopeUnlocked(String name) {
         assertMutable("dependencyScopeUnlocked(String)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
+        return createUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
-    public NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name, Action<? super Configuration> action) {
+    public Configuration dependencyScopeUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("dependencyScopeUnlocked(String, Action)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
+        return createUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
     }
 
     @Override
     @Deprecated
-    public NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name) {
+    public Configuration resolvableDependencyScopeUnlocked(String name) {
         assertMutable("resolvableDependencyScopeUnlocked(String)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
+        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
     @Deprecated
-    public NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
+    public Configuration resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("resolvableDependencyScopeUnlocked(String, Action)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
+        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
     }
 
-    public NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role) {
+    @Override
+    public Configuration migratingUnlocked(String name, ConfigurationRole role) {
         assertMutable("migratingUnlocked(String, ConfigurationRole)");
         return migratingUnlocked(name, role, Actions.doNothing());
     }
 
     @Override
-    public NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
+    public Configuration migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
         assertMutable("migratingUnlocked(String, ConfigurationRole, Action)");
 
         if (!ConfigurationRolesForMigration.ALL.contains(role)) {
             throw new InvalidUserDataException("Unknown migration role: " + role);
         }
 
-        return registerUnlockedConfiguration(name, role, action);
+        return createUnlockedConfiguration(name, role, action);
     }
 
     @Override
-    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableUnlocked(String name, Action<? super Configuration> action) {
+    public Configuration maybeCreateResolvableUnlocked(String name) {
         if (!hasWithName(name)) {
-            return resolvableUnlocked(name, action);
+            return resolvableUnlocked(name);
         }
 
         emitConfigurationExistsDeprecation(name);
-        return named(name, action);
+        return getByName(name);
     }
 
     @Override
-    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterConsumableUnlocked(String name, Action<? super Configuration> action) {
+    public Configuration maybeCreateConsumableUnlocked(String name) {
         if (!hasWithName(name)) {
-            return consumableUnlocked(name, action);
+            return consumableUnlocked(name);
         }
 
         emitConfigurationExistsDeprecation(name);
-        return named(name, action);
+        return getByName(name);
     }
 
     @Override
-    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
-        return maybeRegisterDependencyScopeUnlocked(name, true, action);
+    public Configuration maybeCreateDependencyScopeUnlocked(String name) {
+        return maybeCreateDependencyScopeUnlocked(name, true);
     }
 
     @Override
-    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name, boolean warnOnDuplicate, Action<? super Configuration> action) {
+    public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean warnOnDuplicate) {
         if (!hasWithName(name)) {
-            return dependencyScopeUnlocked(name, action);
+            return dependencyScopeUnlocked(name);
         }
 
         if (warnOnDuplicate) {
             emitConfigurationExistsDeprecation(name);
         }
-        return named(name, action);
+        return getByName(name);
     }
 
     @Override
-    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterMigratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
+    public Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
         if (!hasWithName(name)) {
-            return migratingUnlocked(name, role, action);
+            return migratingUnlocked(name, role);
         }
 
         emitConfigurationExistsDeprecation(name);
-        return named(name, action);
+        return getByName(name);
     }
 
     @Override
     @Deprecated
-    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
+    public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
         if (!hasWithName(name)) {
-            return resolvableDependencyScopeUnlocked(name, action);
+            return resolvableDependencyScopeUnlocked(name);
         }
 
         emitConfigurationExistsDeprecation(name);
-        return named(name, action);
+        return getByName(name);
     }
 
     private NamedDomainObjectProvider<ConsumableConfiguration> registerConsumableConfiguration(String name, Action<? super ConsumableConfiguration> configureAction) {
@@ -322,15 +323,18 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @SuppressWarnings("deprecation")
-    private NamedDomainObjectProvider<Configuration> registerUnlockedConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
+    private Configuration createUnlockedConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         // Sanity check to make sure we are locking all non-legacy configurations by 9.0
         assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.LEGACY;
 
         // TODO: Deprecate changing roles of unlocked non-legacy configurations.
 
-        return registerConfiguration(name, configureAction, Configuration.class, n ->
-            defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role)
-        );
+        assertCanAdd(name);
+        validateNameIsAllowed(name);
+        Configuration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
+        add(configuration);
+        configureAction.execute(configuration);
+        return configuration;
     }
 
     private <T extends Configuration> NamedDomainObjectProvider<T> registerConfiguration(String name, Action<? super T> configureAction, Class<T> publicType, Function<String, T> factory) {

@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -49,21 +48,20 @@ public abstract class AntlrPlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
-        @SuppressWarnings("deprecation")
-        final NamedDomainObjectProvider<Configuration> antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependencyScopeUnlocked(ANTLR_CONFIGURATION_NAME, conf -> {
-            conf.setVisible(false);
-            conf.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
-        });
+        final Configuration antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependencyScopeUnlocked(ANTLR_CONFIGURATION_NAME)
+            .setVisible(false);
 
-        project.getConfigurations().named(JvmConstants.API_CONFIGURATION_NAME, apiConfiguration -> {
-            apiConfiguration.extendsFrom(antlrConfiguration.get());
-        });
+        antlrConfiguration.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
+
+        Configuration apiConfiguration = project.getConfigurations().getByName(JvmConstants.API_CONFIGURATION_NAME);
+        apiConfiguration.extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks
         project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getConventionMapping().map("antlrClasspath", () -> project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME)));

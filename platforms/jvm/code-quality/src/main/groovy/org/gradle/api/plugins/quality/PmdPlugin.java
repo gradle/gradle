@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
@@ -112,11 +111,11 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected void createConfigurations() {
         super.createConfigurations();
-        project.getConfigurations().dependencyScopeUnlocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, auxClasspath -> {
-            auxClasspath.setDescription("The additional libraries that are available for type resolution during analysis");
-            auxClasspath.setVisible(false);
-            getJvmPluginServices().configureAsRuntimeClasspath(auxClasspath);
+        Configuration auxClasspath = project.getConfigurations().dependencyScopeUnlocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, additionalAuxDepsConfiguration -> {
+            additionalAuxDepsConfiguration.setDescription("The additional libraries that are available for type resolution during analysis");
+            additionalAuxDepsConfiguration.setVisible(false);
         });
+        getJvmPluginServices().configureAsRuntimeClasspath(auxClasspath);
     }
 
     @Override
@@ -218,12 +217,11 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         Configuration pmdAdditionalAuxDepsConfiguration = configurations.getByName(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);
 
         // TODO: Consider checking if the resolution consistency is enabled for compile/runtime.
-        NamedDomainObjectProvider<Configuration> pmdAuxClasspath = configurations.migratingUnlocked(sourceSet.getName() + "PmdAuxClasspath", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE, auxClasspath -> {
-            auxClasspath.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
-            auxClasspath.setVisible(false);
-            // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.
-            getJvmPluginServices().configureAsRuntimeClasspath(auxClasspath);
-        });
+        @SuppressWarnings("deprecation") Configuration pmdAuxClasspath = configurations.migratingUnlocked(sourceSet.getName() + "PmdAuxClasspath", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
+        pmdAuxClasspath.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
+        pmdAuxClasspath.setVisible(false);
+        // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.
+        getJvmPluginServices().configureAsRuntimeClasspath(pmdAuxClasspath);
 
         // We have to explicitly add compileClasspath here because it may contain classes that aren't part of the compileClasspathConfiguration. In particular, compile
         // classpath of the test sourceSet contains output of the main sourceSet.
@@ -231,7 +229,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             // It is important to subtract compileClasspath and not pmdAuxClasspath here because these configurations are resolved differently (as a compile and as a
             // runtime classpath). Compile and runtime entries for the same dependency may resolve to different files (e.g. compiled classes directory vs. jar).
             FileCollection nonConfigurationClasspathEntries = sourceSet.getCompileClasspath().minus(compileClasspath);
-            return sourceSet.getOutput().plus(nonConfigurationClasspathEntries).plus(pmdAuxClasspath.get());
+            return sourceSet.getOutput().plus(nonConfigurationClasspathEntries).plus(pmdAuxClasspath);
         });
     }
 }

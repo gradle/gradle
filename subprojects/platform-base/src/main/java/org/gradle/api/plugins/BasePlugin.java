@@ -88,13 +88,11 @@ public abstract class BasePlugin implements Plugin<Project> {
         RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
         ((ProjectInternal) project).getInternalStatus().convention("integration");
 
-        final Configuration archivesConfiguration = configurations.maybeRegisterConsumableUnlocked(Dependency.ARCHIVES_CONFIGURATION, conf -> {
-            conf.setDescription("Configuration for archive artifacts.");
-        }).get();
+        final Configuration archivesConfiguration = configurations.maybeCreateConsumableUnlocked(Dependency.ARCHIVES_CONFIGURATION)
+            .setDescription("Configuration for archive artifacts.");
 
-        configurations.maybeRegisterConsumableUnlocked(Dependency.DEFAULT_CONFIGURATION, conf -> {
-            conf.setDescription("Configuration for default artifacts.");
-        });
+        configurations.maybeCreateConsumableUnlocked(Dependency.DEFAULT_CONFIGURATION)
+            .setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
             "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()

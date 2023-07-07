@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 
@@ -34,67 +33,67 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 public interface RoleBasedConfigurationContainerInternal extends ConfigurationContainer {
 
     /**
-     * Registers a consumable configuration which can change roles.
+     * Creates a consumable configuration which can change roles.
      */
-    NamedDomainObjectProvider<Configuration> consumableUnlocked(String name);
+    Configuration consumableUnlocked(String name);
 
     /**
-     * Registers a consumable configuration which can change roles and executes the provided
+     * Creates a consumable configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<Configuration> consumableUnlocked(String name, Action<? super Configuration> action);
+    Configuration consumableUnlocked(String name, Action<? super Configuration> action);
 
     /**
-     * Registers a resolvable configuration which can change roles.
+     * Creates a resolvable configuration which can change roles.
      */
-    NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name);
+    Configuration resolvableUnlocked(String name);
 
     /**
-     * Registers a resolvable configuration which can change roles and executes the provided
+     * Creates a resolvable configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name, Action<? super Configuration> action);
+    Configuration resolvableUnlocked(String name, Action<? super Configuration> action);
 
     /**
-     * Registers a dependency scope configuration which can change roles.
+     * Creates a dependency scope configuration which can change roles.
      */
-    NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name);
+    Configuration dependencyScopeUnlocked(String name);
 
     /**
-     * Registers a dependency scope configuration which can change role and executes the provided
+     * Creates a dependency scope configuration which can change role and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name, Action<? super Configuration> action);
+    Configuration dependencyScopeUnlocked(String name, Action<? super Configuration> action);
 
     /**
-     * Registers a new configuration, which can change roles, with initial role {@code role}.
+     * Creates a new configuration, which can change roles, with initial role {@code role}.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
-    NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role);
+    Configuration migratingUnlocked(String name, ConfigurationRole role);
 
     /**
-     * Registers a new configuration, which can change roles, with initial role {@code role},
+     * Creates a new configuration, which can change roles, with initial role {@code role},
      * and executes the provided {@code action} against the configuration.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
-    NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action);
+    Configuration migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action);
 
     /**
-     * Registers a resolvable + dependency scope configuration which can change roles.
+     * Creates a resolvable + dependency scope configuration which can change roles.
      *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
      * is still under debate. However, in general, we should try to split up configurations which
      * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name);
+    Configuration resolvableDependencyScopeUnlocked(String name);
 
     /**
-     * Registers a resolvable + dependency scope configuration which can change roles and executes the provided
+     * Creates a resolvable + dependency scope configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
@@ -102,52 +101,51 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action);
-
+    Configuration resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action);
     /**
-     * If a configuration with the given name already exists, configure it with the given action and return it.
-     * Otherwise, register a new resolvable configuration with the given name and configure it with the given action.
+     * If a configuration with the given name already exists, return it.
+     * Otherwise, creates a new resolvable configuration with the given name.
      */
-    NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableUnlocked(String name, Action<? super Configuration> action);
+    Configuration maybeCreateResolvableUnlocked(String name);
 
     /**
-     * If a configuration with the given name already exists, configure it with the given action and return it.
-     * Otherwise, register a new consumable configuration with the given name and configure it with the given action.
+     * If a configuration with the given name already exists, return it.
+     * Otherwise, creates a new consumable configuration with the given name.
      */
-    NamedDomainObjectProvider<? extends Configuration> maybeRegisterConsumableUnlocked(String name, Action<? super Configuration> action);
+    Configuration maybeCreateConsumableUnlocked(String name);
 
     /**
-     * If a configuration with the given name already exists, configure it with the given action and return it.
-     * Otherwise, register a new dependency scope configuration with the given name and configure it with the given action.
+     * If a configuration with the given name already exists, return it.
+     * Otherwise, creates a new dependency scope configuration with the given name.
      */
-    NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name, Action<? super Configuration> action);
+    Configuration maybeCreateDependencyScopeUnlocked(String name);
 
     /**
-     * If a configuration with the given name already exists, configure it with the given action and return it.
-     * Otherwise, register a new dependency scope configuration with the given name and configure it with the given action.
+     * If a configuration with the given name already exists,return it.
+     * Otherwise, creates a new dependency scope configuration with the given name.
      *
      * <p>If {@code warnOnDuplicate} is false, the normal deprecation warning will not be emitted. Setting this to false
      * should be avoided except in edge cases where it may emit deprecation warnings affecting large third-party plugins.</p>
      */
-    NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name, boolean warnOnDuplicate, Action<? super Configuration> action);
+    Configuration maybeCreateDependencyScopeUnlocked(String name, boolean warnOnDuplicate);
 
     /**
-     * If a configuration with the given name already exists, configure it with the given action and return it.
-     * Otherwise, register a new configuration with the given name and configure it with the given action.
+     * If a configuration with the given name already exists, return it.
+     * Otherwise, creates a new configuration with the given name.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
-    NamedDomainObjectProvider<? extends Configuration> maybeRegisterMigratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action);
+    Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role);
 
     /**
-     * If a configuration with the given name already exists, configure it with the given action and return it.
-     * Otherwise, register a new resolvable + dependency scope configuration with the given name and configure it with the given action.
+     * If a configuration with the given name already exists, return it.
+     * Otherwise, creates a new resolvable + dependency scope configuration with the given name.
      *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
      * is still under debate. However, in general, we should try to split up configurations which
      * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action);
+    Configuration maybeCreateResolvableDependencyScopeUnlocked(String name);
 }

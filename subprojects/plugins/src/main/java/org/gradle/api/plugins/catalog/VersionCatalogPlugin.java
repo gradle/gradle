@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.catalog;
 
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -54,30 +53,29 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        NamedDomainObjectProvider<Configuration> dependenciesConfiguration = createDependenciesConfiguration((ProjectInternal) project);
+        Configuration dependenciesConfiguration = createDependenciesConfiguration((ProjectInternal) project);
         CatalogExtensionInternal extension = createExtension(project, dependenciesConfiguration);
         TaskProvider<TomlFileGenerator> generator = createGenerator(project, extension);
         createPublication((ProjectInternal) project, generator);
     }
 
     private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
-        Configuration exported = project.getConfigurations().migratingUnlocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, conf -> {
-            conf.setDescription("Artifacts for the version catalog");
-            conf.getOutgoing().artifact(generator);
-            conf.attributes(attrs -> {
+        @SuppressWarnings("deprecation") Configuration exported = project.getConfigurations().migratingUnlocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, cnf -> {
+            cnf.setDescription("Artifacts for the version catalog");
+            cnf.getOutgoing().artifact(generator);
+            cnf.attributes(attrs -> {
                 attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
                 attrs.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.VERSION_CATALOG));
             });
-        }).get();
-
+        });
         AdhocComponentWithVariants versionCatalog = softwareComponentFactory.adhoc("versionCatalog");
         project.getComponents().add(versionCatalog);
         versionCatalog.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true));
     }
 
-    private NamedDomainObjectProvider<Configuration> createDependenciesConfiguration(ProjectInternal project) {
-        return project.getConfigurations().dependencyScopeUnlocked(GRADLE_PLATFORM_DEPENDENCIES, conf -> {
-            conf.setVisible(false);
+    private Configuration createDependenciesConfiguration(ProjectInternal project) {
+        return project.getConfigurations().dependencyScopeUnlocked(GRADLE_PLATFORM_DEPENDENCIES, cnf -> {
+            cnf.setVisible(false);
         });
     }
 
@@ -92,9 +90,9 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
         task.getDependenciesModel().convention(extension.getVersionCatalog());
     }
 
-    private CatalogExtensionInternal createExtension(Project project, NamedDomainObjectProvider<? extends Configuration> dependenciesConfiguration) {
+    private CatalogExtensionInternal createExtension(Project project, Configuration dependenciesConfiguration) {
         return (CatalogExtensionInternal) project.getExtensions()
-            .create(CatalogPluginExtension.class, "catalog", DefaultVersionCatalogPluginExtension.class, dependenciesConfiguration.get());
+            .create(CatalogPluginExtension.class, "catalog", DefaultVersionCatalogPluginExtension.class, dependenciesConfiguration);
     }
 
 }

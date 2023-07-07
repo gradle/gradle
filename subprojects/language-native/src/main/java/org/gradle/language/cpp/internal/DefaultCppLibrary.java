@@ -71,7 +71,9 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
         Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
 
-        apiElements = configurations.migratingUnlocked(getNames().withSuffix("cppApiElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE).get();
+        @SuppressWarnings("deprecation")
+        Configuration ae = configurations.migratingUnlocked(getNames().withSuffix("cppApiElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        apiElements = ae;
         apiElements.extendsFrom(dependencies.getApiDependencies());
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
         apiElements.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);

@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ear;
 
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -176,21 +175,18 @@ public abstract class EarPlugin implements Plugin<Project> {
 
         // Once these configurations become non-consumable, we can use
         // 'jvmPluginServices.configureAsRuntimeClasspath()' to configure the configurations.
-        NamedDomainObjectProvider<Configuration> deployConfiguration = configurations.migratingUnlocked(DEPLOY_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE, conf -> {
-            conf.setVisible(false);
-            conf.setTransitive(false);
-            conf.setDescription("Classpath for deployable modules, not transitive.");
-            jvmPluginServices.configureAttributes(conf, details -> details.library().runtimeUsage().withExternalDependencies());
-        });
+        Configuration deployConfiguration = configurations.migratingUnlocked(DEPLOY_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
+        deployConfiguration.setVisible(false);
+        deployConfiguration.setTransitive(false);
+        deployConfiguration.setDescription("Classpath for deployable modules, not transitive.");
+        jvmPluginServices.configureAttributes(deployConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());
 
-        NamedDomainObjectProvider<Configuration> earlibConfiguration = configurations.migratingUnlocked(EARLIB_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE, conf -> {
-            conf.setVisible(false);
-            conf.setDescription("Classpath for module dependencies.");
-            jvmPluginServices.configureAttributes(conf, details -> details.library().runtimeUsage().withExternalDependencies());
-        });
+        Configuration earlibConfiguration = configurations.migratingUnlocked(EARLIB_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
+        earlibConfiguration.setVisible(false);
+        earlibConfiguration.setDescription("Classpath for module dependencies.");
+        jvmPluginServices.configureAttributes(earlibConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());
 
-        configurations.named(Dependency.DEFAULT_CONFIGURATION, defaultConfiguration -> {
-            defaultConfiguration.extendsFrom(deployConfiguration.get(), earlibConfiguration.get());
-        });
+        configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
+            .extendsFrom(deployConfiguration, earlibConfiguration);
     }
 }

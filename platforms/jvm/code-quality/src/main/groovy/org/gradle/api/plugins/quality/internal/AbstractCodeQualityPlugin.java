@@ -99,23 +99,22 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     @SuppressWarnings("deprecation")
     protected void createConfigurations() {
-        project.getConfigurations().resolvableDependencyScopeUnlocked(getConfigurationName(), configuration -> {
-            configuration.setVisible(false);
-            configuration.setTransitive(true);
-            configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
-            getJvmPluginServices().configureAsRuntimeClasspath(configuration);
+        Configuration configuration = project.getConfigurations().resolvableDependencyScopeUnlocked(getConfigurationName());
+        configuration.setVisible(false);
+        configuration.setTransitive(true);
+        configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
+        getJvmPluginServices().configureAsRuntimeClasspath(configuration);
 
-            // Don't need these things, they're provided by the runtime
-            configuration.exclude(excludeProperties("ant", "ant"));
-            configuration.exclude(excludeProperties("org.apache.ant", "ant"));
-            configuration.exclude(excludeProperties("org.apache.ant", "ant-launcher"));
-            configuration.exclude(excludeProperties("org.slf4j", "slf4j-api"));
-            configuration.exclude(excludeProperties("org.slf4j", "jcl-over-slf4j"));
-            configuration.exclude(excludeProperties("org.slf4j", "log4j-over-slf4j"));
-            configuration.exclude(excludeProperties("commons-logging", "commons-logging"));
-            configuration.exclude(excludeProperties("log4j", "log4j"));
-            configureConfiguration(configuration);
-        });
+        // Don't need these things, they're provided by the runtime
+        configuration.exclude(excludeProperties("ant", "ant"));
+        configuration.exclude(excludeProperties("org.apache.ant", "ant"));
+        configuration.exclude(excludeProperties("org.apache.ant", "ant-launcher"));
+        configuration.exclude(excludeProperties("org.slf4j", "slf4j-api"));
+        configuration.exclude(excludeProperties("org.slf4j", "jcl-over-slf4j"));
+        configuration.exclude(excludeProperties("org.slf4j", "log4j-over-slf4j"));
+        configuration.exclude(excludeProperties("commons-logging", "commons-logging"));
+        configuration.exclude(excludeProperties("log4j", "log4j"));
+        configureConfiguration(configuration);
     }
 
     protected abstract void configureConfiguration(Configuration configuration);

@@ -23,7 +23,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
@@ -195,9 +194,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             return;
         }
         DependencyResolutionServices drs = dependencyResolutionServicesSupplier.get();
-        NamedDomainObjectProvider<Configuration> cnf = createResolvableConfiguration(drs);
+        Configuration cnf = createResolvableConfiguration(drs);
+        addImportsToResolvableConfiguration(drs, cnf, importedCatalog);
 
-        Set<ResolvedArtifactResult> artifacts = cnf.get().getIncoming().getArtifacts().getArtifacts();
+        Set<ResolvedArtifactResult> artifacts = cnf.getIncoming().getArtifacts().getArtifacts();
         if (artifacts.size() > 1) {
             throwVersionCatalogProblem(VersionCatalogProblemId.TOO_MANY_IMPORT_FILES, spec ->
                 spec.withShortDescription("Importing multiple files are not supported")
@@ -230,19 +230,17 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     @SuppressWarnings("deprecation")
-    private NamedDomainObjectProvider<Configuration> createResolvableConfiguration(DependencyResolutionServices drs) {
+    private Configuration createResolvableConfiguration(DependencyResolutionServices drs) {
         // The zero at the end of the configuration comes from the previous implementation;
         // Multiple files could be imported, and all members of the list were given their own configuration, postfixed by the index in the array.
         // After moving this into a single-file import, we didn't want to break the lock files generated for the configuration, so we simply kept the zero.
-        String configurationName = "incomingCatalogFor" + StringUtils.capitalize(name) + "0";
-        return ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableDependencyScopeUnlocked(configurationName, cnf -> {
-            cnf.getResolutionStrategy().activateDependencyLocking();
-            cnf.attributes(attrs -> {
-                attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
-                attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERSION_CATALOG));
-            });
-            addImportsToResolvableConfiguration(drs, cnf, importedCatalog);
+        Configuration cnf = ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableDependencyScopeUnlocked("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
+        cnf.getResolutionStrategy().activateDependencyLocking();
+        cnf.attributes(attrs -> {
+            attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERSION_CATALOG));
         });
+        return cnf;
     }
 
     @Override
