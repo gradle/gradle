@@ -19,7 +19,7 @@ The new [reference documentation](#kotlin-dsl-reference) makes Kotlin DSL easier
 Also, simple property assignment  with the `=` operator introduced to Kotlin DSL in the last release is now enabled by default.
 Finally, Kotlin DSL is now the [default option](#gradle-init-defaults-to-the-kotlin-dsl) when generating a new project with the init task.
 
-Another significant highlight of this release is the reduction in memory consumption during the sync process. Performance measurements are included below as well as insights into future improvements.
+Another significant highlight of this release is the reduction in memory consumption during the sync process. [Performance measurements](#sync-memory-consumption) are included below as well as insights into future improvements.
 
 This release also brings a number of usability improvements including better [error messages](#improved-console-output), automated validation of [distribution URL](#wrapper-task-validates-distribution-url) in the wrapper task,
 [progress display](#java-toolchains-discovery-progress-display) for discovery of Java toolchains, more efficient [dependency verification](#dependency-verification-improvements) and more.
@@ -170,6 +170,8 @@ Performance results measured for a large Android [project](https://github.com/gr
 * The `8.0 client + 8.0 daemon` is the Android Studio Flamingo stack you could use with prior to today
 * The `8.0 client + 8.2 daemon` is the stack with Gradle 8.2. This is what you can expect after upgrading to 8.2
 * The `8.2 client + 8.2 daemon` is the future Android Studio Hedgehog stack with Gradle 8.2
+
+IDEA users can also expect the same benefits after upgrading Gradle to 8.2, although sync performance in the future IDEA releases will slightly differ from presented numbers for Android Studio.
 
 ### Improved console output
 
