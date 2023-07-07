@@ -94,6 +94,12 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                     " Please use the mainClass property instead." +
                     " ${String.format(DocumentationRegistry.RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main")}"
             )
+
+            runner.expectDeprecationWarningIf(
+                VersionNumber.parse(asciidoctorVersion).major >= 4,
+                FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION,
+                "TBD"
+            )
         }
     }
 }
