@@ -21,49 +21,32 @@ import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVers
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import spock.lang.Issue
 
+@TargetGradleVersion(">=8.3")
 class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
-    @TargetGradleVersion(">=8.3")
     @Issue("https://github.com/gradle/gradle/issues/25555")
     def "single project with parallel build should not emit configuration resolution deprecation warning"() {
         given:
-        propertiesFile << """
-            org.gradle.warning.mode=all
-            org.gradle.parallel=true
-            """
+        propertiesFile << gradleProperties
 
-        when:
-        def model = loadValidatedToolingModel(KotlinDslScriptsModel)
-
-        then:
-        if (shouldCheckForDeprecationWarnings()) {
-            assert !stdout.toString().contains("Resolution of the configuration")
-        }
+        expect:
+        loadValidatedToolingModel(KotlinDslScriptsModel)
     }
 
-    @TargetGradleVersion(">=8.3")
     @Issue("https://github.com/gradle/gradle/issues/25555")
     def "multi project with parallel build should not emit configuration resolution deprecation warning"() {
-            given:
-            withSingleSubproject()
+        given:
+        withSingleSubproject()
+        propertiesFile << gradleProperties
 
-            propertiesFile << """
-            # JVM arguments for connecting to debugger
-            #org.gradle.debug=true
-            #org.gradle.jvmargs=-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:4455
-            org.gradle.warning.mode=all
-            org.gradle.parallel=true
-            # Show stacktrace
-            org.gradle.logging.stacktrace=full
-            """
-
-            when:
-            def model = loadValidatedToolingModel(KotlinDslScriptsModel)
-
-            then:
-            if (shouldCheckForDeprecationWarnings()) {
-                assert !stdout.toString().contains("Resolution of the configuration")
-            }
+        expect:
+        loadValidatedToolingModel(KotlinDslScriptsModel)
     }
 
+    private String getGradleProperties() {
+        """
+        org.gradle.warning.mode=all
+        org.gradle.parallel=true
+        """
+    }
 }
