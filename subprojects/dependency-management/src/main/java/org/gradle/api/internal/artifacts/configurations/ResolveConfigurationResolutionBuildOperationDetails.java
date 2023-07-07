@@ -170,7 +170,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
 
         @Override
         public String getId() {
-            return descriptor.getId();
+            return descriptor.getName();
         }
 
         @Override

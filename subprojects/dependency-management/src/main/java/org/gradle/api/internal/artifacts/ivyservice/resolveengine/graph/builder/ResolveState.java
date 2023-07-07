@@ -44,6 +44,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.id.IdGenerator;
@@ -138,7 +139,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         // Create root component and module
         ModuleResolveState rootModule = getModule(moduleVersionId.getModule(), true);
         ComponentState rootComponent = rootModule.getVersion(moduleVersionId, rootComponentMetadata.getId());
-        rootComponent.setState(new DefaultLocalComponentGraphResolveState(rootComponentMetadata));
+        rootComponent.setState(new DefaultLocalComponentGraphResolveState(rootComponentMetadata), ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
 
         this.selectorStateResolver = new SelectorStateResolver<>(conflictResolver, this, rootComponent, resolveOptimizations, versionComparator, versionParser);
@@ -176,10 +177,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     @Override
-    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state) {
+    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
         ComponentState componentState = getModule(id.getModule()).getVersion(id, componentIdentifier);
         if (!componentState.alreadyResolved()) {
-            componentState.setState(state);
+            componentState.setState(state, graphState);
         }
         return componentState;
     }

@@ -23,7 +23,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import javax.annotation.Nullable;
 
 /**
- * State for a component instance (eg version of a component) that is used to perform dependency graph resolution.
+ * State for a component instance (e.g. version of a component) that is used to perform dependency graph resolution and that is independent of the particular
+ * graph being resolved.
  *
  * <p>Resolution happens in multiple steps. The first step is to calculate the dependency graph, which involves selecting component instances and one or more variants of each instance.
  * This type exposes only the information and operations required to do this. In particular, it does not expose any information about artifacts unless this is actually required for graph resolution,
@@ -31,7 +32,11 @@ import javax.annotation.Nullable;
  *
  * <p>The subsequent resolution steps, to select artifacts, are performed using the instance returned by {@link #prepareForArtifactResolution()}.</p>
  *
+ * <p>Instances of this type are obtained via the methods of {@link org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver} or {@link org.gradle.internal.resolve.resolver.ComponentMetaDataResolver}.</p>
+ *
  * <p>This interface says nothing about thread safety, however some subtypes may be required to be thread safe.</p>
+ *
+ * @see ComponentGraphSpecificResolveState for dependency graph specific state for the component.
  */
 public interface ComponentGraphResolveState {
     ComponentIdentifier getId();
