@@ -25,10 +25,6 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
 
     abstract String getForkOptionsObject()
 
-    String getDaemonTask() {
-        return taskName.split(':').last()
-    }
-
     def "can provide relocatable command line arguments to forked daemons"() {
         def originalDir = file("original-dir")
         originalDir.file("settings.gradle") << localCacheConfiguration()
@@ -66,40 +62,12 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
     void setupProjectWithJavaAgentIn(TestFile directory) {
         setupProjectIn(directory)
         def javaAgent = new JavaAgentFixture()
-        javaAgent.writeProjectTo(directory.createDir('javaagent'))
+        javaAgent.writeProjectTo(directory)
 
-        directory.file('settings.gradle') << """
-            include(':javaagent')
-        """
         directory.file('build.gradle') << """
-            configurations {
-                javaagent
-            }
-
-            dependencies {
-                javaagent project(':javaagent')
-            }
-
+            // Use a daemon to build things
             ${daemonConfiguration}
-            def javaAgent = objects.newInstance(JavaAgentCommandLineArgumentProvider)
-            javaAgent.jarFile.from(configurations.javaagent)
-            ${forkOptionsObject}.jvmArgumentProviders.add(javaAgent)
-            ${commandLineArgumentProviderClassContent}
-        """
-    }
-
-    static String getCommandLineArgumentProviderClassContent() {
-        return """
-            abstract class JavaAgentCommandLineArgumentProvider implements CommandLineArgumentProvider {
-                @Classpath
-                abstract ConfigurableFileCollection getJarFile()
-
-                @Override
-                List<String> asArguments() {
-                    File agentJarFile = jarFile.singleFile
-                    ["-javaagent:\${agentJarFile.absolutePath}".toString()]
-                }
-            }
+            ${javaAgent.useJavaAgent(forkOptionsObject)}
         """
     }
 }
