@@ -131,7 +131,7 @@ testImplementation('junit:junit:4.7')""")
         """.stripIndent()
 
         then:
-        runner('buildEnvironment', 'generateLock').build()
+        nebulaLockRunner('buildEnvironment', 'generateLock').build()
 
         where:
         nebulaDepLockVersion << TestedVersions.nebulaDependencyLock.versions
@@ -193,9 +193,9 @@ testImplementation('junit:junit:4.7')""")
 }'''
 
         then:
-        runner('dependencies').build()
-        runner('generateLock').build()
-        runner('resolve').build()
+        nebulaLockRunner('dependencies').build()
+        nebulaLockRunner('generateLock').build()
+        nebulaLockRunner('resolve').build()
 
         where:
         version << TestedVersions.nebulaDependencyLock
@@ -248,5 +248,14 @@ testImplementation('junit:junit:4.7')""")
             'com.netflix.nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
             'com.netflix.nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
         ]
+    }
+
+    SmokeTestGradleRunner nebulaLockRunner(String... tasks) {
+        return runner(tasks).expectDeprecationWarning(
+            "Listener registration using TaskExecutionGraph.addTaskExecutionListener() has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: " +
+            BaseDeprecations.DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_7", "task_execution_events"),
+            "TBD")
     }
 }

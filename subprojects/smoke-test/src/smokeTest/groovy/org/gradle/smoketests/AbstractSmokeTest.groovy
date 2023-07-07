@@ -71,7 +71,7 @@ abstract class AbstractSmokeTest extends Specification {
         static ideaExt = "1.1.7"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("13.2.1")
+        static nebulaDependencyLock = Versions.of("13.2.2")
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
         static nebulaResolutionRules = "10.2.0"
