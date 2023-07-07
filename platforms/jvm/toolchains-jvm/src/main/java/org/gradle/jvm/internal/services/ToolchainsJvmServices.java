@@ -45,7 +45,7 @@ import org.gradle.platform.internal.DefaultBuildPlatform;
 
 import java.util.List;
 
-public class ToolchainsJVMServices extends AbstractPluginServiceRegistry {
+public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
     protected static class BuildServices {
 
         protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {

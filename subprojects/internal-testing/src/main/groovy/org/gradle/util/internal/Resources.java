@@ -52,7 +52,7 @@ public class Resources implements MethodRule {
      * This is a {@code static} because of how JUnit handles instantiating the test class, to avoid extracting the same
      * jar multiple times per test class.
      */
-    private final static Map<String, File> extractedJars = new ConcurrentHashMap<>();
+    private final static Map<String, File> EXTRACTED_JARS = new ConcurrentHashMap<>();
     private final TestDirectoryProvider testDirectoryProvider;
 
     private Class<?> testClass;
@@ -119,7 +119,7 @@ public class Resources implements MethodRule {
         final File outputDir = testDirectoryProvider.getTestDirectory().getParentFile().createDir(EXTRACTED_RESOURCES_DIR, jarFileName);
 
         final String extractionKey = testClass.getName() + ":" + jarFilePath;
-        extractedJars.computeIfAbsent(extractionKey, k -> {
+        EXTRACTED_JARS.computeIfAbsent(extractionKey, k -> {
             try {
                 return extractJarContents(jarFilePath, outputDir);
             } catch (IOException e) {
