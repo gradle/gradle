@@ -117,7 +117,7 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
         val timer = Time.startTimer()
         val parameter = project.parameterFromRequest()
         try {
-            return project.serviceOf<ProjectLeaseRegistry>().allowUncontrolledAccessToAnyProject {
+            return project.leaseRegistry.allowUncontrolledAccessToAnyProject {
                 buildFor(parameter, project).also {
                     log("$parameter => $it - took ${timer.elapsed}")
                 }
@@ -127,6 +127,10 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
             throw ex
         }
     }
+
+    private
+    val Project.leaseRegistry: ProjectLeaseRegistry
+        get() = serviceOf()
 
     private
     fun requireRootProject(project: Project) =
