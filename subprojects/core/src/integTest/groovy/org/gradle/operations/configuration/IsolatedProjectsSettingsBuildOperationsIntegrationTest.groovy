@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails
 
-class ProjectIsolationSettingsBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
+class IsolatedProjectsSettingsBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -33,7 +33,7 @@ class ProjectIsolationSettingsBuildOperationsIntegrationTest extends AbstractInt
         succeeds("help")
 
         then:
-        projectIsolationEvents().enabled == [false]
+        isolatedProjectsEvents().enabled == [false]
         configurationCacheEvents().enabled == [GradleContextualExecuter.configCache]
     }
 
@@ -44,14 +44,14 @@ class ProjectIsolationSettingsBuildOperationsIntegrationTest extends AbstractInt
         when:
         succeeds("help", "-Dorg.gradle.unsafe.isolated-projects=$enabled")
         then:
-        projectIsolationEvents().enabled == [enabled]
+        isolatedProjectsEvents().enabled == [enabled]
         configurationCacheEvents().enabled == [GradleContextualExecuter.configCache || enabled]
 
         // Ensure events are produced on CC hit as well
         when:
         succeeds("help", "-Dorg.gradle.unsafe.isolated-projects=$enabled")
         then:
-        projectIsolationEvents().enabled == [enabled]
+        isolatedProjectsEvents().enabled == [enabled]
         configurationCacheEvents().enabled == [GradleContextualExecuter.configCache || enabled]
 
         where:
@@ -60,8 +60,8 @@ class ProjectIsolationSettingsBuildOperationsIntegrationTest extends AbstractInt
         "disabled" | false
     }
 
-    List<ProjectIsolationSettingsFinalizedProgressDetails> projectIsolationEvents() {
-        return operations.progress(ProjectIsolationSettingsFinalizedProgressDetails).details
+    List<IsolatedProjectsSettingsFinalizedProgressDetails> isolatedProjectsEvents() {
+        return operations.progress(IsolatedProjectsSettingsFinalizedProgressDetails).details
     }
 
     List<ConfigurationCacheSettingsFinalizedProgressDetails> configurationCacheEvents() {
