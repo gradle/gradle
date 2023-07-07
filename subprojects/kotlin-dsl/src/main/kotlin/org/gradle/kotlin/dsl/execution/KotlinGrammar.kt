@@ -64,71 +64,54 @@ class KotlinGrammar : Combinator(true, true) {
         parser
 
     // basic building blocks
-    internal
     val simpleIdentifier =
         debug(
             "simpleIdentifier",
             symbol()
         )
 
-    internal
     val label =
         simpleIdentifier * token(AT)
 
-    internal
     val comparisonOperator =
         token(LT) + token(GT) + token(LTEQ) + token(GTEQ)
 
-    internal
     val equalityOperator =
         token(EXCLEQ) + token(EXCLEQEQEQ) + token(EQEQ) + token(EQEQEQ)
 
-    internal
     val memberAccessOperator =
         token(DOT) + token(SAFE_ACCESS) + token(COLONCOLON)
 
-    internal
     val semi =
         token(SEMICOLON)
 
-    internal
     val semis =
         oneOrMore(semi)
 
 
-    internal
     val literalConstant =
         booleanLiteral + integerLiteral + floatLiteral + characterLiteral + token(NULL_KEYWORD)
 
 
     // recursive parsers
-    internal
     var type by reference<Any>()
 
-    internal
     var annotation by reference<Any>()
 
-    internal
     var fileAnnotation by reference<Any>()
 
-    internal
     var parenthesizedUserType by reference<Any>()
 
-    internal
     var expression by reference<Any>()
 
-    internal
     var primaryExpression by reference<Any?>()
 
-    internal
     var directlyAssignableExpression by reference<Any>()
 
-    internal
     var assignableExpression by reference<Any>()
 
 
     // regular parsers
-    internal
     val collectionLiteral =
         bracket(
             optional(
@@ -136,14 +119,11 @@ class KotlinGrammar : Combinator(true, true) {
             )
         )
 
-    internal
     val parenthesizedType = paren(type)
 
-    internal
     val parenthesizedExpression =
         paren(expression)
 
-    internal
     val valueArgument =
         debug(
             "valueArgument",
@@ -156,7 +136,6 @@ class KotlinGrammar : Combinator(true, true) {
                 expression
         )
 
-    internal
     val valueArguments =
         debug(
             "valueArguments",
@@ -167,28 +146,24 @@ class KotlinGrammar : Combinator(true, true) {
             )
         )
 
-    internal
     val userType =
         debug(
             "userType",
             simpleIdentifier * zeroOrMore(token(DOT) * simpleIdentifier)
         )
 
-    internal
     val unaryPrefix =
         debug(
             "unaryPrefix",
             annotation + label
         )
 
-    internal
     val assignment =
         debug(
             "assignment",
             directlyAssignableExpression * token(EQ) * expression
         )
 
-    internal
     val statement =
         debug(
             "statement",
@@ -196,32 +171,27 @@ class KotlinGrammar : Combinator(true, true) {
                 (assignment + expression)
         )
 
-    internal
     val statements: Parser<Any> =
         debug(
             "statements",
             optional(statement * zeroOrMore(semis * statement)) * optional(semis)
         )
 
-    internal
     val indexingSuffix =
         bracket(
             expression *
                 zeroOrMore(token(COMMA) * expression * optional(token(COMMA)))
         )
 
-    internal
     val navigationSuffix: Parser<Any> =
         debug(
             "navigationSuffix",
             memberAccessOperator * (simpleIdentifier + parenthesizedExpression + token(CLASS_KEYWORD))
         )
 
-    internal
     val postfixUnarySuffix =
         valueArguments + indexingSuffix + navigationSuffix
 
-    internal
     val postfixUnaryExpression =
         debug(
             "postfixUnaryExpression",
@@ -232,7 +202,6 @@ class KotlinGrammar : Combinator(true, true) {
                 )
         )
 
-    internal
     val prefixUnaryExpression =
         debug(
             "prefixUnaryExpression",
@@ -240,71 +209,60 @@ class KotlinGrammar : Combinator(true, true) {
                 postfixUnaryExpression
         )
 
-    internal
     val infixFunctionCall =
         debug(
             "infixFunctionCall",
             prefixUnaryExpression * zeroOrMore(simpleIdentifier * prefixUnaryExpression)
         )
 
-    internal
     val genericCallLikeComparison =
         debug(
             "genericCallLikeComparison",
             infixFunctionCall * zeroOrMore(valueArguments)
         )
 
-    internal
     val comparison =
         debug(
             "comparison",
             genericCallLikeComparison * zeroOrMore(comparisonOperator * genericCallLikeComparison)
         )
 
-    internal
     val equality =
         debug(
             "equality",
             comparison * zeroOrMore(equalityOperator * comparison)
         )
 
-    internal
     val conjunction =
         debug(
             "conjunction",
             equality * zeroOrMore(token(ANDAND) * equality)
         )
 
-    internal
     val disjunction =
         conjunction * zeroOrMore(token(OROR) * conjunction)
 
 
-    internal
     val definitelyNonNullableType =
         (userType + parenthesizedUserType) * token(MUL) * (userType + parenthesizedUserType)
 
-    internal
     val constructorInvocation =
         debug(
             "constructorInvocation",
             userType * valueArguments
         )
 
-    internal
     val unescapedAnnotation =
         debug("unescapedAnnotation",
             constructorInvocation + userType
         )
 
-    internal
     val listOfUnescapedAnnotations =
         debug(
             "listOfUnescapedAnnotations",
             token(LBRACKET) * oneOrMore(unescapedAnnotation) * token(RBRACKET)
         )
 
-    internal
     val annotationUseSiteTarget =
         debug(
             "annotationUseSiteTarget",
@@ -312,47 +270,38 @@ class KotlinGrammar : Combinator(true, true) {
                 symbol("receiver") + symbol("param") + symbol("setparam") + symbol("delgate")) * token(COLON)
         )
 
-    internal
     val singleAnnotation =
         debug(
             "singleAnnotation",
             token(AT) * optional(annotationUseSiteTarget) * unescapedAnnotation
         )
 
-    internal
     val multiAnnotation = token(AT) * optional(annotationUseSiteTarget) * listOfUnescapedAnnotations
 
-    internal
     val parameter =
         simpleIdentifier * token(COLON) * type
 
-    internal
     val functionTypeParameters =
         paren(
             optional(parameter + type) * zeroOrMore(token(COMMA) * (parameter + type)) * optional(token(COMMA))
         )
 
-    internal
     val typeReference =
         userType + symbol("dynamic")
 
 
-    internal
     val nullableType =
         (typeReference + parenthesizedType) * oneOrMore(token(QUEST))
 
-    internal
     val receiverType =
         debug(
             "receiverType",
             parenthesizedType + nullableType + typeReference
         )
 
-    internal
     val functionType =
         optional(receiverType * token(DOT)) * functionTypeParameters * token(ARROW) * type
 
-    internal
     val callableReference =
         debug(
             "callableReference",
@@ -367,7 +316,6 @@ class KotlinGrammar : Combinator(true, true) {
                 )
         )
 
-    internal
     val assignableSuffix =
         debug(
             "assignableSuffix",
