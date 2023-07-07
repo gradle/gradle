@@ -12,13 +12,6 @@ tasks.register<Copy>("copyReport") {
 }
 // end::copy-single-file-example[]
 
-// tag::copy-single-file-example-without-file-method[]
-tasks.register<Copy>("copyReport2") {
-    from("$buildDir/reports/my-report.pdf")
-    into("$buildDir/toArchive")
-}
-// end::copy-single-file-example-without-file-method[]
-
 abstract class MyReportTask : DefaultTask() {
     @get:OutputFile
     abstract val outputFile: RegularFileProperty
@@ -30,7 +23,7 @@ abstract class MyReportTask : DefaultTask() {
 }
 
 val myReportTask by tasks.registering(MyReportTask::class) {
-    outputFile.set(file("$buildDir/reports/my-report.pdf"))
+    outputFile.set(layout.buildDirectory.file("reports/my-report.pdf"))
 }
 
 abstract class MyArchiveTask : DefaultTask() {
@@ -39,7 +32,7 @@ abstract class MyArchiveTask : DefaultTask() {
 }
 
 val archiveReportsTask by tasks.registering(MyArchiveTask::class) {
-    dirToArchive.set(file("$buildDir/toArchive"))
+    dirToArchive.set(layout.buildDirectory.dir("toArchive"))
 }
 
 // tag::copy-single-file-example-with-task-properties[]
