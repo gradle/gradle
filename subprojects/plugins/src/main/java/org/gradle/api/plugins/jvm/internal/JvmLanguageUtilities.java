@@ -24,7 +24,8 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 public interface JvmLanguageUtilities {
     /**
      * Configures a configuration so that its exposed target jvm version is inferred from
-     * the specified source set.
+     * the specified compilation task.
+     *
      * @param configuration the configuration to configure
      * @param compileTask the compile task which serves as reference for inference
      */
