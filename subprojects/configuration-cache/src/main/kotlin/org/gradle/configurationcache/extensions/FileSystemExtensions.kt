@@ -31,8 +31,13 @@ fun fileSystemEntryType(file: File): FileType =
     }
 
 
+// This value is returned from directoryChildrenNamesHash when its argument doesn't exist or is not a directory.
+private
+val NON_DIRECTORY_CHILDREN_NAMES_HASH = HashCode.fromBytes(byteArrayOf(0, 0, 0, 0))
+
+
 internal
-fun directoryContentHash(file: File): HashCode {
+fun directoryChildrenNamesHash(file: File): HashCode {
     return file.list()?.let { entries ->
         val hasher = Hashing.newHasher()
         // This routine is used to snapshot results of File.list(), File.listFiles() and similar calls.
@@ -42,5 +47,5 @@ fun directoryContentHash(file: File): HashCode {
         Arrays.sort(entries)
         entries.forEach(hasher::putString)
         hasher.hash()
-    } ?: HashCode.fromBytes(byteArrayOf(0, 0, 0, 0))
+    } ?: NON_DIRECTORY_CHILDREN_NAMES_HASH
 }
