@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE
@@ -44,7 +45,7 @@ class DeprecatedFeaturesListener(
 ) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener, ExecutionAccessListener {
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-        if (shouldNag()) {
+        if (shouldNagForListener(listener, invocationSource)) {
             nagUserAbout("Listener registration using $invocationDescription()", 7, "task_execution_events")
         }
     }
@@ -84,6 +85,12 @@ class DeprecatedFeaturesListener(
     private
     fun shouldNagFor(task: TaskInternal, runningTask: TaskInternal?) =
         shouldNag() && shouldReportInContext(task, runningTask)
+
+    // Only unconditionally nag about listeners/sources that are already deprecated.
+    @Suppress("DEPRECATION")
+    private
+    fun shouldNagForListener(listener: Any, invocationSource: Any) =
+        shouldNag() || listener is org.gradle.api.execution.TaskExecutionListener || listener is org.gradle.api.execution.TaskActionListener || invocationSource is TaskExecutionGraph
 
     private
     fun shouldNag(): Boolean =
