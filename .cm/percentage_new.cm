@@ -1,0 +1,51 @@
+# -*- mode: yaml -*-
+manifest:
+  version: 1.0
+
+automations:
+  percent_new_code:
+    if:
+      - {{ author.using_gitstream }}
+    run:
+      - action: add-comment@v1
+        args:
+          comment: |
+            This PR is {{ changes.ratio }}% new code.
+            There are {{ changes.additions }} added lines and {{ changes.deletions }} deleted lines.
+
+changes:
+  # Sum all the lines added/edited in the PR
+  additions: {{ branch.diff.files_metadata | map(attr='additions') | sum }}
+  # Sum all the line removed in the PR
+  deletions: {{ branch.diff.files_metadata | map(attr='deletions') | sum }}
+  # Calculate the ratio of new code
+  ratio: {{ (changes.additions / (changes.additions + changes.deletions)) * 100 }}
+
+author:
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
+
+teams:
+  build_scan:
+    members:
+      - 'alllex'
+      - 'wolfs'
+  dev_prod:
+    members:
+      - 'blindpirate'
+  execution:
+    members:
+      - 'asodja'
+      - 'lptr'
+      - 'FrauBoes'
+  ide:
+    members:
+      - 'hegyibalint'
+      - 'donat'
+      - 'reinsch82'
+  jvm:
+    members:
+      - 'big-guy'
+      - 'ghale'
+      - 'jvandort'
+      - 'octylFractal'
+      - 'tresat'
