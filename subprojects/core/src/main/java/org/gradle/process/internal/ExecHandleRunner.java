@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
@@ -79,6 +80,7 @@ public class ExecHandleRunner implements Runnable {
                 streamsHandler.stop();
                 detached();
             } else {
+                CurrentBuildOperationRef.instance().clear();
                 int exitValue = process.waitFor();
                 streamsHandler.stop();
                 completed(exitValue);
@@ -86,6 +88,13 @@ public class ExecHandleRunner implements Runnable {
         } catch (Throwable t) {
             execHandle.failed(t);
         }
+    }
+
+    /**
+     * Remove any context associated with tracking the startup of this process.
+     */
+    public void removeStartupContext() {
+        streamsHandler.removeStartupContext();
     }
 
     private void startProcess() {

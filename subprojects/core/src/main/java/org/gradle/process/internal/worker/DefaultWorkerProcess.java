@@ -212,6 +212,8 @@ public class DefaultWorkerProcess implements WorkerProcess {
         } finally {
             lock.unlock();
         }
+
+        execHandle.removeStartupContext();
     }
 
     @Override

@@ -289,6 +289,20 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     @Override
+    public void removeStartupContext() {
+        lock.lock();
+        try {
+            if (!stateIn(ExecHandleState.STARTED)) {
+                throw new IllegalStateException(
+                    format("Cannot remove start context of process '%s' because it is not in started state", displayName));
+            }
+            execHandleRunner.removeStartupContext();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
     public void abort() {
         lock.lock();
         try {
@@ -442,6 +456,12 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         public void start() {
             inputHandler.start();
             outputHandler.start();
+        }
+
+        @Override
+        public void removeStartupContext() {
+            inputHandler.removeStartupContext();
+            outputHandler.removeStartupContext();
         }
 
         @Override

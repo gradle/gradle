@@ -16,8 +16,9 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.internal.tasks.execution.ExecuteTaskActionBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 
 class WorkerDaemonFailureLoggingIntegrationTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
     def setup() {
@@ -41,12 +42,14 @@ class WorkerDaemonFailureLoggingIntegrationTest extends AbstractDaemonWorkerExec
         fails("runInWorker")
 
         and:
-        def taskOperation = buildOperations.first(ExecuteTaskBuildOperationType) {
-            it.displayName == "Task :runInWorker"
+        def taskActionOperation = buildOperations.first(ExecuteTaskActionBuildOperationType) {
+            it.displayName == "Execute executeTask for :runInWorker"
         }
-        taskOperation != null
-        // there's only the task start progress, no failure progress
-        taskOperation.progress.size() == 1
-        errorOutput.contains("option: --not-a-real-argument")
+        taskActionOperation != null
+        def outputProgress = taskActionOperation.progress(StyledTextOutputEvent)
+        outputProgress.size() == 3
+        outputProgress[0].details.spans[0].text == "Unrecognized option: --not-a-real-argument\n"
+        outputProgress[1].details.spans[0].text == "Error: Could not create the Java Virtual Machine.\n"
+        outputProgress[2].details.spans[0].text == "Error: A fatal exception has occurred. Program will exit.\n"
     }
 }

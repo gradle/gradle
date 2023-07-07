@@ -19,6 +19,7 @@ package org.gradle.java.compile.daemon
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 
 class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
     def "startup failure messages from a compiler daemon are NOT associated with the task that starts it"() {
@@ -46,10 +47,12 @@ class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
         failure.assertTasksExecuted(":compileJava")
 
         and:
-        def taskOperation = buildOperations.first(CompileJavaBuildOperationType)
-        taskOperation != null
-        // there's only the task start progress, no failure progress
-        taskOperation.progress.size() == 1
-        errorOutput.contains("option: --not-a-real-argument")
+        def compileJavaOperation = buildOperations.first(CompileJavaBuildOperationType)
+        compileJavaOperation != null
+        def outputProgress = compileJavaOperation.progress(StyledTextOutputEvent)
+        outputProgress.size() == 3
+        outputProgress[0].details.spans[0].text == "Unrecognized option: --not-a-real-argument\n"
+        outputProgress[1].details.spans[0].text == "Error: Could not create the Java Virtual Machine.\n"
+        outputProgress[2].details.spans[0].text == "Error: A fatal exception has occurred. Program will exit.\n"
     }
 }
