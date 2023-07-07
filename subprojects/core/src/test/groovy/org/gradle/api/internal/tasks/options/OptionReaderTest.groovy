@@ -150,6 +150,24 @@ class OptionReaderTest extends Specification {
         options[2].description == "Causes the task to be re-run even if up-to-date."
     }
 
+    def "task only opposite option"() {
+        when:
+        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithOnlyOppositeOption(), reader).getAll()
+        int ownOptions = 4
+        then:
+        options.size() == ownOptions + builtInOptionCount
+        options[0].name == "my-option1"
+        options[0].description == "Opposite option of --no-my-option1"
+        options[1].name == "my-option2"
+        options[1].description == "Opposite option of --no-my-option2"
+        options[2].name == "no-my-option1"
+        options[2].description == "Opposite option Boolean"
+        options[3].name == "no-my-option2"
+        options[3].description == "Opposite option Property<Boolean>"
+        options[4].name == "rerun"
+        options[4].description == "Causes the task to be re-run even if up-to-date."
+    }
+
     def "fail when multiple methods define same option"() {
         when:
         TaskOptionsGenerator.generate(new TestClass2(), reader).getAll()
@@ -557,6 +575,14 @@ class OptionReaderTest extends Specification {
         Boolean field1
         @Option(option = 'no-my-option', description = "Option clashing with opposite option")
         Boolean field2
+    }
+
+    public static class TestClassWithOnlyOppositeOption {
+        @Option(option = 'no-my-option1', description = "Opposite option Boolean")
+        Boolean field1
+
+        @Option(option = 'no-my-option2', description = "Opposite option Property<Boolean>")
+        Property<Boolean> field2
     }
 
     public static class TestClassWithFields {
