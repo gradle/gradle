@@ -33,7 +33,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     private final GradleEnterprisePluginManager manager;
     private final DefaultGradleEnterprisePluginAdapter adapter;
     private final boolean isConfigurationCacheEnabled;
-    private final boolean isProjectIsolationEnabled;
+    private final boolean isIsolatedProjectsEnabled;
 
     public DefaultGradleEnterprisePluginCheckInService(
         BuildModelParameters buildModelParameters,
@@ -43,7 +43,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         this.manager = manager;
         this.adapter = adapter;
         this.isConfigurationCacheEnabled = buildModelParameters.isConfigurationCache();
-        this.isProjectIsolationEnabled = buildModelParameters.isIsolatedProjects();
+        this.isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
     }
 
     // Used just for testing
@@ -57,8 +57,8 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor(),
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor());
 
-    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_PROJECT_ISOLATION = VersionNumber.version(3, 15);
-    public static final String UNSUPPORTED_PLUGIN_DUE_TO_PROJECT_ISOLATION_MESSAGE = "Gradle Enterprise plugin has been disabled as it is incompatible with project isolation feature";
+    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS = VersionNumber.version(3, 15);
+    public static final String UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE = "Gradle Enterprise plugin has been disabled as it is incompatible with isolated projects feature";
 
     // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9 = VersionNumber.parse("3.13.1");
@@ -74,10 +74,12 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         String pluginVersion = pluginMetadata.getVersion();
         VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
 
-        if (isUnsupportedWithProjectIsolation(pluginBaseVersion)) {
-            // In order to disable the Test Acceleration part of GE we need to set the system property
+        if (isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
+            // Until GE plugin 3.14, Test Acceleration is applied even if the check-in returns an "unsupported" result.
+            // We have to disable it explicitly, because it is not compatible with isolated projects.
             System.setProperty(DISABLE_TEST_ACCELERATION_PROPERTY, "true");
-            return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_PROJECT_ISOLATION_MESSAGE);
+
+            return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE);
         }
 
         if (isUnsupportedWithConfigurationCaching(pluginBaseVersion)) {
@@ -118,8 +120,8 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         return isConfigurationCacheEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(pluginBaseVersion) > 0;
     }
 
-    private boolean isUnsupportedWithProjectIsolation(VersionNumber pluginBaseVersion) {
-        return isProjectIsolationEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_PROJECT_ISOLATION.compareTo(pluginBaseVersion) > 0;
+    private boolean isUnsupportedWithIsolatedProjects(VersionNumber pluginBaseVersion) {
+        return isIsolatedProjectsEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.compareTo(pluginBaseVersion) > 0;
     }
 
     private static boolean isDeprecatedPluginVersion(VersionNumber pluginBaseVersion) {

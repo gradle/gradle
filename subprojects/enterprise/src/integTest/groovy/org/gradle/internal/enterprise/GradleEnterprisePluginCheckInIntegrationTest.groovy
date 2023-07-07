@@ -23,10 +23,10 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING
-import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_PROJECT_ISOLATION
+import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE
-import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_PROJECT_ISOLATION_MESSAGE
+import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
 
@@ -124,8 +124,8 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         minimumPluginVersionForConfigurationCaching | true
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Project isolation implies config cache")
-    def "shows warning message when Gradle Enterprise plugin version is used with project isolation enabled"() {
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    def "shows warning message when Gradle Enterprise plugin version is used with isolated projects enabled"() {
         given:
         plugin.runtimeVersion = pluginVersion
         plugin.artifactVersion = pluginVersion
@@ -141,20 +141,20 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         output.contains("present: ${applied}")
 
         and:
-        output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_PROJECT_ISOLATION_MESSAGE") != applied
+        output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE") != applied
 
         where:
         pluginVersion                           | applied
         '3.11.4'                                | false
-        minimumPluginVersionForProjectIsolation | true
+        minimumPluginVersionForIsolatedProjects | true
     }
 
     private static String getMinimumPluginVersionForConfigurationCaching() {
         "${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor()}.${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor()}"
     }
 
-    private static String getMinimumPluginVersionForProjectIsolation() {
-        "${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_PROJECT_ISOLATION.getMajor()}.${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_PROJECT_ISOLATION.getMinor()}"
+    private static String getMinimumPluginVersionForIsolatedProjects() {
+        "${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.getMajor()}.${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.getMinor()}"
     }
 
 }

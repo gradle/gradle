@@ -133,7 +133,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.13.2",
         "3.13.3",
         "3.13.4",
-        // TODO: once 3.15 is added here, drop @IgnoreIf from a project isolation test below
+        // TODO: once 3.15 is added here, drop @IgnoreIf from a isolated-projects test below
     ]
 
     // Current injection scripts support Gradle Enterprise plugin 3.3 and above
@@ -144,7 +144,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE = VersionNumber.parse("3.4")
 
     private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
-    private static final VersionNumber FIRST_VERSION_SUPPORTING_PROJECT_ISOLATION = VersionNumber.parse("3.15")
+    private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
 
     private static final List<String> SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE = SUPPORTED
@@ -210,8 +210,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     // TODO: remove @IgnoreIf once 3.15 is added to the supported list, as this becomes a no-op
     @IgnoreIf({ SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE.every { !it.startsWith("3.15") } })
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Project isolation implies config cache")
-    def "can use plugin #version with project isolation"() {
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    def "can use plugin #version with isolated projects"() {
         given:
         def versionNumber = VersionNumber.parse(version)
 
@@ -233,13 +233,13 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             ).build().output.contains("Build scan written to")
 
         where:
-        // project isolation requires configuration cache support
+        // isolated projects requires configuration cache support
         version << SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE
-            .findAll { FIRST_VERSION_SUPPORTING_PROJECT_ISOLATION <= VersionNumber.parse(it) }
+            .findAll { FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS <= VersionNumber.parse(it) }
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Project isolation implies config cache")
-    def "cannot use plugin #version with project isolation"() {
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    def "cannot use plugin #version with isolated projects"() {
         when:
         usePluginVersion version
 
@@ -248,13 +248,13 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             .build().output
 
         then:
-        output.contains("Gradle Enterprise plugin has been disabled as it is incompatible with project isolation feature")
+        output.contains("Gradle Enterprise plugin has been disabled as it is incompatible with isolated projects feature")
         !output.contains("Build scan written to")
 
         where:
-        // project isolation requires configuration cache support
+        // isolated projects requires configuration cache support
         version << SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE
-            .findAll { VersionNumber.parse(it) < FIRST_VERSION_SUPPORTING_PROJECT_ISOLATION }
+            .findAll { VersionNumber.parse(it) < FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS }
     }
 
     def "cannot use plugin #version"() {
