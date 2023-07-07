@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import groovy.json.JsonSlurper
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -154,6 +155,9 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             expectConventionTypeDeprecation(kotlinVersionNumber, agpVersionNumber)
             expectJavaPluginConventionDeprecation(kotlinVersionNumber)
             expectBasePluginConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
+            if (GradleContextualExecuter.isConfigCache()) {
+                expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
+            }
         }
     }
 
