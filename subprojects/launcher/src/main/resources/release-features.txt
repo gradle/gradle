@@ -1,3 +1,4 @@
  - Kotlin DSL: new reference documentation, assignment syntax by default
  - Kotlin DSL is now the default with Gradle init
  - Improved suggestions to resolve errors in console output
+ - Reduced sync memory consumption

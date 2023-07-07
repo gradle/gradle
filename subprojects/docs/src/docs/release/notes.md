@@ -171,7 +171,7 @@ Performance results measured for a large Android [project](https://github.com/gr
 * The `8.0 client + 8.2 daemon` is the stack with Gradle 8.2. This is what you can expect after upgrading to 8.2
 * The `8.2 client + 8.2 daemon` is the future Android Studio Hedgehog stack with Gradle 8.2
 
-IDEA users can also expect the same benefits after upgrading Gradle to 8.2, although performance of future IDEA releases will slightly differ from presented numbers for Android Studio.
+IDEA users can also expect the same benefits after upgrading Gradle to 8.2, although sync performance in the future IDEA releases will slightly differ from presented numbers for Android Studio.
 
 ### Improved console output
 
