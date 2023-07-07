@@ -36,7 +36,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.AttributeTestUtil
-import spock.lang.Specification
 
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
 import static org.gradle.api.attributes.Bundling.EMBEDDED
@@ -66,21 +65,21 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             getAttributes() >> mutable
         }
         def javaCompileProvider = Stub(TaskProvider) {
-                get() >> Stub(JavaCompile) {
-                    getTargetCompatibility() >> '8'
-                }
+            get() >> Stub(JavaCompile) {
+                getTargetCompatibility() >> '8'
             }
+        }
         when:
         services.configureAsCompileClasspath(attrs)
 
         then:
         1 * attrs.getAttributes() >> mutable
-        0 * Specification._
+        0 * _
         mutable.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
-            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
-            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
+                (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+                (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
+                (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+                (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
         ]
     }
 
@@ -93,13 +92,13 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         1 * attrs.getAttributes() >> mutable
-        0 * Specification._
+        0 * _
         mutable.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
-            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
-            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR),
-            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
+                (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+                (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+                (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+                (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR),
+                (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
         ]
     }
 
@@ -112,12 +111,12 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         1 * attrs.getAttributes() >> mutable
-        0 * Specification._
+        0 * _
         mutable.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
-            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
-            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
+                (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+                (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
+                (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+                (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
         ]
 
     }
@@ -131,12 +130,12 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         1 * attrs.getAttributes() >> mutable
-        0 * Specification._
+        0 * _
         mutable.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
-            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
-            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
+                (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+                (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+                (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+                (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
         ]
     }
 
@@ -165,7 +164,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         1 * artifacts2.clear()
         1 * outgoing.artifact(artifact1)
         1 * outgoing.artifact(artifact2)
-        0 * Specification._
+        0 * _
     }
 
     def "can setup a classes directory secondary variant"() {
@@ -178,9 +177,9 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         def output = Mock(DefaultSourceSetOutput)
         def classes = Stub(ConfigurableFileCollection) {
             getFiles() >> [
-                Stub(File) {
-                    getName() >> 'toto'
-                }
+                    Stub(File) {
+                        getName() >> 'toto'
+                    }
             ]
         }
 
@@ -192,17 +191,17 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         1 * outgoing.getVariants() >> variants
         1 * variants.maybeCreate('classes') >> variant
         1 * variant.getAttributes() >> attrs
-        1 * variant.artifactsProvider(Specification._) >> {
+        1 * variant.artifactsProvider(_) >> {
             def artifacts = it[0].create()
             assert artifacts.size() == 1
             PublishArtifact artifact = artifacts[0]
             assert artifact.name == 'toto'
         }
-        1 * variant.setDescription(Specification._)
-        Specification._ * sourceSet.getOutput() >> output
+        1 * variant.setDescription(_)
+        _ * sourceSet.getOutput() >> output
         1 * output.getClassesDirs() >> classes
         1 * sourceSet.getName()
-        0 * Specification._
+        0 * _
     }
 
     def "configures attributes"() {
@@ -215,7 +214,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY)
+                (CATEGORY_ATTRIBUTE): named(Category, LIBRARY)
         ]
 
         when:
@@ -226,7 +225,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, REGULAR_PLATFORM)
+                (CATEGORY_ATTRIBUTE): named(Category, REGULAR_PLATFORM)
         ]
 
         when:
@@ -237,8 +236,8 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, 'foo')
+                (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+                (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, 'foo')
         ]
 
         when:
@@ -248,8 +247,8 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
+                (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+                (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
         ]
 
         when:
@@ -260,8 +259,8 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, DOCUMENTATION),
-            (DOCS_TYPE_ATTRIBUTE): named(DocsType, 'foo')
+                (CATEGORY_ATTRIBUTE): named(Category, DOCUMENTATION),
+                (DOCS_TYPE_ATTRIBUTE): named(DocsType, 'foo')
         ]
 
         when:
@@ -272,7 +271,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API)
+                (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API)
         ]
 
         when:
@@ -283,7 +282,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME)
+                (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME)
         ]
 
         when:
@@ -293,8 +292,8 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
-            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL)
+                (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+                (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL)
         ]
 
         when:
@@ -304,8 +303,8 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
-            (BUNDLING_ATTRIBUTE): named(Bundling, EMBEDDED)
+                (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+                (BUNDLING_ATTRIBUTE): named(Bundling, EMBEDDED)
         ]
 
         when:
@@ -315,8 +314,8 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
-            (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED)
+                (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+                (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED)
         ]
 
         when:
@@ -326,9 +325,9 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
-            (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED),
-            (TARGET_JVM_VERSION_ATTRIBUTE): 15
+                (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+                (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED),
+                (TARGET_JVM_VERSION_ATTRIBUTE): 15
         ]
 
         when:
@@ -338,10 +337,10 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
-            (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED),
-            (TARGET_JVM_VERSION_ATTRIBUTE): 15,
-            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
+                (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+                (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED),
+                (TARGET_JVM_VERSION_ATTRIBUTE): 15,
+                (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
         ]
     }
 
