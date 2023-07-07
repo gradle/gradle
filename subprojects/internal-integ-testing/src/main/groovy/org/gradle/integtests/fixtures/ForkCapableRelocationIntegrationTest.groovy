@@ -40,9 +40,6 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
 
         when:
         inDirectory(originalDir)
-        // On Windows, we have issues with file locking when the persistent Java compiler daemons
-        // hold on to the java agent jars
-        args("-Dorg.gradle.internal.java.compile.daemon.keepAlive=SESSION")
         withBuildCache().run taskName
 
         then:
@@ -53,7 +50,6 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
 
         when:
         inDirectory(originalDir)
-        args("-Dorg.gradle.internal.java.compile.daemon.keepAlive=SESSION")
         withBuildCache().run taskName
 
         then:
@@ -61,7 +57,6 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
 
         when:
         inDirectory(relocatedDir)
-        args("-Dorg.gradle.internal.java.compile.daemon.keepAlive=SESSION")
         withBuildCache().run taskName
 
         then:
