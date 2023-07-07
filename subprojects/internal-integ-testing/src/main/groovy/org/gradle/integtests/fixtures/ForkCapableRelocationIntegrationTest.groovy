@@ -81,30 +81,23 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
             }
 
             ${daemonConfiguration}
-            ${daemonTask}.dependsOn configurations.javaagent
-            ${forkOptionsObject}.jvmArgumentProviders.add(new JavaAgentCommandLineArgumentProvider(configurations.javaagent.singleFile))
+            def javaAgent = objects.newInstance(JavaAgentCommandLineArgumentProvider)
+            javaAgent.jarFile.from(configurations.javaagent)
+            ${forkOptionsObject}.jvmArgumentProviders.add(javaAgent)
             ${commandLineArgumentProviderClassContent}
         """
     }
 
     static String getCommandLineArgumentProviderClassContent() {
         return """
-            class JavaAgentCommandLineArgumentProvider implements CommandLineArgumentProvider {
-                @Internal
-                final File javaAgentJarFile
-
-                JavaAgentCommandLineArgumentProvider(File javaAgentJarFile) {
-                    this.javaAgentJarFile = javaAgentJarFile
-                }
-
+            abstract class JavaAgentCommandLineArgumentProvider implements CommandLineArgumentProvider {
                 @Classpath
-                Iterable<File> getClasspath() {
-                    return [javaAgentJarFile]
-                }
+                abstract ConfigurableFileCollection getJarFile()
 
                 @Override
                 List<String> asArguments() {
-                    ["-javaagent:\${javaAgentJarFile.absolutePath}".toString()]
+                    File agentJarFile = jarFile.singleFile
+                    ["-javaagent:\${agentJarFile.absolutePath}".toString()]
                 }
             }
         """
