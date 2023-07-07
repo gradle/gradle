@@ -27,11 +27,11 @@
             </thead>
             <tr>
                 <td>classesDirs</td>
-                <td>a file collection of each <literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td>a file collection of each <literal><replaceable>${project.layout.buildDirectory}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>resourcesDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/classes/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
         </table>
     </section>

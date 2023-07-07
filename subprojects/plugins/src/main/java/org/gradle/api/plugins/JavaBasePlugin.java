@@ -248,7 +248,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
         outputConventionMapping.map("resourcesDir", () -> {
             String classesDirName = "resources/" + sourceSet.getName();
-            return new File(project.getBuildDir(), classesDirName);
+            return project.getLayout().getBuildDirectory().dir(classesDirName).get().getAsFile();
         });
 
         sourceSet.getJava().srcDir("src/" + sourceSet.getName() + "/java");

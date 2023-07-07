@@ -21,7 +21,7 @@ import org.gradle.api.plugins.quality.CodeNarcPlugin
 import org.gradle.util.internal.VersionNumber
 
 class CodeNarcCoverage {
-    public static final List<String> ALL = [CodeNarcPlugin.DEFAULT_CODENARC_VERSION, "0.17", "0.21", "0.23", "0.24.1", "0.25.2", "1.0", "1.6.1", "2.0.0", "2.2.0", "3.0.1"].asImmutable()
+    public static final List<String> ALL = [CodeNarcPlugin.DEFAULT_CODENARC_VERSION, "1.0", "1.6.1", "2.0.0", "2.2.0", "3.0.1"].asImmutable()
 
     private static boolean isAtLeastGroovy4() {
         return VersionNumber.parse(GroovySystem.version).major >= 4

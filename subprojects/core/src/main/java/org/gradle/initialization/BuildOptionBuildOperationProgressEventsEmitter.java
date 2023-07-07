@@ -22,6 +22,7 @@ import org.gradle.internal.configurationcache.options.ConfigurationCacheSettings
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.operations.configuration.ProjectIsolationSettingsFinalizedProgressDetails;
 
 import javax.inject.Inject;
 
@@ -43,6 +44,13 @@ public class BuildOptionBuildOperationProgressEventsEmitter implements BuildTree
             @Override
             public boolean isEnabled() {
                 return buildModelParameters.isConfigurationCache();
+            }
+        });
+
+        eventEmitter.emitNowForCurrent(new ProjectIsolationSettingsFinalizedProgressDetails() {
+            @Override
+            public boolean isEnabled() {
+                return buildModelParameters.isIsolatedProjects();
             }
         });
     }
