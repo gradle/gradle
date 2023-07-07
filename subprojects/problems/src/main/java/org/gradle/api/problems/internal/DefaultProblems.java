@@ -23,6 +23,8 @@ import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
+import java.util.Collection;
+
 import static org.gradle.api.problems.interfaces.ProblemGroup.GENERIC;
 import static org.gradle.api.problems.interfaces.Severity.ERROR;
 
@@ -57,5 +59,10 @@ public class DefaultProblems extends Problems {
     public void collectError(Problem problem) {
         buildOperationProgressEventEmitter.emitNowIfCurrent(problem);
 //        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+    }
+
+    @Override
+    public void collectErrors(Collection<Problem> problem) {
+        problem.forEach(this::collectError);
     }
 }

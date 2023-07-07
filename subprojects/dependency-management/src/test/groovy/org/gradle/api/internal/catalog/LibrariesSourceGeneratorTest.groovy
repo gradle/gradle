@@ -82,10 +82,6 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         null
     )
 
-    def setup() {
-        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
-    }
-
     def "generates sources for empty model"() {
         when:
         generate('Libs') {

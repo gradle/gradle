@@ -43,46 +43,46 @@ public abstract class Problems {
         Problems.problemsService = problemsService;
     }
 
-    public static ProblemBuilder create() {
+    protected static ProblemBuilder create() {
         return problemsService.createProblemBuilder();
     }
 
     abstract public ProblemBuilder createProblemBuilder();
 
-    public static ProblemBuilder create(ProblemGroup problemGroup, String message, Severity severity, String type) {
+    protected static ProblemBuilder create(ProblemGroup problemGroup, String message, Severity severity, String type) {
         return problemsService.createProblemBuilder(problemGroup, message, severity, type);
     }
     abstract public ProblemBuilder createProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type);
 
-    public static ProblemBuilder createError(ProblemGroup problemGroup, String message, String type) {
+    protected static ProblemBuilder createError(ProblemGroup problemGroup, String message, String type) {
         return problemsService.createErrorProblemBuilder(problemGroup, message, type);
     }
     abstract public ProblemBuilder createErrorProblemBuilder(ProblemGroup problemGroup, String message, String type);
 
-    public static void collect(Throwable failure) {
+    protected static void collect(Throwable failure) {
         problemsService.collectError(failure);
     }
     abstract public void collectError(Throwable failure);
 
-    public static void collect(Problem problem) {
+    protected static void collect(Problem problem) {
         problemsService.collectError(problem);
     }
 
     abstract public void collectError(Problem problem);
 
-    public static RuntimeException throwing(ProblemBuilder problem, RuntimeException cause) {
+    abstract public void collectErrors(Collection<Problem> problem);
+
+    protected static RuntimeException throwing(ProblemBuilder problem, RuntimeException cause) {
         problem.cause(cause);
         return throwing(singleton(problem.build()), cause);
     }
-    public static RuntimeException throwing(Collection<Problem> problems, RuntimeException cause) {
+    protected static RuntimeException throwing(Collection<Problem> problems, RuntimeException cause) {
         collect(problems);
         throw cause;
     }
 
-    public static void collect(Collection<Problem> problems) {
-        for (Problem problem : problems){
-            problemsService.collectError(problem);
-        }
+    protected static void collect(Collection<Problem> problems) {
+            problemsService.collectErrors(problems);
     }
 
 }

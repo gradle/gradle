@@ -26,6 +26,7 @@ import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
 
+import javax.inject.Inject;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -36,9 +37,15 @@ public class DefaultTaskSelector implements TaskSelector {
     private final TaskNameResolver taskNameResolver;
     private final ProjectConfigurer configurer;
 
+    @Inject
     public DefaultTaskSelector(TaskNameResolver taskNameResolver, ProjectConfigurer configurer) {
         this.taskNameResolver = taskNameResolver;
         this.configurer = configurer;
+    }
+
+    @Inject
+    protected Problems getProblemService() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -90,10 +97,8 @@ public class DefaultTaskSelector implements TaskSelector {
             } else {
                 String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
                     matcher.formatErrorMessage("task", searchContext));
-//                throw Problems.throwing(Problems.createError(ProblemGroup.GENERIC, message)
-//                    .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1), new TaskSelectionException(message));
 
-                throw Problems.createError(ProblemGroup.GENERIC, message, null)
+                throw getProblemService().createErrorProblemBuilder(ProblemGroup.GENERIC, message, null)
                     .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
                     .undocumented()
                     .cause(new TaskSelectionException(message))

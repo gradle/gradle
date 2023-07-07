@@ -125,7 +125,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private Import importedCatalog = null;
     private final StrictVersionParser strictVersionParser;
 
-//    @Inject
+    //    @Inject
 //    private final Problems problemsService;
     private final Property<String> description;
 
@@ -151,6 +151,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
 
     @Inject
     protected abstract Problems getProblemService();
+
     @Override
     public String getLibrariesExtensionName() {
         return name;
@@ -176,8 +177,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
     }
 
-    private static RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
-        throw throwErrorWithNewProblemsApi("Invalid catalog definition", ImmutableList.of(problem.build()));
+    private RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
+        throw throwErrorWithNewProblemsApi("Invalid catalog definition", ImmutableList.of(problem.build()), getProblemService());
     }
 
     @Nonnull
@@ -297,7 +298,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
 
         Instrumented.fileOpened(modelFile, getClass().getName());
         try {
-            TomlCatalogFileParser.parse(modelFile.toPath(), this, () -> getProblemService().createProblemBuilder());
+            TomlCatalogFileParser.parse(modelFile.toPath(), this, this::getProblemService);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -405,7 +406,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     @Nonnull
     public static String getExcludedNames(Collection<String> reservedNames) {
         String namesOrName = oxfordListOf(reservedNames, "or");
-        if(reservedNames.size() == 1) {
+        if (reservedNames.size() == 1) {
             return namesOrName;
         }
         return "any of " + namesOrName;
@@ -414,7 +415,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private void validateAlias(AliasType type, String value) {
         if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
             throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog() + "invalid " + type + " alias '" + value + "'.", INVALID_ALIAS_NOTATION)
-                .description(type + " aliases must match the following regular expression: "  + ALIAS_REGEX)
+                .description(type + " aliases must match the following regular expression: " + ALIAS_REGEX)
                 .solution("Make sure the alias matches the " + ALIAS_REGEX + " regular expression"));
         }
     }

@@ -22,18 +22,33 @@ import org.gradle.api.problems.internal.GradleExceptionWithProblem;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class BuildOperationProxyFactory {
-    public static RunnableBuildOperation createRunnableProxy(final RunnableBuildOperation runnable) {
-        return new RunnableBuildOperationContextProxy(runnable);
+    public static RunnableBuildOperation createRunnableProxy(final RunnableBuildOperation runnable, Problems problems) {
+        return new RunnableBuildOperationContextProxy(runnable, problems);
     }
 
-    public static <T> CallableBuildOperation<T> createCallableProxy(final CallableBuildOperation<T> callable) {
-        return new CallableBuildOperationContextProxy<T>(callable);
+    public static <T> CallableBuildOperation<T> createCallableProxy(final CallableBuildOperation<T> callable, Problems problems) {
+        return new CallableBuildOperationContextProxy<T>(callable, problems);
     }
 
-    private static class RunnableBuildOperationContextProxy implements RunnableBuildOperation {
+    private static class BuildOperationProxy{
+        protected final Problems problems;
+
+        public BuildOperationProxy(Problems problems) {
+            this.problems = problems;
+        }
+
+        protected RuntimeException collectAndThrowCause(GradleExceptionWithProblem e) {
+            e.getProblems().forEach(problems::collectError);
+            throw throwAsUncheckedException(e.getCause());
+        }
+
+    }
+
+    private static class RunnableBuildOperationContextProxy extends BuildOperationProxy implements RunnableBuildOperation {
         private final RunnableBuildOperation runnable;
 
-        public RunnableBuildOperationContextProxy(RunnableBuildOperation runnable) {
+        public RunnableBuildOperationContextProxy(RunnableBuildOperation runnable, Problems problems) {
+            super(problems);
             this.runnable = runnable;
         }
 
@@ -49,16 +64,17 @@ public class BuildOperationProxyFactory {
             } catch (GradleExceptionWithProblem e) {
                 throw collectAndThrowCause(e);
             } catch (Throwable t) {
-                Problems.collect(t);
+                problems.collectError(t);
                 throw t;
             }
         }
     }
 
-    private static class CallableBuildOperationContextProxy<T> implements CallableBuildOperation<T> {
+    private static class CallableBuildOperationContextProxy<T>  extends BuildOperationProxy implements CallableBuildOperation<T> {
         private final CallableBuildOperation<T> callable;
 
-        public CallableBuildOperationContextProxy(CallableBuildOperation<T> callable) {
+        public CallableBuildOperationContextProxy(CallableBuildOperation<T> callable, Problems problems) {
+            super(problems);
             this.callable = callable;
         }
 
@@ -74,14 +90,9 @@ public class BuildOperationProxyFactory {
             } catch (GradleExceptionWithProblem e) {
                 throw collectAndThrowCause(e);
             } catch (Throwable t) {
-                Problems.collect(t);
+                problems.collectError(t);
                 throw t;
             }
         }
-    }
-
-    private static RuntimeException collectAndThrowCause(GradleExceptionWithProblem e) {
-        e.getProblems().forEach(Problems::collect);
-        throw throwAsUncheckedException(e.getCause());
     }
 }

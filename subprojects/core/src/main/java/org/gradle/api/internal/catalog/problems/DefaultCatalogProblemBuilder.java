@@ -35,13 +35,13 @@ public class DefaultCatalogProblemBuilder {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
-    public static void maybeThrowError(String error, Collection<Problem> problems) {
+    public static void maybeThrowError(String error, Collection<Problem> problems, Problems problemService) {
         if (!problems.isEmpty()) {
-            throw throwErrorWithNewProblemsApi(error, problems);
+            throw throwErrorWithNewProblemsApi(error, problems, problemService);
         }
     }
 
-    public static RuntimeException throwErrorWithNewProblemsApi(String error, Collection<Problem> problems) {
+    public static RuntimeException throwErrorWithNewProblemsApi(String error, Collection<Problem> problems, Problems problemService) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
@@ -50,7 +50,7 @@ public class DefaultCatalogProblemBuilder {
         }
         formatter.endChildren();
 
-        Problems.collect(problems);
+        problemService.collectErrors(problems);
         throw new InvalidUserDataException(formatter.toString());
     }
 

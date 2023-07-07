@@ -24,6 +24,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
@@ -97,17 +98,17 @@ public class TomlCatalogFileParser {
     );
     private final Path catalogFilePath;
     private final VersionCatalogBuilder builder;
-    private final Supplier<ProblemBuilder> problemBuilderSupplier;
+    private final Supplier<Problems> problemServiceSupplier;
 
-    public TomlCatalogFileParser(Path catalogFilePath, VersionCatalogBuilder builder, Supplier<ProblemBuilder> problemBuilderSupplier) {
+    public TomlCatalogFileParser(Path catalogFilePath, VersionCatalogBuilder builder, Supplier<Problems> problemServiceSupplier) {
 
         this.catalogFilePath = catalogFilePath;
         this.builder = builder;
-        this.problemBuilderSupplier = problemBuilderSupplier;
+        this.problemServiceSupplier = problemServiceSupplier;
     }
 
-    public static void parse(Path catalogFilePath, VersionCatalogBuilder builder, Supplier<ProblemBuilder> problemBuilderSupplier) throws IOException {
-        new TomlCatalogFileParser(catalogFilePath, builder, problemBuilderSupplier).parse();
+    public static void parse(Path catalogFilePath, VersionCatalogBuilder builder, Supplier<Problems> problemServiceSupplier) throws IOException {
+        new TomlCatalogFileParser(catalogFilePath, builder, problemServiceSupplier).parse();
     }
 
     private void parse() throws IOException {
@@ -232,7 +233,7 @@ public class TomlCatalogFileParser {
 
     @Nonnull
     public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
-        return problemBuilderSupplier.get()
+        return problemServiceSupplier.get().createProblemBuilder()
             .group(VERSION_CATALOG)
             .message(message)
             .severity(ERROR)
@@ -540,7 +541,7 @@ public class TomlCatalogFileParser {
         builder.version(alias, v -> configureVersion(require, strictly, prefer, rejectedVersions, rejectAll, v));
     }
 
-    private static RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
-        throw throwErrorWithNewProblemsApi("Invalid TOML catalog definition", ImmutableList.of(problem.build()));
+    private RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
+        throw throwErrorWithNewProblemsApi("Invalid TOML catalog definition", ImmutableList.of(problem.build()), problemServiceSupplier.get());
     }
 }

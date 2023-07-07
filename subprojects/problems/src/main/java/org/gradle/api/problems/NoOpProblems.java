@@ -22,6 +22,8 @@ import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 
+import java.util.Collection;
+
 /**
  * Prototype Problems API.
  *
@@ -51,6 +53,11 @@ class NoOpProblems extends Problems {
 
     @Override
     public void collectError(Problem problem) {
+
+    }
+
+    @Override
+    public void collectErrors(Collection<Problem> problem) {
 
     }
 }

@@ -119,7 +119,7 @@ format.version = "1.1"
             }
         }
 
-        TomlCatalogFileParser.parse(path, builder, { problems.createProblemBuilder()})
+        TomlCatalogFileParser.parse(path, builder, { problems })
         return new Model(builder.build())
     }
 

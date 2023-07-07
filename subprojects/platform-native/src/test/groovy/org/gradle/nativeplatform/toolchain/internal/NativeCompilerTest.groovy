@@ -18,10 +18,12 @@ package org.gradle.nativeplatform.toolchain.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.DefaultBuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
@@ -62,7 +64,8 @@ abstract class NativeCompilerTest extends Specification {
     private Clock timeProvider = Mock(Clock)
     private parallelismConfiguration = DefaultParallelismConfiguration.DEFAULT
     protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, new NoOpProgressLoggerFactory(),
-        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory())
+        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory(),
+        new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
 
     def setup() {
         _ * workerLeaseService.withLocks(_) >> { args ->

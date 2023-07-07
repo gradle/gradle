@@ -521,8 +521,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private static RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
-        throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()));
+    private RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
+        throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()), problemService);
     }
 
     private void assertUnique(List<String> names, String prefix, String suffix) {
@@ -539,7 +539,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                     .build();
             })
             .collect(toList());
-        maybeThrowError(ERROR_HEADER, errors);
+        maybeThrowError(ERROR_HEADER, errors, problemService);
     }
 
     @Nonnull

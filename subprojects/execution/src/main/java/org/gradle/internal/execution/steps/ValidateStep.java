@@ -57,15 +57,18 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
     private final VirtualFileSystem virtualFileSystem;
     private final ValidationWarningRecorder warningReporter;
+    private final Problems problemService;
     private final Step<? super ValidationFinishedContext, ? extends R> delegate;
 
     public ValidateStep(
         VirtualFileSystem virtualFileSystem,
         ValidationWarningRecorder warningReporter,
+        Problems problemService,
         Step<? super ValidationFinishedContext, ? extends R> delegate
     ) {
         this.virtualFileSystem = virtualFileSystem;
         this.warningReporter = warningReporter;
+        this.problemService = problemService;
         this.delegate = delegate;
     }
 
@@ -77,7 +80,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
         List<Problem> problems = validationContext.getProblems();
-        Problems.collect(problems);
+        problemService.collectErrors(problems);
 
         Map<Severity, ImmutableList<Problem>> problemsMap = problems.stream()
             .collect(

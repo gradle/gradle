@@ -433,7 +433,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         // Paths might be unusual, but we need it because of 1.8
         def tomlPath = Paths.get(tomlResource)
 
-        TomlCatalogFileParser.parse(tomlPath, builder, { problems.createProblemBuilder() })
+        TomlCatalogFileParser.parse(tomlPath, builder, { problems })
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
     }
