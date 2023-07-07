@@ -28,15 +28,15 @@ class AbstractJavaToolchainDownloadSpiIntegrationTest extends AbstractIntegratio
             public abstract class ${pluginName} implements Plugin<Settings> {
                 @Inject
                 protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-            
+
                 void apply(Settings settings) {
                     settings.getPlugins().apply("jvm-toolchain-management");
-                
+
                     JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
                     registry.register(${resolverClass}.class);
                 }
             }
-            
+
             ${code}
 
             apply plugin: ${pluginName}
