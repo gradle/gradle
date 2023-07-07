@@ -30,8 +30,8 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -52,7 +52,7 @@ public class Resources implements MethodRule {
      * This is a {@code static} because of how JUnit handles instantiating the test class, to avoid extracting the same
      * jar multiple times per test class.
      */
-    private final static Map<String, File> extractedJars = new HashMap<>();
+    private final static Map<String, File> extractedJars = new ConcurrentHashMap<>();
     private final TestDirectoryProvider testDirectoryProvider;
 
     private Class<?> testClass;
