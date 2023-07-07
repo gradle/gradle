@@ -15,15 +15,14 @@
  */
 package org.gradle.util.internal;
 
-import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,12 +41,25 @@ import static org.junit.Assert.assertNotNull;
  * A JUnit rule which helps locate test resources.
  */
 public class Resources implements MethodRule {
+    private static final String EXTRACTED_RESOURCES_DIR = "tmp-extracted-resources";
+
     /**
-     * Map from test class -> (map from jar file name -> temp directory containing extracted jar))
+     * Map from (test class name + jar file name) -> temp directory containing extracted jar contents.
+     *
+     * Resources contained in jars will be extracted to the {@link #EXTRACTED_RESOURCES_DIR} dir in the parent of the root test directory,
+     * to avoid using a temp directory and possibly leaking any information into the system temp dir.
+     *
+     * This is a {@code static} because of how JUnit handles instantiating the test class, to avoid extracting the same
+     * jar multiple times per test class.
      */
-    @GuardedBy("itself")
-    private final Map<Class<?>, Map<String, File>> extractedJars = new HashMap<>();
+    private final static Map<String, File> extractedJars = new HashMap<>();
+    private final TestDirectoryProvider testDirectoryProvider;
+
     private Class<?> testClass;
+
+    public Resources(TestDirectoryProvider testDirectoryProvider) {
+        this.testDirectoryProvider = testDirectoryProvider;
+    }
 
     /**
      * Locates the resource with the given name, relative to the current test class. Asserts that the resource exists.
@@ -92,36 +104,34 @@ public class Resources implements MethodRule {
         }
     }
 
+    /**
+     * Extracts the contents of the jar file containing the given resource so that an (unzipped) file pointing to the
+     * requested resources within the resource jar can be returned.
+     *
+     * @param resourceUrl the URL of the resource within the jar to be extracted
+     * @return an uncompressed file pointing to the extracted resource
+     */
     @Nonnull
     private TestFile fromWithinJar(URL resourceUrl) {
-        try {
-            int indexOfJarSeparator = resourceUrl.getPath().indexOf("!/");
-            String jarFilePath = resourceUrl.getPath().substring(5, indexOfJarSeparator);
-            File outputDir;
+        int indexOfJarSeparator = resourceUrl.getPath().indexOf("!/");
+        String jarFilePath = resourceUrl.getPath().substring(5, indexOfJarSeparator);
+        String jarFileName = new File(jarFilePath).getName();
+        final File outputDir = testDirectoryProvider.getTestDirectory().getParentFile().createDir(EXTRACTED_RESOURCES_DIR, jarFileName);
 
-            synchronized (extractedJars) {
-                if (!extractedJars.containsKey(testClass)) {
-                    extractedJars.put(testClass, new HashMap<>());
-                }
-
-                Map<String, File> extractedJarsForTestClass = extractedJars.get(testClass);
-                if (!extractedJarsForTestClass.containsKey(jarFilePath)) {
-                    outputDir = Files.createTempDir();
-                    extractJarContents(jarFilePath, outputDir);
-                    extractedJarsForTestClass.put(jarFilePath, outputDir);
-                } else {
-                    outputDir = extractedJarsForTestClass.get(jarFilePath);
-                }
+        final String extractionKey = testClass.getName() + ":" + jarFilePath;
+        extractedJars.computeIfAbsent(extractionKey, k -> {
+            try {
+                return extractJarContents(jarFilePath, outputDir);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
+        });
 
-            String pathWithinJar = resourceUrl.getPath().substring(indexOfJarSeparator + 2);
-            return new TestFile(new File(outputDir, pathWithinJar));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String pathWithinJar = resourceUrl.getPath().substring(indexOfJarSeparator + 2);
+        return new TestFile(new File(outputDir, pathWithinJar));
     }
 
-    private void extractJarContents(String sourceJarPath, File destDir) throws IOException {
+    private File extractJarContents(String sourceJarPath, File destDir) throws IOException {
         FileUtils.deleteDirectory(destDir);
         if (!destDir.mkdir()) {
             throw new IOException("Could not create root unzip directory " + destDir);
@@ -144,6 +154,8 @@ public class Resources implements MethodRule {
                 }
             }
         }
+
+        return destDir;
     }
 
     @Override
