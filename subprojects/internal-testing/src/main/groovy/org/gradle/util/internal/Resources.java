@@ -24,11 +24,10 @@ import org.junit.runners.model.Statement;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -145,12 +144,7 @@ public class Resources implements MethodRule {
                         throw new IOException("Could not create directory " + currFile);
                     }
                 } else {
-                    try (InputStream inputStream = sourceJar.getInputStream(sourceJarEntry);
-                         FileOutputStream outputStream = new FileOutputStream(currFile)) {
-                        while (inputStream.available() > 0) {
-                            outputStream.write(inputStream.read());
-                        }
-                    }
+                    Files.copy(sourceJar.getInputStream(sourceJarEntry), currFile.toPath());
                 }
             }
         }
