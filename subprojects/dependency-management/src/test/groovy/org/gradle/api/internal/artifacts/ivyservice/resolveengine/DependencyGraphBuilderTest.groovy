@@ -1061,7 +1061,7 @@ class DependencyGraphBuilderTest extends Specification {
         println "Traverse $from to ${to.id}"
         1 * metaDataResolver.resolve(to.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             println "Called ${to.id}"
-            result.resolved(resolveStateFactory.stateFor(to), Stub(ComponentGraphSpecificResolveState))
+            result.resolved(new DefaultLocalComponentGraphResolveState(to), Stub(ComponentGraphSpecificResolveState))
         }
     }
 
