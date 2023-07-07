@@ -82,7 +82,7 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         null
     )
 
-    def setup(){
+    def setup() {
         Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
     }
 
@@ -275,10 +275,10 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         where:
-        reservedName          | prefix
-        "bundles"             | "bundles"
-        "versions"            | "versions"
-        "plugins"             | "plugins"
+        reservedName | prefix
+        "bundles"    | "bundles"
+        "versions"   | "versions"
+        "plugins"    | "plugins"
     }
 
     @VersionCatalogProblemTestFor(
@@ -363,7 +363,8 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
-       def stub = Stub(BuildOperationProgressEventEmitter)
+        def stub = Stub(BuildOperationProgressEventEmitter)
+        def problems = new DefaultProblems(stub)
         DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder(
             "lib",
             Interners.newStrongInterner(),
@@ -372,7 +373,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             Stub(Supplier)) {
             @Override
             protected Problems getProblemService() {
-                return new DefaultProblems(stub)
+                problems
             }
         }
         spec.delegate = builder
@@ -380,7 +381,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         spec()
         def writer = new StringWriter()
         def model = builder.build()
-        LibrariesSourceGenerator.generateSource(writer, model, 'org.test', className)
+        LibrariesSourceGenerator.generateSource(writer, model, 'org.test', className, problems)
         sources = new GeneratedSource(className, writer.toString(), model)
     }
 

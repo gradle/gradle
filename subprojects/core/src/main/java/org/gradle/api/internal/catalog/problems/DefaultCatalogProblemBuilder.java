@@ -21,16 +21,12 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG;
-import static org.gradle.api.problems.interfaces.Severity.ERROR;
-import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutionsWithNewProblemsApi;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
@@ -88,12 +84,5 @@ public class DefaultCatalogProblemBuilder {
     @Nonnull
     public static String getInVersionCatalog(String name) {
         return "In version catalog " + name;
-    }
-
-    @Nonnull
-    public static ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
-        return Problems.create(VERSION_CATALOG, message, ERROR, catalogProblemId.name())
-            .noLocation()
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
     }
 }

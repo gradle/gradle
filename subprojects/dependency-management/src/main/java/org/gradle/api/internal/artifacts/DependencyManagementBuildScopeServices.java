@@ -499,6 +499,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     DependenciesAccessors createDependenciesAccessorGenerator(
+        ObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
         DefaultProjectDependencyFactory factory,
@@ -509,7 +510,7 @@ class DependencyManagementBuildScopeServices {
         CapabilityNotationParser capabilityNotationParser,
         InputFingerprinter inputFingerprinter
     ) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
+        return objectFactory.newInstance(DefaultDependenciesAccessors.class, registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
     }
 
 

@@ -26,7 +26,9 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.provider.Provider;
@@ -49,12 +51,15 @@ import java.util.Set;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.createVersionCatalogError;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getProblemInVersionCatalog;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
+import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG;
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.problems.internal.RenderingUtils.oxfordJoin;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
@@ -62,25 +67,29 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private static final int MAX_ENTRIES = 30000;
     public static final String ERROR_HEADER = "Cannot generate dependency accessors";
     private final DefaultVersionCatalog config;
+    private final Problems problemService;
 
     private final Map<String, Integer> classNameCounter = new HashMap<>();
     private final Map<ClassNode, String> classNameCache = new HashMap<>();
 
     public LibrariesSourceGenerator(
         Writer writer,
-        DefaultVersionCatalog config
+        DefaultVersionCatalog config,
+        Problems problemService
     ) {
         super(writer);
         this.config = config;
+        this.problemService = problemService;
     }
 
     public static void generateSource(
         Writer writer,
         DefaultVersionCatalog config,
         String packageName,
-        String className
+        String className,
+        Problems problemService
     ) {
-        LibrariesSourceGenerator generator = new LibrariesSourceGenerator(writer, config);
+        LibrariesSourceGenerator generator = new LibrariesSourceGenerator(writer, config, problemService);
         try {
             generator.generateProjectExtensionFactoryClass(packageName, className);
             generator.classNameCounter.clear();
@@ -94,9 +103,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         Writer writer,
         DefaultVersionCatalog config,
         String packageName,
-        String className
+        String className,
+        Problems problemService
     ) {
-        LibrariesSourceGenerator generator = new LibrariesSourceGenerator(writer, config);
+        LibrariesSourceGenerator generator = new LibrariesSourceGenerator(writer, config, problemService);
         try {
             generator.generatePluginsBlockFactoryClass(packageName, className);
             generator.classNameCounter.clear();
@@ -792,4 +802,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             return variablePrefix + "For" + className;
         }
     }
+    @Nonnull
+    public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
+        return problemService.createProblemBuilder(VERSION_CATALOG, message, ERROR, catalogProblemId.name())
+            .noLocation()
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
+    }
+
 }
