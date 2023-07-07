@@ -74,11 +74,8 @@ class DefaultIgnoredConfigurationInputs(
         else file
 
     private
-    fun maybeRelativize(file: File): File {
-        if (!file.isAbsolute)
-            return file
-        return File(GFileUtils.relativePathOf(file, rootDirectory))
-    }
+    fun maybeRelativize(file: File): File =
+        if (!file.isAbsolute) file else File(GFileUtils.relativePathOf(file, rootDirectory))
 
     private
     fun wildcardsToRegexPatternString(pathWithWildcards: String): String {
