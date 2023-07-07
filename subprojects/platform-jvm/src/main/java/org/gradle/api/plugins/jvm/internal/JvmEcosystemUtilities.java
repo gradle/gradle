@@ -24,7 +24,7 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
  *
  * New code should use {@link JvmPluginServices} instead.
  *
- * See: https://github.com/gradle/gradle/issues/25542
+ * @see <a href="https://github.com/gradle/gradle/issues/25542">Removal of JvmEcosystemUtilities Issue</a>
  */
 @SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated
