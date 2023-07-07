@@ -63,14 +63,6 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
-configurations {
-    integTestImplementation {
-        attributes {
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.CLASSES))
-        }
-    }
-}
-
 packageCycles {
     // Needed for the factory methods in the interface
     excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
