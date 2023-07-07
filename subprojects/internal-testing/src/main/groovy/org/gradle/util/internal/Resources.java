@@ -15,19 +15,17 @@
  */
 package org.gradle.util.internal;
 
+import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
-import org.testcontainers.shaded.com.google.common.io.Files;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
@@ -135,12 +133,7 @@ public class Resources implements MethodRule {
                         throw new IOException("Could not create directory " + currFile);
                     }
                 } else {
-                    try (InputStream inputStream = sourceJar.getInputStream(sourceJarEntry);
-                         FileOutputStream outputStream = new FileOutputStream(currFile)) {
-                        while (inputStream.available() > 0) {
-                            outputStream.write(inputStream.read());
-                        }
-                    }
+                    Files.copy(new File(sourceJarPath), currFile);
                 }
             }
         }
