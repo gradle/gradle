@@ -1,5 +1,19 @@
 The Gradle team is excited to announce Gradle @version@.
 
+This is the first patch release for Gradle 8.2.
+
+It fixes the following issues:
+
+* [#25579](https://github.com/gradle/gradle/issues/25579) Regression in 8.2: StackOverflowError w/ Gradle 8.2 + Quarkus 2.16.7 (latest)
+* [#25611](https://github.com/gradle/gradle/issues/25611) TestKit unexpectedly stopped working with Gradle 2.x versions
+* [#25618](https://github.com/gradle/gradle/issues/25618) Micronaut JacocoReportAggregationPlugin broken in Gradle 8.2
+
+The release notes also mention a [memory improvement](#sync-memory-consumption) for the IDE sync process that was already present in Gradle 8.2.
+
+We recommend users upgrade to 8.2.1 instead of 8.2.
+
+---
+
 Kotlin DSL continues to receive substantial improvements.
 The new [reference documentation](#kotlin-dsl-reference) makes Kotlin DSL easier to understand.
 Also, simple property assignment  with the `=` operator introduced to Kotlin DSL in the last release is now enabled by default.
