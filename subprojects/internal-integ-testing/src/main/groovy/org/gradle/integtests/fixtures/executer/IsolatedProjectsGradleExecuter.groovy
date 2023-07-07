@@ -20,9 +20,9 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
-class ProjectIsolationGradleExecuter extends DaemonGradleExecuter {
+class IsolatedProjectsGradleExecuter extends DaemonGradleExecuter {
 
-    static final List<String> PROJECT_ISOLATION_ARGS = [
+    static final List<String> ISOLATED_PROJECTS_ARGS = [
         "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true",
         "-D${StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
         "-Dorg.gradle.configuration-cache.internal.load-after-store=${testWithLoadAfterStore()}"
@@ -32,7 +32,7 @@ class ProjectIsolationGradleExecuter extends DaemonGradleExecuter {
         return !System.getProperty("org.gradle.configuration-cache.internal.test-disable-load-after-store")
     }
 
-    ProjectIsolationGradleExecuter(
+    IsolatedProjectsGradleExecuter(
         GradleDistribution distribution,
         TestDirectoryProvider testDirectoryProvider,
         GradleVersion gradleVersion,
@@ -48,10 +48,10 @@ class ProjectIsolationGradleExecuter extends DaemonGradleExecuter {
         if (args.contains("--no-configuration-cache")) {
             return args
         }
-        // Don't enable if PI explicitly disabled
+        // Don't enable if IP explicitly disabled
         if (args.contains("-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=false")) {
             return args
         }
-        return args + PROJECT_ISOLATION_ARGS
+        return args + ISOLATED_PROJECTS_ARGS
     }
 }
