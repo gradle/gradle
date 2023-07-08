@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks
+package org.gradle.api.internal.artifacts.transform
 
+import org.gradle.api.internal.tasks.AbstractSnapshotInputsBuildOperationResultTest
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec
 import org.gradle.internal.execution.caching.CachingState
+import org.gradle.operations.execution.FilePropertyVisitor
 
-class SnapshotTaskInputsBuildOperationResultTest extends AbstractSnapshotInputsBuildOperationResultTest<SnapshotTaskInputsBuildOperationResult, SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor> {
+class SnapshotTransformInputsBuildOperationResultTest extends AbstractSnapshotInputsBuildOperationResultTest<SnapshotTransformInputsBuildOperationResult, FilePropertyVisitor> {
     @Override
-    SnapshotTaskInputsBuildOperationResult createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs) {
-        return new SnapshotTaskInputsBuildOperationResult(cachingState, inputFilePropertySpecs)
+    SnapshotTransformInputsBuildOperationResult createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs) {
+        return new SnapshotTransformInputsBuildOperationResult(cachingState, inputFilePropertySpecs)
     }
 
     @Override
-    SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor createMockVisitor() {
-        Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
+    FilePropertyVisitor createMockVisitor() {
+        Mock(FilePropertyVisitor)
     }
 }

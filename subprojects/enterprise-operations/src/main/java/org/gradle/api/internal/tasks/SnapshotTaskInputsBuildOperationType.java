@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.operations.execution.FilePropertyVisitor;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,6 +83,16 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         @Nullable
         List<String> getActionClassNames();
 
+        /**
+         * The input value property hashes.
+         * <p>
+         * key = property name
+         * <p>
+         * Ordered by key, lexicographically.
+         * No null keys or values.
+         * Never empty.
+         * Null if the task has no inputs.
+         */
         @Nullable
         Map<String, byte[]> getInputValueHashesBytes();
 
@@ -147,24 +157,14 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * Consumers should expect this to be mutable.
          * Calling any method on this outside of a method that received it has undefined behavior.
          */
-        interface VisitState {
-            /**
-             * Returns the currently visited property name. Each property has a unique name.
-             */
-            String getPropertyName();
-
-            /**
-             * Returns the hash of the currently visited property.
-             */
-            byte[] getPropertyHashBytes();
+        interface VisitState extends FilePropertyVisitor.VisitState {
 
             /**
              * The “primary” attribute of the current property.
-             *
+             * <p>
              * Used by Gradle Enterprise plugin &lt; 3.8, retained for backwards compatibility.
-             *
+             * <p>
              * Returns the name value of one of:
-             *
              * <ul>
              * <li>org.gradle.internal.fingerprint.FingerprintingStrategy#CLASSPATH_IDENTIFIER</li>
              * <li>org.gradle.internal.fingerprint.FingerprintingStrategy#COMPILE_CLASSPATH_IDENTIFIER</li>
@@ -178,39 +178,6 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
              */
             @Deprecated
             String getPropertyNormalizationStrategyName();
-
-            /**
-             * A description of how the current property was fingerprinted.
-             *
-             * Returns one or more of the values of org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute, sorted.
-             *
-             * This interface does not constrain the compatibility of values.
-             * In practice however, such constraints do exist but are managed informally.
-             * For example, consumers can assume that both org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute#DIRECTORY_SENSITIVITY_DEFAULT
-             * and org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute#DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES will not be present.
-             * This loose approach is used to allow the various types of normalization supported by Gradle to evolve,
-             * and their usage to be conveyed here without changing this interface.
-             *
-             * @since 7.3
-             */
-            Set<String> getPropertyAttributes();
-
-            /**
-             * Returns the absolute path of the currently visited location.
-             */
-            String getPath();
-
-            /**
-             * Returns the name of the currently visited location, as in {@link File#getName()}
-             */
-            String getName();
-
-            /**
-             * Returns the normalized content hash of the last visited file.
-             * <p>
-             * Must not be called when the last visited location was a directory.
-             */
-            byte[] getHashBytes();
         }
 
         /**
