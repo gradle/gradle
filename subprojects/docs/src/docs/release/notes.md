@@ -89,6 +89,12 @@ Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing ex
 Kotlin DSL has received substantial improvements in the recent releases, leading to the announcement that [Kotlin DSL is Now the Default for New Gradle Builds](https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds).
 This release brings another series of improvements.
 
+#### The embedded Kotlin has been upgraded to 1.9.0
+
+The embedded Kotlin has been updated from 1.8.20 to [Kotlin 1.9.0](https://github.com/JetBrains/kotlin/releases/tag/v1.9.0).
+The Kotlin language and API levels for the Kotlin DSL are still set to 1.8 for backwards compatibility.
+See the release notes for [Kotlin 1.8.22](https://github.com/JetBrains/kotlin/releases/tag/v1.8.22) and [Kotlin 1.8.21](https://github.com/JetBrains/kotlin/releases/tag/v1.8.21).
+
 #### Request plugin with the embedded Kotlin version
 
 It is now easier to request a plugin with the embedded Kotlin version in the builds of your Gradle plugins implemented in Kotlin.
