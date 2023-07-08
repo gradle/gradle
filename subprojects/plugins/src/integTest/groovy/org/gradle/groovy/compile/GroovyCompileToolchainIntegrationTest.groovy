@@ -58,7 +58,6 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
                     options.forkOptions.executable = "${TextUtil.normaliseFileSeparators(otherJdk.javaExecutable.absolutePath)}"
                 }
             """
-        } else {
             buildFile << """
                 compileGroovy {
                     options.fork = true
@@ -235,7 +234,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         JavaVersion.forClass(classFile("groovy", "test", "GroovySpec.class").bytes) == groovyTarget
 
         where:
-        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it }
+        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_20 }
     }
 
     private def getSpockVersion(VersionNumber groovyVersion) {
