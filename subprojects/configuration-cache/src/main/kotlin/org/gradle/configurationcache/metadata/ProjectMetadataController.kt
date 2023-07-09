@@ -78,9 +78,12 @@ class ProjectMetadataController(
     }
 
     private
-    fun LocalComponentMetadata.configurationsToPersist() = configurationNames.mapNotNull {
-        val configuration = getConfiguration(it)!!
-        if (configuration.isCanBeConsumed) configuration else null
+    fun LocalComponentMetadata.configurationsToPersist(): List<LocalConfigurationMetadata> {
+        verifyVariantIdentityUniqueness()
+        return configurationNames.mapNotNull {
+            val configuration = getConfiguration(it)!!
+            if (configuration.isCanBeConsumed) configuration else null
+        }
     }
 
     private

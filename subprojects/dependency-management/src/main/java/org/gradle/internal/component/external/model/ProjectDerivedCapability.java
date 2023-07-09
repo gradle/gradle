@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.base.Objects;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.capabilities.Capability;
@@ -23,6 +22,7 @@ import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class ProjectDerivedCapability implements CapabilityInternal {
     private final Project project;
@@ -55,7 +55,16 @@ public class ProjectDerivedCapability implements CapabilityInternal {
 
     @Override
     public int hashCode() {
-        return 31 * project.hashCode() + featureName.hashCode();
+        // Do NOT change the order of members used in hash code here, it's been empirically
+        // tested to reduce the number of collisions on a large dependency graph (performance test)
+        int hash = safeHash(getVersion());
+        hash = 31 * hash + getName().hashCode();
+        hash = 31 * hash + getGroup().hashCode();
+        return  hash;
+    }
+
+    private static int safeHash(@Nullable String o) {
+        return o == null ? 0 : o.hashCode();
     }
 
     @Override
@@ -68,10 +77,9 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         }
 
         Capability that = (Capability) o;
-        return Objects.equal(getGroup(), that.getGroup())
-            && Objects.equal(getName(), that.getName())
-            && Objects.equal(getVersion(), that.getVersion());
-
+        return Objects.equals(getGroup(), that.getGroup())
+            && Objects.equals(getName(), that.getName())
+            && Objects.equals(getVersion(), that.getVersion());
     }
 
     private static String notNull(String id, Object o) {

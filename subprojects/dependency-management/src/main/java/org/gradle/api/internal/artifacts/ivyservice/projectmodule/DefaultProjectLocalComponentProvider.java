@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -73,8 +72,6 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
             new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
                 (DefaultConfigurationContainer) project.getConfigurations(), metadataBuilder, projectState, calculatedValueContainerFactory);
-
-        project.getConfigurations().forEach(conf -> ((ConfigurationInternal) conf).preventFromFurtherMutation());
 
         return new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
     }

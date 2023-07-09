@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
@@ -107,8 +106,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
             new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
                 configurationsProvider, configurationMetadataBuilder, model, calculatedValueContainerFactory);
-
-        configurationsProvider.visitAll(ConfigurationInternal::preventFromFurtherMutation);
 
         return new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
     }

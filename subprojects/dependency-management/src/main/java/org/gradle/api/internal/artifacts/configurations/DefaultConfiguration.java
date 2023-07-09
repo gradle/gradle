@@ -28,7 +28,6 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -69,7 +68,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -114,12 +112,10 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -151,7 +147,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -1139,15 +1134,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void preventFromFurtherMutation() {
-        preventFromFurtherMutation(false);
-    }
-
-    @Override
-    public List<? extends GradleException> preventFromFurtherMutationLenient() {
-        return preventFromFurtherMutation(true);
-    }
-
-    private List<? extends GradleException> preventFromFurtherMutation(boolean lenient) {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
             AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
@@ -1156,80 +1142,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             canBeMutated = false;
 
             preventUsageMutation();
-
-            // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
-            if (mustHaveUniqueAttributes(this) && !this.getAttributes().isEmpty()) {
-                return ensureUniqueAttributes(lenient);
-            }
-
         }
-        return Collections.emptyList();
-    }
-
-    private List<? extends GradleException> ensureUniqueAttributes(boolean lenient) {
-        final Set<? extends ConfigurationInternal> all = (configurationsProvider != null) ? configurationsProvider.getAll() : null;
-        if (all != null) {
-            final Collection<? extends Capability> allCapabilities = allCapabilitiesIncludingDefault(this);
-
-            final Predicate<ConfigurationInternal> isDuplicate = otherConfiguration -> hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration);
-            List<String> collisions = all.stream()
-                .filter(c -> c != this)
-                .filter(this::mustHaveUniqueAttributes)
-                .filter(c -> !c.isCanBeMutated())
-                .filter(isDuplicate)
-                .map(ResolveContext::getDisplayName)
-                .collect(Collectors.toList());
-            if (!collisions.isEmpty()) {
-                DocumentedFailure.Builder builder = DocumentedFailure.builder();
-                String advice = "Consider adding an additional attribute to one of the configurations to disambiguate them.";
-                if (!lenient) {
-                    advice += "  Run the 'outgoingVariants' task for more details.";
-                }
-                GradleException gradleException = builder.withSummary("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but " + getDisplayName() + " and " + collisions + " contain identical attribute sets.")
-                    .withAdvice(advice)
-                    .withUserManual("upgrading_version_7", "unique_attribute_sets")
-                    .build();
-                if (lenient) {
-                    return Collections.singletonList(gradleException);
-                } else {
-                    throw gradleException;
-                }
-            }
-        }
-        return Collections.emptyList();
-    }
-
-    /**
-     * The only configurations which must have unique attributes are those which are consumable (and not also resolvable, legacy configurations),
-     * excluding the default configuration.
-     *
-     * @param configuration the configuration to inspect
-     * @return {@code true} if the given configuration must have unique attributes; {@code false} otherwise
-     */
-    private boolean mustHaveUniqueAttributes(Configuration configuration) {
-        return configuration.isCanBeConsumed() && !configuration.isCanBeResolved() && !Dependency.DEFAULT_CONFIGURATION.equals(configuration.getName());
-    }
-
-    private Collection<? extends Capability> allCapabilitiesIncludingDefault(Configuration conf) {
-        if (conf.getOutgoing().getCapabilities().isEmpty()) {
-            Project project = domainObjectContext.getProject();
-            if (project == null) {
-                throw new IllegalStateException("Project is null for configuration '" + conf.getName() + "'.");
-            }
-            return Collections.singleton(new ProjectDerivedCapability(project));
-        } else {
-            return conf.getOutgoing().getCapabilities();
-        }
-    }
-
-    private boolean hasSameCapabilitiesAs(final Collection<? extends Capability> allMyCapabilities, ConfigurationInternal other) {
-        final Collection<? extends Capability> allOtherCapabilities = allCapabilitiesIncludingDefault(other);
-        //noinspection SuspiciousMethodCalls
-        return allMyCapabilities.size() == allOtherCapabilities.size() && allMyCapabilities.containsAll(allOtherCapabilities);
-    }
-
-    private boolean hasSameAttributesAs(ConfigurationInternal other) {
-        return other.getAttributes().asMap().equals(getAttributes().asMap());
     }
 
     @Override
