@@ -469,6 +469,16 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
         }
+        if (!isKotlin1dot8) {
+            if (GradleContextualExecuter.isConfigCache()) {
+                executer.expectDocumentedDeprecationWarning(
+                    "The Provider.forUseAtConfigurationTime method has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 9.0. " +
+                        "Simply remove the call. " +
+                        "Consult the upgrading guide for further information: " +
+                        "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
+            }
+        }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
         def eventsOnTest = toolchainEvents(":test")
