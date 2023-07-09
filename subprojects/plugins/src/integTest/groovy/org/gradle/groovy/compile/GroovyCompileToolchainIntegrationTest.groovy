@@ -58,6 +58,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
                     options.forkOptions.executable = "${TextUtil.normaliseFileSeparators(otherJdk.javaExecutable.absolutePath)}"
                 }
             """
+        } else {
             buildFile << """
                 compileGroovy {
                     options.fork = true
