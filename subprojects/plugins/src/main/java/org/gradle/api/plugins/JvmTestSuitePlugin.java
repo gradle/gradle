@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.tools.ant.BuildException;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -42,9 +41,6 @@ import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.util.internal.TextUtil;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * A {@link org.gradle.api.Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
  * <p>
@@ -62,8 +58,6 @@ import java.util.Map;
 public abstract class JvmTestSuitePlugin implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = SourceSet.TEST_SOURCE_SET_NAME;
     private static final String TEST_RESULTS_ELEMENTS_VARIANT_PREFIX = "testResultsElementsFor";
-
-    private final Map<String, TestSuite> testTypesInUse = new HashMap<>(2); // Assume limited initial amount of test types/project, just unit and integration
 
     @Override
     public void apply(Project project) {
@@ -133,7 +127,7 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
                 attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
                 attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
-                attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> createNamedTestTypeAndVerifyUniqueness(project, suite, tt)));
+                attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> project.getObjects().named(TestSuiteType.class, tt)));
                 attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
             });
 
@@ -144,11 +138,4 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         });
     }
 
-    private TestSuiteType createNamedTestTypeAndVerifyUniqueness(Project project, TestSuite suite, String tt) {
-        final TestSuite other = testTypesInUse.putIfAbsent(tt, suite);
-        if (null != other && other != suite) {
-            throw new BuildException("Could not configure suite: '" + suite.getName() + "'. Another test suite: '" + other.getName() + "' uses the type: '" + tt + "' and has already been configured in project: '" + project.getName() + "'.");
-        }
-        return project.getObjects().named(TestSuiteType.class, tt);
-    }
 }
