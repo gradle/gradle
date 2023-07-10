@@ -279,4 +279,10 @@ class KotlinGrammar : Combinator(true, true) {
             prefixUnaryExpression + paren(assignableExpression)
         }
     }
+
+    private
+    fun <T> debugReference(parserBuilder: () -> Parser<T>): Parser<T> {
+        val a by debug(parserBuilder)
+        return a
+    }
 }

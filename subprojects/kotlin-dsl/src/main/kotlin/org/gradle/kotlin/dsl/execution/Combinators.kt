@@ -67,13 +67,6 @@ fun <T> debug(parserBuilder: () -> Parser<T>) = ParserDebugger(parserBuilder)
 
 
 internal
-fun <T> debugReference(parserBuilder: () -> Parser<T>): Parser<T> {
-    val a by debug(parserBuilder)
-    return a
-}
-
-
-internal
 inline fun <T, R> Parser<T>.map(crossinline f: (T) -> R): Parser<R> {
     val parser = this
     return {
