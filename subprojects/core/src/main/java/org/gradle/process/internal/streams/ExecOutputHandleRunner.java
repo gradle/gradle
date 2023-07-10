@@ -77,8 +77,9 @@ public class ExecOutputHandleRunner implements Runnable {
                         writeBuffer(buffer, nread);
                         return null;
                     });
+                } else {
+                    writeBuffer(buffer, nread);
                 }
-                writeBuffer(buffer, nread);
             }
             CompositeStoppable.stoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {
