@@ -19,10 +19,13 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
+@Requires([
+    UnitTestPreconditions.CanInstallExecutable,
+    UnitTestPreconditions.NotMacOs
+])
 class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     final app = new CppHelloWorldApp()
 

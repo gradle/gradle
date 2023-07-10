@@ -193,7 +193,10 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
         """
         file('src/test/java/org/example/TestClass.java') << """
             package org.example;
-            public class TestClass {}
+            public class TestClass {
+                @org.junit.Test
+                public void test() {}
+            }
         """
 
         when:

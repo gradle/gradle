@@ -19,8 +19,10 @@ package org.gradle.internal.component.model;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * State for a component instance (e.g. version of a component) that is used to perform dependency graph resolution and that is independent of the particular
@@ -30,7 +32,7 @@ import javax.annotation.Nullable;
  * This type exposes only the information and operations required to do this. In particular, it does not expose any information about artifacts unless this is actually required for graph resolution,
  * which only happens in certain specific cases (and something we should deprecate).</p>
  *
- * <p>The subsequent resolution steps, to select artifacts, are performed using the instance returned by {@link #prepareForArtifactResolution()}.</p>
+ * <p>The subsequent resolution steps to select artifacts, are performed using the instance returned by {@link #prepareForArtifactResolution()}.</p>
  *
  * <p>Instances of this type are obtained via the methods of {@link org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver} or {@link org.gradle.internal.resolve.resolver.ComponentMetaDataResolver}.</p>
  *
@@ -39,26 +41,47 @@ import javax.annotation.Nullable;
  * @see ComponentGraphSpecificResolveState for dependency graph specific state for the component.
  */
 public interface ComponentGraphResolveState {
+    /**
+     * A unique id for this component within the current build tree. Note that this id is not stable across Gradle invocations.
+     */
+    long getInstanceId();
+
+    /**
+     * The component identifier for this component. This identifier is stable but may not be unique.
+     */
     ComponentIdentifier getId();
 
-    @Nullable
+    /**
+     * Information about the origin of this component.
+     */
     ModuleSources getSources();
 
+    /**
+     * The immutable metadata for this component.
+     */
     ComponentGraphResolveMetadata getMetadata();
 
     /**
-     * When this component is a lenient platform, create a copy with the given ids. Otherwise returns {@code null}.
+     * Returns the public view of all variants of this component that are available for variant selection, either during graph resolution or artifact resolution.
+     */
+    List<ResolvedVariantResult> getAllSelectableVariantResults();
+
+    /**
+     * Returns the candidates for variant selection during graph resolution.
+     */
+    GraphSelectionCandidates getCandidatesForGraphVariantSelection();
+
+    /**
+     * Returns the configuration with the given name. A component does not necessarily define any configurations.
+     */
+    @Nullable
+    ConfigurationGraphResolveState getConfiguration(String configurationName);
+
+    /**
+     * When this component is a lenient platform, create a copy with the given ids. Otherwise, returns {@code null}.
      */
     @Nullable
     ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
-
-    /**
-     * Determines the set of artifacts for the given variant of this component.
-     *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository, and should be used only when
-     * required.
-     */
-    VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
 
     /**
      * Creates the state that can be used for artifact resolution for this component instance.

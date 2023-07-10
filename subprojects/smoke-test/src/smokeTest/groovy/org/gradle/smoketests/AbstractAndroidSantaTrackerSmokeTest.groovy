@@ -63,11 +63,13 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
+            expectBuildIdentifierNameDeprecation()
             if (GradleContextualExecuter.notConfigCache) {
                 expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             }
         }.build()
     }
@@ -79,10 +81,17 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
+                expectBuildIdentifierNameDeprecation()
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             } else {
+                expectBuildIdentifierNameDeprecation()
                 // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
                 if (agpVersion.startsWith("7.4")){
                     expectConfigUtilDeprecationWarning(agpVersion)
+                }
+                // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
+                if (!agpVersion.startsWith("7.3")) {
+                    expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 }
             }
         }.build()
@@ -96,6 +105,9 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectBuildIdentifierNameDeprecation()
+                maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
             }.build()
     }
 
@@ -103,6 +115,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(location, agpVersion,"assembleDebug")
             .deprecations(SantaTrackerDeprecations) {
                 expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+                expectBuildIdentifierNameDeprecation()
             }.build()
     }
 
@@ -113,6 +126,11 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
                 if (agpVersion.startsWith("7.4")){
                     expectConfigUtilDeprecationWarning(agpVersion)
+                }
+                expectBuildIdentifierNameDeprecation()
+                if (!agpVersion.startsWith("7.3")) {
+                    // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
+                    expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 }
             }.build()
     }

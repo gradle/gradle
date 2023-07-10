@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -27,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -49,10 +49,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         node("leaf3")
         node("leaf4")
 
-        resolvedConf("root", [dep("mid1"), dep("mid2")])
+        resolvedConf("root", [dep("root", "mid1"), dep("root", "mid2")])
 
-        resolvedConf("mid1", [dep("leaf1"), dep("leaf2")])
-        resolvedConf("mid2", [dep("leaf3"), dep("leaf4")])
+        resolvedConf("mid1", [dep("mid1", "leaf1"), dep("mid1", "leaf2")])
+        resolvedConf("mid2", [dep("mid2", "leaf3"), dep("mid2", "leaf4")])
 
         resolvedConf("leaf1", [])
         resolvedConf("leaf2", [])
@@ -80,10 +80,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         node("b2")
         node("b3")
 
-        resolvedConf("a", [dep("b1"), dep("b2"), dep("b3")])
+        resolvedConf("a", [dep("a", "b1"), dep("a", "b2"), dep("a", "b3")])
 
-        resolvedConf("b1", [dep("b2"), dep("b3")])
-        resolvedConf("b2", [dep("b3")])
+        resolvedConf("b1", [dep("b1", "b2"), dep("b1", "b3")])
+        resolvedConf("b2", [dep("b2", "b3")])
         resolvedConf("b3", [])
 
         when:
@@ -105,9 +105,9 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         node("a")
         node("b")
         node("c")
-        resolvedConf("a", [dep("b")])
-        resolvedConf("b", [dep("c")])
-        resolvedConf("c", [dep("a")])
+        resolvedConf("a", [dep("a", "b")])
+        resolvedConf("b", [dep("b", "c")])
+        resolvedConf("c", [dep("c", "a")])
 
         when:
         def result = builder.complete(id("a"))
@@ -126,7 +126,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         node("b", ComponentSelectionReasons.of(ComponentSelectionReasons.FORCED))
         node("c", ComponentSelectionReasons.of(ComponentSelectionReasons.CONFLICT_RESOLUTION))
         node("d")
-        resolvedConf("a", [dep("b"), dep("c"), dep("d", new RuntimeException("Boo!"))])
+        resolvedConf("a", [dep("a", "b"), dep("a", "c"), dep("a", "d", new RuntimeException("Boo!"))])
         resolvedConf("b", [])
         resolvedConf("c", [])
         resolvedConf("d", [])
@@ -147,9 +147,9 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         node("a")
         node("b")
         node("c")
-        resolvedConf("a", [dep("b")])
-        resolvedConf("b", [dep("c")])
-        resolvedConf("c", [dep("a")])
+        resolvedConf("a", [dep("a", "b")])
+        resolvedConf("b", [dep("b", "c")])
+        resolvedConf("c", [dep("c", "a")])
 
         when:
         def a = builder.complete(id("a")).root
@@ -177,11 +177,11 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         node("leaf1")
         node("leaf2")
 
-        resolvedConf("root", [dep("mid1")])
+        resolvedConf("root", [dep("root", "mid1")])
 
-        resolvedConf("mid1", [dep("leaf1")])
-        resolvedConf("mid1", [dep("leaf1")]) //dupe
-        resolvedConf("mid1", [dep("leaf2")])
+        resolvedConf("mid1", [dep("mid1", "leaf1")])
+        resolvedConf("mid1", [dep("mid1", "leaf1")]) //dupe
+        resolvedConf("mid1", [dep("mid1", "leaf2")])
 
         resolvedConf("leaf1", [])
         resolvedConf("leaf2", [])
@@ -203,11 +203,11 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         node("mid1")
         node("leaf1")
         node("leaf2")
-        resolvedConf("root", [dep("mid1")])
+        resolvedConf("root", [dep("root", "mid1")])
 
-        resolvedConf("mid1", [dep("leaf1", new RuntimeException("foo!"))])
-        resolvedConf("mid1", [dep("leaf1", new RuntimeException("bar!"))]) //dupe
-        resolvedConf("mid1", [dep("leaf2", new RuntimeException("baz!"))])
+        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("foo!"))])
+        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("bar!"))]) //dupe
+        resolvedConf("mid1", [dep("mid1", "leaf2", new RuntimeException("baz!"))])
 
         when:
         def result = builder.complete(id("root"))
@@ -223,7 +223,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         node("a")
         node("b")
         node("c")
-        resolvedConf("a", [dep("b"), dep("c"), dep("U", new RuntimeException("unresolved!"))])
+        resolvedConf("a", [dep("a", "b"), dep("a", "c"), dep("a", "U", new RuntimeException("unresolved!"))])
         resolvedConf("b", [])
         resolvedConf("c", [])
 
@@ -240,7 +240,11 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     private void node(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
         DummyModuleVersionSelection moduleVersion = comp(module, reason)
-        builder.visitComponent(moduleVersion)
+        builder.startVisitComponent(moduleVersion.resultId, moduleVersion.selectionReason, "repo")
+        builder.visitComponentDetails(moduleVersion.componentId, moduleVersion.moduleVersion)
+        builder.visitSelectedVariant(moduleVersion.resultId, Stub(ResolvedVariantResult))
+        builder.visitComponentVariants([])
+        builder.endVisitComponent()
     }
 
     private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
@@ -252,11 +256,17 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         builder.visitOutgoingEdges(id(module), deps)
     }
 
-    private ResolvedGraphDependency dep(String requested, Exception failure = null, String selected = requested) {
+    private ResolvedGraphDependency dep(String from, String requested, Exception failure = null, String selected = requested) {
         def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("x", requested), DefaultImmutableVersionConstraint.of("1"))
         def moduleVersionSelector = newSelector(DefaultModuleIdentifier.newId("x", requested), "1")
         failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
-        new DummyInternalDependencyResult(requested: selector, selected: id(selected), failure: failure)
+        return Stub(ResolvedGraphDependency) {
+            getRequested() >> selector
+            getFromVariant() >> id(from)
+            getSelected() >> id(selected)
+            getSelectedVariant() >> id(selected)
+            getFailure() >> failure
+        }
     }
 
     private Long id(String module) {
@@ -268,18 +278,12 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ModuleVersionIdentifier moduleVersion
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
-        String repositoryId
-        List<ResolvedVariantResult> resolvedVariants = []
-        List<ResolvedVariantResult> allVariants = []
-    }
+        List<ResolvedVariantResult> selectedVariants = []
+        String repositoryName
 
-    class DummyInternalDependencyResult implements ResolvedGraphDependency {
-        ComponentSelector requested
-        Long selected
-        ResolvedVariantResult fromVariant
-        ResolvedVariantResult selectedVariant
-        ModuleVersionResolveException failure
-        ComponentSelectionReason reason
-        boolean constraint
+        @Override
+        ComponentGraphResolveState getResolveState() {
+            throw new UnsupportedOperationException()
+        }
     }
 }

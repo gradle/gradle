@@ -29,8 +29,8 @@ public abstract class GroupedNodeFixture {
 
     private final List<String> outputs = new ArrayList<>(1);
 
-    public void addOutput(String transformationOutput) {
-        outputs.add(transformationOutput);
+    public void addOutput(String transformOutput) {
+        outputs.add(transformOutput);
     }
 
     public String getOutput() {

@@ -36,7 +36,7 @@ import org.gradle.internal.model.ValueCalculator;
 import java.util.List;
 
 /**
- * Transformed artifact set that performs the transformation itself when visited.
+ * Transformed artifact set that performs the transform itself when visited.
  */
 public abstract class AbstractTransformedArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source {
     private final CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result;
@@ -46,14 +46,14 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
         ResolvedArtifactSet delegate,
         ImmutableAttributes targetVariantAttributes,
         List<? extends Capability> capabilities,
-        TransformationChain transformationChain,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
+        TransformChain transformChain,
+        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, transformationChain);
-        ImmutableList.Builder<BoundTransformationStep> builder = ImmutableList.builder();
-        transformationChain.visitTransformationSteps(transformationStep -> builder.add(new BoundTransformationStep(transformationStep, dependenciesResolver.dependenciesFor(transformationStep))));
-        ImmutableList<BoundTransformationStep> steps = builder.build();
+        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, transformChain);
+        ImmutableList.Builder<BoundTransformStep> builder = ImmutableList.builder();
+        transformChain.visitTransformSteps(step -> builder.add(new BoundTransformStep(step, dependenciesResolver.dependenciesFor(step))));
+        ImmutableList<BoundTransformStep> steps = builder.build();
         this.result = calculatedValueContainerFactory.create(Describables.of(componentIdentifier), new CalculateArtifacts(componentIdentifier, delegate, targetVariantAttributes, capabilities, steps));
     }
 
@@ -103,11 +103,11 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
     public static class CalculateArtifacts implements ValueCalculator<ImmutableList<Artifacts>> {
         private final ComponentIdentifier ownerId;
         private final ResolvedArtifactSet delegate;
-        private final ImmutableList<BoundTransformationStep> steps;
+        private final ImmutableList<BoundTransformStep> steps;
         private final ImmutableAttributes targetVariantAttributes;
         private final List<? extends Capability> capabilities;
 
-        public CalculateArtifacts(ComponentIdentifier ownerId, ResolvedArtifactSet delegate, ImmutableAttributes targetVariantAttributes, List<? extends Capability> capabilities, ImmutableList<BoundTransformationStep> steps) {
+        public CalculateArtifacts(ComponentIdentifier ownerId, ResolvedArtifactSet delegate, ImmutableAttributes targetVariantAttributes, List<? extends Capability> capabilities, ImmutableList<BoundTransformStep> steps) {
             this.ownerId = ownerId;
             this.delegate = delegate;
             this.steps = steps;
@@ -123,7 +123,7 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
             return delegate;
         }
 
-        public ImmutableList<BoundTransformationStep> getSteps() {
+        public ImmutableList<BoundTransformStep> getSteps() {
             return steps;
         }
 
@@ -137,16 +137,16 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            for (BoundTransformationStep step : steps) {
+            for (BoundTransformStep step : steps) {
                 context.add(step.getUpstreamDependencies());
             }
         }
 
         @Override
         public ImmutableList<Artifacts> calculateValue(NodeExecutionContext context) {
-            // Isolate the transformation parameters, if not already done
-            for (BoundTransformationStep step : steps) {
-                step.getTransformation().isolateParametersIfNotAlready();
+            // Isolate the transform parameters, if not already done
+            for (BoundTransformStep step : steps) {
+                step.getTransformStep().isolateParametersIfNotAlready();
                 step.getUpstreamDependencies().finalizeIfNotAlready();
             }
 

@@ -19,17 +19,27 @@ package org.gradle.caching.local.internal
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.service.StoreTarget
+import org.gradle.internal.time.Clock
+import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 class H2BuildCacheServiceTest extends Specification {
+
+    private static final int REMOVE_UNUSED_ENTRIES_AFTER_7_DAYS = 7
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def dbDir = temporaryFolder.createDir("h2db")
-    def service = new H2BuildCacheService(dbDir.toPath(), 20)
+    H2BuildCacheService service
+
+    def setup() {
+        openServiceWithClock(Time.clock())
+    }
 
     def cleanup() {
         service.close()
@@ -37,6 +47,9 @@ class H2BuildCacheServiceTest extends Specification {
 
     BuildCacheKey key = Mock(BuildCacheKey) {
         getHashCode() >> "1234abcd"
+    }
+    BuildCacheKey otherKey = Mock(BuildCacheKey) {
+        getHashCode() >> "12345abcde"
     }
 
     def "can write to h2"() {
@@ -73,7 +86,8 @@ class H2BuildCacheServiceTest extends Specification {
         service.close()
 
         expect:
-        def newService = new H2BuildCacheService(dbDir.toPath(), 20)
+        def newService = new H2BuildCacheService(dbDir.toPath(), 20, 7, Time.clock())
+        newService.open()
         newService.load(key, new BuildCacheEntryReader() {
             @Override
             void readFrom(InputStream input) throws IOException {
@@ -103,5 +117,55 @@ class H2BuildCacheServiceTest extends Specification {
                 assert input.text == "Hello world"
             }
         })
+    }
+
+    def "does a cleanup of old entries over a moving period of time"() {
+        given:
+        def firstFile = temporaryFolder.createFile("first")
+        firstFile << "Hello world"
+        def secondFile = temporaryFolder.createFile("second")
+        secondFile << "Hello Bob"
+        def now = Time.currentTimeMillis()
+        openServiceWithClock({ now - TimeUnit.DAYS.toMillis(6) })
+        service.store(key, new StoreTarget(secondFile))
+        openServiceWithClock({ now })
+        service.store(otherKey, new StoreTarget(firstFile))
+
+        when:
+        service.cleanup()
+
+        then:
+        service.open()
+        service.contains(key)
+        service.contains(otherKey)
+        dbDir.listFiles().collect { it.name } == ["filestore.mv.db"]
+
+        when:
+        openServiceWithClock({ now + TimeUnit.DAYS.toMillis(6) })
+        service.cleanup()
+
+        then:
+        service.open()
+        !service.contains(key)
+        service.contains(otherKey)
+        dbDir.listFiles().collect { it.name } == ["filestore.mv.db"]
+
+        when:
+        openServiceWithClock({ now + TimeUnit.DAYS.toMillis(8) })
+        service.cleanup()
+
+        then:
+        service.open()
+        !service.contains(key)
+        !service.contains(otherKey)
+        dbDir.listFiles().collect { it.name } == ["filestore.mv.db"]
+    }
+
+    private void openServiceWithClock(Clock clock) {
+        if (service != null) {
+            service.close()
+        }
+        service = new H2BuildCacheService(dbDir.toPath(), 20, REMOVE_UNUSED_ENTRIES_AFTER_7_DAYS, clock)
+        service.open()
     }
 }

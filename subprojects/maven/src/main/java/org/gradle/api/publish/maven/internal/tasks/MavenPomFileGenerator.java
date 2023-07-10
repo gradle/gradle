@@ -44,7 +44,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomContributor;
 import org.gradle.api.publish.maven.MavenPomDeveloper;
@@ -259,39 +258,35 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    public void addApiDependencyManagement(MavenDependency apiDependency) {
-        addDependencyManagement((MavenDependencyInternal) apiDependency, "compile");
+    public void addCompileDependencyManagement(MavenDependencyInternal apiDependency) {
+        addDependencyManagement(apiDependency, "compile");
     }
 
-    public void addRuntimeDependencyManagement(MavenDependency dependency) {
-        addDependencyManagement((MavenDependencyInternal) dependency, "runtime");
+    public void addRuntimeDependencyManagement(MavenDependencyInternal dependency) {
+        addDependencyManagement(dependency, "runtime");
     }
 
-    public void addImportDependencyManagement(MavenDependency dependency) {
-        addDependencyManagement((MavenDependencyInternal) dependency, "import");
+    public void addImportDependencyManagement(MavenDependencyInternal dependency) {
+        addDependencyManagement(dependency, "import");
+    }
+
+    public void addRuntimeDependency(MavenDependencyInternal dependency) {
+        addDependency(dependency, "runtime", false);
     }
 
     public void addOptionalRuntimeDependency(MavenDependencyInternal optionalDependency) {
         addDependency(optionalDependency, "runtime", true);
     }
 
-    public void addRuntimeDependency(MavenDependencyInternal dependency) {
-        addDependency(dependency, "runtime");
+    public void addCompileDependency(MavenDependencyInternal apiDependency) {
+        addDependency(apiDependency, "compile", false);
     }
 
-    public void addOptionalApiDependency(MavenDependencyInternal optionalDependency) {
+    public void addOptionalCompileDependency(MavenDependencyInternal optionalDependency) {
         addDependency(optionalDependency, "compile", true);
     }
 
-    public void addApiDependency(MavenDependencyInternal apiDependency) {
-        addDependency(apiDependency, "compile");
-    }
-
-    private void addDependency(MavenDependencyInternal mavenDependency, String scope) {
-        addDependency(mavenDependency, scope, false);
-    }
-
-    private void addDependency(MavenDependencyInternal mavenDependency, String scope, boolean optional) {
+    public void addDependency(MavenDependencyInternal mavenDependency, String scope, boolean optional) {
         if (mavenDependency.getArtifacts().size() == 0) {
             addDependency(mavenDependency, mavenDependency.getArtifactId(), scope, null, null, optional);
         } else {
@@ -338,7 +333,7 @@ public class MavenPomFileGenerator {
         throw new IllegalStateException("Unexpected scope : " + scope);
     }
 
-    private void addDependencyManagement(MavenDependencyInternal dependency, String scope) {
+    public void addDependencyManagement(MavenDependencyInternal dependency, String scope) {
         Dependency mavenDependency = new Dependency();
         String groupId = dependency.getGroupId();
         String artifactId = dependency.getArtifactId();

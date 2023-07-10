@@ -68,7 +68,7 @@ public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectSt
         // This is not thread-safe because of lock juggling that happens for project state. When calculating the dependencies for an IDEA model, we can easily
         // deadlock when there are multiple projects that need to be locked at the same time.
         ResolvableArtifact resolvableArtifact = allResolvedArtifacts.get(artifact.getId());
-        if (resolvableArtifact==null) {
+        if (resolvableArtifact == null) {
             LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
             File localArtifactFile = projectStateRegistry.stateFor(projectId).fromMutableState(p -> projectArtifact.getFile());

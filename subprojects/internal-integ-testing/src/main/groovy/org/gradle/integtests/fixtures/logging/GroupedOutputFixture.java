@@ -45,7 +45,7 @@ public class GroupedOutputFixture {
      * All tasks will start with > Task, captures everything starting with : and going until end of line
      */
     private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n";
-    private final static String TRANSFORMATION_HEADER = "> Transform (file )?([^\\n]+) with ([^\\n]+)\\n";
+    private final static String TRANSFORM_HEADER = "> Transform (file )?([^\\n]+) with ([^\\n]+)\\n";
 
     private final static String EMBEDDED_BUILD_START = "> :\\w* > [:\\w]+";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
@@ -55,7 +55,7 @@ public class GroupedOutputFixture {
     /**
      * Various patterns to detect the end of the task output
      */
-    private final static String END_OF_GROUPED_OUTPUT = TASK_HEADER + "|" + TRANSFORMATION_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START + "|" + ACTIONABLE_TASKS + "|\\z";
+    private final static String END_OF_GROUPED_OUTPUT = TASK_HEADER + "|" + TRANSFORM_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START + "|" + ACTIONABLE_TASKS + "|\\z";
 
     /**
      * Pattern to extract task output.
@@ -65,7 +65,7 @@ public class GroupedOutputFixture {
     /**
      * Pattern to extract task output.
      */
-    private static final Pattern TRANSFORMATION_OUTPUT_PATTERN = patternForHeader(TRANSFORMATION_HEADER);
+    private static final Pattern TRANSFORM_OUTPUT_PATTERN = patternForHeader(TRANSFORM_HEADER);
 
     private static Pattern patternForHeader(String header) {
         String pattern = "(?ms)";
@@ -78,7 +78,7 @@ public class GroupedOutputFixture {
     private final LogContent originalOutput;
     private final String strippedOutput;
     private Map<String, GroupedTaskOutputFixture> tasks;
-    private Map<String, GroupedTransformationOutputFixture> transformations;
+    private Map<String, GroupedTransformOutputFixture> transforms;
 
     public GroupedOutputFixture(LogContent output) {
         this.originalOutput = output;
@@ -87,11 +87,11 @@ public class GroupedOutputFixture {
 
     private String parse(LogContent output) {
         tasks = new HashMap<>();
-        transformations = new HashMap<>();
+        transforms = new HashMap<>();
 
         String strippedOutput = output.ansiCharsToPlainText().withNormalizedEol();
         findOutputs(strippedOutput, TASK_OUTPUT_PATTERN, this::consumeTaskOutput);
-        findOutputs(strippedOutput, TRANSFORMATION_OUTPUT_PATTERN, this::consumeTransformationOutput);
+        findOutputs(strippedOutput, TRANSFORM_OUTPUT_PATTERN, this::consumeTransformOutput);
 
         return strippedOutput;
     }
@@ -107,8 +107,8 @@ public class GroupedOutputFixture {
         return tasks.size();
     }
 
-    public int getTransformationCount() {
-        return transformations.size();
+    public int getTransformCount() {
+        return transforms.size();
     }
 
     public boolean hasTask(String taskName) {
@@ -128,44 +128,44 @@ public class GroupedOutputFixture {
     /**
      * Returns grouped output for the given transformer type.
      */
-    public GroupedTransformationOutputFixture transform(String transformer) {
-        List<GroupedTransformationOutputFixture> foundTransformations = transformations.values().stream()
-            .filter(transformation -> transformation.getTransformer().equals(transformer))
+    public GroupedTransformOutputFixture transform(String transformer) {
+        List<GroupedTransformOutputFixture> foundTransforms = transforms.values().stream()
+            .filter(transform -> transform.getTransformer().equals(transformer))
             .collect(Collectors.toList());
 
-        if (foundTransformations.size() == 0) {
-            throw new AssertionError(String.format("The grouped output for transformation with transformer '%s' could not be found.%nOutput:%n%s", transformer, originalOutput));
-        } else if (foundTransformations.size() > 1) {
-            throw new AssertionError(String.format("Multiple grouped outputs for transformation with transformer '%s' were found. Consider specifying a subject.%nOutput:%n%s", transformer, originalOutput));
+        if (foundTransforms.size() == 0) {
+            throw new AssertionError(String.format("The grouped output for transform '%s' could not be found.%nOutput:%n%s", transformer, originalOutput));
+        } else if (foundTransforms.size() > 1) {
+            throw new AssertionError(String.format("Multiple grouped outputs for transform '%s' were found. Consider specifying a subject.%nOutput:%n%s", transformer, originalOutput));
         }
 
-        return foundTransformations.get(0);
+        return foundTransforms.get(0);
     }
 
     /**
-     * Returns grouped output for the given transformer type and transformation subject.
+     * Returns grouped output for the given transformer type and transform subject.
      */
-    public GroupedTransformationOutputFixture transform(String transformer, String subject) {
-        List<GroupedTransformationOutputFixture> foundTransformations = transformations.values().stream()
-            .filter(transformation -> transformation.getTransformer().equals(transformer) && transformation.getSubject().equals(subject))
+    public GroupedTransformOutputFixture transform(String transformer, String subject) {
+        List<GroupedTransformOutputFixture> foundTransforms = transforms.values().stream()
+            .filter(transform -> transform.getTransformer().equals(transformer) && transform.getSubject().equals(subject))
             .collect(Collectors.toList());
 
-        if (foundTransformations.size() == 0) {
-            throw new AssertionError(String.format("The grouped output for transformation with transformer '%s' and subject '%s' could not be found.%nOutput:%n%s", transformer, subject, originalOutput));
-        } else if (foundTransformations.size() > 1) {
-            throw new AssertionError(String.format("Multiple grouped outputs for transformation with transformer '%s' and subject '%s' were found.%nOutput:%n%s", transformer, subject, originalOutput));
+        if (foundTransforms.size() == 0) {
+            throw new AssertionError(String.format("The grouped output for transform '%s' and subject '%s' could not be found.%nOutput:%n%s", transformer, subject, originalOutput));
+        } else if (foundTransforms.size() > 1) {
+            throw new AssertionError(String.format("Multiple grouped outputs for transform '%s' and subject '%s' were found.%nOutput:%n%s", transformer, subject, originalOutput));
         }
 
-        return foundTransformations.get(0);
+        return foundTransforms.get(0);
     }
 
     /**
-     * Returns transformation subjects for the given transformer type.
+     * Returns transform subjects for the given transformer type.
      */
     public Set<String> subjectsFor(String transformer) {
-        return transformations.values().stream()
-                .filter(transformation -> transformation.getTransformer().equals(transformer))
-                .map(GroupedTransformationOutputFixture::getSubject)
+        return transforms.values().stream()
+                .filter(transform -> transform.getTransformer().equals(transformer))
+                .map(GroupedTransformOutputFixture::getSubject)
                 .collect(Collectors.toSet());
     }
 
@@ -193,20 +193,20 @@ public class GroupedOutputFixture {
         task.setOutcome(taskOutcome);
     }
 
-    private void consumeTransformationOutput(Matcher matcher) {
+    private void consumeTransformOutput(Matcher matcher) {
         String initialSubjectType = matcher.group(1);
         String subject = matcher.group(2);
         String transformer = matcher.group(3);
-        String transformationOutput = StringUtils.strip(matcher.group(4), "\n");
+        String transformOutput = StringUtils.strip(matcher.group(4), "\n");
 
         String key = initialSubjectType + ";" + subject + ";" + transformer;
 
-        GroupedTransformationOutputFixture transformation = transformations.get(key);
-        if (transformation == null) {
-            transformation = new GroupedTransformationOutputFixture(initialSubjectType, subject, transformer);
-            transformations.put(key, transformation);
+        GroupedTransformOutputFixture transform = transforms.get(key);
+        if (transform == null) {
+            transform = new GroupedTransformOutputFixture(initialSubjectType, subject, transformer);
+            transforms.put(key, transform);
         }
 
-        transformation.addOutput(transformationOutput);
+        transform.addOutput(transformOutput);
     }
 }

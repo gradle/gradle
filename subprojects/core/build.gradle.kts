@@ -129,16 +129,21 @@ dependencies {
     testFixturesApi(testFixtures(project(":hashing"))) {
         because("test fixtures expose test hash codes")
     }
+    testFixturesApi(testFixtures(project(":snapshots"))) {
+        because("test fixtures expose file snapshot related functionality")
+    }
     testFixturesImplementation(project(":build-option"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(project(":normalization-java"))
+    testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(libs.ivy)
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.groovyAnt)
+    testFixturesImplementation(libs.asm)
 
     testFixturesRuntimeOnly(project(":plugin-use")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
@@ -168,6 +173,7 @@ dependencies {
     integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":plugins"))
+    integTestImplementation(project(":war"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.jetty)
@@ -179,21 +185,21 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
-        because("Some tests utilise the 'java-gradle-plugin' and with that TestKit")
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 
     annotationProcessor(project(":internal-instrumentation-processor"))
     annotationProcessor(platform(project(":distributions-dependencies")))
+
+    testAnnotationProcessor(project(":internal-instrumentation-processor"))
+    testAnnotationProcessor(platform(project(":distributions-dependencies")))
 }
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
-}
-tasks.compileJava {
-    // Without this, javac will complain about unclaimed annotations
-    options.compilerArgs.add("-Xlint:-processing")
+    ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations
 }
 
 packageCycles {
@@ -202,6 +208,11 @@ packageCycles {
 
 tasks.test {
     setForkEvery(200)
+}
+
+// Disable annotation processing for Groovy, as it is not compatible with Groovy IC
+tasks.withType<GroovyCompile>().configureEach {
+    options.compilerArgs.add("-proc:none")
 }
 
 tasks.compileTestGroovy {

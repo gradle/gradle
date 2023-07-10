@@ -41,7 +41,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkInputListeners;
-import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -73,6 +72,7 @@ import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
@@ -230,7 +230,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
-            ScriptUsageLocationReporter usageLocationReporter,
+            ProblemDiagnosticsFactory problemDiagnosticsFactory,
             StartParameter startParameter
         ) {
             return new InitDeprecationLoggingActionExecutor(new RootBuildLifecycleBuildActionExecutor(
@@ -258,7 +258,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             buildLoggerFactory),
                         options),
                     gradleEnterprisePluginManager)),
-                usageLocationReporter, eventEmitter, startParameter);
+                problemDiagnosticsFactory, eventEmitter, startParameter);
         }
 
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {

@@ -39,6 +39,11 @@ public interface VariantSelector {
     ImmutableAttributes getRequestedAttributes();
 
     interface Factory {
-        ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory);
+        ResolvedArtifactSet asTransformed(
+            ResolvedVariant sourceVariant,
+            VariantDefinition variantDefinition,
+            TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
+            TransformedVariantFactory transformedVariantFactory
+        );
     }
 }

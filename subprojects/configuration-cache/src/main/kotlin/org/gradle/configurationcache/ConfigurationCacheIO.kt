@@ -309,7 +309,9 @@ class ConfigurationCacheIO internal constructor(
             propertyFactory = service(),
             filePropertyFactory = service(),
             fileResolver = service(),
+            objectFactory = service(),
             instantiator = service(),
+            fileSystemOperations = service(),
             listenerManager = service(),
             taskNodeFactory = service(),
             ordinalGroupFactory = service(),
@@ -331,7 +333,7 @@ class ConfigurationCacheIO internal constructor(
             documentationRegistry = service(),
             javaSerializationEncodingLookup = service(),
             flowProviders = service(),
-            transformationNodeFactory = service(),
+            transformStepNodeFactory = service(),
         )
 
     private

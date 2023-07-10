@@ -26,8 +26,10 @@ import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readMapInto
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeMap
+import java.util.Hashtable
 import java.util.ArrayDeque
 import java.util.LinkedList
+import java.util.Properties
 import java.util.TreeMap
 import java.util.TreeSet
 import java.util.concurrent.ConcurrentHashMap
@@ -181,6 +183,21 @@ val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHash
 
 internal
 val concurrentHashMapCodec: Codec<ConcurrentHashMap<Any?, Any?>> = mapCodec { ConcurrentHashMap<Any?, Any?>(it) }
+
+
+/*
+ * Cannot rely on Java serialization as
+ * Hashtable's readObject() calls unsupported ObjectInputStream#readFields().
+ */
+internal
+val hashtableCodec: Codec<Hashtable<Any?, Any?>> = mapCodec { Hashtable(it) }
+
+
+/*
+ * Decodes Properties as Properties instead of Hashtable.
+ */
+internal
+val propertiesCodec: Codec<Properties> = mapCodec { Properties() }
 
 
 internal

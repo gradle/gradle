@@ -18,6 +18,7 @@ package org.gradle.plugins.signing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.test.fixtures.GpgCmdFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 

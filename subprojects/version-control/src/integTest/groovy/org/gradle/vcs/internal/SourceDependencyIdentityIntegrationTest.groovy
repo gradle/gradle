@@ -139,7 +139,7 @@ Required by:
                 assert components[1].build.name == '${buildName}'
                 assert !components[1].build.currentBuild
                 assert components[1].projectPath == ':'
-                assert components[1].projectName == '${buildName}'
+                assert components[1].projectName == '${dependencyName}'
                 assert components[2].build.buildPath == ':${buildName}'
                 assert components[2].build.name == '${buildName}'
                 assert !components[2].build.currentBuild
@@ -156,6 +156,10 @@ Required by:
             }
         """
 
+        3.times {
+            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
+            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
+        }
         executer.expectDocumentedDeprecationWarning("The ProjectComponentSelector.getBuildName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
 
         expect:

@@ -40,6 +40,7 @@ import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -64,6 +65,7 @@ class DefaultConfigurationCache internal constructor(
     private val buildOperationExecutor: BuildOperationExecutor,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
     private val encryptionService: EncryptionService,
+    private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
@@ -101,7 +103,7 @@ class DefaultConfigurationCache internal constructor(
     val intermediateModels = lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
 
     private
-    val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, store) }
+    val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store) }
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheIO>() }

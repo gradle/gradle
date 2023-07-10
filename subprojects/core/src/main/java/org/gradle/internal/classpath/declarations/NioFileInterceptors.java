@@ -26,6 +26,7 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receive
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.VarargParameter;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -51,8 +52,8 @@ import static org.gradle.internal.classpath.FileUtils.tryReportFileOpened;
 import static org.gradle.internal.classpath.FileUtils.tryReportFileSystemEntryObserved;
 
 @SuppressWarnings("NewMethodNamingConvention")
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
-@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
+@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)

@@ -15,7 +15,8 @@
 [[upgrading_version_5]]
 = Upgrading your build from Gradle 5.x to 6.0
 
-This chapter provides the information you need to migrate your Gradle 5.x builds to Gradle 6.0. For migrating from Gradle 4.x, complete the <<upgrading_version_4.adoc#upgrading_version_4, 4.x to 5.0 guide>> first.
+This chapter provides the information you need to migrate your Gradle 5.x builds to Gradle 6.0.
+For migrating from Gradle 4.x, complete the <<upgrading_version_4.adoc#upgrading_version_4, 4.x to 5.0 guide>> first.
 
 We recommend the following steps for all users:
 
@@ -25,10 +26,11 @@ image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
 This is so that you can see any deprecation warnings that apply to your build.
 +
-Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
 . Update your plugins.
 +
-Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
+Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed.
+The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
 +
 . Run `gradle wrapper --gradle-version 6.0` to update the project to 6.0.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
@@ -76,7 +78,8 @@ Property 'inputDirectory' is declared without normalization specified. Propertie
 Property 'outputFile' is not annotated with an input or output annotation. This behavior is scheduled to be removed in Gradle 7.0.
 ```
 
-If you own the code of the tasks in question, you can fix them by <<incremental_build.adoc#sec:task_input_validation, following the suggestions>>. You can also use `--stacktrace` to see where in the code each warning originates from.
+If you own the code of the tasks in question, you can fix them by <<incremental_build.adoc#sec:task_input_validation, following the suggestions>>.
+You can also use `--stacktrace` to see where in the code each warning originates from.
 
 Otherwise, you'll need to report the problems to the maintainer of the relevant task or plugin.
 
@@ -129,7 +132,8 @@ In Gradle 7.0, Gradle will only allow you to invoke the `init` task or diagnosti
 
 ==== Calling `Project.afterEvaluate` on an evaluated project has been deprecated
 
-Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning. This scenario will become an error in Gradle 7.0.
+Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning.
+This scenario will become an error in Gradle 7.0.
 
 ==== Deprecated plugins
 
@@ -211,9 +215,11 @@ If you try to use the `com.typesafe.zinc:zinc` dependency, Gradle will switch to
 
 ==== Local build cache is always a directory cache
 
-In the past, it was possible to use any build cache implementation as the `local` cache.  This is no longer allowed as the local cache must always be a `DirectoryBuildCache`.
+In the past, it was possible to use any build cache implementation as the `local` cache.
+This is no longer allowed as the local cache must always be a `DirectoryBuildCache`.
 
-Calls to `BuildCacheConfiguration.local(Class)` with anything other than `DirectoryBuildCache` as the type will fail the build. Calling these methods with the `DirectoryBuildCache` type will produce a deprecation warning.
+Calls to `BuildCacheConfiguration.local(Class)` with anything other than `DirectoryBuildCache` as the type will fail the build.
+Calling these methods with the `DirectoryBuildCache` type will produce a deprecation warning.
 
 Use `getLocal()` and `local(Action)` instead.
 
@@ -278,7 +284,8 @@ Build authors can change the artifact name when the artifact is created to obtai
 
 A number of fixes were made to produce more correct `ivy.xml` metadata in the `ivy-publish` plugin.
 
-As a consequence, the internal structure of the `ivy.xml` file has changed. The `runtime` configuration now contains more information, which corresponds to the _runtimeElements_ variant of a Java library. The `default` configuration should yield the same result as before.
+As a consequence, the internal structure of the `ivy.xml` file has changed. The `runtime` configuration now contains more information, which corresponds to the _runtimeElements_ variant of a Java library.
+The `default` configuration should yield the same result as before.
 
 In general, users are advised to migrate from `ivy.xml` to the new Gradle Module Metadata format.
 
@@ -296,7 +303,8 @@ Custom logic can be used from a settings script by <<tutorial_using_tasks.adoc#s
 
 Previously, any `pluginManagement {}` blocks inside a settings script were executed during the normal execution of the script.
 
-Now, they are executed earlier in a similar manner to `buildscript {}` or `plugins {}`. This means that code inside such a block cannot reference anything declared elsewhere in the script.
+Now, they are executed earlier in a similar manner to `buildscript {}` or `plugins {}`.
+This means that code inside such a block cannot reference anything declared elsewhere in the script.
 
 This change has been made so that `pluginManagement` configuration can also be applied when resolving plugins for the settings script itself.
 
@@ -364,7 +372,9 @@ Gradle always uses `configDirectory` as the value for 'config_loc' when running 
 
 ==== New Tooling API progress event
 
-In Gradle 6.0, we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the output of test execution. This new event breaks the convention of having a `StartEvent`-`FinishEvent` pair to express progress. `TaskOutputEvent` is a simple `ProgressEvent`.
+In Gradle 6.0, we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the output of test execution.
+This new event breaks the convention of having a `StartEvent`-`FinishEvent` pair to express progress.
+`TaskOutputEvent` is a simple `ProgressEvent`.
 
 ==== Changes to the task container behavior
 
@@ -485,9 +495,10 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
 
 ==== Changing the contents of `ConfigurableFileCollection` task properties after task starts execution
 
-When a task property has type `ConfigurableFileCollection`, then the file collection referenced by the property will ignore changes made to the contents of the collection once the task
-starts execution. This has two benefits. Firstly, this prevents accidental changes to the property value during task execution which can cause Gradle up-to-date checks and build cache lookup
-using different values to those used by the task action. Secondly, this improves performance as Gradle can calculate the value once and cache the result.
+When a task property has type `ConfigurableFileCollection`, then the file collection referenced by the property will ignore changes made to the contents of the collection once the task starts execution.
+This has two benefits.
+Firstly, this prevents accidental changes to the property value during task execution which can cause Gradle up-to-date checks and build cache lookup using different values to those used by the task action.
+Secondly, this improves performance as Gradle can calculate the value once and cache the result.
 
 This will become an error in Gradle 6.0.
 
@@ -516,13 +527,15 @@ See <<worker_api.adoc#tasks_parallel_worker,the section on the Worker API>> for 
 
 ==== Task dependencies are honored for task `@Input` properties whose value is a `Property`
 
-Previously, task dependencies would be ignored for task `@Input` properties of type `Property<T>`. These are now honored, so that it is possible to attach a task output property to a task `@Input` property.
+Previously, task dependencies would be ignored for task `@Input` properties of type `Property<T>`.
+These are now honored, so that it is possible to attach a task output property to a task `@Input` property.
 
 This may introduce unexpected cycles in the task dependency graph, where the value of an output property is mapped to produce a value for an input property.
 
 ==== Declaring task dependencies using a file `Provider` that does not represent a task output
 
-Previously, it was possible to pass `Task.dependsOn()` a `Provider<File>`, `Provider<RegularFile>` or `Provider<Directory>` instance that did not represent a task output. These providers would be silently ignored.
+Previously, it was possible to pass `Task.dependsOn()` a `Provider<File>`, `Provider<RegularFile>` or `Provider<Directory>` instance that did not represent a task output.
+These providers would be silently ignored.
 
 This is now an error because Gradle does not know how to build files that are not task outputs.
 
@@ -530,18 +543,21 @@ This is now an error because Gradle does not know how to build files that are no
 
 ==== Setting `Property` value to `null` uses the property convention
 
-Previously, calling `Property.set(null)` would always reset the value of the property to 'not defined'. Now, the convention that is associated with the property using the `convention()` method
-will be used to determine the value of the property.
+Previously, calling `Property.set(null)` would always reset the value of the property to 'not defined'.
+Now, the convention that is associated with the property using the `convention()` method will be used to determine the value of the property.
 
 ==== Enhanced validation of names for `publishing.publications` and `publishing.repositories`
 
-The repository and publication names are used to construct task names for publishing. It was possible to supply a name that would result in an invalid task name. Names for publications and repositories are now restricted to `[A-Za-z0-9_\\-.]+`.
+The repository and publication names are used to construct task names for publishing. It was possible to supply a name that would result in an invalid task name.
+Names for publications and repositories are now restricted to `[A-Za-z0-9_\\-.]+`.
 
 ==== Restricted Worker API classloader and process classpath
 
-Gradle now prevents internal dependencies (like Guava) from leaking into the classpath used by Worker API actions. This fixes link:https://github.com/gradle/gradle/issues/3698[an issue] where a worker needs to use a dependency that is also used by Gradle internally.
+Gradle now prevents internal dependencies (like Guava) from leaking into the classpath used by Worker API actions.
+This fixes link:https://github.com/gradle/gradle/issues/3698[an issue] where a worker needs to use a dependency that is also used by Gradle internally.
 
-In previous releases, it was possible to rely on these leaked classes. Plugins relying on this behavior will now fail.  To fix the plugin, the worker should explicitly include all required dependencies in its classpath.
+In previous releases, it was possible to rely on these leaked classes. Plugins relying on this behavior will now fail.
+To fix the plugin, the worker should explicitly include all required dependencies in its classpath.
 
 ==== Default PMD version upgraded to 6.15.0
 
@@ -551,11 +567,14 @@ Contributed by link:https://github.com/wreulicke[wreulicke]
 
 ==== Configuration copies have unique names
 
-Previously, all copies of a configuration always had the name `<OriginConfigurationName>Copy`. Now when creating multiple copies, each will have a unique name by adding an index starting from the second copy. (e.g. `CompileOnlyCopy2`)
+Previously, all copies of a configuration always had the name `<OriginConfigurationName>Copy`.
+Now when creating multiple copies, each will have a unique name by adding an index starting from the second copy. (e.g. `CompileOnlyCopy2`)
 
 ==== Changed classpath filtering for Eclipse
 
-Gradle 5.6 no longer supplies custom classpath attributes in the Eclipse model. Instead, it provides the attributes for link:https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources[Eclipse test sources]. This change requires Buildship version 3.1.1 or later.
+Gradle 5.6 no longer supplies custom classpath attributes in the Eclipse model.
+Instead, it provides the attributes for link:https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources[Eclipse test sources].
+This change requires Buildship version 3.1.1 or later.
 
 ==== Embedded Kotlin upgraded to 1.3.41
 
@@ -585,7 +604,8 @@ The symlink itself will be deleted, but the contents of the linked directory wil
 
 === Disabled debug argument parsing in JavaExec
 
-Gradle 5.6 introduced a new DSL element (`JavaForkOptions.debugOptions(Action<JavaDebugOptions>)`) to configure debug properties for forked Java processes. Due to this change, Gradle no longer parses debug-related JVM arguments. Consequently, `JavaForkOptions.getDebu()` no longer returns `true` if the `-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005` or the `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` argument is specified to the process.
+Gradle 5.6 introduced a new DSL element (`JavaForkOptions.debugOptions(Action<JavaDebugOptions>)`) to configure debug properties for forked Java processes.
+Due to this change, Gradle no longer parses debug-related JVM arguments. Consequently, `JavaForkOptions.getDebu()` no longer returns `true` if the `-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005` or the `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` argument is specified to the process.
 
 === Scala 2.9 and Zinc compiler
 
@@ -610,10 +630,10 @@ link:https://gradle.com/build-scans[Build scans] show much deeper insights into 
 
 ==== User supplied Eclipse project names may be ignored on conflict
 
-Project names configured via link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/EclipseProject.html[`EclipseProject.setName(...)`] were honored by Gradle and Buildship in all cases, even
-when the names caused conflicts and import/synchronization errors.
+Project names configured via link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/EclipseProject.html[`EclipseProject.setName(...)`] were honored by Gradle and Buildship in all cases, even when the names caused conflicts and import/synchronization errors.
 
-Gradle can now deduplicate these names if they conflict with other project names in an Eclipse workspace. This may lead to different Eclipse project names for projects with user-specified names.
+Gradle can now deduplicate these names if they conflict with other project names in an Eclipse workspace.
+This may lead to different Eclipse project names for projects with user-specified names.
 
 The upcoming 3.1.1 version of Buildship is required to take advantage of this behavior.
 
@@ -631,7 +651,10 @@ The version of Ant distributed with Gradle has been upgraded to link:https://arc
 
 ==== Type `DependencyHandler` now statically exposes `ExtensionAware`
 
-This affects Kotlin DSL build scripts that make use of `ExtensionAware` extension members such as the `extra` properties accessor inside the `dependencies {}` block. The receiver for those members will no longer be the enclosing `Project` instance but the `dependencies` object itself, the innermost `ExtensionAware` conforming receiver. In order to address `Project` extra properties inside `dependencies {}` the receiver must be explicitly qualified i.e. `project.extra` instead of just `extra`. Affected extensions also include `the<T>()` and `configure<T>(T.() -> Unit)`.
+This affects Kotlin DSL build scripts that make use of `ExtensionAware` extension members such as the `extra` properties accessor inside the `dependencies {}` block.
+The receiver for those members will no longer be the enclosing `Project` instance but the `dependencies` object itself, the innermost `ExtensionAware` conforming receiver.
+In order to address `Project` extra properties inside `dependencies {}` the receiver must be explicitly qualified i.e. `project.extra` instead of just `extra`.
+Affected extensions also include `the<T>()` and `configure<T>(T.() -> Unit)`.
 
 ==== Improved processing of dependency excludes
 
@@ -641,7 +664,10 @@ In some rare cases this may cause some differences in resolution, due to the cor
 
 ==== Improved classpath separation for worker processes
 
-The system classpath for worker daemons started by the <<custom_tasks.adoc#worker_api, Worker API>> when using `PROCESS` isolation has been reduced to a minimum set of Gradle infrastructure. User code is still segregated into a separate classloader to isolate it from the Gradle runtime. This should be a transparent change for tasks using the worker API, but previous versions of Gradle mixed user code and Gradle internals in the worker process. Worker actions that rely on things like the `java.class.path` system property may be affected, since `java.class.path` now represents only the classpath of the Gradle internals.
+The system classpath for worker daemons started by the <<custom_tasks.adoc#worker_api, Worker API>> when using `PROCESS` isolation has been reduced to a minimum set of Gradle infrastructure.
+User code is still segregated into a separate classloader to isolate it from the Gradle runtime.
+This should be a transparent change for tasks using the worker API, but previous versions of Gradle mixed user code and Gradle internals in the worker process.
+Worker actions that rely on things like the `java.class.path` system property may be affected, since `java.class.path` now represents only the classpath of the Gradle internals.
 
 [[changes_5.4]]
 == Upgrading from 5.3 and earlier

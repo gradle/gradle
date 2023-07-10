@@ -139,17 +139,124 @@ private
 fun packageNameOf(code: String): String? =
     KotlinLexer().run {
         start(code)
-        skipWhiteSpaceAndComments()
-        when (tokenType) {
-            KtTokens.PACKAGE_KEYWORD -> {
-                advance()
-                skipWhiteSpaceAndComments()
-                parseQualifiedName()
-            }
 
-            else -> null
+        // Based on: https://kotlinlang.org/docs/reference/grammar.html#kotlinFile
+        //
+        // The only elements Kotlin script grammar allows before the package statement
+        // are the shebang line and file annotations.
+        //
+        // If neither of them is there, then we know that the package statement is
+        // right at the beginning of the script, if present at all, so we can do a
+        // very simple and cheap search for it.
+        //
+        // Otherwise, we must do a bit more involved searching.
+
+        skipWhiteSpaceAndComments()
+        if (hasShebangLine() || hasFileAnnotations()) {
+            return extensiveSearchForPackageName()
+        } else {
+            return simpleSearchForPackageName()
         }
     }
+
+
+private
+fun KotlinLexer.hasShebangLine(): Boolean {
+
+    if (tokenType != KtTokens.HASH) {
+        return false
+    }
+
+    val mark = currentPosition
+    advance()
+
+    val hasShebangLine = tokenType == KtTokens.EXCL
+
+    restore(mark)
+    return hasShebangLine
+}
+
+
+private
+fun KotlinLexer.hasFileAnnotations(): Boolean {
+
+    if (tokenType != KtTokens.AT) {
+        return false
+    }
+
+    val mark = currentPosition
+    advance()
+
+    val hasFileAnnotation = tokenType == KtTokens.IDENTIFIER && tokenText == "file"
+
+    restore(mark)
+    return hasFileAnnotation
+}
+
+
+private
+fun KotlinLexer.simpleSearchForPackageName(): String? =
+    when (tokenType) {
+        KtTokens.PACKAGE_KEYWORD -> {
+            advance()
+            skipWhiteSpaceAndComments()
+            parseQualifiedName()
+        }
+
+        else -> null
+    }
+
+
+private
+fun KotlinLexer.extensiveSearchForPackageName(): String? {
+    while (hasFurtherTokens() && !packageDefinitionFound() && !tooLateForPackageStatement()) {
+        advance()
+    }
+
+    if (packageDefinitionFound()) {
+        advance()
+        skipWhiteSpaceAndComments()
+        return parseQualifiedName()
+    }
+
+    return null
+}
+
+
+private
+fun KotlinLexer.hasFurtherTokens() = tokenType != null
+
+
+private
+fun KotlinLexer.packageDefinitionFound() = tokenType == KtTokens.PACKAGE_KEYWORD
+
+
+private
+val packageParsingAbortIdentifiers = setOf("import", "buildscript", "plugins", "pluginManagement", "initscript")
+
+
+private
+fun KotlinLexer.tooLateForPackageStatement(): Boolean {
+    // based on https://kotlinlang.org/docs/reference/grammar.html#script
+
+    if (tokenType == KtTokens.IDENTIFIER && tokenText in packageParsingAbortIdentifiers) {
+        return true
+    }
+
+    return tokenType in setOf(
+        KtTokens.IMPORT_KEYWORD,
+        KtTokens.CLASS_KEYWORD,
+        KtTokens.INTERFACE_KEYWORD,
+        KtTokens.OBJECT_KEYWORD,
+        KtTokens.FUN_KEYWORD,
+        KtTokens.VAL_KEYWORD,
+        KtTokens.VAR_KEYWORD,
+        KtTokens.WHILE_KEYWORD,
+        KtTokens.FOR_KEYWORD,
+        KtTokens.DO_KEYWORD,
+        KtTokens.TYPE_ALIAS_KEYWORD,
+    )
+}
 
 
 private

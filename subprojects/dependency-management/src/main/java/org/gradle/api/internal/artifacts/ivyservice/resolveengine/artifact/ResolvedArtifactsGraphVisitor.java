@@ -84,7 +84,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toNode) {
         ComponentArtifactResolveState componentState = toNode.getOwner().getResolveState().prepareForArtifactResolution();
-        VariantArtifactResolveState variantState = componentState.prepareForArtifactResolution(toNode.getMetadata());
+        VariantArtifactResolveState variantState = toNode.getResolveState().prepareForArtifactResolution();
         ImmutableAttributes overriddenAttributes = dependency.getAttributes();
 
         List<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(variantState);

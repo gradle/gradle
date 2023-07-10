@@ -17,8 +17,8 @@ package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -26,8 +26,8 @@ import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorld
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
@@ -145,7 +145,7 @@ model {
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(IntegTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can build executable from visual studio"() {
         useMsbuildTool()
@@ -177,7 +177,7 @@ model {
         installation('build/install/main/win32/debug').assertInstalled()
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(IntegTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can build library from visual studio"() {
         useMsbuildTool()
@@ -210,7 +210,7 @@ model {
         debugBinaryDll.assertExists()
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(IntegTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can detect build failure from visual studio"() {
         useMsbuildTool()
@@ -239,7 +239,7 @@ model {
         resultDebug.assertHasErrorOutput("broken.cpp(1): error C2143: syntax error: missing ';' before '!'")
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(IntegTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can clean from visual studio"() {
         useMsbuildTool()

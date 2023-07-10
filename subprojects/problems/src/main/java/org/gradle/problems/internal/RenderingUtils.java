@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import static java.lang.String.join;
+
 public abstract class RenderingUtils {
     public static String oxfordListOf(Collection<String> values, String conjunction) {
         return values.stream()
@@ -29,14 +31,17 @@ public abstract class RenderingUtils {
 
     public static Collector<? super String, ?, String> oxfordJoin(String conjunction) {
         return Collectors.collectingAndThen(Collectors.toList(), stringList -> {
-            if (stringList.isEmpty()) {
-                return "";
+            switch (stringList.size()) {
+                case 0:
+                    return "";
+                case 1:
+                    return stringList.get(0);
+                case 2:
+                    return join(" " + conjunction + " ", stringList);
+                default:
+                    int bound = stringList.size() - 1;
+                    return join(", ", stringList.subList(0, bound)) + ", " + conjunction + " " + stringList.get(bound);
             }
-            if (stringList.size() == 1) {
-                return stringList.get(0);
-            }
-            int bound = stringList.size() - 1;
-            return String.join(", ", stringList.subList(0, bound)) + " " + conjunction + " " + stringList.get(bound);
         });
     }
 }

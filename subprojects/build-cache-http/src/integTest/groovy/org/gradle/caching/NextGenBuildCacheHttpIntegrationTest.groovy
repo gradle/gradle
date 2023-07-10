@@ -98,6 +98,8 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
 
         when:
         httpBuildCacheServer.deleteCacheFiles()
+        def alternativeBuildCache = new TestBuildCache(temporaryFolder.file("cache-dir-ng").deleteDir().createDir())
+        settingsFile << alternativeBuildCache.localCacheConfiguration()
         runWithBuildCacheNG "clean", "testBuildCache"
 
         then:

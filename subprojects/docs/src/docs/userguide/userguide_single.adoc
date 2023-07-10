@@ -28,7 +28,7 @@ toc::[]
 [[part:about_gradle]]
 == About Gradle
 
-include::what_is_gradle.adoc[leveloffset=+2]
+include::userguide.adoc[leveloffset=+2]
 
 [[part:getting_started]]
 == Getting Started

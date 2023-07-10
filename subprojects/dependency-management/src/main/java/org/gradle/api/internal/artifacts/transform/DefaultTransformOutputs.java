@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 
 public class DefaultTransformOutputs implements TransformOutputsInternal {
 
-    private final TransformationResult.OutputTypeInferringBuilder resultBuilder;
+    private final TransformExecutionResult.OutputTypeInferringBuilder resultBuilder;
     private final Set<File> outputDirectories = new HashSet<>();
     private final Set<File> outputFiles = new HashSet<>();
     private final PathToFileResolver resolver;
@@ -39,13 +39,13 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
         this.resolver = fileLookup.getPathToFileResolver(outputDir);
         this.inputArtifact = inputArtifact;
         this.outputDir = outputDir;
-        this.resultBuilder = TransformationResult.builderFor(inputArtifact, outputDir);
+        this.resultBuilder = TransformExecutionResult.builderFor(inputArtifact, outputDir);
     }
 
     @Override
-    public TransformationResult getRegisteredOutputs() {
-        TransformationResult result = resultBuilder.build();
-        result.visitOutputs(new TransformationResult.TransformationOutputVisitor() {
+    public TransformExecutionResult getRegisteredOutputs() {
+        TransformExecutionResult result = resultBuilder.build();
+        result.visitOutputs(new TransformExecutionResult.OutputVisitor() {
             @Override
             public void visitEntireInputArtifact() {
                 validate(inputArtifact);

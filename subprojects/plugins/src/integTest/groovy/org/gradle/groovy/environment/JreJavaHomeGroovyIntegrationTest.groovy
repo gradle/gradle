@@ -18,8 +18,8 @@ package org.gradle.groovy.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.IgnoreIf
 
 class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
@@ -41,7 +41,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
                 }
                 """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileGroovy").run().output
+        executer.withJavaHome(jreJavaHome.absolutePath).withTasks("compileGroovy").run().output
         then:
         groovyClassFile("org/test/JavaClazz.class").exists()
         groovyClassFile("org/test/GroovyClazz.class").exists()
@@ -50,7 +50,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
         forkMode << [true, false]
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "groovy compiler works when gradle is started with no JAVA_HOME defined in forking mode = #forkMode"() {
         given:
         writeJavaTestSource("src/main/groovy")

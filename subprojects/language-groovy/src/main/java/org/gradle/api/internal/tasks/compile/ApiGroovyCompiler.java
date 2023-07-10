@@ -29,9 +29,11 @@ import org.codehaus.groovy.classgen.GeneratorContext;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
+import org.codehaus.groovy.control.messages.ExceptionMessage;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
@@ -283,6 +285,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             unit.compile();
             return result;
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
+            if (isFatalException(e)) {
+                // This indicates a compiler bug and not a user error,
+                // so we cannot recover from such error: we need to force full recompilation.
+                throw new CompilationFatalException(e);
+            }
+
             System.err.println(e.getMessage());
             // Explicit flush, System.err is an auto-flushing PrintWriter unless it is replaced.
             System.err.flush();
@@ -295,6 +303,27 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compileClasspathLoader.shutdown();
             CompositeStoppable.stoppable(classPathLoader, astTransformClassLoader).stop();
         }
+    }
+
+    /**
+     * Returns true if the exception is fatal, unrecoverable for the incremental compilation. Example of such error:
+     * <pre>
+     * error: startup failed:
+     * General error during instruction selection: java.lang.NoClassDefFoundError: Unable to load class ClassName due to missing dependency DependencyName
+     *   java.lang.RuntimeException: java.lang.NoClassDefFoundError: Unable to load class ClassName due to missing dependency DependencyName
+     *      at org.codehaus.groovy.control.CompilationUnit$IPrimaryClassNodeOperation.doPhaseOperation(CompilationUnit.java:977)
+     *      at org.codehaus.groovy.control.CompilationUnit.processPhaseOperations(CompilationUnit.java:672)
+     *      at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:636)
+     *      at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:611)
+     * </pre>
+     */
+    private static boolean isFatalException(org.codehaus.groovy.control.CompilationFailedException e) {
+        if (e instanceof MultipleCompilationErrorsException) {
+            // Groovy compiler wraps any uncontrolled exception (e.g. IOException, NoClassDefFoundError and similar) in a `ExceptionMessage`
+            return ((MultipleCompilationErrorsException) e).getErrorCollector().getErrors().stream()
+                .anyMatch(message -> message instanceof ExceptionMessage);
+        }
+        return false;
     }
 
     private static boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {

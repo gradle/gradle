@@ -405,8 +405,8 @@ include 'a', 'b'
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Variant 'bar' in project :b does not match the consumer attributes
-Variant 'bar' capability test:b:unspecified declares attribute 'flavor' with value 'free':
+        failure.assertHasCause """Configuration 'bar' in project :b does not match the consumer attributes
+Configuration 'bar' declares attribute 'flavor' with value 'free':
   - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
 
         when:

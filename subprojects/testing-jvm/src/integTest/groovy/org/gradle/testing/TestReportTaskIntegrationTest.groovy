@@ -29,6 +29,7 @@ import spock.lang.Issue
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
@@ -378,7 +379,6 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-
         executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. ' +
             'This is scheduled to be removed in Gradle 9.0. ' +
             'Please use the testResults method instead. ' +
@@ -388,6 +388,16 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             'Please use the destinationDirectory property instead. ' +
             getTestReportLink("destinationDir"))
         succeeds "testReport"
+    }
+
+    protected static String getJunitSetup() {
+        """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'junit:junit:${LATEST_JUNIT4_VERSION}'
+            }
+        """.stripIndent()
     }
 
     private static String getPackageAndImportsWithCategory() {
@@ -436,14 +446,6 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     private getTestReportLink(sectionPart) {
         String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:${sectionPart}")
-    }
-
-    private String getJunitSetup() {
-        """
-        apply plugin: 'java'
-        ${mavenCentralRepository()}
-        dependencies { testImplementation 'junit:junit:4.13' }
-        """
     }
 
     private void failingTestClass(String name) {

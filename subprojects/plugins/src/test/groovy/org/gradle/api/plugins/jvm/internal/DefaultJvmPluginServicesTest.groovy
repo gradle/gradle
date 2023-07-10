@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.jvm.internal
 
-import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationPublications
@@ -61,10 +60,8 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
     def "configures compileClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
-        Action[] action = new Action[1]
         def config
         config = Stub(ConfigurationInternal) {
-            beforeLocking(_) >> { args -> action[0] = args[0] }
             getAttributes() >> mutable
         }
         def javaCompileProvider = Stub(TaskProvider) {
@@ -87,7 +84,6 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         when:
         services.useDefaultTargetPlatformInference(config, javaCompileProvider)
-        action[0].execute(config)
 
         then:
         mutable.asMap() == [

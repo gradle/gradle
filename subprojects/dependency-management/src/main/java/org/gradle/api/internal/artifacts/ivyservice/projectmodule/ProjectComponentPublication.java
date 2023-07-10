@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
@@ -30,8 +31,7 @@ public interface ProjectComponentPublication extends ProjectPublication {
     /**
      * Returns the component that is to be published, if relevant for this publication.
      */
-    @Nullable
-    SoftwareComponentInternal getComponent();
+    Provider<SoftwareComponentInternal> getComponent();
 
     /**
      * Specifies that this publication is just an alias for another one and should not

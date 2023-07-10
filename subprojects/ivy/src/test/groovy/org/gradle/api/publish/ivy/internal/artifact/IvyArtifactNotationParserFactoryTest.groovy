@@ -19,10 +19,17 @@ package org.gradle.api.publish.ivy.internal.artifact
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
+import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.provider.Provider
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -158,5 +165,102 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         "some-file"                    | ""        | ""
         "some-file-1.2-classifier.zip" | "zip"     | "zip"
     }
+
+
+    def "creates lazy IvyArtifact for Provider<AbstractArchiveTask> notation"() {
+        def task = Mock(AbstractArchiveTask)
+        def taskProvider = Mock(TestTaskProvider)
+        def fileProvider = Mock(Provider)
+        def file = Mock(RegularFile)
+
+        when:
+        def artifact = parser.parseNotation(taskProvider)
+
+        then:
+        0 * taskProvider._
+
+        when:
+        artifact.file
+
+        then:
+        1 * taskProvider.get() >> task
+        1 * task.getArchiveFile() >> fileProvider
+        1 * fileProvider.get() >> file
+        1 * file.getAsFile()
+        0 * _
+    }
+
+    def "creates lazy IvyArtifact for Provider<Task> notation when task has a single output file"() {
+        def task = Mock(Task)
+        def taskProvider = Mock(TestTaskProvider)
+        def outputs = Mock(TaskOutputsInternal)
+        def fileCollection = Mock(FileCollection)
+
+        when:
+        def artifact = parser.parseNotation(taskProvider)
+
+        then:
+        0 * taskProvider._
+
+        when:
+        artifact.file
+
+        then:
+        1 * taskProvider.get() >> task
+        1 * task.getOutputs() >> outputs
+        1 * outputs.getFiles() >> fileCollection
+        1 * fileCollection.getSingleFile() >> Stub(File)
+        0 * _
+    }
+
+    def "fails resolving lazy IvyArtifact for Provider<Task> notation when task has a multiple output files"() {
+        def task = Mock(Task)
+        def taskProvider = Mock(TestTaskProvider)
+        def outputs = Mock(TaskOutputsInternal)
+        def fileCollection = Mock(FileCollection)
+
+        when:
+        def artifact = parser.parseNotation(taskProvider)
+
+        then:
+        0 * taskProvider._
+
+        when:
+        1 * taskProvider.get() >> task
+        1 * task.getOutputs() >> outputs
+        1 * outputs.getFiles() >> fileCollection
+        1 * fileCollection.getSingleFile() >> {
+            throw new RuntimeException("more than one file")
+        }
+        artifact.file
+
+        then:
+        RuntimeException e = thrown()
+        e.message == "more than one file"
+    }
+
+    def "creates lazy IvyArtifact for Provider<RegularFile> notation"() {
+        def provider = Mock(ProviderInternal)
+        def file = Stub(File) {
+            getName() >> 'picard.txt'
+        }
+        def regularFile = Mock(RegularFile)
+
+        when:
+        def artifact = parser.parseNotation(provider)
+
+        then:
+        0 * provider._
+
+        when:
+        1 * provider.get() >> regularFile
+        1 * regularFile.getAsFile() >> file
+        artifact.file
+
+        then:
+        0 * _
+    }
+
+    interface TestTaskProvider<T extends Task> extends TaskProvider<T>, ProviderInternal {}
 
 }

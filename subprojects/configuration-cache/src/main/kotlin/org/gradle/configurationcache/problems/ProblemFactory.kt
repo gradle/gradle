@@ -39,23 +39,28 @@ interface ProblemFactory {
      *
      * By default, the problem has no exception or documentation, and a default location is inferred from the calling thread's state.
      */
-    fun problem(messageBuilder: StructuredMessage.Builder.() -> Unit): Builder
+    fun problem(consumer: String? = null, messageBuilder: StructuredMessage.Builder.() -> Unit): Builder
 
     interface Builder {
         /**
-         * Creates a InvalidUserCodeException with the given message for this problem.
+         * Creates an InvalidUserCodeException for this problem, with the given message.
          */
         fun exception(message: String): Builder
 
         /**
-         * Creates a InvalidUserCodeException message for this problem.
+         * Creates an InvalidUserCodeException for this problem, with a message derived from the problem message.
+         */
+        fun exception(builder: (String) -> String): Builder
+
+        /**
+         * Creates an InvalidUserCodeException for this problem, using the problem message to create the exception message.
          */
         fun exception(): Builder
 
         fun documentationSection(documentationSection: DocumentationSection): Builder
 
         /**
-         * Allows the default location to be changed. The closure is called by `build()`
+         * Allows the default location to be changed. The function is called by `build()`
          */
         fun mapLocation(mapper: (PropertyTrace) -> PropertyTrace): Builder
 

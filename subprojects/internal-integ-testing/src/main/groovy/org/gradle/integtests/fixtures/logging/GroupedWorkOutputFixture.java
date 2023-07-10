@@ -26,7 +26,7 @@ import static org.gradle.util.internal.CollectionUtils.filter;
 import static org.gradle.util.internal.CollectionUtils.join;
 
 /**
- * Collects the output entries produced by a work item such as a task or a transformation,
+ * Collects the output entries produced by a work item such as a task or an artifact transform,
  * and allows assertions to be made about the output.
  *
  * @see GroupedOutputFixture

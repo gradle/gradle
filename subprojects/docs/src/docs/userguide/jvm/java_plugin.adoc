@@ -159,8 +159,6 @@ include::javaProjectTestLayout.adoc[]
 
 include::javaProjectGenericLayout.adoc[]
 
-[[sec:java_convention_properties]]
-
 [[sec:changing_java_project_layout]]
 === Changing the project layout
 
@@ -458,6 +456,7 @@ The basename to use for archives, such as JAR or ZIP files. Default value: `__pr
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.
 
+[[sec:java_convention_properties]]
 == Convention properties (deprecated)
 
 The Java Plugin adds a number of convention properties to the project. You can use these properties in your build script as though they were properties of the project object.

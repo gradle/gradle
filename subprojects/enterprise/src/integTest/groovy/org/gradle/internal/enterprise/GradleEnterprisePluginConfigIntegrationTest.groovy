@@ -19,6 +19,7 @@ package org.gradle.internal.enterprise
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -137,6 +138,43 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
         then:
         plugin.assertAutoApplied(output, true)
         outputContains("${plugin.id} is already applied")
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/24884")
+    def "is not auto-applied when --scan is used and applied via init script in beforeSettings"() {
+        given:
+        def pluginArtifactId = "com.gradle:gradle-enterprise-gradle-plugin:${plugin.runtimeVersion}"
+        def initScript = file("build-scan-init.gradle") << """
+            initscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath("${pluginArtifactId}")
+                }
+            }
+            gradle.beforeSettings { settings ->
+                settings.buildscript.repositories { maven { url '${mavenRepo.uri}' } }
+                settings.buildscript.dependencies.classpath("com.gradle:gradle-enterprise-gradle-plugin:${plugin.runtimeVersion}")
+            }
+            gradle.settingsEvaluated { settings ->
+                if (settings.pluginManager.hasPlugin('${plugin.id}')) {
+                    logger.lifecycle("${plugin.id} is already applied")
+                } else {
+                    logger.lifecycle("Applying ${plugin.id} via init script")
+                    settings.pluginManager.apply("com.gradle.enterprise")
+                }
+            }
+        """
+
+        when:
+        succeeds "t", "--scan", "--init-script", initScript.absolutePath
+
+        then:
+        plugin.assertAutoApplied(output, false)
+        outputContains("Applying ${plugin.id} via init script")
+        // TODO: Should not issue the warning
+        plugin.issuedNoPluginWarning(output)
     }
 
     @Issue('https://github.com/gradle/gradle/issues/24023')

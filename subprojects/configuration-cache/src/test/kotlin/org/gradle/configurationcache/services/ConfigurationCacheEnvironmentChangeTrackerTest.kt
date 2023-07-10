@@ -18,12 +18,13 @@ package org.gradle.configurationcache.services
 
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.configurationcache.problems.DefaultProblemFactory
+import org.gradle.internal.featurelifecycle.NoOpProblemDiagnosticsFactory
 import org.junit.Test
 
 
 class ConfigurationCacheEnvironmentChangeTrackerTest {
     private
-    val tracker = ConfigurationCacheEnvironmentChangeTracker(DefaultProblemFactory(DefaultUserCodeApplicationContext(), { _, _ -> null }))
+    val tracker = ConfigurationCacheEnvironmentChangeTracker(DefaultProblemFactory(DefaultUserCodeApplicationContext(), NoOpProblemDiagnosticsFactory()))
 
     @Test
     fun `can load state after capturing`() {

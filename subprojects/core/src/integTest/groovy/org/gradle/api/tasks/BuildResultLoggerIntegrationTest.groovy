@@ -21,9 +21,9 @@ import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import spock.lang.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
     def setup() {
@@ -204,7 +204,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "5 actionable tasks: 1 executed, 4 up-to-date"
     }
 
-    @Requires({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "work validation warnings are mentioned in summary"() {
         buildFile << """

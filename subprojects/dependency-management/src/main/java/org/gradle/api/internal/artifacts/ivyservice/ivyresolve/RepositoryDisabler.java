@@ -16,16 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import java.util.Collections;
-import java.util.Set;
-
 public interface RepositoryDisabler {
 
     boolean isDisabled(String repositoryId);
 
     boolean disableRepository(String repositoryId, Throwable throwable);
-
-    Set<String> getDisabledRepositories();
 
     enum NoOpBlacklister implements RepositoryDisabler {
         INSTANCE;
@@ -38,11 +33,6 @@ public interface RepositoryDisabler {
         @Override
         public boolean disableRepository(String repositoryId, Throwable throwable) {
             return false;
-        }
-
-        @Override
-        public Set<String> getDisabledRepositories() {
-            return Collections.emptySet();
         }
     }
 }

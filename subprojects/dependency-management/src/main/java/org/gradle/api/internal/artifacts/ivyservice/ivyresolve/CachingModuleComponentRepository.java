@@ -37,10 +37,11 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.DefaultModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -85,16 +86,19 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ModuleArtifactCache moduleArtifactCache;
 
     private final ModuleComponentRepository<ModuleComponentResolveMetadata> delegate;
+    private final ModuleComponentGraphResolveStateFactory resolveStateFactory;
     private final CachePolicy cachePolicy;
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
     private final ChangingValueDependencyResolutionListener listener;
     private final LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
+    private final ProducerGuard<ModuleComponentIdentifier> metadataGuard = ProducerGuard.adaptive();
 
     public CachingModuleComponentRepository(
         ModuleComponentRepository<ModuleComponentResolveMetadata> delegate,
         ModuleRepositoryCaches caches,
+        ModuleComponentGraphResolveStateFactory resolveStateFactory,
         CachePolicy cachePolicy,
         BuildCommencedTimeProvider timeProvider,
         ComponentMetadataProcessor metadataProcessor,
@@ -105,6 +109,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.moduleVersionsCache = caches.moduleVersionsCache;
         this.moduleArtifactsCache = caches.moduleArtifactsCache;
         this.moduleArtifactCache = caches.moduleArtifactCache;
+        this.resolveStateFactory = resolveStateFactory;
         this.cachePolicy = cachePolicy;
         this.timeProvider = timeProvider;
         this.metadataProcessor = metadataProcessor;
@@ -192,11 +197,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> localResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
             delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, localResult);
             if (localResult.hasResult()) {
-                localResult.applyTo(result, DefaultModuleComponentGraphResolveState::new);
+                localResult.applyTo(result, resolveStateFactory::stateFor);
                 return;
             }
 
-            resolveComponentMetaDataFromCache(moduleComponentIdentifier, requestMetaData, result);
+            metadataGuard.guardByKey(moduleComponentIdentifier, () -> {
+                resolveComponentMetaDataFromCache(moduleComponentIdentifier, requestMetaData, result);
+                return null;
+            });
         }
 
         private void resolveComponentMetaDataFromCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
@@ -242,7 +250,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             if (state == null) {
                 ModuleComponentResolveMetadata metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
                 metadata = attachRepositorySource(metadata);
-                state = new DefaultModuleComponentGraphResolveState(metadata);
+                state = resolveStateFactory.stateFor(metadata);
                 // Save the processed metadata for next time.
                 cachedMetadata.putProcessedMetadata(key, state);
             }
@@ -385,6 +393,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
+            metadataGuard.guardByKey(moduleComponentIdentifier, () -> {
+                resolveComponentMetaDataAndCache(moduleComponentIdentifier, requestMetaData, result);
+                return null;
+            });
+        }
+
+        private void resolveComponentMetaDataAndCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             ComponentOverrideMetadata forced = requestMetaData.withChanging();
             DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> localResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
             delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, localResult);
@@ -409,7 +424,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                         Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), Duration.ZERO);
                         listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
                     }
-                    DefaultModuleComponentGraphResolveState state = new DefaultModuleComponentGraphResolveState(processedMetadata);
+                    ModuleComponentGraphResolveState state = resolveStateFactory.stateFor(processedMetadata);
                     cachedMetadata.putProcessedMetadata(metadataProcessor.getRulesHash(), state);
                     localResult.applyTo(result);
                     result.resolved(state);

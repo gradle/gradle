@@ -20,6 +20,9 @@ import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeClassSourceGenerator;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.jvmbytecode.InterceptJvmCallsGenerator;
@@ -45,7 +48,7 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
     @Override
     protected Collection<InstrumentationProcessorExtension> getExtensions() {
         return Arrays.asList(
-            (ClassLevelAnnotationsContributor) () -> Arrays.asList(SpecificJvmCallInterceptors.class, SpecificGroovyCallInterceptors.class),
+            (ClassLevelAnnotationsContributor) () -> Arrays.asList(SpecificJvmCallInterceptors.class, SpecificGroovyCallInterceptors.class, VisitForInstrumentation.class),
 
             new AnnotationCallInterceptionRequestReaderImpl(),
 
@@ -59,7 +62,11 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
             new AddGeneratedClassNameFlagFromClassLevelAnnotation(ifHasAnnotation(InterceptGroovyCalls.class), SpecificGroovyCallInterceptors.class, RequestExtra.InterceptGroovyCalls::new),
 
             (CodeGeneratorContributor) InterceptJvmCallsGenerator::new,
-            (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new
+            (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new,
+
+            // Properties upgrade extensions
+            new PropertyUpgradeAnnotatedMethodReader(),
+            (CodeGeneratorContributor) PropertyUpgradeClassSourceGenerator::new
         );
     }
 }

@@ -27,7 +27,7 @@ import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures.FailureInfo;
-import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 import org.gradle.util.internal.TextUtil;
 import org.objectweb.asm.Type;
@@ -45,7 +45,7 @@ import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptedCallableLink;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptorImplementationLink;
 
-public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentationClassGenerator {
+public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class)
@@ -64,6 +64,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         MethodSpec getInterceptors = generateGetInterceptorsMethod(interceptorTypeSpecs);
 
         return builder -> builder
+            .addModifiers(Modifier.PUBLIC)
             .addTypes(interceptorTypeSpecs)
             .addMethod(getInterceptors);
     }

@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
+import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
@@ -51,7 +51,7 @@ class DependencyManagementProjectScopeServices {
     void configure(ServiceRegistration registration) {
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
-        registration.add(TransformationNodeDependencyResolver.class);
+        registration.add(TransformStepNodeDependencyResolver.class);
     }
 
     /** This is needed in order to get the {@code taskDependencyFactory} from the current project. */

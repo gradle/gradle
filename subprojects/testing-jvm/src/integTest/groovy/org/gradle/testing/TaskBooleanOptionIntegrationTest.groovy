@@ -177,27 +177,27 @@ Type
 Options
      --feature     Opposite option of --no-feature
 
-     --myBooleanObjectOption     Configures boolean option 'myBooleanObjectOption'
-
-     --myBooleanPrimitiveOption     Configures boolean option 'myBooleanPrimitiveOption'
-
-     --myBooleanPropertyOption     Configures Property<Boolean> option 'myBooleanPropertyOption'
-
-     --myFieldOption     Configures boolean option 'myFieldOption'
-
      --no-feature     Configures boolean option 'feature' that is only negated
+
+     --myBooleanObjectOption     Configures boolean option 'myBooleanObjectOption'
 
      --no-myBooleanObjectOption     Disables option --myBooleanObjectOption
 
+     --myBooleanPrimitiveOption     Configures boolean option 'myBooleanPrimitiveOption'
+
      --no-myBooleanPrimitiveOption     Disables option --myBooleanPrimitiveOption
+
+     --myBooleanPropertyOption     Configures Property<Boolean> option 'myBooleanPropertyOption'
 
      --no-myBooleanPropertyOption     Disables option --myBooleanPropertyOption
 
+     --myFieldOption     Configures boolean option 'myFieldOption'
+
      --no-myFieldOption     Disables option --myFieldOption
 
-     --no-propertyFeature     Configures boolean option 'propertyFeature' that is only negated
-
      --propertyFeature     Opposite option of --no-propertyFeature
+
+     --no-propertyFeature     Configures boolean option 'propertyFeature' that is only negated
 
      --rerun     Causes the task to be re-run even if up-to-date.
 

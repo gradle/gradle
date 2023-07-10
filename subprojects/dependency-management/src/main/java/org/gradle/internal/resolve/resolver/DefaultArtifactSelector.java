@@ -18,6 +18,7 @@ package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
@@ -35,15 +36,16 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
+import org.gradle.internal.component.model.VariantArtifactSelectionCandidates;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.VariantWithOverloadAttributes;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
     private final List<OriginArtifactSelector> selectors;
@@ -67,9 +69,9 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, Supplier<Set<? extends VariantResolveMetadata>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-        ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(component, legacyVariants, exclusions);
-        ComponentArtifactResolveVariantState allResolvedVariants = () -> buildResolvedVariants(component, allVariants.get(), exclusions);
+    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+        ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(component, variant.getLegacyVariants(), exclusions);
+        ComponentArtifactResolveVariantState allResolvedVariants = new MemoizingComponentArtifactResolveVariantState(component, variant, exclusions);
 
         for (OriginArtifactSelector selector : selectors) {
             ArtifactSet artifacts = selector.resolveArtifacts(component, allResolvedVariants, legacyResolvedVariants, exclusions, overriddenAttributes);
@@ -106,7 +108,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         );
 
         boolean hasExcludedArtifact = artifactsToResolve.size() < artifacts.size();
-        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifacts);
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifactsToResolve);
 
         if (hasExcludedArtifact) {
             // An ad hoc variant, has no identifier
@@ -139,5 +141,19 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(component.getAttributes(), artifacts);
         return ArtifactSetFactory.adHocVariant(component, artifacts, component.getAttributesSchema(), artifactResolver, attributes, overriddenAttributes);
+    }
+
+    @NonNullApi
+    private class MemoizingComponentArtifactResolveVariantState implements ComponentArtifactResolveVariantState {
+        private final Lazy<Set<ResolvedVariant>> variants;
+
+        public MemoizingComponentArtifactResolveVariantState(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions) {
+            variants = Lazy.locking().of(() -> buildResolvedVariants(component, variant.getAllVariants(), exclusions));
+        }
+
+        @Override
+        public Set<ResolvedVariant> getAllVariants() {
+            return variants.get();
+        }
     }
 }

@@ -18,19 +18,19 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-
+@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "can start Gradle with a JDK that contains symlinks"() {
         // Zulu sets their Java distribution up like this
         def installedJdk = Jvm.current().javaHome
@@ -46,7 +46,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     // This test deletes a JDK installation while the daemon is running.
     // This is difficult to setup on Windows since you can't delete files
     // that are in use.
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @Issue("https://github.com/gradle/gradle/issues/16816")
     def "can successful start after a running daemon's JDK has been removed"() {
         def installedJdk = Jvm.current().javaHome
@@ -68,8 +68,10 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test requires to start Gradle from scratch with the wrong Java version
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
+    @Requires(
+        value = [IntegTestPreconditions.UnsupportedJavaHomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor],
+        reason = "This test requires to start Gradle from scratch with the wrong Java version"
+    )
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         executer.withJavaHome(jdk.javaHome)
@@ -82,7 +84,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "fails when build is configured to use Java #jdk.javaVersion"() {
         given:
         file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)

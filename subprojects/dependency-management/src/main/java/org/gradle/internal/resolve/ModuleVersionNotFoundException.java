@@ -25,6 +25,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -169,6 +170,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     }
 
     @Override
+    @Nonnull
     public List<String> getResolutions() {
         return resolutions;
     }

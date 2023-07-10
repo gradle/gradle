@@ -21,12 +21,12 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.PlatformDetectingTestApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
-@Requires(TestPrecondition.UNIX)
+@Requires(UnitTestPreconditions.Unix)
 @RequiresInstalledToolChain(GCC_COMPATIBLE)
 class InstallExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def testApp = new PlatformDetectingTestApp()

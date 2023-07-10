@@ -16,28 +16,29 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.SmokeTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 /**
  * Smoke test verifying the external plugins.
  *
  */
-@Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
-})
+@Requires([
+    UnitTestPreconditions.Jdk9OrLater,
+    IntegTestPreconditions.NotConfigCached,
+    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
+])
 class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptionSmokeTest implements WithPluginValidation, ValidationMessageChecker {
 
     def setup() {
-        allPlugins.projectPathToBuildDir = {
-            if (it == ':') {
-                'build'
-            } else {
-                "subprojects${it.split(':').join('/')}/build"
-            }
-        }
+        allPlugins.projectPathToBuildDir = new GradleBuildDirLocator()
     }
 
     def "performs static validation of plugins used by the Gradle build"() {
@@ -105,6 +106,39 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
 
         void onPlugin(String id, @DelegatesTo(value = PluginValidation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
             allPlugins.onPlugin(id, projectPath, spec)
+        }
+    }
+
+    private static class GradleBuildDirLocator implements ProjectBuildDirLocator {
+
+        private Map<String, String> subprojects
+
+        @Override
+        TestFile getBuildDir(String projectPath, TestFile projectRoot) {
+            if (projectPath == ':') {
+                return projectRoot.file("build")
+            } else {
+                if (subprojects == null) {
+                    ArrayNode arr = (ArrayNode) projectRoot.file(".teamcity/subprojects.json").withInputStream {
+                        new ObjectMapper().readTree(it)
+                    }
+                    subprojects = [:]
+                    for (int i = 0; i < arr.size(); i++) {
+                        JsonNode node = arr.get(i)
+                        subprojects.put(node.get("name").asText(), node.get("path").asText())
+                    }
+                }
+
+                assert projectPath.startsWith(":")
+                projectPath = projectPath.substring(1)
+                assert !projectPath.contains(":")
+
+                def path = subprojects.get(projectPath)
+                if (path == null) {
+                    throw new IllegalArgumentException("Cannot find build dir for project path '$projectPath'")
+                }
+                return projectRoot.file(path).file("build")
+            }
         }
     }
 }

@@ -36,7 +36,7 @@ public class DefaultPlannedTransformStepIdentity implements PlannedTransformStep
     private final List<Capability> capabilities;
     private final String artifactName;
     private final ConfigurationIdentity dependenciesConfigurationIdentity;
-    private final long transformationNodeId;
+    private final long transformStepNodeId;
 
     public DefaultPlannedTransformStepIdentity(
         String consumerBuildPath,
@@ -48,7 +48,7 @@ public class DefaultPlannedTransformStepIdentity implements PlannedTransformStep
         String artifactName,
         @Nullable
         ConfigurationIdentity dependenciesConfigurationIdentity,
-        long transformationNodeId
+        long transformStepNodeId
     ) {
         this.consumerBuildPath = consumerBuildPath;
         this.consumerProjectPath = consumerProjectPath;
@@ -58,7 +58,7 @@ public class DefaultPlannedTransformStepIdentity implements PlannedTransformStep
         this.capabilities = capabilities;
         this.artifactName = artifactName;
         this.dependenciesConfigurationIdentity = dependenciesConfigurationIdentity;
-        this.transformationNodeId = transformationNodeId;
+        this.transformStepNodeId = transformStepNodeId;
     }
 
     @Override
@@ -108,7 +108,7 @@ public class DefaultPlannedTransformStepIdentity implements PlannedTransformStep
 
     @Override
     public long getTransformStepNodeId() {
-        return transformationNodeId;
+        return transformStepNodeId;
     }
 
     @Override
@@ -120,12 +120,12 @@ public class DefaultPlannedTransformStepIdentity implements PlannedTransformStep
             return false;
         }
         DefaultPlannedTransformStepIdentity that = (DefaultPlannedTransformStepIdentity) o;
-        return transformationNodeId == that.transformationNodeId;
+        return transformStepNodeId == that.transformStepNodeId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(transformationNodeId);
+        return Objects.hash(transformStepNodeId);
     }
 
     @Override

@@ -24,7 +24,6 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -45,15 +44,7 @@ import java.util.Collection;
 public interface ComponentArtifactResolveState {
     ComponentIdentifier getId();
 
-    @Nullable
-    ModuleSources getSources();
-
     ComponentArtifactResolveMetadata getResolveMetadata();
-
-    /**
-     * Returns the state required to resolve artifacts, given a variant that was selected during graph resolution.
-     */
-    VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant);
 
     /**
      * Discovers the set of artifacts belonging to this component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.

@@ -20,6 +20,7 @@ plugins {
 
 dependencies {
     implementation(project(":model-core"))
+    implementation(project(":base-annotations"))
     implementation(project(":base-services"))
 
     implementation(libs.groovy)

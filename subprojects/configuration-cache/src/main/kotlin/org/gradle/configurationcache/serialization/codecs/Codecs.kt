@@ -16,16 +16,17 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
-import org.gradle.api.internal.artifacts.transform.TransformationNode
-import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory
+import org.gradle.api.internal.artifacts.transform.TransformActionScheme
+import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
+import org.gradle.api.internal.artifacts.transform.TransformStepNode
+import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -36,6 +37,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
@@ -43,15 +45,15 @@ import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
-import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
+import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformStepNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ComponentVariantIdentifierCodec
-import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
+import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformCodec
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
-import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformationNodeCodec
-import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformerParametersNodeCodec
+import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformStepNodeCodec
+import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformParametersCodec
+import org.gradle.configurationcache.serialization.codecs.transform.TransformChainCodec
+import org.gradle.configurationcache.serialization.codecs.transform.TransformStepCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformStepSpecCodec
-import org.gradle.configurationcache.serialization.codecs.transform.TransformationChainCodec
-import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedArtifactCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedProjectArtifactSetCodec
@@ -96,7 +98,9 @@ class Codecs(
     propertyFactory: PropertyFactory,
     filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
+    objectFactory: ObjectFactory,
     instantiator: Instantiator,
+    fileSystemOperations: FileSystemOperations,
     listenerManager: ListenerManager,
     val taskNodeFactory: TaskNodeFactory,
     val ordinalGroupFactory: OrdinalGroupFactory,
@@ -105,8 +109,8 @@ class Codecs(
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
     managedFactoryRegistry: ManagedFactoryRegistry,
-    parameterScheme: ArtifactTransformParameterScheme,
-    actionScheme: ArtifactTransformActionScheme,
+    parameterScheme: TransformParameterScheme,
+    actionScheme: TransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
@@ -118,7 +122,7 @@ class Codecs(
     documentationRegistry: DocumentationRegistry,
     javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     flowProviders: FlowProviders,
-    transformationNodeFactory: TransformationNodeFactory,
+    transformStepNodeFactory: TransformStepNodeFactory,
 ) {
     private
     val userTypesBindings: Bindings
@@ -152,11 +156,11 @@ class Codecs(
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ComponentVariantIdentifierCodec)
-            bind(InitialTransformationNodeCodec(transformationNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
-            bind(ChainedTransformationNodeCodec(transformationNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
-            bind(TransformationStepCodec(inputFingerprinter))
-            bind(TransformationChainCodec())
-            bind(DefaultTransformerCodec(fileLookup, actionScheme))
+            bind(InitialTransformStepNodeCodec(transformStepNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
+            bind(ChainedTransformStepNodeCodec(transformStepNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
+            bind(TransformStepCodec(inputFingerprinter))
+            bind(TransformChainCodec())
+            bind(DefaultTransformCodec(fileLookup, actionScheme))
             bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
             bind(TransformStepSpecCodec)
             bind(PublishArtifactLocalArtifactMetadataCodec)
@@ -166,13 +170,13 @@ class Codecs(
             bind(TransformedArtifactCodec(calculatedValueContainerFactory))
             bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, calculatedValueContainerFactory))
             bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
-            bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
+            bind(IsolateTransformParametersCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
             bind(FinalizeTransformDependenciesNodeCodec())
             bind(ResolveArtifactNodeCodec)
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
 
-            bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
+            bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, objectFactory, instantiator, fileSystemOperations))
             bind(DestinationRootCopySpecCodec(fileResolver))
 
             bind(TaskReferenceCodec)
@@ -259,7 +263,7 @@ class Codecs(
         val userTypesCodec = userTypesCodec()
 
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
-        bind(DelegatingCodec<TransformationNode>(userTypesCodec))
+        bind(DelegatingCodec<TransformStepNode>(userTypesCodec))
         bind(ActionNodeCodec(userTypesCodec))
         bind(OrdinalNodeCodec(ordinalGroupFactory))
 
@@ -363,6 +367,8 @@ class Codecs(
         bind(treeMapCodec)
         bind(concurrentHashMapCodec)
         bind(ImmutableMapCodec)
+        bind(propertiesCodec)
+        bind(hashtableCodec)
 
         // Arrays
         bind(BYTE_ARRAY_SERIALIZER)

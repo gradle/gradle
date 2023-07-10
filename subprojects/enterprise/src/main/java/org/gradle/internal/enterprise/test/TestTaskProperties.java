@@ -24,6 +24,8 @@ public interface TestTaskProperties {
 
     long getForkEvery();
 
+    boolean isDryRun();
+
     TestTaskFilters getFilters();
 
     TestTaskForkOptions getForkOptions();

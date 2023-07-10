@@ -172,7 +172,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     /**
      * Collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
-    public DependencyState getState(
+    private DependencyState getState(
         ConfigurationsProvider configurations,
         ImmutableSet<String> hierarchy,
         ComponentIdentifier componentId,
@@ -182,14 +182,14 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
         ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
 
-        for (ConfigurationInternal config : configurations.getAll()) {
+        configurations.visitAll(config -> {
             if (hierarchy.contains(config.getName())) {
                 DependencyState defined = getDefinedState(config, componentId, cache);
                 dependencies.addAll(defined.dependencies);
                 files.addAll(defined.files);
                 excludes.addAll(defined.excludes);
             }
-        }
+        });
 
         return new DependencyState(dependencies.build(), files.build(), excludes.build());
     }

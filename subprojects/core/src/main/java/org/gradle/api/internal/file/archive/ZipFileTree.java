@@ -21,13 +21,14 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.FilePermissions;
+import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
 import java.io.IOException;
@@ -165,15 +166,13 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public int getMode() {
+        public FilePermissions getPermissions() {
             int unixMode = entry.getUnixMode() & 0777;
             if (unixMode != 0) {
-                return unixMode;
+                return new DefaultFilePermissions(unixMode);
             }
-            //no mode infos available - fall back to defaults
-            return isDirectory()
-                ? FileSystem.DEFAULT_DIR_MODE
-                : FileSystem.DEFAULT_FILE_MODE;
+
+            return super.getPermissions();
         }
     }
 }

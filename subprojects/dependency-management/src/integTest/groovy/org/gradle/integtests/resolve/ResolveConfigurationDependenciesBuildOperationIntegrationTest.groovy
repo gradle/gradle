@@ -747,7 +747,13 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
         """
         file("fixtures/src/testFixtures/java/SomeClass.java") << "class SomeClass {}"
-        file("src/test/java/SomeTest.java") << "class SomeClass {}"
+        file("src/test/java/SomeTest.java") <<
+            """
+            public class SomeTest {
+                @org.junit.Test
+                public void test() { }
+            }
+            """
 
         when:
         succeeds ':test'

@@ -147,10 +147,8 @@ public class DependencyInsightReporter {
         if (alreadyReportedErrors.add(failure)) {
             formatter.node(failure.getMessage());
             if(failure instanceof ResolutionProvider){
-                ResolutionProvider resolutionProvider = (ResolutionProvider) failure;
-                resolutionProvider.getResolutions().forEach(resolution -> {
-                    formatter.node(resolution);
-                });
+                ((ResolutionProvider) failure).getResolutions()
+                    .forEach(formatter::node);
             }
             Throwable cause = failure.getCause();
             if (alreadyReportedErrors.contains(cause)) {

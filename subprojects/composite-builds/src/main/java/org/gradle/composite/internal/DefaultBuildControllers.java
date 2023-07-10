@@ -129,7 +129,7 @@ class DefaultBuildControllers implements BuildControllers {
         CompositeStoppable.stoppable(controllers.values()).stop();
     }
 
-    private Comparator<BuildIdentifier> idComparator() {
+    private static Comparator<BuildIdentifier> idComparator() {
         return (id1, id2) -> {
             // Root is always last
             if (id1.equals(DefaultBuildIdentifier.ROOT)) {

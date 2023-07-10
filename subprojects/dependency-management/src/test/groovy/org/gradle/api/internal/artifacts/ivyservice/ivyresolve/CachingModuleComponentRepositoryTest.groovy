@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.AbstractModuleMetadataCache
@@ -64,7 +65,8 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def metadataProcessor = Stub(ComponentMetadataProcessor)
     def listener = Stub(ChangingValueDependencyResolutionListener)
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
-    def repo = new CachingModuleComponentRepository(realRepo, caches, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
+    def resolveStateFactory = DependencyManagementTestUtil.modelGraphResolveFactory()
+    def repo = new CachingModuleComponentRepository(realRepo, caches, resolveStateFactory, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
 
     def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:
@@ -121,7 +123,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         1 * realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, _) >> { id, m, r ->
-            r.resolved(Mock(ModuleComponentResolveMetadata))
+            r.resolved(Stub(ModuleComponentResolveMetadata))
         }
         0 * _
     }

@@ -46,7 +46,6 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
         task.name in listOf(
             "updateInitPluginTemplateVersionFile",
             "resolveAllDependencies",
-            "quickCheck",
         ) -> true
         task.name.endsWith("Wrapper") -> true
         task.name in listOf("docs", "stageDocs", "serveDocs") -> true
@@ -61,6 +60,7 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
             "NativeProjectWithDepsGeneratorTask",
             "CppMultiProjectGeneratorTask",
             "BuildBuilderGenerator",
+            "GenerateSamplePageAsciidoc",
         ) -> true
 
         // Third parties tasks

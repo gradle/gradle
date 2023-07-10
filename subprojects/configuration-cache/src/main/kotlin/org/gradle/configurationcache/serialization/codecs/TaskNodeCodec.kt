@@ -101,10 +101,12 @@ class TaskNodeCodec(
                     writeReasonNotToTrackState(task)
                     beanStateWriterFor(task.javaClass).run {
                         writeStateOf(task)
-                        writeRegisteredPropertiesOf(
-                            task,
-                            this as BeanPropertyWriter
-                        )
+                        withTaskReferencesAllowed {
+                            writeRegisteredPropertiesOf(
+                                task,
+                                this as BeanPropertyWriter
+                            )
+                        }
                     }
                     writeDestroyablesOf(task)
                     writeLocalStateOf(task)
@@ -483,4 +485,16 @@ fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Cla
         task.notCompatibleWithConfigurationCache(incompatibleReason)
     }
     return task
+}
+
+
+private
+inline fun IsolateContext.withTaskReferencesAllowed(action: () -> Unit) {
+    val ownerTask = isolate.owner as IsolateOwner.OwnerTask
+    try {
+        ownerTask.allowTaskReferences = true
+        action()
+    } finally {
+        ownerTask.allowTaskReferences = false
+    }
 }

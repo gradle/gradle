@@ -60,7 +60,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 62 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 63 * 1024
     }
 
     def "generated wrapper scripts for given version from command-line"() {
@@ -77,7 +77,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("a8451eeda314d0568b5340498b36edf147a8f0d692c5ff58082d477abe9146e4")
+        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("0336f591bc0ec9aa0c9988929b93ecc916b3c1d52aed202c7381db144aa0ef15")
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash

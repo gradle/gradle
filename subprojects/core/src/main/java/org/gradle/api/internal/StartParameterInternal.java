@@ -23,6 +23,7 @@ import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.watch.registry.WatchMode;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 
@@ -36,6 +37,7 @@ public class StartParameterInternal extends StartParameter {
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
     private int configurationCacheMaxProblems = 512;
+    private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private boolean searchUpwards = true;
@@ -69,6 +71,7 @@ public class StartParameterInternal extends StartParameter {
         p.isolatedProjects = isolatedProjects;
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
+        p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
@@ -181,6 +184,15 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheMaxProblems(int configurationCacheMaxProblems) {
         this.configurationCacheMaxProblems = configurationCacheMaxProblems;
+    }
+
+    @Nullable
+    public String getConfigurationCacheIgnoredFileSystemCheckInputs() {
+        return configurationCacheIgnoredFileSystemCheckInputs;
+    }
+
+    public void setConfigurationCacheIgnoredFileSystemCheckInputs(@Nullable String configurationCacheIgnoredFileSystemCheckInputs) {
+        this.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
     }
 
     public boolean isConfigurationCacheRecreateCache() {

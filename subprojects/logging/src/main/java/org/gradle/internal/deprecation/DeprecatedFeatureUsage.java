@@ -51,8 +51,8 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
     }
 
     @VisibleForTesting
-    DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, Exception traceException) {
-        super(usage.getSummary(), usage.getCalledFrom(), traceException);
+    DeprecatedFeatureUsage(DeprecatedFeatureUsage usage) {
+        super(usage.getSummary(), usage.getCalledFrom());
         this.removalDetails = usage.removalDetails;
         this.advice = usage.advice;
         this.contextualAdvice = usage.contextualAdvice;

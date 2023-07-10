@@ -21,8 +21,8 @@ automations:
   complex_change:
     if:
       - {{ author.using_gitstream }}
-      - {{ branch | estimatedReviewTime >= 45 }}
-      - {{ files | length >= 20 }}
+      - {{ branch | estimatedReviewTime >= 4 }}
+      - {{ files | length >= 50 }}
       - {{ includes_src_changes }}
     run:
       - action: set-required-approvals@v1
@@ -36,13 +36,16 @@ automations:
 includes_src_changes: {{ files | match(regex=r/.*\/src\//) | some }}
 
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.jvm.members)) or (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.build_scan.members)) }}
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
 
 teams:
   build_scan:
     members:
       - 'alllex'
       - 'wolfs'
+  dev_prod:
+    members:
+      - 'blindpirate'
   execution:
     members:
       - 'asodja'
@@ -50,6 +53,7 @@ teams:
       - 'FrauBoes'
   ide:
     members:
+      - 'hegyibalint'
       - 'donat'
       - 'reinsch82'
   jvm:
