@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache
 
+
+import org.gradle.initialization.StartParameterBuildOptions
+
 class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "configuration inputs are tracked during task graph serialization"() {
@@ -47,7 +50,7 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
             }
         """)
         if (isOptOut) {
-            file("gradle.properties") << "org.gradle.configuration-cache.inputs.unsafe.ignore-in-task-graph-serialization=true"
+            file("gradle.properties") << "$IGNORE_INPUTS_PROPERTY=true"
         }
 
         when:
@@ -76,4 +79,15 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
         true     | _
         false    | _
     }
+
+    def 'switching the opt-out flag should invalidate the configuration cache entry'() {
+        when:
+        configurationCacheRun()
+        configurationCacheRun("-D$IGNORE_INPUTS_PROPERTY=true")
+
+        then:
+        outputContains("the set of ignored configuration inputs has changed")
+    }
+
+    private static final String IGNORE_INPUTS_PROPERTY = StartParameterBuildOptions.ConfigurationCacheIgnoreInputsInTaskGraphSerialization.PROPERTY_NAME
 }
