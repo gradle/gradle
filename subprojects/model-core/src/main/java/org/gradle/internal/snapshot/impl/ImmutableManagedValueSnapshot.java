@@ -21,12 +21,15 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class ImmutableManagedValueSnapshot implements ValueSnapshot {
     private final String className;
+
+    @Nullable
     private final String value;
 
-    public ImmutableManagedValueSnapshot(String className, String value) {
+    public ImmutableManagedValueSnapshot(String className, @Nullable String value) {
         this.className = className;
         this.value = value;
     }
@@ -35,6 +38,7 @@ public class ImmutableManagedValueSnapshot implements ValueSnapshot {
         return className;
     }
 
+    @Nullable
     public String getValue() {
         return value;
     }
@@ -57,18 +61,22 @@ public class ImmutableManagedValueSnapshot implements ValueSnapshot {
             return false;
         }
         ImmutableManagedValueSnapshot other = (ImmutableManagedValueSnapshot) obj;
-        return other.className.equals(className) && other.value.equals(value);
+        return other.className.equals(className) && Objects.equals(other.value, value);
     }
 
     @Override
     public int hashCode() {
-        return className.hashCode() ^ value.hashCode();
+        return className.hashCode() ^ Objects.hashCode(value);
     }
 
     @Override
     public void appendToHasher(Hasher hasher) {
         hasher.putString(className);
-        hasher.putString(value);
+        if (value != null) {
+            hasher.putString(value);
+        } else {
+            hasher.putNull();
+        }
     }
 
     @Override

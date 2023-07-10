@@ -154,7 +154,7 @@ class ConfigurationCacheHost internal constructor(
             val project = projectState.mutableModel
             // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
             buildDirs[project.projectPath]?.let {
-                project.buildDir = it
+                project.layout.buildDirectory.set(it)
             }
             for (child in descriptor.children()) {
                 createProject(child)

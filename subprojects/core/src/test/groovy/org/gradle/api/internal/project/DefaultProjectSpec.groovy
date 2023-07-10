@@ -194,6 +194,8 @@ class DefaultProjectSpec extends Specification {
             createFor(_) >> serviceRegistry
         }
 
+        build.services >> serviceRegistry
+
         def container = Mock(ProjectState)
         _ * container.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
         _ * container.identityPath >> (parent == null ? build.identityPath : build.identityPath.append(parent.projectPath).child(name))

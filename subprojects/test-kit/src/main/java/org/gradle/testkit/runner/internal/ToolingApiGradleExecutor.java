@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
@@ -44,8 +45,8 @@ import org.gradle.tooling.events.task.TaskSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.File;
@@ -63,6 +64,7 @@ import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE;
 import static org.gradle.testkit.runner.TaskOutcome.SKIPPED;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE;
+import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION;
 
 public class ToolingApiGradleExecutor implements GradleExecutor {
 
@@ -111,8 +113,11 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             targetGradleVersion = determineTargetGradleVersion(connection);
             if (targetGradleVersion.compareTo(TestKitFeature.RUN_BUILDS.getSince()) < 0) {
                 throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions %s and later.",
-                    targetGradleVersion.getVersion(), TestKitFeature.RUN_BUILDS.getSince()));
+                    targetGradleVersion.getVersion(), MINIMUM_SUPPORTED_GRADLE_VERSION.getVersion()));
+            } else {
+                checkDeprecationWarning(targetGradleVersion);
             }
+
 
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
 
@@ -130,6 +135,11 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.setEnvironmentVariables(parameters.getEnvironment());
 
             if (!parameters.getInjectedClassPath().isEmpty()) {
+                if (targetGradleVersion.compareTo(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince()) < 0) {
+                    throw new UnsupportedFeatureException("support plugin classpath injection", targetGradleVersion, TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince());
+                } else {
+                    checkDeprecationWarning(targetGradleVersion);
+                }
                 launcher.withInjectedClassPath(parameters.getInjectedClassPath());
             }
 
@@ -165,6 +175,15 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
 
         return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.readAsString(), tasks);
+    }
+
+    private static void checkDeprecationWarning(GradleVersion targetGradleVersion) {
+        if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
+            DeprecationLogger.deprecate(String.format("The version of Gradle you are using (%s) is deprecated with TestKit. TestKit will only support the last 5 major versions in future.",
+                    targetGradleVersion.getVersion()))
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("third_party_integration", "sec:embedding_compatibility");
+        }
     }
 
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {

@@ -18,14 +18,12 @@ package org.gradle.testkit.runner.internal.feature;
 
 import org.gradle.util.GradleVersion;
 
-import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION;
-
 public enum TestKitFeature {
 
-    RUN_BUILDS(MINIMUM_SUPPORTED_GRADLE_VERSION),
-    CAPTURE_BUILD_RESULT_TASKS(MINIMUM_SUPPORTED_GRADLE_VERSION),
-    PLUGIN_CLASSPATH_INJECTION(MINIMUM_SUPPORTED_GRADLE_VERSION),
-    CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG(MINIMUM_SUPPORTED_GRADLE_VERSION);
+    RUN_BUILDS(GradleVersion.version("2.6")),
+    CAPTURE_BUILD_RESULT_TASKS(GradleVersion.version("2.6")),
+    PLUGIN_CLASSPATH_INJECTION(GradleVersion.version("2.8")),
+    CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG(GradleVersion.version("2.9"));
 
     private final GradleVersion since;
 
@@ -36,4 +34,5 @@ public enum TestKitFeature {
     public GradleVersion getSince() {
         return since;
     }
+
 }

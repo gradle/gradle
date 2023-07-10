@@ -56,6 +56,7 @@ data class Packaged<T>(
 internal
 data class LexedScript(
     val comments: List<IntRange>,
+    val annotations: List<IntRange>,
     val topLevelBlocks: List<TopLevelBlock>
 )
 
@@ -68,20 +69,24 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
 
     var packageName: String? = null
     val comments = mutableListOf<IntRange>()
+    val annotations = mutableListOf<IntRange>()
     val topLevelBlocks = mutableListOf<TopLevelBlock>()
 
     var state = State.SearchingTopLevelBlock
     var inTopLevelBlock: TopLevelBlockId? = null
     var blockIdentifier: IntRange? = null
     var blockStart: Int? = null
+    var blockFirstAnnotation: Int? = null
 
     var depth = 0
+    var annotationStart: Int? = null
 
     fun reset() {
         state = State.SearchingTopLevelBlock
         inTopLevelBlock = null
         blockIdentifier = null
         blockStart = null
+        blockFirstAnnotation = null
     }
 
     fun KotlinLexer.matchTopLevelIdentifier(): Boolean {
@@ -92,11 +97,30 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
                     state = State.SearchingBlockStart
                     inTopLevelBlock = topLevelBlock
                     blockIdentifier = tokenStart until tokenEnd
+                    blockFirstAnnotation = annotationStart
                     return true
                 }
             }
         }
         return false
+    }
+
+    fun KotlinLexer.parseAnnotation(): IntRange? {
+        val startIndex = currentPosition
+
+        if (let(kotlinGrammar.fileAnnotation) is ParserResult.Success<*>) {
+            return null; // ignoring file annotation
+        }
+
+        restore(startIndex)
+        if (let(kotlinGrammar.annotation) is ParserResult.Success<*>) {
+            return startIndex.offset until currentPosition.offset
+        }
+
+        restore(startIndex)
+        advance()
+
+        return null
     }
 
     KotlinLexer().apply {
@@ -107,12 +131,30 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
 
                 WHITE_SPACE -> {
                     // ignore
+                    advance()
+                }
+
+                KtTokens.AT -> {
+                    when (state) {
+                        State.SearchingTopLevelBlock -> {
+                            parseAnnotation()?.also {
+                                annotationStart = annotationStart ?: it.start
+                                annotations.add(it)
+                            }
+                        }
+                        else -> {
+                            // ignore
+                            advance()
+                        }
+                    }
+                    // no need to advance, included in annotation parsing
                 }
 
                 in COMMENTS -> {
                     comments.add(
                         tokenStart until tokenEnd
                     )
+                    advance()
                 }
 
                 else -> {
@@ -157,7 +199,8 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
                                             topLevelBlock(
                                                 inTopLevelBlock!!,
                                                 blockIdentifier!!,
-                                                blockStart!!..tokenStart
+                                                blockStart!!..tokenStart,
+                                                blockFirstAnnotation
                                             )
                                         )
                                         reset()
@@ -166,15 +209,16 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
                             }
                         }
                     }
+
+                    annotationStart = null
+                    advance()
                 }
             }
-
-            advance()
         }
     }
     return Packaged(
         packageName,
-        LexedScript(comments, topLevelBlocks)
+        LexedScript(comments, annotations, topLevelBlocks)
     )
 }
 
@@ -207,8 +251,8 @@ fun KotlinLexer.skipWhiteSpaceAndComments() {
 
 
 internal
-fun topLevelBlock(identifier: TopLevelBlockId, identifierRange: IntRange, blockRange: IntRange) =
-    TopLevelBlock(identifier, ScriptSection(identifierRange, blockRange))
+fun topLevelBlock(identifier: TopLevelBlockId, identifierRange: IntRange, blockRange: IntRange, firstAnnotationOnBlock: Int?) =
+    TopLevelBlock(identifier, ScriptSection(identifierRange, blockRange, firstAnnotationOnBlock))
 
 
 internal

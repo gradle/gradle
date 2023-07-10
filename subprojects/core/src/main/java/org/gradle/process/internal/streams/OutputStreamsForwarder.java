@@ -55,13 +55,9 @@ public class OutputStreamsForwarder implements StreamsHandler {
     @Override
     public void start() {
         if (readErrorStream) {
-            executor.execute(wrapInBuildOperation(standardErrorReader));
+            executor.execute(CurrentBuildOperationPreservingRunnable.wrapIfNeeded(standardErrorReader));
         }
-        executor.execute(wrapInBuildOperation(standardOutputReader));
-    }
-
-    private Runnable wrapInBuildOperation(Runnable runnable) {
-        return new CurrentBuildOperationPreservingRunnable(runnable);
+        executor.execute(CurrentBuildOperationPreservingRunnable.wrapIfNeeded(standardOutputReader));
     }
 
     @Override

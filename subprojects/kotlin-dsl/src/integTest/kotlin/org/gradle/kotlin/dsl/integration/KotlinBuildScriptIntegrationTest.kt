@@ -14,6 +14,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import spock.lang.Issue
 
 import java.io.StringWriter
 
@@ -183,6 +184,22 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         buildAndFail("help").apply {
             assertThat(error, containsString("The plugins {} block must not be used here"))
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20131")
+    @Test
+    fun `plugin block processed correctly even when preceded by annotation`() {
+
+        withBuildScript(
+            """
+            @Suppress("DSL_SCOPE_VIOLATION")
+            plugins {
+                id("base")
+            }
+            """
+        )
+
+        build("clean")
     }
 
     @Test

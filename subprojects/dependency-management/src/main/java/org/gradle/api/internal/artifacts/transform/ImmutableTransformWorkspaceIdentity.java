@@ -16,22 +16,21 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
-class ImmutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
+class ImmutableTransformWorkspaceIdentity implements TransformWorkspaceIdentity {
     private final ValueSnapshot inputArtifactPath;
     private final ValueSnapshot inputArtifactSnapshot;
-    private final ValueSnapshot secondaryInputSnapshot;
+    private final ValueSnapshot secondaryInputsSnapshot;
     private final HashCode dependenciesHash;
 
-    public ImmutableTransformWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
+    public ImmutableTransformWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
         this.inputArtifactPath = inputArtifactPath;
         this.inputArtifactSnapshot = inputArtifactSnapshot;
-        this.secondaryInputSnapshot = secondaryInputSnapshot;
+        this.secondaryInputsSnapshot = secondaryInputsSnapshot;
         this.dependenciesHash = dependenciesHash;
     }
 
@@ -40,9 +39,14 @@ class ImmutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
         Hasher hasher = Hashing.newHasher();
         inputArtifactPath.appendToHasher(hasher);
         inputArtifactSnapshot.appendToHasher(hasher);
-        secondaryInputSnapshot.appendToHasher(hasher);
+        secondaryInputsSnapshot.appendToHasher(hasher);
         hasher.putHash(dependenciesHash);
         return hasher.hash().toString();
+    }
+
+    @Override
+    public ValueSnapshot getSecondaryInputsSnapshot() {
+        return secondaryInputsSnapshot;
     }
 
     @Override
@@ -62,7 +66,7 @@ class ImmutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
         if (!inputArtifactSnapshot.equals(that.inputArtifactSnapshot)) {
             return false;
         }
-        if (!secondaryInputSnapshot.equals(that.secondaryInputSnapshot)) {
+        if (!secondaryInputsSnapshot.equals(that.secondaryInputsSnapshot)) {
             return false;
         }
         return dependenciesHash.equals(that.dependenciesHash);
@@ -72,7 +76,7 @@ class ImmutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
     public int hashCode() {
         int result = inputArtifactPath.hashCode();
         result = 31 * result + inputArtifactSnapshot.hashCode();
-        result = 31 * result + secondaryInputSnapshot.hashCode();
+        result = 31 * result + secondaryInputsSnapshot.hashCode();
         result = 31 * result + dependenciesHash.hashCode();
         return result;
     }

@@ -79,7 +79,7 @@
 
             <tr>
                 <td>excludeDirs</td>
-                <td><literal>[project.buildDir, project.file('.gradle')]</literal></td>
+                <td><literal>[project.layout.buildDirectory, project.file('.gradle')]</literal></td>
                 <td/>
             </tr>
             <tr>

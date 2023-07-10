@@ -69,6 +69,7 @@ class InstrumentedInputAccessListener(
     listenerManager: ListenerManager,
     configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
+    private val ignoredConfigurationInputs: IgnoredConfigurationInputs
 ) : Instrumented.Listener {
 
     private
@@ -123,6 +124,9 @@ class InstrumentedInputAccessListener(
 
     override fun fileSystemEntryObserved(file: File, consumer: String) {
         if (Workarounds.canReadFiles(consumer)) {
+            return
+        }
+        if (ignoredConfigurationInputs.isFileSystemCheckIgnoredFor(file)) {
             return
         }
         undeclaredInputBroadcast.fileSystemEntryObserved(file, consumer)

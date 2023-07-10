@@ -18,6 +18,8 @@ package org.gradle.swiftpm.internal;
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentPublication;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
@@ -45,10 +47,9 @@ public class NativeProjectPublication implements ProjectComponentPublication {
         return null;
     }
 
-    @Nullable
     @Override
-    public SoftwareComponentInternal getComponent() {
-        return null;
+    public Provider<SoftwareComponentInternal> getComponent() {
+        return Providers.notDefined();
     }
 
     @Override

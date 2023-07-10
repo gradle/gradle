@@ -1106,7 +1106,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private void ensureSettingsFileAvailable() {
         TestFile workingDir = new TestFile(getWorkingDir());
         TestFile dir = workingDir;
-        while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
+        while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendant(dir)) {
             if (hasSettingsFile(dir) || hasSettingsFile(dir.file("master"))) {
                 return;
             }
