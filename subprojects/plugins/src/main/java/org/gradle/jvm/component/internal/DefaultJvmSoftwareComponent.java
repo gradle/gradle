@@ -17,7 +17,6 @@
 package org.gradle.jvm.component.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConsumableConfiguration;
@@ -117,7 +116,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return sourceSets.create(name);
     }
 
-    private NamedDomainObjectProvider<ConsumableConfiguration> createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, JvmFeatureInternal feature) {
+    private ConsumableConfiguration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, JvmFeatureInternal feature) {
 
         // TODO: Why are we using this non-standard name? For the `java` component, this
         // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
@@ -125,22 +124,23 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // of the component's API?
         String variantName = feature.getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
-        return configurations.consumable(variantName, variant -> {
-            variant.setDescription("List of source directories contained in the Main SourceSet.");
-            variant.setVisible(false);
-            variant.extendsFrom(mainFeature.getImplementationConfiguration());
+        ConsumableConfiguration variant = configurations.consumable(variantName).get();
+        variant.setDescription("List of source directories contained in the Main SourceSet.");
+        variant.setVisible(false);
+        variant.extendsFrom(mainFeature.getImplementationConfiguration());
 
-            variant.attributes(attributes -> {
-                attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.VERIFICATION));
-                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objectFactory.named(VerificationType.class, VerificationType.MAIN_SOURCES));
-            });
-
-            variant.getOutgoing().artifacts(
-                feature.getSourceSet().getAllSource().getSourceDirectories().getElements().flatMap(e -> providerFactory.provider(() -> e)),
-                artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
-            );
+        variant.attributes(attributes -> {
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.VERIFICATION));
+            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objectFactory.named(VerificationType.class, VerificationType.MAIN_SOURCES));
         });
+
+        variant.getOutgoing().artifacts(
+            feature.getSourceSet().getAllSource().getSourceDirectories().getElements().flatMap(e -> providerFactory.provider(() -> e)),
+            artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
+        );
+
+        return variant;
     }
 
     // TODO: This approach is not necessarily correct for non-main features. All publications will attempt to use the main feature's
