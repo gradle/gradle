@@ -33,7 +33,6 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         // Expect
         build("-I", initScript.absolutePath).apply {
             assertOutputContains("Init property value: Hello world")
-            assertOutputContains("Kotlin DSL property assignment is an incubating feature.")
         }
     }
 
@@ -44,7 +43,6 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         // Expect
         build().apply {
             assertOutputContains("Settings property value: Hello world")
-            assertOutputContains("Kotlin DSL property assignment is an incubating feature.")
         }
     }
 
@@ -54,7 +52,7 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         val outputFile = withBuildScriptWithAssignment()
 
         // When
-        val result = build("myTask")
+        build("myTask")
 
         // Then
         assertEquals(
@@ -62,7 +60,6 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
             "Hello world",
             outputFile.readText()
         )
-        result.assertOutputContains("Kotlin DSL property assignment is an incubating feature.")
     }
 
     @Test
