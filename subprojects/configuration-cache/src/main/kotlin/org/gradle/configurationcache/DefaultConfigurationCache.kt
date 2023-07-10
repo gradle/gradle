@@ -336,6 +336,10 @@ class DefaultConfigurationCache internal constructor(
 
         cacheEntryRequiresCommit = true
 
+        if (startParameter.isIgnoreInputsInTaskGraphSerialization) {
+            Instrumented.discardListener()
+        }
+
         buildOperationExecutor.withStoreOperation(cacheKey.string) {
             store.useForStore { layout ->
                 try {

@@ -46,6 +46,9 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
                 outputFile = project.layout.buildDirectory.file("out.txt")
             }
         """)
+        if (isOptOut) {
+            file("gradle.properties") << "org.gradle.configuration-cache.inputs.unsafe.ignore-in-task-graph-serialization=true"
+        }
 
         when:
         configurationCacheRun "myTask"
@@ -59,7 +62,18 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
         configurationCacheRun "myTask"
 
         then: "the cache entry is invalidated because the file system input"
-        configurationCache.assertStateStored()
-        testDirectory.file("build/out.txt").text == "yes"
+        if (!isOptOut) {
+            configurationCache.assertStateStored()
+            testDirectory.file("build/out.txt").text == "yes"
+        } else {
+            // This is incorrect behavior of configuration cache that is a result of using the opt-out flag
+            configurationCache.assertStateLoaded()
+            testDirectory.file("build/out.txt").text == "no"
+        }
+
+        where:
+        isOptOut | _
+        true     | _
+        false    | _
     }
 }
