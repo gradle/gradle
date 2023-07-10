@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -321,38 +320,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         val result = build("classes")
 
         result.assertTaskExecuted(":compileKotlin")
-    }
-
-    @Test
-    fun `kotlin assignment compiler plugin is not applied to production code with opt-out`() {
-        withKotlinDslPlugin()
-        withFile("gradle.properties", "systemProp.${KotlinDslAssignment.ASSIGNMENT_SYSTEM_PROPERTY}=false")
-        withFile(
-            "src/main/kotlin/code.kt",
-            """
-
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-            import org.gradle.api.provider.Property
-            import org.gradle.kotlin.dsl.assign
-
-            data class MyType(val property: Property<String>)
-
-            class MyPlugin : Plugin<Project> {
-                override fun apply(project: Project) {
-                    val myType = MyType(property = project.objects.property(String::class.java))
-                    myType.property = "value"
-                }
-            }
-
-            """
-        )
-
-        buildAndFail("classes").apply {
-            assertHasCause("Compilation error. See log for more details")
-            assertHasErrorOutput("code.kt:13:21 Val cannot be reassigned")
-            assertHasErrorOutput("code.kt:13:39 Type mismatch: inferred type is String but Property<String> was expected")
-        }
     }
 
     private

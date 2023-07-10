@@ -16,10 +16,8 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment.ASSIGNMENT_SYSTEM_PROPERTY
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
@@ -65,111 +63,6 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
             outputFile.readText()
         )
         result.assertOutputContains("Kotlin DSL property assignment is an incubating feature.")
-    }
-
-    @Test
-    fun `cannot use assignment for properties in init scripts when assignment overload is disabled`() {
-        // Given
-        withAssignmentOverload(disabled = true)
-        val initScript = withInitScriptWithAssignment()
-
-        // When
-        val failure = buildAndFail("-I", initScript.absolutePath)
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-    }
-
-    @Test
-    fun `cannot use assignment for properties in settings scripts when assignment overload is disabled`() {
-        // Given
-        withAssignmentOverload(disabled = true)
-        withSettingsWithAssignment()
-
-        // When
-        val failure = buildAndFail()
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-    }
-
-    @Test
-    fun `cannot use assignment for properties in build scripts when assignment overload is disabled`() {
-        // Given
-        withAssignmentOverload(disabled = true)
-        withBuildScriptWithAssignment()
-
-        // When
-        val failure = buildAndFail("myTask")
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-    }
-
-    @Test
-    fun `opt-in flag change is correctly detected for init scripts`() {
-        // Given
-        val initScript = withInitScriptWithAssignment()
-
-        // Then
-        build("-I", initScript.absolutePath)
-
-        // When
-        withAssignmentOverload(disabled = true)
-        val failure = buildAndFail("-I", initScript.absolutePath)
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-
-        // When
-        withAssignmentOverload()
-
-        // Then
-        build("-I", initScript.absolutePath)
-    }
-
-    @Test
-    fun `opt-in flag change is correctly detected for settings scripts`() {
-        // Given
-        withSettingsWithAssignment()
-
-        // When, Then
-        build()
-
-        // When
-        withAssignmentOverload(disabled = true)
-        val failure = buildAndFail()
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-
-        // When
-        withAssignmentOverload()
-
-        // Then
-        build()
-    }
-
-    @Test
-    fun `opt-in flag change is correctly detected for build scripts`() {
-        // Given
-        withBuildScriptWithAssignment()
-
-        // When, Then
-        build("myTask")
-
-        // When
-        withAssignmentOverload(disabled = true)
-        val failure = buildAndFail("myTask")
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-
-        // When
-        withAssignmentOverload()
-
-        // Then
-        build("myTask")
     }
 
     @Test
@@ -242,61 +135,6 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         build("myTask")
     }
 
-    @Test
-    fun `doesn't report assignment is incubating feature when used by third party plugin`() {
-        // Given
-        val pluginDir = File(projectRoot, "plugin")
-        File(pluginDir, "src/main/kotlin").mkdirs()
-        File(pluginDir, "build.gradle.kts").writeText("""
-            plugins {
-                `kotlin-dsl`
-            }
-            repositories {
-                mavenCentral()
-            }
-            """.trimIndent()
-        )
-        File(pluginDir, "settings.gradle.kts").writeText("rootProject.name = \"plugin\"")
-        File(pluginDir, "src/main/kotlin/plugin-with-assignment.gradle.kts").writeText("""
-            abstract class MyTask : DefaultTask() {
-                @get:Input
-                abstract val input: Property<String>
-                @get:OutputFile
-                abstract val output: RegularFileProperty
-
-                @TaskAction
-                fun taskAction() {
-                    output.asFile.get().writeText(input.get())
-                }
-            }
-            tasks.register<MyTask>("myTask") {
-                input = "Hello world"
-                output = file("build/myTask/hello.txt")
-            }
-            """.trimIndent()
-        )
-        executer.inDirectory(pluginDir).withTasks("assemble").run()
-
-        // When
-        withAssignmentOverload(disabled = true)
-        withBuildScript("""
-            buildscript {
-                dependencies { classpath(fileTree(mapOf("dir" to "plugin/build/libs", "include" to "*.jar"))) }
-            }
-            apply(plugin = "plugin-with-assignment")
-            """.trimIndent()
-        )
-        val result = build("myTask")
-
-        // Then
-        assertEquals(
-            "File 'build/myTask/hello.txt' content",
-            "Hello world",
-            File(projectRoot, "build/myTask/hello.txt").readText()
-        )
-        result.assertNotOutput("Kotlin DSL property assignment is an incubating feature.")
-    }
-
     private
     fun withBuildScriptWithAssignment(): File {
         val outputFilePath = "${projectRoot.absolutePath.replace("\\", "/")}/build/myTask/hello-world.txt"
@@ -350,10 +188,5 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
                 println("Init property value: " + container.property.get())
             """.trimIndent()
         )
-    }
-
-    private
-    fun withAssignmentOverload(disabled: Boolean = false) {
-        withFile("gradle.properties", "systemProp.$ASSIGNMENT_SYSTEM_PROPERTY=${!disabled}")
     }
 }

@@ -27,7 +27,6 @@ import java.lang.annotation.Target;
  *
  * @since 8.1
  */
-@Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
