@@ -332,7 +332,7 @@ enum class PerformanceTestType(
     ),
     historical(
         displayName = "Historical Performance Test",
-        timeout = 2280,
+        timeout = 600,
         defaultBaselines = "last",
         channel = "historical",
         extraParameters = "--checks none --cross-version-only"
