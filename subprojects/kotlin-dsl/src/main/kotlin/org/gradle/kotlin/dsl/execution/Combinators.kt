@@ -281,25 +281,27 @@ open class Combinator(
     val ignoresNewline: Boolean
 ) {
 
+    private
+    val memoizedTokenParsers = mutableMapOf<KtToken, Parser<Unit>>()
 
     internal
     fun token(ktToken: KtToken): Parser<Unit> =
-        token(ktToken) { }
+        memoizedTokenParsers.getOrPut(ktToken) { token(ktToken) { } }
 
 
     internal
-    inline fun <T> token(token: KtToken, crossinline f: KotlinLexer.() -> T): Parser<T> {
+    inline fun <T> token(ktToken: KtToken, crossinline f: KotlinLexer.() -> T): Parser<T> {
         return {
             skipWhitespace()
             when (tokenType) {
-                token -> {
+                ktToken -> {
                     ParserResult.Success(f()).also {
                         advance()
                     }
                 }
 
                 else -> {
-                    failure("Expecting token of type $token, but got $tokenType${if (tokenType == IDENTIFIER) " ('$tokenText')" else ""} instead")
+                    failure("Expecting token of type $ktToken, but got $tokenType${if (tokenType == IDENTIFIER) " ('$tokenText')" else ""} instead")
                 }
             }
         }
