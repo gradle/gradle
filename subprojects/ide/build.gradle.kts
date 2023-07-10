@@ -43,6 +43,7 @@ dependencies {
     testFixturesApi(project(":tooling-api")) {
         because("test fixtures export the EclipseWorkspace and EclipseWorkspaceProject classes")
     }
+    testFixturesImplementation(project(":dependency-management"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.groovyXml)
 
