@@ -331,6 +331,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             private boolean isJarSignatureFile(String entryName) {
                 return entryName.startsWith("META-INF/") && entryName.endsWith(".SF");
             }
+
+            @Override
+            public String toString() {
+                return "Policy(legacy)";
+            }
         };
     }
 
@@ -375,6 +380,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             @Override
             public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file) {
                 return owner.new TransformationForAgent(file);
+            }
+
+            @Override
+            public String toString() {
+                return "Policy(agent)";
             }
         };
     }
