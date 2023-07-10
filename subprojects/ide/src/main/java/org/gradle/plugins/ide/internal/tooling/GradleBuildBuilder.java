@@ -104,7 +104,7 @@ public class GradleBuildBuilder implements ToolingModelBuilder, BuildScopeModelB
         }
     }
 
-    private void addProjects(BuildState target, DefaultGradleBuild model) {
+    private static void addProjects(BuildState target, DefaultGradleBuild model) {
         Map<ProjectState, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
 
         ProjectState rootProject = target.getProjects().getRootProject();
@@ -116,7 +116,7 @@ public class GradleBuildBuilder implements ToolingModelBuilder, BuildScopeModelB
         }
     }
 
-    private BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
+    private static BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
         DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().getPath());
         BasicGradleProject converted = new BasicGradleProject()
             .setName(project.getName())

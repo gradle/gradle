@@ -68,6 +68,48 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "includes included builds of buildSrc"() {
+        /**
+         * Build tree:
+         * : (normal build)  // corresponds to a GradleBuild instance
+         *   : (root project under the build with path :)
+         *   :lib (subproject under the build  with path :lib)
+         *   :lib:sub (subproject under the build  with path :lib)
+         * :buildSrc (buildSrc build) // corresponds to a GradleBuild instance
+         * :includedBuild (normal build) // corresponds to a GradleBuild instance
+         * :includedBuild:buildSrc (buildSrc build) // corresponds to a GradleBuild instance
+         * :includedBuild:secondLevelIncudedBuild (normal build) // corresponds to a GradleBuild instance
+         *
+         * getIncludedBuilds(:) returns:
+         * - :includedBuild
+         *
+         * getEditableBuilds(:) returns:
+         *  - :buildSrc
+         *  - :includedBuild
+         *
+         * getIncludedBuilds(:includedBuild) returns:
+         *  - :includedBuild:secondLevelIncudedBuild
+         *
+         *  getEditableBuilds(:includedBuild) returns:
+         *  - :includedBuild:secondLevelIncudedBuild
+         *  - :includedBuild:buildSrc
+         *
+         * :
+         * :buildSrc
+         *   :buildSrcIncluded
+         *     :buildSrcIncluded:buildSrc
+         *
+         * // explicitly included
+         * getIncludedBuilds(:buildSrc) == [
+         *   :buildSrcIncluded
+         * ]
+         *
+         * // implicitly included
+         * getEditableBuilds(:buildSrc) == [
+         *   :buildSrcIncluded
+         *   :buildSrcIncluded:buildSrc
+         * ]
+         */
+
         given:
         buildsWithBuildSrc()
 
