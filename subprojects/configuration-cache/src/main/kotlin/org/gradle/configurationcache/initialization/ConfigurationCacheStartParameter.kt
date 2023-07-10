@@ -69,6 +69,9 @@ class ConfigurationCacheStartParameter(
     val maxProblems: Int
         get() = startParameter.configurationCacheMaxProblems
 
+    val ignoredFileSystemCheckInputs: String?
+        get() = startParameter.configurationCacheIgnoredFileSystemCheckInputs
+
     val isDebug: Boolean
         get() = startParameter.isConfigurationCacheDebug
 

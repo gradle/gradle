@@ -118,6 +118,7 @@ class ConfigurationCacheFingerprintWriter(
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
         val instrumentationAgentUsed: Boolean
+        val ignoredFileSystemCheckInputs: String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode
         fun hashCodeOfDirectoryChildrenNames(file: File): HashCode
@@ -179,7 +180,8 @@ class ConfigurationCacheFingerprintWriter(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
                 host.startParameterProperties,
-                host.instrumentationAgentUsed
+                host.instrumentationAgentUsed,
+                host.ignoredFileSystemCheckInputs
             )
         )
     }
