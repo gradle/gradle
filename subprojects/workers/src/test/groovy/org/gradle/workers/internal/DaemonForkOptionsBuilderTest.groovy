@@ -21,12 +21,12 @@ import spock.lang.Specification
 class DaemonForkOptionsBuilderTest extends Specification {
     def "ignores other options"() {
         expect:
-        !DaemonForkOptionsBuilder.containsUnreliableOptions(["--show-version", "-ea", "pkg.Main"])
+        !DaemonForkOptionsBuilder.findUnreliableArgument(["--show-version", "-ea", "pkg.Main"]).isPresent()
     }
 
     def "recognizes unreliable options in JVM args"() {
         expect:
-        DaemonForkOptionsBuilder.containsUnreliableOptions(options)
+        DaemonForkOptionsBuilder.findUnreliableArgument(options).get() == options[0]
         where:
         options << [
             ["-cp", "/path/to/jar"],
@@ -41,11 +41,13 @@ class DaemonForkOptionsBuilderTest extends Specification {
 
     def "recognizes unreliable option prefixes in JVM args"() {
         expect:
-        DaemonForkOptionsBuilder.containsUnreliableOptions(options)
+        DaemonForkOptionsBuilder.findUnreliableArgument(options).get() == options[0]
         where:
         options << [
             ["-javaagent:/path/to/jar"],
             ["-javaagent", "/path/to/jar"],
+            ["-agentpath:/path/to/jar"],
+            ["-agentpath", "/path/to/jar"],
             ["-Xbootclasspath:/path/to/jar"],
             ["-Xbootclasspath", "path/to/jar"],
             ["-Xbootclasspath/a:/path/to/jar"],

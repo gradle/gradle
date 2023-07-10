@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class DaemonForkOptionsBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DaemonForkOptionsBuilder.class);
@@ -59,8 +60,9 @@ public class DaemonForkOptionsBuilder {
         JavaForkOptionsInternal forkOptions = buildJavaForkOptions();
         if (OperatingSystem.current().isWindows() && keepAliveMode == KeepAliveMode.DAEMON) {
             List<String> jvmArgs = forkOptions.getAllJvmArgs();
-            if (containsUnreliableOptions(jvmArgs)) {
-                LOGGER.info("Worker requested to be persistent, but its JVM arguments may make the worker unreliable. Worker will expire at the end of the build session.");
+            Optional<String> unreliableArgument = findUnreliableArgument(jvmArgs);
+            if (unreliableArgument.isPresent()) {
+                LOGGER.info("Worker requested to be persistent, but the JVM argument '{}' may make the worker unreliable when reused across multiple builds. Worker will expire at the end of the build session.", unreliableArgument.get());
                 return new DaemonForkOptions(forkOptions, KeepAliveMode.SESSION, classLoaderStructure);
             }
         }
@@ -72,10 +74,10 @@ public class DaemonForkOptionsBuilder {
      * we cannot delete files that are held by the worker process.
      *
      * @param jvmArgs JVM arguments to check
-     * @return true if the command-line arguments contain options that could make the worker process unreliable
+     * @return Optional that has the value of the JVM argument that is unreliable or empty if no unreliable arguments were found
      */
     @VisibleForTesting
-    static boolean containsUnreliableOptions(List<String> jvmArgs) {
+    static Optional<String> findUnreliableArgument(List<String> jvmArgs) {
         // This isn't exhaustive because there are more ways that extra files can be provided
         // to the worker through diagnostic options, @files or JAVA_TOOL_OPTIONS.
         List<String> unreliableOptions = Arrays.asList(
@@ -90,22 +92,23 @@ public class DaemonForkOptionsBuilder {
             // bootclasspath can also end with /a or /p
             "-Xbootclasspath",
             // Defining a java agent
-            "-javaagent"
+            "-javaagent",
+            "-agentpath"
         );
 
         for (String jvmArg : jvmArgs) {
             if (jvmArg.startsWith("-")) {
                 if (unreliableOptions.contains(jvmArg)) {
-                    return true;
+                    return Optional.of(jvmArg);
                 }
                 for (String prefix : unreliableOptionPrefixes) {
                     if (jvmArg.startsWith(prefix)) {
-                        return true;
+                        return Optional.of(jvmArg);
                     }
                 }
             }
         }
-        return false;
+        return Optional.empty();
     }
 
     private JavaForkOptionsInternal buildJavaForkOptions() {

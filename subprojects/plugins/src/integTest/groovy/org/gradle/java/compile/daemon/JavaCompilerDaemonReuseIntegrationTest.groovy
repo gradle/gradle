@@ -103,7 +103,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         and:
         outputContains("JavaAgent configured!")
-        result.groupedOutput.task(compileTaskPath('main')).assertOutputContains("Worker requested to be persistent, but its JVM arguments may make the worker unreliable. Worker will expire at the end of the build session.")
+        result.groupedOutput.task(compileTaskPath('main')).assertOutputContains("Worker requested to be persistent, but the JVM argument '-javaagent:${file("javaagent/build/libs/javaagent.jar")}' may make the worker unreliable when reused across multiple builds. Worker will expire at the end of the build session.")
         assertTwoCompilerDaemonsAreRunning()
 
         when:
