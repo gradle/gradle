@@ -7,6 +7,8 @@ It fixes the following issues:
 * [#25579](https://github.com/gradle/gradle/issues/25579) Regression in 8.2: StackOverflowError w/ Gradle 8.2 + Quarkus 2.16.7 (latest)
 * [#25611](https://github.com/gradle/gradle/issues/25611) TestKit unexpectedly stopped working with Gradle 2.x versions
 * [#25618](https://github.com/gradle/gradle/issues/25618) Micronaut JacocoReportAggregationPlugin broken in Gradle 8.2
+* [#25658](https://github.com/gradle/gradle/issues/25658) Gradle 8.2 sets incorrect value to boolean --no-feature option
+* [#25674](https://github.com/gradle/gradle/issues/25674) Address regression in dependency graph build operation results
 
 The release notes also mention a [memory improvement](#sync-memory-consumption) for the IDE sync process that was already present in Gradle 8.2.
 
