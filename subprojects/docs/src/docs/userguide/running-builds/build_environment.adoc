@@ -382,7 +382,7 @@ Otherwise the client VM will fork a new VM to run the actual build in order to h
 Certain tasks, like the `test` task, also fork additional JVM processes. You can configure these through the tasks themselves.
 They all use `-Xmx512m` by default.
 
-.Set Java compile options for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] tasks
+.Set compile options for Java compilation tasks
 ====
 include::sample[dir="snippets/buildEnvironment/javaCompileOptions/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/buildEnvironment/javaCompileOptions/groovy",files="build.gradle[]"]

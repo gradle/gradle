@@ -122,6 +122,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             if (agpVersion.startsWith('7.')) {
                 expectBuildIdentifierNameDeprecation()
             }
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
         }
         def result = runner.buildAndFail()
 

@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.operations.execution.CachingDisabledReasonCategory;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -97,26 +96,26 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
             .map(reasons -> reasons.get(0));
     }
 
-    private static TaskOutputCachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCategory category) {
+    private static CachingDisabledReasonCategory convertNoCacheReasonCategory(org.gradle.internal.execution.caching.CachingDisabledReasonCategory category) {
         switch (category) {
             case UNKNOWN:
-                return TaskOutputCachingDisabledReasonCategory.UNKNOWN;
+                return CachingDisabledReasonCategory.UNKNOWN;
             case BUILD_CACHE_DISABLED:
-                return TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
+                return CachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
             case NOT_CACHEABLE:
-                return TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK;
+                return CachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK;
             case ENABLE_CONDITION_NOT_SATISFIED:
-                return TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
+                return CachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
             case DISABLE_CONDITION_SATISFIED:
-                return TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
+                return CachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
             case NO_OUTPUTS_DECLARED:
-                return TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED;
+                return CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED;
             case NON_CACHEABLE_OUTPUT:
-                return TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
+                return CachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
             case OVERLAPPING_OUTPUTS:
-                return TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS;
+                return CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS;
             case VALIDATION_FAILURE:
-                return TaskOutputCachingDisabledReasonCategory.VALIDATION_FAILURE;
+                return CachingDisabledReasonCategory.VALIDATION_FAILURE;
             default:
                 throw new AssertionError();
         }

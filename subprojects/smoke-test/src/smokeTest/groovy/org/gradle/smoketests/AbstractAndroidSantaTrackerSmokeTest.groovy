@@ -107,6 +107,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 expectBuildIdentifierNameDeprecation()
+                maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
             }.build()
     }
 

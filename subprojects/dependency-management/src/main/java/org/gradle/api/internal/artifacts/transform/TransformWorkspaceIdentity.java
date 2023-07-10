@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.operations.configuration;
+package org.gradle.api.internal.artifacts.transform;
 
-/**
- * Signals whether Project Isolation has been enabled in the build.
- *
- * @since 8.3
- */
-public interface ProjectIsolationSettingsFinalizedProgressDetails {
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
-    /**
-     * Whether Project Isolation is enabled for the build.
-     */
-    boolean isEnabled();
-
+public interface TransformWorkspaceIdentity extends UnitOfWork.Identity {
+    ValueSnapshot getSecondaryInputsSnapshot();
 }

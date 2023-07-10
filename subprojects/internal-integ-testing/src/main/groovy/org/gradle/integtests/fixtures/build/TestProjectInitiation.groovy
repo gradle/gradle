@@ -96,7 +96,24 @@ trait TestProjectInitiation {
         )
     }
 
-    BuildSpec withMultiProject(){
+    BuildSpec withSingleSubproject() {
+        def settings = withSettings("""
+            include("a")
+        """)
+        def a = withBuildScriptIn("a", """
+        """)
+        return new BuildSpec(
+            scripts: [
+                settings: settings,
+                a: a
+            ]
+        )
+    }
+
+    /**
+     * Initializes a new project with <i>Kotlin-based</i> build scripts.
+     */
+    BuildSpec withMultipleSubprojects() {
         def settings = withSettings("""
             include("a", "b")
         """)
@@ -249,7 +266,7 @@ trait TestProjectInitiation {
         getBuildFileKts()
     }
 
-    TestFile getSettingsKotlinFile(){
+    TestFile getSettingsKotlinFile() {
         getSettingsFileKts()
     }
 
@@ -261,7 +278,7 @@ trait TestProjectInitiation {
         file(settingsKotlinFileName)
     }
 
-     String getSettingsFileName() {
+    String getSettingsFileName() {
         'settings.gradle'
     }
 

@@ -120,7 +120,7 @@ class ConfigurationCacheFingerprintWriter(
         val instrumentationAgentUsed: Boolean
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode
-        fun hashCodeOfDirectoryContent(file: File): HashCode
+        fun hashCodeOfDirectoryChildrenNames(file: File): HashCode
         fun displayNameOf(file: File): String
         fun reportProblem(exception: Throwable? = null, documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder)
         fun reportInput(input: PropertyProblem)
@@ -792,7 +792,7 @@ class ConfigurationCacheFingerprintWriter(
             if (!capturedDirectories.add(file)) {
                 return
             }
-            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOfDirectoryContent(file)))
+            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOfDirectoryChildrenNames(file)))
         }
 
         fun captureRemoteScript(uri: URI) {
