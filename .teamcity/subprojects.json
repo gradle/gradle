@@ -28,6 +28,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "base-ide-plugins",
+    "path": "platforms/ide/base-ide-plugins",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "base-services",
     "path": "subprojects/base-services",
     "unitTests": true,

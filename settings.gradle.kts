@@ -149,6 +149,7 @@ unassigned {
 
 // IDE Platform
 platform("ide") {
+    subproject("base-ide-plugins")
     subproject("ide-plugins")
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,7 +176,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    public void ipr(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
+    public void ipr(@SuppressWarnings("rawtypes") @DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         configure(closure, ipr);
     }
 

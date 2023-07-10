@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
+
 plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Plugins that add support for generating IDE project files used for importing Gradle projects into IDEs"
+description = "Basic components required by the IDE plugins project"
 
 dependencies {
     implementation(project(":base-services"))
-    implementation(project(":base-ide-plugins"))
     implementation(project(":core"))
     implementation(project(":core-api"))
     implementation(project(":dependency-management"))
-    implementation(project(":ear"))
     implementation(project(":file-collections"))
     implementation(project(":ide"))
     implementation(project(":logging"))
     implementation(project(":model-core"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins"))
-    implementation(project(":scala"))
-    implementation(project(":testing-base"))
-    implementation(project(":tooling-api"))
-    implementation(project(":war"))
+    implementation(project(":process-services"))
 
     implementation(libs.commonsLang)
     implementation(libs.groovy)
@@ -44,14 +38,13 @@ dependencies {
     implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":ide")))
 
-    testRuntimeOnly(project(":distributions-jvm")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 }
 
 packageCycles {
-    excludePatterns.add("org/gradle/plugins/ide/idea/**")
+    excludePatterns.add("org/gradle/plugins/ide/idea/internal/**")
+    excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/**")
 }

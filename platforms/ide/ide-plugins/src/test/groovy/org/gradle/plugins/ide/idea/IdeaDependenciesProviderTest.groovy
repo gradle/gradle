@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.idea.model.internal
+package org.gradle.plugins.ide.idea
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
+import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+import spock.lang.Specification
 
 class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     private ProjectInternal childProject
@@ -36,7 +37,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         artifactRegistry = Stub(IdeArtifactRegistry)
         dependenciesProvider = new IdeaDependenciesProvider(project, artifactRegistry, NullGradleApiSourcesResolver.INSTANCE)
 
-        _ * artifactRegistry.getIdeProject(_, _) >> { Class c, def m ->
+        Specification._ * artifactRegistry.getIdeProject(Specification._, Specification._) >> { Class c, def m ->
             return Stub(c)
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public abstract class IdeaModel {
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
      */
-    public void module(@DelegatesTo(IdeaModule.class) Closure closure) {
+    public void module(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaModule.class) Closure closure) {
         configure(closure, getModule());
     }
 
@@ -102,7 +102,7 @@ public abstract class IdeaModel {
     /**
      * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
      */
-    public void project(@DelegatesTo(IdeaProject.class) Closure closure) {
+    public void project(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaProject.class) Closure closure) {
         configure(closure, getProject());
     }
 
@@ -117,7 +117,7 @@ public abstract class IdeaModel {
     /**
      * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
      */
-    public void workspace(@DelegatesTo(IdeaWorkspace.class) Closure closure) {
+    public void workspace(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaWorkspace.class) Closure closure) {
         configure(closure, getWorkspace());
     }
 

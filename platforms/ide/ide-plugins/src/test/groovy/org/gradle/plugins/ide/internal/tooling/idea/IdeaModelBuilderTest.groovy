@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.gradle.plugins.ide.internal.tooling.IdeaModelBuilder
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Specification
 
 class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     Project child1
@@ -288,7 +289,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     private IdeaModelBuilder createIdeaModelBuilder() {
         def gradleProjectBuilder = Mock(GradleProjectBuilder)
-        gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)
+        gradleProjectBuilder.buildAll(Specification._) >> Mock(DefaultGradleProject)
         new IdeaModelBuilder(gradleProjectBuilder)
     }
 
