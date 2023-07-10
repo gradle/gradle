@@ -23,6 +23,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -50,7 +51,11 @@ public class Resources implements MethodRule {
      *
      * This is a {@code static} because of how JUnit handles instantiating the test class, to avoid extracting the same
      * jar multiple times per test class.
+     *
+     * This still needs to synchronize on itself to work when running on CI, otherwise various tests will fail with: "Caused
+     * by: java.io.FileNotFoundException: File system element for parameter 'source' does not exist."
      */
+    @GuardedBy("self")
     private final static Map<String, File> EXTRACTED_JARS = new ConcurrentHashMap<>();
     private final TestDirectoryProvider testDirectoryProvider;
 
@@ -118,13 +123,15 @@ public class Resources implements MethodRule {
         final File outputDir = testDirectoryProvider.getTestDirectory().getParentFile().createDir(EXTRACTED_RESOURCES_DIR, jarFileName);
 
         final String extractionKey = testClass.getName() + ":" + jarFilePath;
-        EXTRACTED_JARS.computeIfAbsent(extractionKey, k -> {
-            try {
-                return extractJarContents(jarFilePath, outputDir);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        synchronized (EXTRACTED_JARS) {
+            EXTRACTED_JARS.computeIfAbsent(extractionKey, k -> {
+                try {
+                    return extractJarContents(jarFilePath, outputDir);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
 
         String pathWithinJar = resourceUrl.getPath().substring(indexOfJarSeparator + 2);
         return new TestFile(new File(outputDir, pathWithinJar));
