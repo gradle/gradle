@@ -104,6 +104,8 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     @Deprecated
     NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action);
 
+    NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableUnlocked(String name);
+
     /**
      * If a configuration with the given name already exists, configure it with the given action and return it.
      * Otherwise, register a new resolvable configuration with the given name and configure it with the given action.
@@ -115,6 +117,9 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * Otherwise, register a new consumable configuration with the given name and configure it with the given action.
      */
     NamedDomainObjectProvider<? extends Configuration> maybeRegisterConsumableUnlocked(String name, Action<? super Configuration> action);
+
+
+    NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name);
 
     /**
      * If a configuration with the given name already exists, configure it with the given action and return it.
@@ -139,6 +144,10 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
     NamedDomainObjectProvider<? extends Configuration> maybeRegisterMigratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action);
+
+
+    @Deprecated
+    NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableDependencyScopeUnlocked(String name);
 
     /**
      * If a configuration with the given name already exists, configure it with the given action and return it.

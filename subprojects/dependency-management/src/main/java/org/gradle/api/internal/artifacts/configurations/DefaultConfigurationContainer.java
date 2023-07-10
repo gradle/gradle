@@ -246,6 +246,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
+    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableUnlocked(String name) {
+        return maybeRegisterResolvableUnlocked(name, Actions.doNothing());
+    }
+
+    @Override
     public NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableUnlocked(String name, Action<? super Configuration> action) {
         if (!hasWithName(name)) {
             return resolvableUnlocked(name, action);
@@ -263,6 +268,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
         emitConfigurationExistsDeprecation(name);
         return named(name, action);
+    }
+
+    @Override
+    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name) {
+        return maybeRegisterDependencyScopeUnlocked(name, true, Actions.doNothing());
     }
 
     @Override
@@ -290,6 +300,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
         emitConfigurationExistsDeprecation(name);
         return named(name, action);
+    }
+
+    @Override
+    @Deprecated
+    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableDependencyScopeUnlocked(String name) {
+        return maybeRegisterResolvableDependencyScopeUnlocked(name, Actions.doNothing());
     }
 
     @Override
