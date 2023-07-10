@@ -36,7 +36,7 @@ public class ExecOutputHandleRunner implements Runnable {
     private final int bufferSize;
     private final CountDownLatch completed;
     private volatile boolean closed;
-    private volatile BuildOperationRef startupRef;
+    private volatile BuildOperationRef associatedBuildOperation;
 
     public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
         this(displayName, inputStream, outputStream, 8192, completed);
@@ -50,8 +50,12 @@ public class ExecOutputHandleRunner implements Runnable {
         this.completed = completed;
     }
 
-    public void setStartupRef(BuildOperationRef startupRef) {
-        this.startupRef = startupRef;
+    public void associateBuildOperation(BuildOperationRef startupRef) {
+        this.associatedBuildOperation = startupRef;
+    }
+
+    public void clearAssociatedBuildOperation() {
+        this.associatedBuildOperation = null;
     }
 
     @Override
@@ -71,7 +75,7 @@ public class ExecOutputHandleRunner implements Runnable {
                 if (nread < 0) {
                     break;
                 }
-                BuildOperationRef startupRef = this.startupRef;
+                BuildOperationRef startupRef = this.associatedBuildOperation;
                 if (startupRef != null) {
                     CurrentBuildOperationRef.instance().with(startupRef, () -> {
                         writeBuffer(buffer, nread);

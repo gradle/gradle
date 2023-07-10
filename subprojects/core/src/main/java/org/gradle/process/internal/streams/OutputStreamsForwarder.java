@@ -55,18 +55,18 @@ public class OutputStreamsForwarder implements StreamsHandler {
     @Override
     public void start() {
         if (readErrorStream) {
-            standardErrorReader.setStartupRef(CurrentBuildOperationRef.instance().get());
+            standardErrorReader.associateBuildOperation(CurrentBuildOperationRef.instance().get());
             executor.execute(standardErrorReader);
         }
-        standardOutputReader.setStartupRef(CurrentBuildOperationRef.instance().get());
+        standardOutputReader.associateBuildOperation(CurrentBuildOperationRef.instance().get());
         executor.execute(standardOutputReader);
     }
 
     @Override
     public void removeStartupContext() {
-        standardOutputReader.setStartupRef(null);
+        standardOutputReader.clearAssociatedBuildOperation();
         if (readErrorStream) {
-            standardErrorReader.setStartupRef(null);
+            standardErrorReader.clearAssociatedBuildOperation();
         }
     }
 
