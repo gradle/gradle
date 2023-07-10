@@ -16,10 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Attribute;
@@ -27,13 +25,11 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationVariantIdentityUniquenessVerifier;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.attributes.DefaultCompatibilityRuleChain;
 import org.gradle.api.internal.attributes.DefaultDisambiguationRuleChain;
 import org.gradle.api.internal.file.FileResolver;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -60,31 +56,31 @@ public final class ConfigurationReportModelFactory {
         final List<ReportAttribute> attributesWithCompatibilityRules = scanner.getAttributesWithCompatibilityRules();
         final List<ReportAttribute> attributesWithDisambiguationRules = scanner.getAttributesWithDisambiguationRules();
 
-        final Map<String, GradleException> identityCollisions =
-            ConfigurationVariantIdentityUniquenessVerifier.verifyUniqueness((ConfigurationsProvider) project.getConfigurations(), false);
         final Map<String, ReportConfiguration> convertedConfigurations = new HashMap<>(project.getConfigurations().size());
-        for (Configuration configuration : project.getConfigurations()) {
-            getOrConvert(configuration, project, convertedConfigurations, identityCollisions);
-        }
+        project.getConfigurations().stream()
+            .map(ConfigurationInternal.class::cast)
+            .forEach(configuration -> getOrConvert(configuration, project, convertedConfigurations));
 
         return new ConfigurationReportModel(project.getName(),
             convertedConfigurations.values().stream().sorted(Comparator.comparing(ReportConfiguration::getName)).collect(Collectors.toList()),
             attributesWithCompatibilityRules, attributesWithDisambiguationRules);
     }
 
-    private ReportConfiguration getOrConvert(Configuration configuration, Project project, Map<String, ReportConfiguration> convertedConfigurations, Map<String, GradleException> identityCollisions) {
+    private ReportConfiguration getOrConvert(ConfigurationInternal configuration, Project project, Map<String, ReportConfiguration> convertedConfigurations) {
         return computeIfAbsentExternal(convertedConfigurations, configuration.getName(), name -> {
             final List<ReportConfiguration> extendedConfigurations = new ArrayList<>(configuration.getExtendsFrom().size());
-            for (Configuration c : configuration.getExtendsFrom()) {
-                extendedConfigurations.add(getOrConvert(c, project, convertedConfigurations, identityCollisions));
-            }
+            configuration.getExtendsFrom().stream()
+                .map(ConfigurationInternal.class::cast)
+                .forEach(c -> extendedConfigurations.add(getOrConvert(c, project, convertedConfigurations)));
 
-            GradleException collision = identityCollisions.get(configuration.getName());
-            return convertConfiguration(configuration, project, fileResolver, extendedConfigurations, collision);
+            return convertConfiguration(configuration, project, fileResolver, extendedConfigurations);
         });
     }
 
-    private ReportConfiguration convertConfiguration(Configuration configuration, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations, @Nullable GradleException collision) {
+    private ReportConfiguration convertConfiguration(ConfigurationInternal configuration, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations) {
+        // Important to lock the config prior to extracting the attributes, as some attributes, such as TargetJvmVersion, are actually added by this locking process
+        List<? extends GradleException> lenientErrors = configuration.preventFromFurtherMutationLenient();
+
         final List<ReportAttribute> attributes = configuration.getAttributes().keySet().stream()
             .map(a -> convertAttributeInContainer(a, configuration.getAttributes(), project.getDependencies().getAttributesSchema()))
             .sorted(Comparator.comparing(ReportAttribute::getName))
@@ -120,11 +116,6 @@ public final class ConfigurationReportModelFactory {
             type = ReportConfiguration.Type.CONSUMABLE;
         } else {
             type = null;
-        }
-
-        List<GradleException> lenientErrors = ImmutableList.of();
-        if (collision != null) {
-            lenientErrors = ImmutableList.of(collision);
         }
 
         return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, new ArrayList<>(lenientErrors),

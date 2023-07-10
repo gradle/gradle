@@ -46,12 +46,6 @@ public interface LocalComponentMetadata extends ComponentResolveMetadata, Compon
     void reevaluate();
 
     /**
-     * Ensure all variants for graph traversal have a unique identity
-     * in terms of their attributes and capabilities.
-     */
-    void verifyVariantIdentityUniqueness();
-
-    /**
      * Returns if the configuration with the given name has been realized.
      */
     @VisibleForTesting

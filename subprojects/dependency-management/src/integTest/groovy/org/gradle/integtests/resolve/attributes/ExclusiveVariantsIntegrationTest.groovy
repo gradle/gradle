@@ -76,7 +76,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("resolveSample")
-        failure.assertHasDocumentedCause("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample1' and [configuration ':sample2'] contain identical attribute sets. " +
+        failure.assertHasDocumentedCause("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets. " +
             "Consider adding an additional attribute to one of the configurations to disambiguate them.  " +
             "Run the 'outgoingVariants' task for more details. ${documentationRegistry.getDocumentationRecommendationFor("information", "upgrading_version_7", "unique_attribute_sets")}")
 
@@ -167,7 +167,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         succeeds("outgoingVariants")
         expect:
-        outputContains("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample1' and [configuration ':sample2'] contain identical attribute sets.")
+        outputContains("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets.")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
 

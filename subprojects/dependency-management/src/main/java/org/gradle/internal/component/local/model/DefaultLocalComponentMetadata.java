@@ -18,12 +18,10 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationVariantIdentityUniquenessVerifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
@@ -148,11 +146,6 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
         return configurationFactory.getConfigurationNames();
     }
 
-    @Override
-    public void verifyVariantIdentityUniqueness() {
-        configurationFactory.verifyVariantIdentityUniqueness();
-    }
-
     /**
      * For a local project component, the `variantsForGraphTraversal` are any _consumable_ configurations that have attributes defined.
      */
@@ -160,11 +153,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
     public synchronized Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
             ImmutableList.Builder<VariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
-
-            // This realizes all configuration in the project, even non-consumable ones, and can be quite expensive.
-            verifyVariantIdentityUniqueness();
             configurationFactory.visitConfigurations(candidate -> {
-                candidate.markObserved();
                 if (candidate.isConsumable() && candidate.hasAttributes()) {
                     builder.add(getConfiguration(candidate.getName()));
                 }
@@ -236,12 +225,6 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
         void invalidate();
 
         /**
-         * Ensure all variants for graph traversal have a unique identity
-         * in terms of their attributes and capabilities.
-         */
-        void verifyVariantIdentityUniqueness();
-
-        /**
          * Produces a configuration metadata instance from the configuration with the given {@code name}.
          *
          * @return Null if the configuration with the given name does not exist.
@@ -258,12 +241,6 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
             boolean isConsumable();
 
             boolean hasAttributes();
-
-            /**
-             * Mark this configuration as observed, meaning it has been considered by the dependency
-             * management engine, and should no longer be modified.
-             */
-            void markObserved();
         }
     }
 
@@ -301,22 +278,12 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
                     public boolean hasAttributes() {
                         return !configuration.getAttributes().isEmpty();
                     }
-
-                    @Override
-                    public void markObserved() {
-                        // Do nothing. These configuration metadata are immutable.
-                    }
                 });
             }
         }
 
         @Override
         public void invalidate() {}
-
-        @Override
-        public void verifyVariantIdentityUniqueness() {
-            // This is verified upon serialization by CC.
-        }
 
         @Override
         public LocalConfigurationMetadata getConfiguration(
@@ -376,11 +343,6 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
                     public boolean hasAttributes() {
                         return !configuration.getAttributes().isEmpty();
                     }
-
-                    @Override
-                    public void markObserved() {
-                        configuration.preventFromFurtherMutation();
-                    }
                 });
             });
         }
@@ -388,14 +350,6 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
         @Override
         public void invalidate() {
             cache.invalidate();
-        }
-
-        @Override
-        public void verifyVariantIdentityUniqueness() {
-            Map<String, GradleException> collisions = ConfigurationVariantIdentityUniquenessVerifier.verifyUniqueness(configurationsProvider, true);
-            if (!collisions.isEmpty()) {
-                throw collisions.values().iterator().next();
-            }
         }
 
         @Override
