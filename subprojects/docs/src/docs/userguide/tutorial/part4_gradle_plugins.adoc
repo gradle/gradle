@@ -33,10 +33,11 @@ Learn about how Plugins extend Gradle's capabilities and use a popular plugin.
 3. You learned about dependency management in <<part3_gradle_dep_man#part3_begin,part 3>>.
 
 == Step 1. Understanding Plugins
-Plugins are the primary method of distributing custom tasks as packaged code.
-They use the Gradle API to provide additional functionality and extend Gradle's core features.
+Plugins are the primary method to organize build logic and reuse build logic within a project.
 
-Applying a plugin to a project executes code that can create tasks, configure properties, and otherwise extend the project's capabilities.
+Plugins are also used to distribute custom tasks as packaged code.
+
+Applying a plugin to a project executes code that can create tasks, configure properties, and otherwise extend the project's capabilities. Generally, plugins use the Gradle API to provide additional functionality and extend Gradle's core features.
 
 Plugins can:
 
@@ -193,15 +194,19 @@ You can also view the files in your Maven Local directory: `.m2/repository/org/g
 ----
 
 == Step 5. Exploring Plugins
-Plugin authors can either keep their plugins private or distribute them to the public.
+Plugins are used to extend build capability and customize Gradle.
+They can be distributed publicly or privately.
 
-As such, there are three types of plugins:
+Gradle highly recommends the use of **Convention plugins**.
+link:../samples/sample_convention_plugins.html[Convention plugins] are used to share build logic between subprojects (modules).
+Users can wrap common logic in a Convention plugin; for example, a code coverage plugin used as a convention plugin can survey code coverage for the entire project, not just a specific subproject.
+
+Plugin authors can either keep their plugins private or distribute them to the public. Plugins are distributed three ways:
 
 1. **Core plugins** - Gradle develops and maintains a set of Gradle <<plugin_reference#plugin_reference,Core Plugins>>.
 2. **Community plugins** - Gradle has a community of plugin developers who contribute plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
-3. **Custom plugins** - Gradle enables user to create custom plugins, that are typically private, to modify the build process beyond the standard Gradle configuration.
+3. **Custom plugins** - Gradle enables user to create custom plugins using APIs that can be used and/or shared privately.
 
-Custom plugins are the recommended way to extend build capability and customize Gradle.
 
 [.text-right]
 **Next Step:** <<part5_gradle_inc_builds.adoc#part5_begin,Exploring Incremental Builds>> >>
