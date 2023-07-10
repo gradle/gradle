@@ -64,7 +64,7 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
         testDirectory.file("test").createNewFile()
         configurationCacheRun "myTask"
 
-        then: "the cache entry is invalidated because the file system input"
+        then: "the cache entry is invalidated because of the file system input"
         if (!isOptOut) {
             configurationCache.assertStateStored()
             testDirectory.file("build/out.txt").text == "yes"
