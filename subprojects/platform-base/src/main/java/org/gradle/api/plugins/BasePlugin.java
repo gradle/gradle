@@ -100,7 +100,7 @@ public abstract class BasePlugin implements Plugin<Project> {
             "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
         );
 
-        configurations.configureEach(configuration -> {
+        configurations.all(configuration -> {
             if (!configuration.equals(archivesConfiguration)) {
                 configuration.getArtifacts().configureEach(artifact -> {
                     if (configuration.isVisible()) {
