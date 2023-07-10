@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 
 class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
-    def "startup failure messages from a compiler daemon are NOT associated with the task that starts it"() {
+    def "startup failure messages from a compiler daemon are associated with the task that starts it"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
         buildFile << """
