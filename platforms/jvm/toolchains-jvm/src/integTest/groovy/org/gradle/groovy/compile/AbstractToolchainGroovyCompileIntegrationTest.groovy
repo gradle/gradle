@@ -16,7 +16,6 @@
 
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.GroovyCoverage
