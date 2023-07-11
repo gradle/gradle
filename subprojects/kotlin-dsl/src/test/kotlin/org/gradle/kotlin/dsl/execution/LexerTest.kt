@@ -97,15 +97,8 @@ class LexerTest {
 
         assertThat(
             lex(
-                "kuku@ plugins.withType<GroovyBasePlugin> {\n" +
-                    "    the<SourceSetContainer>().all {\n" +
-                    "        tasks.register<Checkstyle>(getTaskName(\"checkstyle\", \"groovy\")) {\n" +
-                    "            config = configFile(\"checkstyle-groovy.xml\")\n" +
-                    "            source(allGroovy)\n" +
-                    "            classpath = compileClasspath\n" +
-                    "            reports.xml.outputLocation = checkstyle.reportsDir.resolve(\"\${this@all.name}-groovy.xml\")\n" +
-                    "        }\n" +
-                    "    }\n" +
+                "plugins.withType<GroovyBasePlugin> {\n" +
+                    "   print(\"\${this@all.name}-groovy.xml\")\n" +
                     "}",
                 buildscript, plugins
             ),
