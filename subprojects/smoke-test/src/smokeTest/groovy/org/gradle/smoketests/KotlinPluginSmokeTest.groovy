@@ -171,10 +171,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
 
-        assumeFalse(kotlinVersion.startsWith("1.3."))
-        assumeFalse(kotlinVersion.startsWith("1.4."))
-        assumeFalse(kotlinVersion.startsWith("1.5."))
         assumeFalse(kotlinVersion.startsWith("1.6."))
+        assumeFalse(kotlinVersion.startsWith("1.7."))
 
         given:
         buildFile << """
