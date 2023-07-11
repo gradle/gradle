@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -134,7 +135,11 @@ public class Resources implements MethodRule {
         }
 
         String pathWithinJar = resourceUrl.getPath().substring(indexOfJarSeparator + 2);
-        return new TestFile(new File(outputDir, pathWithinJar));
+        TestFile result =  new TestFile(new File(outputDir, pathWithinJar));
+        if (!result.exists()) {
+            throw new RuntimeException("Resource " + result + " doesn't exist!\nExtracted jar contents:\n" + String.join("\n", EXTRACTED_JARS.keySet()));
+        }
+        return result;
     }
 
     private File extractJarContents(String sourceJarPath, File destDir) throws IOException {
