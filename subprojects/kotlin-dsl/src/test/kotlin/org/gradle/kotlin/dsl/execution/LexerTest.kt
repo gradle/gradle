@@ -93,6 +93,36 @@ class LexerTest {
     }
 
     @Test
+    fun `skips annotation parsing inside blocks`() {
+
+        assertThat(
+            lex(
+                "kuku@ plugins.withType<GroovyBasePlugin> {\n" +
+                    "    the<SourceSetContainer>().all {\n" +
+                    "        tasks.register<Checkstyle>(getTaskName(\"checkstyle\", \"groovy\")) {\n" +
+                    "            config = configFile(\"checkstyle-groovy.xml\")\n" +
+                    "            source(allGroovy)\n" +
+                    "            classpath = compileClasspath\n" +
+                    "            reports.xml.outputLocation = checkstyle.reportsDir.resolve(\"\${this@all.name}-groovy.xml\")\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "}",
+                buildscript, plugins
+            ),
+            equalTo(
+                Packaged(
+                    null,
+                    LexedScript(
+                        listOf(),
+                        listOf(),
+                        listOf()
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
     fun `extracts package name`() {
         assertThat(
             lex("\n" +
