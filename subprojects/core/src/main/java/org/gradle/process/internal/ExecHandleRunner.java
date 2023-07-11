@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import java.util.concurrent.Executor;
@@ -37,16 +38,21 @@ public class ExecHandleRunner implements Runnable {
     private Process process;
     private boolean aborted;
     private final StreamsHandler streamsHandler;
+    private BuildOperationRef associatedBuildOperation;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor) {
-        this.processLauncher = processLauncher;
-        this.executor = executor;
+    public ExecHandleRunner(
+        DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor,
+        BuildOperationRef associatedBuildOperation
+    ) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
-        this.streamsHandler = streamsHandler;
-        this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
+        this.streamsHandler = streamsHandler;
+        this.processLauncher = processLauncher;
+        this.executor = executor;
+        this.associatedBuildOperation = associatedBuildOperation;
+        this.processBuilderFactory = new ProcessBuilderFactory();
     }
 
     public void abortProcess() {
@@ -68,6 +74,8 @@ public class ExecHandleRunner implements Runnable {
 
     @Override
     public void run() {
+        BuildOperationRef original = CurrentBuildOperationRef.instance().get();
+        CurrentBuildOperationRef.instance().set(this.associatedBuildOperation);
         try {
             startProcess();
 
@@ -80,13 +88,20 @@ public class ExecHandleRunner implements Runnable {
                 streamsHandler.stop();
                 detached();
             } else {
-                CurrentBuildOperationRef.instance().clear();
+                if (execHandle.isPersistent()) {
+                    // Drop the reference to the build operation so that it can be garbage collected
+                    // We don't want to retain this information when it won't be relevant anymore
+                    CurrentBuildOperationRef.instance().clear();
+                    this.associatedBuildOperation = null;
+                }
                 int exitValue = process.waitFor();
                 streamsHandler.stop();
                 completed(exitValue);
             }
         } catch (Throwable t) {
             execHandle.failed(t);
+        } finally {
+            CurrentBuildOperationRef.instance().set(original);
         }
     }
 

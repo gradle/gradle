@@ -24,7 +24,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
 
@@ -92,7 +92,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final boolean redirectErrorStream;
     private final ProcessLauncher processLauncher;
     private int timeoutMillis;
-    private boolean daemon;
+    private ExecHandleKind execHandleKind;
 
     /**
      * Lock to guard all mutable state
@@ -122,7 +122,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
-                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
+                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, ExecHandleKind execHandleKind,
                       Executor executor, BuildCancellationToken buildCancellationToken) {
         this.displayName = displayName;
         this.directory = directory;
@@ -133,7 +133,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.inputHandler = inputHandler;
         this.redirectErrorStream = redirectErrorStream;
         this.timeoutMillis = timeoutMillis;
-        this.daemon = daemon;
+        this.execHandleKind = execHandleKind;
         this.executor = executor;
         this.lock = new ReentrantLock();
         this.stateChanged = lock.newCondition();
@@ -156,7 +156,11 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     public boolean isDaemon() {
-        return daemon;
+        return execHandleKind == ExecHandleKind.GRADLE_DAEMON;
+    }
+
+    public boolean isPersistent() {
+        return execHandleKind == ExecHandleKind.PERSISTENT;
     }
 
     @Override
@@ -264,8 +268,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             setState(ExecHandleState.STARTING);
 
             broadcast.getSource().beforeExecutionStarted(this);
-            execHandleRunner = new ExecHandleRunner(this, new CompositeStreamsHandler(), processLauncher, executor);
-            executor.execute(CurrentBuildOperationPreservingRunnable.wrapIfNeeded(execHandleRunner));
+            execHandleRunner = new ExecHandleRunner(
+                this, new CompositeStreamsHandler(), processLauncher, executor, CurrentBuildOperationRef.instance().get()
+            );
+            executor.execute(execHandleRunner);
 
             while (stateIn(ExecHandleState.STARTING)) {
                 LOGGER.debug("Waiting until process started: {}.", displayName);

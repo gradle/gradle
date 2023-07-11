@@ -141,6 +141,7 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
     public MultiRequestClient<IN, OUT> build() {
         // Always publish process info for multi-request workers
         workerProcessBuilder.enableJvmMemoryInfoPublishing(true);
+        workerProcessBuilder.setPersistent(true);
         final WorkerProcess workerProcess = workerProcessBuilder.build();
         final Action<WorkerProcess> failureHandler = onFailure;
 
