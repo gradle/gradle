@@ -26,8 +26,9 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "missing location will throw an IllegalArgumentException"() {
         given:
-        builder.message("message")
-        builder.location(null, null)
+        builder = builder.message("message")
+        builder = builder.undocumented()
+        builder = builder.location(null, null)
 
         when:
         builder.build()
@@ -38,8 +39,9 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "missing line number will throw an IllegalArgumentException"() {
         given:
-        builder.message("message")
-        builder.location("file", null)
+        builder = builder.message("message")
+        builder = builder.undocumented()
+        builder = builder.location("file", null)
 
         when:
         builder.build()
@@ -51,6 +53,7 @@ class DefaultProblemBuilderTest extends Specification {
     def "missing column number will not throw an IllegalArgumentException"() {
         given:
         builder.message("message")
+        builder = builder.undocumented()
         builder.location("file", 1, null)
 
         when:
