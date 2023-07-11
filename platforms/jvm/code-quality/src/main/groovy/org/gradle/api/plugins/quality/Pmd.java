@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -27,7 +26,6 @@ import org.gradle.api.plugins.quality.internal.PmdAction;
 import org.gradle.api.plugins.quality.internal.PmdActionParameters;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -40,26 +38,17 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
-import org.gradle.workers.WorkerExecutor;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs;
 
 /**
  * Runs a set of static code analysis rules on Java source code files and generates a report of problems found.
@@ -68,7 +57,7 @@ import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.
  * @see PmdExtension
  */
 @CacheableTask
-public abstract class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> {
+public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<PmdReports> {
 
     private FileCollection pmdClasspath;
     private List<String> ruleSets;
@@ -76,55 +65,21 @@ public abstract class Pmd extends SourceTask implements VerificationTask, Report
     private TextResource ruleSetConfig;
     private FileCollection ruleSetFiles;
     private final PmdReports reports;
-    private boolean ignoreFailures;
     private boolean consoleOutput;
     private FileCollection classpath;
     private final Property<Integer> rulesMinimumPriority;
     private final Property<Integer> maxFailures;
     private final Property<Boolean> incrementalAnalysis;
     private final Property<Integer> threads;
-    private final Property<JavaLauncher> javaLauncher;
 
     public Pmd() {
+        super();
         ObjectFactory objects = getObjectFactory();
         reports = objects.newInstance(PmdReportsImpl.class, this);
         this.rulesMinimumPriority = objects.property(Integer.class);
         this.incrementalAnalysis = objects.property(Boolean.class);
         this.maxFailures = objects.property(Integer.class);
         this.threads = objects.property(Integer.class);
-        // Set default JavaLauncher to current JVM in case
-        // PmdPlugin that sets Java launcher convention is not applied
-        this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
-    }
-
-    private static Property<JavaLauncher> configureFromCurrentJvmLauncher(JavaToolchainService toolchainService, ObjectFactory objectFactory) {
-        Provider<JavaLauncher> currentJvmLauncherProvider = toolchainService.launcherFor(new CurrentJvmToolchainSpec(objectFactory));
-        return objectFactory.property(JavaLauncher.class).convention(currentJvmLauncherProvider);
-    }
-
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected WorkerExecutor getWorkerExecutor() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * JavaLauncher for toolchain support
-     * @since 8.0
-     */
-    @Incubating
-    @Nested
-    public Property<JavaLauncher> getJavaLauncher() {
-        return javaLauncher;
     }
 
     @TaskAction
@@ -132,10 +87,7 @@ public abstract class Pmd extends SourceTask implements VerificationTask, Report
         validate(rulesMinimumPriority.get());
         validateThreads(threads.get());
 
-        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
-            spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            maybeAddOpensJvmArgs(javaLauncher.get(), spec);
-        });
+        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> configureForkOptions(spec.getForkOptions()));
         workQueue.submit(PmdAction.class, this::setupParameters);
     }
 
@@ -214,7 +166,7 @@ public abstract class Pmd extends SourceTask implements VerificationTask, Report
      *
      * @param value the number of threads used by PMD
      */
-    private void validateThreads(int value) {
+    private static void validateThreads(int value) {
         if (value < 0) {
             throw new InvalidUserDataException(String.format("Invalid number of threads '%d'.  Number should not be negative.", value));
         }
@@ -348,31 +300,6 @@ public abstract class Pmd extends SourceTask implements VerificationTask, Report
     @Nested
     public final PmdReports getReports() {
         return reports;
-    }
-
-    /**
-     * Whether or not to allow the build to continue if there are warnings.
-     *
-     * <pre>
-     *     ignoreFailures = true
-     * </pre>
-     */
-    @Override
-    public boolean getIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-
-    /**
-     * Whether or not to allow the build to continue if there are warnings.
-     *
-     * <pre>
-     *     ignoreFailures = true
-     * </pre>
-     */
-    @Override
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
     }
 
     /**
