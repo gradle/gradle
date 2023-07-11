@@ -147,8 +147,13 @@ public class DefaultProblemBuilder implements ProblemBuilder {
             throw new IllegalStateException("Problem is not documented: " + message);
         }
 
-        if(!noLocation && (path == null || line == null)) {
-            throw new IllegalStateException("Problem has no location: " + message);
+        if (!noLocation) {
+            if (path == null) {
+                throw new IllegalStateException("Problem location path is not set: " + message);
+            }
+            if (line == null) {
+                throw new IllegalStateException("Problem location line is not set: " + message);
+            }
         }
 
         return new DefaultProblem(
