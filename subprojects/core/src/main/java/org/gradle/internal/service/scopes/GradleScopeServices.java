@@ -42,7 +42,6 @@ import org.gradle.execution.BuildTaskScheduler;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildTaskScheduler;
 import org.gradle.execution.DryRunBuildExecutionAction;
-import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildTaskScheduler;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
@@ -104,8 +103,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands) {
-        return new DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector));
+    BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands) {
+        return new DefaultTasksBuildTaskScheduler(builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector));
     }
 
     TaskExecutionPreparer createTaskExecutionPreparer(BuildTaskScheduler buildTaskScheduler, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {

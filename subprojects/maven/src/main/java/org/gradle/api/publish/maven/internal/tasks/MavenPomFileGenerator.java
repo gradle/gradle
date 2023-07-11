@@ -58,6 +58,7 @@ import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionMan
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
@@ -341,9 +342,9 @@ public class MavenPomFileGenerator {
         Dependency mavenDependency = new Dependency();
         String groupId = dependency.getGroupId();
         String dependencyVersion = dependency.getVersion();
-        String projectPath = dependency.getProjectPath();
+        Path identityPath = dependency.getProjectIdentityPath();
         ImmutableAttributes attributes = attributesForScope(scope);
-        ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId, projectPath);
+        ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId, identityPath);
         mavenDependency.setGroupId(resolvedVersion != null ? resolvedVersion.getGroup() : groupId);
         mavenDependency.setArtifactId(resolvedVersion != null ? resolvedVersion.getName() : artifactId);
         mavenDependency.setVersion(resolvedVersion != null ? resolvedVersion.getVersion() : mapToMavenSyntax(dependencyVersion));
@@ -377,9 +378,9 @@ public class MavenPomFileGenerator {
         Dependency mavenDependency = new Dependency();
         String groupId = dependency.getGroupId();
         String artifactId = dependency.getArtifactId();
-        String projectPath = dependency.getProjectPath();
+        Path identityPath = dependency.getProjectIdentityPath();
         ImmutableAttributes attributes = attributesForScope(scope);
-        ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId, projectPath);
+        ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId, identityPath);
         mavenDependency.setGroupId(resolvedVersion != null ? resolvedVersion.getGroup() : groupId);
         mavenDependency.setArtifactId(resolvedVersion != null ? resolvedVersion.getName() : artifactId);
         mavenDependency.setVersion(resolvedVersion == null ? mapToMavenSyntax(dependency.getVersion()) : resolvedVersion.getVersion());

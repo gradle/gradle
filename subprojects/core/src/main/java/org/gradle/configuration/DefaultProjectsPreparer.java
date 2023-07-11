@@ -39,7 +39,7 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
     @Override
     public void prepareProjects(GradleInternal gradle) {
         if (!buildModelParameters.isConfigureOnDemand() || !gradle.isRootBuild()) {
-            projectConfigurer.configureHierarchy(gradle.getRootProject());
+            projectConfigurer.configureHierarchy(gradle.getRootProject().getOwner());
             new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);
         }
     }

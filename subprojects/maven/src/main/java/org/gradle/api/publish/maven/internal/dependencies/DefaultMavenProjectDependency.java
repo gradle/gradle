@@ -17,17 +17,18 @@ package org.gradle.api.publish.maven.internal.dependencies;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class DefaultMavenProjectDependency implements MavenDependencyInternal {
     private final MavenDependencyInternal delegate;
-    private final String projectPath;
+    private final Path identityPath;
 
-    public DefaultMavenProjectDependency(MavenDependencyInternal delegate, String projectPath) {
+    public DefaultMavenProjectDependency(MavenDependencyInternal delegate, Path identityPath) {
         this.delegate = delegate;
-        this.projectPath = projectPath;
+        this.identityPath = identityPath;
     }
 
     @Override
@@ -41,8 +42,8 @@ public class DefaultMavenProjectDependency implements MavenDependencyInternal {
     }
 
     @Override
-    public String getProjectPath() {
-        return projectPath;
+    public Path getProjectIdentityPath() {
+        return identityPath;
     }
 
     @Override

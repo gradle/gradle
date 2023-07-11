@@ -16,15 +16,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,28 +43,28 @@ import java.util.Set;
 public class DefaultProjectDependencyPublicationResolver implements ProjectDependencyPublicationResolver {
     private final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurer projectConfigurer;
+    private final ProjectStateRegistry projects;
 
-    public DefaultProjectDependencyPublicationResolver(ProjectPublicationRegistry publicationRegistry, ProjectConfigurer projectConfigurer) {
+    public DefaultProjectDependencyPublicationResolver(ProjectPublicationRegistry publicationRegistry, ProjectConfigurer projectConfigurer, ProjectStateRegistry projects) {
         this.publicationRegistry = publicationRegistry;
         this.projectConfigurer = projectConfigurer;
+        this.projects = projects;
     }
 
     @Override
-    public <T> T resolve(Class<T> coordsType, ProjectDependency dependency) {
+    public <T> T resolve(Class<T> coordsType, Path identityPath) {
+        ProjectState projectState = projects.stateFor(identityPath);
         // Could probably apply some caching and some immutable types
 
-        ProjectInternal dependencyProject = (ProjectInternal) dependency.getDependencyProject();
-        return resolve(coordsType, dependencyProject);
+        // Ensure target project is configured
+        projectConfigurer.configureFully(projectState);
+
+        return projectState.fromMutableState(project -> resolve(coordsType, identityPath, project));
     }
 
-    @Override
-    public <T> T resolve(Class<T> coordsType, ProjectInternal project) {
-
-        // Ensure target project is configured
-        projectConfigurer.configureFully(project);
-
+    private <T> T resolve(Class<T> coordsType, Path identityPath, ProjectInternal project) {
         List<ProjectComponentPublication> publications = new ArrayList<>();
-        for (ProjectComponentPublication publication : publicationRegistry.getPublications(ProjectComponentPublication.class, project.getIdentityPath())) {
+        for (ProjectComponentPublication publication : publicationRegistry.getPublications(ProjectComponentPublication.class, identityPath)) {
             if (!publication.isLegacy() && publication.getCoordinates(coordsType) != null) {
                 publications.add(publication);
             }

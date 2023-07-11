@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -47,6 +48,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -319,13 +321,14 @@ class ModuleMetadataSpecBuilder {
         VariantVersionMappingStrategyInternal versionMappingStrategy
     ) {
         String resolvedVersion = null;
-        ModuleVersionIdentifier identifier = moduleIdentifierFor(projectDependency);
+        Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
         if (versionMappingStrategy != null) {
             ModuleVersionIdentifier resolved =
                 versionMappingStrategy.maybeResolveVersion(
                     identifier.getGroup(),
                     identifier.getName(),
-                    projectDependency.getDependencyProject().getPath()
+                    identityPath
                 );
             if (resolved != null) {
                 identifier = resolved;
@@ -395,21 +398,21 @@ class ModuleMetadataSpecBuilder {
         String group;
         String module;
         String resolvedVersion = null;
-        String projectPath = null;
+        Path identityPath = null;
         if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
             DefaultProjectDependencyConstraint dependency = (DefaultProjectDependencyConstraint) dependencyConstraint;
             ProjectDependency projectDependency = dependency.getProjectDependency();
-            ModuleVersionIdentifier identifier = moduleIdentifierFor(projectDependency);
+            identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
             group = identifier.getGroup();
             module = identifier.getName();
-            projectPath = projectDependency.getDependencyProject().getPath();
             resolvedVersion = identifier.getVersion();
         } else {
             group = dependencyConstraint.getGroup();
             module = dependencyConstraint.getName();
         }
         ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy != null
-            ? variantVersionMappingStrategy.maybeResolveVersion(group, module, projectPath)
+            ? variantVersionMappingStrategy.maybeResolveVersion(group, module, identityPath)
             : null;
         String effectiveGroup = resolvedVersionId != null ? resolvedVersionId.getGroup() : group;
         String effectiveModule = resolvedVersionId != null ? resolvedVersionId.getName() : module;
@@ -525,10 +528,6 @@ class ModuleMetadataSpecBuilder {
             return componentData.coordinates;
         }
         return null;
-    }
-
-    private ModuleVersionIdentifier moduleIdentifierFor(ProjectDependency projectDependency) {
-        return projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
     }
 
     private VariantVersionMappingStrategyInternal versionMappingStrategyFor(SoftwareComponentVariant variant) {

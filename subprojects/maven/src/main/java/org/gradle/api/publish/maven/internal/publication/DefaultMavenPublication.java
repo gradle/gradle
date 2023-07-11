@@ -46,6 +46,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
@@ -91,6 +92,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
 
@@ -483,15 +485,6 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             return false;
         }
 
-        private void addImportDependencyConstraint(ProjectDependency dependency) {
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
-            importDependencyConstraints.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), "pom"));
-        }
-
-        private void addImportDependencyConstraint(ModuleDependency dependency) {
-            importDependencyConstraints.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), "pom"));
-        }
-
         private static List<MavenPublishingAwareVariant> getSortedVariants(SoftwareComponentInternal component) {
             return component.getUsages().stream()
                 .map(ComponentParser::asMavenAwareVariant)
@@ -554,14 +547,15 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             }
         }
 
-        private void addProjectDependency(ProjectDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependencyInternal> dependencies) {
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
-            DefaultMavenDependency moduleDependency = new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.emptyList(), getExcludeRules(globalExcludes, dependency));
-            dependencies.add(new DefaultMavenProjectDependency(moduleDependency, dependency.getDependencyProject().getPath()));
-        }
-
         private static void addModuleDependency(ModuleDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependencyInternal> dependencies) {
             dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), getExcludeRules(globalExcludes, dependency)));
+        }
+
+        private void addProjectDependency(ProjectDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependencyInternal> dependencies) {
+            Path identityPath = getIdentityPath(dependency);
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
+            DefaultMavenDependency moduleDependency = new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.emptyList(), getExcludeRules(globalExcludes, dependency));
+            dependencies.add(new DefaultMavenProjectDependency(moduleDependency, identityPath));
         }
 
         private static void addDependencyConstraint(DependencyConstraint dependency, Set<MavenDependencyInternal> dependencies) {
@@ -569,10 +563,25 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         }
 
         private void addDependencyConstraint(DefaultProjectDependencyConstraint dependency, Set<MavenDependencyInternal> dependencies) {
-            ProjectDependency projectDependency = dependency.getProjectDependency();
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
+            Path identityPath = getIdentityPath(dependency.getProjectDependency());
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
             DefaultMavenDependency moduleDependency = new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion());
-            dependencies.add(new DefaultMavenProjectDependency(moduleDependency, projectDependency.getDependencyProject().getPath()));
+            dependencies.add(new DefaultMavenProjectDependency(moduleDependency, identityPath));
+        }
+
+        private void addImportDependencyConstraint(ModuleDependency dependency) {
+            importDependencyConstraints.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), "pom"));
+        }
+
+        private void addImportDependencyConstraint(ProjectDependency dependency) {
+            Path identityPath = getIdentityPath(dependency);
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
+            DefaultMavenDependency moduleDependency = new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), "pom");
+            importDependencyConstraints.add(new DefaultMavenProjectDependency(moduleDependency, identityPath));
+        }
+
+        private static Path getIdentityPath(ProjectDependency dependency) {
+            return ((ProjectDependencyInternal) dependency).getIdentityPath();
         }
 
         private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, ModuleDependency dependency) {
