@@ -52,7 +52,7 @@ class MavenPomFileGeneratorTest extends Specification {
 
     def "writes correct prologue and schema declarations"() {
         expect:
-        pomFile.text.startsWith(TextUtil.toPlatformLineSeparators(
+        writePomFile().text.startsWith(TextUtil.toPlatformLineSeparators(
 """<?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -64,7 +64,7 @@ class MavenPomFileGeneratorTest extends Specification {
         pom.getWriteGradleMetadataMarker().set(markerPresent)
 
         when:
-        def pomFile = getPomFile()
+        def pomFile = writePomFile()
 
         then:
         pomFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER) == markerPresent
@@ -175,7 +175,7 @@ class MavenPomFileGeneratorTest extends Specification {
 
     def "writes regular dependency"() {
         def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version")
-        pom.getDependencies().set(newDependencies(dependency))
+        pom.getDependencies().set(runtimeDependencies(dependency))
 
         when:
         rangeMapper.map("dep-version") >> "maven-dep-version"
@@ -195,7 +195,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def "writes regular dependency without exclusions"() {
         given:
         def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version")
-        pom.getDependencies().set(newDependencies(dependency))
+        pom.getDependencies().set(runtimeDependencies(dependency))
 
         expect:
         with (xml) {
@@ -210,7 +210,7 @@ class MavenPomFileGeneratorTest extends Specification {
         def exclude3 = Mock(ExcludeRule)
         def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", [], [exclude1, exclude2, exclude3])
 
-        pom.getDependencies().set(newDependencies(dependency))
+        pom.getDependencies().set(runtimeDependencies(dependency))
 
         when:
         exclude1.group >> "excl-1-group"
@@ -242,7 +242,7 @@ class MavenPomFileGeneratorTest extends Specification {
         def artifact1 = Mock(DependencyArtifact)
         def artifact2 = Mock(DependencyArtifact)
         def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", [artifact1, artifact2], [])
-        pom.getDependencies().set(newDependencies(dependency))
+        pom.getDependencies().set(runtimeDependencies(dependency))
 
         when:
         rangeMapper.map("dep-version") >> "maven-dep-version"
@@ -291,7 +291,7 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-    private MavenPomDependencies newDependencies(MavenDependencyInternal dependency) {
+    private MavenPomDependencies runtimeDependencies(MavenDependencyInternal dependency) {
         return new DefaultMavenPomDependencies(
             ImmutableList.of(dependency), ImmutableList.of(), ImmutableList.of(), ImmutableList.of(),
             ImmutableList.of(), ImmutableList.of(), ImmutableList.of()
@@ -316,10 +316,10 @@ class MavenPomFileGeneratorTest extends Specification {
     }
 
     private def getXml() {
-        return new XmlSlurper().parse(pomFile);
+        return new XmlSlurper().parse(writePomFile());
     }
 
-    private TestFile getPomFile() {
+    private TestFile writePomFile() {
         def pomFile = testDirectoryProvider.testDirectory.file("pom.xml")
         generator.generateSpec(pom).writeTo(pomFile)
         return pomFile
