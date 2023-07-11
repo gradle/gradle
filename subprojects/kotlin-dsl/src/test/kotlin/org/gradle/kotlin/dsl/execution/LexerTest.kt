@@ -72,6 +72,27 @@ class LexerTest {
     }
 
     @Test
+    fun `ignores label definitions`() {
+
+        assertThat(
+            lex(
+                "kuku@ someblock {}",
+                buildscript, plugins
+            ),
+            equalTo(
+                Packaged(
+                    null,
+                    LexedScript(
+                        listOf(),
+                        listOf(),
+                        listOf()
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
     fun `extracts package name`() {
         assertThat(
             lex("\n" +
