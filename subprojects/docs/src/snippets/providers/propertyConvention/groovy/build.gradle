@@ -11,7 +11,7 @@ tasks.register("show") {
     property.convention("convention 2")
     println("value = " + property.get())
 
-    property.set("explicit value")
+    property = "explicit value"
 
     // Once a value is set, the convention is ignored
     property.convention("ignored convention")

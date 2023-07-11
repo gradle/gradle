@@ -24,8 +24,8 @@ abstract class GreetingFileTask : DefaultTask() {
 val greetingFile = objects.fileProperty()
 
 tasks.register<GreetingFileTask>("greet") {
-    source.set(layout.projectDirectory.file("missing.txt"))
-    destination.set(greetingFile)
+    source = layout.projectDirectory.file("missing.txt")
+    destination = greetingFile
 }
 
 tasks.register("sayGreeting") {
@@ -37,6 +37,6 @@ tasks.register("sayGreeting") {
     }
 }
 
-greetingFile.set(layout.buildDirectory.file("hello.txt"))
+greetingFile = layout.buildDirectory.file("hello.txt")
 // end::config[]
 // end::all[]

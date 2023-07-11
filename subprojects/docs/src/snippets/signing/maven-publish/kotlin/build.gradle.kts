@@ -40,30 +40,30 @@ publishing {
 // end::versions-resolved[]
 // tag::pom-customization[]
             pom {
-                name.set("My Library")
-                description.set("A concise description of my library")
-                url.set("http://www.example.com/library")
-                properties.set(mapOf(
+                name = "My Library"
+                description = "A concise description of my library"
+                url = "http://www.example.com/library"
+                properties = mapOf(
                     "myProp" to "value",
                     "prop.with.dots" to "anotherValue"
-                ))
+                )
                 licenses {
                     license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
                     }
                 }
                 developers {
                     developer {
-                        id.set("johnd")
-                        name.set("John Doe")
-                        email.set("john.doe@example.com")
+                        id = "johnd"
+                        name = "John Doe"
+                        email = "john.doe@example.com"
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://example.com/my-library.git")
-                    developerConnection.set("scm:git:ssh://example.com/my-library.git")
-                    url.set("http://example.com/my-library/")
+                    connection = "scm:git:git://example.com/my-library.git"
+                    developerConnection = "scm:git:ssh://example.com/my-library.git"
+                    url = "http://example.com/my-library/"
                 }
             }
 // tag::versions-resolved[]
