@@ -184,7 +184,7 @@ platforms:
       - 'subprojects/build-scan-performance/'
       - 'subprojects/enterprise/'
       - 'subprojects/enterprise-logging/'
-      - 'subprojects/enterprise-operations/'
+      - 'platforms/enterprise/enterprise-operations/'
       - 'subprojects/enterprise-workers/'
   - ide:
     name: 'ide'
