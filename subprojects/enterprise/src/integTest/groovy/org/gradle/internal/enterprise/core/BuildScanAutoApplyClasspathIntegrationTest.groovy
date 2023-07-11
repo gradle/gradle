@@ -22,8 +22,6 @@ import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInS
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-
 class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9

@@ -111,19 +111,7 @@ public class MutableClassLoaderScope implements ClassLoaderScope {
         return delegate;
     }
 
-    public void mutate(MutateActor mutateActor) {
-        if (mutateActor.requiresMutation()) {
-            if (delegate.isLocked()) {
-                delegate = delegate.createChild(delegate.getId() + "-plugins", null);
-            }
-
-            mutateActor.mutate(delegate);
-        }
-    }
-
-    public interface MutateActor {
-        boolean requiresMutation();
-
-        void mutate(ClassLoaderScope scope);
+    public void mutate(String childSuffix) {
+        delegate = delegate.createChild(delegate.getId() + childSuffix, null);
     }
 }

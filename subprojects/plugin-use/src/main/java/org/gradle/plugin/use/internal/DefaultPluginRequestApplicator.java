@@ -119,29 +119,19 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private void resolveAutoAppliedPlugins(PluginRequests autoAppliedPlugins, ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, PluginResolver effectivePluginResolver, List<Consumer<PluginManagerInternal>> pluginApplyActions) {
-        ((MutableClassLoaderScope) classLoaderScope).mutate(new MutableClassLoaderScope.MutateActor() {
-            private List<Result> autoAppliedPluginRequests;
+        final PluginResolver alreadyOnClasspathIgnoringPluginResolver = new AlreadyOnClasspathIgnoringPluginResolver(effectivePluginResolver,
+            new ClassloaderBackedPluginDescriptorLocator(scriptHandler.getClassLoader())
+        );
 
-            @Override
-            public boolean requiresMutation() {
-                final PluginResolver alreadyOnClasspathIgnoringPluginResolver = new AlreadyOnClasspathIgnoringPluginResolver(effectivePluginResolver,
-                    new ClassloaderBackedPluginDescriptorLocator(scriptHandler.getClassLoader())
-                );
+        List<Result> autoAppliedPluginRequests = resolvePluginRequests(autoAppliedPlugins, alreadyOnClasspathIgnoringPluginResolver);
+        if (!autoAppliedPluginRequests.isEmpty()) {
+            ((MutableClassLoaderScope) classLoaderScope).mutate("-plugins");
+            scriptHandler.dropResolvedClassPath();
 
-                autoAppliedPluginRequests = resolvePluginRequests(autoAppliedPlugins, alreadyOnClasspathIgnoringPluginResolver);
-
-                return !autoAppliedPluginRequests.isEmpty();
-            }
-
-            @Override
-            public void mutate(ClassLoaderScope scope) {
-                scriptHandler.dropResolvedClassPath();
-
-                final Map<Result, PluginImplementation<?>> pluginImplementations = newLinkedHashMap();
-                applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplementations, autoAppliedPluginRequests);
-                defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplementations.values());
-            }
-        });
+            final Map<Result, PluginImplementation<?>> pluginImplementations = newLinkedHashMap();
+            applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplementations, autoAppliedPluginRequests);
+            defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplementations.values());
+        }
     }
 
     @Override
