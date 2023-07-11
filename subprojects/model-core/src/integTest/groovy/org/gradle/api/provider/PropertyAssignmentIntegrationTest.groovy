@@ -305,6 +305,27 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
     }
 
+    def "test Groovy lazy SetProperty with plugin publish"() {
+        buildFile """
+            plugins {
+                id 'com.gradle.plugin-publish' version '1.1.0'
+            }
+
+            gradlePlugin {
+                plugins {
+                    greetingsPlugin {
+                        id = '<your plugin identifier>'
+                        implementationClass = '<your plugin class>'
+                        tags = ['tags', 'for', 'your', 'plugins']
+                    }
+                }
+            }
+        """
+
+        expect:
+        run("tasks", "--stacktrace")
+    }
+
     private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {
         buildFile.text = """
             enum MyEnum {
