@@ -142,7 +142,6 @@ unassigned {
     subproject("security")
     subproject("normalization-java")
     subproject("enterprise")
-    subproject("enterprise-operations")
     subproject("enterprise-logging")
     subproject("enterprise-workers")
     subproject("build-operations")
@@ -156,6 +155,11 @@ platform("jvm") {
     subproject("code-quality")
     subproject("ear")
     subproject("war")
+}
+
+// Gradle Enterprise Platform
+platform("enterprise") {
+    subproject("enterprise-operations")
 }
 
 // Plugin portal projects
