@@ -28,7 +28,6 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
-import org.gradle.process.internal.ExecHandleKind;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
@@ -71,7 +70,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationClassPath;
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
-    private boolean isPersistent;
 
     DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager, JvmVersionDetector jvmVersionDetector) {
         this.javaCommand = execHandleFactory.newJavaExec();
@@ -194,10 +192,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.shouldPublishJvmMemoryInfo = shouldPublish;
     }
 
-    public void setPersistent(boolean persistent) {
-        isPersistent = persistent;
-    }
-
     @Override
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
@@ -233,7 +227,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         LOGGER.debug("Using implementation module path {}", implementationModulePath);
 
         JavaExecHandleBuilder javaCommand = getJavaCommand();
-        javaCommand.setExecHandleKind(isPersistent ? ExecHandleKind.PERSISTENT : ExecHandleKind.OTHER);
         javaCommand.setDisplayName(displayName);
 
         boolean java9Compatible = jvmVersionDetector.getJavaVersion(javaCommand.getExecutable()).isJava9Compatible();

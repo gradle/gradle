@@ -169,7 +169,7 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     @Override
     public ExecHandleBuilder setDaemon(boolean daemon) {
-        super.execHandleKind = daemon ? ExecHandleKind.GRADLE_DAEMON : ExecHandleKind.OTHER;
+        super.daemon = daemon;
         return this;
     }
 }

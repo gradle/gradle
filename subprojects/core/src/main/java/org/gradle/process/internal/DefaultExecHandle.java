@@ -92,7 +92,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final boolean redirectErrorStream;
     private final ProcessLauncher processLauncher;
     private int timeoutMillis;
-    private ExecHandleKind execHandleKind;
+    private boolean daemon;
 
     /**
      * Lock to guard all mutable state
@@ -122,7 +122,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
-                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, ExecHandleKind execHandleKind,
+                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
                       Executor executor, BuildCancellationToken buildCancellationToken) {
         this.displayName = displayName;
         this.directory = directory;
@@ -133,7 +133,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.inputHandler = inputHandler;
         this.redirectErrorStream = redirectErrorStream;
         this.timeoutMillis = timeoutMillis;
-        this.execHandleKind = execHandleKind;
+        this.daemon = daemon;
         this.executor = executor;
         this.lock = new ReentrantLock();
         this.stateChanged = lock.newCondition();
@@ -156,11 +156,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     public boolean isDaemon() {
-        return execHandleKind == ExecHandleKind.GRADLE_DAEMON;
-    }
-
-    public boolean isPersistent() {
-        return execHandleKind == ExecHandleKind.PERSISTENT;
+        return daemon;
     }
 
     @Override

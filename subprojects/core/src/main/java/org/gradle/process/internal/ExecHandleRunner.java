@@ -38,7 +38,7 @@ public class ExecHandleRunner implements Runnable {
     private Process process;
     private boolean aborted;
     private final StreamsHandler streamsHandler;
-    private BuildOperationRef associatedBuildOperation;
+    private volatile BuildOperationRef associatedBuildOperation;
 
     public ExecHandleRunner(
         DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor,
@@ -74,34 +74,33 @@ public class ExecHandleRunner implements Runnable {
 
     @Override
     public void run() {
-        BuildOperationRef original = CurrentBuildOperationRef.instance().get();
-        CurrentBuildOperationRef.instance().set(this.associatedBuildOperation);
+        // Split the `with` operation so that the `associatedBuildOperation` can be discarded when we wait in `process.waitFor()`
         try {
-            startProcess();
+            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                startProcess();
 
-            execHandle.started();
+                execHandle.started();
 
-            LOGGER.debug("waiting until streams are handled...");
-            streamsHandler.start();
+                LOGGER.debug("waiting until streams are handled...");
+                streamsHandler.start();
+            });
 
             if (execHandle.isDaemon()) {
-                streamsHandler.stop();
-                detached();
+                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                    streamsHandler.stop();
+                    detached();
+                });
             } else {
-                if (execHandle.isPersistent()) {
-                    // Drop the reference to the build operation so that it can be garbage collected
-                    // We don't want to retain this information when it won't be relevant anymore
-                    CurrentBuildOperationRef.instance().clear();
-                    this.associatedBuildOperation = null;
-                }
                 int exitValue = process.waitFor();
-                streamsHandler.stop();
-                completed(exitValue);
+                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                    streamsHandler.stop();
+                    completed(exitValue);
+                });
             }
         } catch (Throwable t) {
-            execHandle.failed(t);
-        } finally {
-            CurrentBuildOperationRef.instance().set(original);
+            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                execHandle.failed(t);
+            });
         }
     }
 
@@ -109,6 +108,7 @@ public class ExecHandleRunner implements Runnable {
      * Remove any context associated with tracking the startup of this process.
      */
     public void removeStartupContext() {
+        this.associatedBuildOperation = null;
         streamsHandler.removeStartupContext();
     }
 

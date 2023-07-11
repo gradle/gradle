@@ -41,7 +41,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private boolean redirectErrorStream;
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
-    protected ExecHandleKind execHandleKind = ExecHandleKind.OTHER;
+    protected boolean daemon;
     private final Executor executor;
 
     AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
@@ -138,7 +138,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
         StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler();
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getEffectiveArguments(), getActualEnvironment(),
-            effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, execHandleKind, executor, buildCancellationToken);
+            effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor, buildCancellationToken);
     }
 
     private StreamsHandler getEffectiveStreamsHandler() {
@@ -167,27 +167,6 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
     public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
         this.timeoutMillis = timeoutMillis;
-        return this;
-    }
-
-    /**
-     * Set the kind of exec handle to be created. This is used to determine how the process is handled while running.
-     *
-     * <p>
-     * The default is {@link ExecHandleKind#OTHER}.
-     * </p>
-     *
-     * <p>
-     * If using {@link ExecHandleKind#PERSISTENT}, you should call {@link ExecHandle#removeStartupContext()} when there
-     * is no longer a need to keep the startup context around. For example, at the end of a build, or as soon as the logging
-     * is redirected elsewhere.
-     * </p>
-     *
-     * @param execHandleKind the kind of exec handle to be created
-     * @return this
-     */
-    public AbstractExecHandleBuilder setExecHandleKind(ExecHandleKind execHandleKind) {
-        this.execHandleKind = execHandleKind;
         return this;
     }
 }
