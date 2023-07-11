@@ -178,7 +178,7 @@ To enable the configuration cache by default, add the following setting to the `
 .gradle.properties
 [source,properties]
 ----
-org.gradle.unsafe.configuration-cache=true
+org.gradle.configuration-cache=true
 ----
 ====
 

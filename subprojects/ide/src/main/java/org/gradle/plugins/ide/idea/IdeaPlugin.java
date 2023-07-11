@@ -312,7 +312,7 @@ public abstract class IdeaPlugin extends IdePlugin {
             @Override
             public Set<File> call() {
                 excludeDirs.add(project.file(".gradle"));
-                excludeDirs.add(project.getBuildDir());
+                excludeDirs.add(project.getLayout().getBuildDirectory().getAsFile().get());
                 return excludeDirs;
             }
         });

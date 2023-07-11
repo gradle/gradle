@@ -19,6 +19,8 @@ package org.gradle.api.publish.ivy.internal.publication;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.publish.ivy.internal.publisher.MutableIvyPublicationidentity;
 
+import javax.annotation.Nullable;
+
 public class DefaultIvyPublicationIdentity implements MutableIvyPublicationidentity {
     private Module delegate;
     private String organisation;
@@ -35,33 +37,36 @@ public class DefaultIvyPublicationIdentity implements MutableIvyPublicationident
         this.revision = revision;
     }
 
+    @Nullable
     @Override
     public String getOrganisation() {
         return organisation != null ? organisation : (delegate != null ? delegate.getGroup() : null);
     }
 
     @Override
-    public void setOrganisation(String organisation) {
+    public void setOrganisation(@Nullable String organisation) {
         this.organisation = organisation;
     }
 
+    @Nullable
     @Override
     public String getModule() {
         return module != null ? module : (delegate != null ? delegate.getName() : null);
     }
 
     @Override
-    public void setModule(String module) {
+    public void setModule(@Nullable String module) {
         this.module = module;
     }
 
+    @Nullable
     @Override
     public String getRevision() {
         return revision != null ? revision : (delegate != null ? delegate.getVersion() : null);
     }
 
     @Override
-    public void setRevision(String revision) {
+    public void setRevision(@Nullable String revision) {
         this.revision = revision;
     }
 }

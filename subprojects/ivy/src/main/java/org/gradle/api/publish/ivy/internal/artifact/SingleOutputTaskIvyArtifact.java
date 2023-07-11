@@ -24,6 +24,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
@@ -35,7 +36,7 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, IvyPublicationIdentity identity, String extension, String type, String classifier, TaskDependencyFactory taskDependencyFactory) {
+    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, IvyPublicationIdentity identity, String extension, String type, @Nullable String classifier, TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.generator = generator;
         this.identity = identity;

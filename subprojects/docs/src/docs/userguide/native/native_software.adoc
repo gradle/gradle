@@ -342,7 +342,7 @@ For each link:{javadocPath}/org/gradle/nativeplatform/NativeBinarySpec.html[Nati
   Native Binary Type;;
     link:{javadocPath}/org/gradle/nativeplatform/NativeExecutableBinarySpec.html[NativeExecutableBinarySpec]
   Location of created binary;;
-    `__${project.buildDir}__/exe/__${component.name}__/__${component.name}__`
+    `__${project.layout.buildDirectory}__/exe/__${component.name}__/__${component.name}__`
 
 `__${component.name}__SharedLibrary`::
   Component Type;;
@@ -350,7 +350,7 @@ For each link:{javadocPath}/org/gradle/nativeplatform/NativeBinarySpec.html[Nati
   Native Binary Type;;
     link:{javadocPath}/org/gradle/nativeplatform/SharedLibraryBinarySpec.html[SharedLibraryBinarySpec]
   Location of created binary;;
-    `__${project.buildDir}__/libs/__${component.name}__/shared/lib__${component.name}__.so`
+    `__${project.layout.buildDirectory}__/libs/__${component.name}__/shared/lib__${component.name}__.so`
 
 `__${component.name}__StaticLibrary`::
   Component Type;;
@@ -358,7 +358,7 @@ For each link:{javadocPath}/org/gradle/nativeplatform/NativeBinarySpec.html[Nati
   Native Binary Type;;
     link:{javadocPath}/org/gradle/nativeplatform/StaticLibraryBinarySpec.html[StaticLibraryBinarySpec]
   Location of created binary;;
-    `__${project.buildDir}__/libs/__${component.name}__/static/__${component.name}__.a`
+    `__${project.layout.buildDirectory}__/libs/__${component.name}__/static/__${component.name}__.a`
 
 
 [[sec:check_tasks]]

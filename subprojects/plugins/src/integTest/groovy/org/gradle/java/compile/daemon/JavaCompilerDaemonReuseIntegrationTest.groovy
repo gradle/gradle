@@ -44,7 +44,8 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         return new TestJavaComponent()
     }
 
-    def "reuses compiler daemons across multiple builds when enabled"() {
+    def "compiler daemon reuse can be disabled"() {
+        // TODO: Remove this test once the system property is removed
         withSingleProjectSources()
         buildFile << """
             tasks.compileMain2Java {
@@ -53,7 +54,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         """
 
         when:
-        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.SESSION.name()}")
         succeeds("compileAll")
 
         then:
@@ -64,7 +65,39 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
-        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.SESSION.name()}")
+        succeeds("clean", "compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
+
+        and:
+        assertOneCompilerDaemonIsRunning()
+
+        def firstCompilerIdentity = old(runningCompilerDaemons[0])
+        def secondCompilerIdentity = runningCompilerDaemons[0]
+        firstCompilerIdentity != secondCompilerIdentity
+    }
+
+    def "reuses compiler daemons across multiple builds when enabled"() {
+        withSingleProjectSources()
+        buildFile << """
+            tasks.compileMain2Java {
+                dependsOn("compileJava")
+            }
+        """
+
+        when:
+        succeeds("compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
+
+        and:
+        assertOneCompilerDaemonIsRunning()
+
+        when:
+        executer.withWorkerDaemonsExpirationDisabled()
         succeeds("clean", "compileAll")
 
         then:
@@ -93,7 +126,6 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         file('src/main2/java/ClassWithWarning2.java') << classWithWarning
 
         when:
-        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("compileAll")
 
         then:
@@ -104,7 +136,6 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
-        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("clean", "compileAll")
 
         then:

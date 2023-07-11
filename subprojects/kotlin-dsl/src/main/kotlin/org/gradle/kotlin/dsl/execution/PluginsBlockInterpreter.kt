@@ -18,10 +18,8 @@ package org.gradle.kotlin.dsl.execution
 
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
-import org.jetbrains.kotlin.lexer.KtTokens.FALSE_KEYWORD
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
 import org.jetbrains.kotlin.lexer.KtTokens.RBRACE
-import org.jetbrains.kotlin.lexer.KtTokens.TRUE_KEYWORD
 
 
 internal
@@ -57,67 +55,122 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
 
 
 private
+val combinator = Combinator(ignoresComments = true, ignoresNewline = false)
+
+
+private
 val pluginsBlockParser = run {
 
-    val parenString = paren(stringLiteral())
+    combinator.run {
 
-    val kotlinPluginId = symbol("kotlin") * parenString.map { "org.jetbrains.kotlin.$it" }
+        val parenString by debug {
+            paren(stringLiteral)
+        }
 
-    val pluginId = (symbol("id") * parenString + kotlinPluginId) * ws()
+        val parenBool by debug {
+            paren(booleanLiteral)
+        }
 
-    val dot = wsOrNewLine() * token(DOT) * wsOrNewLine()
+        val kotlinPluginId by debug {
+            symbol("kotlin") * parenString.map { "org.jetbrains.kotlin.$it" }
+        }
 
-    val version = symbol("version")
+        val pluginId by debug {
+            (symbol("id") * parenString + kotlinPluginId)
+        }
 
-    val apply = symbol("apply")
+        val dot by debug {
+            wsOrNewLine() * token(DOT)
+        }
 
-    val bool = token(TRUE_KEYWORD) { true } + token(FALSE_KEYWORD) { false }
+        val version by debug {
+            symbol("version")
+        }
 
-    val parenBool = paren(bool)
+        val apply by debug {
+            symbol("apply")
+        }
 
-    val dotVersion = dot * version * parenString * ws()
+        val dotVersion by debug {
+            dot * version * parenString
+        }
 
-    val dotApply = dot * apply * parenBool * ws()
+        val dotApply by debug {
+            dot * apply * parenBool
+        }
 
-    val infixVersion = version * (parenString + stringLiteral()) * ws()
+        val infixVersion by debug {
+            version * (parenString + stringLiteral)
+        }
 
-    val infixApply = apply * (parenBool + bool) * ws()
+        val infixApply by debug {
+            apply * (parenBool + booleanLiteral)
+        }
 
-    val optionalApply = optional(dotApply + infixApply)
+        val optionalApply by debug {
+            optional(dotApply + infixApply)
+        }
 
-    val optionalVersion = optional(dotVersion + infixVersion)
+        val optionalVersion by debug {
+            optional(dotVersion + infixVersion)
+        }
 
-    val infixVersionApply = infixVersion * optionalApply
+        val infixVersionApply by debug {
+            infixVersion * optionalApply
+        }
 
-    val infixApplyVersion = flip(infixApply, optionalVersion)
+        val infixApplyVersion by debug {
+            flip(infixApply, optionalVersion)
+        }
 
-    val dotVersionApply = dotVersion * optionalApply
+        val dotVersionApply by debug {
+            dotVersion * optionalApply
+        }
 
-    val dotApplyVersion = flip(dotApply, optionalVersion)
+        val dotApplyVersion by debug {
+            flip(dotApply, optionalVersion)
+        }
 
-    val optionalVersionAndApply = optional(infixVersionApply + infixApplyVersion + dotVersionApply + dotApplyVersion)
+        val optionalVersionAndApply by debug {
+            optional(infixVersionApply + infixApplyVersion + dotVersionApply + dotApplyVersion)
+        }
 
-    val pluginIdSpec = zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
-        when (versionAndApply) {
-            null -> ResidualProgram.PluginRequestSpec(id)
-            else -> versionAndApply.let { (v, a) ->
-                ResidualProgram.PluginRequestSpec(id, version = v, apply = a ?: true)
+        val pluginIdSpec by debug {
+            zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
+                when (versionAndApply) {
+                    null -> ResidualProgram.PluginRequestSpec(id)
+                    else -> versionAndApply.let { (v, a) ->
+                        ResidualProgram.PluginRequestSpec(id, version = v, apply = a ?: true)
+                    }
+                }
             }
         }
+
+        val kotlinDslSpec by debug {
+            zip(symbol("`kotlin-dsl`"), optionalApply) { _, a ->
+                ResidualProgram.PluginRequestSpec(
+                    "org.gradle.kotlin.kotlin-dsl",
+                    expectedKotlinDslPluginsVersion,
+                    apply = a ?: true
+                )
+            }
+        }
+
+        val pluginSpec by debug {
+            pluginIdSpec + kotlinDslSpec
+        }
+
+        val firstLines by debug {
+            zeroOrMore(pluginSpec * statementSeparator())
+        }
+
+        val lastLine by debug {
+            optional(pluginSpec * wsOrNewLine())
+        }
+
+        token(LBRACE) * wsOrNewLine() *
+            firstLines *
+            lastLine *
+            token(RBRACE)
     }
-
-    val kotlinDslSpec = zip(symbol("`kotlin-dsl`"), optionalApply) { _, a ->
-        ResidualProgram.PluginRequestSpec(
-            "org.gradle.kotlin.kotlin-dsl",
-            expectedKotlinDslPluginsVersion,
-            apply = a ?: true
-        )
-    }
-
-    val pluginSpec = pluginIdSpec + kotlinDslSpec
-
-    token(LBRACE) * wsOrNewLine() *
-        zeroOrMore(pluginSpec * statementSeparator()) *
-        optional(pluginSpec * wsOrNewLine()) *
-        token(RBRACE)
 }

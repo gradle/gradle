@@ -116,7 +116,7 @@ class PluginsBlockInterpreterTest {
                 id("plugin-id").apply(false) version "2.0"
                 id("plugin-id") apply false.version("3.0")
                 id("plugin-id") apply false version "4.0"
-            """.trimIndent(),
+            """,
             PluginRequestSpec("plugin-id", version = "1.0", apply = true),
             PluginRequestSpec("plugin-id", version = "2.0", apply = true),
             PluginRequestSpec("plugin-id", version = "3.0", apply = true),
@@ -134,7 +134,7 @@ class PluginsBlockInterpreterTest {
         assertDynamicInterpretationOf(
             """
                 id("plugin-id").version("1.0").version("2.0").apply(true).apply(false) version "3.0" apply false apply true version "4.0"
-            """.trimIndent(),
+            """,
             "Expecting token of type RBRACE, but got DOT instead",
         )
     }
@@ -413,15 +413,15 @@ class PluginsBlockInterpreterTest {
     fun `id version - comment - kdoc inline`() {
         assertStaticInterpretationOf(
             """
-                id("plugin-id-6") /** kdoc comment */ .version("1.0")
-                id("plugin-id-7"). /** kdoc comment */ version("1.0")
-                id("plugin-id-8") /** kdoc comment */ version "1.0"
-                id("plugin-id-9") version /** kdoc comment */ "1.0"
+                id("plugin-id-1") /** kdoc comment */ .version("1.0")
+                id("plugin-id-2"). /** kdoc comment */ version("2.0")
+                id("plugin-id-3") /** kdoc comment */ version "3.0"
+                id("plugin-id-4") version /** kdoc comment */ "4.0"
             """,
-            PluginRequestSpec("plugin-id-6", version = "1.0"),
-            PluginRequestSpec("plugin-id-7", version = "1.0"),
-            PluginRequestSpec("plugin-id-8", version = "1.0"),
-            PluginRequestSpec("plugin-id-9", version = "1.0"),
+            PluginRequestSpec("plugin-id-1", version = "1.0"),
+            PluginRequestSpec("plugin-id-2", version = "2.0"),
+            PluginRequestSpec("plugin-id-3", version = "3.0"),
+            PluginRequestSpec("plugin-id-4", version = "4.0"),
         )
     }
 
