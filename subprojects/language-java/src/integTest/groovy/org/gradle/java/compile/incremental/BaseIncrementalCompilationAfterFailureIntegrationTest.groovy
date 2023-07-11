@@ -438,6 +438,7 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
     def "removes all classes for a recompiled source from output to stash dir for Spock tests when super class is changed"() {
         given:
         buildScript """
+fuck
             plugins {
                 id 'groovy'
                 id 'java-library'
