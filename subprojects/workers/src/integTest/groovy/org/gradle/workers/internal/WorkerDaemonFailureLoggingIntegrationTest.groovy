@@ -47,9 +47,11 @@ class WorkerDaemonFailureLoggingIntegrationTest extends AbstractDaemonWorkerExec
         }
         taskActionOperation != null
         def outputProgress = taskActionOperation.progress(StyledTextOutputEvent)
-        outputProgress.size() == 3
-        outputProgress[0].details.spans[0].text == "Unrecognized option: --not-a-real-argument\n"
-        outputProgress[1].details.spans[0].text == "Error: Could not create the Java Virtual Machine.\n"
-        outputProgress[2].details.spans[0].text == "Error: A fatal exception has occurred. Program will exit.\n"
+        // Output may come in different orders, so we just check that all the expected messages are there.
+        def text = outputProgress*.details.spans*.text.flatten().join()
+        text.count("Unrecognized option: --not-a-real-argument") == 1
+        text.count("Error: Could not create the Java Virtual Machine.") == 1
+        text.count("Error: A fatal exception has occurred. Program will exit.") == 1
+        text.count("\n") == 3
     }
 }
