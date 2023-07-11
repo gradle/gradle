@@ -154,6 +154,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
             if (line == null) {
                 throw new IllegalStateException("Problem location line is not set: " + message);
             }
+            // Column is optional field, so we don't need to check it
         }
 
         return new DefaultProblem(
