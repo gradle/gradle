@@ -29,6 +29,23 @@ import java.util.List;
 import java.util.Optional;
 
 public class DaemonForkOptionsBuilder {
+    // This isn't exhaustive because there are more ways that extra files can be provided
+    // to the worker through diagnostic options, @files or JAVA_TOOL_OPTIONS.
+    private static final List<String> UNRELIABLE_OPTIONS = Arrays.asList(
+        // Classpath options
+        "-cp", "-classpath", "--class-path",
+        // Module related options
+        "-p", "--module-path", "--upgrade-module-path", "--patch-module"
+    );
+    // These options allow you to use : instead of a space to separate the
+    // option from the value
+    private static final List<String> UNRELIABLE_OPTION_PREFIXES = Arrays.asList(
+        // bootclasspath can also end with /a or /p
+        "-Xbootclasspath",
+        // Defining a java agent
+        "-javaagent",
+        "-agentpath"
+    );
     private static final Logger LOGGER = LoggerFactory.getLogger(DaemonForkOptionsBuilder.class);
 
     private final JavaForkOptionsInternal javaForkOptions;
@@ -78,30 +95,12 @@ public class DaemonForkOptionsBuilder {
      */
     @VisibleForTesting
     static Optional<String> findUnreliableArgument(List<String> jvmArgs) {
-        // This isn't exhaustive because there are more ways that extra files can be provided
-        // to the worker through diagnostic options, @files or JAVA_TOOL_OPTIONS.
-        List<String> unreliableOptions = Arrays.asList(
-            // Classpath options
-            "-cp", "-classpath", "--class-path",
-            // Module related options
-            "-p", "--module-path", "--upgrade-module-path", "--patch-module"
-        );
-        // These options allow you to use : instead of a space to separate the
-        // option from the value
-        List<String> unreliableOptionPrefixes = Arrays.asList(
-            // bootclasspath can also end with /a or /p
-            "-Xbootclasspath",
-            // Defining a java agent
-            "-javaagent",
-            "-agentpath"
-        );
-
         for (String jvmArg : jvmArgs) {
             if (jvmArg.startsWith("-")) {
-                if (unreliableOptions.contains(jvmArg)) {
+                if (UNRELIABLE_OPTIONS.contains(jvmArg)) {
                     return Optional.of(jvmArg);
                 }
-                for (String prefix : unreliableOptionPrefixes) {
+                for (String prefix : UNRELIABLE_OPTION_PREFIXES) {
                     if (jvmArg.startsWith(prefix)) {
                         return Optional.of(jvmArg);
                     }
