@@ -35,6 +35,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
     private List<String> solutions;
     private Throwable cause;
     private Integer line;
+    private Integer column;
     private String path;
     private String problemType;
     private Map<String, String> additionalMetaData;
@@ -46,6 +47,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         String severity,
         @Nullable String path,
         @Nullable Integer line,
+        @Nullable Integer column,
         @Nullable String docLink,
         @Nullable String description,
         List<String> solutions,
@@ -59,6 +61,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         this.severity = severity;
         this.path = path;
         this.line = line;
+        this.column = column;
         this.docLink = docLink;
         this.description = description;
         this.solutions = solutions;
@@ -98,6 +101,12 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
     @Override
     public Integer getLine() {
         return line;
+    }
+
+    @Nullable
+    @Override
+    public Integer getColumn() {
+        return column;
     }
 
     @Nullable

@@ -65,6 +65,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 problem.getSeverity().toString(),
                 where == null ? null : where.getPath(),
                 where == null ? null : where.getLine(),
+                where == null ? null : where.getColumn(),
                 getDocumentationFor(problem),
                 problem.getDescription(),
                 problem.getSolutions(),

@@ -43,6 +43,9 @@ public interface ProblemDescriptor extends OperationDescriptor {
     Integer getLine();
 
     @Nullable
+    Integer getColumn();
+
+    @Nullable
     String getDocumentationLink();
 
     @Nullable

@@ -24,10 +24,12 @@ public class DefaultProblemLocation implements ProblemLocation {
 
     private final String path;
     private final Integer line;
+    private final Integer column;
 
-    public DefaultProblemLocation(String path, Integer line) {
+    public DefaultProblemLocation(String path, Integer line, Integer column) {
         this.path = path;
         this.line = line;
+        this.column = column;
     }
 
     @Override
@@ -38,6 +40,11 @@ public class DefaultProblemLocation implements ProblemLocation {
     @Override
     public Integer getLine() {
         return line;
+    }
+
+    @Override
+    public Integer getColumn() {
+        return column;
     }
 
 }

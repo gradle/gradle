@@ -31,4 +31,7 @@ public interface ProblemLocation {
 
     @Nullable
     Integer getLine();
+
+    @Nullable
+    Integer getColumn();
 }

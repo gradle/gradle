@@ -45,6 +45,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     private Severity severity;
     private String path;
     private Integer line;
+    private Integer column;
     private boolean noLocation = false;
     private String description;
     private DocLink documentationUrl;
@@ -86,6 +87,13 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     public ProblemBuilder location(String path, Integer line) {
         this.path = path;
         this.line = line;
+        return this;
+    }
+
+    public ProblemBuilder location(String path, Integer line, Integer column) {
+        this.path = path;
+        this.line = line;
+        this.column = column;
         return this;
     }
 
@@ -147,7 +155,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
             problemGroup,
             message,
             severity,
-            path == null ? null : new DefaultProblemLocation(path, line),
+            path == null ? null : new DefaultProblemLocation(path, line, column),
             documentationUrl,
             description,
             solution,
