@@ -19,7 +19,6 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING
 /**
  * Base class for smoke tests for Kotlin and Kotlin Multiplatform plugins.
  */

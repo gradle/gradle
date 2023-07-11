@@ -35,6 +35,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 
+import static org.gradle.api.problems.interfaces.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 
@@ -63,7 +64,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         validateNotUrlType(propertyMetadata, validationContext);
     }
 
-    private void validateNotPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private void validateNotOptionalPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.type(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
@@ -95,7 +96,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                         .solution("Annotate with @InputFiles for collections of files")
                         .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
                         .documentedAt(userManual("validation_problems", "incorrect_use_of_input_annotation"))
-                    .noLocation()
+                        .noLocation()
             );
         }
     }
@@ -111,7 +112,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                             .description("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                             .solution("Annotate with @InputDirectory for directories")
                             .documentedAt(userManual("validation_problems", "incorrect_use_of_input_annotation"))
-                        .noLocation()
+                            .noLocation()
             );
         }
     }
@@ -119,13 +120,14 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         List<Class<?>> valueTypes = unpackValueTypesOf(propertyMetadata);
         if (valueTypes.stream().anyMatch(URL.class::isAssignableFrom)) {
             validationContext.visitPropertyProblem(problem ->
-                    problem.withId(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
+                    problem.type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
                             .forProperty(propertyMetadata.getPropertyName())
-                            .reportAs(WARNING)
-                            .withDescription(() -> String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
-                            .happensBecause(() -> String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
-                            .addPossibleSolution("Use type 'java.net.URI' instead")
-                            .documentedAt("validation_problems", "unsupported_value_type")
+                            .severity(WARNING)
+                            .message(String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
+                            .description(String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
+                            .solution("Use type 'java.net.URI' instead")
+                            .documentedAt(userManual("validation_problems", "unsupported_value_type"))
+                            .noLocation()
             );
         }
     }

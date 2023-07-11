@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /**
  * Problem location.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Incubating
 public interface ProblemLocation {

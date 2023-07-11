@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Problem id.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Incubating
 public enum ProblemGroup {

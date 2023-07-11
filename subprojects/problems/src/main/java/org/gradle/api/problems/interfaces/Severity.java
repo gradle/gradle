@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Severity.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Incubating
 public enum Severity {

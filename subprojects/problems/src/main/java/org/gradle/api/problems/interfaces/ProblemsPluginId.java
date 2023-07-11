@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /**
  * A description of a plugin.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Incubating
 public interface ProblemsPluginId {

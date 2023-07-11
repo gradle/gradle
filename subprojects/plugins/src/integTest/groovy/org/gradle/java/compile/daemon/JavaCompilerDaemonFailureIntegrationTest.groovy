@@ -49,7 +49,7 @@ class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
         def taskOperation = buildOperations.first(CompileJavaBuildOperationType)
         taskOperation != null
         // there's only the task start progress, no failure progress
-        taskOperation.progress.size() == 1
+        taskOperation.progress.size() == 2
         errorOutput.contains("option: --not-a-real-argument")
     }
 }

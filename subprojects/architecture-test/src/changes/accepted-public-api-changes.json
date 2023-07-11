@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.util.SingleMessageLogger",
+            "member": "Class org.gradle.util.SingleMessageLogger",
+            "acceptation": "use Problems class for reporting warnings to TAPI",
+            "changes": [
+                "org.gradle.internal.deprecation.DeprecationLogger.init(org.gradle.problems.buildtree.ProblemDiagnosticsFactory,org.gradle.api.logging.configuration.WarningMode,org.gradle.internal.operations.BuildOperationProgressEventEmitter)"
+            ]
+        }
+    ]
 }

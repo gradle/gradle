@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 /**
  * A link to a documentation page.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Incubating
 public interface DocLink {
