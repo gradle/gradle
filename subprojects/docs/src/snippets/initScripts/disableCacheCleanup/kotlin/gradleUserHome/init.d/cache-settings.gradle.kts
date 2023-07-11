@@ -1,5 +1,5 @@
 beforeSettings {
     caches {
-        cleanup.set(Cleanup.DISABLED)
+        cleanup = Cleanup.DISABLED
     }
 }
