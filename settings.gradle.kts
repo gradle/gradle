@@ -55,6 +55,7 @@ unassigned {
 
 // Gradle implementation projects
 unassigned {
+    subproject("build-service-performance-kotlin")
     subproject("configuration-cache")
     subproject("functional")
     subproject("api-metadata")
