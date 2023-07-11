@@ -129,12 +129,6 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
         static testRetryPlugin = "1.5.3"
 
-        // https://plugins.gradle.org/plugin/com.jfrog.artifactory
-        static artifactoryPlugin = "4.33.1"
-
-        // https://docker.bintray.io/ui/packages/gav:%2F%2Forg.artifactory.oss.docker:artifactory-oss-docker?name=artifactory-oss&type=packages
-        static artifactoryRepoOSSVersion = "6.23.21"
-
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
         static aspectj = "8.1.0"
 
