@@ -610,7 +610,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
 
-    def "eagerly iterating over dependency bucket does not break automatic dependencies for test suite"() {
+    def "eagerly iterating over dependency scope does not break automatic dependencies for test suite"() {
         buildFile << """
             plugins {
                 id 'java'
