@@ -16,19 +16,10 @@
 
 package org.gradle.kotlin.dsl.assignment.internal
 
-import org.gradle.internal.deprecation.DeprecationLogger
-
 
 /**
- * Used only in old kotlin-dsl plugin, will be removed with Gradle 9.0
+ * TODO: Remove once kotlin-dsl plugin is updated
  */
 object KotlinDslAssignment {
-    fun isAssignmentOverloadEnabled(): Boolean {
-        DeprecationLogger.deprecateMethod(this::class.java, "isAssignmentOverloadEnabled()")
-            .withAdvice("The method was most likely called from the old version of `kotlin-dsl` plugin: avoid specifying a version for `kotlin-dsl` plugin.")
-            .willBeRemovedInGradle9()
-            .undocumented()
-            .nagUser()
-        return true
-    }
+    fun isAssignmentOverloadEnabled() = true
 }
