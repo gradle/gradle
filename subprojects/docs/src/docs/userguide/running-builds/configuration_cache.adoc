@@ -567,6 +567,7 @@ Let your team know they can opt-in by, for example, enabling the configuration c
 Later on, when more workflows are working, you can flip this around.
 Enable the configuration cache by default, configure CI to disable it, and if required communicate the unsupported workflow(s) for which the configuration cache needs to be disabled.
 
+[[config_cache:adoption:changes_in_behavior]]
 === Adopting changes in the configuration cache behavior
 
 Gradle releases bring enhancements to the configuration cache, making it detect more cases of configuration logic interacting with the environment.
