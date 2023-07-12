@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependency;
 
 import java.util.List;
 
@@ -25,25 +25,25 @@ import java.util.List;
  *
  * <p>TODO: Currently this represents a POM's dependencies in a "Gradle" point of view.
  * To better align this interface with the way Maven represents dependencies in a POM,
- * we should add a {@code scope} and {@code optional} flag to {@link MavenDependencyInternal}
+ * we should add a {@code scope} and {@code optional} flag to {@link MavenDependency}
  * so that we can represent these dependencies as Maven would. Then, we can combine all
  * normal dependencies into a single list and do the same for dependency management
  * dependencies.<p>
  */
 public interface MavenPomDependencies {
 
-    List<MavenDependencyInternal> getRuntimeDependencies();
+    List<MavenDependency> getRuntimeDependencies();
 
-    List<MavenDependencyInternal> getApiDependencies();
+    List<MavenDependency> getApiDependencies();
 
-    List<MavenDependencyInternal> getOptionalApiDependencies();
+    List<MavenDependency> getOptionalApiDependencies();
 
-    List<MavenDependencyInternal> getOptionalRuntimeDependencies();
+    List<MavenDependency> getOptionalRuntimeDependencies();
 
-    List<MavenDependencyInternal> getRuntimeDependencyManagement();
+    List<MavenDependency> getRuntimeDependencyManagement();
 
-    List<MavenDependencyInternal> getApiDependencyManagement();
+    List<MavenDependency> getApiDependencyManagement();
 
-    List<MavenDependencyInternal> getImportDependencyManagement();
+    List<MavenDependency> getImportDependencyManagement();
 
 }

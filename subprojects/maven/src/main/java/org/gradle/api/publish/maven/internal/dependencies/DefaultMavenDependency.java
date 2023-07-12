@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class DefaultMavenDependency implements MavenDependencyInternal {
+public class DefaultMavenDependency implements MavenDependency {
     private final String groupId;
     private final String artifactId;
     private final String version;

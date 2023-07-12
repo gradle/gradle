@@ -17,20 +17,37 @@ package org.gradle.api.publish.maven.internal.dependencies;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-public interface MavenDependencyInternal extends MavenDependency {
+public interface MavenDependency {
+    /**
+     * The groupId value for this dependency.
+     */
+    String getGroupId();
+
+    /**
+     * The artifactId value for this dependency.
+     */
+    String getArtifactId();
+
+    /**
+     * The version value for this dependency.
+     */
+    @Nullable
+    String getVersion();
+
+    /**
+     * The type value for this dependency.
+     */
+    @Nullable
+    String getType();
+
     Collection<DependencyArtifact> getArtifacts();
     Collection<ExcludeRule> getExcludeRules();
 
     @Nullable
     Path getProjectIdentityPath();
-
-    @Override
-    @Nullable
-    String getVersion();
 }

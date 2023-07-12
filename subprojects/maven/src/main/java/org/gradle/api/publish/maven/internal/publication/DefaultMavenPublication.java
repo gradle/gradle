@@ -81,7 +81,7 @@ import org.gradle.api.publish.maven.internal.artifact.DerivedMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtifact;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenProjectDependency;
-import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependency;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
@@ -339,13 +339,13 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         private final DocumentationRegistry documentationRegistry;
 
         private final Set<MavenArtifact> artifacts = new LinkedHashSet<>();
-        private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<>();
-        private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<>();
-        private final Set<MavenDependencyInternal> optionalApiDependencies = new LinkedHashSet<>();
-        private final Set<MavenDependencyInternal> optionalRuntimeDependencies = new LinkedHashSet<>();
-        private final Set<MavenDependencyInternal> runtimeDependencyConstraints = new LinkedHashSet<>();
-        private final Set<MavenDependencyInternal> apiDependencyConstraints = new LinkedHashSet<>();
-        private final Set<MavenDependencyInternal> importDependencyConstraints = new LinkedHashSet<>();
+        private final Set<MavenDependency> runtimeDependencies = new LinkedHashSet<>();
+        private final Set<MavenDependency> apiDependencies = new LinkedHashSet<>();
+        private final Set<MavenDependency> optionalApiDependencies = new LinkedHashSet<>();
+        private final Set<MavenDependency> optionalRuntimeDependencies = new LinkedHashSet<>();
+        private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<>();
+        private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<>();
+        private final Set<MavenDependency> importDependencyConstraints = new LinkedHashSet<>();
         private final PublicationWarningsCollector publicationWarningsCollector =
             new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
 
@@ -379,7 +379,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
                 Set<ExcludeRule> globalExcludes = variant.getGlobalExcludes();
 
                 publicationWarningsCollector.newContext(variant.getName());
-                Set<MavenDependencyInternal> dependencies = dependenciesFor(variant);
+                Set<MavenDependency> dependencies = dependenciesFor(variant);
                 for (ModuleDependency dependency : variant.getDependencies()) {
                     if (seenDependencies.add(PublishedDependency.of(dependency))) {
                         if (isDependencyWithDefaultArtifact(dependency) && dependencyMatchesProject(dependency, coordinates)) {
@@ -410,7 +410,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
                         }
                     }
                 }
-                Set<MavenDependencyInternal> dependencyConstraints = dependencyConstraintsFor(variant);
+                Set<MavenDependency> dependencyConstraints = dependencyConstraintsFor(variant);
                 for (DependencyConstraint dependency : variant.getDependencyConstraints()) {
                     if (seenConstraints.add(dependency)) {
                         if (dependency instanceof DefaultProjectDependencyConstraint) {
@@ -519,7 +519,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             }
         }
 
-        private Set<MavenDependencyInternal> dependenciesFor(MavenPublishingAwareVariant variant) {
+        private Set<MavenDependency> dependenciesFor(MavenPublishingAwareVariant variant) {
             switch (variant.getScopeMapping()) {
                 case compile:
                     return apiDependencies;
@@ -534,7 +534,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             }
         }
 
-        private Set<MavenDependencyInternal> dependencyConstraintsFor(MavenPublishingAwareVariant variant) {
+        private Set<MavenDependency> dependencyConstraintsFor(MavenPublishingAwareVariant variant) {
             switch (variant.getScopeMapping()) {
                 case compile:
                 case compile_optional:
@@ -547,22 +547,22 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             }
         }
 
-        private static void addModuleDependency(ModuleDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependencyInternal> dependencies) {
+        private static void addModuleDependency(ModuleDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependency> dependencies) {
             dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), getExcludeRules(globalExcludes, dependency)));
         }
 
-        private void addProjectDependency(ProjectDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependencyInternal> dependencies) {
+        private void addProjectDependency(ProjectDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependency> dependencies) {
             Path identityPath = getIdentityPath(dependency);
             ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
             DefaultMavenDependency moduleDependency = new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.emptyList(), getExcludeRules(globalExcludes, dependency));
             dependencies.add(new DefaultMavenProjectDependency(moduleDependency, identityPath));
         }
 
-        private static void addDependencyConstraint(DependencyConstraint dependency, Set<MavenDependencyInternal> dependencies) {
+        private static void addDependencyConstraint(DependencyConstraint dependency, Set<MavenDependency> dependencies) {
             dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion()));
         }
 
-        private void addDependencyConstraint(DefaultProjectDependencyConstraint dependency, Set<MavenDependencyInternal> dependencies) {
+        private void addDependencyConstraint(DefaultProjectDependencyConstraint dependency, Set<MavenDependency> dependencies) {
             Path identityPath = getIdentityPath(dependency.getProjectDependency());
             ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
             DefaultMavenDependency moduleDependency = new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion());

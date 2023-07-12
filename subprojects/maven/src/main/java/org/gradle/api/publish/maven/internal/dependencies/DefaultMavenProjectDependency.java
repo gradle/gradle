@@ -22,11 +22,11 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-public class DefaultMavenProjectDependency implements MavenDependencyInternal {
-    private final MavenDependencyInternal delegate;
+public class DefaultMavenProjectDependency implements MavenDependency {
+    private final MavenDependency delegate;
     private final Path identityPath;
 
-    public DefaultMavenProjectDependency(MavenDependencyInternal delegate, Path identityPath) {
+    public DefaultMavenProjectDependency(MavenDependency delegate, Path identityPath) {
         this.delegate = delegate;
         this.identityPath = identityPath;
     }

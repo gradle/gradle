@@ -25,7 +25,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency
-import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependency
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDependencies
@@ -291,7 +291,7 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-    private MavenPomDependencies runtimeDependencies(MavenDependencyInternal dependency) {
+    private MavenPomDependencies runtimeDependencies(MavenDependency dependency) {
         return new DefaultMavenPomDependencies(
             ImmutableList.of(dependency), ImmutableList.of(), ImmutableList.of(), ImmutableList.of(),
             ImmutableList.of(), ImmutableList.of(), ImmutableList.of()
