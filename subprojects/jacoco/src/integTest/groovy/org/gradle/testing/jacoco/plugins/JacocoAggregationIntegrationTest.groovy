@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
+import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -386,6 +387,54 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                     testCodeCoverageReport(JacocoCoverageReport) {
                         testType = TestSuiteType.UNIT_TEST
                     }
+                }
+            }
+        """
+
+        when:
+        succeeds(":testCodeCoverageReport")
+
+        then:
+        file("transitive/build/jacoco/test.exec").assertExists()
+        file("direct/build/jacoco/test.exec").assertExists()
+        file("application/build/jacoco/test.exec").assertExists()
+
+        file("build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
+
+        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        report.assertHasClassCoverage("application.Adder")
+        report.assertHasClassCoverage("direct.Multiplier")
+        report.assertHasClassCoverage("transitive.Powerize")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25618")
+    def "can aggregate jacoco reports when dependency publishes test fixtures"() {
+        given:
+        buildFile << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            dependencies {
+                jacocoAggregation project(":application")
+                jacocoAggregation project(":direct")
+            }
+
+            reporting {
+                reports {
+                    testCodeCoverageReport(JacocoCoverageReport) {
+                        testType = TestSuiteType.UNIT_TEST
+                    }
+                }
+            }
+        """
+
+        file("application/build.gradle") << "apply plugin: 'org.gradle.java-test-fixtures'"
+
+        file("application/src/testFixtures/java/application/AdderTestFixture.java").java """
+            package application;
+
+            public class AdderTestFixture {
+                public static int triple(int a) {
+                    return a + a + a;
                 }
             }
         """

@@ -48,19 +48,19 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
         then:
         versionMetadata.size() == 3
         versionMetadata[0].version == VersionNumber.parse("15.3.26730.16")
-        versionMetadata[0].installDir == new File("${TextUtil.escapeString(localRoot.absolutePath)}/Program Files/Microsoft Visual Studio/2017/Community")
+        versionMetadata[0].installDir == new File(localRoot, "Program Files/Microsoft Visual Studio/2017/Community")
         versionMetadata[0].visualCppDir == new File(versionMetadata[0].installDir, "VC/Tools/MSVC/1.2.3.4")
         versionMetadata[0].visualCppVersion == VersionNumber.parse("1.2.3.4")
         versionMetadata[0].compatibility == VS2017_OR_LATER
 
         versionMetadata[1].version == VersionNumber.parse("14.0")
-        versionMetadata[1].installDir == new File("${TextUtil.escapeString(localRoot.absolutePath)}/Program Files/Microsoft Visual Studio 14.0/")
+        versionMetadata[1].installDir == new File(localRoot, "Program Files/Microsoft Visual Studio 14.0/")
         versionMetadata[1].visualCppDir == new File(versionMetadata[1].installDir, "VC")
         versionMetadata[1].visualCppVersion == VersionNumber.parse("14.0")
         versionMetadata[1].compatibility == LEGACY
 
         versionMetadata[2].version == VersionNumber.parse("12.0")
-        versionMetadata[2].installDir == new File("${TextUtil.escapeString(localRoot.absolutePath)}/Program Files/Microsoft Visual Studio 12.0/")
+        versionMetadata[2].installDir == new File(localRoot, "Program Files/Microsoft Visual Studio 12.0/")
         versionMetadata[2].visualCppDir == new File(versionMetadata[2].installDir, "VC")
         versionMetadata[2].visualCppVersion == VersionNumber.parse("12.0")
         versionMetadata[2].compatibility == LEGACY

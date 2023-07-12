@@ -42,4 +42,9 @@ public interface ModelObject {
      */
     @Nullable
     Task getTaskThatOwnsThisObject();
+
+    /**
+     * (Re)-attaches this model object as the owner of its properties. Useful after serialization, for example.
+     */
+    void attachModelProperties();
 }

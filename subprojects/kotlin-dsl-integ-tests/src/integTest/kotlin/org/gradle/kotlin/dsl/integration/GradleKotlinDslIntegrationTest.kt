@@ -36,6 +36,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
+import spock.lang.Issue
 
 
 class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
@@ -290,6 +291,34 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         assertThat(
             build("plugins").output,
             containsString("*BasePlugin\$Inject*")
+        )
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/24503")
+    fun `can use configuration provider in dependencies block`() {
+
+        withClassJar("fixture.jar", DeepThought::class.java)
+
+        withBuildScript(
+            """
+            buildscript {
+                val classpath2 = configurations.named("classpath")
+                dependencies { classpath2(files("fixture.jar")) }
+            }
+
+            task("compute") {
+                doLast {
+                    val computer = ${DeepThought::class.qualifiedName}()
+                    val answer = computer.compute()
+                    println("*" + answer + "*")
+                }
+            }
+            """
+        )
+
+        assert(
+            build("compute").output.contains("*42*")
         )
     }
 

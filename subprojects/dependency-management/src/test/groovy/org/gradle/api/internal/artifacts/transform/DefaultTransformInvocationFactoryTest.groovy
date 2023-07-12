@@ -62,6 +62,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
@@ -118,6 +119,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     }
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
+    def progressEventEmitter = Stub(BuildOperationProgressEventEmitter)
 
     def buildCacheController = Stub(BuildCacheController)
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -160,7 +162,8 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         transformWorkspaceServices,
         fileCollectionFactory,
         projectStateRegistry,
-        buildOperationExecutor
+        buildOperationExecutor,
+        progressEventEmitter
     )
 
     private static class TestTransform implements Transform {

@@ -410,7 +410,7 @@ Large projects may have to increase this setting on the relevant tasks, e.g. <<b
 The default tool versions of the following code quality plugins have been updated:
 
  * The http://checkstyle.sourceforge.net[Checkstyle Plugin] now uses http://checkstyle.sourceforge.net/releasenotes.html#Release_8.12[8.12] instead of 6.19 by default.
- * The http://codenarc.sourceforge.net[CodeNarc Plugin] now uses https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-121-aug-2018[1.2.1] instead of 1.1 by default.
+ * The https://codenarc.org/[CodeNarc Plugin] now uses https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-121-aug-2018[1.2.1] instead of 1.1 by default.
  * The https://www.jacoco.org/jacoco/[JaCoCo Plugin] now uses https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.2] instead of 0.8.1 by default.
  * The https://pmd.github.io/[PMD Plugin] now uses https://pmd.github.io/pmd-6.8.0/pmd_release_notes.html#30-september-2018---680[6.8.0] instead of 5.6.1 by default.
 +

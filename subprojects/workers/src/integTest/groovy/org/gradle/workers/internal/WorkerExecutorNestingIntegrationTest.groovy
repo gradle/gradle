@@ -146,6 +146,15 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
         buildFile << """
             ${getWorkActionWithNesting("noIsolation", "noIsolation")}
+            class WorkerExecutorThreads {
+                static def getWorkerExecutorThreads() {
+                    def threadGroup = Thread.currentThread().threadGroup
+                    def threads = new Thread[threadGroup.activeCount()]
+                    threadGroup.enumerate(threads)
+                    return threads.findAll { it?.name?.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") }
+                }
+            }
+
             task runInWorker(type: NestingWorkerTask) {
                 submissions = ${maxWorkers * 2}
                 childSubmissions = ${maxWorkers * 10}
@@ -156,13 +165,13 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
                     // Let the keep-alive time on the thread pool expire
                     sleep(${DefaultConditionalExecutionQueue.KEEP_ALIVE_TIME_MS})
 
-                    def executorThreads = getWorkerExecutorThreads()
+                    def executorThreads = WorkerExecutorThreads.getWorkerExecutorThreads()
                     while(System.currentTimeMillis() < timeout) {
                         if (executorThreads.size() <= ${maxWorkers}) {
                             break
                         }
                         sleep 100
-                        executorThreads = getWorkerExecutorThreads()
+                        executorThreads = WorkerExecutorThreads.getWorkerExecutorThreads()
                     }
 
                     println "\\nWorker Executor threads:"
@@ -171,13 +180,6 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
                     // Ensure that we don't leave any threads lying around
                     assert executorThreads.size() <= ${maxWorkers}
                 }
-            }
-
-            def getWorkerExecutorThreads() {
-                def threadGroup = Thread.currentThread().threadGroup
-                def threads = new Thread[threadGroup.activeCount()]
-                threadGroup.enumerate(threads)
-                return threads.findAll { it?.name?.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") }
             }
         """.stripIndent()
 

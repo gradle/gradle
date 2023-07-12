@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise.impl;
 
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInResult;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginMetadata;
@@ -32,6 +33,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     private final GradleEnterprisePluginManager manager;
     private final DefaultGradleEnterprisePluginAdapter adapter;
     private final boolean isConfigurationCacheEnabled;
+    private final boolean isIsolatedProjectsEnabled;
 
     public DefaultGradleEnterprisePluginCheckInService(
         BuildModelParameters buildModelParameters,
@@ -41,6 +43,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         this.manager = manager;
         this.adapter = adapter;
         this.isConfigurationCacheEnabled = buildModelParameters.isConfigurationCache();
+        this.isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
     }
 
     // Used just for testing
@@ -49,28 +52,54 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
     // For Gradle versions 8+, configuration caching builds are not compatible with Gradle Enterprise plugin < 3.12
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING = VersionNumber.version(3, 12);
-    public static final String UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE = String.format("The Gradle Enterprise plugin has been disabled as it is " +
+    public static final String UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE = String.format("Gradle Enterprise plugin has been disabled as it is " +
             "incompatible with this version of Gradle and the configuration caching feature - please upgrade to version %s.%s or later of the Gradle Enterprise plugin to restore functionality.",
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor(),
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor());
 
+    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS = VersionNumber.version(3, 15);
+    public static final String UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE = "Gradle Enterprise plugin has been disabled as it is incompatible with isolated projects feature";
+
+    // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
+    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9 = VersionNumber.parse("3.13.1");
+
+    private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
+
     @Override
     public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
-            manager.unsupported();
-            return checkInResult(UNSUPPORTED_TOGGLE_MESSAGE, () -> {
-                throw new IllegalStateException();
-            });
+            return checkInUnsupportedResult(UNSUPPORTED_TOGGLE_MESSAGE);
         }
-        if (isUnsupportedWithConfigurationCaching(pluginMetadata)) {
-            manager.unsupported();
-            return checkInResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE, () -> {
-                throw new IllegalStateException();
-            });
+
+        String pluginVersion = pluginMetadata.getVersion();
+        VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
+
+        if (isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
+            // Until GE plugin 3.14, Test Acceleration is applied even if the check-in returns an "unsupported" result.
+            // We have to disable it explicitly, because it is not compatible with isolated projects.
+            System.setProperty(DISABLE_TEST_ACCELERATION_PROPERTY, "true");
+
+            return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE);
         }
+
+        if (isUnsupportedWithConfigurationCaching(pluginBaseVersion)) {
+            return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE);
+        }
+
+        if (isDeprecatedPluginVersion(pluginBaseVersion)) {
+            nagAboutDeprecatedPluginVersion(pluginVersion);
+        }
+
         GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
         manager.registerAdapter(adapter);
         return checkInResult(null, () -> ref);
+    }
+
+    private GradleEnterprisePluginCheckInResult checkInUnsupportedResult(String unsupportedMessage) {
+        manager.unsupported();
+        return checkInResult(unsupportedMessage, () -> {
+            throw new IllegalStateException();
+        });
     }
 
     private static GradleEnterprisePluginCheckInResult checkInResult(String unsupportedMessage, Supplier<GradleEnterprisePluginServiceRef> pluginServiceRefSupplier) {
@@ -87,9 +116,26 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         };
     }
 
-    private boolean isUnsupportedWithConfigurationCaching(GradleEnterprisePluginMetadata pluginMetadata) {
-        VersionNumber version = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
-        return isConfigurationCacheEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(version) > 0;
+    private boolean isUnsupportedWithConfigurationCaching(VersionNumber pluginBaseVersion) {
+        return isConfigurationCacheEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(pluginBaseVersion) > 0;
     }
 
+    private boolean isUnsupportedWithIsolatedProjects(VersionNumber pluginBaseVersion) {
+        return isIsolatedProjectsEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.compareTo(pluginBaseVersion) > 0;
+    }
+
+    private static boolean isDeprecatedPluginVersion(VersionNumber pluginBaseVersion) {
+        return MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.compareTo(pluginBaseVersion) > 0;
+    }
+
+    private static void nagAboutDeprecatedPluginVersion(String pluginVersion) {
+        DeprecationLogger.deprecateIndirectUsage("Gradle Enterprise plugin " + pluginVersion)
+            .startingWithGradle9(String.format("only Gradle Enterprise plugin %s.%s.%s or newer is supported",
+                MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMajor(),
+                MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMinor(),
+                MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMicro()
+            ))
+            .withUpgradeGuideSection(8, "unsupported_ge_plugin_3.13")
+            .nagUser();
+    }
 }

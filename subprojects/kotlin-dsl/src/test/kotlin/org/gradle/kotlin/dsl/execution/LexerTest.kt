@@ -28,19 +28,22 @@ import org.junit.Test
 class LexerTest {
 
     @Test
-    fun `extracts comments and top-level blocks`() {
+    fun `extracts comments, annotations and top-level blocks`() {
 
         assertThat(
             lex(
-                "/* ... */" +
-                    "\n// ..." +
+                "/* ... @TaskAction ... */" +
+                    "\n// ... @Suppress(\"unused_variable\")" +
                     "\nbuildscript { /*" +
                     "\n ... */" +
                     "\n}" +
+                    "\n@Suppress(\"unused_variable\")" +
                     "\nplugins { /*" +
                     "\n ... */" +
                     "\n}" +
-                    "\n// ...",
+                    "\n// ..." +
+                    "\n   @TaskAction" +
+                    "\nprintln(\"Yolo!\")",
                 buildscript, plugins
             ),
             equalTo(
@@ -48,15 +51,19 @@ class LexerTest {
                     null,
                     LexedScript(
                         listOf(
-                            0..8,
-                            10..15,
-                            31..40,
-                            54..63,
-                            67..72
+                            0..24,
+                            26..60,
+                            76..85,
+                            128..137,
+                            141..146
                         ),
                         listOf(
-                            topLevelBlock(buildscript, 17..27, 29..42),
-                            topLevelBlock(plugins, 44..50, 52..65)
+                            89..116,
+                            151..161
+                        ),
+                        listOf(
+                            topLevelBlock(buildscript, 62..72, 74..87, null),
+                            topLevelBlock(plugins, 118..124, 126..139, 89)
                         )
                     )
                 )
@@ -92,7 +99,8 @@ class LexerTest {
                     "com.example",
                     LexedScript(
                         listOf(1..9, 11..56, 84..110, 148..203, 319..357),
-                        listOf(topLevelBlock(plugins, 378..384, 386..388))
+                        listOf(),
+                        listOf(topLevelBlock(plugins, 378..384, 386..388, null))
                     )
                 )
             )

@@ -555,13 +555,13 @@ Type
 Options
      --booleanValue     Configures a boolean flag in CustomTask.
 
+     --no-booleanValue     Disables option --booleanValue
+
      --enumValue     Configures an enum value in CustomTask.
                      Available values are:
                           ABC
                           DEF
                           GHIJKL
-
-     --no-booleanValue     Disables option --booleanValue
 
 ${builtInOptions}
 
@@ -612,16 +612,16 @@ BUILD SUCCESSFUL"""
         then:
         output.contains """
 Options
-     --no-valueA     Disables option --valueA
-
-     --no-valueB     Disables option --valueB
-
-     --no-valueC     Disables option --valueC
-
      --valueA     descA
+
+     --no-valueA     Disables option --valueA
 
      --valueB     descB
 
-     --valueC     descC"""
+     --no-valueB     Disables option --valueB
+
+     --valueC     descC
+
+     --no-valueC     Disables option --valueC"""
     }
 }

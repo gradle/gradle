@@ -320,7 +320,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
                 }
             }
-            into("$buildDir/android-studio")
+            into(layout.buildDirectory.dir("android-studio"))
         }
     }
 
@@ -372,7 +372,7 @@ fun Project.performanceReportZipTaskFor(performanceReport: TaskProvider<out Perf
         from(performanceReport.get().performanceResults) {
             into("perf-results")
         }
-        destinationDirectory = buildDir
+        destinationDirectory = layout.buildDirectory
         archiveFileName = "performance-test-results.zip"
     }
 

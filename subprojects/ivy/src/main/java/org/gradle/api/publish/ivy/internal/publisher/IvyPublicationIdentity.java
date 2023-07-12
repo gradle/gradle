@@ -16,10 +16,15 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import javax.annotation.Nullable;
+
 public interface IvyPublicationIdentity {
+    @Nullable
     String getOrganisation();
 
+    @Nullable
     String getModule();
 
+    @Nullable
     String getRevision();
 }

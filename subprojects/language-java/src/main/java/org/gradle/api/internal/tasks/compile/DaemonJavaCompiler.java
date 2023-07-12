@@ -33,7 +33,7 @@ import java.io.File;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
 
-    private static final String KEEP_DAEMON_ALIVE_PROPERTY = "org.gradle.internal.java.compile.daemon.keepAlive";
+    public static final String KEEP_DAEMON_ALIVE_PROPERTY = "org.gradle.internal.java.compile.daemon.keepAlive";
     private final Class<? extends Compiler<JavaCompileSpec>> compilerClass;
     private final Object[] compilerConstructorArguments;
     private final JavaForkOptionsFactory forkOptionsFactory;
@@ -70,7 +70,8 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
         FlatClassLoaderStructure classLoaderStructure = new FlatClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
 
-        String keepAliveModeStr = System.getProperty(KEEP_DAEMON_ALIVE_PROPERTY, KeepAliveMode.SESSION.name());
+        // By default, we keep Java compiler daemons alive across builds until the daemon is shut down
+        String keepAliveModeStr = System.getProperty(KEEP_DAEMON_ALIVE_PROPERTY, KeepAliveMode.DAEMON.name());
         KeepAliveMode keepAliveMode;
         try {
             keepAliveMode = KeepAliveMode.valueOf(keepAliveModeStr);

@@ -16,10 +16,13 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import javax.annotation.Nullable;
+
 public interface MutableIvyPublicationidentity extends IvyPublicationIdentity {
-    void setOrganisation(String organisation);
 
-    void setModule(String module);
+    void setOrganisation(@Nullable String organisation);
 
-    void setRevision(String revision);
+    void setModule(@Nullable String module);
+
+    void setRevision(@Nullable String revision);
 }

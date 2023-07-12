@@ -21,6 +21,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -37,21 +38,50 @@ public class BooleanOptionElement extends AbstractOptionElement {
     private static final String OPPOSITE_DESC_PREFIX = "Opposite option of --";
     private static final String DISABLE_NAME_PREFIX = "no-";
     private final PropertySetter setter;
+    private final boolean newOptionValue;
 
     public BooleanOptionElement(String optionName, Option option, PropertySetter setter) {
         super(optionName, option, Void.TYPE, setter.getDeclaringClass());
         this.setter = setter;
+        this.newOptionValue = true;
     }
 
-    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter) {
+    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter, boolean newOptionValue) {
         super(optionDescription, optionName, Void.TYPE);
         this.setter = setter;
+        this.newOptionValue = newOptionValue;
     }
 
     public static BooleanOptionElement oppositeOf(BooleanOptionElement optionElement) {
         String optionName = optionElement.getOptionName();
-        return optionElement.isDisableOption() ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName, optionElement.setter)
-            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName, optionElement.setter);
+        return optionElement.isDisableOption()
+            ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName, optionElement.setter, false)
+            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName, optionElement.setter, false);
+    }
+
+    /**
+     * Returns a comparator that groups opposite option pairs together.
+     *
+     * <p>Options are sorted in the natural order of their names,
+     * except for disable options which are sorted after their opposite option.
+     * For example, {@code "--foo"} and {@code "--no-foo"} are grouped together
+     * and are sorted after {@code "--bar"} and {@code "--no-bar"}.
+     *
+     * @return a comparator that groups opposite option pairs together
+     */
+    public static Comparator<OptionDescriptor> groupOppositeOptions() {
+        return Comparator.comparing(optionDescriptor -> {
+            if (optionDescriptor instanceof InstanceOptionDescriptor) {
+                InstanceOptionDescriptor instanceOptionDescriptor = (InstanceOptionDescriptor) optionDescriptor;
+                if (instanceOptionDescriptor.getOptionElement() instanceof BooleanOptionElement) {
+                    BooleanOptionElement optionElement = (BooleanOptionElement) instanceOptionDescriptor.getOptionElement();
+                    if (optionElement.isDisableOption()) {
+                        return removeDisablePrefix(optionElement.getOptionName()) + "-";
+                    }
+                }
+            }
+            return optionDescriptor.getName();
+        });
     }
 
     public boolean isDisableOption() {
@@ -65,11 +95,7 @@ public class BooleanOptionElement extends AbstractOptionElement {
 
     @Override
     public void apply(Object object, List<String> parameterValues) throws TypeConversionException {
-        if (isDisableOption()) {
-            setter.setValue(object, Boolean.FALSE);
-        } else {
-            setter.setValue(object, Boolean.TRUE);
-        }
+        setter.setValue(object, newOptionValue);
     }
 
     private static String removeDisablePrefix(String optionName) {

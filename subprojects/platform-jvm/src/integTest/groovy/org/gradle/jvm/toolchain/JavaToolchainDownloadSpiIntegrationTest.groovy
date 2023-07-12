@@ -17,7 +17,6 @@
 package org.gradle.jvm.toolchain
 
 import net.rubygrapefruit.platform.SystemInfo
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
@@ -29,7 +28,6 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESS
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownloadSpiIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can inject custom toolchain registry via settings plugin"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}
@@ -65,13 +63,12 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from 'https://exoticJavaToolchain.com/java-99'.")
-                .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from 'https://exoticJavaToolchain.com/java-99'.")
+               .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "downloaded JDK is checked against the spec"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("BrokenToolchainResolver", brokenToolchainResolverCode())}
@@ -106,14 +103,12 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
-                .assertHasCause("Toolchain provisioned from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
+               .assertHasCause("Toolchain provisioned from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "custom toolchain registries are consulted in order"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}
@@ -153,10 +148,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from 'https://exoticJavaToolchain.com/java-99'.")
-                .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from 'https://exoticJavaToolchain.com/java-99'.")
+               .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
     }
 
     def "fails on registration collision"() {
@@ -400,7 +395,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.assertHasCause("Mutation of toolchain repositories declared in settings is only allowed during settings evaluation")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "throws informative error on repositories not being configured"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}
@@ -426,17 +420,16 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("No locally installed toolchains match and toolchain download repositories have not been configured.")
-                .assertHasResolutions(
-                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
-                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
-                    STACKTRACE_MESSAGE,
-                    INFO_DEBUG,
-                    SCAN,
-                    GET_HELP)
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+               .assertHasCause("No locally installed toolchains match and toolchain download repositories have not been configured.")
+               .assertHasResolutions(
+                   DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                   DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
+                   STACKTRACE_MESSAGE,
+                   INFO_DEBUG,
+                   SCAN,
+                   GET_HELP)
     }
 
     private static String customToolchainResolverCode() {

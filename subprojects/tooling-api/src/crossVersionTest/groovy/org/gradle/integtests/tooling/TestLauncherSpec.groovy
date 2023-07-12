@@ -143,7 +143,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         }
 
         return descriptorByClassAndMethod.findAll {
-            def parent = it.parent
+            def parent = it
             while (parent.parent != null) {
                 parent = parent.parent
                 if (parent instanceof TaskOperationDescriptor) {

@@ -119,7 +119,7 @@ In **File Explorer** right-click on the `This PC` (or `Computer`) icon, then cli
 
 Under `System Variables` select `Path`, then click `Edit`. Add an entry for `C:\Gradle\gradle-{gradleVersion}\bin`. Click OK to save.
 
-Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.  Instead of adding a specific version of Gradle to your `Path`, you can add `__%GRADLE_HOME%__/bin` to your `Path`.  When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
+Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.  Instead of adding a specific version of Gradle to your `Path`, you can add `__%GRADLE_HOME%__\bin` to your `Path`.  When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
 
 <<#sec:installation_next_steps,↓ Proceed to next steps>>
 

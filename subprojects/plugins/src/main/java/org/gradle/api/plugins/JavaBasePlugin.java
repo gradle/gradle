@@ -27,10 +27,8 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
@@ -74,6 +72,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -170,22 +169,28 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureLibraryElements(TaskProvider<JavaCompile> compileTaskProvider, SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
-        ConfigurationInternal compileClasspath = (ConfigurationInternal) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
-        // TODO:configuration-cache this is a callback that affects configuration attributes #23732
-        compileClasspath.beforeLocking(conf -> {
-            AttributeContainerInternal attributes = conf.getAttributes();
-            if (!attributes.contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
-                String libraryElements;
-                // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
-                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularity().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
-                    libraryElements = LibraryElements.JAR;
-                } else {
-                    libraryElements = LibraryElements.CLASSES;
+    private void configureLibraryElements(TaskProvider<JavaCompile> compileJava, SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
+        Provider<LibraryElements> libraryElements = compileJava.flatMap(x -> x.getModularity().getInferModulePath())
+            .map(inferModulePath -> {
+                if (javaClasspathPackaging) {
+                    return LibraryElements.JAR;
                 }
-                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryElements));
-            }
-        });
+
+                // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
+                List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree());
+                if (JavaModuleDetector.isModuleSource(inferModulePath, sourcesRoots)) {
+                    return LibraryElements.JAR;
+                } else {
+                    return LibraryElements.CLASSES;
+                }
+            })
+            .map(value -> objectFactory.named(LibraryElements.class, value));
+
+        Configuration compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        compileClasspath.getAttributes().attributeProvider(
+            LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+            libraryElements
+        );
     }
 
     private void configureTargetPlatform(TaskProvider<JavaCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
@@ -243,7 +248,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
         outputConventionMapping.map("resourcesDir", () -> {
             String classesDirName = "resources/" + sourceSet.getName();
-            return new File(project.getBuildDir(), classesDirName);
+            return project.getLayout().getBuildDirectory().dir(classesDirName).get().getAsFile();
         });
 
         sourceSet.getJava().srcDir("src/" + sourceSet.getName() + "/java");

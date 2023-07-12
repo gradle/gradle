@@ -24,7 +24,6 @@ import java.util.function.Supplier;
 
 public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation> {
     private final UserManualReference userManualReference;
-    private final boolean onlyAffectsCacheableWork;
 
     public TypeValidationProblem(ValidationProblemId id,
                                  Severity severity,
@@ -32,7 +31,6 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
                                  Supplier<String> shortDescription,
                                  Supplier<String> longDescription,
                                  Supplier<String> reason,
-                                 boolean onlyAffectsCacheableWork,
                                  UserManualReference userManualReference,
                                  List<Supplier<Solution>> solutions) {
         super(id,
@@ -44,14 +42,9 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
             () -> userManualReference == null ? null : userManualReference.toDocumentationLink(),
             solutions);
         this.userManualReference = userManualReference;
-        this.onlyAffectsCacheableWork = onlyAffectsCacheableWork;
     }
 
     public UserManualReference getUserManualReference() {
         return userManualReference;
-    }
-
-    public boolean isOnlyAffectsCacheableWork() {
-        return onlyAffectsCacheableWork;
     }
 }

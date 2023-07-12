@@ -82,7 +82,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
                 GFileUtils.mkdirs(target.getParentFile());
                 copyFile(target);
             }
-            chmod.chmod(target, getImmutablePermissions().toUnixNumeric());
+            chmod.chmod(target, getPermissions().toUnixNumeric());
             return true;
         } catch (Exception e) {
             throw new CopyFileElementException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
@@ -107,11 +107,11 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
 
     @Override
     public int getMode() {
-        return getImmutablePermissions().toUnixNumeric();
+        return getPermissions().toUnixNumeric();
     }
 
     @Override
-    public FilePermissions getImmutablePermissions() {
+    public FilePermissions getPermissions() {
         return isDirectory() ? DefaultFilePermissions.DEFAULT_DIR_PERMISSIONS :
             DefaultFilePermissions.DEFAULT_FILE_PERMISSIONS;
     }

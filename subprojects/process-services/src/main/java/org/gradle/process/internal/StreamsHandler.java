@@ -32,6 +32,11 @@ public interface StreamsHandler extends Stoppable {
     void start();
 
     /**
+     * Remove any context associated with tracking the startup of the process.
+     */
+    void removeStartupContext();
+
+    /**
      * Disconnects from the process without waiting for further work.
      */
     void disconnect();

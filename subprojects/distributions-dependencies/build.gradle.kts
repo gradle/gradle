@@ -66,8 +66,7 @@ dependencies {
         api(libs.commonsLang)           { version { strictly("2.6") }}
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
-        api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gradleProfiler)        { version { strictly("0.20.0-alpha01") }}
+        api(libs.gradleProfiler)        { version { strictly("0.20.0") }}
         api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}

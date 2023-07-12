@@ -1,12 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.util.SingleMessageLogger",
-            "member": "Class org.gradle.util.SingleMessageLogger",
-            "acceptation": "Changed the signature of internal method",
-            "changes": [
-                "org.gradle.internal.deprecation.DeprecationLogger.init(org.gradle.internal.featurelifecycle.UsageLocationReporter,org.gradle.api.logging.configuration.WarningMode,org.gradle.internal.operations.BuildOperationProgressEventEmitter)"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }

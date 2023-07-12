@@ -127,7 +127,7 @@
   },
   {
     "name": "code-quality",
-    "path": "subprojects/code-quality",
+    "path": "platforms/jvm/code-quality",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -281,7 +281,7 @@
   },
   {
     "name": "enterprise-operations",
-    "path": "subprojects/enterprise-operations",
+    "path": "platforms/enterprise/enterprise-operations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -651,6 +651,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "precondition-tester",
+    "path": "subprojects/precondition-tester",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
     "name": "problems",
     "path": "subprojects/problems",
     "unitTests": true,
@@ -828,6 +835,13 @@
   {
     "name": "version-control",
     "path": "subprojects/version-control",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "war",
+    "path": "platforms/jvm/war",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

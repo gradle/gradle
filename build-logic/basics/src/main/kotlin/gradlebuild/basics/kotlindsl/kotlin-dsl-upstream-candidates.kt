@@ -16,10 +16,10 @@ operator fun File.div(child: String): File =
     resolve(child)
 
 
-fun Project.execAndGetStdout(workingDir: File, vararg args: String): String {
+fun Project.execAndGetStdout(workingDir: File, ignoreExitValue: Boolean, vararg args: String): String {
     val out = ByteArrayOutputStream()
     exec {
-        isIgnoreExitValue = true
+        isIgnoreExitValue = ignoreExitValue
         commandLine(*args)
         standardOutput = out
         this.workingDir = workingDir
@@ -28,4 +28,7 @@ fun Project.execAndGetStdout(workingDir: File, vararg args: String): String {
 }
 
 
-fun Project.execAndGetStdout(vararg args: String) = execAndGetStdout(File("."), *args)
+fun Project.execAndGetStdoutIgnoringError(vararg args: String) = execAndGetStdout(File("."), true, *args)
+
+
+fun Project.execAndGetStdout(vararg args: String) = execAndGetStdout(File("."), false, *args)

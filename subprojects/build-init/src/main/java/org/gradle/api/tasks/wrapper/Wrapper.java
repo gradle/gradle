@@ -191,7 +191,7 @@ public abstract class Wrapper extends DefaultTask {
 
     private static URI getDistributionUri(File uriRoot, String url) {
         try {
-            return WrapperDistributionUrlConverter.toUri(uriRoot, url);
+            return WrapperDistributionUrlConverter.convertDistributionUrl(url, uriRoot);
         } catch (URISyntaxException e) {
             throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
         }
@@ -419,7 +419,7 @@ public abstract class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersionResolver.getGradleVersion() != null) {
-            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
+            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toASCIIString();
         } else {
             return null;
         }

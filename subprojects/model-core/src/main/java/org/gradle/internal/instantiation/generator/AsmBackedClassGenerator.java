@@ -278,7 +278,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private boolean providesOwnServicesImplementation;
         private boolean providesOwnToStringImplementation;
         private boolean requiresFactory;
-        private final List<AttachedProperty> propertiesToAttach = new ArrayList<>();
+        private final List<AttachedProperty> propertiesToAttachAtConstruction = new ArrayList<>();
+        private final List<AttachedProperty> propertiesToAttachOnDemand = new ArrayList<>();
         private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
 
         public ClassInspectionVisitorImpl(Class<?> type, boolean decorate, String suffix, int factoryId) {
@@ -334,7 +335,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void attachDuringConstruction(PropertyMetadata property, boolean applyRole) {
-            propertiesToAttach.add(AttachedProperty.of(property, applyRole));
+            attachTo(propertiesToAttachAtConstruction, property, applyRole);
+        }
+
+        @Override
+        public void attachOnDemand(PropertyMetadata property, boolean applyRole) {
+            attachTo(propertiesToAttachOnDemand, property, applyRole);
+        }
+
+        private void attachTo(List<AttachedProperty> properties, PropertyMetadata property, boolean applyRole) {
+            properties.add(AttachedProperty.of(property, applyRole));
             if (applyRole) {
                 requiresFactory = true;
             }
@@ -378,7 +388,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 requiresToString,
                 requiresServicesMethod,
                 requiresFactory,
-                propertiesToAttach,
+                propertiesToAttachAtConstruction,
+                propertiesToAttachOnDemand,
                 ineligibleProperties
             );
             builder.startClass();
@@ -403,6 +414,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String FACTORY_METHOD = "$gradleFactory";
         private static final String INIT_METHOD = "$gradleInit";
         private static final String INIT_WORK_METHOD = INIT_METHOD + "Work";
+        private static final String INIT_ATTACH_METHOD = INIT_METHOD + "Attach";
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = getDescriptor(ConventionMapping.class);
         private static final String META_CLASS_TYPE_DESCRIPTOR = getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = getType(MetaClass.class);
@@ -525,7 +537,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean extensible;
         private final boolean providesOwnDynamicObject;
         private final boolean requiresToString;
-        private final List<AttachedProperty> propertiesToAttach;
+        private final List<AttachedProperty> propertiesToAttachAtConstruction;
+        private final List<AttachedProperty> propertiesToAttachOnDemand;
         private final List<PropertyMetadata> ineligibleProperties;
         private final boolean requiresServicesMethod;
         private final boolean requiresFactory;
@@ -541,7 +554,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             boolean requiresToString,
             boolean requiresServicesMethod,
             boolean requiresFactory,
-            List<AttachedProperty> propertiesToAttach,
+            List<AttachedProperty> propertiesToAttachAtConstruction,
+            List<AttachedProperty> propertiesToAttachOnDemand,
             List<PropertyMetadata> ineligibleProperties
         ) {
             super(classGenerator.getVisitor());
@@ -551,7 +565,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             this.factoryId = factoryId;
             this.managed = managed;
             this.requiresToString = requiresToString;
-            this.propertiesToAttach = propertiesToAttach;
+            this.propertiesToAttachAtConstruction = propertiesToAttachAtConstruction;
+            this.propertiesToAttachOnDemand = propertiesToAttachOnDemand;
             this.superclassType = getType(type);
             this.mixInDsl = decorated;
             this.extensible = extensible;
@@ -731,6 +746,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _RETURN();
             }});
 
+            privateSyntheticMethod(INIT_ATTACH_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                for (AttachedProperty attached : propertiesToAttachAtConstruction) {
+                    attachProperty(attached);
+                }
+                _RETURN();
+            }});
+
             // private void $gradleInitWork() { ... do the work ... }
             privateSyntheticMethod(INIT_WORK_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
@@ -752,23 +774,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _PUTFIELD(generatedType, FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE);
                 }
 
-                for (AttachedProperty entry : propertiesToAttach) {
-                    // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
-                    PropertyMetadata property = entry.property;
-                    boolean applyRole = entry.applyRole;
-                    MethodMetadata getter = property.getMainGetter();
-                    _ALOAD(0);
-                    _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
-                    if (applyRole) {
-                        _DUP();
-                    }
-                    _ALOAD(0);
-                    _LDC(property.getName());
-                    _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
-                    if (applyRole) {
-                        applyRole();
-                    }
-                }
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, INIT_ATTACH_METHOD, RETURN_VOID);
 
                 // For classes that could have convention mapping, but implement IConventionAware themselves, we need to
                 // mark ineligible-for-convention-mapping properties in a different way.
@@ -1279,6 +1286,24 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 super(methodVisitor);
             }
 
+            protected void attachProperty(AttachedProperty attached) {
+                // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
+                PropertyMetadata property = attached.property;
+                boolean applyRole = attached.applyRole;
+                MethodMetadata getter = property.getMainGetter();
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
+                if (applyRole) {
+                    _DUP();
+                }
+                _ALOAD(0);
+                _LDC(property.getName());
+                _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
+                if (applyRole) {
+                    applyRole();
+                }
+            }
+
             // Caller should place property value on the top of the stack
             protected void applyRole() {
                 // GENERATE getFactory().applyRole(<value>)
@@ -1410,6 +1435,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(0);
                 _ALOAD(2);
                 _PUTFIELD(generatedType, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE);
+                _RETURN();
+            }});
+
+            publicMethod("attachModelProperties", RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, INIT_ATTACH_METHOD, RETURN_VOID);
+                for (AttachedProperty attached : propertiesToAttachOnDemand) {
+                    attachProperty(attached);
+                }
                 _RETURN();
             }});
         }

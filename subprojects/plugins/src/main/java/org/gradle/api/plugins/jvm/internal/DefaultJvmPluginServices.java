@@ -23,9 +23,9 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -46,6 +46,7 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -110,23 +111,18 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
+    public void configureAsSources(HasConfigurableAttributes<?> configuration) {
+        configureAttributes(
+            configuration,
+            details -> details.withExternalDependencies().asSources()
+        );
+    }
+
+    @Override
     public <T> void configureAttributes(HasConfigurableAttributes<T> configurable, Action<? super JvmEcosystemAttributesDetails> configuration) {
         AttributeContainerInternal attributes = (AttributeContainerInternal) configurable.getAttributes();
         DefaultJvmEcosystemAttributesDetails details = instanceGenerator.newInstance(DefaultJvmEcosystemAttributesDetails.class, objectFactory, attributes);
         configuration.execute(details);
-    }
-
-    @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask) {
-        ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
-        Set<TaskProvider<?>> compileTasks = configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> {
-            HashSet<TaskProvider<?>> taskProviders = new HashSet<>();
-            configurationInternal.beforeLocking(
-                configureDefaultTargetPlatform(configuration.isCanBeConsumed(), (Set) taskProviders));
-            return taskProviders;
-        });
-        compileTasks.add(compileTask);
     }
 
     @Override
@@ -202,37 +198,41 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         return variant;
     }
 
-    private <COMPILE extends AbstractCompile & HasCompileOptions> Action<ConfigurationInternal> configureDefaultTargetPlatform(boolean alwaysEnabled, Set<TaskProvider<COMPILE>> compileTasks) {
-        return conf -> {
-            JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-            if (alwaysEnabled || javaPluginExtension == null || !javaPluginExtension.getAutoTargetJvmDisabled()) {
-                int majorVersion = 0;
-                for (TaskProvider<COMPILE> compileTaskProvider : compileTasks) {
-                    COMPILE compileTask = compileTaskProvider.get();
-                    if (compileTask.getOptions().getRelease().isPresent()) {
-                        majorVersion = Math.max(majorVersion, compileTask.getOptions().getRelease().get());
-                    } else {
-                        int releaseFlag = getReleaseOption(compileTask.getOptions().getCompilerArgs());
-                        if (releaseFlag != 0) {
-                            majorVersion = Math.max(majorVersion, releaseFlag);
-                        } else {
-                            majorVersion = Math.max(majorVersion, Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion()));
-                        }
-                    }
-                }
-                if (majorVersion != 0) {
-                    JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
-                }
-            }
-        };
+    @Override
+    public <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask) {
+        ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
+        Set<TaskProvider<COMPILE>> compileTasks = Cast.uncheckedCast(configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> new HashSet<>()));
+        compileTasks.add(compileTask);
+
+        JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
+        configurationInternal.getAttributes().attributeProvider(
+            TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+            providerFactory.provider(() -> getDefaultTargetPlatform(configuration, java, compileTasks))
+        );
     }
 
-    private static int getReleaseOption(List<String> compilerArgs) {
-        int flagIndex = compilerArgs.indexOf("--release");
-        if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
-            return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
+    private static <COMPILE extends AbstractCompile & HasCompileOptions> int getDefaultTargetPlatform(Configuration configuration, JavaPluginExtension java, Set<TaskProvider<COMPILE>> compileTasks) {
+        assert !compileTasks.isEmpty();
+
+        if (!configuration.isCanBeConsumed() && java.getAutoTargetJvmDisabled()) {
+            return Integer.MAX_VALUE;
         }
-        return 0;
+
+        return compileTasks.stream().map(provider -> {
+            COMPILE compileTask = provider.get();
+            if (compileTask.getOptions().getRelease().isPresent()) {
+                return compileTask.getOptions().getRelease().get();
+            }
+
+            List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
+            int flagIndex = compilerArgs.indexOf("--release");
+
+            if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
+                return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
+            } else {
+                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
+            }
+        }).max(Comparator.naturalOrder()).get();
     }
 
     /**

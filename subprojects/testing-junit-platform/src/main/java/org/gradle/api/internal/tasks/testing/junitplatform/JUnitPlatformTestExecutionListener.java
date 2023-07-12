@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
@@ -23,6 +24,13 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
@@ -35,9 +43,11 @@ import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
-import java.util.Collections;
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -45,13 +55,27 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 
-public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
+/**
+ * A {@link TestExecutionListener} that maps JUnit5 events to Gradle test events.
+ * Most importantly, it will map assertion and platform failures to Gradle's {@link TestFailure} class, which we can send through the TAPI.
+ */
+@NonNullApi
+public class JUnitPlatformTestExecutionListener implements TestExecutionListener, RootAssertionToFailureMapper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
+
+    private final static List<FailureMapper> MAPPERS = Arrays.asList(
+        new OpenTestAssertionFailedMapper(),
+        new OpenTestMultipleFailuresErrorMapper(),
+        new JUnitComparisonFailureMapper(),
+        new AssertjMultipleAssertionsErrorMapper(),
+        new AssertErrorMapper()
+    );
 
     private final ConcurrentMap<String, TestDescriptorInternal> descriptorsByUniqueId = new ConcurrentHashMap<>();
     private final TestResultProcessor resultProcessor;
@@ -124,70 +148,18 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         resultProcessor.failure(getId(testIdentifier), testFailure);
     }
 
-    private static TestFailure createFailure(Throwable failure) {
-        // According to https://ota4j-team.github.io/opentest4j/docs/current/api/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
-        // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
-        // - org.opentest4j.AssertionFailedError: when an assertEquals fails
-        // - org.opentest4j.MultipleFailuresError: when multiple assertion fails at the same time
-        // All assertion errors are subclasses of the AssertionError class. If the received failure is not an instance of AssertionError then it is categorized as a framework failure.
-        // Also, openTest4j classes are not on the worker compile classpath so we need to resort to using reflection.
-        if (failure instanceof AssertionError) {
-            List<Throwable> causes = getFailureListFromMultipleFailuresError(failure);
-            List<TestFailure> causeFailures = causes == null ? Collections.emptyList() : causes.stream().map(f -> createFailure(f)).collect(Collectors.toList());
-            String expected = reflectivelyReadExpected(failure);
-            String actual = reflectivelyReadActual(failure);
-            return TestFailure.fromTestAssertionFailure(failure, expected, actual, causeFailures);
-        } else {
-            return TestFailure.fromTestFrameworkFailure(failure);
-        }
-    }
-
-    private static String reflectivelyReadExpected(Throwable failure) {
-        return reflectivelyRead(failure, "getExpected");
-    }
-
-    private static String reflectivelyReadActual(Throwable failure) {
-        return reflectivelyRead(failure, "getActual");
-    }
-
-    private static String reflectivelyRead(Object target, String methodName) {
-        String toStringMethod = isAssertionFailedErrorOrSubclass(target.getClass()) ? "getStringRepresentation" : "toString";
-        try {
-            Object value = target.getClass().getMethod(methodName).invoke(target);
-            return value == null ? null : (String) value.getClass().getMethod(toStringMethod).invoke(value);
-        } catch (Exception ignore) {
-            return null;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<Throwable> getFailureListFromMultipleFailuresError(Throwable f) {
-        try {
-            String className = f.getClass().getCanonicalName();
-            if (className.equals("org.opentest4j.MultipleFailuresError")) {
-                Method getFailures = f.getClass().getMethod("getFailures");
-                return (List<Throwable>) getFailures.invoke(f);
-            } else if (className.equals("org.assertj.core.error.MultipleAssertionsError")) {
-                Method getFailures = f.getClass().getMethod("getErrors");
-                return (List<Throwable>) getFailures.invoke(f);
-            } else {
-                return null;
+    public TestFailure createFailure(Throwable failure) {
+        for (FailureMapper mapper : MAPPERS) {
+            if (mapper.supports(failure.getClass())) {
+                try {
+                    return mapper.map(failure, this);
+                } catch (Exception ex) {
+                    LOGGER.error("Failed to map supported failure '{}' with mapper '{}': {}", failure, mapper, ex.getMessage());
+                }
             }
-        } catch (Exception ignore) {
-            return null;
         }
-    }
 
-    // if not multiple failures or reflection fails then return null;
-
-    private static boolean isAssertionFailedErrorOrSubclass(Class<?> cls) {
-        if (cls.getCanonicalName().equals("org.opentest4j.AssertionFailedError")) {
-            return true;
-        } else if (cls.getSuperclass() != null) {
-            return isAssertionFailedErrorOrSubclass(cls.getSuperclass());
-        } else {
-            return false;
-        }
+        return TestFailure.fromTestFrameworkFailure(failure);
     }
 
     private void reportStartedUnlessAlreadyStarted(TestIdentifier testIdentifier) {
@@ -221,7 +193,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return startEvent(idOfClosestStartedAncestor);
     }
 
-    private TestStartEvent startEvent(Object parentId) {
+    private TestStartEvent startEvent(@Nullable Object parentId) {
         return new TestStartEvent(clock.getCurrentTime(), parentId);
     }
 
@@ -229,13 +201,13 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return completeEvent(null);
     }
 
-    private TestCompleteEvent completeEvent(ResultType resultType) {
+    private TestCompleteEvent completeEvent(@Nullable ResultType resultType) {
         return new TestCompleteEvent(clock.getCurrentTime(), resultType);
     }
 
     private boolean wasStarted(TestIdentifier testIdentifier) {
         return descriptorsByUniqueId.containsKey(testIdentifier.getUniqueId());
-}
+    }
 
     private boolean createDescriptorIfAbsent(TestIdentifier node) {
         MutableBoolean wasCreated = new MutableBoolean(false);
@@ -255,7 +227,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                     }
                 }
             }
-            return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
+            if (node.getType().isTest()) {
+                return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
+            } else {
+                return createTestClassDescriptor(node);
+            }
         });
         return wasCreated.get();
     }
@@ -299,6 +275,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return result;
     }
 
+    @Nullable
     private TestIdentifier findTestClassIdentifier(TestIdentifier testIdentifier) {
         // For tests in default method of interface,
         // we might not be able to get the implementation class directly.
@@ -317,7 +294,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return hasClassSource(testIdentifier) && hasDifferentSourceThanAncestor(testIdentifier);
     }
 
-    private String className(TestIdentifier testClassIdentifier) {
+    private static String className(@Nullable TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null) {
             Optional<ClassSource> classSource = getClassSource(testClassIdentifier);
             if (classSource.isPresent()) {
@@ -327,7 +304,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return JUnitSupport.UNKNOWN_CLASS;
     }
 
-    private String classDisplayName(TestIdentifier testClassIdentifier) {
+    private static String classDisplayName(@Nullable TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null) {
             return testClassIdentifier.getDisplayName();
         }

@@ -127,7 +127,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
 
         ivyGenerator.setDescription(descriptorInternal.getDescription());
 
-        for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
+        for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations().get()) {
             ivyGenerator.addConfiguration(ivyConfiguration);
         }
 
@@ -135,11 +135,11 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
             ivyGenerator.addArtifact(((IvyArtifactInternal) ivyArtifact).asNormalisedArtifact());
         }
 
-        for (IvyDependencyInternal ivyDependency : descriptorInternal.getDependencies()) {
+        for (IvyDependencyInternal ivyDependency : descriptorInternal.getDependencies().get()) {
             ivyGenerator.addDependency(ivyDependency);
         }
 
-        for (IvyExcludeRule excludeRule : descriptorInternal.getGlobalExcludes()) {
+        for (IvyExcludeRule excludeRule : descriptorInternal.getGlobalExcludes().get()) {
             ivyGenerator.addGlobalExclude(excludeRule);
         }
 

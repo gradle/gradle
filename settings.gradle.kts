@@ -12,10 +12,11 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        jcenter {
+        maven {
+            name = "Gradle public repository"
+            url = uri("https://repo.gradle.org/gradle/public")
             content {
                 includeModule("org.openmbee.junit", "junit-xml-parser")
-                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         gradlePluginPortal()
@@ -23,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.13.3") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.13.4") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
@@ -82,7 +83,6 @@ unassigned {
     subproject("ide")
     subproject("ide-native")
     subproject("maven")
-    subproject("code-quality")
     subproject("antlr")
     subproject("tooling-api")
     subproject("build-events")
@@ -142,7 +142,6 @@ unassigned {
     subproject("security")
     subproject("normalization-java")
     subproject("enterprise")
-    subproject("enterprise-operations")
     subproject("enterprise-logging")
     subproject("enterprise-workers")
     subproject("build-operations")
@@ -153,7 +152,14 @@ unassigned {
 
 // JVM Platform
 platform("jvm") {
+    subproject("code-quality")
     subproject("ear")
+    subproject("war")
+}
+
+// Gradle Enterprise Platform
+platform("enterprise") {
+    subproject("enterprise-operations")
 }
 
 // Plugin portal projects
@@ -182,6 +188,7 @@ unassigned {
     subproject("smoke-test")
     subproject("performance")
     subproject("build-scan-performance")
+    subproject("precondition-tester")
 }
 
 rootProject.name = "gradle"

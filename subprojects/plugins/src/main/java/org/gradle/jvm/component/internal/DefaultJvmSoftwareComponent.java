@@ -20,10 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.Bundling;
-import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -38,6 +35,7 @@ import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -72,6 +70,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         Project project,
         ObjectFactory objectFactory,
         ProviderFactory providerFactory,
+        JvmPluginServices jvmPluginServices,
         Instantiator instantiator
     ) {
         super(componentName, instantiator);
@@ -88,7 +87,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
             (ProjectInternal) project, ConfigurationRoles.CONSUMABLE, false);
 
         // TODO: Should all features also have this variant? Why just the main feature?
-        createSourceElements(configurations, providerFactory, objectFactory, mainFeature);
+        createSourceElements(configurations, providerFactory, objectFactory, mainFeature, jvmPluginServices);
 
         // Build the main jar when running `assemble`.
         extensions.getByType(DefaultArtifactPublicationSet.class)
@@ -117,7 +116,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return sourceSets.create(name);
     }
 
-    private Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, JvmFeatureInternal feature) {
+    private Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, JvmFeatureInternal feature, JvmPluginServices jvmPluginServices) {
 
         // TODO: Why are we using this non-standard name? For the `java` component, this
         // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
@@ -130,11 +129,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         variant.setVisible(false);
         variant.extendsFrom(mainFeature.getImplementationConfiguration());
 
-        variant.attributes(attributes -> {
-            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.VERIFICATION));
-            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objectFactory.named(VerificationType.class, VerificationType.MAIN_SOURCES));
-        });
+        jvmPluginServices.configureAsSources(variant);
 
         variant.getOutgoing().artifacts(
             feature.getSourceSet().getAllSource().getSourceDirectories().getElements().flatMap(e -> providerFactory.provider(() -> e)),
