@@ -101,16 +101,17 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         skipped ':test'
 
         where:
-        property              | modification
-        'suiteName'           | '= "Honeymoon Suite"'
-        'testName'            | '= "Turing completeness"'
-        'parallel'            | '= "methods"'
-        'threadCount'         | '= 2'
-        'listeners'           | '= ["org.testng.reporters.FailedReporter"]'
-        'useDefaultListeners' | '= true'
-        'configFailurePolicy' | '= "continue"'
-        'preserveOrder'       | '= true'
-        'groupByInstances'    | '= true'
+        property                 | modification
+        'suiteName'              | '= "Honeymoon Suite"'
+        'testName'               | '= "Turing completeness"'
+        'parallel'               | '= "methods"'
+        'threadCount'            | '= 2'
+        'listeners'              | '= ["org.testng.reporters.FailedReporter"]'
+        'useDefaultListeners'    | '= true'
+        'threadPoolFactoryClass' | '= "some.Class"'
+        'configFailurePolicy'    | '= "continue"'
+        'preserveOrder'          | '= true'
+        'groupByInstances'       | '= true'
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4924')

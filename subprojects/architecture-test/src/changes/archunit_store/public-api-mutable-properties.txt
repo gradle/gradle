@@ -335,6 +335,7 @@ Method <org.gradle.api.tasks.testing.testng.TestNGOptions.getSuites(java.io.File
 Method <org.gradle.api.tasks.testing.testng.TestNGOptions.getTestName()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestNGOptions.java:0)
 Method <org.gradle.api.tasks.testing.testng.TestNGOptions.getThreadCount()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestNGOptions.java:0)
 Method <org.gradle.api.tasks.testing.testng.TestNGOptions.getUseDefaultListeners()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestNGOptions.java:0)
+Method <org.gradle.api.tasks.testing.testng.TestNGOptions.getThreadPoolFactoryClass()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestNGOptions.java:0)
 Method <org.gradle.api.tasks.testing.testng.TestNGOptions.isGroupByInstances()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestNGOptions.java:0)
 Method <org.gradle.api.tasks.testing.testng.TestNGOptions.isPreserveOrder()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestNGOptions.java:0)
 Method <org.gradle.api.tasks.testing.testng.TestNGOptions.isUseDefaultListeners()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestNGOptions.java:0)
