@@ -82,7 +82,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 
 At this point, we have 3 different configurations with different roles:
 
-- `someConfiguration` declares the dependencies of my application. It's just a collection of dependencies.
+- `someConfiguration` declares the dependencies of my application. It is simply a collection of dependencies.
 - `compileClasspath` and `runtimeClasspath` are configurations _meant to be resolved_: when resolved they should contain the compile classpath, and the runtime classpath of the application respectively.
 
 This distinction is represented by the `canBeResolved` flag in the `Configuration` type.
