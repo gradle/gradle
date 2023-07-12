@@ -778,7 +778,7 @@ You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url
 Full details on how to use these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
 
 [[sec:continuous_build]]
-== Continuous Build
+== Continuous build
 
 Continuous Build allows you to automatically re-execute the requested tasks when task inputs change.
 You can execute the build in this mode using the `-t` or `--continuous` command-line option.
