@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
-import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+package org.gradle.internal.resolve.resolver;
 
-public interface ComponentResolvers {
-    DependencyToComponentIdResolver getComponentIdResolver();
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
-    ComponentMetaDataResolver getComponentResolver();
+import java.util.List;
+import java.util.Set;
 
-    ArtifactResolver getArtifactResolver();
+/**
+ * Resolves artifact metadata into concrete files in the context
+ * of a component.
+ */
+public interface ComponentArtifactResolver {
+    Set<ResolvableArtifact> resolveArtifacts(List<? extends ComponentArtifactMetadata> artifacts);
 }
