@@ -39,46 +39,31 @@ internal
 typealias Parser<T> = KotlinLexer.() -> ParserResult<T>
 
 
-@Suppress("unused")
-private
-val debugger: ParserDebugger = ParserDebugger()
-
-
-@Suppress("unused")
-private
-class ParserDebugger {
-    var level = 0
-
-    fun <T> debug(name: String, parser: Parser<T>): Parser<T> = {
-        val levelString = "\t".repeat(level)
-        println("${levelString}Parsing with $name @ ${this.currentPosition.offset} ...")
-        level++
-        val result = parser()
-        level--
-        println("${levelString}Parsing with $name done @ ${this.currentPosition.offset}, ${if (result is ParserResult.Success) "successful (${result.result})" else "failed"}")
-        result
-    }
-}
-
-
 internal
-class DebugDelegate<T>(val parserBuilder: () -> Parser<T>) {
+class ParserDebugger<T>(val parserBuilder: () -> Parser<T>) {
+
+    companion object {
+        var level = 0
+
+        fun <T> debug(name: String, parser: Parser<T>): Parser<T> = {
+            val levelString = "\t".repeat(level)
+            println("${levelString}Parsing with $name @ ${this.currentPosition.offset} ...")
+            level++
+            val result = parser()
+            level--
+            println("${levelString}Parsing with $name done @ ${this.currentPosition.offset}, ${if (result is ParserResult.Success) "successful (${result.result})" else "failed"}")
+            result
+        }
+    }
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): Parser<T> =
-//        debugger.debug(property.name, parserBuilder())
+        // debug(property.name, parserBuilder()) // uncomment to turn on parser debugging
         parserBuilder()
 }
 
 
 internal
-fun <T> debug(parserBuilder: () -> Parser<T>) = DebugDelegate(parserBuilder)
-
-
-internal
-fun <T> debugReference(parserBuilder: () -> Parser<T>): Parser<T> {
-    val a by debug(parserBuilder)
-    return a
-}
+fun <T> debug(parserBuilder: () -> Parser<T>) = ParserDebugger(parserBuilder)
 
 
 internal
@@ -289,25 +274,27 @@ open class Combinator(
     val ignoresNewline: Boolean
 ) {
 
+    private
+    val memoizedTokenParsers = mutableMapOf<KtToken, Parser<Unit>>()
 
     internal
     fun token(ktToken: KtToken): Parser<Unit> =
-        token(ktToken) { }
+        memoizedTokenParsers.getOrPut(ktToken) { token(ktToken) { } }
 
 
     internal
-    inline fun <T> token(token: KtToken, crossinline f: KotlinLexer.() -> T): Parser<T> {
+    inline fun <T> token(ktToken: KtToken, crossinline f: KotlinLexer.() -> T): Parser<T> {
         return {
             skipWhitespace()
             when (tokenType) {
-                token -> {
+                ktToken -> {
                     ParserResult.Success(f()).also {
                         advance()
                     }
                 }
 
                 else -> {
-                    failure("Expecting token of type $token, but got $tokenType${if (tokenType == IDENTIFIER) " ('$tokenText')" else ""} instead")
+                    failure("Expecting token of type $ktToken, but got $tokenType${if (tokenType == IDENTIFIER) " ('$tokenText')" else ""} instead")
                 }
             }
         }
@@ -324,9 +311,11 @@ open class Combinator(
                     advance()
                     ParserResult.Success(result)
                 }
+
                 null -> {
                     failure("Expecting a symbol")
                 }
+
                 else -> {
                     failure("Expecting a symbol, but got a token of type '$tokenType' instead")
                 }
