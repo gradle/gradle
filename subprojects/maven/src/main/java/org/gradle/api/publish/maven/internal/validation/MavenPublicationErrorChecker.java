@@ -44,13 +44,16 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
      */
     public static void checkThatArtifactIsPublishedUnmodified(PublishArtifact source, DefaultMavenArtifactSet mainArtifacts) {
         for (MavenArtifact mavenArtifact : mainArtifacts) {
-            if (source.getFile().equals(mavenArtifact.getFile())
-                && source.getExtension().equals(mavenArtifact.getExtension())
-                && Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
-                return;
+            String prefix = "Cannot publish module metadata where component artifact (" + mavenArtifact + ") are modified. ";
+            if (!source.getFile().equals(mavenArtifact.getFile())) {
+                throw new PublishException(prefix + " file differs: " + source.getFile() + " not equal to " + mavenArtifact.getFile());
+            }
+            if (!source.getExtension().equals(mavenArtifact.getExtension())) {
+                throw new PublishException(prefix + " extension differs: " + source.getExtension() + " not equal to " + mavenArtifact.getExtension());
+            }
+            if (!Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
+                throw new PublishException(prefix + " classifier differs: " + source.getClassifier() + " not equal to " + mavenArtifact.getClassifier());
             }
         }
-
-        throw new PublishException("Cannot publish module metadata where component artifacts are modified.");
     }
 }
