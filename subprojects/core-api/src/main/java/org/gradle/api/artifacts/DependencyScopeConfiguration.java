@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * A {@link Configuration} which collects dependencies, dependency constraints, and exclude rules.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Incubating
 public interface DependencyScopeConfiguration extends Configuration {

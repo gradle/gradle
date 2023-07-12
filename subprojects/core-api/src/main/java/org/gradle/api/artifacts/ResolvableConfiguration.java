@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * A {@link Configuration} which performs dependency resolution to build dependency graphs
  * and resolve artifacts.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Incubating
 public interface ResolvableConfiguration extends Configuration {

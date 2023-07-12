@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * A {@link Configuration} which can be consumed via Publishing and Dependency Management.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Incubating
 public interface ConsumableConfiguration extends Configuration {

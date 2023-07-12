@@ -37,7 +37,7 @@ import org.gradle.api.artifacts.ResolvableConfiguration
  * @param configuration The expression to configure this container with
  * @return The container.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Suppress("nothing_to_inline")
 @Incubating
@@ -51,7 +51,7 @@ inline operator fun ConfigurationContainer.invoke(
 /**
  * Receiver for [ConfigurationContainer] configuration blocks.
  *
- * @since 8.3
+ * @since 8.4
  */
 @Incubating
 class ConfigurationContainerScope

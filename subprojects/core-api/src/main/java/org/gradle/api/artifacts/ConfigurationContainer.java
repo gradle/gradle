@@ -138,7 +138,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
      *
-     * @since 8.3
+     * @since 8.4
      */
     @Incubating
     NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name);
@@ -154,7 +154,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
      *
-     * @since 8.3
+     * @since 8.4
      */
     @Incubating
     NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action);
@@ -169,7 +169,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
      *
-     * @since 8.3
+     * @since 8.4
      */
     @Incubating
     NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name);
@@ -185,7 +185,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
      *
-     * @since 8.3
+     * @since 8.4
      */
     @Incubating
     NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action);
@@ -201,7 +201,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
      *
-     * @since 8.3
+     * @since 8.4
      */
     @Incubating
     NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name);
@@ -217,7 +217,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
      *
-     * @since 8.3
+     * @since 8.4
      */
     @Incubating
     NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name, Action<? super DependencyScopeConfiguration> action);
