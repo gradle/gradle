@@ -406,6 +406,25 @@ open class Combinator(
 
 
     internal
+    fun notWhiteSpace(): Parser<Unit> = {
+        when {
+            tokenType == WHITE_SPACE -> {
+                ParserResult.Failure("Unexpected whitespace")
+            }
+
+            tokenType in COMMENTS -> {
+                ParserResult.Failure("Unexpected comments")
+            }
+
+            else -> {
+                // no advancing, we don't want to consume whatever is there
+                unitSuccess
+            }
+        }
+    }
+
+
+    internal
     fun statementSeparator(): Parser<Unit> = {
         var seenSeparator = false
         while (tokenType != null) {
