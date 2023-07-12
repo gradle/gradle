@@ -43,6 +43,9 @@ public interface InternalProblemEvent extends InternalProgressEvent {
     Integer getLine();
 
     @Nullable
+    Integer getColumn();
+
+    @Nullable
     String getDocumentationLink();
 
     @Nullable

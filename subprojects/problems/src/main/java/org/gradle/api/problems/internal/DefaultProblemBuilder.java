@@ -45,6 +45,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     private Severity severity;
     private String path;
     private Integer line;
+    private Integer column;
     private boolean noLocation = false;
     private String description;
     private DocLink documentationUrl;
@@ -86,6 +87,13 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     public ProblemBuilder location(String path, Integer line) {
         this.path = path;
         this.line = line;
+        return this;
+    }
+
+    public ProblemBuilder location(String path, Integer line, Integer column) {
+        this.path = path;
+        this.line = line;
+        this.column = column;
         return this;
     }
 
@@ -139,15 +147,21 @@ public class DefaultProblemBuilder implements ProblemBuilder {
             throw new IllegalStateException("Problem is not documented: " + message);
         }
 
-        if(!noLocation && (path == null || line == null)) {
-            throw new IllegalStateException("Problem has no location: " + message);
+        if (!noLocation) {
+            if (path == null) {
+                throw new IllegalStateException("Problem location path is not set: " + message);
+            }
+            if (line == null) {
+                throw new IllegalStateException("Problem location line is not set: " + message);
+            }
+            // Column is optional field, so we don't need to check it
         }
 
         return new DefaultProblem(
             problemGroup,
             message,
             severity,
-            path == null ? null : new DefaultProblemLocation(path, line),
+            path == null ? null : new DefaultProblemLocation(path, line, column),
             documentationUrl,
             description,
             solution,
