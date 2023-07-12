@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 
 import java.util.List;
@@ -26,7 +25,7 @@ import java.util.List;
  *
  * <p>TODO: Currently this represents a POM's dependencies in a "Gradle" point of view.
  * To better align this interface with the way Maven represents dependencies in a POM,
- * we should add a {@code scope} and {@code optional} flag to a {@link MavenDependency}
+ * we should add a {@code scope} and {@code optional} flag to {@link MavenDependencyInternal}
  * so that we can represent these dependencies as Maven would. Then, we can combine all
  * normal dependencies into a single list and do the same for dependency management
  * dependencies.<p>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,12 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.provider.Property;
 
-public interface MutableMavenProjectIdentity extends MavenProjectIdentity {
-    @Override
+public interface MavenPublicationCoordinates {
+
     Property<String> getGroupId();
 
-    @Override
     Property<String> getArtifactId();
 
-    @Override
     Property<String> getVersion();
+
 }
