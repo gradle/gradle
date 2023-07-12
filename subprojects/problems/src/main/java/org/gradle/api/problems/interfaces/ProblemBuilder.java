@@ -33,6 +33,7 @@ public interface ProblemBuilder {
     ProblemBuilder severity(Severity severity);
 
     ProblemBuilder location(String path, Integer line);
+    ProblemBuilder location(String path, Integer line, Integer column);
 
     ProblemBuilder noLocation();
 
