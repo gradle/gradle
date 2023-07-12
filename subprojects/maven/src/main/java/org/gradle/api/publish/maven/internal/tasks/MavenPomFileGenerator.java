@@ -56,7 +56,7 @@ import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publication.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.GUtil;
 
@@ -95,10 +95,10 @@ public class MavenPomFileGenerator {
         Model model = new Model();
         model.setModelVersion(POM_VERSION);
 
-        MavenProjectIdentity identity = pom.getProjectIdentity();
-        model.setGroupId(identity.getGroupId().get());
-        model.setArtifactId(identity.getArtifactId().get());
-        model.setVersion(identity.getVersion().get());
+        MavenPublicationCoordinates coordinates = pom.getCoordinates();
+        model.setGroupId(coordinates.getGroupId().get());
+        model.setArtifactId(coordinates.getArtifactId().get());
+        model.setVersion(coordinates.getVersion().get());
 
         model.setPackaging(pom.getPackagingProperty().getOrNull());
         model.setName(pom.getName().getOrNull());

@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.provider.Property;
 
-public interface MavenProjectIdentity {
+public interface MavenPublicationCoordinates {
 
     Property<String> getGroupId();
 

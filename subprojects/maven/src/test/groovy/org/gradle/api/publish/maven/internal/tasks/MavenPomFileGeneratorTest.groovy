@@ -158,9 +158,9 @@ class MavenPomFileGeneratorTest extends Specification {
 
     def "encodes coordinates for XML and unicode"() {
         given:
-        pom.projectIdentity.groupId.set('group-ぴ₦ガき∆ç√∫')
-        pom.projectIdentity.artifactId.set('artifact-<tag attrib="value"/>-markup')
-        pom.projectIdentity.version.set('version-&"')
+        pom.coordinates.groupId.set('group-ぴ₦ガき∆ç√∫')
+        pom.coordinates.artifactId.set('artifact-<tag attrib="value"/>-markup')
+        pom.coordinates.version.set('version-&"')
 
         expect:
         with (xml) {
@@ -305,9 +305,9 @@ class MavenPomFileGeneratorTest extends Specification {
             strategy
         )
 
-        pom.projectIdentity.groupId.set("group-id")
-        pom.projectIdentity.artifactId.set("artifact-id")
-        pom.projectIdentity.version.set("1.0")
+        pom.coordinates.groupId.set("group-id")
+        pom.coordinates.artifactId.set("artifact-id")
+        pom.coordinates.version.set("1.0")
 
         pom.dependencies.set(DefaultMavenPomDependencies.EMPTY)
         pom.getWriteGradleMetadataMarker().set(true)

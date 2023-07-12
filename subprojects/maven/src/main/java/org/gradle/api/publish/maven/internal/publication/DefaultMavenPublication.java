@@ -82,7 +82,7 @@ import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenProjectDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -196,10 +196,10 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
 
         Module module = dependencyMetaDataProvider.getModule();
-        MavenProjectIdentity projectIdentity = pom.getProjectIdentity();
-        projectIdentity.getGroupId().convention(providerFactory.provider(module::getGroup));
-        projectIdentity.getArtifactId().convention(providerFactory.provider(module::getName));
-        projectIdentity.getVersion().convention(providerFactory.provider(module::getVersion));
+        MavenPublicationCoordinates coordinates = pom.getCoordinates();
+        coordinates.getGroupId().convention(providerFactory.provider(module::getGroup));
+        coordinates.getArtifactId().convention(providerFactory.provider(module::getName));
+        coordinates.getVersion().convention(providerFactory.provider(module::getVersion));
     }
 
     @Override
@@ -639,32 +639,32 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
     @Override
     public String getGroupId() {
-        return pom.getProjectIdentity().getGroupId().get();
+        return pom.getCoordinates().getGroupId().get();
     }
 
     @Override
     public void setGroupId(String groupId) {
-        pom.getProjectIdentity().getGroupId().set(groupId);
+        pom.getCoordinates().getGroupId().set(groupId);
     }
 
     @Override
     public String getArtifactId() {
-        return pom.getProjectIdentity().getArtifactId().get();
+        return pom.getCoordinates().getArtifactId().get();
     }
 
     @Override
     public void setArtifactId(String artifactId) {
-        pom.getProjectIdentity().getArtifactId().set(artifactId);
+        pom.getCoordinates().getArtifactId().set(artifactId);
     }
 
     @Override
     public String getVersion() {
-        return pom.getProjectIdentity().getVersion().get();
+        return pom.getCoordinates().getVersion().get();
     }
 
     @Override
     public void setVersion(String version) {
-        pom.getProjectIdentity().getVersion().set(version);
+        pom.getCoordinates().getVersion().set(version);
     }
 
     @Override
@@ -729,7 +729,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
         return new MavenNormalizedPublication(
             name,
-            pom.getProjectIdentity(),
+            pom.getCoordinates(),
             pom.getPackaging(),
             normalizedArtifactFor(getPomArtifact(), normalizedArtifacts),
             normalizedArtifactFor(determineMainArtifact(), normalizedArtifacts),
@@ -878,7 +878,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     @Nullable
     @Override
     public ImmutableAttributes getAttributes() {
-        String version = pom.getProjectIdentity().getVersion().get();
+        String version = pom.getCoordinates().getVersion().get();
         String status = MavenVersionUtils.inferStatusFromVersionNumber(version);
         return immutableAttributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, status);
     }

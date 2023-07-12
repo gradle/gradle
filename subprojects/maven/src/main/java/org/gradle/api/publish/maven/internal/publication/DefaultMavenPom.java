@@ -36,7 +36,7 @@ import org.gradle.api.publish.maven.MavenPomMailingList;
 import org.gradle.api.publish.maven.MavenPomMailingListSpec;
 import org.gradle.api.publish.maven.MavenPomOrganization;
 import org.gradle.api.publish.maven.MavenPomScm;
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.internal.MutableActionSet;
 
 import javax.inject.Inject;
@@ -48,7 +48,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     private final MutableActionSet<XmlProvider> xmlAction = new MutableActionSet<>();
     private final ObjectFactory objectFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
-    private final MavenProjectIdentity mavenProjectIdentity;
+    private final MavenPublicationCoordinates mavenPublicationCoordinates;
     private final List<MavenPomLicense> licenses = new ArrayList<>();
     private MavenPomOrganization organization;
     private final List<MavenPomDeveloper> developers = new ArrayList<>();
@@ -63,7 +63,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     public DefaultMavenPom(ObjectFactory objectFactory, VersionMappingStrategyInternal versionMappingStrategy) {
         this.objectFactory = objectFactory;
         this.versionMappingStrategy = versionMappingStrategy;
-        this.mavenProjectIdentity = objectFactory.newInstance(MavenProjectIdentity.class);
+        this.mavenPublicationCoordinates = objectFactory.newInstance(MavenPublicationCoordinates.class);
     }
 
     @Override
@@ -238,8 +238,8 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     public abstract MapProperty<String, String> getProperties();
 
     @Override
-    public MavenProjectIdentity getProjectIdentity() {
-        return mavenProjectIdentity;
+    public MavenPublicationCoordinates getCoordinates() {
+        return mavenPublicationCoordinates;
     }
 
     @Override

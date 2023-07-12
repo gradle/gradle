@@ -83,9 +83,9 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.name == "pub-name"
-        publication.pom.projectIdentity.groupId.get() == "group"
-        publication.pom.projectIdentity.artifactId.get() == "name"
-        publication.pom.projectIdentity.version.get() == "version"
+        publication.pom.coordinates.groupId.get() == "group"
+        publication.pom.coordinates.artifactId.get() == "name"
+        publication.pom.coordinates.version.get() == "version"
     }
 
     def "publication coordinates are live"() {
@@ -98,9 +98,9 @@ class DefaultMavenPublicationTest extends Specification {
         publication.version = "version2"
 
         then:
-        publication.pom.projectIdentity.groupId.get() == "group2"
-        publication.pom.projectIdentity.artifactId.get() == "name2"
-        publication.pom.projectIdentity.version.get() == "version2"
+        publication.pom.coordinates.groupId.get() == "group2"
+        publication.pom.coordinates.artifactId.get() == "name2"
+        publication.pom.coordinates.version.get() == "version2"
 
         and:
         publication.groupId == "group2"

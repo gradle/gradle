@@ -242,14 +242,14 @@ class ValidatingMavenPublisherTest extends Specification {
     }
 
     private def makeProjectIdentity(String groupId, String artifactId, String version) {
-        def identity = TestUtil.objectFactory().newInstance(MavenProjectIdentity)
-        identity.groupId.set(groupId)
-        identity.artifactId.set(artifactId)
-        identity.version.set(version)
-        identity
+        def coordinates = TestUtil.objectFactory().newInstance(MavenPublicationCoordinates)
+        coordinates.groupId.set(groupId)
+        coordinates.artifactId.set(artifactId)
+        coordinates.version.set(version)
+        coordinates
     }
 
-    private def createPomFile(MavenProjectIdentity projectIdentity, Action<XmlProvider> withXmlAction = null, boolean marker = false) {
+    private def createPomFile(MavenPublicationCoordinates coordinates, Action<XmlProvider> withXmlAction = null, boolean marker = false) {
         MavenPomInternal pom = TestUtil.objectFactory().newInstance(
             DefaultMavenPom.class,
             TestUtil.objectFactory(),
@@ -258,9 +258,9 @@ class ValidatingMavenPublisherTest extends Specification {
 
         pom.dependencies.set(DefaultMavenPomDependencies.EMPTY)
 
-        pom.projectIdentity.artifactId.set(projectIdentity.getArtifactId())
-        pom.projectIdentity.groupId.set(projectIdentity.getGroupId())
-        pom.projectIdentity.version.set(projectIdentity.getVersion())
+        pom.coordinates.artifactId.set(coordinates.getArtifactId())
+        pom.coordinates.groupId.set(coordinates.getGroupId())
+        pom.coordinates.version.set(coordinates.getVersion())
         pom.getWriteGradleMetadataMarker().set(marker)
         if (withXmlAction != null) {
             pom.withXml(withXmlAction)

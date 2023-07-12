@@ -1229,7 +1229,7 @@ Class <org.gradle.api.publish.maven.internal.publisher.AbstractMavenPublisher> i
 Class <org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenDuplicatePublicationTracker.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.MavenLocalPublisher> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenLocalPublisher.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenNormalizedPublication.java:0)
-Class <org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenProjectIdentity.java:0)
+Class <org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenPublicationCoordinates.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.MavenPublisher> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenPublisher.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.MavenPublishers> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenPublishers.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.MavenRemotePublisher> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenRemotePublisher.java:0)
