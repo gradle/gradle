@@ -212,13 +212,13 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
-                         if (name.equals("getTargetCompatibility") && descriptor.equals("()Ljava/lang/String;") && opcode == Opcodes.INVOKEVIRTUAL) {
+                         if (name.equals("getTargetCompatibility") && descriptor.equals("()Ljava/lang/String;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
                              _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_targetCompatibility", "(Lorg/gradle/test/Task;)Ljava/lang/String;");
                              return true;
                          }
                     }
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
-                       if (name.equals("setTargetCompatibility") && descriptor.equals("(Ljava/lang/String;)V") && opcode == Opcodes.INVOKEVIRTUAL) {
+                       if (name.equals("setTargetCompatibility") && descriptor.equals("(Ljava/lang/String;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_targetCompatibility", "(Lorg/gradle/test/Task;Ljava/lang/String;)V");
                            return true;
                        }
