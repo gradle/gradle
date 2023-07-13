@@ -19,13 +19,16 @@ package org.gradle.java.compile
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.classanalysis.JavaClassUtil
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
+abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     abstract String compilerConfiguration()
 
@@ -218,11 +221,11 @@ compileJava {
 """
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compile with release flag using #notation notation"() {
         given:
         goodCode()
         buildFile << """
+java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 java.targetCompatibility = JavaVersion.VERSION_1_7
 compileJava.options.compilerArgs.addAll(['--release', $notation])
 compileJava {
@@ -243,7 +246,7 @@ compileJava {
 """
 
         expect:
-        succeeds 'compileJava'
+        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds 'compileJava'
         bytecodeVersion() == 52
 
         where:
@@ -259,6 +262,7 @@ compileJava {
         given:
         goodCode()
         buildFile << """
+java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
 compileJava.targetCompatibility = '10' // ignored
 compileJava.options.release.set(8)
@@ -280,7 +284,7 @@ compileJava {
 """
 
         expect:
-        succeeds 'compileJava'
+        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds 'compileJava'
         bytecodeVersion() == 52
     }
 
@@ -303,6 +307,7 @@ compileJava.options.release.set(8)
         given:
         goodCode()
         buildFile << """
+java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
 compileJava.targetCompatibility = '10' // ignored
 compileJava.options.release.set(8)
@@ -322,7 +327,7 @@ compileJava {
 """
 
         expect:
-        succeeds 'compileJava'
+        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds 'compileJava'
         bytecodeVersion() == 52
     }
 
@@ -402,11 +407,12 @@ public class FailsOnJava8<T> {
 '''
 
         buildFile << """
+java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 compileJava.options.compilerArgs.addAll(['--release', '8'])
 """
 
         expect:
-        fails 'compileJava'
+        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).fails 'compileJava'
         output.contains(logStatement())
         failure.assertHasErrorOutput("cannot find symbol")
         failure.assertHasErrorOutput("method takeWhile")
@@ -429,11 +435,12 @@ public class FailsOnJava8<T> {
 '''
 
         buildFile << """
+java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 compileJava.options.release.set(8)
 """
 
         expect:
-        fails 'compileJava'
+        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).fails 'compileJava'
         output.contains(logStatement())
         failure.assertHasErrorOutput("cannot find symbol")
         failure.assertHasErrorOutput("method takeWhile")
@@ -524,6 +531,7 @@ class Main {
         when:
         buildFile << """
             apply plugin: "java"
+            java.toolchain.languageVersion = JavaLanguageVersion.of(11)
             dependencies {
                 compileOnly project(":processor")
                 annotationProcessor project(":processor")
@@ -537,13 +545,16 @@ class Main {
         }"""
 
         then:
-        succeeds("compileJava")
+        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds("compileJava")
         javaGeneratedSourceFile('Java$$Generated.java').exists()
     }
 
     def writeAnnotationProcessorProject() {
         file("processor").create {
-            file("build.gradle") << "apply plugin: 'java'"
+            file("build.gradle") << """
+                apply plugin: 'java'
+                java.toolchain.languageVersion = JavaLanguageVersion.of(11)
+            """
             "src/main" {
                 file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"
                 "java/com/test/" {
