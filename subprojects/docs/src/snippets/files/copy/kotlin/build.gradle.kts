@@ -36,9 +36,9 @@ val archiveReportsTask by tasks.registering(MyArchiveTask::class) {
 }
 
 // tag::copy-single-file-example-with-task-properties[]
-tasks.register<Copy>("copyReport3") {
-    from(myReportTask.get().outputFile)
-    into(archiveReportsTask.get().dirToArchive)
+tasks.register<Copy>("copyReport2") {
+    from(myReportTask.flatMap { it.outputFile })
+    into(archiveReportsTask.flatMap { it.dirToArchive })
 }
 // end::copy-single-file-example-with-task-properties[]
 

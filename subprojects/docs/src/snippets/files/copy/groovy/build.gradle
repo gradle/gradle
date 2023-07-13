@@ -18,7 +18,7 @@ abstract class MyReportTask extends DefaultTask {
 }
 
 tasks.register('myReportTask', MyReportTask) {
-    outputFile = layout.buildDirectory.dir("reports/my-report.pdf")
+    outputFile = layout.buildDirectory.file("reports/my-report.pdf")
 }
 
 tasks.register('archiveReportsTask') {
@@ -27,7 +27,7 @@ tasks.register('archiveReportsTask') {
 }
 
 // tag::copy-single-file-example-with-task-properties[]
-tasks.register('copyReport3', Copy) {
+tasks.register('copyReport2', Copy) {
     from myReportTask.outputFile
     into archiveReportsTask.dirToArchive
 }
