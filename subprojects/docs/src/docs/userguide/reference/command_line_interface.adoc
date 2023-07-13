@@ -140,6 +140,8 @@ When invoking Gradle from within a subproject, the project name should be omitte
 
 ----
 $ cd subproject
+----
+----
 $ gradle taskName
 ----
 
@@ -319,6 +321,8 @@ By default, this report shows only those tasks which have been assigned to a tas
 Groups (such as verification, publishing, help, build...) are available as the header of each section when listing tasks:
 
 ----
+> Task :tasks
+
 Build tasks
 -----------
 assemble - Assembles the outputs of this project.
