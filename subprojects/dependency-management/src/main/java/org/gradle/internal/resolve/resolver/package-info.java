@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.publisher;
-
-import org.gradle.api.provider.Provider;
-
-public interface MavenProjectIdentity {
-
-    Provider<String> getGroupId();
-
-    Provider<String> getArtifactId();
-
-    Provider<String> getVersion();
-
-}
+@org.gradle.api.NonNullApi
+package org.gradle.internal.resolve.resolver;

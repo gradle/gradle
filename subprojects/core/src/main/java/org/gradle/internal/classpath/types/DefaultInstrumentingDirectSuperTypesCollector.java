@@ -24,7 +24,6 @@ import org.gradle.internal.Either;
 import org.gradle.internal.classpath.ClasspathFileHasher;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
-import org.gradle.internal.classpath.InstrumentingClasspathFileTransformer;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -50,6 +49,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
  * Collects the direct super types of all classes for given files and also caches values in cache.
@@ -95,7 +96,6 @@ class DefaultInstrumentingDirectSuperTypesCollector implements InstrumentingDire
 
     private Map<String, Set<String>> visitClassHierarchyForFile(File source, FileSystemLocationSnapshot sourceSnapshot, ClasspathFileHasher fileHasher) throws IOException {
         Map<String, Set<String>> directSuperTypes = new HashMap<>();
-        InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
         String destDirName = source.toPath().startsWith(cache.getBaseDir().toPath())
             ? source.getParentFile().getName()
             : fileHasher.hashOf(sourceSnapshot).toString();
@@ -111,14 +111,13 @@ class DefaultInstrumentingDirectSuperTypesCollector implements InstrumentingDire
 
         try {
             classpathWalker.visit(source, entry -> {
-                if (!policy.includeEntry(entry)) {
-                    return;
-                }
                 if (entry.getName().endsWith(".class")) {
-                    ClassReader classReader = new ClassReader(entry.getContent());
-                    String className = classReader.getClassName();
-                    registerSuperType(className, classReader.getSuperName(), directSuperTypes);
-                    registerInterfaces(className, classReader.getInterfaces(), directSuperTypes);
+                    if (!isInUnsupportedMrJarVersionedDirectory(entry)) {
+                        ClassReader classReader = new ClassReader(entry.getContent());
+                        String className = classReader.getClassName();
+                        registerSuperType(className, classReader.getSuperName(), directSuperTypes);
+                        registerInterfaces(className, classReader.getInterfaces(), directSuperTypes);
+                    }
                 }
             });
         } catch (FileException e) {

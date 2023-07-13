@@ -20,4 +20,10 @@ import org.objectweb.asm.Opcodes;
 
 public class AsmConstants {
     public static final int ASM_LEVEL = Opcodes.ASM9;
+    /**
+     * The latest version of Java for which ASM understands the bytecodes.
+     *
+     * @see <a href="https://asm.ow2.io/versions.html">ASM release notes</a>
+     */
+    public static final int MAX_SUPPORTED_JAVA_VERSION = 20;
 }

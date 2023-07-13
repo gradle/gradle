@@ -19,10 +19,9 @@ package org.gradle.jvm.component.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -31,7 +30,7 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
+import org.gradle.api.publish.internal.component.DefaultAdhocSoftwareComponent;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
@@ -55,7 +54,7 @@ import java.util.Collections;
  * The software component created by the Java plugin. This component owns the main {@link JvmFeatureInternal} which itself
  * is responsible for compiling and packaging the main production jar. Therefore, this component transitively owns the
  * corresponding source set and any domain objects which are created by the {@link BasePlugin} on the source set's behalf.
- * This includes the source set's resolvable configurations and buckets, as well as any associated tasks.
+ * This includes the source set's resolvable configurations and dependency scopes, as well as any associated tasks.
  */
 public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponentInternal {
 
@@ -84,7 +83,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
         this.mainFeature = new DefaultJvmFeature(
             sourceSetName, sourceSet, Collections.emptyList(),
-            (ProjectInternal) project, ConfigurationRoles.CONSUMABLE, false);
+            (ProjectInternal) project, false, false);
 
         // TODO: Should all features also have this variant? Why just the main feature?
         createSourceElements(configurations, providerFactory, objectFactory, mainFeature, jvmPluginServices);
@@ -116,7 +115,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return sourceSets.create(name);
     }
 
-    private Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, JvmFeatureInternal feature, JvmPluginServices jvmPluginServices) {
+    private ConsumableConfiguration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, JvmFeatureInternal feature, JvmPluginServices jvmPluginServices) {
 
         // TODO: Why are we using this non-standard name? For the `java` component, this
         // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
@@ -124,7 +123,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // of the component's API?
         String variantName = feature.getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
-        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        ConsumableConfiguration variant = configurations.consumable(variantName).get();
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
         variant.extendsFrom(mainFeature.getImplementationConfiguration());

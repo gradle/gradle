@@ -19,8 +19,11 @@ package org.gradle.api.publish.maven.internal.publication;
 import org.gradle.api.publish.maven.MavenPomDistributionManagement;
 import org.gradle.api.publish.maven.MavenPomRelocation;
 
+import javax.annotation.Nullable;
+
 public interface MavenPomDistributionManagementInternal extends MavenPomDistributionManagement {
 
+    @Nullable
     MavenPomRelocation getRelocation();
 
 }

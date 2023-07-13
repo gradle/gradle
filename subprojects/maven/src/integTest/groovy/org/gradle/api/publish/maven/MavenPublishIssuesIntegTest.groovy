@@ -394,7 +394,7 @@ subprojects {
                 }
             }
             (publishing.publications["maven"] as MavenPublication).artifacts
-            (components["java"] as org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent).apply {
+            (components["java"] as AdhocComponentWithVariants).apply {
                 withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
             }
         """
@@ -434,7 +434,7 @@ subprojects {
                 }
             }
             (publishing.publications["ivy"] as IvyPublication).artifacts
-            (components["java"] as org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent).apply {
+            (components["java"] as AdhocComponentWithVariants).apply {
                 withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
             }
         """

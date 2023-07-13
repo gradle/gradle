@@ -20,6 +20,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPomRelocation;
 
+import javax.inject.Inject;
+
 public class DefaultMavenPomRelocation implements MavenPomRelocation {
 
     private final Property<String> groupId;
@@ -27,6 +29,7 @@ public class DefaultMavenPomRelocation implements MavenPomRelocation {
     private final Property<String> version;
     private final Property<String> message;
 
+    @Inject
     public DefaultMavenPomRelocation(ObjectFactory objectFactory) {
         groupId = objectFactory.property(String.class);
         artifactId = objectFactory.property(String.class);

@@ -22,14 +22,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -65,12 +64,12 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         project.getPluginManager().apply("jacoco");
 
 
-        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
-        Configuration jacocoAggregation = configurations.bucket(JACOCO_AGGREGATION_CONFIGURATION_NAME);
+        ConfigurationContainer configurations = ((ProjectInternal) project).getConfigurations();
+        Configuration jacocoAggregation = configurations.dependencyScope(JACOCO_AGGREGATION_CONFIGURATION_NAME).get();
         jacocoAggregation.setDescription("Collects project dependencies for purposes of JaCoCo coverage report aggregation");
         jacocoAggregation.setVisible(false);
 
-        Configuration codeCoverageResultsConf = configurations.createWithRole("aggregateCodeCoverageReportResults", ConfigurationRoles.RESOLVABLE);
+        Configuration codeCoverageResultsConf = configurations.resolvable("aggregateCodeCoverageReportResults").get();
         codeCoverageResultsConf.setDescription("Resolvable configuration used to gather files for the JaCoCo coverage report aggregation via ArtifactViews, not intended to be used directly");
         codeCoverageResultsConf.extendsFrom(jacocoAggregation);
         codeCoverageResultsConf.setVisible(false);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.java.usagecontext;
 
-import org.gradle.api.component.ConfigurationVariantDetails;
-
-public interface ConfigurationVariantDetailsInternal extends ConfigurationVariantDetails {
-    boolean shouldPublish();
-    String getMavenScope();
-    boolean isOptional();
-}
+@org.gradle.api.NonNullApi
+package org.gradle.api.publish.internal.component;

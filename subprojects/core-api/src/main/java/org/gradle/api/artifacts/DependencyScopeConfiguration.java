@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.dependencies
+package org.gradle.api.artifacts;
 
-import spock.lang.Specification
+import org.gradle.api.Incubating;
 
-class MavenVersionRangeMapperTest extends Specification {
-    def "null version is mapped to null"() {
-        expect:
-        new MavenVersionRangeMapper().map(null) == null
-    }
+/**
+ * A {@link Configuration} which collects dependencies, dependency constraints, and exclude rules.
+ *
+ * @since 8.4
+ */
+@Incubating
+public interface DependencyScopeConfiguration extends Configuration {
 }
