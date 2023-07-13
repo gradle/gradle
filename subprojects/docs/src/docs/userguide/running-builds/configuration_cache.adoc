@@ -584,7 +584,7 @@ Having new configuration misses because of them may be undesirable for the build
 * For some kinds of configuration inputs, it is possible to use the opt-out options that make Gradle fall back to the earlier behavior, omitting the inputs from detection.
 This temporary workaround is aimed to mitigate performance issues coming from out-of-date plugins.
 
-It is possible to temporarily opt out of configuration input detection in the following cases:
+It is currently possible to temporarily opt out of configuration input detection in the following case:
 
 * Since Gradle 8.1, using many APIs related to the file system is correctly tracked as configuration inputs, including the file system checks, such as `File.exists()` or `File.isFile()`.
 +
@@ -601,12 +601,6 @@ org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
     ../../externalOutputDirectory/**;\
     build/analytics.json
 ----
-
-* Before Gradle 8.3, some undeclared configuration inputs that were never used in the configuration logic could still be read when the task graph was serialized by the configuration cache.
-However, their changes would not invalidate the configuration cache afterward.
-Starting with Gradle 8.3, such undeclared configuration inputs are correctly tracked.
-+
-To temporarily revert to the earlier behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore-in-serialization` to `true`.
 
 One should ignore configuration inputs sparingly, and only if those do not affect the tasks produced by the configuration logic.
 The support for these options will be removed in future releases.
