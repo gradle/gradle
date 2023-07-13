@@ -20,6 +20,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPomLicense;
 
+import javax.inject.Inject;
+
 public class DefaultMavenPomLicense implements MavenPomLicense {
 
     private final Property<String> name;
@@ -27,6 +29,7 @@ public class DefaultMavenPomLicense implements MavenPomLicense {
     private final Property<String> distribution;
     private final Property<String> comments;
 
+    @Inject
     public DefaultMavenPomLicense(ObjectFactory objectFactory) {
         name = objectFactory.property(String.class);
         url = objectFactory.property(String.class);

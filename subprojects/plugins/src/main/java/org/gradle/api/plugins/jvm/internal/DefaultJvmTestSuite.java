@@ -69,7 +69,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 // spock-core references junit-jupiter's BOM, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),
-        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.8.22", Collections.singletonList(
+        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.9.0", Collections.singletonList(
                 // kotlin-test-junit5 depends on junit-jupiter, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),

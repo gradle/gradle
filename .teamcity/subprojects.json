@@ -281,7 +281,7 @@
   },
   {
     "name": "enterprise-operations",
-    "path": "subprojects/enterprise-operations",
+    "path": "platforms/enterprise/enterprise-operations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

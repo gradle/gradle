@@ -38,21 +38,25 @@ public class BooleanOptionElement extends AbstractOptionElement {
     private static final String OPPOSITE_DESC_PREFIX = "Opposite option of --";
     private static final String DISABLE_NAME_PREFIX = "no-";
     private final PropertySetter setter;
+    private final boolean newOptionValue;
 
     public BooleanOptionElement(String optionName, Option option, PropertySetter setter) {
         super(optionName, option, Void.TYPE, setter.getDeclaringClass());
         this.setter = setter;
+        this.newOptionValue = true;
     }
 
-    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter) {
+    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter, boolean newOptionValue) {
         super(optionDescription, optionName, Void.TYPE);
         this.setter = setter;
+        this.newOptionValue = newOptionValue;
     }
 
     public static BooleanOptionElement oppositeOf(BooleanOptionElement optionElement) {
         String optionName = optionElement.getOptionName();
-        return optionElement.isDisableOption() ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName, optionElement.setter)
-            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName, optionElement.setter);
+        return optionElement.isDisableOption()
+            ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName, optionElement.setter, false)
+            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName, optionElement.setter, false);
     }
 
     /**
@@ -91,11 +95,7 @@ public class BooleanOptionElement extends AbstractOptionElement {
 
     @Override
     public void apply(Object object, List<String> parameterValues) throws TypeConversionException {
-        if (isDisableOption()) {
-            setter.setValue(object, Boolean.FALSE);
-        } else {
-            setter.setValue(object, Boolean.TRUE);
-        }
+        setter.setValue(object, newOptionValue);
     }
 
     private static String removeDisablePrefix(String optionName) {

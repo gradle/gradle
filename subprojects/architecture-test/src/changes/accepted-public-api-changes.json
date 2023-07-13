@@ -1,51 +1,11 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke$default(org.gradle.kotlin.dsl.DependencyHandlerScope,org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
-            "acceptation": "https://github.com/gradle/gradle/issues/24503",
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
+            "member": "Constructor org.gradle.kotlin.dsl.NamedDomainObjectContainerScope(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Private constructor changed to internal. This constructor was synthetically added by Kotlin to allow the private constructor to be called from companion object. It could not be called by Kotlin code.",
             "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke$default(org.gradle.kotlin.dsl.DependencyHandlerScope,org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1,int,java.lang.Object)",
-            "acceptation": "https://github.com/gradle/gradle/issues/24503",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke(org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)",
-            "acceptation": "https://github.com/gradle/gradle/issues/24503",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke(org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)",
-            "acceptation": "https://github.com/gradle/gradle/issues/24503",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.artifacts.ModuleDependency,kotlin.jvm.functions.Function1)",
-            "acceptation": "https://github.com/gradle/gradle/issues/24503",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.util.SingleMessageLogger",
-            "member": "Class org.gradle.util.SingleMessageLogger",
-            "acceptation": "Changed the signature of internal method",
-            "changes": [
-                "org.gradle.internal.deprecation.DeprecationLogger.init(org.gradle.internal.featurelifecycle.UsageLocationReporter,org.gradle.api.logging.configuration.WarningMode,org.gradle.internal.operations.BuildOperationProgressEventEmitter)"
+                "Constructor has been removed"
             ]
         }
     ]

@@ -23,8 +23,10 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING
+import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE
+import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
 
@@ -97,7 +99,8 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
     @Requires(IntegTestPreconditions.NotConfigCached)
     def "shows warning message when unsupported Gradle Enterprise plugin version is used with configuration caching enabled"() {
         given:
-        plugin.runtimeVersion = plugin.artifactVersion = pluginVersion
+        plugin.runtimeVersion = pluginVersion
+        plugin.artifactVersion = pluginVersion
         applyPlugin()
         settingsFile << """
             println "present: " + services.get($GradleEnterprisePluginManager.name).present
@@ -116,13 +119,42 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE") != applied
 
         where:
-        pluginVersion                                    | applied
-        '3.11.4'                                         | false
-        getMinimumPluginVersionForConfigurationCaching() | true
+        pluginVersion                               | applied
+        '3.11.4'                                    | false
+        minimumPluginVersionForConfigurationCaching | true
+    }
+
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    def "shows warning message when Gradle Enterprise plugin version is used with isolated projects enabled"() {
+        given:
+        plugin.runtimeVersion = pluginVersion
+        plugin.artifactVersion = pluginVersion
+        applyPlugin()
+        settingsFile << """
+            println "present: " + services.get($GradleEnterprisePluginManager.name).present
+        """
+
+        when:
+        succeeds("t", "-Dorg.gradle.unsafe.isolated-projects=true")
+
+        then:
+        output.contains("present: ${applied}")
+
+        and:
+        output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE") != applied
+
+        where:
+        pluginVersion                           | applied
+        '3.11.4'                                | false
+        minimumPluginVersionForIsolatedProjects | true
     }
 
     private static String getMinimumPluginVersionForConfigurationCaching() {
         "${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor()}.${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor()}"
+    }
+
+    private static String getMinimumPluginVersionForIsolatedProjects() {
+        "${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.getMajor()}.${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.getMinor()}"
     }
 
 }

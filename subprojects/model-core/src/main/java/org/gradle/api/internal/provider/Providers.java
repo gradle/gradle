@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
+import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -64,6 +67,13 @@ public class Providers {
         return new FixedValueProvider<>(value);
     }
 
+    public static <T extends Named> NamedDomainObjectProvider<T> ofNamed(T value) {
+        if (value == null) {
+            throw new IllegalArgumentException();
+        }
+        return new NamedFixedValueProvider<>(value);
+    }
+
     public static <T> ProviderInternal<T> internal(final Provider<T> value) {
         return Cast.uncheckedCast(value);
     }
@@ -84,7 +94,7 @@ public class Providers {
     }
 
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {
-        private final T value;
+        protected final T value;
 
         FixedValueProvider(T value) {
             this.value = value;
@@ -114,6 +124,22 @@ public class Providers {
         @Override
         public String toString() {
             return String.format("fixed(%s, %s)", getType(), value);
+        }
+    }
+
+    public static class NamedFixedValueProvider<T extends Named> extends FixedValueProvider<T> implements NamedDomainObjectProvider<T> {
+        NamedFixedValueProvider(T value) {
+            super(value);
+        }
+
+        @Override
+        public void configure(Action<? super T> action) {
+            action.execute(value);
+        }
+
+        @Override
+        public String getName() {
+            return value.getName();
         }
     }
 

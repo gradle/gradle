@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.GUtil;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.

@@ -150,14 +150,12 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
 
             @Override
             public WorkerProcess start() {
-                // Temporarily un-set the current build operation, since it shouldn't be leaked to the worker management code.
-                CurrentBuildOperationRef.instance().with(null, () -> {
-                    try {
-                        workerProcess.start();
-                    } catch (Exception e) {
-                        throw WorkerProcessException.runFailed(getBaseName(), e);
-                    }
-                });
+                // Note -- leaks current build operation to worker thread, it will be cleared after the worker is started
+                try {
+                    workerProcess.start();
+                } catch (Exception e) {
+                    throw WorkerProcessException.runFailed(getBaseName(), e);
+                }
                 workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
                 workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
                 workerProcess.getConnection().useParameterSerializers(RequestSerializerRegistry.create(workerImplementation.getClassLoader(), argumentSerializers));

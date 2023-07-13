@@ -567,6 +567,51 @@ Let your team know they can opt-in by, for example, enabling the configuration c
 Later on, when more workflows are working, you can flip this around.
 Enable the configuration cache by default, configure CI to disable it, and if required communicate the unsupported workflow(s) for which the configuration cache needs to be disabled.
 
+[[config_cache:adoption:changes_in_behavior]]
+=== Adopting changes in the configuration cache behavior
+
+Gradle releases bring enhancements to the configuration cache, making it detect more cases of configuration logic interacting with the environment.
+Those changes improve the correctness of the cache by eliminating potential false cache hits.
+On the other hand, they impose stricter rules that plugins and build logic need to follow to be cached as often as possible.
+
+Some of those configuration inputs may be considered "benign" if their results do not affect the configured tasks.
+Having new configuration misses because of them may be undesirable for the build users, and the suggested strategy for eliminating them is:
+
+* Identify the configuration inputs causing the invalidation of the configuration cache with the help of the <<configuration_cache#config_cache:troubleshooting, configuration cache report>>.
+** Fix undeclared configuration inputs accessed by the build logic of the project.
+** Report issues caused by third-party plugins to the plugin maintainers, and update the plugins once they get fixed.
+
+* For some kinds of configuration inputs, it is possible to use the opt-out options that make Gradle fall back to the earlier behavior, omitting the inputs from detection.
+This temporary workaround is aimed to mitigate performance issues coming from out-of-date plugins.
+
+It is possible to temporarily opt out of configuration input detection in the following cases:
+
+* Since Gradle 8.1, using many APIs related to the file system is correctly tracked as configuration inputs, including the file system checks, such as `File.exists()` or `File.isFile()`.
++
+For the input tracking to ignore these file system checks on the specific paths, one can provide a Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` with the list of the paths, relative to the root project directory and separated by `;`.
+To ignore multiple paths, use `*` to match arbitrary strings within one segment, or `pass:[**]` across segments.
+Paths starting with `~/` will be considered to be based on the user home directory.
+For example:
++
+[source,properties]
+.gradle.properties
+----
+org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
+    ~/.third-party-plugin/*.lock;\
+    ../../externalOutputDirectory/**;\
+    build/analytics.json
+----
+
+* Before Gradle 8.3, some undeclared configuration inputs that were never used in the configuration logic could still be read when the task graph was serialized by the configuration cache.
+However, their changes would not invalidate the configuration cache afterward.
+Starting with Gradle 8.3, such undeclared configuration inputs are correctly tracked.
++
+To temporarily revert to the earlier behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore-in-serialization` to `true`.
+
+One should ignore configuration inputs sparingly, and only if those do not affect the tasks produced by the configuration logic.
+The support for these options will be removed in future releases.
+
+
 [[config_cache:testing]]
 == Testing your build logic
 

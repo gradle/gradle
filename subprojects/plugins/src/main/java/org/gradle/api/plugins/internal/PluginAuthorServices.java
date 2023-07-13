@@ -21,6 +21,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.instantiation.InstanceGenerator;

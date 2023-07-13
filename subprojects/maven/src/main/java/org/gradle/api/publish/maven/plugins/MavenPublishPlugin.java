@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -46,8 +45,6 @@ import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publication.WritableMavenProjectIdentity;
-import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
@@ -256,25 +253,15 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
 
         @Override
         public MavenPublication create(final String name) {
-            MutableMavenProjectIdentity projectIdentity = createProjectIdentity();
             NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             return objectFactory.newInstance(
                     DefaultMavenPublication.class,
                     name,
-                    projectIdentity,
+                    dependencyMetaDataProvider,
                     artifactNotationParser,
                     versionMappingStrategy
             );
-        }
-
-        private MutableMavenProjectIdentity createProjectIdentity() {
-            final Module module = dependencyMetaDataProvider.getModule();
-            MutableMavenProjectIdentity projectIdentity = new WritableMavenProjectIdentity(objectFactory);
-            projectIdentity.getGroupId().set(providerFactory.provider(module::getGroup));
-            projectIdentity.getArtifactId().set(providerFactory.provider(module::getName));
-            projectIdentity.getVersion().set(providerFactory.provider(module::getVersion));
-            return projectIdentity;
         }
     }
 

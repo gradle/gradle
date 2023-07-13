@@ -20,8 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaCompilationSoakTest extends AbstractIntegrationSpec {
     def setup() {
-        // projectCount * memoryHog ~= 50% default JVM heap size
+        // projectCount * memoryHog ~= 25% default JVM heap size
         def projectCount = 5
+        executer.requireIsolatedDaemons()
 
         def subprojects = []
         projectCount.times {
@@ -32,22 +33,31 @@ class JavaCompilationSoakTest extends AbstractIntegrationSpec {
                 allprojects {
                     apply plugin: 'java'
 
-                    // ~50MB
-                    ext.memoryHog = new byte[1024*1024*50]
+                    // ~25MB
+                    ext.memoryHog = new byte[1024*1024*25]
 
                     tasks.withType(JavaCompile).configureEach {
                         options.fork = true
+                        options.forkOptions.jvmArgs << "-Dcounter=" + project.property("counter")
                     }
                 }
             """
         }
     }
 
-    def "can recompile many times in a row"() {
+    def "can recompile many times in a row with a changing set of compiler daemons"() {
         expect:
         10.times {
             println("Run $it")
-            succeeds("clean", "assemble")
+            succeeds("clean", "assemble", "-Pcounter="+it)
+        }
+    }
+
+    def "can recompile many times in a row with a reused compiler daemon"() {
+        expect:
+        10.times {
+            println("Run $it")
+            succeeds("clean", "assemble", "-Pcounter=0")
         }
     }
 }
