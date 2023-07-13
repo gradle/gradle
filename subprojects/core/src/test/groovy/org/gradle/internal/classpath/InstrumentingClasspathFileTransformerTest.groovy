@@ -22,6 +22,8 @@ import org.gradle.cache.FileLockManager
 import org.gradle.internal.Pair
 import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.Policy
+import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 import org.gradle.internal.hash.Hasher
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -47,6 +49,10 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
     def classpathBuilder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.createDir("tmp")))
     def fileLockManager = Stub(FileLockManager)
     def fileSystemAccess = TestFiles.fileSystemAccess()
+    def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentingTypeRegistry) {
+        getInstrumentedFileHash() >> Optional.empty()
+    }
+    def typeRegistry = Stub(InstrumentingTypeRegistry)
 
     def "instrumentation with #policy preserves classes"() {
         given:
@@ -209,11 +215,11 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
     }
 
     private File transform(File file, InstrumentingClasspathFileTransformer transformer) {
-        return transformer.transform(file, fileSystemAccess.read(file.path), cacheDir)
+        return transformer.transform(file, fileSystemAccess.read(file.path), cacheDir, typeRegistry)
     }
 
     private InstrumentingClasspathFileTransformer transformerWithPolicy(Policy policy) {
-        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, policy, new NoOpTransformer())
+        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, policy, new NoOpTransformer(), gradleCoreInstrumentingRegistry)
     }
 
     private static class NoOpTransformer implements CachedClasspathTransformer.Transform {
