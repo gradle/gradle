@@ -18,10 +18,13 @@ package org.gradle.smoketests
 
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Requires(UnitTestPreconditions.Jdk17OrLater)
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
@@ -82,9 +85,6 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         when:
         def smokeTestRunner = runner('assembleBootDist', 'check')
         // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
         def buildResult = smokeTestRunner.build()
 
         then:
@@ -93,13 +93,6 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         when:
         smokeTestRunner = runner('bootRun')
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
-        smokeTestRunner.expectDeprecationWarning(
-            BaseDeprecations.APPLICATION_PLUGIN_CONVENTION_DEPRECATION,
-            "No need to follow up as the 2.7.x branch already removed the convention usage"
-        )
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
         def runResult = smokeTestRunner.build()
 
         then:

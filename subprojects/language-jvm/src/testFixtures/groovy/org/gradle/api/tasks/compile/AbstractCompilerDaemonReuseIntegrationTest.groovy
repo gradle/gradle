@@ -53,7 +53,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
             task writeCompilerIdentities {
                 def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
                 doLast { task ->
-                    compilerDaemonIdentityFile << services.get(WorkerDaemonClientsManager).allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
+                    compilerDaemonIdentityFile.text = services.get(WorkerDaemonClientsManager).allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }
             }
 
@@ -75,7 +75,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -90,7 +90,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -106,7 +106,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertOneCompilerDaemonIsCreated()
+        assertOneCompilerDaemonIsRunning()
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -127,20 +127,26 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
 
         and:
-        assertTwoCompilerDaemonsAreCreated()
+        assertTwoCompilerDaemonsAreRunning()
     }
 
-    void assertOneCompilerDaemonIsCreated() {
+    List<String> getRunningCompilerDaemons() {
         def compilerDaemonSets = compilerDaemonIdentityFile.readLines()
-        assert compilerDaemonSets.size() > 0
+        assert compilerDaemonSets.size() == 1
         assert compilerDaemonSets[0].trim() != ""
-        assert compilerDaemonSets[0].split(" ").size() == 1
+        return Arrays.asList(compilerDaemonSets[0].split(" "))
     }
 
-    void assertTwoCompilerDaemonsAreCreated() {
-        def compilerDaemonSets = compilerDaemonIdentityFile.readLines()
-        assert compilerDaemonSets.size() > 0
-        assert compilerDaemonSets[0].split(" ").size() == 2
+    void assertOneCompilerDaemonIsRunning() {
+        assert runningCompilerDaemons.size() == 1
+    }
+
+    void assertRunningCompilerDaemonIs(String expected) {
+        assert runningCompilerDaemons == [ expected ]
+    }
+
+    void assertTwoCompilerDaemonsAreRunning() {
+        assert runningCompilerDaemons.size() == 2
     }
 
     String newSourceSet(String name) {

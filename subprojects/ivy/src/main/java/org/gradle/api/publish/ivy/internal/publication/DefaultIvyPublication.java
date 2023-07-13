@@ -49,6 +49,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
@@ -81,6 +82,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.GUtil;
@@ -97,7 +99,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class DefaultIvyPublication implements IvyPublicationInternal {
+public abstract class DefaultIvyPublication implements IvyPublicationInternal {
 
     private final static Logger LOG = Logging.getLogger(DefaultIvyPublication.class);
 
@@ -112,27 +114,24 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public static final String PUBLICATION_WARNING_FOOTER = "These issues indicate information that is lost in the published 'ivy.xml' metadata file, which may be an issue if the published library is consumed by an old Gradle version or Apache Ivy.\nThe 'module' metadata file, which is used by Gradle 6+ is not affected.";
 
     private final String name;
-    private final IvyModuleDescriptorSpecInternal descriptor;
     private final MutableIvyPublicationidentity publicationIdentity;
+    private final VersionMappingStrategyInternal versionMappingStrategy;
+    private final TaskDependencyFactory taskDependencyFactory;
+    private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final Factory<ComponentParser> componentParserFactory;
+
+    private final IvyModuleDescriptorSpecInternal descriptor;
     private final IvyConfigurationContainer configurations;
     private final DefaultIvyArtifactSet mainArtifacts;
     private final PublicationArtifactSet<IvyArtifact> metadataArtifacts;
     private final PublicationArtifactSet<IvyArtifact> derivedArtifacts;
     private final PublicationArtifactSet<IvyArtifact> publishableArtifacts;
-    private final DefaultIvyDependencySet ivyDependencies;
-    private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final PlatformSupport platformSupport;
-    private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final TaskDependencyFactory taskDependencyFactory;
-    private final VersionMappingStrategyInternal versionMappingStrategy;
+    private final Property<ComponentParser.ParsedComponent> parsedComponent;
     private final Set<String> silencedVariants = new HashSet<>();
     private IvyArtifact ivyDescriptorArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
-    private SoftwareComponentInternal component;
-    private final DocumentationRegistry documentationRegistry;
     private boolean alias;
-    private final Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<>();
     private boolean populated;
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
@@ -149,19 +148,33 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     ) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
-        this.projectDependencyResolver = projectDependencyResolver;
-        this.platformSupport = platformSupport;
-        this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
+        this.taskDependencyFactory = taskDependencyFactory;
+        this.componentParserFactory = () -> new ComponentParser(
+            instantiator,
+            platformSupport,
+            projectDependencyResolver,
+            ivyArtifactNotationParser,
+            documentationRegistry,
+            collectionCallbackActionDecorator
+        );
+
+        this.parsedComponent = objectFactory.property(ComponentParser.ParsedComponent.class);
+        this.parsedComponent.convention(getComponent().map(this::parseComponent));
+        this.parsedComponent.finalizeValueOnRead();
+
         this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.derivedArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.publishableArtifacts = new CompositePublicationArtifactSet<>(taskDependencyFactory, IvyArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
-        this.ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
+
+        this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
+
         this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this, instantiator, objectFactory);
-        this.documentationRegistry = documentationRegistry;
-        this.taskDependencyFactory = taskDependencyFactory;
+        this.descriptor.getDependencies().set(this.parsedComponent.<Set<IvyDependencyInternal>>map(ComponentParser.ParsedComponent::getDependencies).orElse(Collections.emptySet()));
+        this.descriptor.getGlobalExcludes().set(this.parsedComponent.map(ComponentParser.ParsedComponent::getGlobalExcludes).orElse(Collections.emptySet()));
+        this.descriptor.getConfigurations().set(this.configurations);
     }
 
     @Override
@@ -195,11 +208,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return false;
     }
 
-    @Nullable
     @Override
-    public SoftwareComponentInternal getComponent() {
-        return component;
-    }
+    public abstract Property<SoftwareComponentInternal> getComponent();
 
     @Override
     public IvyModuleDescriptorSpecInternal getDescriptor() {
@@ -255,192 +265,296 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public void from(SoftwareComponent component) {
-        if (this.component != null) {
+        if (getComponent().isPresent()) {
             throw new InvalidUserDataException(String.format("Ivy publication '%s' cannot include multiple components", name));
         }
-        this.component = (SoftwareComponentInternal) component;
+        getComponent().set((SoftwareComponentInternal) component);
+        getComponent().finalizeValue();
         artifactsOverridden = false;
+
         updateModuleDescriptorArtifact();
     }
 
+    // TODO: This method should be removed in favor of lazily adding artifacts to the publication state.
+    // This is currently blocked by Signing eagerly realizing the publication artifacts.
     private void populateFromComponent() {
         if (populated) {
             return;
         }
         populated = true;
-        if (component == null) {
-            return;
+        if (parsedComponent.isPresent()) {
+            configurations.addAll(parsedComponent.get().getConfigurations());
+            if (!artifactsOverridden) {
+                mainArtifacts.addAll(parsedComponent.get().getArtifacts());
+            }
         }
-        PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
+    }
+
+    private ComponentParser.ParsedComponent parseComponent(SoftwareComponentInternal component) {
         // Finalize the component to avoid GMM later modification
         // See issue https://github.com/gradle/gradle/issues/20581
         component.finalizeValue();
 
-        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
-        Set<? extends SoftwareComponentVariant> variants = component.getUsages();
-
-        populateConfigurations(variants);
-        populateArtifacts(variants);
-        populateDependencies(variants, publicationWarningsCollector);
-        populateGlobalExcludes(variants);
+        ComponentParser.ParsedComponent result = componentParserFactory.create().build(component, versionMappingInUse);
 
         if (!silenceAllPublicationWarnings) {
-            publicationWarningsCollector.complete(getDisplayName() + " ivy metadata", silencedVariants);
+            result.getWarnings().complete(getDisplayName() + " ivy metadata", silencedVariants);
         }
-    }
 
-    private void populateConfigurations(Set<? extends SoftwareComponentVariant> variants) {
-        IvyConfiguration defaultConfiguration = configurations.maybeCreate("default");
-        for (SoftwareComponentVariant variant : variants) {
-            String conf = mapVariantNameToIvyConfiguration(variant.getName());
-            configurations.maybeCreate(conf);
-            if (defaultShouldExtend(variant)) {
-                defaultConfiguration.extend(conf);
-            }
-        }
+        return result;
     }
 
     /**
-     * In general, default extends all configurations such that you get 'everything' when depending on default.
-     * If a variant is optional, however it is not included.
-     * If a variant represents the Java API variant, it is also not included, because the Java Runtime variant already includes everything
-     * (including both also works but would lead to some duplication, that might break backwards compatibility in certain cases).
+     * Encapsulates the logic required to extract data from a {@link SoftwareComponent} in order
+     * to transform that component to a {@link ParsedComponent}
      */
-    private static boolean defaultShouldExtend(SoftwareComponentVariant variant) {
-        if (!(variant instanceof IvyPublishingAwareVariant)) {
-            return true;
-        }
-        if (((IvyPublishingAwareVariant) variant).isOptional()) {
-            return false;
-        }
-        return !isJavaApiVariant(variant.getName());
-    }
+    private static class ComponentParser {
 
-    private static boolean isJavaRuntimeVariant(String variantName) {
-        return RUNTIME_VARIANT.equals(variantName) || RUNTIME_ELEMENTS_VARIANT.equals(variantName);
-    }
+        private final PlatformSupport platformSupport;
+        private final ProjectDependencyPublicationResolver projectDependencyResolver;
+        private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
+        private final DocumentationRegistry documentationRegistry;
 
-    private static boolean isJavaApiVariant(String variantName) {
-        return API_VARIANT.equals(variantName) || API_ELEMENTS_VARIANT.equals(variantName);
-    }
+        private final Set<IvyArtifact> artifacts = new LinkedHashSet<>();
+        private final IvyConfigurationContainer configurations;
+        private final DefaultIvyDependencySet ivyDependencies;
+        private final Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<>();
+        private final PublicationWarningsCollector publicationWarningsCollector =
+            new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
 
-    private void populateArtifacts(Set<? extends SoftwareComponentVariant> variants) {
-        if (artifactsOverridden) {
-            return;
+        public ComponentParser(
+            Instantiator instantiator,
+            PlatformSupport platformSupport,
+            ProjectDependencyPublicationResolver projectDependencyResolver,
+            NotationParser<Object, IvyArtifact> ivyArtifactParser,
+            DocumentationRegistry documentationRegistry,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator
+        ) {
+            this.platformSupport = platformSupport;
+            this.projectDependencyResolver = projectDependencyResolver;
+            this.ivyArtifactParser = ivyArtifactParser;
+            this.documentationRegistry = documentationRegistry;
+
+            this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
+            this.ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
         }
-        Map<String, IvyArtifact> seenArtifacts = Maps.newHashMap();
-        for (SoftwareComponentVariant variant : variants) {
-            String conf = mapVariantNameToIvyConfiguration(variant.getName());
-            for (PublishArtifact publishArtifact : variant.getArtifacts()) {
-                String key = artifactKey(publishArtifact);
-                IvyArtifact ivyArtifact = seenArtifacts.get(key);
-                if (ivyArtifact == null) {
-                    ivyArtifact = artifact(publishArtifact);
-                    ivyArtifact.setConf(conf);
-                    seenArtifacts.put(key, ivyArtifact);
-                } else {
-                    ivyArtifact.setConf(ivyArtifact.getConf() + "," + conf);
+
+        private ParsedComponent build(SoftwareComponentInternal component, boolean versionMappingInUse) {
+            PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
+
+            Set<? extends SoftwareComponentVariant> variants = component.getUsages();
+
+            populateConfigurations(variants);
+            populateArtifacts(variants);
+            populateDependencies(variants, publicationWarningsCollector, versionMappingInUse);
+            populateGlobalExcludes(variants);
+
+            return new ParsedComponent(
+                artifacts,
+                configurations,
+                ivyDependencies,
+                globalExcludes,
+                publicationWarningsCollector
+            );
+        }
+
+        private void populateConfigurations(Set<? extends SoftwareComponentVariant> variants) {
+            IvyConfiguration defaultConfiguration = configurations.maybeCreate("default");
+            for (SoftwareComponentVariant variant : variants) {
+                String conf = mapVariantNameToIvyConfiguration(variant.getName());
+                configurations.maybeCreate(conf);
+                if (defaultShouldExtend(variant)) {
+                    defaultConfiguration.extend(conf);
                 }
             }
         }
-    }
 
-    private static String artifactKey(PublishArtifact publishArtifact) {
-        return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
-    }
+        /**
+         * In general, default extends all configurations such that you get 'everything' when depending on default.
+         * If a variant is optional, however it is not included.
+         * If a variant represents the Java API variant, it is also not included, because the Java Runtime variant already includes everything
+         * (including both also works but would lead to some duplication, that might break backwards compatibility in certain cases).
+         */
+        private static boolean defaultShouldExtend(SoftwareComponentVariant variant) {
+            if (!(variant instanceof IvyPublishingAwareVariant)) {
+                return true;
+            }
+            if (((IvyPublishingAwareVariant) variant).isOptional()) {
+                return false;
+            }
+            return !isJavaApiVariant(variant.getName());
+        }
 
-    private void populateDependencies(Set<? extends SoftwareComponentVariant> variants, PublicationWarningsCollector publicationWarningsCollector) {
-        for (SoftwareComponentVariant variant : variants) {
-            publicationWarningsCollector.newContext(variant.getName());
-            for (ModuleDependency dependency : variant.getDependencies()) {
-                String confMapping = confMappingFor(variant, dependency);
-                if (!dependency.getAttributes().isEmpty()) {
-                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-                }
-                if (dependency instanceof ProjectDependency) {
-                    addProjectDependency((ProjectDependency) dependency, confMapping);
-                } else {
-                    ExternalDependency externalDependency = (ExternalDependency) dependency;
-                    if (platformSupport.isTargetingPlatform(dependency)) {
-                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+        private static boolean isJavaRuntimeVariant(String variantName) {
+            return RUNTIME_VARIANT.equals(variantName) || RUNTIME_ELEMENTS_VARIANT.equals(variantName);
+        }
+
+        private static boolean isJavaApiVariant(String variantName) {
+            return API_VARIANT.equals(variantName) || API_ELEMENTS_VARIANT.equals(variantName);
+        }
+
+        private void populateArtifacts(Set<? extends SoftwareComponentVariant> variants) {
+            Map<String, IvyArtifact> seenArtifacts = Maps.newHashMap();
+            for (SoftwareComponentVariant variant : variants) {
+                String conf = mapVariantNameToIvyConfiguration(variant.getName());
+                for (PublishArtifact publishArtifact : variant.getArtifacts()) {
+                    String key = artifactKey(publishArtifact);
+                    IvyArtifact ivyArtifact = seenArtifacts.get(key);
+                    if (ivyArtifact == null) {
+                        ivyArtifact = ivyArtifactParser.parseNotation(publishArtifact);
+                        ivyArtifact.setConf(conf);
+                        seenArtifacts.put(key, ivyArtifact);
+                        artifacts.add(ivyArtifact);
+                    } else {
+                        ivyArtifact.setConf(ivyArtifact.getConf() + "," + conf);
                     }
-                    if (!versionMappingInUse && externalDependency.getVersion() == null) {
-                        publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
+                }
+            }
+        }
+
+        private static String artifactKey(PublishArtifact publishArtifact) {
+            return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
+        }
+
+        private void populateDependencies(Set<? extends SoftwareComponentVariant> variants, PublicationWarningsCollector publicationWarningsCollector, boolean versionMappingInUse) {
+            for (SoftwareComponentVariant variant : variants) {
+                publicationWarningsCollector.newContext(variant.getName());
+                for (ModuleDependency dependency : variant.getDependencies()) {
+                    String confMapping = confMappingFor(variant, dependency);
+                    if (!dependency.getAttributes().isEmpty()) {
+                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                     }
-                    addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) variant.getAttributes()).asImmutable());
+                    if (dependency instanceof ProjectDependency) {
+                        addProjectDependency((ProjectDependency) dependency, confMapping);
+                    } else {
+                        ExternalDependency externalDependency = (ExternalDependency) dependency;
+                        if (platformSupport.isTargetingPlatform(dependency)) {
+                            publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                        }
+                        if (!versionMappingInUse && externalDependency.getVersion() == null) {
+                            publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
+                        }
+                        addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) variant.getAttributes()).asImmutable());
+                    }
                 }
-            }
 
-            if (!variant.getDependencyConstraints().isEmpty()) {
-                for (DependencyConstraint constraint : variant.getDependencyConstraints()) {
-                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+                if (!variant.getDependencyConstraints().isEmpty()) {
+                    for (DependencyConstraint constraint : variant.getDependencyConstraints()) {
+                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+                    }
                 }
-            }
-            if (!variant.getCapabilities().isEmpty()) {
-                for (Capability capability : variant.getCapabilities()) {
-                    publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Ivy", capability.getGroup(), capability.getName(), capability.getVersion()));
+                if (!variant.getCapabilities().isEmpty()) {
+                    for (Capability capability : variant.getCapabilities()) {
+                        publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Ivy", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    }
                 }
-            }
 
+            }
         }
-    }
 
-    private void populateGlobalExcludes(Set<? extends SoftwareComponentVariant> variants) {
-        for (SoftwareComponentVariant variant : variants) {
+        private void populateGlobalExcludes(Set<? extends SoftwareComponentVariant> variants) {
+            for (SoftwareComponentVariant variant : variants) {
+                String conf = mapVariantNameToIvyConfiguration(variant.getName());
+                for (ExcludeRule excludeRule : variant.getGlobalExcludes()) {
+                    globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
+                }
+            }
+        }
+
+        private static String confMappingFor(SoftwareComponentVariant variant, ModuleDependency dependency) {
             String conf = mapVariantNameToIvyConfiguration(variant.getName());
-            for (ExcludeRule excludeRule : variant.getGlobalExcludes()) {
-                globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
+            String targetConfiguration = dependency.getTargetConfiguration();
+            String confMappingTarget = targetConfiguration == null ?
+                Dependency.DEFAULT_CONFIGURATION :
+                mapVariantNameToIvyConfiguration(dependency.getTargetConfiguration());
+
+            // If the following code is activated implementation/runtime separation will be published to ivy. This however is a breaking change.
+            //
+            // if (confMappingTarget == null) {
+            //     if (variant instanceof MavenPublishingAwareVariant) {
+            //         MavenPublishingAwareContext.ScopeMapping mapping = ((MavenPublishingAwareVariant) variant).getScopeMapping();
+            //         if (mapping == runtime || mapping == runtime_optional) {
+            //             confMappingTarget = "runtime";
+            //         }
+            //         if (mapping == compile || mapping == compile_optional) {
+            //             confMappingTarget = "compile";
+            //         }
+            //     }
+            // }
+
+            return conf + "->" + confMappingTarget;
+        }
+
+        /**
+         * The variant name usually corresponds to the name of the Gradle configuration on which the variant is based on.
+         * For backward compatibility, the 'apiElements' and 'runtimeElements' configurations/variants of the Java ecosystem are named 'compile' and 'runtime' in the publication.
+         */
+        private static String mapVariantNameToIvyConfiguration(String variantName) {
+            if (isJavaApiVariant(variantName)) {
+                return "compile";
+            }
+            if (isJavaRuntimeVariant(variantName)) {
+                return "runtime";
+            }
+            return variantName;
+        }
+
+        private void addProjectDependency(ProjectDependency dependency, String confMapping) {
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
+            DefaultIvyDependency moduleDep = new DefaultIvyDependency(
+                identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.emptyList(), dependency.getExcludeRules());
+            ivyDependencies.add(new DefaultIvyProjectDependency(moduleDep, dependency.getDependencyProject().getPath()));
+        }
+
+        private void addExternalDependency(ExternalDependency dependency, String confMapping, ImmutableAttributes attributes) {
+            ivyDependencies.add(new DefaultIvyDependency(dependency, confMapping, attributes));
+        }
+
+        /**
+         * Represents the parsed data from a {@link SoftwareComponent} that is required
+         * to build a publication.
+         */
+        private static class ParsedComponent {
+            private final Set<IvyArtifact> artifacts;
+            private final IvyConfigurationContainer configurations;
+            private final DefaultIvyDependencySet dependencies;
+            private final Set<IvyExcludeRule> globalExcludes;
+            private final PublicationWarningsCollector warnings;
+
+            public ParsedComponent(
+                Set<IvyArtifact> artifacts,
+                IvyConfigurationContainer configurations,
+                DefaultIvyDependencySet ivyDependencies,
+                Set<IvyExcludeRule> globalExcludes,
+                PublicationWarningsCollector warnings
+            ) {
+                this.artifacts = artifacts;
+                this.configurations = configurations;
+                this.dependencies = ivyDependencies;
+                this.globalExcludes = globalExcludes;
+                this.warnings = warnings;
+            }
+
+            public Set<IvyArtifact> getArtifacts() {
+                return artifacts;
+            }
+
+            public IvyConfigurationContainer getConfigurations() {
+                return configurations;
+            }
+
+            public DefaultIvyDependencySet getDependencies() {
+                return dependencies;
+            }
+
+            public Set<IvyExcludeRule> getGlobalExcludes() {
+                return globalExcludes;
+            }
+
+            public PublicationWarningsCollector getWarnings() {
+                return warnings;
             }
         }
-    }
-
-    private static String confMappingFor(SoftwareComponentVariant variant, ModuleDependency dependency) {
-        String conf = mapVariantNameToIvyConfiguration(variant.getName());
-        String confMappingTarget = mapVariantNameToIvyConfiguration(dependency.getTargetConfiguration());
-
-        // If the following code is activated implementation/runtime separation will be published to ivy. This however is a breaking change.
-        //
-        // if (confMappingTarget == null) {
-        //     if (variant instanceof MavenPublishingAwareVariant) {
-        //         MavenPublishingAwareContext.ScopeMapping mapping = ((MavenPublishingAwareVariant) variant).getScopeMapping();
-        //         if (mapping == runtime || mapping == runtime_optional) {
-        //             confMappingTarget = "runtime";
-        //         }
-        //         if (mapping == compile || mapping == compile_optional) {
-        //             confMappingTarget = "compile";
-        //         }
-        //     }
-        // }
-
-        if (confMappingTarget == null) {
-            confMappingTarget = Dependency.DEFAULT_CONFIGURATION;
-        }
-        return conf + "->" + confMappingTarget;
-    }
-
-    /**
-     * The variant name usually corresponds to the name of the Gradle configuration on which the variant is based on.
-     * For backward compatibility, the 'apiElements' and 'runtimeElements' configurations/variants of the Java ecosystem are named 'compile' and 'runtime' in the publication.
-     */
-    private static String mapVariantNameToIvyConfiguration(String variantName) {
-        if (isJavaApiVariant(variantName)) {
-            return "compile";
-        }
-        if (isJavaRuntimeVariant(variantName)) {
-            return "runtime";
-        }
-        return variantName;
-    }
-
-    private void addProjectDependency(ProjectDependency dependency, String confMapping) {
-        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
-        DefaultIvyDependency moduleDep = new DefaultIvyDependency(
-            identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.emptyList(), dependency.getExcludeRules());
-        ivyDependencies.add(new DefaultIvyProjectDependency(moduleDep, dependency.getDependencyProject().getPath()));
-    }
-
-    private void addExternalDependency(ExternalDependency dependency, String confMapping, ImmutableAttributes attributes) {
-        ivyDependencies.add(new DefaultIvyDependency(dependency, confMapping, attributes));
     }
 
     @Override
@@ -548,12 +662,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public Set<IvyDependencyInternal> getDependencies() {
-        populateFromComponent();
-        return ivyDependencies;
-    }
-
-    @Override
     public IvyNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
 
@@ -635,7 +743,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private boolean canPublishModuleMetadata() {
         // Cannot yet publish module metadata without component
-        return getComponent() != null;
+        return getComponent().isPresent();
     }
 
     private File getIvyDescriptorFile() {
@@ -668,7 +776,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return getArtifactFileName(source.getClassifier(), source.getExtension());
     }
 
-    private String getArtifactFileName(String classifier, String extension) {
+    private String getArtifactFileName(@Nullable String classifier, String extension) {
         StringBuilder artifactPath = new StringBuilder();
         ModuleVersionIdentifier coordinates = getCoordinates();
         artifactPath.append(coordinates.getName());
@@ -720,11 +828,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     @Override
     public VersionMappingStrategyInternal getVersionMappingStrategy() {
         return versionMappingStrategy;
-    }
-
-    @Override
-    public Set<IvyExcludeRule> getGlobalExcludes() {
-        return globalExcludes;
     }
 
     private static class GradleModuleDescriptorDerivedArtifact implements DerivedArtifact {

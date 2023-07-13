@@ -58,9 +58,10 @@ class LazyTest extends Specification {
         e.message == "boom"
 
         where:
-        factory                  | factoryName
-        Lazy.unsafe()::of        | "unsafe"
-        Lazy.locking()::of       | "locking"
+        factory            | factoryName
+        Lazy.unsafe()::of  | "unsafe"
+        Lazy.locking()::of | "locking"
+        Lazy.atomic()::of  | "atomic"
     }
 
     def "#factoryName supplier code is executed once with apply"() {
@@ -88,9 +89,10 @@ class LazyTest extends Specification {
         0 * supplier.get()
 
         where:
-        factory                  | factoryName
-        Lazy.unsafe()::of        | "unsafe"
-        Lazy.locking()::of       | "locking"
+        factory            | factoryName
+        Lazy.unsafe()::of  | "unsafe"
+        Lazy.locking()::of | "locking"
+        Lazy.atomic()::of  | "atomic"
     }
 
     def "#factoryName supplier code is executed once"() {
@@ -115,9 +117,10 @@ class LazyTest extends Specification {
         0 * supplier.get()
 
         where:
-        factory                  | factoryName
-        Lazy.unsafe()::of        | "unsafe"
-        Lazy.locking()::of       | "locking"
+        factory            | factoryName
+        Lazy.unsafe()::of  | "unsafe"
+        Lazy.locking()::of | "locking"
+        Lazy.atomic()::of  | "atomic"
     }
 
     def "#factoryName supplier code is executed once with map"() {
@@ -145,44 +148,54 @@ class LazyTest extends Specification {
         0 * supplier.get()
 
         where:
-        factory                  | factoryName
-        Lazy.unsafe()::of        | "unsafe"
-        Lazy.locking()::of       | "locking"
+        factory            | factoryName
+        Lazy.unsafe()::of  | "unsafe"
+        Lazy.locking()::of | "locking"
+        Lazy.atomic()::of  | "atomic"
     }
 
     def "locking lazy can handle concurrent threads"() {
         def supplier = Mock(Supplier)
         Lazy<Integer> lazy = Lazy.locking().of(supplier)
-        def total = new AtomicInteger()
 
-        int concurrency = 20
-        def barrier = new CyclicBarrier(concurrency)
-        def executors = Executors.newFixedThreadPool(concurrency)
         when:
-        concurrency.times {
-            executors.submit {
-                // The barrier ensures that the threads all try to access lazy at nearly the same time
-                barrier.await()
-                total.addAndGet(lazy.get())
-            }
-        }
-        executors.shutdown()
-        executors.awaitTermination(1, TimeUnit.MINUTES)
+        int concurrency = 20
+        AtomicInteger total = addAndGetLazyConcurrently(concurrency, lazy)
 
         then:
         1 * supplier.get() >> 123
-        total.get() == 123*concurrency
+        total.get() == 123 * concurrency
     }
 
     def "locking lazy can handle concurrent threads with map"() {
         def supplier = Mock(Supplier)
         Lazy<Integer> lazy = Lazy.locking().of(supplier).map { 2 * it }
-        def total = new AtomicInteger()
 
+        when:
         int concurrency = 20
+        AtomicInteger total = addAndGetLazyConcurrently(concurrency, lazy)
+
+        then:
+        1 * supplier.get() >> 123
+        total.get() == 123 * concurrency * 2
+    }
+
+    def "atomic lazy can handle concurrent threads"() {
+        def mutableValueSource = new AtomicInteger()
+        Lazy<Integer> lazy = Lazy.atomic().of(mutableValueSource::incrementAndGet)
+
+        when: 'multiple threads access a lazy built from a supplier that can return different values'
+        int concurrency = 20
+        AtomicInteger total = addAndGetLazyConcurrently(concurrency, lazy)
+
+        then: 'all threads observe the same value'
+        total.get() % concurrency == 0
+    }
+
+    private AtomicInteger addAndGetLazyConcurrently(int concurrency, Lazy<Integer> lazy) {
+        def total = new AtomicInteger()
         def barrier = new CyclicBarrier(concurrency)
         def executors = Executors.newFixedThreadPool(concurrency)
-        when:
         concurrency.times {
             executors.submit {
                 // The barrier ensures that the threads all try to access lazy at nearly the same time
@@ -192,9 +205,6 @@ class LazyTest extends Specification {
         }
         executors.shutdown()
         executors.awaitTermination(1, TimeUnit.MINUTES)
-
-        then:
-        1 * supplier.get() >> 123
-        total.get() == 123*concurrency*2
+        total
     }
 }

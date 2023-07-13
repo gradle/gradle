@@ -26,7 +26,7 @@ import java.util.Set;
 public interface SoftwareComponentInternal extends SoftwareComponent {
     /**
      * This should be called {@code getVariants} and return a set of {@link org.gradle.api.component.SoftwareComponentVariant}s,
-     * though this is currently used by KMP and perhaps AGP due to there being a missing public API. However, renaming is
+     * though this is currently used by KMP due to there being a missing public API. However, renaming is
      * difficult since {@link org.gradle.api.component.ComponentWithVariants} already defines a {@code getVariants} method.
      * The existing {@code getVariants} method however is misnamed and should probably be called {@code getChildren}, and its
      * interface called {@code ComponentWithChildren}. The existing {@code ComponentWithVariants} actually defines an API for

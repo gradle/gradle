@@ -111,6 +111,14 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
+    public void configureAsSources(HasConfigurableAttributes<?> configuration) {
+        configureAttributes(
+            configuration,
+            details -> details.withExternalDependencies().asSources()
+        );
+    }
+
+    @Override
     public <T> void configureAttributes(HasConfigurableAttributes<T> configurable, Action<? super JvmEcosystemAttributesDetails> configuration) {
         AttributeContainerInternal attributes = (AttributeContainerInternal) configurable.getAttributes();
         DefaultJvmEcosystemAttributesDetails details = instanceGenerator.newInstance(DefaultJvmEcosystemAttributesDetails.class, objectFactory, attributes);

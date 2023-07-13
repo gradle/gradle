@@ -16,14 +16,20 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -40,25 +46,34 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        Optional<String> buildOperationWorkType = work.getBuildOperationWorkType();
-        return buildOperationWorkType.map(workType -> operation(operationContext -> {
+        return work.getBuildOperationWorkType()
+            .map(workType -> operation(
+                operationContext -> {
                     R result = delegate.execute(work, context);
-                    ExecuteWorkBuildOperationType.Result operationResult = new ExecuteWorkResult(result.getExecution());
+                    ExecuteWorkBuildOperationType.Result operationResult = new ExecuteWorkResult(
+                        result.getExecution(),
+                        result.getCachingState(),
+                        result.getReusedOutputOriginMetadata(),
+                        result.getExecutionReasons()
+                    );
                     operationContext.setResult(operationResult);
+                    result.getExecution().getFailure().ifPresent(operationContext::failed);
                     return result;
                 },
                 BuildOperationDescriptor
                     .displayName("Execute unit of work")
-                    .details(new ExecuteWorkDetails(workType)))
-        ).orElseGet(() -> delegate.execute(work, context));
+                    .details(new ExecuteWorkDetails(workType, context.getIdentity().getUniqueId()))))
+            .orElseGet(() -> delegate.execute(work, context));
     }
 
     private static class ExecuteWorkDetails implements ExecuteWorkBuildOperationType.Details {
 
         private final String workType;
+        private final String identity;
 
-        public ExecuteWorkDetails(String workType) {
+        public ExecuteWorkDetails(String workType, String identity) {
             this.workType = workType;
+            this.identity = identity;
         }
 
         @Nullable
@@ -67,20 +82,48 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
             return workType;
         }
 
+        @Override
+        public String getIdentity() {
+            return identity;
+        }
+
     }
 
     private static class ExecuteWorkResult implements ExecuteWorkBuildOperationType.Result {
 
         private final Try<ExecutionEngine.Execution> execution;
+        private final CachingState cachingState;
+        private final Optional<OriginMetadata> originMetadata;
+        private final ImmutableList<String> executionReasons;
 
-        public ExecuteWorkResult(Try<ExecutionEngine.Execution> execution) {
+        public ExecuteWorkResult(
+            Try<ExecutionEngine.Execution> execution,
+            CachingState cachingState,
+            Optional<OriginMetadata> originMetadata,
+            ImmutableList<String> executionReasons
+        ) {
             this.execution = execution;
+            this.cachingState = cachingState;
+            this.originMetadata = originMetadata;
+            this.executionReasons = executionReasons;
         }
 
         @Nullable
         @Override
         public String getSkipMessage() {
             return execution.map(ExecuteWorkResult::getSkipMessage).getOrMapFailure(f -> null);
+        }
+
+        @Nullable
+        @Override
+        public String getOriginBuildInvocationId() {
+            return originMetadata.map(OriginMetadata::getBuildInvocationId).orElse(null);
+        }
+
+        @Nullable
+        @Override
+        public Long getOriginExecutionTime() {
+            return originMetadata.map(metadata -> metadata.getExecutionTime().toMillis()).orElse(null);
         }
 
         @Nullable
@@ -98,6 +141,61 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                 default:
                     throw new IllegalArgumentException("Unknown execution outcome: " + execution.getOutcome());
             }
+        }
+
+        @Override
+        public List<String> getExecutionReasons() {
+            return executionReasons;
+        }
+
+        @Nullable
+        @Override
+        public String getCachingDisabledReasonMessage() {
+            return getCachingDisabledReason()
+                .map(CachingDisabledReason::getMessage)
+                .orElse(null);
+        }
+
+        @Nullable
+        @Override
+        public String getCachingDisabledReasonCategory() {
+            return getCachingDisabledReason()
+                .map(CachingDisabledReason::getCategory)
+                .map(ExecuteWorkResult::convertNoCacheReasonCategory)
+                .map(Enum::name)
+                .orElse(null);
+        }
+
+        private static org.gradle.operations.execution.CachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCategory category) {
+            switch (category) {
+                case UNKNOWN:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.UNKNOWN;
+                case BUILD_CACHE_DISABLED:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
+                case NOT_CACHEABLE:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.NOT_CACHEABLE;
+                case ENABLE_CONDITION_NOT_SATISFIED:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
+                case DISABLE_CONDITION_SATISFIED:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
+                case NO_OUTPUTS_DECLARED:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED;
+                case NON_CACHEABLE_OUTPUT:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
+                case OVERLAPPING_OUTPUTS:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS;
+                case VALIDATION_FAILURE:
+                    return org.gradle.operations.execution.CachingDisabledReasonCategory.VALIDATION_FAILURE;
+                default:
+                    throw new AssertionError();
+            }
+        }
+
+        private Optional<CachingDisabledReason> getCachingDisabledReason() {
+            return cachingState
+                .whenDisabled()
+                .map(CachingState.Disabled::getDisabledReasons)
+                .map(reasons -> reasons.get(0));
         }
     }
 }

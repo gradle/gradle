@@ -69,6 +69,7 @@ class SystemPropertiesCompositeBuildFixture {
             .collect { List<BuildWithSystemPropertyDefined> definitions, SystemPropertyAccess access ->
                 new Spec(definitions, access)
             }
+            .toSorted { it.toString() }
     }
 
     static class Spec {

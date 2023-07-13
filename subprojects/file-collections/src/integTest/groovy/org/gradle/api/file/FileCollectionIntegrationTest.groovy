@@ -74,7 +74,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "collection closure called on cache store")
     def "task @InputFiles file collection closure is called once only when task executes"() {
         taskTypeWithInputFileCollection()
         buildFile """
@@ -95,7 +94,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         output.count("calculating value") == 2 // once for task dependency calculation, once for task execution
     }
 
-    @ToBeFixedForConfigurationCache(because = "collection provider called on cache store")
     def "task @InputFiles file collection provider is called once only when task executes"() {
         taskTypeWithInputFileCollection()
         buildFile """

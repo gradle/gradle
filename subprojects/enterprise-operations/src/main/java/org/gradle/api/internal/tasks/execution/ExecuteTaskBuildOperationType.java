@@ -114,7 +114,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
          * The categorisation of the why the task was not cacheable.
          * Null if the task was cacheable.
          * Not null if {@link #getCachingDisabledReasonMessage()}l is not null.
-         * Values are expected to correlate to {@code org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory}.
+         * Values are expected to correlate to {@link org.gradle.operations.execution.CachingDisabledReasonCategory}.
          */
         @Nullable
         String getCachingDisabledReasonCategory();

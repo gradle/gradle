@@ -227,7 +227,7 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
         "Constructor" to "AddedClass()",
         "Class" to "AddedEnum",
         "Field" to "FOO"
-    ) + reportedMembersFor("AddedEnum") + listOf(
+    ) + reportedMembersFor("AddedEnum", isEnum = true) + listOf(
         "Method" to "AddedEnum.valueOf(java.lang.String)",
         "Method" to "AddedEnum.values()",
         "Class" to "AddedObject",
@@ -242,7 +242,7 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
     )
 
     private
-    fun reportedMembersFor(containingType: String) =
+    fun reportedMembersFor(containingType: String, isEnum: Boolean = false) =
         listOf(
             "Method" to "$containingType.foo()",
             "Method" to "$containingType.fooExt(java.lang.String)",
@@ -251,6 +251,9 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
             "Method" to "$containingType.getBarExt(java.lang.String)",
             "Method" to "$containingType.getBazar()",
             "Method" to "$containingType.getBazarExt(int)",
+        ) + (if (isEnum) listOf(
+            "Method" to "$containingType.getEntries()",
+        ) else emptyList()) + listOf(
             "Method" to "$containingType.setBazar(java.lang.String)",
             "Method" to "$containingType.setBazarExt(int,java.lang.String)"
         )

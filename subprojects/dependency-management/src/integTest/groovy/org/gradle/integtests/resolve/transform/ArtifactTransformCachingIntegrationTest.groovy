@@ -954,6 +954,89 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         projectDir1.relativePath(project1OutputDir) == projectDir2.relativePath(project2OutputDir)
     }
 
+    def "workspace id of project transforms is unique per build"() {
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        file("project-artifact.jar").text = "project artifact"
+        buildFile << """
+            project(':lib') {
+                artifacts {
+                    compile rootProject.file("project-artifact.jar")
+                }
+            }
+            project(':util') {
+                artifacts {
+                    compile rootProject.file("project-artifact.jar")
+                }
+            }
+        """
+
+        when:
+        succeeds ":app:resolve"
+
+        then:
+        def outputDirs = projectOutputDirs("project-artifact.jar", "project-artifact.jar.txt")
+        outputDirs.size() == 2
+        (outputDirs.parentFile.name as Set).size() == 2
+    }
+
+    @ToBeFixedForConfigurationCache(because = "project :lib-project:producer not found.")
+    def "workspace id of project transforms is unique per build with included builds"() {
+        // The setup here is in a way that the project path of the project dependency in the same build
+        // is the same as the buildTreePath of the substituted project dependency in the included build.
+        // This way we test that you can't do special handling for "local" project dependencies when calculating
+        // a transform workspace.
+        def includedBuild = new BuildTestFile(file("lib-project"), "lib-project")
+        includedBuild.with {
+            settingsFile << """
+                include(":producer")
+            """
+            file("project-artifact.jar").text = "project artifact"
+            buildFile << declareAttributes() << """
+                project(':producer') {
+                    group = "com.test"
+                    artifacts {
+                        compile rootProject.file("project-artifact.jar")
+                    }
+                }
+            """
+        }
+        def consumerIncludedBuild = new BuildTestFile(file("consumer-included-build"), "consumer-included-build")
+        consumerIncludedBuild.with {
+            settingsFile << """
+                include(":lib-project:producer")
+                include 'app'
+                include 'util'
+                include 'lib'
+            """
+            file("project-artifact.jar").text = "project artifact"
+            buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform() <<"""
+                project(':lib-project:producer') {
+                    artifacts {
+                        compile rootProject.file("project-artifact.jar")
+                    }
+                }
+                project(':app') {
+                    dependencies {
+                        compile project(':lib-project:producer')
+                        compile 'com.test:producer:1.0'
+                    }
+                }
+            """
+        }
+        settingsFile << """
+            includeBuild('lib-project')
+            includeBuild('consumer-included-build')
+        """
+
+        when:
+        succeeds ":consumer-included-build:app:resolve"
+
+        then:
+        def outputDirs = projectOutputDirs("project-artifact.jar", "project-artifact.jar.txt")
+        outputDirs.size() == 2
+        (outputDirs.parentFile.name as Set).size() == 2
+    }
+
     def "transform is re-executed when input file content changes between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withFileLibDependency()

@@ -129,11 +129,15 @@ dependencies {
     testFixturesApi(testFixtures(project(":hashing"))) {
         because("test fixtures expose test hash codes")
     }
+    testFixturesApi(testFixtures(project(":snapshots"))) {
+        because("test fixtures expose file snapshot related functionality")
+    }
     testFixturesImplementation(project(":build-option"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(project(":normalization-java"))
+    testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(libs.ivy)
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.guava)
