@@ -34,7 +34,6 @@ public class MutableClassLoaderScope implements ClassLoaderScope {
         this.delegate = delegate;
     }
 
-
     @Override
     public ClassLoaderScopeId getId() {
         return delegate.getId();
@@ -111,7 +110,9 @@ public class MutableClassLoaderScope implements ClassLoaderScope {
         return delegate;
     }
 
-    public void mutate(String childSuffix) {
+    @Override
+    public MutableClassLoaderScope asMutable(String childSuffix) {
         delegate = delegate.createChild(delegate.getId() + childSuffix, null);
+        return this;
     }
 }

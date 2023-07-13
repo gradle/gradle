@@ -125,12 +125,12 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         List<Result> autoAppliedPluginRequests = resolvePluginRequests(autoAppliedPlugins, alreadyOnClasspathIgnoringPluginResolver);
         if (!autoAppliedPluginRequests.isEmpty()) {
-            ((MutableClassLoaderScope) classLoaderScope).mutate("-plugins");
+            MutableClassLoaderScope mutableClassLoaderScope = classLoaderScope.asMutable("-plugins");
             scriptHandler.dropResolvedClassPath();
 
             final Map<Result, PluginImplementation<?>> pluginImplementations = newLinkedHashMap();
-            applyPlugins(scriptHandler, classLoaderScope, pluginApplyActions, pluginImplementations, autoAppliedPluginRequests);
-            defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplementations.values());
+            applyPlugins(scriptHandler, mutableClassLoaderScope, pluginApplyActions, pluginImplementations, autoAppliedPluginRequests);
+            defineScriptHandlerClassScope(scriptHandler, mutableClassLoaderScope, pluginImplementations.values());
         }
     }
 

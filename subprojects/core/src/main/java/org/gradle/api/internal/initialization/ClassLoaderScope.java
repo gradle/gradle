@@ -122,4 +122,9 @@ public interface ClassLoaderScope {
     void onReuse();
 
     ClassLoaderScope getOriginalScope();
+
+    /**
+     * Will return a {@code MutableClassLoaderScope} appending {@code childSuffix} to the id.
+     */
+    MutableClassLoaderScope asMutable(String childSuffix);
 }
