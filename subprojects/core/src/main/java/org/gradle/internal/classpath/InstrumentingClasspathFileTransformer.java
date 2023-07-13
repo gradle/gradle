@@ -478,6 +478,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         return manifest.getMainAttributes().getValue(name);
     }
 
+    @NonNullApi
     public static class MrJarUtils {
         /**
          * Checks that the given entry is in the versioned directory of the multi-release JAR and this Java version is not yet supported by the instrumentation.
