@@ -10,20 +10,10 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import spock.lang.Issue
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslPluginTest : AbstractPluginTest() {
-
-    @Issue("https://github.com/gradle/gradle/issues/24815")
-    @Test
-    fun `disables kotlin compilation avoidance`() {
-        withKotlinDslPlugin().appendText("""
-            require(property("kotlin.incremental.useClasspathSnapshot") == "false")
-        """)
-        build("help")
-    }
 
     @Test
     fun `warns on unexpected kotlin-dsl plugin version`() {

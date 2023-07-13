@@ -96,6 +96,10 @@ class DefaultConfigurationContainerSpec extends Specification {
         Mock(ResolutionStrategyFactory)
     )
 
+    def setup() {
+        metadataBuilder.withConfigurationsProvider(_) >> metadataBuilder
+    }
+
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
         1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")

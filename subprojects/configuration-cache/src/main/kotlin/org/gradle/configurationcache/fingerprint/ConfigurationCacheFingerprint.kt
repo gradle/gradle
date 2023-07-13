@@ -33,6 +33,12 @@ sealed class ConfigurationCacheFingerprint {
         val jvm: String,
         val startParameterProperties: Map<String, Any?>,
         /**
+         * Whether the undeclared inputs accessed while serializing the task graph will be
+         * excluded from input tracking. This is a temporary opt-out flag after a change
+         * was made in that behavior.
+         */
+        val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean,
+        /**
          * Whether the instrumentation agent was used when computing the cache.
          * With the agent, the class paths may be stored differently, making the caches incompatible with one another.
          */

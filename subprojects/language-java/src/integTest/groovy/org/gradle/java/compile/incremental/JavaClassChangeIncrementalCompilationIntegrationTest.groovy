@@ -605,4 +605,19 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
         deleted.delete()
         recompiledWithFailure('class Deleted', 'A')
     }
+
+    def "does not attempt to re-compile module-info.java if the file does not exist"() {
+        def aClass = file("src/main/java/foo/Foo.java") << """
+            package foo;
+            public class Foo {
+                String v = "value1";
+            }
+        """
+        run language.compileTaskName
+        aClass.text = aClass.text.replace('1', '2')
+        run language.compileTaskName, '-d'
+
+        expect:
+        outputContains("Recompiled classes [foo.Foo]") // does not contain 'module-info'
+    }
 }

@@ -125,7 +125,7 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
     }
 
     private void addTestResultsVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        final Configuration variant = project.getConfigurations().consumable(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+        final Configuration variant = project.getConfigurations().consumable(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName())).get();
         variant.setDescription("Directory containing binary results of running tests for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
 

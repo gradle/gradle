@@ -80,11 +80,12 @@ Since the artifact view was created before the attributes were added to the conf
 
 Some builds may have worked around this by also putting the additional attributes into the artifact view. This is no longer necessary.
 
-[[kotlin_1_8.21]]
-==== Upgrade to Kotlin 1.8.22
+[[kotlin_1_9.0]]
+==== Upgrade to Kotlin 1.9.0
 
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.22[Kotlin 1.8.22].
-See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
+The embedded Kotlin has been updated from 1.8.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.0[Kotlin 1.9.0].
+The Kotlin language and API levels for the Kotlin DSL are still set to 1.8 for backwards compatibility.
+See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.22[Kotlin 1.8.22] and link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
 
 
 === Deprecations

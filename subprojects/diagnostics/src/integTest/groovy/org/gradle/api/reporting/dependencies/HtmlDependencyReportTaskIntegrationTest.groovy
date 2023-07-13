@@ -563,7 +563,7 @@ rootProject.name = 'root'
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                createWithRole('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_BUCKET)
+                migratingUnlocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
             }
             dependencies {
                 compileOnly 'foo:foo:1.0'
@@ -571,6 +571,7 @@ rootProject.name = 'root'
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         run "htmlDependencyReport"
         def json = readGeneratedJson("root")
         def apiConfiguration = json.project.configurations.find { it.name == "compileOnly" }

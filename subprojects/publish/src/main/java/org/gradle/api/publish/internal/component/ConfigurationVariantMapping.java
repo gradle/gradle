@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.java.usagecontext;
+package org.gradle.api.publish.internal.component;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Sets;
@@ -65,7 +65,7 @@ public class ConfigurationVariantMapping {
         }
         Set<String> seen = Sets.newHashSet();
         ConfigurationVariant defaultConfigurationVariant = instantiator.newInstance(DefaultConfigurationVariant.class, outgoingConfiguration);
-        ConfigurationVariantDetailsInternal details = instantiator.newInstance(DefaultConfigurationVariantDetails.class, defaultConfigurationVariant);
+        DefaultConfigurationVariantDetails details = instantiator.newInstance(DefaultConfigurationVariantDetails.class, defaultConfigurationVariant);
         action.execute(details);
         String outgoingConfigurationName = outgoingConfiguration.getName();
         if (details.shouldPublish()) {
@@ -131,7 +131,7 @@ public class ConfigurationVariantMapping {
         }
     }
 
-    static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetailsInternal {
+    static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetails {
         private final ConfigurationVariant variant;
         private boolean skip = false;
         private String mavenScope = "compile";
@@ -169,17 +169,14 @@ public class ConfigurationVariantMapping {
             throw new InvalidUserCodeException("Invalid Maven scope '" + scope + "'. You must choose between 'compile' and 'runtime'");
         }
 
-        @Override
         public boolean shouldPublish() {
             return !skip;
         }
 
-        @Override
         public String getMavenScope() {
             return mavenScope;
         }
 
-        @Override
         public boolean isOptional() {
             return optional;
         }

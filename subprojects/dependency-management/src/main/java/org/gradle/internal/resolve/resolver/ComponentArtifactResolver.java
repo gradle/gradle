@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.publisher;
+package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.provider.Property;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
-public interface MutableMavenProjectIdentity extends MavenProjectIdentity {
-    @Override
-    Property<String> getGroupId();
+import java.util.List;
+import java.util.Set;
 
-    @Override
-    Property<String> getArtifactId();
-
-    @Override
-    Property<String> getVersion();
+/**
+ * Resolves artifact metadata into concrete files in the context
+ * of a component.
+ */
+public interface ComponentArtifactResolver {
+    Set<ResolvableArtifact> resolveArtifacts(List<? extends ComponentArtifactMetadata> artifacts);
 }

@@ -111,6 +111,14 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
+    public void configureAsSources(HasConfigurableAttributes<?> configuration) {
+        configureAttributes(
+            configuration,
+            details -> details.withExternalDependencies().asSources()
+        );
+    }
+
+    @Override
     public <T> void configureAttributes(HasConfigurableAttributes<T> configurable, Action<? super JvmEcosystemAttributesDetails> configuration) {
         AttributeContainerInternal attributes = (AttributeContainerInternal) configurable.getAttributes();
         DefaultJvmEcosystemAttributesDetails details = instanceGenerator.newInstance(DefaultJvmEcosystemAttributesDetails.class, objectFactory, attributes);
@@ -143,15 +151,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             sourceSet);
         configuration.execute(builder);
         builder.build();
-    }
-
-    @Override
-    public Provider<Configuration> registerDependencyBucket(String name, String description) {
-        return project.getConfigurations().register(name, cnf -> {
-            cnf.setCanBeResolved(false);
-            cnf.setCanBeConsumed(false);
-            cnf.setDescription(description);
-        });
     }
 
     private void clearArtifacts(Configuration outgoingConfiguration) {

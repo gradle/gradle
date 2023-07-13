@@ -28,7 +28,7 @@ trait VariantAwareDependencyResolutionTestFixture extends TasksWithInputsAndOutp
             allprojects {
                 configurations {
                     implementation {
-                        // TODO: Make this a bucket
+                        // TODO: Make this a dependency scope
                         // canBeResolved = false
                         // canBeConsumed = false
                     }
