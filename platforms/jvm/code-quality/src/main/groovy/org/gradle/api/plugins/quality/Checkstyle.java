@@ -68,7 +68,6 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
         this.configDirectory = getObjectFactory().directoryProperty();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
         this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
-        getSystemProperties().put("checkstyle.enableExternalDtdLoad", enableExternalDtdLoad.map(Object::toString));
     }
 
     /**
@@ -141,7 +140,10 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     }
 
     private void runWithProcessIsolation() {
-        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> configureForkOptions(spec.getForkOptions()));
+        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
+            configureForkOptions(spec.getForkOptions());
+            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", enableExternalDtdLoad.get().toString());
+        });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }
 
