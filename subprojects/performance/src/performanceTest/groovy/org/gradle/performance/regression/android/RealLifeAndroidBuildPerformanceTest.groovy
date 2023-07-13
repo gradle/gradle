@@ -113,6 +113,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         given:
         AndroidTestProject testProject = androidTestProject
         testProject.configure(runner)
+        runner.setMinimumBaseVersion('8.3')
         runner.addBuildMutator {invocation -> new TestFinalizerMutator(invocation) }
         runner.tasksToRun = [':phthalic:test', '--dry-run']
         runner.args.add('-Dorg.gradle.parallel=true')
