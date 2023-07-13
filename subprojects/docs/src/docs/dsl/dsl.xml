@@ -145,6 +145,9 @@
                 <td>org.gradle.api.initialization.IncludedBuild</td>
             </tr>
             <tr>
+                <td>org.gradle.api.file.ProjectLayout</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.Script</td>
             </tr>
             <tr>
