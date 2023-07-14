@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.annotations;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Marks that a method call on subtypes should also be intercepted, it's only allowed for Gradle types.
+ * A package containing code for discovering types and instrumenting inherited methods.
  */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
-public @interface InterceptInherited {
-}
+@org.gradle.api.NonNullApi
+package org.gradle.internal.classpath.types;

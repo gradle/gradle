@@ -16,30 +16,33 @@
 
 package org.gradle.internal.instrumentation.processor.codegen;
 
-import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 
-public interface InstrumentationCodeGenerator {
+public interface InstrumentationResourceGenerator {
 
-    GenerationResult generateCodeForRequestedInterceptors(
+    GenerationResult generateResourceForRequestedInterceptors(
         Collection<CallInterceptionRequest> interceptionRequests
     );
 
     interface GenerationResult {
-
-        interface CanGenerateClasses extends GenerationResult {
-            Collection<String> getClassNames();
-            void buildType(String className, TypeSpec.Builder builder);
+        interface CanGenerateResource extends GenerationResult {
+            String getPackageName();
+            String getName();
+            void write(OutputStream outputStream);
             Collection<CallInterceptionRequest> getCoveredRequests();
         }
 
-        class CodeFailures implements GenerationResult, HasFailures {
+        class NoResourceToGenerate implements GenerationResult {
+        }
+
+        class ResourceFailures implements GenerationResult, HasFailures {
             private final List<FailureInfo> failures;
 
-            public CodeFailures(List<FailureInfo> failures) {
+            public ResourceFailures(List<FailureInfo> failures) {
                 this.failures = failures;
             }
 

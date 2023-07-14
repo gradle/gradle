@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.annotations;
+package org.gradle.internal.classpath.types;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.gradle.internal.classpath.ClasspathFileTransformer;
+
+import java.io.File;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * Marks that a method call on subtypes should also be intercepted, it's only allowed for Gradle types.
+ * Creates {@link InstrumentingTypeRegistry} instances for given urls or files.
  */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
-public @interface InterceptInherited {
+public interface InstrumentingTypeRegistryFactory {
+    InstrumentingTypeRegistry createFor(Collection<URL> urls, ClasspathFileTransformer transformer);
+    InstrumentingTypeRegistry createFor(List<File> files, ClasspathFileTransformer transformer);
 }
