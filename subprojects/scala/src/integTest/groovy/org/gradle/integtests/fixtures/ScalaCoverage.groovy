@@ -36,7 +36,7 @@ class ScalaCoverage {
     static final String[] DEFAULT = SCALA_2 + SCALA_3
     static final String[] LATEST_IN_MAJOR = [SCALA_2.last(), SCALA_3.last()]
 
-    static JavaVersion getJavaVersionForScalaVersion(Object scalaVersion) {
+    static JavaVersion getMaximumJavaVersionForScalaVersion(Object scalaVersion) {
         def v2 = SCALA_2_VERSIONS.get(scalaVersion)
         if (v2 != null) {
             return v2
