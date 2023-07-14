@@ -177,6 +177,9 @@ public class LockFileReaderWriter {
 
     private void parseLine(String line, Map<String, List<String>> result) {
         String[] split = line.split("=");
+        if (split.length != 2) {
+            throw new InvalidLockFileException("project '" + context.getProjectPath().getPath() + "'. Line: " + line, null);
+        }
         String[] configurations = split[1].split(",");
         for (String configuration : configurations) {
             result.compute(configuration, (k, v) -> {
