@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[gradle_wrapper]]
-= The Gradle Wrapper
+= Gradle Wrapper
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as “Wrapper”).
 

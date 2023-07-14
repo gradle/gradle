@@ -101,7 +101,7 @@ The use of _deprecated_ features should be avoided.
 The release notes for each release indicate any features that are being _deprecated_ by the release.
 
 [[backwards_compatibility]]
-== Backward Compatibility Policy
+== Backward compatibility policy
 
 Gradle provides backward compatibility across major versions (e.g. `1.x`, `2.x`, etc.).
 Once a public feature is introduced in a Gradle release, it will remain indefinitely unless it is deprecated.

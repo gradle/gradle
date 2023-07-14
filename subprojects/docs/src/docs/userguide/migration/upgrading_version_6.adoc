@@ -36,7 +36,7 @@ The previous step will help you identify potential problems by issuing deprecati
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_7.0]]
-== Upgrading from 6.9
+== Upgrading from 6.9 and earlier
 
 === Changes in the IDE integration
 
@@ -457,12 +457,12 @@ Gradle 7 now fails when a copy operation (or any operation which uses a `org.gra
 Please look at link:{javadocPath}/org/gradle/api/file/CopySpec.html#setDuplicatesStrategy-org.gradle.api.file.DuplicatesStrategy-[the CopySpec docs] for details.
 
 [[changes_6.9]]
-== Upgrading from 6.8
+== Upgrading from 6.8 and earlier
 
 No upgrade notes from 6.8 to 6.9, as 6.9 only contains bug fixes.
 
 [[changes_6.8]]
-== Upgrading from 6.7
+== Upgrading from 6.7 and earlier
 
 === Potential breaking changes
 
@@ -551,7 +551,7 @@ Gradle Kotlin DSL extensions have been changed to favor Gradle's `Action<T>` typ
 While the change should be transparent to Kotlin clients, Java clients calling Kotlin DSL extensions need to be updated to use the `Action<T>` APIs.
 
 [[changes_6.7]]
-== Upgrading from 6.6
+== Upgrading from 6.6 and earlier
 
 === Potential breaking changes
 
@@ -599,7 +599,7 @@ configurations.implementation.extendsFrom(configurations.myConfiguration)
 
 
 [[changes_6.6]]
-== Upgrading from 6.5
+== Upgrading from 6.5 and earlier
 
 === Potential breaking changes
 
@@ -629,7 +629,7 @@ See the <<resolution_rules#sec:variant_aware_substitutions, documentation>> for 
 No deprecations were made in Gradle 6.6.
 
 [[changes_6.5]]
-== Upgrading from 6.4
+== Upgrading from 6.4 and earlier
 
 === Potential breaking changes
 
@@ -655,7 +655,7 @@ No deprecations were made in Gradle 6.6.
 - Using the class `AbstractTask` from plugin code or build scripts. You can change the code to use `DefaultTask` instead.
 
 [[changes_6.4]]
-== Upgrading from 6.3
+== Upgrading from 6.3 and earlier
 
 === Potential breaking changes
 
@@ -718,7 +718,7 @@ Affected is configuration code inside the `application {}` and `java {}` configu
 There were no deprecations between Gradle 6.3 and 6.4.
 
 [[changes_6.3]]
-== Upgrading from 6.2
+== Upgrading from 6.2 and earlier
 
 === Potential breaking changes
 
@@ -761,7 +761,7 @@ Resolving these configurations was never an intended use case and only possible 
 For declaring dependencies, please use the configurations provided by the plugins you use, for example by the <<java_library_plugin.adoc#sec:java_library_configurations_graph,Java Library plugin>>.
 
 [[changes_6.2]]
-== Upgrading from 6.1
+== Upgrading from 6.1 and earlier
 
 === Potential breaking changes
 
