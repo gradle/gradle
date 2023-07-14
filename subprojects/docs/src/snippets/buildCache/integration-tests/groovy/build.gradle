@@ -27,20 +27,20 @@ tasks.named('integTest') {
 // end::distributionPathInput[]
 
 // tag::distributionDirInput[]
-class DistributionLocationProvider implements CommandLineArgumentProvider { // <1>
+class DistributionLocationProvider implements CommandLineArgumentProvider {  // <1>
     @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)                                // <2>
-    File distribution
+    @PathSensitive(PathSensitivity.RELATIVE)  // <2>
+    Provider<Directory> distribution
 
     @Override
     Iterable<String> asArguments() {
-        ["-Ddistribution.location=${distribution.absolutePath}".toString()] // <3>
+        ["-Ddistribution.location=${distribution.get().asFile.absolutePath}".toString()]  // <3>
     }
 }
 
 tasks.named('integTest') {
     jvmArgumentProviders.add(
-        new DistributionLocationProvider(distribution: layout.buildDirectory.dir('dist').get().asFile) // <4>
+        new DistributionLocationProvider(distribution: layout.buildDirectory.dir('dist'))  // <4>
     )
 }
 // end::distributionDirInput[]

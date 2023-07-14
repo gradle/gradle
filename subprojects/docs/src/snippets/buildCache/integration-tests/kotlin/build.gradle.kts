@@ -29,19 +29,19 @@ tasks.integTest {
 // end::distributionPathInput[]
 
 // tag::distributionDirInput[]
-class DistributionLocationProvider(                                     // <1>
+class DistributionLocationProvider(  // <1>
     @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)                            // <2>
-    var distribution: File
+    @PathSensitive(PathSensitivity.RELATIVE)  // <2>
+    val distribution: Provider<Directory>
 ) : CommandLineArgumentProvider {
 
     override fun asArguments(): Iterable<String> =
-        listOf("-Ddistribution.location=${distribution.absolutePath}")  // <3>
+        listOf("-Ddistribution.location=${distribution.get().asFile.absolutePath}")  // <3>
 }
 
 tasks.integTest {
     jvmArgumentProviders.add(
-        DistributionLocationProvider(layout.buildDirectory.dir("dist").get().asFile) // <4>
+        DistributionLocationProvider(layout.buildDirectory.dir("dist"))  // <4>
     )
 }
 // end::distributionDirInput[]
