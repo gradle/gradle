@@ -588,9 +588,9 @@ It is currently possible to temporarily opt out of configuration input detection
 
 * Since Gradle 8.1, using many APIs related to the file system is correctly tracked as configuration inputs, including the file system checks, such as `File.exists()` or `File.isFile()`.
 +
-For the input tracking to ignore these file system checks on the specific paths, one can provide a Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` with the list of the paths, relative to the root project directory and separated by `;`.
+For the input tracking to ignore these file system checks on the specific paths, the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks`, with the list of the paths, relative to the root project directory and separated by `;`, can be used.
 To ignore multiple paths, use `*` to match arbitrary strings within one segment, or `pass:[**]` across segments.
-Paths starting with `~/` will be considered to be based on the user home directory.
+Paths starting with `~/` are based on the user home directory.
 For example:
 +
 [source,properties]
@@ -602,7 +602,7 @@ org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
     build/analytics.json
 ----
 
-One should ignore configuration inputs sparingly, and only if those do not affect the tasks produced by the configuration logic.
+Ignore configuration inputs sparingly, and only if they do not affect the tasks produced by the configuration logic.
 The support for these options will be removed in future releases.
 
 
