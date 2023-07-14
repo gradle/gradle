@@ -287,7 +287,7 @@ tasks.withType<Javadoc>() {
         }
     }
 
-    private static void assertContainsPublishingConfig(TestFile buildScript, BuildInitDsl dsl, String indent = "", List<String> additionalArchiveTasks = []) {
+    static void assertContainsPublishingConfig(TestFile buildScript, BuildInitDsl dsl, String indent = "", List<String> additionalArchiveTasks = []) {
         def text = buildScript.text
         if (dsl == BuildInitDsl.GROOVY) {
             assert text.contains("id 'maven-publish'")
