@@ -23,7 +23,7 @@ tasks.register<ProcessTemplates>("processTemplates") {
     templateEngine = TemplateEngineType.FREEMARKER
     templateData.name = "test"
     templateData.variables = mapOf("year" to "2012")
-    outputDir = file(layout.buildDirectory.dir("genOutput"))
+    outputDir = layout.buildDirectory.dir("genOutput")
 
     sources(fileTree("src/templates"))
 }
@@ -41,7 +41,7 @@ tasks.register<ProcessTemplates>("processTemplates2") {
     templateEngine = TemplateEngineType.FREEMARKER
     templateData.name = "test"
     templateData.variables = mapOf("year" to "2012")
-    outputDir = file(layout.buildDirectory.dir("genOutput"))
+    outputDir = layout.buildDirectory.dir("genOutput")
 // tag::task-arg-method[]
     sources(copyTemplates)
 }
@@ -51,21 +51,21 @@ tasks.register<ProcessTemplates>("processTemplates2") {
 
 tasks.register<Instrument>("badInstrumentClasses") {
     classFiles.from(fileTree(tasks.compileJava.flatMap { it.destinationDirectory }))
-    destinationDir = file(layout.buildDirectory.dir("instrumented"))
+    destinationDir = layout.buildDirectory.dir("instrumented")
 }
 // end::failed-inferred-task-dep[]
 
 // tag::inferred-task-dep[]
 tasks.register<Instrument>("instrumentClasses") {
     classFiles.from(tasks.compileJava.map { it.outputs.files })
-    destinationDir = file(layout.buildDirectory.dir("instrumented"))
+    destinationDir = layout.buildDirectory.dir("instrumented")
 }
 // end::inferred-task-dep[]
 
 // tag::inferred-task-dep-with-files[]
 tasks.register<Instrument>("instrumentClasses2") {
     classFiles.from(layout.files(tasks.compileJava))
-    destinationDir = file(layout.buildDirectory.dir("instrumented"))
+    destinationDir = layout.buildDirectory.dir("instrumented")
 }
 // end::inferred-task-dep-with-files[]
 
@@ -74,14 +74,14 @@ tasks.register<Instrument>("instrumentClassesBuiltBy") {
     classFiles.from(fileTree(tasks.compileJava.flatMap { it.destinationDirectory }) {
         builtBy(tasks.compileJava)
     })
-    destinationDir = file(layout.buildDirectory.dir("instrumented"))
+    destinationDir = layout.buildDirectory.dir("instrumented")
 }
 // end::inferred-task-dep-with-builtby[]
 
 // tag::disable-up-to-date-checks[]
 tasks.register<Instrument>("alwaysInstrumentClasses") {
     classFiles.from(layout.files(tasks.compileJava))
-    destinationDir = file(layout.buildDirectory.dir("instrumented"))
+    destinationDir = layout.buildDirectory.dir("instrumented")
     doNotTrackState("Instrumentation needs to re-run every time")
 }
 // end::disable-up-to-date-checks[]
