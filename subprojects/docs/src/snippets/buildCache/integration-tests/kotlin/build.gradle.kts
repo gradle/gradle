@@ -29,11 +29,10 @@ tasks.integTest {
 // end::distributionPathInput[]
 
 // tag::distributionDirInput[]
-class DistributionLocationProvider(  // <1>
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)  // <2>
-    val distribution: Provider<Directory>
-) : CommandLineArgumentProvider {
+abstract class DistributionLocationProvider : CommandLineArgumentProvider {  // <1>
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)  // <2>
+    abstract val distribution: DirectoryProperty
 
     override fun asArguments(): Iterable<String> =
         listOf("-Ddistribution.location=${distribution.get().asFile.absolutePath}")  // <3>
@@ -41,16 +40,17 @@ class DistributionLocationProvider(  // <1>
 
 tasks.integTest {
     jvmArgumentProviders.add(
-        DistributionLocationProvider(layout.buildDirectory.dir("dist"))  // <4>
+        objects.newInstance<DistributionLocationProvider>().apply {  // <4>
+            distribution.set(layout.buildDirectory.dir("dist"))
+        }
     )
 }
 // end::distributionDirInput[]
 
 // tag::ignoreSystemProperties[]
-class CiEnvironmentProvider(
-    @Internal  // <1>
-    val agentNumber: Provider<String>
-) : CommandLineArgumentProvider {
+abstract class CiEnvironmentProvider : CommandLineArgumentProvider {
+    @get:Internal  // <1>
+    abstract val agentNumber: Property<String>
 
     override fun asArguments(): Iterable<String> =
         listOf("-DagentNumber=${agentNumber.get()}")  // <2>
@@ -58,9 +58,9 @@ class CiEnvironmentProvider(
 
 tasks.integTest {
     jvmArgumentProviders.add(
-        CiEnvironmentProvider(  // <3>
-            providers.environmentVariable("AGENT_NUMBER").orElse("1")
-        )
+        objects.newInstance<CiEnvironmentProvider>().apply {  // <3>
+            agentNumber.set(providers.environmentVariable("AGENT_NUMBER").orElse("1"))
+        }
     )
 }
 // end::ignoreSystemProperties[]

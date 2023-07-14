@@ -27,10 +27,10 @@ tasks.named('integTest') {
 // end::distributionPathInput[]
 
 // tag::distributionDirInput[]
-class DistributionLocationProvider implements CommandLineArgumentProvider {  // <1>
+abstract class DistributionLocationProvider implements CommandLineArgumentProvider {  // <1>
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)  // <2>
-    Provider<Directory> distribution
+    abstract DirectoryProperty getDistribution()
 
     @Override
     Iterable<String> asArguments() {
@@ -40,15 +40,17 @@ class DistributionLocationProvider implements CommandLineArgumentProvider {  // 
 
 tasks.named('integTest') {
     jvmArgumentProviders.add(
-        new DistributionLocationProvider(distribution: layout.buildDirectory.dir('dist'))  // <4>
+        objects.newInstance(DistributionLocationProvider).tap {  // <4>
+            distribution = layout.buildDirectory.dir('dist')
+        }
     )
 }
 // end::distributionDirInput[]
 
 // tag::ignoreSystemProperties[]
-class CiEnvironmentProvider implements CommandLineArgumentProvider {
+abstract class CiEnvironmentProvider implements CommandLineArgumentProvider {
     @Internal  // <1>
-    Provider<String> agentNumber
+    abstract Property<String> getAgentNumber()
 
     @Override
     Iterable<String> asArguments() {
@@ -58,8 +60,9 @@ class CiEnvironmentProvider implements CommandLineArgumentProvider {
 
 tasks.named('integTest') {
     jvmArgumentProviders.add(
-        new CiEnvironmentProvider(  // <3>
-            agentNumber: providers.environmentVariable("AGENT_NUMBER").orElse("1"))
+        objects.newInstance(CiEnvironmentProvider).tap {  // <3>
+            agentNumber = providers.environmentVariable("AGENT_NUMBER").orElse("1")
+        }
     )
 }
 // end::ignoreSystemProperties[]
