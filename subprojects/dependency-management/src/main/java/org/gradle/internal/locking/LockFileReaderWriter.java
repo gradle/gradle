@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 public class LockFileReaderWriter {
 
@@ -56,6 +57,7 @@ public class LockFileReaderWriter {
     static final String EMPTY_CONFIGURATIONS_ENTRY = "empty=";
     static final String BUILD_SCRIPT_PREFIX = "buildscript-";
     static final String SETTINGS_SCRIPT_PREFIX = "settings-";
+    static final String LINE_PATTERN = "^(empty|\\w[\\w.-]*:\\w[\\w.-]*:\\S+)=\\w+(?:,\\s*\\w+)*$";
 
     private final Path lockFilesRoot;
     private final DomainObjectContext context;
@@ -91,6 +93,7 @@ public class LockFileReaderWriter {
             }
             List<String> lines = result;
             filterNonModuleLines(lines);
+            validateLockFile(lines);
             return lines;
         } else {
             return null;
@@ -128,6 +131,17 @@ public class LockFileReaderWriter {
             String value = iterator.next().trim();
             if (value.startsWith("#") || value.isEmpty()) {
                 iterator.remove();
+            }
+        }
+    }
+
+    private void validateLockFile(List<String> lines) {
+        Pattern pattern = Pattern.compile(LINE_PATTERN);
+
+        for (int lineNumber = 0; lineNumber < lines.size(); lineNumber++) {
+            String line = lines.get(lineNumber);
+            if (!pattern.matcher(line).matches()) {
+                throw new InvalidLockFileException("Lock file format is invalid. Line " + (lineNumber + 1) + ": " + line, null);
             }
         }
     }
