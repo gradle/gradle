@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.annotations;
+package org.gradle.internal.instrumentation.processor.codegen;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
-/**
- * Marks that a method call on subtypes should also be intercepted, it's only allowed for Gradle types.
- */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
-public @interface InterceptInherited {
+import javax.annotation.Nullable;
+import java.util.List;
+
+public interface HasFailures {
+
+    List<FailureInfo> getFailureDetails();
+
+    class FailureInfo {
+        @Nullable
+        final CallInterceptionRequest request;
+        final String reason;
+
+        public FailureInfo(@Nullable CallInterceptionRequest request, String reason) {
+            this.request = request;
+            this.reason = reason;
+        }
+    }
+
 }

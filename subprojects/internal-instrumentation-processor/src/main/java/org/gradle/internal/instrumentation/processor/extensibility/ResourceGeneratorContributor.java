@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.annotations;
+package org.gradle.internal.instrumentation.processor.extensibility;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
 
-/**
- * Marks that a method call on subtypes should also be intercepted, it's only allowed for Gradle types.
- */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
-public @interface InterceptInherited {
+public interface ResourceGeneratorContributor extends InstrumentationProcessorExtension {
+    InstrumentationResourceGenerator contributeResourceGenerator();
 }

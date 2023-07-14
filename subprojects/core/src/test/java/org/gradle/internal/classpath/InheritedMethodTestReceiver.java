@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.annotations;
+package org.gradle.internal.classpath;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public class InheritedMethodTestReceiver {
 
-/**
- * Marks that a method call on subtypes should also be intercepted, it's only allowed for Gradle types.
- */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
-public @interface InterceptInherited {
+    public String sayHello() {
+        return "Hello";
+    }
+
+    public static class A extends InheritedMethodTestReceiver {
+    }
+
+    public static class B extends A {
+    }
 }

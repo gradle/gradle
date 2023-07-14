@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
@@ -25,6 +26,8 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -51,8 +54,9 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
-class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
+public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
     private static final int CACHE_FORMAT = 6;
     private static final int AGENT_INSTRUMENTATION_VERSION = 2;
@@ -69,7 +73,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private final ClasspathBuilder classpathBuilder;
     private final Policy policy;
     private final CachedClasspathTransformer.Transform transform;
-    private final HashCode configHash;
+    private final ClasspathFileHasher fileHasher;
 
     /**
      * Instrumentation policy. There are some differences when instrumenting classes to be loaded by the instrumenting agent, this interface encapsulates them.
@@ -89,7 +93,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
          * @param file the file/directory to transform
          * @return the transformation that will transform the file upon request.
          */
-        Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file);
+        Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file, InstrumentingTypeRegistry typeRegistry);
     }
 
     /**
@@ -109,27 +113,29 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         Policy policy,
-        CachedClasspathTransformer.Transform transform
+        CachedClasspathTransformer.Transform transform,
+        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
     ) {
         this.fileLockManager = fileLockManager;
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.policy = policy;
         this.transform = transform;
-        this.configHash = configHashFor(transform);
+        this.fileHasher = new InstrumentingFileHasher(configHashFor(transform, gradleCoreInstrumentingTypeRegistry));
     }
 
-    private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
+    private HashCode configHashFor(CachedClasspathTransformer.Transform transform, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
+        gradleCoreInstrumentingTypeRegistry.getInstrumentedFileHash().ifPresent(hasher::putHash);
         policy.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
     }
 
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
         String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
@@ -148,7 +154,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 // Lock was acquired after a concurrent writer had already finished.
                 return transformed;
             }
-            transform(source, transformed);
+            transform(source, transformed, typeRegistry);
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
@@ -163,6 +169,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
     }
 
+    @Override
+    public ClasspathFileHasher getFileHasher() {
+        return fileHasher;
+    }
+
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
             file,
@@ -172,15 +183,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private String hashOf(FileSystemLocationSnapshot sourceSnapshot) {
-        Hasher hasher = Hashing.defaultFunction().newHasher();
-        hasher.putHash(configHash);
-        // TODO - apply runtime classpath normalization?
-        hasher.putHash(sourceSnapshot.getHash());
-        return hasher.hash().toString();
+        return fileHasher.hashOf(sourceSnapshot).toString();
     }
 
-    private void transform(File source, File dest) {
-        policy.createTransformer(this, source).transform(dest);
+    private void transform(File source, File dest, InstrumentingTypeRegistry typeRegistry) {
+        policy.createTransformer(this, source, typeRegistry).transform(dest);
     }
 
     /**
@@ -205,9 +212,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
      */
     private class BaseTransformation implements Transformation {
         protected final File source;
+        private final InstrumentingTypeRegistry typeRegistry;
 
-        public BaseTransformation(File source) {
+        public BaseTransformation(File source, InstrumentingTypeRegistry typeRegistry) {
             this.source = source;
+            this.typeRegistry = typeRegistry;
         }
 
         @Override
@@ -253,7 +262,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
             ClassReader reader = new ClassReader(classEntry.getContent());
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-            Pair<RelativePath, ClassVisitor> chain = transform.apply(classEntry, classWriter, new ClassData(reader));
+            Pair<RelativePath, ClassVisitor> chain = transform.apply(classEntry, classWriter, new ClassData(reader, typeRegistry));
             reader.accept(chain.right, 0);
             byte[] bytes = classWriter.toByteArray();
             builder.put(chain.left.getPathString(), bytes, classEntry.getCompressionMethod());
@@ -298,7 +307,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             }
 
             @Override
-            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File source) {
+            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File source, InstrumentingTypeRegistry typeRegistry) {
                 Boolean isMultiReleaseJar = null;
 
                 if (source.isFile()) {
@@ -323,9 +332,9 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                     }
                 }
                 if (isMultiReleaseJar != null && isMultiReleaseJar) {
-                    return owner.new MultiReleaseTransformationForLegacy(source);
+                    return owner.new MultiReleaseTransformationForLegacy(source, typeRegistry);
                 }
-                return owner.new BaseTransformation(source);
+                return owner.new BaseTransformation(source, typeRegistry);
             }
 
             private boolean isJarSignatureFile(String entryName) {
@@ -346,8 +355,8 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
      * This transformation filters out not yet supported versioned directories of the multi-release JARs.
      */
     private class MultiReleaseTransformationForLegacy extends BaseTransformation {
-        public MultiReleaseTransformationForLegacy(File source) {
-            super(source);
+        public MultiReleaseTransformationForLegacy(File source, InstrumentingTypeRegistry typeRegistry) {
+            super(source, typeRegistry);
         }
 
         @Override
@@ -378,8 +387,8 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             }
 
             @Override
-            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file) {
-                return owner.new TransformationForAgent(file);
+            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file, InstrumentingTypeRegistry typeRegistry) {
+                return owner.new TransformationForAgent(file, typeRegistry);
             }
 
             @Override
@@ -394,8 +403,8 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
      * Transformation for agent-based instrumentation.
      */
     private class TransformationForAgent extends BaseTransformation {
-        public TransformationForAgent(File source) {
-            super(source);
+        public TransformationForAgent(File source, InstrumentingTypeRegistry typeRegistry) {
+            super(source, typeRegistry);
         }
 
         @Override
@@ -469,29 +478,49 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         return manifest.getMainAttributes().getValue(name);
     }
 
-    /**
-     * Checks that the given entry is in the versioned directory of the multi-release JAR and this Java version is not yet supported by the instrumentation.
-     * The function doesn't check if the entry is actually in the multi-release JAR.
-     *
-     * @param entry the entry to check
-     * @return {@code true} if the entry is in the versioned directory and the Java version isn't supported
-     * @see <a href="https://docs.oracle.com/en/java/javase/20/docs/specs/jar/jar.html#multi-release-jar-files">MR JAR specification</a>
-     */
-    private static boolean isInUnsupportedMrJarVersionedDirectory(ClasspathEntryVisitor.Entry entry) {
-        Matcher match = VERSIONED_JAR_ENTRY_PATH.matcher(entry.getName());
-        if (match.matches()) {
-            try {
-                int version = Integer.parseInt(match.group(1));
-                return version > AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
-            } catch (NumberFormatException ignored) {
-                // Even though the pattern ensures that the version name is all digits, it fails to parse, probably because it is too big.
-                // Technically it may be a valid MR JAR for Java >Integer.MAX_VALUE, but we are too far away from this.
-                // We assume that JAR author didn't intend it to be a versioned directory and keep it.
+    @NonNullApi
+    public static class MrJarUtils {
+        /**
+         * Checks that the given entry is in the versioned directory of the multi-release JAR and this Java version is not yet supported by the instrumentation.
+         * The function doesn't check if the entry is actually in the multi-release JAR.
+         *
+         * @param entry the entry to check
+         * @return {@code true} if the entry is in the versioned directory and the Java version isn't supported
+         * @see <a href="https://docs.oracle.com/en/java/javase/20/docs/specs/jar/jar.html#multi-release-jar-files">MR JAR specification</a>
+         */
+        public static boolean isInUnsupportedMrJarVersionedDirectory(ClasspathEntryVisitor.Entry entry) {
+            Matcher match = VERSIONED_JAR_ENTRY_PATH.matcher(entry.getName());
+            if (match.matches()) {
+                try {
+                    int version = Integer.parseInt(match.group(1));
+                    return version > AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
+                } catch (NumberFormatException ignored) {
+                    // Even though the pattern ensures that the version name is all digits, it fails to parse, probably because it is too big.
+                    // Technically it may be a valid MR JAR for Java >Integer.MAX_VALUE, but we are too far away from this.
+                    // We assume that JAR author didn't intend it to be a versioned directory and keep it.
+                }
             }
-        }
 
-        // The entry is not in the versioned directory at all.
-        return false;
+            // The entry is not in the versioned directory at all.
+            return false;
+        }
     }
 
+    @NonNullApi
+    private static class InstrumentingFileHasher implements ClasspathFileHasher {
+
+        private final HashCode configHash;
+
+        public InstrumentingFileHasher(HashCode configHash) {
+            this.configHash = configHash;
+        }
+
+        public HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot) {
+            Hasher hasher = Hashing.defaultFunction().newHasher();
+            hasher.putHash(configHash);
+            // TODO - apply runtime classpath normalization?
+            hasher.putHash(sourceSnapshot.getHash());
+            return hasher.hash();
+        }
+    }
 }
