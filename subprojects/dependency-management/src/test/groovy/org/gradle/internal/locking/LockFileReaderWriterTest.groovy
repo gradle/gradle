@@ -142,6 +142,26 @@ empty=d
         1 * listener.fileObserved(lockFile)
     }
 
+    def 'reads an invalid unique lock file '() {
+        given:
+        def lockFile = tmpDir.file('gradle.lockfile')
+        lockFile << """#ignored
+<<<<<<< HEAD
+======
+bar=a,c
+foo=a,b,c
+empty=d
+"""
+
+        when:
+        def result = lockFileReaderWriter.readUniqueLockFile()
+
+        then:
+        def ex = thrown(InvalidLockFileException)
+        1 * context.getProjectPath() >> Path.path(':project')
+        ex.message == 'Invalid lock state for project \':project\'. Line: <<<<<<< HEAD'
+    }
+
     def 'reads a unique lock file from a custom location'() {
         given:
         def file = tmpDir.file('custom', 'lock.file')
