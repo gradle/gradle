@@ -30,7 +30,23 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * A factory for creating {@link AttributeBasedFileVisitDetails} instances.
+ * Fallbacks to UnauthorizedFileVisitDetails in cases when attributes are not available.
+ * Fallbacks to DefaultFileVisitDetails in cases when attributes are not reliable.
+ */
 public class AttributeBasedFileVisitDetailsFactory {
+
+    /**
+     * Returns FileVisitDetails for the given relativePath.
+     *
+     * @param path Path of the file
+     * @param relativePath RelativePath of the file
+     * @param attrs attributes of the path, null if not available
+     * @param stopFlag transient flag to stop visiting
+     * @param fileSystem for Chmod and Stat
+     * @return FileVisitDetails
+     */
     public static FileVisitDetails getRootFileVisitDetails(
         Path path,
         RelativePath relativePath,
@@ -49,6 +65,15 @@ public class AttributeBasedFileVisitDetailsFactory {
         }
     }
 
+    /**
+     * Gets attributes and returns FileVisitDetails for the given relativePath.
+     *
+     * @param path Path of the file
+     * @param relativePath RelativePath of the file
+     * @param stopFlag transient flag to stop visiting
+     * @param fileSystem for Chmod and Stat
+     * @return FileVisitDetails
+     */
     public static FileVisitDetails getRootFileVisitDetails(
         Path path,
         RelativePath relativePath,
@@ -59,6 +84,16 @@ public class AttributeBasedFileVisitDetailsFactory {
         return getRootFileVisitDetails(path, relativePath, attrs, stopFlag, fileSystem);
     }
 
+    /**
+     * Constructs proper RelativePath based on attributes and returns FileVisitDetails for the given relativePath.
+     *
+     * @param path Path of the file
+     * @param parentPath RelativePath of the parent
+     * @param attrs attributes of the path, null if not available
+     * @param stopFlag transient flag to stop visiting
+     * @param fileSystem for Chmod and Stat
+     * @return FileVisitDetails
+     */
     public static FileVisitDetails getFileVisitDetails(
         Path path,
         RelativePath parentPath,
@@ -71,7 +106,15 @@ public class AttributeBasedFileVisitDetailsFactory {
         return getRootFileVisitDetails(path, relativePath, attrs, stopFlag, fileSystem);
     }
 
-
+    /**
+     * Gets attributes, constructs proper RelativePath and returns FileVisitDetails for the given relativePath.
+     *
+     * @param path Path of the file
+     * @param parentPath RelativePath of the parent
+     * @param stopFlag transient flag to stop visiting
+     * @param fileSystem for Chmod and Stat
+     * @return FileVisitDetails
+     */
     public static FileVisitDetails getFileVisitDetails(
         Path path,
         RelativePath parentPath,
