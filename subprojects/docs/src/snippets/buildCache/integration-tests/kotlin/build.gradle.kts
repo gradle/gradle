@@ -47,17 +47,20 @@ tasks.integTest {
 // end::distributionDirInput[]
 
 // tag::ignoreSystemProperties[]
-class CiEnvironmentProvider : CommandLineArgumentProvider {
-    @Internal                                                // <1>
-    val agentNumber = System.getenv()["AGENT_NUMBER"] ?: "1"
+class CiEnvironmentProvider(
+    @Internal  // <1>
+    val agentNumber: Provider<String>
+) : CommandLineArgumentProvider {
 
     override fun asArguments(): Iterable<String> =
-        listOf("-DagentNumber=$agentNumber")                 // <2>
+        listOf("-DagentNumber=${agentNumber.get()}")  // <2>
 }
 
 tasks.integTest {
     jvmArgumentProviders.add(
-        CiEnvironmentProvider()                              // <3>
+        CiEnvironmentProvider(  // <3>
+            providers.environmentVariable("AGENT_NUMBER").orElse("1")
+        )
     )
 }
 // end::ignoreSystemProperties[]

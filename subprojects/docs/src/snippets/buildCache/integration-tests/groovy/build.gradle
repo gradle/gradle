@@ -47,18 +47,19 @@ tasks.named('integTest') {
 
 // tag::ignoreSystemProperties[]
 class CiEnvironmentProvider implements CommandLineArgumentProvider {
-    @Internal                                                        // <1>
-    String agentNumber = System.getenv().get("AGENT_NUMBER") ?: "1"
+    @Internal  // <1>
+    Provider<String> agentNumber
 
     @Override
     Iterable<String> asArguments() {
-        ["-DagentNumber=${agentNumber}".toString()]                  // <2>
+        ["-DagentNumber=${agentNumber.get()}".toString()]  // <2>
     }
 }
 
 tasks.named('integTest') {
     jvmArgumentProviders.add(
-        new CiEnvironmentProvider()                                  // <3>
+        new CiEnvironmentProvider(  // <3>
+            agentNumber: providers.environmentVariable("AGENT_NUMBER").orElse("1"))
     )
 }
 // end::ignoreSystemProperties[]
