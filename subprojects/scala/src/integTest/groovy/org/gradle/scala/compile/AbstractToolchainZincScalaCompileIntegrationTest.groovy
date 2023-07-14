@@ -29,7 +29,7 @@ abstract class AbstractToolchainZincScalaCompileIntegrationTest extends BasicZin
     def setup() {
         jdk = computeJdkForTest()
         Assume.assumeNotNull(jdk)
-        Assume.assumeTrue(ScalaCoverage.getJavaVersionForScalaVersion(version).isCompatibleWith(jdk.javaVersion))
+        Assume.assumeTrue(jdk.javaVersion <= ScalaCoverage.getMaximumJavaVersionForScalaVersion(version))
         executer.beforeExecute {
             withInstallations(jdk)
         }
