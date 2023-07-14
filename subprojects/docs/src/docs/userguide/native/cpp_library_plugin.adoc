@@ -132,7 +132,7 @@ Aggregate tasks that perform a full build of the project.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `clean` - Delete::
-Deletes the build directory and everything in it, i.e. the path specified by the `Project.getBuildDir()` project property.
+Deletes the build directory and everything in it, i.e. the path specified by the `layout.buildDirectory` project property.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 [[sec:cpp_library_dependency_management]]
@@ -251,7 +251,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:macros[macros]:: [:]
 
-link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/main/__variant__`
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `layout.buildDirectory.dir("obj/main/__$variant__")`
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:optimized[optimized]:: `false` for debug build type or `true` otherwise
 
@@ -277,7 +277,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:libs[libs]:: `configurations.nativeLink__Variant__`
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:linkedFile[linkedFile]:: `$buildDir/lib/main/__variant__/libBaseName[.so|dylib]` (*nix) or `$buildDir\lib\main{backslash}__variant__\baseName.dll` (Windows)
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:linkedFile[linkedFile]:: `layout.buildDirectory.dir("lib/main/__$variant__/libBaseName[.so|dylib]")` (*nix) or `layout.buildDirectory.dir("lib\main{backslash}__$variant__\baseName.dll")` (Windows)
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:linkerArgs[linkerArgs]:: []
 
@@ -295,7 +295,7 @@ Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introdu
 Some of the most common configuration options are shown below.
 
 [horizontal]
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:outputFile[outputFile]:: `$buildDir/lib/main/__variant__/libBaseName.a` (*nix) or `$buildDir\lib\main{backslash}__variant__\baseName.lib` (Windows)
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:outputFile[outputFile]:: `layout.buildDirectory.dir("lib/main/__variant__/libBaseName.a")` (*nix) or `layout.buildDirectory.dir("lib\main{backslash}__variant__\baseName.lib")` (Windows)
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:source[source]:: `compile__Variant__Cpp.objects`
 

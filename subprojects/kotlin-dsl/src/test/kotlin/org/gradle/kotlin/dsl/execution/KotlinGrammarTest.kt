@@ -31,6 +31,14 @@ class KotlinGrammarTest {
     }
 
     @Test
+    fun `will not parse @ followed by whitespace`() {
+        kotlinGrammar.annotation.failToConsumeFrom("@ something")
+        kotlinGrammar.annotation.failToConsumeFrom("@\nsomething")
+        kotlinGrammar.annotation.failToConsumeFrom("@/*comment*/something")
+        kotlinGrammar.annotation.failToConsumeFrom("@/*comment*/ something")
+    }
+
+    @Test
     fun `can parse single annotation`() {
         assertAnnotationConsumed("""@Suppress("unused_variable")""")
         assertAnnotationConsumed("""@Suppress ( "unused_variable" )""")
