@@ -32,7 +32,7 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
 
     def setup() {
         executer.beforeExecute {
-            withInstallations(Jvm.current(), AvailableJavaHomes.jdk11)
+            withInstallations(AvailableJavaHomes.jdk11)
         }
     }
 
