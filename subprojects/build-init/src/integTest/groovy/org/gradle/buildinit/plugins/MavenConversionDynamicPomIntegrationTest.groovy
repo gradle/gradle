@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//file:noinspection HttpUrlsUsage
 
 package org.gradle.buildinit.plugins
 
@@ -39,9 +38,133 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
          * */
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
+
+        targetDir.file("src/main/java/Foo.java") << """
+            import org.apache.commons.lang.StringUtils;
+
+            public class Foo {
+              public String toString() {
+                return StringUtils.normalizeSpace("hi  there!");
+              }
+            }
+        """
+        targetDir.file("src/test/java/FooTest.java") << """
+            import org.junit.Test;
+
+            public class FooTest {
+              @Test public void test() {
+                assert false: "test failure";
+              }
+            }
+        """
     }
 
-    def "singleModule (source=#source, target=#target)"() {
+    def "singleModule with same source and target"() {
+        def source = Jvm.current().javaVersion
+        def target = Jvm.current().javaVersion
+        writePom(source, target)
+
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        dsl.getBuildFile(targetDir).text.contains("java.sourceCompatibility = JavaVersion.${source.name()}")
+        !dsl.getBuildFile(targetDir).text.contains("java.targetCompatibility = ")
+
+        when:
+        fails 'clean', 'build'
+
+        then:
+        // when tests fail, jar may not exist
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
+    }
+
+    def "singleModule with different source and target"() {
+        def source = Jvm.current().javaVersion.previous() as JavaVersion
+        def target = Jvm.current().javaVersion
+        writePom(source, target)
+
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        dsl.getBuildFile(targetDir).text.contains("java.sourceCompatibility = JavaVersion.${source.name()}")
+        dsl.getBuildFile(targetDir).text.contains("java.targetCompatibility = JavaVersion.${target.name()}")
+
+        when:
+        fails 'clean', 'build'
+
+        then:
+        // when tests fail, jar may not exist
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
+    }
+
+    def "singleModule with just source"() {
+        def source = Jvm.current().javaVersion
+        writePom(source, null)
+
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        dsl.getBuildFile(targetDir).text.contains("java.sourceCompatibility = JavaVersion.${source.name()}")
+        // target defaults to 1.8
+        dsl.getBuildFile(targetDir).text.contains("java.targetCompatibility = JavaVersion.VERSION_1_8")
+
+        when:
+        fails 'clean', 'build'
+
+        then:
+        // if the source and target are different, we can't actually compile because javac requires them to be the same
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        // May or may not be part of the failure cause (varies by javac version)
+        errorOutput.contains("source release ${source} requires target release ${source}")
+    }
+
+    def "singleModule with just target"() {
+        def target = Jvm.current().javaVersion
+        writePom(null, target)
+
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        // source defaults to 1.8
+        dsl.getBuildFile(targetDir).text.contains("java.sourceCompatibility = JavaVersion.VERSION_1_8")
+        dsl.getBuildFile(targetDir).text.contains("java.targetCompatibility = JavaVersion.${target.name()}")
+
+        when:
+        fails 'clean', 'build'
+
+        then:
+        // when tests fail, jar may not exist
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
+    }
+
+    private writePom(source, target) {
         // Dynamically generated POM file, based on MavenConversionIntegrationTest#singleModule pom.xml
         targetDir.file("pom.xml") << """
             <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -72,65 +195,14 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-compiler-plugin</artifactId>
                             <configuration>
-                                <source>${source}</source>
-                                <target>${target}</target>
+                                ${source == null ? "" : "<source>${source}</source>"}
+                                ${target == null ? "" : "<target>${target}</target>"}
                             </configuration>
                         </plugin>
                     </plugins>
                 </build>
             </project>
         """
-        targetDir.file("src/main/java/Foo.java") << """
-            import org.apache.commons.lang.StringUtils;
-
-            public class Foo {
-              public String toString() {
-                return StringUtils.normalizeSpace("hi  there!");
-              }
-            }
-        """
-        targetDir.file("src/test/java/FooTest.java") << """
-            import org.junit.Test;
-
-            public class FooTest {
-              @Test public void test() {
-                assert false: "test failure";
-              }
-            }
-        """
-
-        def dsl = dslFixtureFor(scriptDsl)
-
-        when:
-        run 'init', '--dsl', scriptDsl.id as String
-
-        then:
-        dsl.assertGradleFilesGenerated()
-        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
-        MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
-        dsl.getBuildFile(targetDir).text.contains("java.sourceCompatibility = JavaVersion.${source.name()}")
-        // only shows up if the target is different
-        def targetDiffers = source != target
-        targetDiffers == dsl.getBuildFile(targetDir).text.contains("java.targetCompatibility = JavaVersion.${target.name()}")
-
-        when:
-        fails 'clean', 'build'
-
-        then:
-        if (targetDiffers) {
-            // if the source and target are different, we can't actually compile because javac requires them to be the same
-            failure.assertHasDescription("Execution failed for task ':compileJava'.")
-            failure.assertHasCause("warning: source release ${source} requires target release ${source}")
-        } else {
-            // when tests fail, jar may not exist
-            failure.assertHasDescription("Execution failed for task ':test'.")
-            failure.assertHasCause("There were failing tests.")
-        }
-
-        where:
-        source                    | target
-        Jvm.current().javaVersion | Jvm.current().javaVersion
-        Jvm.current().javaVersion | Jvm.current().javaVersion.previous() as JavaVersion
     }
 }
 
