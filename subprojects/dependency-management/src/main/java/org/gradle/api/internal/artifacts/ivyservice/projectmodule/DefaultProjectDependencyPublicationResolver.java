@@ -77,19 +77,14 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         }
 
         // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
-        Set<SoftwareComponent> ignored = new HashSet<>();
-        for (ProjectComponentPublication publication : publications) {
-            if (publication.getComponent() != null && publication.getComponent() instanceof ComponentWithVariants) {
-                ComponentWithVariants parent = (ComponentWithVariants) publication.getComponent();
-                ignored.addAll(parent.getVariants());
-            }
-        }
+        Set<SoftwareComponent> ignored = getChildComponents(publications);
         Set<ProjectComponentPublication> topLevel = new LinkedHashSet<>();
         Set<ProjectComponentPublication> topLevelWithComponent = new LinkedHashSet<>();
         for (ProjectComponentPublication publication : publications) {
-            if (!publication.isAlias() && (publication.getComponent() == null || !ignored.contains(publication.getComponent()))) {
+            SoftwareComponent component = publication.getComponent().getOrNull();
+            if (!publication.isAlias() && !ignored.contains(component)) {
                 topLevel.add(publication);
-                if (publication.getComponent() != null) {
+                if (component != null) {
                     topLevelWithComponent.add(publication);
                 }
             }
@@ -117,5 +112,18 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             }
         }
         return candidate;
+    }
+
+    private static Set<SoftwareComponent> getChildComponents(List<ProjectComponentPublication> publications) {
+        Set<SoftwareComponent> children = new HashSet<>();
+        for (ProjectComponentPublication publication : publications) {
+            SoftwareComponent component = publication.getComponent().getOrNull();
+            if (component instanceof ComponentWithVariants) {
+                ComponentWithVariants parent = (ComponentWithVariants) component;
+                // Child components are not entry points.
+                children.addAll(parent.getVariants());
+            }
+        }
+        return children;
     }
 }

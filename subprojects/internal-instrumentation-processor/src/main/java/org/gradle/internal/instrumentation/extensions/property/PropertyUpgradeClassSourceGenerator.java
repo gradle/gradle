@@ -24,6 +24,7 @@ import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRe
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.ImplementationInfo;
+import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 
 import javax.lang.model.element.Modifier;
@@ -50,7 +51,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         String className,
         Collection<CallInterceptionRequest> requestsClassGroup,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super GenerationResult.HasFailures.FailureInfo> onFailure
+        Consumer<? super HasFailures.FailureInfo> onFailure
     ) {
         List<MethodSpec> methods = requestsClassGroup.stream()
             .map(request -> mapToMethodSpec(request, onProcessedRequest))

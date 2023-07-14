@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
 
 /**
  * This class defines a set of configuration roles which each describe an intermediate state between a current role
@@ -37,21 +40,39 @@ public final class ConfigurationRolesForMigration {
         // Private to prevent instantiation.
     }
 
+    /**
+     * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
+     */
     @Deprecated
-    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_BUCKET = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.RESOLVABLE_BUCKET);
-    @Deprecated
-    public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE);
-
-    @Deprecated
-    public static final ConfigurationRole RESOLVABLE_BUCKET_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.RESOLVABLE);
-    @Deprecated
-    public static final ConfigurationRole CONSUMABLE_BUCKET_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_BUCKET, ConfigurationRoles.CONSUMABLE);
+    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
 
     /**
-     * A resolvable bucket that will become a bucket in the next major version.
+     * A legacy configuration that will become a consumable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
-    public static final ConfigurationRole RESOLVABLE_BUCKET_TO_BUCKET = difference(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.BUCKET);
+    public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE);
+
+    /**
+     * A resolvable dependency scope that will become a resolvable configuration in the next major version.
+     */
+    @SuppressWarnings("deprecation")
+    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE);
+
+    /**
+     * A consumable dependency scope that will become a consumable configuration in the next major version.
+     */
+    @SuppressWarnings("deprecation")
+    public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRoles.CONSUMABLE);
+
+    /**
+     * All known migration roles.
+     */
+    public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
+        LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
+        LEGACY_TO_CONSUMABLE,
+        RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+        CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
+    );
 
     /**
      * Computes the difference between two roles, such that any usage that is allowed in the

@@ -24,8 +24,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -56,7 +55,7 @@ import static org.gradle.api.attributes.DocsType.SOURCES;
  * or any other consumable JVM feature.</p>
  *
  * <p>This feature can conditionally be configured to instead "extend" the production code. In that case, this
- * feature creates additional dependency configurations which live adjacent to the main source set's buckets,
+ * feature creates additional dependency configurations which live adjacent to the main source set's dependency scopes,
  * which allow users to declare optional dependencies that the production code will compile and test against.
  * These extra dependencies are not published as part of the production variants, but as separate apiElements
  * and runtimeElements variants as defined by this feature. Then, users can declare a dependency on this
@@ -117,7 +116,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         // The elements configurations' roles should always be consumable only, but
         // some users of this class are still migrating towards that. In 9.0, we can remove this
         // parameter and hard-code the elements configurations' roles to consumable only.
-        ConfigurationRole elementsConfigurationRole,
+        boolean useMigrationRoleForElementsConfigurations,
         boolean extendProductionCode
     ) {
         this.name = name;
@@ -139,18 +138,18 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         this.jar = registerOrGetJarTask(sourceSet, tasks);
 
         // If extendProductionCode=false, the source set has already created these configurations.
-        // If extendProductionCode=true, then we create new buckets and later update the main and
-        // test source sets to extend from these buckets.
-        this.implementation = bucket("Implementation", JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME);
-        this.compileOnly = bucket("Compile-only", JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME);
-        this.runtimeOnly = bucket("Runtime-only", JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME);
+        // If extendProductionCode=true, then we create new dependency scopes and later update the main and
+        // test source sets to extend from them.
+        this.implementation = dependencyScope("Implementation", JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME, extendProductionCode, false);
+        this.compileOnly = dependencyScope("Compile-only", JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
+        this.runtimeOnly = dependencyScope("Runtime-only", JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
 
         this.runtimeClasspath = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
         this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
 
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
-        this.apiElements = createApiElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
-        this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
+        this.apiElements = createApiElements(configurations, jarArtifact, compileJava, useMigrationRoleForElementsConfigurations);
+        this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava, useMigrationRoleForElementsConfigurations);
 
         if (extendProductionCode) {
             doExtendProductionCode();
@@ -186,10 +185,10 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         SourceSet mainSourceSet = project.getExtensions().findByType(JavaPluginExtension.class)
             .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        // Update the main feature's source set to extend our "extension" feature's buckets.
+        // Update the main feature's source set to extend our "extension" feature's dependency scopes.
         configurations.getByName(mainSourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation, compileOnly);
         configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()).extendsFrom(implementation, runtimeOnly);
-        // Update the default test suite's source set to extend our "extension" feature's buckets.
+        // Update the default test suite's source set to extend our "extension" feature's dependency scopes.
         configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation);
         configurations.getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, runtimeOnly);
     }
@@ -217,10 +216,10 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         RoleBasedConfigurationContainerInternal configurations,
         PublishArtifact jarArtifact,
         TaskProvider<JavaCompile> compileJava,
-        ConfigurationRole elementsRole
+        boolean useMigrationRoleForElementsConfigurations
     ) {
         String configName = getConfigurationName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME);
-        Configuration apiElements = configurations.maybeCreateWithRole(configName, elementsRole, false, false);
+        Configuration apiElements = maybeCreateElementsConfiguration(configName, configurations, useMigrationRoleForElementsConfigurations);
 
         apiElements.setVisible(false);
         jvmPluginServices.useDefaultTargetPlatformInference(apiElements, compileJava);
@@ -238,10 +237,10 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         RoleBasedConfigurationContainerInternal configurations,
         PublishArtifact jarArtifact,
         TaskProvider<JavaCompile> compileJava,
-        ConfigurationRole elementsRole
+        boolean useMigrationRoleForElementsConfigurations
     ) {
         String configName = getConfigurationName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
-        Configuration runtimeElements = configurations.maybeCreateWithRole(configName, elementsRole, false, false);
+        Configuration runtimeElements = maybeCreateElementsConfiguration(configName, configurations, useMigrationRoleForElementsConfigurations);
 
         runtimeElements.setVisible(false);
         jvmPluginServices.useDefaultTargetPlatformInference(runtimeElements, compileJava);
@@ -259,10 +258,27 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         return runtimeElements;
     }
 
+    private static Configuration maybeCreateElementsConfiguration(
+        String name,
+        RoleBasedConfigurationContainerInternal configurations,
+        boolean useMigrationRoleForElementsConfigurations
+    ) {
+        if (useMigrationRoleForElementsConfigurations) {
+            return configurations.maybeCreateMigratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        } else {
+            return configurations.maybeCreateConsumableUnlocked(name);
+        }
+    }
+
     @Override
     public void withApi() {
-        this.api = bucket("API", JvmConstants.API_CONFIGURATION_NAME);
-        this.compileOnlyApi = bucket("Compile-only API", JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME);
+        // If the Kotlin JVM plugin is applied, after it applies the Java plugin, it will create the API configuration.
+        // We need to suppress the deprecation warning for creating duplicate configurations or else if the java-library
+        // plugin was subsequently applied we'd get a warning that the API configuration was created twice.
+        // * If Kotlin is always creating libraries then it should always apply the java-library plugin.
+        // * Otherwise, if it could create an application, it should not automatically create the api configuration.
+        this.api = dependencyScope("API", JvmConstants.API_CONFIGURATION_NAME, true, false);
+        this.compileOnlyApi = dependencyScope("Compile-only API", JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME, true, true);
 
         this.apiElements.extendsFrom(api, compileOnlyApi);
         this.implementation.extendsFrom(api);
@@ -308,9 +324,11 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         );
     }
 
-    private Configuration bucket(String kind, String suffix) {
+    private Configuration dependencyScope(String kind, String suffix, boolean create, boolean warnOnDuplicate) {
         String configName = getConfigurationName(suffix);
-        Configuration configuration = project.getConfigurations().maybeCreateWithRole(configName, ConfigurationRoles.BUCKET, false, false);
+        Configuration configuration = create
+            ? project.getConfigurations().maybeCreateDependencyScopeUnlocked(configName, warnOnDuplicate)
+            : project.getConfigurations().getByName(configName);
         configuration.setDescription(kind + " dependencies for the '" + name + "' feature.");
         configuration.setVisible(false);
         return configuration;

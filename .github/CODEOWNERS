@@ -27,10 +27,10 @@ subprojects/model-core/                         @gradle/bt-configuration-cache
 subprojects/model-groovy/                       @gradle/bt-configuration-cache
 
 # Gradle Enterprise
+platforms/enterprise                        @gradle/ge-build-insights @gradle/bt-build-scan
 subprojects/build-scan-performance/         @gradle/bt-build-scan
 subprojects/enterprise/                     @ldaley @gradle/ge-testing @gradle/ge-build-insights @gradle/bt-build-scan
 subprojects/enterprise-logging/             @gradle/ge-build-insights @gradle/bt-build-scan @gradle/ge-testing
-subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt-build-scan
 subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
 
 # JVM platform
@@ -91,7 +91,6 @@ subprojects/kotlin-dsl-tooling-models/                                          
 /build.gradle*                              @gradle/bt-developer-productivity
 /settings.gradle*                           @gradle/bt-developer-productivity
 gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
-subprojects/*/build.gradle*                 @gradle/bt-developer-productivity
 subprojects/internal-architecture-testing/  @gradle/bt-developer-productivity
 subprojects/internal-build-reports/         @gradle/bt-developer-productivity
 subprojects/internal-integ-testing/         @gradle/bt-developer-productivity

@@ -4,19 +4,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 // tag::custom-task-implementation[]
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 
-public class UrlProcess extends DefaultTask {
+public abstract class UrlProcess extends DefaultTask {
     private String url;
     private OutputType outputType;
 
-    @Option(option = "url", description = "Configures the URL to be write to the output.")
+    @Input
+    @Option(option = "http", description = "Configures the http protocol to be allowed.")
+    public abstract Property<Boolean> getHttp();
+
+    @Option(option = "url", description = "Configures the URL to send the request to.")
     public void setUrl(String url) {
-        this.url = url;
+        if (!getHttp().getOrElse(true) && url.startsWith("http://")) {
+            throw new IllegalArgumentException("HTTP is not allowed");
+        } else {
+            this.url = url;
+        }
     }
 
     @Input

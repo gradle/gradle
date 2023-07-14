@@ -235,7 +235,7 @@ class OptionsVerifier {
         @Override
         String getDsl() {
             return """
-                bootstrapClasspath = fileTree(new File(Jvm.current().jre, "lib")).include("*.jar")
+                if (fileTree != null) { bootstrapClasspath = fileTree }
                 bootstrapClasspath(new File('${path}'))
             """
         }

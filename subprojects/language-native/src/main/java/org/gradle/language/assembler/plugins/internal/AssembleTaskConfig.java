@@ -68,7 +68,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
             @Override
             public Set<File> getFiles() {
                 PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
-                return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(ToolType.ASSEMBLER).getIncludeDirs());
+                return new LinkedHashSet<>(platformToolProvider.getSystemLibraries(ToolType.ASSEMBLER).getIncludeDirs());
             }
 
             @Override
@@ -78,7 +78,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         }));
 
         final Project project = task.getProject();
-        task.setObjectFileDir(new File(binary.getNamingScheme().getOutputDirectory(project.getBuildDir(), "objs"), sourceSet.getProjectScopedName()));
+        task.setObjectFileDir(project.getLayout().getBuildDirectory().getAsFile().map(it -> new File(binary.getNamingScheme().getOutputDirectory(it, "objs"), sourceSet.getProjectScopedName())).get());
 
         Tool assemblerTool = binary.getToolByName("assembler");
         task.setAssemblerArgs(assemblerTool.getArgs());

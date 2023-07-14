@@ -42,7 +42,8 @@ class DefaultPathKeyFileStoreTest extends Specification {
         def b = createFile("def")
 
         when:
-        store.move("a", a)
+        // leading slash does not mean absolute path
+        store.move("/a", a)
         store.move("b", b)
 
         then:

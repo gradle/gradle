@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -116,14 +117,20 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
         val timer = Time.startTimer()
         val parameter = project.parameterFromRequest()
         try {
-            return buildFor(parameter, project).also {
-                log("$parameter => $it - took ${timer.elapsed}")
+            return project.leaseRegistry.allowUncontrolledAccessToAnyProject {
+                buildFor(parameter, project).also {
+                    log("$parameter => $it - took ${timer.elapsed}")
+                }
             }
         } catch (ex: Exception) {
             log("$parameter => $ex - took ${timer.elapsed}")
             throw ex
         }
     }
+
+    private
+    val Project.leaseRegistry: ProjectLeaseRegistry
+        get() = serviceOf()
 
     private
     fun requireRootProject(project: Project) =

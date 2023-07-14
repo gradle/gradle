@@ -23,12 +23,14 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterc
 import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeClassSourceGenerator;
+import org.gradle.internal.instrumentation.extensions.types.InstrumentedTypesResourceGenerator;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.jvmbytecode.InterceptJvmCallsGenerator;
 import org.gradle.internal.instrumentation.processor.extensibility.ClassLevelAnnotationsContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.CodeGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.InstrumentationProcessorExtension;
+import org.gradle.internal.instrumentation.processor.extensibility.ResourceGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesExtra;
 import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesPostProcessor;
 import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesReader;
@@ -66,7 +68,10 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
 
             // Properties upgrade extensions
             new PropertyUpgradeAnnotatedMethodReader(),
-            (CodeGeneratorContributor) PropertyUpgradeClassSourceGenerator::new
+            (CodeGeneratorContributor) PropertyUpgradeClassSourceGenerator::new,
+
+            // Generate resource with instrumented types
+            (ResourceGeneratorContributor) InstrumentedTypesResourceGenerator::new
         );
     }
 }
