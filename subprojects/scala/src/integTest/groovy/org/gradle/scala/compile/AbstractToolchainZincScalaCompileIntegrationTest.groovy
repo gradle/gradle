@@ -16,7 +16,7 @@
 
 package org.gradle.scala.compile
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
@@ -29,7 +29,7 @@ abstract class AbstractToolchainZincScalaCompileIntegrationTest extends BasicZin
     def setup() {
         jdk = computeJdkForTest()
         Assume.assumeNotNull(jdk)
-        Assume.assumeTrue(ScalaCoverage.SCALA_VERSION_TO_MAX_JAVA_VERSION.getOrDefault(version, JavaVersion.VERSION_1_8).isCompatibleWith(jdk.javaVersion))
+        Assume.assumeTrue(ScalaCoverage.getJavaVersionForScalaVersion(version).isCompatibleWith(jdk.javaVersion))
         executer.beforeExecute {
             withInstallations(jdk)
         }
