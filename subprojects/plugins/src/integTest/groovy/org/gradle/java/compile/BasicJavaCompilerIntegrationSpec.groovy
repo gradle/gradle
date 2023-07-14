@@ -19,16 +19,13 @@ package org.gradle.java.compile
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.classanalysis.JavaClassUtil
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec implements JavaToolchainFixture {
+abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
 
     abstract String compilerConfiguration()
 
@@ -221,11 +218,11 @@ compileJava {
 """
     }
 
+    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "compile with release flag using #notation notation"() {
         given:
         goodCode()
         buildFile << """
-java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 java.targetCompatibility = JavaVersion.VERSION_1_7
 compileJava.options.compilerArgs.addAll(['--release', $notation])
 compileJava {
@@ -237,35 +234,34 @@ compileJava {
     def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
     def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert apiElementsTarget.get() == 8
-        assert runtimeElementsTarget.get() == 8
-        assert compileClasspathTarget.get() == 8
-        assert runtimeClasspathTarget.get() == 8
+        assert apiElementsTarget.get() == 11
+        assert runtimeElementsTarget.get() == 11
+        assert compileClasspathTarget.get() == 11
+        assert runtimeClasspathTarget.get() == 11
     }
 }
 """
 
         expect:
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds 'compileJava'
-        bytecodeVersion() == 52
+        succeeds 'compileJava'
+        bytecodeVersion() == 55
 
         where:
         notation << [
-            "'8'",
-            '8', // Integer, see #13351
-            '"${8}"' // GString, see #13351
+            "'11'",
+            '11', // Integer, see #13351
+            '"${11}"' // GString, see #13351
         ]
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "compile with release property set"() {
         given:
         goodCode()
         buildFile << """
-java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
 compileJava.targetCompatibility = '10' // ignored
-compileJava.options.release.set(8)
+compileJava.options.release.set(11)
 compileJava {
     def targetVersionOf = { config ->
         provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
@@ -275,17 +271,17 @@ compileJava {
     def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
     def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert apiElementsTarget.get() == 8
-        assert runtimeElementsTarget.get() == 8
-        assert compileClasspathTarget.get() == 8
-        assert runtimeClasspathTarget.get() == 8
+        assert apiElementsTarget.get() == 11
+        assert runtimeElementsTarget.get() == 11
+        assert compileClasspathTarget.get() == 11
+        assert runtimeClasspathTarget.get() == 11
     }
 }
 """
 
         expect:
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds 'compileJava'
-        bytecodeVersion() == 52
+        succeeds 'compileJava'
+        bytecodeVersion() == 55
     }
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
@@ -302,15 +298,14 @@ compileJava.options.release.set(8)
         failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.')
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "compile with release property and autoTargetJvmDisabled"() {
         given:
         goodCode()
         buildFile << """
-java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
 compileJava.targetCompatibility = '10' // ignored
-compileJava.options.release.set(8)
+compileJava.options.release.set(11)
 java.disableAutoTargetJvm()
 compileJava {
     def apiElementsAttributes = configurations.apiElements.attributes
@@ -318,8 +313,8 @@ compileJava {
     def compileClasspathAttributes = configurations.compileClasspath.attributes
     def runtimeClasspathAttributes = configurations.runtimeClasspath.attributes
     doFirst {
-        assert apiElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert runtimeElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert apiElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+        assert runtimeElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
         assert compileClasspathAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
         assert runtimeClasspathAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
     }
@@ -327,8 +322,8 @@ compileJava {
 """
 
         expect:
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds 'compileJava'
-        bytecodeVersion() == 52
+        succeeds 'compileJava'
+        bytecodeVersion() == 55
     }
 
     def "compile with target compatibility"() {
@@ -390,60 +385,58 @@ compileJava {
         bytecodeVersion() == 52
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(UnitTestPreconditions.Jdk12OrLater)
     def "compile fails when using newer API with release option"() {
         given:
-        file("src/main/java/compile/test/FailsOnJava8.java") << '''
+        file("src/main/java/compile/test/FailsOnJava11.java") << '''
 package compile.test;
 
 import java.util.stream.Stream;
 import java.util.function.Predicate;
 
-public class FailsOnJava8<T> {
-    public Stream<T> takeFromStream(Stream<T> stream) {
-        return stream.takeWhile(Predicate.isEqual("foo"));
+public class FailsOnJava11<T> {
+    static {
+        System.out.println("Hello, world!".describeConstable());
     }
 }
 '''
 
         buildFile << """
-java.toolchain.languageVersion = JavaLanguageVersion.of(11)
-compileJava.options.compilerArgs.addAll(['--release', '8'])
+compileJava.options.compilerArgs.addAll(['--release', '11'])
 """
 
         expect:
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).fails 'compileJava'
+        fails 'compileJava'
         output.contains(logStatement())
         failure.assertHasErrorOutput("cannot find symbol")
-        failure.assertHasErrorOutput("method takeWhile")
+        failure.assertHasErrorOutput("method describeConstable")
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(UnitTestPreconditions.Jdk12OrLater)
     def "compile fails when using newer API with release property"() {
         given:
-        file("src/main/java/compile/test/FailsOnJava8.java") << '''
+        file("src/main/java/compile/test/FailsOnJava11.java") << '''
 package compile.test;
 
 import java.util.stream.Stream;
 import java.util.function.Predicate;
 
-public class FailsOnJava8<T> {
-    public Stream<T> takeFromStream(Stream<T> stream) {
-        return stream.takeWhile(Predicate.isEqual("foo"));
+public class FailsOnJava11<T> {
+    static {
+        System.out.println("Hello, world!".describeConstable());
     }
 }
 '''
 
         buildFile << """
-java.toolchain.languageVersion = JavaLanguageVersion.of(11)
-compileJava.options.release.set(8)
+compileJava.options.release.set(11)
 """
 
         expect:
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).fails 'compileJava'
+        fails 'compileJava'
         output.contains(logStatement())
         failure.assertHasErrorOutput("cannot find symbol")
-        failure.assertHasErrorOutput("method takeWhile")
+        failure.assertHasErrorOutput("method describeConstable")
     }
 
     def buildScript() {
@@ -531,7 +524,6 @@ class Main {
         when:
         buildFile << """
             apply plugin: "java"
-            java.toolchain.languageVersion = JavaLanguageVersion.of(11)
             dependencies {
                 compileOnly project(":processor")
                 annotationProcessor project(":processor")
@@ -545,7 +537,7 @@ class Main {
         }"""
 
         then:
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds("compileJava")
+        succeeds("compileJava")
         javaGeneratedSourceFile('Java$$Generated.java').exists()
     }
 
@@ -553,7 +545,6 @@ class Main {
         file("processor").create {
             file("build.gradle") << """
                 apply plugin: 'java'
-                java.toolchain.languageVersion = JavaLanguageVersion.of(11)
             """
             "src/main" {
                 file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"
