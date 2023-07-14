@@ -15,69 +15,83 @@
 [[installation]]
 = Installing Gradle
 
-You can install the Gradle build tool on Linux, macOS, or Windows.
-This document covers installing using a package manager like SDKMAN! or Homebrew, as well as manual installation.
+You can install Gradle Build Tool on Linux, macOS, or Windows.
 
-Use of the <<gradle_wrapper.adoc#sec:upgrading_wrapper,Gradle Wrapper>> is the recommended way to upgrade Gradle.
+The installation can be done manually or using a package manager like https://sdkman.io/[SDKMAN!] or https://brew.sh/[Homebrew].
 
-You can find all releases and their checksums on the link:{website}/releases[releases page].
+Please use the <<gradle_wrapper.adoc#sec:upgrading_wrapper,Gradle Wrapper>> to upgrade Gradle.
+You can find all Gradle releases and their checksums on the link:{website}/releases[releases page].
 
 [[sec:prerequisites]]
 == Prerequisites
-Gradle runs on all major operating systems and requires only a link:{jdkDownloadUrl}[Java Development Kit] version {minJdkVersion} or higher to run. To check, run `java -version`. You should see something like this:
+Gradle runs on all major operating systems. It requires link:{jdkDownloadUrl}[Java Development Kit] (JDK) version {minJdkVersion} or higher to run. You can check the <<compatibility.adoc#compatibility,compatibility matrix>> for more information.
+
+To check, run `java -version`:
 
 ----
 ❯ java -version
-java version "1.8.0_151"
+openjdk version "11.0.18" 2023-01-17
+OpenJDK Runtime Environment Homebrew (build 11.0.18+0)
+OpenJDK 64-Bit Server VM Homebrew (build 11.0.18+0, mixed mode)
+----
+
+----
+❯ java version "1.8.0_151"
 Java(TM) SE Runtime Environment (build 1.8.0_151-b12)
 Java HotSpot(TM) 64-Bit Server VM (build 25.151-b12, mixed mode)
 ----
 
-Gradle ships with its own Groovy library, therefore Groovy does not need to be installed. Any existing Groovy installation is ignored by Gradle.
+Gradle uses the JDK it finds in your path, the JDK used by your IDE, or the JDK specified by your project.
 
-Gradle uses whatever JDK it finds in your path. Alternatively, you can set the `JAVA_HOME` environment variable to point to the installation directory of the desired JDK.
+----
+echo $PATH
+/opt/homebrew/opt/openjdk@17/bin
+----
+
+You can also set the `JAVA_HOME` environment variable to point to a specific JDK installation directory.
+
+----
+❯ echo %JAVA_HOME%
+C:\Program Files\Java\jdk1.7.0_80
+----
+
+----
+❯ echo $JAVA_HOME
+/Library/Java/JavaVirtualMachines/jdk-16.jdk/Contents/Home
+----
+
+Gradle supports Kotlin and Groovy as the main build languages.
+Gradle ships with its own Kotlin and Groovy libraries, therefore they do not need to be installed.
+Existing installations are ignored by Gradle.
 
 <<compatibility.adoc#compatibility, See the full compatibility notes for Java, Groovy, Kotlin and Android.>>
 
-== Installing with a package manager
+== Linux installation
 
-link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-like systems (macOS, Linux, Cygwin, Solaris and FreeBSD). We deploy and maintain the versions available from SDKMAN!.
+=== >> Installing with a package manager
+
+link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-like systems (macOS, Linux, Cygwin, Solaris and FreeBSD).
+Gradle is deployed and maintained by SDKMAN!:
 
 ----
 ❯ sdk install gradle
 ----
 
-link:http://brew.sh[Homebrew] is "the missing package manager for macOS".
+Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc.
+Linux package managers may distribute a modified version of Gradle that is incompatible or incomplete when compared to the official version.
 
-----
-❯ brew install gradle
-----
+=== >> Installing manually
 
-link:https://www.macports.org[MacPorts] is another package manager for macOS.
-
-----
-❯ sudo port install gradle
-----
-
-Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc. Linux package managers may distribute a modified version of Gradle that is incompatible or incomplete when compared to the official version (available from SDKMAN! or below).
-
-<<#sec:installation_next_steps,↓ Proceed to next steps>>
-
-
-== Installing manually
-
-=== Step 1. link:{website}/releases[Download] the latest Gradle distribution
+**Step 1 - link:{website}/releases[Download] the latest Gradle distribution**
 
 The distribution ZIP file comes in two flavors:
 
- - Binary-only (bin)
- - Complete (all) with docs and sources
+- Binary-only (bin)
+- Complete (all) with docs and sources
 
-Need to work with an older version? See the link:{website}/releases[releases page].
+We recommend downloading the bin file; it is a smaller file that is quick to download (and the latest documentation is available online).
 
-=== Step 2. Unpack the distribution
-
-==== Linux & MacOS users
+**Step 2 - Unpack the distribution**
 
 Unzip the distribution zip file in the directory of your choosing, e.g.:
 
@@ -89,21 +103,11 @@ Unzip the distribution zip file in the directory of your choosing, e.g.:
 LICENSE  NOTICE  bin  README  init.d  lib  media
 ----
 
-==== Microsoft Windows users
-
-Create a new directory `C:\Gradle` with **File Explorer**.
-
-Open a second **File Explorer** window and go to the directory where the Gradle distribution was downloaded. Double-click the ZIP archive to expose the content. Drag the content folder `gradle-{gradleVersion}` to your newly created `C:\Gradle` folder.
-
-Alternatively, you can unpack the Gradle distribution ZIP into `C:\Gradle` using an archiver tool of your choice.
-
-=== Step 3. Configure your system environment
-
-To run Gradle, the path to the unpacked files from the Gradle website need to be on your terminal's path. The steps to do this are different for each operating system.
-
 [[sec:linux_macos_users_2]]
-==== Linux & MacOS users
 
+**Step 3 - Configure your system environment**
+
+To install Gradle, the path to the unpacked files needs to be in your Path.
 Configure your `PATH` environment variable to include the `bin` directory of the unzipped distribution, e.g.:
 
 [subs="attributes"]
@@ -111,21 +115,124 @@ Configure your `PATH` environment variable to include the `bin` directory of the
 ❯ export PATH=$PATH:/opt/gradle/gradle-{gradleVersion}/bin
 ----
 
-Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.  Instead of adding a specific version of Gradle to your `PATH`, you can add `__$GRADLE_HOME__/bin` to your `PATH`.  When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
+Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.
+Instead of adding a specific version of Gradle to your `PATH`, you can add `$GRADLE_HOME/bin` to your `PATH`.
+When upgrading to a different version of Gradle, simply change the `GRADLE_HOME` environment variable.
 
-==== Microsoft Windows users
+[subs="attributes"]
+----
+export GRADLE_HOME=/opt/gradle/gradle-{gradleVersion}
+export PATH=${GRADLE_HOME}/bin:${PATH}
+----
+
+== macOS installation
+
+=== >> Installing with a package manager
+
+link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-like systems (macOS, Linux, Cygwin, Solaris and FreeBSD).
+Gradle is deployed and maintained by SDKMAN!:
+
+----
+❯ sdk install gradle
+----
+
+Using link:http://brew.sh[Homebrew]:
+
+----
+❯ brew install gradle
+----
+
+Using link:https://www.macports.org[MacPorts]:
+
+----
+❯ sudo port install gradle
+----
+
+Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc.
+
+=== >> Installing manually
+
+**Step 1 - link:{website}/releases[Download] the latest Gradle distribution**
+
+The distribution ZIP file comes in two flavors:
+
+- Binary-only (bin)
+- Complete (all) with docs and sources
+
+We recommend downloading the bin file; it is a smaller file that is quick to download (and the latest documentation is available online).
+
+**Step 2 - Unpack the distribution**
+
+Unzip the distribution zip file in the directory of your choosing, e.g.:
+
+[subs="attributes"]
+----
+❯ mkdir /usr/local/gradle
+❯ unzip gradle-{gradleVersion}-bin.zip -d /usr/local/gradle
+❯ ls /usr/local/gradle/gradle-{gradleVersion}
+LICENSE	NOTICE	README	bin	init.d	lib
+----
+
+**Step 3 - Configure your system environment**
+
+To install Gradle, the path to the unpacked files needs to be in your Path.
+Configure your `PATH` environment variable to include the `bin` directory of the unzipped distribution, e.g.:
+
+[subs="attributes"]
+----
+❯ export PATH=$PATH:/usr/local/gradle/gradle-{gradleVersion}/bin
+----
+
+Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.
+Instead of adding a specific version of Gradle to your `PATH`, you can add `$GRADLE_HOME/bin` to your `PATH`.
+When upgrading to a different version of Gradle, simply change the `GRADLE_HOME` environment variable.
+
+It's a good idea to edit `.bash_profile` in your home directory to add `GRADLE_HOME` variable:
+
+[subs="attributes"]
+----
+export GRADLE_HOME=/usr/local/gradle/gradle-{gradleVersion}
+export PATH=$GRADLE_HOME/bin:$PATH
+----
+
+== Windows installation
+
+=== >> Installing manually
+
+**Step 1 - link:{website}/releases[Download] the latest Gradle distribution**
+
+The distribution ZIP file comes in two flavors:
+
+- Binary-only (bin)
+- Complete (all) with docs and sources
+
+We recommend downloading the bin file.
+
+**Step 2 - Unpack the distribution**
+
+Create a new directory `C:\Gradle` with **File Explorer**.
+
+Open a second **File Explorer** window and go to the directory where the Gradle distribution was downloaded. Double-click the ZIP archive to expose the content.
+Drag the content folder `gradle-{gradleVersion}` to your newly created `C:\Gradle` folder.
+
+Alternatively, you can unpack the Gradle distribution ZIP into `C:\Gradle` using the archiver tool of your choice.
+
+**Step 3 - Configure your system environment**
+
+To install Gradle, the path to the unpacked files needs to be in your Path.
 
 In **File Explorer** right-click on the `This PC` (or `Computer`) icon, then click `Properties` -> `Advanced System Settings` -> `Environmental Variables`.
 
-Under `System Variables` select `Path`, then click `Edit`. Add an entry for `C:\Gradle\gradle-{gradleVersion}\bin`. Click OK to save.
+Under `System Variables` select `Path`, then click `Edit`.
+Add an entry for `C:\Gradle\gradle-{gradleVersion}\bin`.
+Click `OK` to save.
 
-Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.  Instead of adding a specific version of Gradle to your `Path`, you can add `__%GRADLE_HOME%__\bin` to your `Path`.  When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
-
-<<#sec:installation_next_steps,↓ Proceed to next steps>>
-
+Alternatively, you can add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.
+Instead of adding a specific version of Gradle to your `Path`, you can add `__%GRADLE_HOME%__\bin` to your `Path`.
+When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
 
 [[sec:running_and_testing_your_installation]]
-== Verifying installation
+== Verify the installation
 
 Open a console (or a Windows command prompt) and run `gradle -v` to run gradle and display the version, e.g.:
 
@@ -137,21 +244,17 @@ Open a console (or a Windows command prompt) and run `gradle -v` to run gradle a
 Gradle {gradleVersion}
 ------------------------------------------------------------
 
-(environment specific information)
+Build time:   2023-03-03 16:41:37 UTC
+Revision:     7d6581558e226a580d91d399f7dfb9e3095c2b1d
+
+Kotlin:       1.8.10
+Groovy:       3.0.13
+Ant:          Apache Ant(TM) version 1.10.11 compiled on July 10 2021
+JVM:          17.0.6 (Homebrew 17.0.6+0)
+OS:           Mac OS X 13.2.1 aarch64
 
 ----
 
-If you run into any trouble, see the <<troubleshooting.adoc#sec:troubleshooting_installation,section on troubleshooting installation>>.
+If you run into any trouble, see the <<troubleshooting.adoc#sec:troubleshooting_installation,section on troubleshooting>>.
 
 You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:{website}/releases[releases page]) and following these <<gradle_wrapper.adoc#sec:verification,verification instructions>>.
-
-[[sec:installation_next_steps]]
-== Next steps
-
-Now that you have Gradle installed, use these resources for getting started:
-
- * Create your first Gradle project by following one of our link:../samples/index.html[step-by-step samples].
- * Sign up for a link:{website}/training/intro-to-gradle/[live introductory Gradle training] with a core engineer.
- * Learn how to achieve common tasks through the <<command_line_interface.adoc#command_line_interface,command-line interface>>.
- * <<build_environment.adoc#build_environment,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.
- * Subscribe to the link:https://newsletter.gradle.org/[Gradle Newsletter] for monthly release and community updates.

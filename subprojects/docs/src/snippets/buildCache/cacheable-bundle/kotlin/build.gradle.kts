@@ -38,7 +38,7 @@ tasks.register<NpmTask>("bundle") {
         .withPropertyName("configFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
-    outputs.file("$buildDir/bundle.js")
+    outputs.file(layout.buildDirectory.file("bundle.js"))
         .withPropertyName("bundle")
 }
 // end::bundle-task[]

@@ -52,6 +52,16 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
 
+### Dry run mode for test execution
+
+It is now possible to run a test without actual test execution. 
+
+This can be useful for quickly verifying which tests will run when [filtering a test suite](userguide/java_testing.html#test_filtering).
+
+Dry run mode can be enabled by either the `--test-dry-run` command-line option or via the [dryRun](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:dryRun) property.
+
+This mode is compatible with the JUnit and TestNG frameworks.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

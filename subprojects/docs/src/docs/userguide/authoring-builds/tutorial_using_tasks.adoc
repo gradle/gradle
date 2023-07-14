@@ -20,7 +20,7 @@ It uses toy examples to explain basic functionality of Gradle, which is helpful 
 Especially if you move to Gradle from other build tools like Ant and want to understand differences and advantages.
 
 However, to get started with a standard project setup, you don't even need to go into these concepts in detail.
-Instead, you can have a quick hands-on introduction, through our <<getting_started.adoc#try_gradle,step-by-step samples>>.
+Instead, you can have a quick hands-on introduction, through our <<introduction.adoc#getting_started,step-by-step tutorial>>.
 
 [[sec:projects_and_tasks]]
 == Projects, plugins and tasks

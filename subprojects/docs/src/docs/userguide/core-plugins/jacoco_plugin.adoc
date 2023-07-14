@@ -31,7 +31,7 @@ include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gra
 ====
 
 If the Java plugin is also applied to your project, a new task named `jacocoTestReport` is created.
-By default, a HTML report is generated at `__$buildDir__/reports/jacoco/test`.
+By default, a HTML report is generated at `layout.buildDirectory.dir("reports/jacoco/test")`.
 
 [NOTE]
 ====
@@ -63,7 +63,7 @@ include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gra
 [%header%autowidth,compact]
 |===
 | Property | Gradle default
-| reportsDirectory | `__$buildDir__/reports/jacoco`
+| reportsDirectory | `layout.buildDirectory.dir("reports/jacoco")`
 |===
 
 
