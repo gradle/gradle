@@ -269,7 +269,7 @@ With the configuration in place, running `./gradlew wrapper --gradle-version {gr
 distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion}-all.zip
 ----
 
-Check out the link:{javadocPath}/[API documentation] for a more detailed description of the available configuration options. You can also find link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[various samples for configuring the Wrapper] in the Gradle distribution.
+Check out the link:{javadocPath}/org/gradle/package-summary.html[API documentation] for a more detailed description of the available configuration options. You can also find link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[various samples for configuring the Wrapper] in the Gradle distribution.
 
 [[sec:authenticated_download]]
 === Authenticated Gradle distribution download
