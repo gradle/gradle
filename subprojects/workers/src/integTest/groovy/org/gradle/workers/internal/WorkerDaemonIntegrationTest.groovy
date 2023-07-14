@@ -167,7 +167,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         """
 
         when:
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds("runInDaemon")
+        withInstallations(AvailableJavaHomes.jdk11).succeeds("runInDaemon")
 
         then:
         assertWorkerExecuted("runInDaemon")

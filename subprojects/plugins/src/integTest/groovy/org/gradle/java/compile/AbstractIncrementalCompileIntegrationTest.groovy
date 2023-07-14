@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.jvm.Jvm
 
 abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture, JavaToolchainFixture {
     abstract CompiledLanguage getLanguage()
@@ -45,27 +44,27 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         """.stripIndent()
 
         when:
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
+        withInstallations(AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
 
         then:
         executedAndNotSkipped ":${language.compileTaskName}"
 
         when:
         buildFile << 'java.sourceCompatibility = 1.8\n'
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
+        withInstallations(AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
 
         then:
         executedAndNotSkipped ":${language.compileTaskName}"
 
         when:
         buildFile << "${language.compileTaskName}.options.debug = false\n"
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
+        withInstallations(AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
 
         then:
         executedAndNotSkipped ":${language.compileTaskName}"
 
         when:
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
+        withInstallations(AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
 
         then:
         skipped ":${language.compileTaskName}"

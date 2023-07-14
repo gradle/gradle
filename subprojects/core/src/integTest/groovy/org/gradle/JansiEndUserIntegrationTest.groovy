@@ -19,7 +19,6 @@ package org.gradle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.jvm.Jvm
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -90,7 +89,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec implements Jav
             public class MyClass {}
         """
 
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds 'compileJava'
+        withInstallations(AvailableJavaHomes.jdk11).succeeds 'compileJava'
 
         then:
         outputContains('Hello World')
@@ -100,7 +99,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec implements Jav
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
         annotationProcessorPublisher.writeSourceFiles()
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11)
+        withInstallations(AvailableJavaHomes.jdk11)
             .inDirectory(annotationProcessorPublisher.projectDir)
             .withTasks('publish')
             .run()
@@ -129,7 +128,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec implements Jav
             class MyClass {}
         """
 
-        withInstallations(Jvm.current(), AvailableJavaHomes.jdk11).succeeds 'compileGroovy'
+        withInstallations(AvailableJavaHomes.jdk11).succeeds 'compileGroovy'
 
         then:
         outputContains('Hello World')
