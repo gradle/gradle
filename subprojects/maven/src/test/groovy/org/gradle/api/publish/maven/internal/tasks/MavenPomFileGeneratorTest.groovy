@@ -18,18 +18,13 @@ package org.gradle.api.publish.maven.internal.tasks
 
 import com.google.common.collect.ImmutableList
 import groovy.xml.XmlSlurper
-import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency
+import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenPomDependencies
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependency
-import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
+import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDependencies
-import org.gradle.api.publish.maven.internal.publication.MavenPomDependencies
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,13 +36,6 @@ import spock.lang.Specification
 class MavenPomFileGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
-    def rangeMapper = Stub(VersionRangeMapper)
-    def strategy = Stub(VersionMappingStrategyInternal) {
-        findStrategyForVariant(_) >> Stub(VariantVersionMappingStrategyInternal) {
-            maybeResolveVersion(_, _, _) >> null
-        }
-    }
-    def generator = new MavenPomFileGenerator(rangeMapper, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
     def pom = newPom()
 
     def "writes correct prologue and schema declarations"() {
@@ -174,19 +162,16 @@ class MavenPomFileGeneratorTest extends Specification {
     }
 
     def "writes regular dependency"() {
-        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version")
-        pom.getDependencies().set(runtimeDependencies(dependency))
+        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", null, null, "runtime", [] as Set, false)
+        pom.getDependencies().set(pomDependencies(dependency))
 
-        when:
-        rangeMapper.map("dep-version") >> "maven-dep-version"
-
-        then:
+        expect:
         with (xml) {
             dependencies.dependency.size() == 1
             with (dependencies[0].dependency[0]) {
                 groupId == "dep-group"
                 artifactId == "dep-name"
-                version == "maven-dep-version"
+                version == "dep-version"
                 scope == "runtime"
             }
         }
@@ -194,8 +179,8 @@ class MavenPomFileGeneratorTest extends Specification {
 
     def "writes regular dependency without exclusions"() {
         given:
-        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version")
-        pom.getDependencies().set(runtimeDependencies(dependency))
+        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", null, null, "runtime", [] as Set, false)
+        pom.getDependencies().set(pomDependencies(dependency))
 
         expect:
         with (xml) {
@@ -208,9 +193,9 @@ class MavenPomFileGeneratorTest extends Specification {
         def exclude1 = Mock(ExcludeRule)
         def exclude2 = Mock(ExcludeRule)
         def exclude3 = Mock(ExcludeRule)
-        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", [], [exclude1, exclude2, exclude3])
+        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", null, null, "runtime", [exclude1, exclude2, exclude3] as Set, false)
 
-        pom.getDependencies().set(runtimeDependencies(dependency))
+        pom.getDependencies().set(pomDependencies(dependency))
 
         when:
         exclude1.group >> "excl-1-group"
@@ -239,27 +224,18 @@ class MavenPomFileGeneratorTest extends Specification {
     }
 
     def "writes dependency with artifacts"() {
-        def artifact1 = Mock(DependencyArtifact)
-        def artifact2 = Mock(DependencyArtifact)
-        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", [artifact1, artifact2], [])
-        pom.getDependencies().set(runtimeDependencies(dependency))
+        pom.getDependencies().set(pomDependencies([
+            new DefaultMavenDependency("dep-group", "artifact-1", "dep-version", "type-1", "classifier-1", "runtime", [] as Set, false),
+            new DefaultMavenDependency("dep-group", "artifact-2", "dep-version", null, null, "runtime", [] as Set, false),
+        ]))
 
-        when:
-        rangeMapper.map("dep-version") >> "maven-dep-version"
-        artifact1.name >> "artifact-1"
-        artifact1.type >> "type-1"
-        artifact1.classifier >> "classifier-1"
-        artifact2.name >> "artifact-2"
-        artifact2.type >> null
-        artifact2.classifier >> null
-
-        then:
+        expect:
         with (xml) {
             dependencies.dependency.size() == 2
             with (dependencies[0].dependency[0]) {
                 groupId == "dep-group"
                 artifactId == "artifact-1"
-                version == "maven-dep-version"
+                version == "dep-version"
                 type == "type-1"
                 classifier == "classifier-1"
                 scope == "runtime"
@@ -267,7 +243,7 @@ class MavenPomFileGeneratorTest extends Specification {
             with (dependencies[0].dependency[1]) {
                 groupId == "dep-group"
                 artifactId == "artifact-2"
-                version == "maven-dep-version"
+                version == "dep-version"
                 type.empty
                 classifier.empty
                 scope == "runtime"
@@ -291,25 +267,24 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-    private MavenPomDependencies runtimeDependencies(MavenDependency dependency) {
-        return new DefaultMavenPomDependencies(
-            ImmutableList.of(dependency), ImmutableList.of(), ImmutableList.of(), ImmutableList.of(),
-            ImmutableList.of(), ImmutableList.of(), ImmutableList.of()
-        )
+    private MavenPomDependencies pomDependencies(MavenDependency dependency) {
+        return new DefaultMavenPomDependencies(ImmutableList.of(dependency), ImmutableList.of())
+    }
+
+    private MavenPomDependencies pomDependencies(Collection<MavenDependency> dependency) {
+        return new DefaultMavenPomDependencies(ImmutableList.copyOf(dependency), ImmutableList.of())
     }
 
     private MavenPomInternal newPom() {
         MavenPomInternal pom = TestUtil.objectFactory().newInstance(
             DefaultMavenPom.class,
-            TestUtil.objectFactory(),
-            strategy
+            TestUtil.objectFactory()
         )
 
         pom.coordinates.groupId.set("group-id")
         pom.coordinates.artifactId.set("artifact-id")
         pom.coordinates.version.set("1.0")
 
-        pom.dependencies.set(DefaultMavenPomDependencies.EMPTY)
         pom.getWriteGradleMetadataMarker().set(true)
 
         return pom
@@ -321,7 +296,7 @@ class MavenPomFileGeneratorTest extends Specification {
 
     private TestFile writePomFile() {
         def pomFile = testDirectoryProvider.testDirectory.file("pom.xml")
-        generator.generateSpec(pom).writeTo(pomFile)
+        MavenPomFileGenerator.generateSpec(pom).writeTo(pomFile)
         return pomFile
     }
 }

@@ -123,7 +123,9 @@ class ModuleMetadataSpecBuilder {
 
     private List<ModuleMetadataSpec.Variant> variants() {
         ArrayList<ModuleMetadataSpec.Variant> variants = new ArrayList<>();
-        for (SoftwareComponentVariant variant : component.get().getUsages()) {
+        SoftwareComponentInternal softwareComponent = component.get();
+        checker.checkComponent(softwareComponent);
+        for (SoftwareComponentVariant variant : softwareComponent.getUsages()) {
             checkVariant(variant);
             variants.add(
                 new ModuleMetadataSpec.LocalVariant(
@@ -136,8 +138,9 @@ class ModuleMetadataSpecBuilder {
                 )
             );
         }
-        if (component.get() instanceof ComponentWithVariants) {
-            for (SoftwareComponent childComponent : ((ComponentWithVariants) component.get()).getVariants()) {
+        if (softwareComponent instanceof ComponentWithVariants) {
+            for (SoftwareComponent childComponent : ((ComponentWithVariants) softwareComponent).getVariants()) {
+                checker.checkComponent(childComponent);
                 ModuleVersionIdentifier childCoordinates = coordinatesOf(childComponent);
                 assert childCoordinates != null;
                 if (childComponent instanceof SoftwareComponentInternal) {
