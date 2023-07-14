@@ -17,12 +17,11 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 
-abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture, JavaToolchainFixture {
+abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
     abstract CompiledLanguage getLanguage()
 
     def setup() {
@@ -36,35 +35,34 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         file("src/main/${language.name}/Test.${language.name}") << 'public class Test{}'
         buildFile << """
             apply plugin: '${language.name}'
-            java.toolchain.languageVersion = JavaLanguageVersion.of(11)
-            java.sourceCompatibility = '1.7'
+            java.sourceCompatibility = '${Jvm.current().javaVersion.previous()}'
             ${language.compileTaskName}.options.debug = true
             ${language.compileTaskName}.options.incremental = true
             ${language.projectGroovyDependencies()}
         """.stripIndent()
 
         when:
-        withInstallations(AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
+        succeeds ":${language.compileTaskName}"
 
         then:
         executedAndNotSkipped ":${language.compileTaskName}"
 
         when:
-        buildFile << 'java.sourceCompatibility = 1.8\n'
-        withInstallations(AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
+        buildFile << "java.sourceCompatibility = '${Jvm.current().javaVersion}'\n"
+        succeeds ":${language.compileTaskName}"
 
         then:
         executedAndNotSkipped ":${language.compileTaskName}"
 
         when:
         buildFile << "${language.compileTaskName}.options.debug = false\n"
-        withInstallations(AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
+        succeeds ":${language.compileTaskName}"
 
         then:
         executedAndNotSkipped ":${language.compileTaskName}"
 
         when:
-        withInstallations(AvailableJavaHomes.jdk11).succeeds ":${language.compileTaskName}"
+        succeeds ":${language.compileTaskName}"
 
         then:
         skipped ":${language.compileTaskName}"
