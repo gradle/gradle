@@ -48,9 +48,7 @@ class ProgramParserTest {
     fun `empty Stage 1 with non-empty Stage 2 parse to Stage 2 with Stage 1 fragments erased`() {
 
         val scriptOnlySource =
-            programSourceWith("""
-                @Suppress("unused_variable")
-                println("Stage 2")""".trimIndent())
+            programSourceWith("println(\"Stage 2\")")
 
         assertProgramOf(
             scriptOnlySource,
@@ -58,16 +56,13 @@ class ProgramParserTest {
         )
 
         val emptyBuildscriptSource =
-            programSourceWith("""
-                buildscript { }
-                @Suppress("unused_variable")
-                println("Stage 2")""".trimIndent())
+            programSourceWith("buildscript { }\nprintln(\"Stage 2\")")
 
         assertProgramOf(
             emptyBuildscriptSource,
             Program.Script(
                 emptyBuildscriptSource.map {
-                    text("               \n@Suppress(\"unused_variable\")\nprintln(\"Stage 2\")")
+                    text("               \nprintln(\"Stage 2\")")
                 }
             )
         )
@@ -75,14 +70,12 @@ class ProgramParserTest {
 
     @Test
     fun `non-empty Stage 1 with empty Stage 2 parse to Stage 1`() {
-        val source = programSourceWith("""
-            @Suppress("unused_variable")
-            buildscript { println("Stage 1") }
-            """.trimIndent())
+
+        val source = programSourceWith(" buildscript { println(\"Stage 1\") } ")
 
         assertProgramOf(
             source,
-            Program.Buildscript(source.fragment(29..39, 41..62, 0))
+            Program.Buildscript(source.fragment(1..11, 13..34))
         )
     }
 
@@ -91,38 +84,14 @@ class ProgramParserTest {
 
         val source = ProgramSource(
             "/src/fragment.gradle.kts",
-            """
-            // a comment
-            @Suppress("unused_variable")
-
-            /* more comments */
-            @Suppress("whatever")
-
-            plugins {
-              java
-            }
-            @Suppress("nothing_really")
-            println("Stage 2")
-            """.trimIndent()
+            "\r\n\r\nplugins {\r\n  java\r\n}\r\nprintln(\"Stage 2\")\r\n\r\n"
         )
-
-        val expectedScript = "            \n" +
-            "                            \n" +
-            "\n                   " +
-            "\n                     " +
-            "\n" +
-            "\n         " +
-            "\n      " +
-            "\n " +
-            "\n" +
-            "@Suppress(\"nothing_really\")\n" +
-            "println(\"Stage 2\")"
 
         assertProgramOf(
             source,
             Program.Staged(
-                Program.Plugins(source.fragment(86..92, 94..103, 13)),
-                Program.Script(source.map { text(expectedScript) })
+                Program.Plugins(source.fragment(2..8, 10..19)),
+                Program.Script(source.map { text("\n\n         \n      \n \nprintln(\"Stage 2\")") })
             )
         )
     }
@@ -226,42 +195,34 @@ class ProgramParserTest {
 
         val source = programSourceWith(
             """
-            @Suppress("unused_variable")
             plugins {
                 `kotlin-dsl`
             }
 
-            @Suppress("whatever")
             buildscript {
                 dependencies {
                     classpath("org.acme:plugin:1.0")
                 }
             }
 
-            @Suppress("nothing_at_all")
             dependencies {
                 implementation("org.acme:lib:1.0")
             }
-            """.trimIndent()
+            """
         )
 
         val expectedScriptSource = programSourceWith(
-            "                            \n" +
-                "         \n" +
-                "                \n" +
-                " \n" +
-                "\n" +
-                "                     \n" +
-                "             \n" +
-                "                  \n" +
-                "                                        \n" +
-                "     \n" +
-                " \n" +
-                "\n" +
-                "@Suppress(\"nothing_at_all\")\n" +
-                "dependencies {\n" +
-                "    implementation(\"org.acme:lib:1.0\")\n" +
-                "}"
+            "\n                     " +
+                "\n                            " +
+                "\n             " +
+                "\n\n                         " +
+                "\n                              " +
+                "\n                                                    " +
+                "\n                 " +
+                "\n             " +
+                "\n\n            dependencies {" +
+                "\n                implementation(\"org.acme:lib:1.0\")" +
+                "\n            }"
         )
 
         assertProgramOf(
@@ -269,8 +230,8 @@ class ProgramParserTest {
             Program.Staged(
                 Program.Stage1Sequence(
                     null,
-                    Program.Buildscript(source.fragment(81..91, 93..161)),
-                    Program.Plugins(source.fragment(29..35, 37..56))
+                    Program.Buildscript(source.fragment(79..89, 91..207)),
+                    Program.Plugins(source.fragment(13..19, 21..64))
                 ),
                 Program.Script(expectedScriptSource)
             )
@@ -281,20 +242,22 @@ class ProgramParserTest {
     fun assertEmptyProgram(contents: String, programTarget: ProgramTarget = ProgramTarget.Project) {
         assertProgramOf(programSourceWith(contents), Program.Empty, programTarget = programTarget)
     }
-
-    private
-    fun assertProgramOf(
-        source: ProgramSource,
-        expected: Program,
-        programKind: ProgramKind = ProgramKind.TopLevel,
-        programTarget: ProgramTarget = ProgramTarget.Project
-    ) {
-        val program = ProgramParser.parse(source, programKind, programTarget)
-        val actual = program.document
-        assertThat(actual, equalTo(expected))
-    }
-
-    private
-    fun programSourceWith(contents: String) =
-        ProgramSource("/src/build.gradle.kts", contents)
 }
+
+
+internal
+fun assertProgramOf(
+    source: ProgramSource,
+    expected: Program,
+    programKind: ProgramKind = ProgramKind.TopLevel,
+    programTarget: ProgramTarget = ProgramTarget.Project
+) {
+    val program = ProgramParser.parse(source, programKind, programTarget)
+    val actual = program.document
+    assertThat(actual, equalTo(expected))
+}
+
+
+internal
+fun programSourceWith(contents: String) =
+    ProgramSource("/src/build.gradle.kts", contents)

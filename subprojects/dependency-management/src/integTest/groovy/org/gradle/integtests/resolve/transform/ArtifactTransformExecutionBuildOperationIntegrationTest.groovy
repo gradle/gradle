@@ -94,8 +94,8 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
         executionIdentifications.size() == 2
-        def projectTransformIdentification = executionIdentifications.find { it.inputArtifactName == 'producer.jar' }
-        def externalTransformIdentification = executionIdentifications.find { it.inputArtifactName == 'test-4.2.jar' }
+        def projectTransformIdentification = executionIdentifications.find { it.artifactName == 'producer.jar' }
+        def externalTransformIdentification = executionIdentifications.find { it.artifactName == 'test-4.2.jar' }
 
         List<BuildOperationRecord> executions = getTransformExecutions()
         executions.size() == 2

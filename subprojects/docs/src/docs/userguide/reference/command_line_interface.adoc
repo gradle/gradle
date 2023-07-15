@@ -455,7 +455,7 @@ Build projects in parallel. For limitations of this option, see <<multi_project_
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
 
 `--profile`::
-Generates a high-level performance report in the `$buildDir/reports/profile` directory. `--scan` is preferred.
+Generates a high-level performance report in the `layout.buildDirectory.dir("reports/profile")` directory. `--scan` is preferred.
 
 `--scan`::
 Generate a build scan with detailed performance diagnostics.
