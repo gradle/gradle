@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.consumer.parameters;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FinishEvent;
@@ -83,22 +82,13 @@ import org.gradle.tooling.events.task.internal.java.DefaultAnnotationProcessorRe
 import org.gradle.tooling.events.task.internal.java.DefaultJavaCompileTaskSuccessResult;
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult;
 import org.gradle.tooling.events.test.Destination;
-import org.gradle.tooling.events.test.JvmTestKind;
-import org.gradle.tooling.events.test.TestFinishEvent;
-import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationResult;
 import org.gradle.tooling.events.test.TestOutputDescriptor;
 import org.gradle.tooling.events.test.TestOutputEvent;
-import org.gradle.tooling.events.test.TestProgressEvent;
-import org.gradle.tooling.events.test.TestStartEvent;
-import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
-import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
-import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
 import org.gradle.tooling.events.transform.TransformFinishEvent;
 import org.gradle.tooling.events.transform.TransformOperationDescriptor;
@@ -139,7 +129,6 @@ import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
 import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
-import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalNotFoundFileDownloadResult;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
@@ -161,15 +150,11 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
@@ -189,88 +174,6 @@ import static java.util.Collections.emptyList;
 public class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
     private final DescriptorCache descriptorCache = new DescriptorCache();
-
-    @NonNullApi
-    interface ProgressListenerBroadcaster {
-        boolean canHandle(Class<?> eventType);
-
-        void broadCast(Object progressEvent);
-    }
-
-    @NonNullApi
-    static class ProgressListenerBroadcasterAdapter {
-        protected ListenerBroadcast<ProgressListener> listeners = new ListenerBroadcast<>(ProgressListener.class);
-        private final Class<?> handledEventType;
-
-        public ProgressListenerBroadcasterAdapter(Class<?> handledEventType) {
-            this.handledEventType = handledEventType;
-        }
-
-        public boolean canHandle(Class<?> eventType) {
-            return eventType == handledEventType;
-        }
-    }
-
-    @NonNullApi
-    static class TestProgressBroadcaster extends ProgressListenerBroadcasterAdapter implements ProgressListenerBroadcaster {
-        private final DescriptorCache dc;
-
-        public TestProgressBroadcaster(DescriptorCache descriptorCache){
-            super(InternalTestProgressEvent.class);
-            this.dc = descriptorCache;
-        }
-        @Override
-        public void broadCast(Object progressEvent) {
-            TestProgressEvent testProgressEvent = toTestProgressEvent((InternalTestProgressEvent)progressEvent);
-            if (testProgressEvent != null) {
-                listeners.getSource().statusChanged(testProgressEvent);
-            }
-        }
-
-        private TestProgressEvent toTestProgressEvent(InternalTestProgressEvent event) {
-            if (event instanceof InternalTestStartedProgressEvent) {
-                return testStartedEvent((InternalTestStartedProgressEvent) event);
-            } else if (event instanceof InternalTestFinishedProgressEvent) {
-                return testFinishedEvent((InternalTestFinishedProgressEvent) event);
-            } else {
-                return null;
-            }
-        }
-
-        private TestFinishEvent testFinishedEvent(InternalTestFinishedProgressEvent event) {
-            TestOperationDescriptor clientDescriptor = dc.removeDescriptor(TestOperationDescriptor.class, event.getDescriptor());
-            return new DefaultTestFinishEvent(event.getEventTime(), event.getDisplayName(), clientDescriptor, toTestResult(event.getResult()));
-        }
-
-        private TestOperationResult toTestResult(InternalTestResult result) {
-            if (result instanceof InternalTestSuccessResult) {
-                return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
-            } else if (result instanceof InternalTestSkippedResult) {
-                return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
-            } else if (result instanceof InternalTestFailureResult) {
-                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
-            } else {
-                return null;
-            }
-        }
-
-        private TestStartEvent testStartedEvent(InternalTestStartedProgressEvent event) {
-            TestOperationDescriptor clientDescriptor = dc.addDescriptor(event.getDescriptor(), toTestDescriptor(event.getDescriptor()));
-            return new DefaultTestStartEvent(event.getEventTime(), event.getDisplayName(), clientDescriptor);
-        }
-
-        private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
-            OperationDescriptor parent = dc.getParentDescriptor(descriptor.getParentId());
-            if (descriptor instanceof InternalJvmTestDescriptor) {
-                InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
-                return new DefaultJvmTestOperationDescriptor(jvmTestDescriptor, parent,
-                    toJvmTestKind(jvmTestDescriptor.getTestKind()), jvmTestDescriptor.getSuiteName(), jvmTestDescriptor.getClassName(), jvmTestDescriptor.getMethodName());
-            } else {
-                return new DefaultTestOperationDescriptor(descriptor, parent);
-            }
-        }
-
-    }
 
     private final List<ProgressListenerBroadcaster> broadcasters = new ArrayList<>();
 
@@ -397,9 +300,14 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private void broadcastProgressEvent(ProgressEvent event) {
-        if (event instanceof TestProgressEvent) {
-            testProgressListeners.getSource().statusChanged(event);
-        } else if (event instanceof TaskProgressEvent) {
+        for(ProgressListenerBroadcaster broadcaster : broadcasters) {
+            if(broadcaster.canHandleProgressEvent(event.getClass())) {
+                broadcaster.getListeners().getSource().statusChanged(event);
+                return;
+            }
+        }
+
+        if (event instanceof TaskProgressEvent) {
             taskProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof WorkItemProgressEvent) {
             workItemProgressListeners.getSource().statusChanged(event);
@@ -420,7 +328,17 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private void broadcastInternalProgressEvent(InternalProgressEvent progressEvent) {
+
+
         InternalOperationDescriptor descriptor = progressEvent.getDescriptor();
+
+
+//        for(ProgressListenerBroadcaster broadcaster : broadcasters) {
+//            if(broadcaster.canHandleDescriptor(descriptor.getClass())) {
+//                broadcaster.getListeners().getSource().statusChanged(event);
+//                return;
+//            }
+//        }
         if (descriptor instanceof InternalTaskDescriptor) {
             broadcastTaskProgressEvent(progressEvent, (InternalTaskDescriptor) descriptor);
         } else if (descriptor instanceof InternalWorkItemDescriptor) {
@@ -694,39 +612,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultFinishEvent<>(event.getEventTime(), event.getDisplayName(), descriptor, toResult(event.getResult()));
     }
 
-    private synchronized <T extends OperationDescriptor> T addDescriptor(InternalOperationDescriptor descriptor, T clientDescriptor) {
-        return descriptorCache.addDescriptor(descriptor, clientDescriptor);
-    }
-
-    private synchronized <T extends OperationDescriptor> T removeDescriptor(Class<T> type, InternalOperationDescriptor descriptor) {
-        return descriptorCache.removeDescriptor(type, descriptor);
-    }
-
-    private <T extends OperationDescriptor> T assertDescriptorType(Class<T> type, OperationDescriptor descriptor) {
-        return descriptorCache.assertDescriptorType(type, descriptor);
-    }
-
-    private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
-        OperationDescriptor parent = descriptorCache.getParentDescriptor(descriptor.getParentId());
-        if (descriptor instanceof InternalJvmTestDescriptor) {
-            InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
-            return new DefaultJvmTestOperationDescriptor(jvmTestDescriptor, parent,
-                toJvmTestKind(jvmTestDescriptor.getTestKind()), jvmTestDescriptor.getSuiteName(), jvmTestDescriptor.getClassName(), jvmTestDescriptor.getMethodName());
-        } else {
-            return new DefaultTestOperationDescriptor(descriptor, parent);
-        }
-    }
-
-    private static JvmTestKind toJvmTestKind(String testKind) {
-        if (InternalJvmTestDescriptor.KIND_SUITE.equals(testKind)) {
-            return JvmTestKind.SUITE;
-        } else if (InternalJvmTestDescriptor.KIND_ATOMIC.equals(testKind)) {
-            return JvmTestKind.ATOMIC;
-        } else {
-            return JvmTestKind.UNKNOWN;
-        }
-    }
-
     private TaskOperationDescriptor toTaskDescriptor(InternalTaskDescriptor descriptor) {
         OperationDescriptor parent = descriptorCache.getParentDescriptor(descriptor.getParentId());
         if (descriptor instanceof InternalTaskWithExtraInfoDescriptor) {
@@ -895,7 +780,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static List<Failure> toFailures(List<? extends InternalFailure> causes) {
+    public static List<Failure> toFailures(List<? extends InternalFailure> causes) {
         if (causes == null) {
             return null;
         }

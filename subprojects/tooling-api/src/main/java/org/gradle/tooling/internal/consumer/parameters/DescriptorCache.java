@@ -22,6 +22,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -29,7 +30,7 @@ import java.util.Set;
 
 @NonNullApi
 public class DescriptorCache {
-    final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
+    final Map<Object, OperationDescriptor> descriptorCache = new HashMap<>();
 
     public DescriptorCache() {}
 
@@ -62,16 +63,15 @@ public class DescriptorCache {
         return new DefaultOperationDescriptor(descriptor, parent);
     }
 
-    synchronized OperationDescriptor getParentDescriptor(Object parentId) {
+    synchronized OperationDescriptor getParentDescriptor(@Nullable Object parentId) {
         if (parentId == null) {
             return null;
-        } else {
-            OperationDescriptor operationDescriptor = descriptorCache.get(parentId);
-            if (operationDescriptor == null) {
-                throw new IllegalStateException(String.format("Parent operation with id %s not available.", parentId));
-            }
-            return operationDescriptor;
         }
+        OperationDescriptor operationDescriptor = descriptorCache.get(parentId);
+        if (operationDescriptor == null) {
+            throw new IllegalStateException(String.format("Parent operation with id %s not available.", parentId));
+        }
+        return operationDescriptor;
     }
 
     public Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {
