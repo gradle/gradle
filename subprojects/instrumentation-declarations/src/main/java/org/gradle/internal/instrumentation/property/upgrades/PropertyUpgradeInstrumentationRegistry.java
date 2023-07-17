@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.property.upgrades;
 
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
 
 /**
@@ -24,6 +25,6 @@ import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentati
  * Classes that should be visited should be added to the @VisitForInstrumentation annotation, e.g.
  * @VisitForInstrumentation(value = {Checkstyle.class}).
  */
-@VisitForInstrumentation(value = {})
+@VisitForInstrumentation(value = {CompileOptions.class})
 public interface PropertyUpgradeInstrumentationRegistry {
 }

@@ -56,7 +56,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs());
         this.encoding = compileOptions.getEncoding().getOrNull();
         this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
-        this.extensionDirs = compileOptions.getExtensionDirs();
+        this.extensionDirs = compileOptions.getExtensionDirs().getOrNull();
         this.forkOptions = new MinimalJavaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.debugOptions = compileOptions.getDebugOptions();
         this.debug = compileOptions.getDebug().get();

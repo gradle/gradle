@@ -38,6 +38,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -55,18 +56,12 @@ public abstract class CompileOptions extends AbstractOptions {
 
     private DebugOptions debugOptions;
 
-    private boolean fork;
-
     private ForkOptions forkOptions;
 
     private FileCollection bootstrapClasspath;
 
-    private String extensionDirs;
-
     private List<String> compilerArgs = Lists.newArrayList();
     private final List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
-
-    private boolean incremental = true;
 
     private FileCollection sourcepath;
 
@@ -97,36 +92,43 @@ public abstract class CompileOptions extends AbstractOptions {
         this.getDeprecation().convention(false);
         this.getWarnings().convention(true);
         this.getDebug().convention(true);
+        this.getFork().convention(false);
+        this.getIncremental().convention(true);
     }
 
     /**
      * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
      */
     @Input
+    @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
     /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
      */
     @Console
+    @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getVerbose();
 
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
      */
     @Console
+    @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getListFiles();
 
     /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
      */
     @Console
+    @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDeprecation();
 
     /**
      * Tells whether to log warning messages. The default is {@code true}.
      */
     @Console
+    @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getWarnings();
 
     /**
@@ -135,6 +137,7 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     @Optional
     @Input
+    @UpgradedProperty
     public abstract Property<String> getEncoding();
 
     /**
@@ -142,6 +145,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     @Input
+    @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDebug();
 
     /**
@@ -165,18 +169,8 @@ public abstract class CompileOptions extends AbstractOptions {
      * Defaults to {@code false}.
      */
     @Input
-    public boolean isFork() {
-        return fork;
-    }
-
-    /**
-     * Sets whether to run the compiler in its own process. Note that this does
-     * not necessarily mean that a new process will be created for each compile task.
-     * Defaults to {@code false}.
-     */
-    public void setFork(boolean fork) {
-        this.fork = fork;
-    }
+    @UpgradedProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFork();
 
     /**
      * Returns options for running the compiler in a child process.
@@ -217,19 +211,10 @@ public abstract class CompileOptions extends AbstractOptions {
     /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
-    @Nullable
     @Optional
     @Input
-    public String getExtensionDirs() {
-        return extensionDirs;
-    }
-
-    /**
-     * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
-     */
-    public void setExtensionDirs(@Nullable String extensionDirs) {
-        this.extensionDirs = extensionDirs;
-    }
+    @UpgradedProperty
+    public abstract Property<String> getExtensionDirs();
 
     /**
      * Returns any additional arguments to be passed to the compiler.
@@ -286,7 +271,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Calling this method will set {@code fork} to {@code true}.
      */
     public CompileOptions fork(Map<String, Object> forkArgs) {
-        fork = true;
+        getFork().set(true);
         forkOptions.define(forkArgs);
         return this;
     }
@@ -302,20 +287,11 @@ public abstract class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
-     */
-    public CompileOptions setIncremental(boolean incremental) {
-        this.incremental = incremental;
-        return this;
-    }
-
-    /**
-     * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
+     * informs whether to use incremental compilation feature.
      */
     @Internal
-    public boolean isIncremental() {
-        return incremental;
-    }
+    @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
+    public abstract Property<Boolean> getIncremental();
 
     /**
      * Used to enable or disable incremental compilation after a failure.

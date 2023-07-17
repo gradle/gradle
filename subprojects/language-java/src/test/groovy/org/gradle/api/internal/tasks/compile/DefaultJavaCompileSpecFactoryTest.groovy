@@ -28,7 +28,7 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
 
     def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchain"() {
         CompileOptions options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
-        options.fork = fork
+        options.fork.set(fork)
         options.forkOptions.executable = executable ? Jvm.current().javacExecutable.absolutePath : null
 
         def javaToolchain = null

@@ -83,7 +83,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         def invalidJavaHome = "invalidJavaHome"
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.javaHome = new File("invalidJavaHome")
         javaCompile.createSpec()
 
@@ -100,7 +100,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         def javaHomeFile = temporaryFolder.createFile("javaHome")
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.javaHome = javaHomeFile
         javaCompile.createSpec()
 
@@ -117,7 +117,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         def javaHomeDir = temporaryFolder.createDir("javaHome")
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.javaHome = javaHomeDir
         javaCompile.createSpec()
 

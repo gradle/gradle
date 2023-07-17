@@ -25,7 +25,7 @@ public class CompilerForkUtils {
     public static void doNotCacheIfForkingViaExecutable(final CompileOptions compileOptions, TaskOutputs outputs) {
         outputs.doNotCacheIf(
             "Forking compiler via ForkOptions.executable",
-            spec(element -> compileOptions.isFork() && compileOptions.getForkOptions().getExecutable() != null)
+            spec(element -> compileOptions.getFork().get() && compileOptions.getForkOptions().getExecutable() != null)
         );
     }
 }
