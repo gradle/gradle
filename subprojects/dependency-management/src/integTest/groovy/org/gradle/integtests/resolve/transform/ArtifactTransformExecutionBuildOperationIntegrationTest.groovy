@@ -446,6 +446,111 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         executionIdentifications.artifactName ==~ ['file1.jar', 'file2.jar']
     }
 
+    def "transform chains are captured"() {
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithColorAttributes()
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation files("file1.jar", "file2.jar")
+                    implementation project(":producer")
+                    implementation localGroovy()
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'blue')
+                        }
+                    }
+                }
+            }
+
+            abstract class Multiplier implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    assert input.file
+                    for (def i : 1..3) {
+                        def output = outputs.file(input.name + i + ".red")
+                        output.text = input.text + "-red-" + i
+                    }
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    assert input.file
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+
+            allprojects {
+                dependencies {
+                   registerTransform(Multiplier) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'red')
+                    }
+                    registerTransform(MakeGreen) {
+                        from.attribute(color, 'red')
+                        to.attribute(color, 'green')
+                    }
+                }
+            }
+
+        """
+        (1..2).each {
+            file("consumer/file${it}.jar").text = "file $it"
+        }
+
+        when:
+        withBuildCache().run ":consumer:resolveArtifacts"
+        then:
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails).details
+
+        def initialArtifactNames = executionIdentifications.findAll { it.fromAttributes == [color: 'blue'] }.artifactName
+        def intermediateArtifactNames = executionIdentifications.findAll { it.fromAttributes == [color: 'red'] }.artifactName
+        initialArtifactNames + intermediateArtifactNames ==~ executionIdentifications.artifactName
+        intermediateArtifactNames ==~ initialArtifactNames.collectMany { (1..3).collect { idx -> "${it}${idx}.red".toString() }}
+
+        def groupedIdentifications = executionIdentifications.groupBy {
+            def componentId = it.componentId
+            if (componentId.buildPath == ':' && componentId.projectPath == ':producer') {
+                return 'project'
+            }
+            if (componentId.group == 'com.test' && componentId.module == 'test' && componentId.version == '4.2') {
+                return 'module'
+            }
+            if (componentId.displayName == 'Local Groovy') {
+                return 'classpathNotation'
+            }
+            if (componentId.displayName in ['file1.jar', 'file2.jar']) {
+                return 'fileDependency'
+            }
+            return 'unspecified'
+        }
+        !groupedIdentifications.unspecified
+
+        // Check the final component ids do not change within the chain.
+        outputContains("""components = ${
+            ((['file1.jar', 'file2.jar'] + (['Local Groovy'] * 14) + ['project :producer', 'com.test:test:4.2'])).collectMany {
+                [it] * 3 // The multiplier creates three copies of everything.
+            }
+        }""")
+    }
+
     BuildOperationRecord findTransformExecution(@ClosureParams(value = FromString, options =  ['Map<String,Object>']) Closure<Boolean> spec) {
         def transformIdentification = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details.find(spec)
         return getTransformExecutions().find { it.details.identity == transformIdentification.identity }
