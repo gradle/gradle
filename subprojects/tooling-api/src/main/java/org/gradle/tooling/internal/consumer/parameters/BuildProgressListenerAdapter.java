@@ -164,7 +164,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
         for (OperationType operationType : OperationMapping.getOperationTypes()) {
             ListenerBroadcast<ProgressListener> listener = this.listeners.get(operationType);
-            if(listener == null) {
+            if (listener == null) {
                 listener = new ListenerBroadcast<>(ProgressListener.class);
                 this.listeners.put(operationType, listener);
             }
@@ -242,7 +242,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     @Override
     public void onEvent(Object event) {
         for (ProgressListenerBroadcaster broadcaster : broadcasters) {
-            if(broadcaster.canHandle(event.getClass())) {
+            if (broadcaster.canHandle(event.getClass())) {
                 broadcaster.broadCast(event);
                 return;
             }
@@ -258,8 +258,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private void broadcastProgressEvent(ProgressEvent event) {
-        for(ProgressListenerBroadcaster broadcaster : broadcasters) {
-            if(broadcaster.canHandleProgressEvent(event.getClass())) {
+        for (ProgressListenerBroadcaster broadcaster : broadcasters) {
+            if (broadcaster.canHandleProgressEvent(event.getClass())) {
                 broadcaster.getListeners().getSource().statusChanged(event);
                 return;
             }
@@ -268,7 +268,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 //        if (event instanceof TaskProgressEvent) {
 //            taskProgressListeners.getSource().statusChanged(event);
 //        } else
-            if (event instanceof WorkItemProgressEvent) {
+        if (event instanceof WorkItemProgressEvent) {
             workItemProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof ProjectConfigurationProgressEvent) {
             projectConfigurationProgressListeners.getSource().statusChanged(event);
@@ -292,16 +292,18 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         InternalOperationDescriptor descriptor = progressEvent.getDescriptor();
 
 
-        for(ProgressListenerBroadcaster broadcaster : broadcasters) {
-            if(broadcaster.canHandleDescriptor(descriptor.getClass())) {
-                broadcaster.broadCastInterProgressEvent(progressEvent);
-                return;
+        if (descriptor != null) {
+            for (ProgressListenerBroadcaster broadcaster : broadcasters) {
+                if (broadcaster.canHandleDescriptor(descriptor.getClass())) {
+                    broadcaster.broadCastInterProgressEvent(progressEvent);
+                    return;
+                }
             }
         }
 //        if (descriptor instanceof InternalTaskDescriptor) {
 //            broadcastTaskProgressEvent(progressEvent, (InternalTaskDescriptor) descriptor);
 //        } else
-            if (descriptor instanceof InternalWorkItemDescriptor) {
+        if (descriptor instanceof InternalWorkItemDescriptor) {
             broadcastWorkItemProgressEvent(progressEvent, (InternalWorkItemDescriptor) descriptor);
         } else if (descriptor instanceof InternalProjectConfigurationDescriptor) {
             broadcastProjectConfigurationProgressEvent(progressEvent, (InternalProjectConfigurationDescriptor) descriptor);
@@ -362,6 +364,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             testOutputProgressListeners.getSource().statusChanged(outputEvent);
         }
     }
+
     private void broadcastProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
         ProblemEvent problemEvent = toProblemEvent(progressEvent, descriptor);
         if (problemEvent != null) {
@@ -577,7 +580,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             progressEvent.getMessage(), progressEvent.getDescription(), progressEvent.getSolutions(), progressEvent.getPath(),
             progressEvent.getLine(), progressEvent.getColumn(), progressEvent.getDocumentationLink(), progressEvent.getCause(), progressEvent.getProblemType(), progressEvent.getAdditionalMetaData());
     }
-
 
 
     private FileDownloadResult toFileDownloadResult(InternalOperationResult result) {

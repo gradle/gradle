@@ -48,6 +48,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDescriptor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +58,7 @@ public class TaskProgressBroadcaster extends ProgressListenerBroadcasterAdapter 
     private final DescriptorCache descriptorCache;
 
     public TaskProgressBroadcaster(DescriptorCache descriptorCache, List<ProgressListener> listener) {
-        super(TaskProgressEvent.class, InternalTaskDescriptor.class, null, listener);
+        super(TaskProgressEvent.class, null, InternalTaskDescriptor.class, listener);
         this.descriptorCache = descriptorCache;
     }
 
@@ -74,7 +75,7 @@ public class TaskProgressBroadcaster extends ProgressListenerBroadcasterAdapter 
         }
     }
 
-    private TaskProgressEvent toTaskProgressEvent(InternalProgressEvent event, InternalTaskDescriptor descriptor) {
+    private @Nullable TaskProgressEvent toTaskProgressEvent(InternalProgressEvent event, InternalTaskDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
             return taskStartedEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
