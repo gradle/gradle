@@ -46,7 +46,7 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.task.TaskOperationResult;
 import org.gradle.tooling.events.task.internal.DefaultTaskFinishEvent;
 import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
-import org.gradle.tooling.internal.consumer.parameters.BuildProgressListenerAdapter;
+import org.gradle.tooling.internal.consumer.parameters.TaskProgressBroadcaster;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 import org.gradle.util.internal.CollectionUtils;
@@ -256,7 +256,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             InternalTaskDescriptor providerDescriptor = providerEvent.getDescriptor();
             InternalTaskResult providerResult = providerEvent.getResult();
             DefaultTaskOperationDescriptor descriptor = new DefaultTaskOperationDescriptor(providerDescriptor, null, providerDescriptor.getTaskPath());
-            TaskOperationResult result = BuildProgressListenerAdapter.toTaskResult(providerResult);
+            TaskOperationResult result = TaskProgressBroadcaster.toTaskResult(providerResult);
             DefaultTaskFinishEvent finishEvent = new DefaultTaskFinishEvent(providerEvent.getEventTime(), providerEvent.getDisplayName(), descriptor, result);
             listenerProvider.get().onFinish(finishEvent);
         }

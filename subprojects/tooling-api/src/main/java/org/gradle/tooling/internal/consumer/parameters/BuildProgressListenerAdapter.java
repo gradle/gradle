@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
@@ -66,30 +65,11 @@ import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.events.problems.ProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor;
-import org.gradle.tooling.events.task.TaskFinishEvent;
-import org.gradle.tooling.events.task.TaskOperationDescriptor;
-import org.gradle.tooling.events.task.TaskOperationResult;
-import org.gradle.tooling.events.task.TaskProgressEvent;
-import org.gradle.tooling.events.task.TaskStartEvent;
-import org.gradle.tooling.events.task.internal.DefaultTaskFailureResult;
-import org.gradle.tooling.events.task.internal.DefaultTaskFinishEvent;
-import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
-import org.gradle.tooling.events.task.internal.DefaultTaskSkippedResult;
-import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
-import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
-import org.gradle.tooling.events.task.internal.TaskExecutionDetails;
-import org.gradle.tooling.events.task.internal.java.DefaultAnnotationProcessorResult;
-import org.gradle.tooling.events.task.internal.java.DefaultJavaCompileTaskSuccessResult;
-import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult;
 import org.gradle.tooling.events.test.Destination;
-import org.gradle.tooling.events.test.TestOperationResult;
 import org.gradle.tooling.events.test.TestOutputDescriptor;
 import org.gradle.tooling.events.test.TestOutputEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescriptor;
-import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
-import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
 import org.gradle.tooling.events.transform.TransformFinishEvent;
 import org.gradle.tooling.events.transform.TransformOperationDescriptor;
 import org.gradle.tooling.events.transform.TransformOperationResult;
@@ -110,25 +90,14 @@ import org.gradle.tooling.events.work.internal.DefaultWorkItemFinishEvent;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemOperationDescriptor;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemStartEvent;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemSuccessResult;
-import org.gradle.tooling.internal.consumer.DefaultFailure;
-import org.gradle.tooling.internal.consumer.DefaultFileComparisonTestAssertionFailure;
-import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
-import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.tooling.internal.protocol.InternalFailure;
-import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
-import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
-import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.OperationMapping;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
-import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult;
-import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
-import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
 import org.gradle.tooling.internal.protocol.events.InternalNotFoundFileDownloadResult;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
@@ -143,19 +112,8 @@ import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationR
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalStatusEvent;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 
@@ -163,7 +121,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static java.util.Collections.emptyList;
 
@@ -215,6 +172,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
 
         broadcasters.add(new TestProgressBroadcaster(descriptorCache, listeners.getOrDefault(OperationType.TEST, noListeners)));
+        broadcasters.add(new TaskProgressBroadcaster(descriptorCache, listeners.getOrDefault(OperationType.TASK, noListeners)));
 
         testProgressListeners = this.listeners.get(OperationType.TEST);
         taskProgressListeners = this.listeners.get(OperationType.TASK);
@@ -307,9 +265,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             }
         }
 
-        if (event instanceof TaskProgressEvent) {
-            taskProgressListeners.getSource().statusChanged(event);
-        } else if (event instanceof WorkItemProgressEvent) {
+//        if (event instanceof TaskProgressEvent) {
+//            taskProgressListeners.getSource().statusChanged(event);
+//        } else
+            if (event instanceof WorkItemProgressEvent) {
             workItemProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof ProjectConfigurationProgressEvent) {
             projectConfigurationProgressListeners.getSource().statusChanged(event);
@@ -333,15 +292,16 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         InternalOperationDescriptor descriptor = progressEvent.getDescriptor();
 
 
-//        for(ProgressListenerBroadcaster broadcaster : broadcasters) {
-//            if(broadcaster.canHandleDescriptor(descriptor.getClass())) {
-//                broadcaster.getListeners().getSource().statusChanged(event);
-//                return;
-//            }
-//        }
-        if (descriptor instanceof InternalTaskDescriptor) {
-            broadcastTaskProgressEvent(progressEvent, (InternalTaskDescriptor) descriptor);
-        } else if (descriptor instanceof InternalWorkItemDescriptor) {
+        for(ProgressListenerBroadcaster broadcaster : broadcasters) {
+            if(broadcaster.canHandleDescriptor(descriptor.getClass())) {
+                broadcaster.broadCastInterProgressEvent(progressEvent);
+                return;
+            }
+        }
+//        if (descriptor instanceof InternalTaskDescriptor) {
+//            broadcastTaskProgressEvent(progressEvent, (InternalTaskDescriptor) descriptor);
+//        } else
+            if (descriptor instanceof InternalWorkItemDescriptor) {
             broadcastWorkItemProgressEvent(progressEvent, (InternalWorkItemDescriptor) descriptor);
         } else if (descriptor instanceof InternalProjectConfigurationDescriptor) {
             broadcastProjectConfigurationProgressEvent(progressEvent, (InternalProjectConfigurationDescriptor) descriptor);
@@ -373,13 +333,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             progressEvent.getTotal(),
             progressEvent.getProgress(),
             progressEvent.getUnits()));
-    }
-
-    private void broadcastTaskProgressEvent(InternalProgressEvent event, InternalTaskDescriptor descriptor) {
-        TaskProgressEvent taskProgressEvent = toTaskProgressEvent(event, descriptor);
-        if (taskProgressEvent != null) {
-            taskProgressListeners.getSource().statusChanged(taskProgressEvent);
-        }
     }
 
     private void broadcastWorkItemProgressEvent(InternalProgressEvent event, InternalWorkItemDescriptor descriptor) {
@@ -454,7 +407,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         OperationResult result;
         if (event.getResult() instanceof InternalFailureResult) {
             InternalFailureResult internalResult = (InternalFailureResult) event.getResult();
-            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()));
+            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), ProgressListenerBroadcasterAdapter.toFailures(internalResult.getFailures()));
         } else {
             result = new DefaultOperationSuccessResult(event.getResult().getStartTime(), event.getResult().getEndTime());
         }
@@ -468,15 +421,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private TaskProgressEvent toTaskProgressEvent(InternalProgressEvent event, InternalTaskDescriptor descriptor) {
-        if (event instanceof InternalOperationStartedProgressEvent) {
-            return taskStartedEvent((InternalOperationStartedProgressEvent) event, descriptor);
-        } else if (event instanceof InternalOperationFinishedProgressEvent) {
-            return taskFinishedEvent((InternalOperationFinishedProgressEvent) event);
-        } else {
-            return null;
-        }
-    }
 
     private WorkItemProgressEvent toWorkItemProgressEvent(InternalProgressEvent event, InternalWorkItemDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
@@ -549,12 +493,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-
-    private TaskStartEvent taskStartedEvent(InternalOperationStartedProgressEvent event, InternalTaskDescriptor descriptor) {
-        TaskOperationDescriptor clientDescriptor = descriptorCache.addDescriptor(event.getDescriptor(), toTaskDescriptor(descriptor));
-        return new DefaultTaskStartEvent(event.getEventTime(), event.getDisplayName(), clientDescriptor);
-    }
-
     private WorkItemStartEvent workItemStartedEvent(InternalOperationStartedProgressEvent event, InternalWorkItemDescriptor descriptor) {
         WorkItemOperationDescriptor clientDescriptor = descriptorCache.addDescriptor(event.getDescriptor(), toWorkItemDescriptor(descriptor));
         return new DefaultWorkItemStartEvent(event.getEventTime(), event.getDisplayName(), clientDescriptor);
@@ -578,12 +516,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private StartEvent genericStartedEvent(InternalOperationStartedProgressEvent event) {
         OperationDescriptor clientDescriptor = descriptorCache.addDescriptor(event.getDescriptor(), descriptorCache.toDescriptor(event.getDescriptor()));
         return new DefaultStartEvent(event.getEventTime(), event.getDisplayName(), clientDescriptor);
-    }
-
-    private TaskFinishEvent taskFinishedEvent(InternalOperationFinishedProgressEvent event) {
-        // do not remove task descriptors because they might be needed to describe subsequent tasks' dependencies
-        TaskOperationDescriptor descriptor = descriptorCache.assertDescriptorType(TaskOperationDescriptor.class, descriptorCache.getParentDescriptor(event.getDescriptor().getId()));
-        return new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTaskResult((InternalTaskResult) event.getResult()));
     }
 
     private WorkItemFinishEvent workItemFinishedEvent(InternalOperationFinishedProgressEvent event) {
@@ -610,17 +542,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private FinishEvent genericFinishedEvent(InternalOperationFinishedProgressEvent event) {
         OperationDescriptor descriptor = descriptorCache.removeDescriptor(OperationDescriptor.class, event.getDescriptor());
         return new DefaultFinishEvent<>(event.getEventTime(), event.getDisplayName(), descriptor, toResult(event.getResult()));
-    }
-
-    private TaskOperationDescriptor toTaskDescriptor(InternalTaskDescriptor descriptor) {
-        OperationDescriptor parent = descriptorCache.getParentDescriptor(descriptor.getParentId());
-        if (descriptor instanceof InternalTaskWithExtraInfoDescriptor) {
-            InternalTaskWithExtraInfoDescriptor descriptorWithExtras = (InternalTaskWithExtraInfoDescriptor) descriptor;
-            Set<OperationDescriptor> dependencies = descriptorCache.collectDescriptors(descriptorWithExtras.getDependencies());
-            PluginIdentifier originPlugin = toPluginIdentifier(descriptorWithExtras.getOriginPlugin());
-            return new DefaultTaskOperationDescriptor(descriptor, parent, descriptor.getTaskPath(), dependencies, originPlugin);
-        }
-        return new DefaultTaskOperationDescriptor(descriptor, parent, descriptor.getTaskPath());
     }
 
     private WorkItemOperationDescriptor toWorkItemDescriptor(InternalWorkItemDescriptor descriptor) {
@@ -668,60 +589,16 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultFileDownloadSuccessResult(result.getStartTime(), result.getEndTime(), fileDownloadResult.getBytesDownloaded());
         }
         if (result instanceof InternalFailureResult) {
-            return new DefaultFileDownloadFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), fileDownloadResult.getBytesDownloaded());
+            return new DefaultFileDownloadFailureResult(result.getStartTime(), result.getEndTime(), ProgressListenerBroadcasterAdapter.toFailures(result.getFailures()), fileDownloadResult.getBytesDownloaded());
         }
         return null;
-    }
-
-    private TestOperationResult toTestResult(InternalTestResult result) {
-        if (result instanceof InternalTestSuccessResult) {
-            return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
-        } else if (result instanceof InternalTestSkippedResult) {
-            return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
-        } else if (result instanceof InternalTestFailureResult) {
-            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
-        } else {
-            return null;
-        }
-    }
-
-    public static TaskOperationResult toTaskResult(InternalTaskResult result) {
-        if (result instanceof InternalTaskSuccessResult) {
-            InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
-            if (result instanceof InternalJavaCompileTaskOperationResult) {
-                List<AnnotationProcessorResult> annotationProcessorResults = toAnnotationProcessorResults(((InternalJavaCompileTaskOperationResult) result).getAnnotationProcessorResults());
-                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result), annotationProcessorResults);
-            }
-            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result));
-        } else if (result instanceof InternalTaskSkippedResult) {
-            return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
-        } else if (result instanceof InternalTaskFailureResult) {
-            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toTaskExecutionDetails(result));
-        } else {
-            return null;
-        }
-    }
-
-    private static boolean isFromCache(InternalTaskResult result) {
-        if (result instanceof InternalTaskCachedResult) {
-            return ((InternalTaskCachedResult) result).isFromCache();
-        }
-        return false;
-    }
-
-    private static TaskExecutionDetails toTaskExecutionDetails(InternalTaskResult result) {
-        if (result instanceof InternalIncrementalTaskResult) {
-            InternalIncrementalTaskResult taskResult = (InternalIncrementalTaskResult) result;
-            return TaskExecutionDetails.of(taskResult.isIncremental(), taskResult.getExecutionReasons());
-        }
-        return TaskExecutionDetails.unsupported();
     }
 
     private static WorkItemOperationResult toWorkItemResult(InternalOperationResult result) {
         if (result instanceof InternalSuccessResult) {
             return new DefaultWorkItemSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultWorkItemFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultWorkItemFailureResult(result.getStartTime(), result.getEndTime(), ProgressListenerBroadcasterAdapter.toFailures(result.getFailures()));
         } else {
             return null;
         }
@@ -731,7 +608,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginApplicationResults(result.getPluginApplicationResults()));
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()));
+            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), ProgressListenerBroadcasterAdapter.toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()));
         } else {
             return null;
         }
@@ -748,7 +625,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return results;
     }
 
-    private static PluginIdentifier toPluginIdentifier(InternalPluginIdentifier pluginIdentifier) {
+    public static PluginIdentifier toPluginIdentifier(InternalPluginIdentifier pluginIdentifier) {
         if (pluginIdentifier instanceof InternalBinaryPluginIdentifier) {
             InternalBinaryPluginIdentifier binaryPlugin = (InternalBinaryPluginIdentifier) pluginIdentifier;
             return new DefaultBinaryPluginIdentifier(binaryPlugin.getDisplayName(), binaryPlugin.getClassName(), binaryPlugin.getPluginId());
@@ -764,7 +641,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultTransformSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultTransformFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultTransformFailureResult(result.getStartTime(), result.getEndTime(), ProgressListenerBroadcasterAdapter.toFailures(result.getFailures()));
         } else {
             return null;
         }
@@ -774,86 +651,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultOperationSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), ProgressListenerBroadcasterAdapter.toFailures(result.getFailures()));
         } else {
             return null;
         }
     }
 
-    public static List<Failure> toFailures(List<? extends InternalFailure> causes) {
-        if (causes == null) {
-            return null;
-        }
-        List<Failure> failures = new ArrayList<>();
-        for (InternalFailure cause : causes) {
-            failures.add(toFailure(cause));
-        }
-        return failures;
-    }
-
-    private static Failure toFailure(InternalFailure origFailure) {
-        if (origFailure instanceof InternalTestAssertionFailure) {
-            if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
-                InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
-                return new DefaultFileComparisonTestAssertionFailure(assertionFailure.getMessage(),
-                    assertionFailure.getDescription(),
-                    assertionFailure.getExpected(),
-                    assertionFailure.getActual(),
-                    toFailures(origFailure.getCauses()),
-                    ((InternalTestAssertionFailure) origFailure).getClassName(),
-                    ((InternalTestAssertionFailure) origFailure).getStacktrace(),
-                    ((InternalFileComparisonTestAssertionFailure) origFailure).getExpectedContent(),
-                    ((InternalFileComparisonTestAssertionFailure) origFailure).getActualContent()
-                );
-            }
-            InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
-            return new DefaultTestAssertionFailure(
-                assertionFailure.getMessage(),
-                assertionFailure.getDescription(),
-                assertionFailure.getExpected(),
-                assertionFailure.getActual(),
-                toFailures(origFailure.getCauses()),
-                ((InternalTestAssertionFailure) origFailure).getClassName(),
-                ((InternalTestAssertionFailure) origFailure).getStacktrace()
-            );
-        } else if (origFailure instanceof InternalTestFrameworkFailure) {
-            InternalTestFrameworkFailure frameworkFailure = (InternalTestFrameworkFailure) origFailure;
-            return new DefaultTestFrameworkFailure(
-                frameworkFailure.getMessage(),
-                frameworkFailure.getDescription(),
-                toFailures(origFailure.getCauses()),
-                ((InternalTestFrameworkFailure) origFailure).getClassName(),
-                ((InternalTestFrameworkFailure) origFailure).getStacktrace()
-            );
-        }
-        return origFailure == null ? null : new DefaultFailure(
-            origFailure.getMessage(),
-            origFailure.getDescription(),
-            toFailures(origFailure.getCauses()));
-    }
-
-    private static List<AnnotationProcessorResult> toAnnotationProcessorResults(List<InternalAnnotationProcessorResult> protocolResults) {
-        if (protocolResults == null) {
-            return null;
-        }
-        List<AnnotationProcessorResult> results = new ArrayList<AnnotationProcessorResult>();
-        for (InternalAnnotationProcessorResult result : protocolResults) {
-            results.add(toAnnotationProcessorResult(result));
-        }
-        return results;
-    }
-
-    private static AnnotationProcessorResult toAnnotationProcessorResult(InternalAnnotationProcessorResult result) {
-        return new DefaultAnnotationProcessorResult(result.getClassName(), toAnnotationProcessorResultType(result.getType()), result.getDuration());
-    }
-
-    private static AnnotationProcessorResult.Type toAnnotationProcessorResultType(String type) {
-        if (type.equals(InternalAnnotationProcessorResult.TYPE_AGGREGATING)) {
-            return AnnotationProcessorResult.Type.AGGREGATING;
-        }
-        if (type.equals(InternalAnnotationProcessorResult.TYPE_ISOLATING)) {
-            return AnnotationProcessorResult.Type.ISOLATING;
-        }
-        return AnnotationProcessorResult.Type.UNKNOWN;
-    }
 }

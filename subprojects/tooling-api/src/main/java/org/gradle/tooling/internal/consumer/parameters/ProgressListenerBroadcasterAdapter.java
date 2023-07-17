@@ -18,10 +18,20 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.ProgressListener;
+import org.gradle.tooling.internal.consumer.DefaultFailure;
+import org.gradle.tooling.internal.consumer.DefaultFileComparisonTestAssertionFailure;
+import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
+import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
+import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
+import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
+import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 @NonNullApi
@@ -36,6 +46,58 @@ public class ProgressListenerBroadcasterAdapter {
         this.handleProgressEventType = handleProgressEventType;
         this.descriptorClass = descriptorClass;
         this.listeners.addAll(listener);
+    }
+
+    public static List<Failure> toFailures(List<? extends InternalFailure> causes) {
+        if (causes == null) {
+            return null;
+        }
+        List<Failure> failures = new ArrayList<>();
+        for (InternalFailure cause : causes) {
+            failures.add(toFailure(cause));
+        }
+        return failures;
+    }
+
+    private static Failure toFailure(InternalFailure origFailure) {
+        if (origFailure instanceof InternalTestAssertionFailure) {
+            if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
+                InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
+                return new DefaultFileComparisonTestAssertionFailure(assertionFailure.getMessage(),
+                    assertionFailure.getDescription(),
+                    assertionFailure.getExpected(),
+                    assertionFailure.getActual(),
+                    toFailures(origFailure.getCauses()),
+                    ((InternalTestAssertionFailure) origFailure).getClassName(),
+                    ((InternalTestAssertionFailure) origFailure).getStacktrace(),
+                    ((InternalFileComparisonTestAssertionFailure) origFailure).getExpectedContent(),
+                    ((InternalFileComparisonTestAssertionFailure) origFailure).getActualContent()
+                );
+            }
+            InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
+            return new DefaultTestAssertionFailure(
+                assertionFailure.getMessage(),
+                assertionFailure.getDescription(),
+                assertionFailure.getExpected(),
+                assertionFailure.getActual(),
+                toFailures(origFailure.getCauses()),
+                ((InternalTestAssertionFailure) origFailure).getClassName(),
+                ((InternalTestAssertionFailure) origFailure).getStacktrace()
+            );
+        } else if (origFailure instanceof InternalTestFrameworkFailure) {
+            InternalTestFrameworkFailure frameworkFailure = (InternalTestFrameworkFailure) origFailure;
+            return new DefaultTestFrameworkFailure(
+                frameworkFailure.getMessage(),
+                frameworkFailure.getDescription(),
+                toFailures(origFailure.getCauses()),
+                ((InternalTestFrameworkFailure) origFailure).getClassName(),
+                ((InternalTestFrameworkFailure) origFailure).getStacktrace()
+            );
+        }
+        return origFailure == null ? null : new DefaultFailure(
+            origFailure.getMessage(),
+            origFailure.getDescription(),
+            toFailures(origFailure.getCauses()));
     }
 
     public boolean canHandle(Class<?> eventType) {
@@ -56,5 +118,9 @@ public class ProgressListenerBroadcasterAdapter {
 
     public void broadCastInterProgressEvent(InternalProgressEvent progressEvent) {
 //        listeners.getSource().onProgress(progressEvent);
+    }
+
+    public void broadCast(Object progressEvent) {
+
     }
 }

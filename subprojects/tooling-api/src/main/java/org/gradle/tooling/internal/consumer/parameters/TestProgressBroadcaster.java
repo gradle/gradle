@@ -93,7 +93,7 @@ public class TestProgressBroadcaster extends ProgressListenerBroadcasterAdapter 
         } else if (result instanceof InternalTestSkippedResult) {
             return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalTestFailureResult) {
-            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), BuildProgressListenerAdapter.toFailures(result.getFailures()));
+            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), ProgressListenerBroadcasterAdapter.toFailures(result.getFailures()));
         } else {
             return null;
         }
