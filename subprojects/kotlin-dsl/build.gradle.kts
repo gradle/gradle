@@ -33,6 +33,9 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
+    // for 'CompileOptions' to build extensions
+    compileOnly(project(":language-jvm"))
+    compileOnly(project(":language-java"))
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)
