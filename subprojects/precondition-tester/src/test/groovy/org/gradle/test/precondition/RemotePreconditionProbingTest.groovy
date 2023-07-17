@@ -18,7 +18,9 @@ package org.gradle.test.precondition
 
 
 import com.gradle.enterprise.testing.annotations.RemoteOnly
+import spock.lang.Ignore
 
 @RemoteOnly
+@Ignore("https://github.com/gradle/gradle-private/issues/3905")
 class RemotePreconditionProbingTest extends PreconditionProbingTest {
 }
