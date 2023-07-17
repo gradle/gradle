@@ -213,12 +213,12 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public FilePermissions getImmutablePermissions() {
+        public FilePermissions getPermissions() {
             return new DefaultFilePermissions(entry.getMode());
         }
 
         @Override
-        protected String safeEntryName() {
+        protected String getEntryName() {
             return entry.getName();
         }
 

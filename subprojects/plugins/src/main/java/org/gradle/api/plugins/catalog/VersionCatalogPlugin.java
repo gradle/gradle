@@ -22,12 +22,11 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.CatalogExtensionInternal;
+import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.TomlFileGenerator;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.tasks.TaskProvider;
@@ -61,7 +60,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
-        @SuppressWarnings("deprecation") Configuration exported = project.getConfigurations().createWithRole(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, cnf -> {
+        @SuppressWarnings("deprecation") Configuration exported = project.getConfigurations().migratingUnlocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, cnf -> {
             cnf.setDescription("Artifacts for the version catalog");
             cnf.getOutgoing().artifact(generator);
             cnf.attributes(attrs -> {
@@ -75,7 +74,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private Configuration createDependenciesConfiguration(ProjectInternal project) {
-        return project.getConfigurations().createWithRole(GRADLE_PLATFORM_DEPENDENCIES, ConfigurationRoles.BUCKET, cnf -> {
+        return project.getConfigurations().dependencyScopeUnlocked(GRADLE_PLATFORM_DEPENDENCIES, cnf -> {
             cnf.setVisible(false);
         });
     }

@@ -112,6 +112,10 @@
                 <td>debugOptions</td>
                 <td/>
             </tr>
+            <tr>
+                <td>dryRun</td>
+                <td/>
+            </tr>
         </table>
     </section>
     <section>

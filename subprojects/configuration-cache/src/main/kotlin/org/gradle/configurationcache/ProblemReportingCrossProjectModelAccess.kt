@@ -218,18 +218,24 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.rootDir
         }
 
+        @Deprecated("Use layout.buildDirectory instead")
         override fun getBuildDir(): File {
             onAccess()
+            @Suppress("DEPRECATION")
             return delegate.buildDir
         }
 
+        @Deprecated("Use layout.buildDirectory instead")
         override fun setBuildDir(path: File) {
             onAccess()
+            @Suppress("DEPRECATION")
             delegate.buildDir = path
         }
 
+        @Deprecated("Use layout.buildDirectory instead")
         override fun setBuildDir(path: Any) {
             onAccess()
+            @Suppress("DEPRECATION")
             delegate.setBuildDir(path)
         }
 

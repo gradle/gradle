@@ -35,7 +35,7 @@ class GenericFileSystemTest extends Specification {
     def symlink = Stub(Symlink)
     def fileMetadataAccessor = Stub(FileMetadataAccessor)
     def statistics = Mock(StatStatistics.Collector)
-    def fileSystemFactory = new GenericFileSystem.Factory(fileMetadataAccessor, statistics, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root))
+    def fileSystemFactory = new GenericFileSystem.Factory(fileMetadataAccessor, statistics, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.testDirectory))
     def fileSystem = fileSystemFactory.create(fileModeMutator, fileModeAccessor, symlink)
 
     def "wraps failure to set file mode"() {

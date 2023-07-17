@@ -69,8 +69,8 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
         def file = new TestFileTreeElement(temporaryFolder.file("someFile"), chmod)
 
         expect:
-        dir.getImmutablePermissions().toUnixNumeric() == FileSystem.DEFAULT_DIR_MODE
-        file.getImmutablePermissions().toUnixNumeric() == FileSystem.DEFAULT_FILE_MODE
+        dir.getPermissions().toUnixNumeric() == FileSystem.DEFAULT_DIR_MODE
+        file.getPermissions().toUnixNumeric() == FileSystem.DEFAULT_FILE_MODE
     }
 
     private TestFile writeToFile(String name, String content) {
@@ -121,9 +121,9 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
             return GFileUtils.openInputStream(file)
         }
 
-        FilePermissions getImmutablePermissions() {
+        FilePermissions getPermissions() {
             if (mode == null) {
-                return super.getImmutablePermissions()
+                return super.getPermissions()
             }
             return new DefaultFilePermissions(mode)
         }

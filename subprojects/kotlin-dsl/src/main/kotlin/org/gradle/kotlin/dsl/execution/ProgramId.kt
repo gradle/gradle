@@ -27,6 +27,7 @@ class ProgramId(
     parentClassLoader: ClassLoader,
     private val accessorsClassPathHash: HashCode? = null,
     private val classPathHash: HashCode? = null,
+    val allWarningsAsErrors: Boolean = false,
     val assignmentOverloadEnabled: Boolean = false
 ) {
 
@@ -45,6 +46,7 @@ class ProgramId(
             && sourceHash == that.sourceHash
             && accessorsClassPathHash == that.accessorsClassPathHash
             && classPathHash == that.classPathHash
+            && allWarningsAsErrors == that.allWarningsAsErrors
             && assignmentOverloadEnabled == that.assignmentOverloadEnabled
     }
 
@@ -60,6 +62,7 @@ class ProgramId(
         classPathHash?.let { classPathHash ->
             result = 31 * result + classPathHash.hashCode()
         }
+        result = 31 * result + allWarningsAsErrors.hashCode()
         return 31 * result + assignmentOverloadEnabled.hashCode()
     }
 }

@@ -218,8 +218,9 @@ private constructor(
 /**
  * Receiver for [NamedDomainObjectContainer] configuration blocks.
  */
+open
 class NamedDomainObjectContainerScope<T : Any>
-private constructor(
+internal constructor(
     override val delegate: NamedDomainObjectContainer<T>
 ) : NamedDomainObjectContainerDelegate<T>(), PolymorphicDomainObjectContainer<T> {
 

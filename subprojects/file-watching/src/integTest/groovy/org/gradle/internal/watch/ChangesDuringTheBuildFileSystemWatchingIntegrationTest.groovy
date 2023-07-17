@@ -17,7 +17,7 @@
 package org.gradle.internal.watch
 
 import com.gradle.enterprise.testing.annotations.LocalOnly
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -34,38 +34,79 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
             vfsLogs = enableVerboseVfsLogs()
         }
         server.start()
-        buildFile << """
+        settingsFile  << """
             import org.gradle.internal.file.FileType
             import org.gradle.internal.snapshot.*
             import org.gradle.internal.vfs.*
+            import org.gradle.api.flow.*
+            import org.gradle.api.services.*
 
+            class VfsPlugin implements Plugin<Settings> {
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+
+                @Inject
+                VfsPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+
+                @Override
+                public void apply(Settings project) {
+                    def projectDir = project.rootDir
+                    def vfsService = project.gradle.services.get(VirtualFileSystem)
+                    def projectDirAsResultOfBuild = flowProviders.buildWorkResult.map { projectDir }
+                    flowScope.always(
+                        VfsAction.class,
+                        spec -> {
+                            spec.getParameters().getRootDir().set(projectDirAsResultOfBuild)
+                            spec.getParameters().getVfsService().set(vfsService)
+                        }
+                    );
+                }
+            }
+
+            class VfsAction implements FlowAction<VfsAction.Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input
+                    Property<VirtualFileSystem> getVfsService();
+
+                    @Input
+                    Property<File> getRootDir();
+                }
+
+                @Override
+                public void execute(Parameters parameters) {
+                    def projectRoot = parameters.rootDir.get().absolutePath
+                    def vfs = parameters.vfsService.get()
+                    int filesInVfs = 0
+                    vfs.root.rootSnapshots().forEach { snapshot ->
+                        snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
+                            @Override
+                            SnapshotVisitResult visitEntry(FileSystemLocationSnapshot fileSnapshot) {
+                                if (fileSnapshot.type == FileType.RegularFile && fileSnapshot.absolutePath.startsWith(projectRoot)) {
+                                    println("Found file in VFS: \$fileSnapshot.absolutePath")
+                                    filesInVfs++
+                                }
+                                return SnapshotVisitResult.CONTINUE
+                            }
+                        })
+                    }
+                    println("Project files in VFS: \$filesInVfs")
+                }
+            }
+
+            apply type: VfsPlugin
+        """
+        buildFile << """
             task waitForUserChanges {
                 doLast {
                     ${server.callFromBuild("userInput")}
                 }
             }
-
-            gradle.buildFinished {
-                def projectRoot = project.projectDir.absolutePath
-                def vfs = gradle.services.get(VirtualFileSystem)
-                int filesInVfs = 0
-                vfs.root.rootSnapshots().forEach { snapshot ->
-                    snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
-                        @Override
-                        SnapshotVisitResult visitEntry(FileSystemLocationSnapshot fileSnapshot) {
-                            if (fileSnapshot.type == FileType.RegularFile && fileSnapshot.absolutePath.startsWith(projectRoot)) {
-                                filesInVfs++
-                            }
-                            return SnapshotVisitResult.CONTINUE
-                        }
-                    })
-                }
-                println("Project files in VFS: \$filesInVfs")
-            }
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "Cannot use buildFinished listener")
     def "detects input file change just before the task is executed"() {
         def inputFile = file("input.txt")
         buildFile << """
@@ -100,10 +141,9 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         vfsLogs.receivedFileSystemEventsInCurrentBuild >= 1
-        projectFilesInVfs == 2
+        assertExpectedProjectFilesInVfs(2)
     }
 
-    @ToBeFixedForConfigurationCache(because = "Cannot use buildFinished listener")
     def "detects input file change after the task has been executed"() {
         def inputFile = file("input.txt")
         def outputFile = file("build/output.txt")
@@ -134,7 +174,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "initial"
-        projectFilesInVfs == 1
+        assertExpectedProjectFilesInVfs(1)
 
         when:
         runWithFileSystemWatchingAndMakeChangesWhen("waitForUserChanges", "userInput") {
@@ -145,15 +185,24 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         executedAndNotSkipped(":consumer")
         outputFile.text == "changed"
         vfsLogs.receivedFileSystemEventsInCurrentBuild >= 1
-        projectFilesInVfs == 1
+        assertExpectedProjectFilesInVfs(1)
 
         when:
         server.expect("userInput")
         withWatchFs().run("waitForUserChanges")
+
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "changedAgain"
-        projectFilesInVfs == 2
+        assertExpectedProjectFilesInVfs(2)
+    }
+
+    private void assertExpectedProjectFilesInVfs(int expected) {
+        if (GradleContextualExecuter.isConfigCache()) {
+            // Cc watches also settings.gradle and build.gradle, so they are added to VFS.
+            expected += 2
+        }
+        assert getProjectFilesInVfs() == expected
     }
 
     private void runWithFileSystemWatchingAndMakeChangesWhen(String task, String expectedCall, Closure action) {

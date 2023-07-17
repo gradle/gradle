@@ -87,9 +87,9 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         size <= getMaxDistributionSizeBytes()
     }
 
-    def "no duplicate entries"() {
+    def "no duplicate jar entries in distribution"() {
         given:
-        def entriesByPath = zipEntries.findAll { !it.name.contains('/META-INF/services/') }.groupBy { it.name }
+        def entriesByPath = zipEntries.groupBy { it.name }
         def dupes = entriesByPath.findAll { it.value.size() > 1 }
 
         when:

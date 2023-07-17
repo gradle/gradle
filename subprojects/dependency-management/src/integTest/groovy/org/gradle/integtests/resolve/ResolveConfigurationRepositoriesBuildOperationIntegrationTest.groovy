@@ -36,7 +36,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         using m2
         buildFile << """
             apply plugin: 'java'
-            ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toString())}
+            ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toASCIIString())}
             task resolve {
                 def files = configurations.compileClasspath
                 doLast { files.files }
@@ -59,7 +59,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def repo1 = repos.first()
         repo1.remove('id')
         repo1 == augmentMapWithProperties(expectedRepo, [
-            URL: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
+            URL: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toASCIIString() : mavenHttpRepo.uri.toASCIIString(),
             DIRS: [buildFile.parentFile.file('fooDir').absolutePath]
         ])
 

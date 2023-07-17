@@ -50,17 +50,17 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="SSL"></a>
-### SSL improvements
 
-Gradle had multiple issues when non-standard keystores and truststores were used.
-This affected users on Linux systems with FIPS enabled and also Windows users who were storing certificates in the Trusted Root Certification Authorities store.
-SSL context creation has been improved to be more aligned with the default implementation and to support these cases.
-Also, error messages related to SSL have been improved, and they should be more visible.
 
-### Reduced memory consumption
+### Dry run mode for test execution
 
-TODO - dependency resolution uses less heap
+It is now possible to run a test without actual test execution. 
+
+This can be useful for quickly verifying which tests will run when [filtering a test suite](userguide/java_testing.html#test_filtering).
+
+Dry run mode can be enabled by either the `--test-dry-run` command-line option or via the [dryRun](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:dryRun) property.
+
+This mode is compatible with the JUnit and TestNG frameworks.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

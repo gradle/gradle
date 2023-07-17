@@ -139,7 +139,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         expected = "apiElementsJdk$selected"
     }
 
-    def "can disable automatic setting of target JVM attribute"() {
+    def "can disable selection of dependencies based on jvm version"() {
         file("producer/build.gradle") << """
             java {
                 targetCompatibility = JavaVersion.VERSION_1_7

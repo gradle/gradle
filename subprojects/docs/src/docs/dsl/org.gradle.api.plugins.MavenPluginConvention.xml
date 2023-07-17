@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>mavenPomDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/poms</literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/poms</literal></td>
             </tr>
             <tr>
                 <td>conf2ScopeMappings</td>

@@ -26,6 +26,15 @@
             <tr>
                 <td>detachedConfiguration</td>
             </tr>
+            <tr>
+                <td>consumable</td>
+            </tr>
+            <tr>
+                <td>resolvable</td>
+            </tr>
+            <tr>
+                <td>dependencyScope</td>
+            </tr>
         </table>
     </section>
 </section>

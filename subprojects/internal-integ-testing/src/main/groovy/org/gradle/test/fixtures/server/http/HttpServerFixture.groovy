@@ -133,6 +133,7 @@ trait HttpServerFixture {
             handlers.addHandler(securityHandlerWrapper)
             handlers.addHandler(getCustomHandler())
             server.setHandler(handlers)
+            server.setStopTimeout(0)
             configured = true
         }
 

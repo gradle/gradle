@@ -299,6 +299,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
      --incubating     Allow the generated build to use new features and APIs
 
+     --no-incubating     Disables option --incubating
+
      --insecure-protocol     How to handle insecure URLs used for Maven Repositories.
                              Available values are:
                                   ALLOW
@@ -306,15 +308,13 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                                   UPGRADE
                                   WARN
 
-     --no-incubating     Disables option --incubating
-
-     --no-split-project     Disables option --split-project
-
      --package     Set the package for source files.
 
      --project-name     Set the project name.
 
      --split-project     Split functionality across multiple subprojects?
+
+     --no-split-project     Disables option --split-project
 
      --test-framework     Set the test framework to be used.
                           Available values are:

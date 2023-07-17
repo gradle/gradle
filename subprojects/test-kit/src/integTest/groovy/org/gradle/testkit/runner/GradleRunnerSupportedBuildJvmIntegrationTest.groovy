@@ -19,6 +19,8 @@ package org.gradle.testkit.runner
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.Flaky
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.fixtures.NoDebug
@@ -28,6 +30,8 @@ import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 @NonCrossVersion
+@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3890")
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @NoDebug
     @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)

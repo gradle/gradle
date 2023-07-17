@@ -31,7 +31,14 @@ import org.gradle.api.Incubating;
  *     <li>OTHER (world) permissions: what actions all other users (non-owner, non-group) can perform on the file/directory</li>
  * </ul>
  * <p>
- * For further details on specific permission for a certain class of user see {@link UserClassFilePermissions}.
+ * For further details on specific permission for a certain class of user see {@link UserClassFilePermissions}, but in essence
+ * each class of users can have the right to READ, WRITE or EXECUTE files.
+ * <p>
+ * The default permissions used differ between files and directories and are as follows:
+ * <ul>
+ *     <li>FILE: read &amp; write for OWNER, read for GROUP, read for OTHER (0644, r-wr--r--)</li>
+ *     <li>DIRECTORY: read, write &amp; execute for OWNER, read &amp; execute for GROUP, read &amp; execute for OTHER (0755, rwxr-xr-x)</li>
+ * </ul>
  *
  * @since 8.3
  */

@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -45,9 +46,9 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.ResolverResults
-import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
@@ -115,6 +116,8 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * resolver.getRepositories() >> []
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
+        _ * rootComponentMetadataBuilder.getValidator() >> Mock(MutationValidator)
+        _ * rootComponentMetadataBuilder.withConfigurationsProvider(_) >> rootComponentMetadataBuilder
     }
 
     void defaultValues() {
@@ -338,7 +341,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         expectResolved(failure)
 
         when:
-        configuration.getResolvedConfiguration()
+        ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
+            view.setLenient(true)
+        })
+        lenientView.files.files // Force resolution
 
         then:
         configuration.getState() == RESOLVED_WITH_FAILURES
@@ -714,7 +720,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         configuration.artifacts.remove(unknownArtifact)
 
         then:
-        0 * _._
         configuration.artifacts.size() == 1
 
         when:
@@ -762,9 +767,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         checkCopiedConfiguration(configuration, copied3Configuration, resolutionStrategyCopy, 3)
     }
 
-    void "deprecations are passed to copies when corresponding role is #state"() {
-        ConfigurationRole role = new DefaultConfigurationRole("test", enabled, enabled, enabled, true, true, true)
-        def configuration = prepareConfigurationForCopyTest(role)
+    void "deprecations are passed to copies when corresponding role is #baseRole"() {
+        ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, true, true, true)
+        def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
         1 * resolutionStrategy.copy() >> resolutionStrategyCopy
         configuration.addDeclarationAlternatives("declaration")
@@ -785,9 +790,11 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.deprecatedForDeclarationAgainst
 
         where:
-        state | enabled
-        "enabled" | true
-        "disabled" | false
+        baseRole << [
+            ConfigurationRoles.LEGACY,
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
+            ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE
+        ] + ConfigurationRolesForMigration.ALL
     }
 
     void "copies disabled configuration role as a deprecation"() {
@@ -872,7 +879,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def copy = config.copy()
 
         when:
-        copy.resolvedConfiguration
+        copy.files
 
         then:
         interaction { resolveConfig(copy) }
@@ -897,8 +904,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.dependencyResolutionListeners.size() == 1
     }
 
-    private prepareConfigurationForCopyTest(ConfigurationRole role = ConfigurationRoles.LEGACY) {
-        def configuration = conf("conf", ":", ":", role)
+    private prepareConfigurationForCopyTest(configuration = conf()) {
         configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
@@ -907,7 +913,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         configuration.artifacts.add(artifact("name1", "ext1", "type1", "classifier1"))
         configuration.artifacts.add(artifact("name2", "ext2", "type2", "classifier2"))
 
-        if (role.declarable) {
+        if (configuration.roleAtCreation.declarable) {
             configuration.dependencies.add(dependency("group1", "name1", "version1"))
             configuration.dependencies.add(dependency("group2", "name2", "version2"))
         }
@@ -997,7 +1003,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.beforeResolve(action)
 
         when:
-        config.resolvedConfiguration
+        config.files
 
         then:
         interaction { resolveConfig(config) }
@@ -1016,7 +1022,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         when:
-        config.resolvedConfiguration
+        config.files
 
         then:
         called
@@ -1030,7 +1036,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.afterResolve(action)
 
         when:
-        config.resolvedConfiguration
+        config.files
 
         then:
         interaction { resolveConfig(config) }
@@ -1050,7 +1056,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         when:
-        config.resolvedConfiguration
+        config.files
 
         then:
         called
@@ -1402,7 +1408,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         1 * defaultDependencyAction1.execute(conf.dependencies) >> {
             conf.dependencies.add(Mock(Dependency))
         }
-        0 * _
     }
 
     def "defaultDependencies action is called even if parent config has dependencies"() {
@@ -1654,7 +1659,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         dump(configuration) == """
-Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'  role='Legacy'
+Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultUnlockedConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'  role='Legacy'
 Current Usage:
 \tConsumable - this configuration can be selected by another project as a dependency
 \tResolvable - this configuration can be resolved by this project to a set of files
@@ -1872,6 +1877,10 @@ All Artifacts:
     }
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.LEGACY) {
+        return confFactory(projectPath, buildPath).create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role)
+    }
+
+    private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
         def domainObjectContext = Stub(DomainObjectContext)
         def build = Path.path(buildPath)
         _ * domainObjectContext.identityPath(_) >> { String p -> build.append(Path.path(projectPath)).child(p) }
@@ -1885,7 +1894,7 @@ All Artifacts:
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
-        def defaultConfigurationFactory = new DefaultConfigurationFactory(
+        new DefaultConfigurationFactory(
             DirectInstantiator.INSTANCE,
             resolver,
             listenerManager,
@@ -1905,7 +1914,6 @@ All Artifacts:
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory()
         )
-        defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role, false)
     }
 
     private DefaultPublishArtifact artifact(String name) {

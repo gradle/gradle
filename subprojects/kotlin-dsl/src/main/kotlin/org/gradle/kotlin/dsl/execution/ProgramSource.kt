@@ -87,8 +87,8 @@ fun text(string: String) = ProgramText.from(string)
 
 
 internal
-fun ProgramSource.fragment(identifier: IntRange, block: IntRange) =
-    ProgramSourceFragment(this, ScriptSection(identifier, block))
+fun ProgramSource.fragment(identifier: IntRange, block: IntRange, firstAnnotationStart: Int? = null) =
+    ProgramSourceFragment(this, ScriptSection(identifier, block, firstAnnotationStart))
 
 
 internal
@@ -107,19 +107,30 @@ data class ProgramSourceFragment internal constructor(
     val range: IntRange
         get() = section.wholeRange
 
-    override fun toString(): String =
-        "ProgramSourceFragment(\"${source.text.subSequence(range)}\")"
+    internal
+    val identifierString: String
+        get() = source.text.substring(range)
 
     internal
     val blockString: String
         get() = source.text.substring(section.block)
+
+    override fun equals(other: Any?): Boolean = other is ProgramSourceFragment && other.identifierString == identifierString && other.blockString == blockString
+
+    override fun hashCode(): Int {
+        return identifierString.hashCode() * 31 * blockString.hashCode()
+    }
+
+    override fun toString(): String =
+        "ProgramSourceFragment(\"${identifierString}\")"
 }
 
 
 internal
 data class ScriptSection(
     val identifier: IntRange,
-    val block: IntRange
+    val block: IntRange,
+    val firstAnnotationStart: Int? = null
 ) {
 
     val wholeRange

@@ -258,8 +258,8 @@ Util build type: RELEASE
 
     @ToBeFixedForConfigurationCache
     @RequiresInstalledToolChain(GCC_COMPATIBLE) // latest clang seems to have issues:
-    // /usr/bin/ld: /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/test files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainExecutablePlatformLinux/3aor34f2b62iejk2eq3fn5ikr/platform-linux.o:(.data+0x0): multiple definition of `platform_name';
-    // /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/test files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainC/dey3oyi6y0a9luwot945rff8j/main.o:(.bss+0x0): first defined here
+    // /usr/bin/ld: /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/teŝt files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainExecutablePlatformLinux/3aor34f2b62iejk2eq3fn5ikr/platform-linux.o:(.data+0x0): multiple definition of `platform_name';
+    // /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/teŝt files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainC/dey3oyi6y0a9luwot945rff8j/main.o:(.bss+0x0): first defined here
     //clang: error: linker command failed with exit code 1 (use -v to see invocation)
     def sourcesetvariant() {
         given:

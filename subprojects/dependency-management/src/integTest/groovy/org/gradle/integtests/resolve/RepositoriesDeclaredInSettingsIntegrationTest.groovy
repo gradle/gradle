@@ -217,6 +217,45 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
     }
 
+    def "can fail the build if repositories are declared in a subproject block"() {
+        settingsFile << """
+
+            dependencyResolutionManagement {
+                repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            }
+
+            include 'lib1', 'lib2'
+
+        """
+
+        buildFile << """
+            gradle.beforeProject {
+                println "Before project \$it"
+            }
+            subprojects {
+                configurations {
+                    conf
+                }
+
+                dependencies {
+                    conf 'org:module:1.0'
+                }
+
+                repositories {
+                    maven { url 'dummy' }
+                }
+                println "Repository registered in \$it"
+            }
+        """
+
+        when:
+        fails ':lib1:checkDeps'
+
+        then:
+        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
+
+    }
+
     def "can detect a repository added by a plugin"() {
         withProjectPluginAddingRepository()
 

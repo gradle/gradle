@@ -17,22 +17,13 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.daemon.DaemonContextParser
-import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
-import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonDir
-import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.server.api.HandleStop
-import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
-import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
  *
@@ -40,202 +31,13 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
  * from the org.gradle.launcher.daemon.testing.* package to model a sequence of expected
  * daemon registry state changes, executing actions at certain state changes.
  */
-class DaemonLifecycleSpec extends DaemonIntegrationSpec {
-
-    public static final int BUILD_EXECUTION_TIMEOUT = 40
-    int daemonIdleTimeout = 200
-    int periodicCheckInterval = 5
-    //normally, state transition timeout must be lower than the daemon timeout
-    //so that the daemon does not timeout in the middle of the state verification
-    //effectively hiding some bugs or making tests fail
-    int stateTransitionTimeout = daemonIdleTimeout/2
-
-    final List<GradleHandle> builds = []
-    final List<GradleHandle> foregroundDaemons = []
-
-    // set this to change the java home used to launch any gradle, set back to null to use current JVM
-    def javaHome = null
-
-    // set this to change the desired default encoding for the build request
-    def buildEncoding = null
-
-    @Delegate DaemonEventSequenceBuilder sequenceBuilder =
-        new DaemonEventSequenceBuilder(stateTransitionTimeout * 1000)
-
-    def buildDir(buildNum) {
-        file("builds/$buildNum")
-    }
-
-    def buildDirWithScript(buildNum, buildScript) {
-        def dir = buildDir(buildNum)
-        dir.file("settings.gradle").touch()
-        dir.file("build.gradle") << buildScript
-        dir
-    }
-
-    void startBuild(String javaHome = null, String buildEncoding = null) {
-        run {
-            executer.withTasks("watch")
-            executer.withDaemonIdleTimeoutSecs(daemonIdleTimeout)
-            executer.withArguments(
-                    "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",
-                    "--debug" // Need debug logging so we can extract the `DefaultDaemonContext`
-            )
-            if (javaHome) {
-                executer.withJavaHome(javaHome)
-            }
-            if (buildEncoding) {
-                executer.withDefaultCharacterEncoding(buildEncoding)
-            }
-            executer.usingProjectDirectory buildDirWithScript(builds.size(), """
-                task('watch') {
-                    doLast {
-                        println "waiting for stop file"
-                        long sanityCheck = System.currentTimeMillis() + 120000L
-                        while(!file("stop").exists()) {
-                            sleep 100
-                            if (file("exit").exists()) {
-                                println "found exit file, exiting"
-                                System.exit(1)
-                            }
-                            if (System.currentTimeMillis() > sanityCheck) {
-                                println "timed out waiting for stop file, failing"
-                                throw new RuntimeException("It seems the stop file was never created")
-                            }
-                        }
-                        println 'noticed stop file, finishing'
-                    }
-                }
-            """)
-            builds << executer.start()
-        }
-        //TODO - rewrite the lifecycle spec so that it uses the TestableDaemon
-    }
-
-    void completeBuild(buildNum = 0) {
-        run {
-            buildDir(buildNum).file("stop") << "stop"
-        }
-    }
-
-    private static deleteFile(File file) {
-        // Repeat the attempt to delete in case it was temporarily locked
-        poll(10) {
-            if (file.exists()) {
-                file.delete()
-            }
-            assert !file.exists()
-        }
-    }
-
-    void waitForBuildToWait(buildNum = 0) {
-        run {
-            poll(BUILD_EXECUTION_TIMEOUT) { assert builds[buildNum].standardOutput.contains("waiting for stop file") }
-        }
-    }
-
-    void waitForDaemonExpiration(buildNum = 0) {
-        run {
-            poll(BUILD_EXECUTION_TIMEOUT) { assert builds[buildNum].standardOutput.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE) }
-        }
-    }
-
-    void waitForLifecycleLogToContain(buildNum = 0, String expected) {
-        run {
-            poll(BUILD_EXECUTION_TIMEOUT) { assert builds[buildNum].standardOutput.contains(expected) }
-        }
-    }
-
-    void stopDaemons() {
-        run { stopDaemonsNow() }
-    }
-
-    void stopDaemonsNow() {
-        executer.withArguments("--stop", "--info")
-        if (javaHome) {
-            executer.withJavaHome(javaHome)
-        }
-        executer.run()
-    }
-
-    void startForegroundDaemon() {
-        run { startForegroundDaemonNow() }
-    }
-
-    void startForegroundDaemonWithAlternateJavaHome() {
-        run {
-            javaHome = AvailableJavaHomes.differentJdk.javaHome
-            startForegroundDaemonNow()
-            javaHome = null
-        }
-    }
-
-    void startForegroundDaemonWithDefaultCharacterEncoding(String encoding) {
-        run {
-            executer.withDefaultCharacterEncoding(encoding)
-            startForegroundDaemonNow()
-            javaHome = null
-        }
-    }
-
-    void startForegroundDaemonNow() {
-        if (javaHome) {
-            executer.withJavaHome(javaHome)
-        }
-        executer.withArguments("--foreground", "--info", "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}", "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",)
-        foregroundDaemons << executer.start()
-    }
-
-    //this is a windows-safe way of killing the process
-    void disappearDaemon(int num = 0) {
-        run {
-            buildDir(num).file("exit") << "exit"
-        }
-    }
-
-    void killForegroundDaemon(int num = 0) {
-        run { foregroundDaemons[num].abort().waitForFailure() }
-    }
-
-    void killBuild(int num = 0) {
-        run { builds[num].abort().waitForFailure() }
-    }
-
-    void buildFailed(int num = 0) {
-        run { failed builds[num] }
-    }
-
-    void foregroundDaemonCompleted(int num = 0) {
-        run { foregroundDaemons[num].waitForFinish() }
-    }
-
-    void failed(GradleHandle handle) {
-        assert handle.waitForFailure()
-    }
-
-    void daemonContext(num = 0, Closure assertions) {
-        run { doDaemonContext(builds[num], assertions) }
-    }
-
-    void foregroundDaemonContext(num = 0, Closure assertions) {
-        run { doDaemonContext(foregroundDaemons[num], assertions) }
-    }
-
-    void doDaemonContext(gradleHandle, Closure assertions) {
-        // poll here since even though the daemon has been marked as busy in the registry, the context may not have been
-        // flushed to the log yet.
-        DaemonContext context
-        poll(5) {
-            context = DaemonContextParser.parseFromString(gradleHandle.standardOutput)
-        }
-        context.with(assertions)
-    }
+class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
 
     def "daemons do some work - sit idle - then timeout and die"() {
         //in this particular test we need to make the daemon timeout
         //shorter than the state transition timeout so that
         //we can detect the daemon idling out within state verification window
-        daemonIdleTimeout = stateTransitionTimeout/2
+        daemonIdleTimeout = stateTransitionTimeout / 2
 
         when:
         startBuild()
@@ -380,7 +182,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         daemonContext(0) {
-            assert(new DaemonDir(executer.daemonBaseDir).registry.exists())
+            assert (new DaemonDir(executer.daemonBaseDir).registry.exists())
         }
 
         when:
@@ -418,14 +220,14 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         then:
         busy()
         daemonContext {
-            assert(registry.exists())
+            assert (registry.exists())
         }
 
         and:
         completeBuild()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "if a daemon exists but is using a different java home, a new compatible daemon will be created and used"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
@@ -452,41 +254,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         then:
         daemonContext {
             assert javaHome == Jvm.current().javaHome
-        }
-    }
-
-    def "if a daemon exists but is using a file encoding, a new compatible daemon will be created and used"() {
-        when:
-        startBuild(null, "US-ASCII")
-        waitForBuildToWait()
-
-        then:
-        busy()
-        daemonContext {
-            assert daemonOpts.contains("-Dfile.encoding=US-ASCII")
-        }
-
-        then:
-        completeBuild()
-
-        then:
-        idle()
-
-        when:
-        startBuild(null, "UTF-8")
-        waitForLifecycleLogToContain(1, "1 incompatible")
-        waitForBuildToWait()
-
-        then:
-        state 1, 1
-
-        then:
-        completeBuild(1)
-
-        then:
-        idle 2
-        daemonContext(1) {
-            assert daemonOpts.contains("-Dfile.encoding=UTF-8")
         }
     }
 
@@ -528,7 +295,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     // GradleHandle.abort() does not work reliably on windows and creates flakiness
     @Requires(UnitTestPreconditions.NotWindows)
-    @Ignore("TODO: Fix GradleHandle.abort() so that it doesn't hang")
     def "daemon stops immediately if stop is requested and then client disconnects"() {
         when:
         startBuild()
@@ -550,14 +316,5 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         stopped()
-    }
-
-    def cleanup() {
-        try {
-            def registry = new DaemonLogsAnalyzer(executer.daemonBaseDir).registry
-            sequenceBuilder.build(registry).run()
-        } finally {
-            stopDaemonsNow()
-        }
     }
 }

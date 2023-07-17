@@ -35,8 +35,10 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         optionName                 | value
         'myBooleanPrimitiveOption' | 'false'
         'myBooleanObjectOption'    | 'null'
-        'myBooleanPropertyOption'  | 'property(java.lang.Boolean, undefined)'
+        'myBooleanPropertyOption'  | 'null'
         'myFieldOption'            | 'null'
+        'feature'                  | 'false'
+        'propertyFeature'          | 'null'
     }
 
     def "can pass boolean option with #option=#value"() {
@@ -54,8 +56,10 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         option                     | value
         'myBooleanPrimitiveOption' | 'true'
         'myBooleanObjectOption'    | 'true'
-        'myBooleanPropertyOption'  | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, true))'
+        'myBooleanPropertyOption'  | 'true'
         'myFieldOption'            | 'true'
+        'feature'                  | 'false'
+        'propertyFeature'          | 'false'
     }
 
     def "can pass boolean disable option #option=#value"() {
@@ -73,8 +77,10 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         option                     | value
         'myBooleanPrimitiveOption' | 'false'
         'myBooleanObjectOption'    | 'false'
-        'myBooleanPropertyOption'  | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, false))'
+        'myBooleanPropertyOption'  | 'false'
         'myFieldOption'            | 'false'
+        'feature'                  | 'true'
+        'propertyFeature'          | 'true'
     }
 
     def "cannot pass boolean option value with #option"() {
@@ -87,14 +93,18 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Command-line option '$option' does not take an argument.")
 
         where:
-        option  << ['--myBooleanPrimitiveOption',
-                    '--myBooleanObjectOption',
-                    '--myBooleanPropertyOption',
-                    '--myFieldOption',
-                    '--no-myBooleanPrimitiveOption',
-                    '--no-myBooleanObjectOption',
-                    '--no-myBooleanPropertyOption',
-                    '--no-myFieldOption'
+        option << ['--myBooleanPrimitiveOption',
+                   '--myBooleanObjectOption',
+                   '--myBooleanPropertyOption',
+                   '--myFieldOption',
+                   '--feature',
+                   '--propertyFeature',
+                   '--no-myBooleanPrimitiveOption',
+                   '--no-myBooleanObjectOption',
+                   '--no-myBooleanPropertyOption',
+                   '--no-myFieldOption',
+                   '--no-feature',
+                   '--no-propertyFeature'
         ]
     }
 
@@ -116,26 +126,34 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Value of $option: $value2")
 
         where:
-        option                     | value1                                                               | value2
-        'myBooleanPrimitiveOption' | 'false'                                                              | 'true'
-        'myBooleanObjectOption'    | 'false'                                                              | 'true'
-        'myBooleanPropertyOption'  | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, false))' | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, true))'
-        'myFieldOption'            | 'false'                                                              | 'true'
+        option                     | value1  | value2
+        'myBooleanPrimitiveOption' | 'false' | 'true'
+        'myBooleanObjectOption'    | 'false' | 'true'
+        'myBooleanPropertyOption'  | 'false' | 'true'
+        'myFieldOption'            | 'false' | 'true'
+        'feature'                  | 'true'  | 'false'
+        'propertyFeature'          | 'true'  | 'false'
     }
 
-    def "options of a task shadow clash with generated opposite options"() {
+    def "options of a task shadow clash with generated opposite options with #options"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithBooleanOppositeOptionNameClashing()
         buildFile << sampleTask()
 
         when:
-        run('sample', "--my-option")
+        run('sample', *options)
 
         then:
-        outputContains("Value of my-option: true")
-        outputContains("Value of no-my-option: null")
+        outputContains("Value of my-option: $myOptionValue")
+        outputContains("Value of no-my-option: $noMyOptionValue")
         outputContains("Opposite option 'my-option' in task task ':sample' was disabled for clashing with another option of same name")
         outputContains("Opposite option 'no-my-option' in task task ':sample' was disabled for clashing with another option of same name")
+
+        where:
+        options                           | myOptionValue | noMyOptionValue
+        ["--my-option"]                   | true          | null
+        ["--no-my-option"]                | null          | true
+        ["--my-option", "--no-my-option"] | true          | true
     }
 
     def "can render boolean options with help task"() {
@@ -157,21 +175,29 @@ Type
      SampleTask (SampleTask)
 
 Options
+     --feature     Opposite option of --no-feature
+
+     --no-feature     Configures boolean option 'feature' that is only negated
+
      --myBooleanObjectOption     Configures boolean option 'myBooleanObjectOption'
-
-     --myBooleanPrimitiveOption     Configures boolean option 'myBooleanPrimitiveOption'
-
-     --myBooleanPropertyOption     Configures Property<Boolean> option 'myBooleanPropertyOption'
-
-     --myFieldOption     Configures boolean option 'myFieldOption'
 
      --no-myBooleanObjectOption     Disables option --myBooleanObjectOption
 
+     --myBooleanPrimitiveOption     Configures boolean option 'myBooleanPrimitiveOption'
+
      --no-myBooleanPrimitiveOption     Disables option --myBooleanPrimitiveOption
+
+     --myBooleanPropertyOption     Configures Property<Boolean> option 'myBooleanPropertyOption'
 
      --no-myBooleanPropertyOption     Disables option --myBooleanPropertyOption
 
+     --myFieldOption     Configures boolean option 'myFieldOption'
+
      --no-myFieldOption     Disables option --myFieldOption
+
+     --propertyFeature     Opposite option of --no-propertyFeature
+
+     --no-propertyFeature     Configures boolean option 'propertyFeature' that is only negated
 
      --rerun     Causes the task to be re-run even if up-to-date.
 
@@ -203,6 +229,11 @@ Group
                 @Option(description = "Configures boolean option 'myFieldOption'")
                 private Boolean myFieldOption;
 
+                @Option(option = "no-feature", description = "Configures boolean option 'feature' that is only negated")
+                private Boolean feature = false;
+
+                private Property<Boolean> propertyFeature = getProject().getObjects().property(Boolean.class).convention((Boolean)null);
+
                 public SampleTask() {}
 
                 @Option(option = "myBooleanPrimitiveOption", description = "Configures boolean option 'myBooleanPrimitiveOption'")
@@ -224,12 +255,24 @@ Group
                     this.myFieldOption = myFieldOption;
                 }
 
+                public void setFeature(Boolean feature) {
+                    this.feature = feature;
+                }
+
+                @Option(option = "no-propertyFeature", description = "Configures boolean option 'propertyFeature' that is only negated")
+                public void setPropertyFeature(Boolean propertyFeature) {
+                    this.propertyFeature.set(propertyFeature);
+                }
+
+
                 @TaskAction
                 public void renderOptionValue() {
                     System.out.println("Value of myBooleanPrimitiveOption: " + myBooleanPrimitiveOption);
                     System.out.println("Value of myBooleanObjectOption: " + myBooleanObjectOption);
-                    System.out.println("Value of myBooleanPropertyOption: " + myBooleanPropertyOption);
+                    System.out.println("Value of myBooleanPropertyOption: " + myBooleanPropertyOption.getOrNull());
                     System.out.println("Value of myFieldOption: " + myFieldOption);
+                    System.out.println("Value of feature: " + feature);
+                    System.out.println("Value of propertyFeature: " + propertyFeature.getOrNull());
                 }
             }
         """

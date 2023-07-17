@@ -145,11 +145,11 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return getImmutablePermissions().toUnixNumeric();
+            return getPermissions().toUnixNumeric();
         }
 
         @Override
-        public FilePermissions getImmutablePermissions() {
+        public FilePermissions getPermissions() {
             int unixNumeric = stat.getUnixMode(getFile());
             return new DefaultFilePermissions(unixNumeric);
         }
@@ -226,11 +226,11 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return getImmutablePermissions().toUnixNumeric();
+            return getPermissions().toUnixNumeric();
         }
 
         @Override
-        public FilePermissions getImmutablePermissions() {
+        public FilePermissions getPermissions() {
             int unixNumeric = stat.getUnixMode(path.toFile());
             return new DefaultFilePermissions(unixNumeric);
         }

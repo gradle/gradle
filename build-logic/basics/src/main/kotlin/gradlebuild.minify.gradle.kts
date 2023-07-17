@@ -16,7 +16,6 @@
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 
 /**
  * A map from artifact name to a set of class name prefixes that should be kept.
@@ -55,6 +54,8 @@ plugins.withId("java-base") {
         attributesSchema {
             attribute(minified)
         }
+        // It would be nice if we could be more selective about which variants to apply this to.
+        // TODO https://github.com/gradle/gradle/issues/11831#issuecomment-580686994
         artifactTypes.getByName("jar") {
             attributes.attribute(minified, java.lang.Boolean.FALSE)
         }
@@ -72,19 +73,17 @@ plugins.withId("java-base") {
             }
         }
     }
-    configurations.all {
-        // TODO we should be able to solve this only by requesting attributes for artifacts - https://github.com/gradle/gradle/issues/11831#issuecomment-580686994
-        (this as ConfigurationInternal).beforeLocking {
-            // everywhere where we resolve, prefer the minified version
-            if (isCanBeResolved && !isCanBeConsumed && name !in setOf("currentApiClasspath", "codenarc")) {
-                attributes.attribute(minified, true)
-            }
-            // local projects are already minified
-            if (isCanBeConsumed && !isCanBeResolved) {
-                if (attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == Category.LIBRARY
-                    && attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE)?.name == Bundling.EXTERNAL
-                ) {
-                    attributes.attribute(minified, true)
+    afterEvaluate {
+        // Without afterEvaluate, configurations.all runs before the configurations' roles are set.
+        // This is yet another reason we need configuration factory methods.
+        configurations.all {
+            if (isCanBeResolved && !isCanBeConsumed) {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module("it.unimi.dsi:fastutil")).using(variant(module("it.unimi.dsi:fastutil:8.5.2")) {
+                        attributes {
+                            attribute(minified, true)
+                        }
+                    })
                 }
             }
         }

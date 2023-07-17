@@ -112,13 +112,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "build-scan-performance",
-    "path": "subprojects/build-scan-performance",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "cli",
     "path": "subprojects/cli",
     "unitTests": true,
@@ -127,7 +120,7 @@
   },
   {
     "name": "code-quality",
-    "path": "subprojects/code-quality",
+    "path": "platforms/jvm/code-quality",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -267,28 +260,35 @@
   },
   {
     "name": "enterprise",
-    "path": "subprojects/enterprise",
+    "path": "platforms/enterprise/enterprise",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "enterprise-logging",
-    "path": "subprojects/enterprise-logging",
+    "path": "platforms/enterprise/enterprise-logging",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "enterprise-operations",
-    "path": "subprojects/enterprise-operations",
+    "path": "platforms/enterprise/enterprise-operations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "enterprise-plugin-performance",
+    "path": "platforms/enterprise/enterprise-plugin-performance",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "enterprise-workers",
-    "path": "subprojects/enterprise-workers",
+    "path": "platforms/enterprise/enterprise-workers",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -651,6 +651,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "precondition-tester",
+    "path": "subprojects/precondition-tester",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
     "name": "problems",
     "path": "subprojects/problems",
     "unitTests": true,
@@ -828,6 +835,13 @@
   {
     "name": "version-control",
     "path": "subprojects/version-control",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "war",
+    "path": "platforms/jvm/war",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

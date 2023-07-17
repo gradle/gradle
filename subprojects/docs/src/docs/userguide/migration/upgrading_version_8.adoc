@@ -40,6 +40,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Deprecated `Project.buildDir` can cause script compilation failure
+
+With the deprecation of `Project.buildDir`, buildscripts that are compiled with warnings as errors could fail if the deprecated field is used.
+
+See <<#project_builddir, the deprecation entry>> for details.
+
 [[legacy_attribute_snapshotting]]
 ==== Fixed variant selection behavior with `ArtifactView` and `ArtifactCollection`
 
@@ -80,10 +86,294 @@ Since the artifact view was created before the attributes were added to the conf
 
 Some builds may have worked around this by also putting the additional attributes into the artifact view. This is no longer necessary.
 
-[[kotlin_1_8.21]]
-==== Upgrade to Kotlin 1.8.21
+[[kotlin_1_9.0]]
+==== Upgrade to Kotlin 1.9.0
 
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
+The embedded Kotlin has been updated from 1.8.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.0[Kotlin 1.9.0].
+The Kotlin language and API levels for the Kotlin DSL are still set to 1.8 for backwards compatibility.
+See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.22[Kotlin 1.8.22] and link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
+
+
+=== Deprecations
+
+[[project_builddir]]
+==== Deprecated `Project.buildDir` is to be replaced by `Project.layout.buildDirectory`
+
+The `Project.buildDir` property is deprecated.
+It uses eager APIs and has ordering issues if the value is read in build logic and then later modified.
+It could result in outputs ending up in different locations.
+
+It is replaced by a `link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]` found at `Project.layout.buildDirectory`.
+See the `link:{dslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout]` interface for details.
+
+Note that, at this stage, Gradle will not print deprecation warnings if you still use `Project.buildDir`.
+We know this is a big change and want to give time for authors of major plugins to move away from its usage first.
+
+The switch from a `File` to a `DirectoryProperty` requires adaptations in build logic.
+The main impact is that you cannot use the property inside a `String` to expand it.
+Instead, you should leverage the `dir` and `file` methods to compute the location you want.
+
+Here is an example for creating a file, where the following:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+// Returns a java.io.File
+file("$buildDir/myOutput.txt")
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+// Returns a java.io.File
+file("$buildDir/myOutput.txt")
+----
+======
+=====
+
+should be replaced by:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+// Compatible with a number of Gradle lazy APIs that accept also java.io.File
+val output: Provider<RegularFile> = layout.buildDirectory.file("myOutput.txt")
+
+// If you really need the java.io.File for a non lazy API
+output.get().asFile
+
+// Or a path for a lazy String based API
+output.map { it.asFile.path }
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+// Compatible with a number of Gradle lazy APIs that accept also java.io.File
+Provider<RegularFile> output = layout.buildDirectory.file("myOutput.txt")
+
+// If you really need the java.io.File for a non lazy API
+output.get().asFile
+
+// Or a path for a lazy String based API
+output.map { it.asFile.path }
+----
+======
+=====
+
+Here is another example for creating a directory, where the following:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+// Returns a java.io.File
+file("$buildDir/outputLocation")
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+// Returns a java.io.File
+file("$buildDir/outputLocation")
+----
+======
+=====
+
+should be replaced by:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+// Compatible with a number of Gradle APIs that accept a java.io.File
+val output: Provider<Directory> = layout.buildDirectory.dir("outputLocation")
+
+// If you really need the java.io.File for a non lazy API
+output.get().asFile
+
+// Or a path for a lazy String based API
+output.map { it.asFile.path }
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+// Compatible with a number of Gradle APIs that accept a java.io.File
+Provider<Directory> output = layout.buildDirectory.dir("outputLocation")
+
+// If you really need the java.io.File for a non lazy API
+output.get().asFile
+
+// Or a path for a lazy String based API
+output.map { it.asFile.path }
+----
+======
+=====
+
+==== Deprecated `ClientModule` dependencies
+
+`link:{javadocPath}/org/gradle/api/artifacts/ClientModule.html[ClientModule]` dependencies are deprecated and will be removed in Gradle 9.0.
+
+Client module dependencies were originally intended to allow builds to override incorrect or missing component metadata of external dependencies by defining the metadata locally.
+This functionality has since been replaced by <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
+
+Consider the following client module dependency example:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation(module("org:foo:1.0") {
+        dependency("org:bar:1.0")
+        module("org:baz:1.0") {
+            dependency("com:example:1.0")
+        }
+    })
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation module("org:foo:1.0") {
+        dependency "org:bar:1.0"
+        module("org:baz:1.0") {
+            dependency "com:example:1.0"
+        }
+    }
+}
+----
+======
+=====
+
+This can be replaced with the following component metadata rule:
+
+=====
+[.multi-language-sample]
+======
+.build-logic/src/main/kotlin/my-plugin.gradle.kts
+[source,kotlin]
+----
+@CacheableRule
+abstract class AddDependenciesRule @Inject constructor(val dependencies: List<String>) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        listOf("compile", "runtime").forEach { base ->
+            context.details.withVariant(base) {
+                withDependencies {
+                    dependencies.forEach {
+                        add(it)
+                    }
+                }
+            }
+        }
+    }
+}
+----
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    components {
+        withModule<AddDependenciesRule>("org:foo") {
+            params(listOf(
+                "org:bar:1.0",
+                "org:baz:1.0"
+            ))
+        }
+        withModule<AddDependenciesRule>("org:baz") {
+            params(listOf("com:example:1.0"))
+        }
+    }
+
+    implementation("org:foo:1.0")
+}
+----
+======
+[.multi-language-sample]
+======
+.build-logic/src/main/groovy/my-plugin.gradle
+[source,groovy]
+----
+@CacheableRule
+abstract class AddDependenciesRule implements ComponentMetadataRule {
+
+    List<String> dependencies
+
+    @Inject
+    AddDependenciesRule(List<String> dependencies) {
+        this.dependencies = dependencies
+    }
+
+    @Override
+    void execute(ComponentMetadataContext context) {
+        ["compile", "runtime"].each { base ->
+            context.details.withVariant(base) {
+                withDependencies {
+                    dependencies.each {
+                        add(it)
+                    }
+                }
+            }
+        }
+    }
+}
+----
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    components {
+        withModule("org:foo", AddDependenciesRule) {
+            params([
+                "org:bar:1.0",
+                "org:baz:1.0"
+            ])
+        }
+        withModule("org:baz", AddDependenciesRule) {
+            params(["com:example:1.0"])
+        }
+    }
+
+    implementation "org:foo:1.0"
+}
+----
+======
+=====
+
+[[unsupported_ge_plugin_3.13]]
+==== Earliest supported Gradle Enterprise plugin version is 3.13.1
+
+Starting in Gradle 9.0, the earliest supported Gradle Enterprise plugin version is 3.13.1.
+The plugin versions from 3.0 up to 3.13 will be ignored when applied.
+
+Upgrade to version 3.13.1 or later of the Gradle Enterprise plugin.
+You can find the link:https://plugins.gradle.org/plugin/com.gradle.enterprise[latest available version on the Gradle Plugin Portal].
+More information on the compatibility can be found link:https://docs.gradle.com/enterprise/compatibility/#build_scans[here].
 
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
@@ -138,6 +428,35 @@ JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[
 
 A plugin compiled with Gradle >= 8.2 that makes use of the Kotlin DSL functions link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the<T>()`], link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the(KClass)`] or link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/configure.html[`Project.configure<T> {}`] cannot run on Gradle <= 6.1.
 
+==== Deferred or avoided configuration of some tasks
+
+When performing dependency resolution, Gradle creates an internal representation of the available link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]s.
+This requires inspecting all configurations and artifacts.
+Processing artifacts created by tasks causes those tasks to be realized and configured.
+
+This internal representation is now created more lazily, which can change the order in which tasks are configured.
+Some tasks may never be configured.
+
+This change may cause code paths that relied on a particular order to no longer function, such as conditionally adding attributes to a configuration based on the presence of certain attributes.
+
+This impacted the link:https://github.com/bndtools/bnd/issues/5695[bnd plugin and JUnit5 build].
+
+We recommend not modifying domain objects (configurations, source sets, tasks, etc) from configuration blocks for other domain objects that may not be configured.
+
+For example, avoid doing something like this:
+
+```kotlin
+    configurations {
+        val myConfig = create("myConfig")
+    }
+
+    tasks.register("myTask") {
+            // This is not safe, as the execution of this block may not occur, or may not occur in the order expected
+          configurations["myConfig"].attributes {
+              attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+          }
+    }
+```
 
 === Deprecations
 

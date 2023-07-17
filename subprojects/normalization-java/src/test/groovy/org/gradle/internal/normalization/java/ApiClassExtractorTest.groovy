@@ -302,11 +302,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
     }
 
     private boolean canTargetJava6() {
-        TestPrecondition.doSatisfies(UnitTestPreconditions.Jdk12OrEarlier)
+        TestPrecondition.satisfied(UnitTestPreconditions.Jdk12OrEarlier)
     }
 
     private boolean canTargetJava7() {
-        TestPrecondition.doSatisfies(UnitTestPreconditions.Jdk19OrEarlier)
+        TestPrecondition.satisfied(UnitTestPreconditions.Jdk19OrEarlier)
     }
 
     def "should not remove public field"() {

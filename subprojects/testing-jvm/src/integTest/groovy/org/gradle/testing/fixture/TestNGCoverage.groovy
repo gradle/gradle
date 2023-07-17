@@ -50,6 +50,7 @@ class TestNGCoverage {
     }
     static final Set<String> SUPPORTS_GROUP_BY_INSTANCES = SUPPORTED_BY_JDK.findAll { VersionNumber.parse(it) >= VersionNumber.parse('6.1') }
     static final Set<String> SUPPORTS_ICLASS_LISTENER = SUPPORTED_BY_JDK.findAll { VersionNumber.parse(it) >= VersionNumber.parse(FIXED_ICLASS_LISTENER) }
+    static final Set<String> SUPPORTS_DRY_RUN = SUPPORTED_BY_JDK.findAll { VersionNumber.parse(it) >= VersionNumber.parse('6.14') }
 
     static boolean providesClassListener(Object version) {
         VersionNumber.parse(version.toString()) >= VersionNumber.parse(FIXED_ICLASS_LISTENER)
