@@ -141,9 +141,6 @@ unassigned {
     subproject("base-annotations")
     subproject("security")
     subproject("normalization-java")
-    subproject("enterprise")
-    subproject("enterprise-logging")
-    subproject("enterprise-workers")
     subproject("build-operations")
     subproject("problems")
     subproject("instrumentation-agent")
@@ -159,7 +156,11 @@ platform("jvm") {
 
 // Gradle Enterprise Platform
 platform("enterprise") {
+    subproject("enterprise")
+    subproject("enterprise-logging")
     subproject("enterprise-operations")
+    subproject("enterprise-plugin-performance")
+    subproject("enterprise-workers")
 }
 
 // Plugin portal projects
@@ -187,7 +188,6 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
-    subproject("build-scan-performance")
     subproject("precondition-tester")
 }
 
