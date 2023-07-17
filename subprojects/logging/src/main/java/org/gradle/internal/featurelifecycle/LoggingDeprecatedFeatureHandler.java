@@ -20,7 +20,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
+import org.gradle.api.problems.interfaces.ProblemBuilderWithoutSeverity;
+import org.gradle.api.problems.interfaces.UnlocatedProblemBuilder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -81,21 +82,24 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if(problemsService != null){
-            ProblemBuilder genericDeprecation = problemsService.createProblemBuilder(DEPRECATION, usage.formattedMessage(), WARNING, "generic_deprecation")
+            UnlocatedProblemBuilder genericDeprecation = problemsService.createProblemBuilder()//DEPRECATION, usage.formattedMessage(), WARNING, "generic_deprecation")
                 .documentedAt(usage.getDocumentationUrl());
-            addPossibleLocation(diagnostics, genericDeprecation);
-            genericDeprecation.report();
+            addPossibleLocation(diagnostics, genericDeprecation)
+                .severity(WARNING)
+                .message(usage.formattedMessage())
+                .type("generic_deprecation")
+                .group(DEPRECATION)
+                .report();
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }
 
-    private static void addPossibleLocation(ProblemDiagnostics diagnostics, ProblemBuilder genericDeprecation) {
+    private static ProblemBuilderWithoutSeverity addPossibleLocation(ProblemDiagnostics diagnostics, UnlocatedProblemBuilder genericDeprecation) {
         Location location = diagnostics.getLocation();
         if (location == null) {
-            genericDeprecation.noLocation();
-        } else {
-            genericDeprecation.location(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
+            return genericDeprecation.noLocation();
         }
+        return genericDeprecation.location(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {

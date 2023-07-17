@@ -20,7 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
+import org.gradle.api.problems.interfaces.ProblemBuilderWithoutMessage;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
@@ -137,9 +138,10 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             workValidationContext.visitPropertyProblem(problem ->
                 configureImplementationValidationProblem(problem.forProperty(propertyName))
                     .message(unknownImplSnapshot.getProblemDescription())
+                    .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
                     .description(unknownImplSnapshot.getReasonDescription())
                     .solution(unknownImplSnapshot.getSolutionDescription())
-                    .noLocation()
             );
         }
     }
@@ -150,19 +152,20 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             workValidationContext.visitPropertyProblem(problem ->
                 configureImplementationValidationProblem(problem)
                     .message(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
+                    .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
                     .description(unknownImplSnapshot.getReasonDescription())
                     .solution(unknownImplSnapshot.getSolutionDescription())
-                    .noLocation()
             );
         }
     }
 
-    private ProblemBuilder configureImplementationValidationProblem(TypeAwareProblemBuilder problem) {
+    private ProblemBuilderWithoutMessage configureImplementationValidationProblem(TypeAwareProblemBuilder problem) {
         return problem
             .typeIsIrrelevantInErrorMessage()
-            .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
-            .severity(ERROR)
-            .documentedAt(userManual("validation_problems", "implementation_unknown"));
+            .documentedAt(userManual("validation_problems", "implementation_unknown"))
+            .noLocation()
+            .severity(ERROR);
     }
 
     protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<Problem> validationErrors) {

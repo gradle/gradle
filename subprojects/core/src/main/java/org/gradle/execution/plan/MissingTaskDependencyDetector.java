@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
@@ -168,9 +169,12 @@ public class MissingTaskDependencyDetector {
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
             problem.typeIsIrrelevantInErrorMessage()
-                .type(ValidationProblemId.IMPLICIT_DEPENDENCY.name())
+                .documentedAt(userManual("validation_problems", "implicit_dependency"))
+                .noLocation()
                 .severity(org.gradle.api.problems.interfaces.Severity.ERROR)
                 .message("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
+                .type(ValidationProblemId.IMPLICIT_DEPENDENCY.name())
+                .group(ProblemGroup.TYPE_VALIDATION)
                 .description(String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
                         + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
                     consumer,
@@ -179,8 +183,6 @@ public class MissingTaskDependencyDetector {
                 .solution("Declare task '" + producer + "' as an input of '" + consumer + "'")
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
-                .documentedAt(userManual("validation_problems", "implicit_dependency"))
-                .noLocation()
         );
     }
 

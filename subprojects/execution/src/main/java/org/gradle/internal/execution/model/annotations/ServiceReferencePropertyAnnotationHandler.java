@@ -16,6 +16,7 @@
 package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
@@ -61,15 +62,17 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
         List<ModelType<?>> typeVariables = Cast.uncheckedNonnullCast(propertyType.getTypeVariables());
         if (typeVariables.size() != 1 || !BuildService.class.isAssignableFrom(typeVariables.get(0).getRawClass())) {
             validationContext.visitPropertyProblem(problem ->
-                problem.type(ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE)
+                problem
                     .forProperty(propertyMetadata.getPropertyName())
+                    .documentedAt(userManual("validation_problems", "service_reference_must_be_a_build_service"))
+                    .noLocation()
                     .severity(Severity.ERROR)
                     .message(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
+                    .type(ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
                     .description(String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
                     .solution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
                     .solution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
-                    .documentedAt(userManual("validation_problems", "service_reference_must_be_a_build_service"))
-                    .noLocation()
             );
         }
     }

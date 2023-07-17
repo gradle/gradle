@@ -18,26 +18,14 @@ package org.gradle.api.problems.interfaces;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
- * A builder interface for {@link Problem} instances.
+ * Problems API.
  *
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilder{
+public interface UndocumentedProblemBuilder {
+    UnlocatedProblemBuilder documentedAt(DocLink doc);
 
-    ProblemBuilder description(String description);
-    ProblemBuilder solution(@Nullable String solution);
-
-    ProblemBuilder cause(Throwable cause);
-
-    ProblemBuilder withMetadata(String key, String value);
-
-    Problem build();
-
-    void report();
-
-    RuntimeException throwIt();
+    UnlocatedProblemBuilder undocumented();
 }

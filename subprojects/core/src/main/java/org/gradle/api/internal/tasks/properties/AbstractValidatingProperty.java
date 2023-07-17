@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Suppliers;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
@@ -44,14 +45,15 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     public static void reportValueNotSet(String propertyName, TypeValidationContext context) {
         context.visitPropertyProblem(problem -> {
             problem.forProperty(propertyName)
-                .type(ValidationProblemId.VALUE_NOT_SET.name())
+                .documentedAt(userManual("validation_problems", "value_not_set"))
+                .noLocation()
                 .severity(org.gradle.api.problems.interfaces.Severity.ERROR)
                 .message("doesn't have a configured value")
+                .type(ValidationProblemId.VALUE_NOT_SET.name())
+                .group(ProblemGroup.TYPE_VALIDATION)
                 .description("This property isn't marked as optional and no value has been configured")
                 .solution("Assign a value to '" + propertyName + "'")
-                .solution("Mark property '" + propertyName + "' as optional")
-                .documentedAt(userManual("validation_problems", "value_not_set"))
-                .noLocation();
+                .solution("Mark property '" + propertyName + "' as optional");
         });
     }
 

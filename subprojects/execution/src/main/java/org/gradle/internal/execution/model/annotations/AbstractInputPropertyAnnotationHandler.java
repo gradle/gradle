@@ -18,6 +18,8 @@ package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.problems.interfaces.ProblemBuilder;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
@@ -61,17 +63,18 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
     ) {
         if (valueTypes.stream().anyMatch(unsupportedType::isAssignableFrom)) {
             validationContext.visitPropertyProblem(problem -> {
-                    problem
-                        .forProperty(propertyMetadata.getPropertyName())
-                        .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
-                        .severity(Severity.ERROR)
-                        .message(String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
-                        .description(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
+                ProblemBuilder describedProblem = problem
+                    .forProperty(propertyMetadata.getPropertyName())
+                    .documentedAt(userManual("validation_problems", "unsupported_value_type"))
+                    .noLocation()
+                    .severity(Severity.ERROR)
+                    .message(String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
+                    .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .description(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
                     for (String possibleSolution : possibleSolutions) {
-                        problem.solution(possibleSolution);
+                        describedProblem.solution(possibleSolution);
                     }
-                    problem.documentedAt(userManual("validation_problems", "unsupported_value_type"))
-                        .noLocation();
                 }
             );
         }

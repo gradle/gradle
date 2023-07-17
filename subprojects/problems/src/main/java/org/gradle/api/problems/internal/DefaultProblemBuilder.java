@@ -20,8 +20,14 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
+import org.gradle.api.problems.interfaces.ProblemBuilderWithoutMessage;
+import org.gradle.api.problems.interfaces.ProblemBuilderWithoutSeverity;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.interfaces.UnTypedProblemBuilder;
+import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
+import org.gradle.api.problems.interfaces.UngroupedProblemBuilder;
+import org.gradle.api.problems.interfaces.UnlocatedProblemBuilder;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import javax.annotation.Nullable;
@@ -36,7 +42,13 @@ import java.util.Map;
  * @since 8.3
  */
 @Incubating
-public class DefaultProblemBuilder implements ProblemBuilder {
+public class DefaultProblemBuilder implements ProblemBuilder,
+    UndocumentedProblemBuilder,
+    UnlocatedProblemBuilder,
+    UngroupedProblemBuilder,
+    ProblemBuilderWithoutMessage,
+    ProblemBuilderWithoutSeverity,
+    UnTypedProblemBuilder {
 
     private ProblemGroup problemGroup;
     private String message;
@@ -73,24 +85,24 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     }
 
     @Override
-    public ProblemBuilder message(String message) {
+    public UnTypedProblemBuilder message(String message) {
         this.message = message;
         return this;
     }
 
     @Override
-    public ProblemBuilder severity(Severity severity) {
+    public ProblemBuilderWithoutMessage severity(Severity severity) {
         this.severity = severity;
         return this;
     }
 
-    public ProblemBuilder location(String path, Integer line) {
+    public ProblemBuilderWithoutSeverity location(String path, Integer line) {
         this.path = path;
         this.line = line;
         return this;
     }
 
-    public ProblemBuilder location(String path, Integer line, Integer column) {
+    public ProblemBuilderWithoutSeverity location(String path, Integer line, Integer column) {
         this.path = path;
         this.line = line;
         this.column = column;
@@ -98,7 +110,7 @@ public class DefaultProblemBuilder implements ProblemBuilder {
     }
 
     @Override
-    public ProblemBuilder noLocation() {
+    public ProblemBuilderWithoutSeverity noLocation() {
         this.noLocation = true;
         return this;
     }
@@ -108,18 +120,18 @@ public class DefaultProblemBuilder implements ProblemBuilder {
         return this;
     }
 
-    public ProblemBuilder documentedAt(DocLink doc) {
+    public UnlocatedProblemBuilder documentedAt(DocLink doc) {
         this.documentationUrl = doc;
         return this;
     }
 
     @Override
-    public ProblemBuilder undocumented() {
+    public UnlocatedProblemBuilder undocumented() {
         this.explicitlyUndocumented = true;
         return this;
     }
 
-    public ProblemBuilder type(String problemType) {
+    public UngroupedProblemBuilder type(String problemType) {
         this.problemType = problemType;
         return this;
     }

@@ -27,11 +27,11 @@ import java.util.Map;
 import static java.lang.Boolean.parseBoolean;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PARENT_PROPERTY_NAME;
-import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PLUGIN_ID;
-import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PROPERTY_NAME;
-import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE;
-import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.TYPE_NAME;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PARENT_PROPERTY_NAME;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PLUGIN_ID;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PROPERTY_NAME;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.TYPE_NAME;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {

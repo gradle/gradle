@@ -234,12 +234,12 @@ public class TomlCatalogFileParser {
     @Nonnull
     public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
         return problemServiceSupplier.get().createProblemBuilder()
-            .group(VERSION_CATALOG)
-            .message(message)
-            .severity(ERROR)
-            .type(catalogProblemId.name())
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
+            .severity(ERROR)
+            .message(message)
+            .type(catalogProblemId.name())
+            .group(VERSION_CATALOG);
     }
 
 

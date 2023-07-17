@@ -804,9 +804,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
     @Nonnull
     public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
-        return problemService.createProblemBuilder(VERSION_CATALOG, message, ERROR, catalogProblemId.name())
+        return problemService.createProblemBuilder()//VERSION_CATALOG, message, ERROR, catalogProblemId.name())
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
+            .severity(ERROR)
+            .message(message)
+            .type(catalogProblemId.name().toLowerCase())
+            .group(VERSION_CATALOG);
     }
 
 }

@@ -19,10 +19,10 @@ package org.gradle.internal.reflect.validation
 import com.google.common.collect.ImmutableMap
 import spock.lang.Specification
 
+import static DefaultTypeAwareProblemBuilder.PROPERTY_NAME
+import static DefaultTypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE
+import static DefaultTypeAwareProblemBuilder.TYPE_NAME
 import static java.lang.Boolean.TRUE
-import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.PROPERTY_NAME
-import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE
-import static org.gradle.internal.reflect.validation.TypeAwareProblemBuilder.TYPE_NAME
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.introductionFor
 
 class TypeValidationRendererTest extends Specification {

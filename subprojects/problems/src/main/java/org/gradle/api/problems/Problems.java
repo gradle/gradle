@@ -19,8 +19,7 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -43,21 +42,11 @@ public abstract class Problems {
         Problems.problemsService = problemsService;
     }
 
-    protected static ProblemBuilder create() {
+    protected static UndocumentedProblemBuilder create() {
         return problemsService.createProblemBuilder();
     }
 
-    abstract public ProblemBuilder createProblemBuilder();
-
-    protected static ProblemBuilder create(ProblemGroup problemGroup, String message, Severity severity, String type) {
-        return problemsService.createProblemBuilder(problemGroup, message, severity, type);
-    }
-    abstract public ProblemBuilder createProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type);
-
-    protected static ProblemBuilder createError(ProblemGroup problemGroup, String message, String type) {
-        return problemsService.createErrorProblemBuilder(problemGroup, message, type);
-    }
-    abstract public ProblemBuilder createErrorProblemBuilder(ProblemGroup problemGroup, String message, String type);
+    abstract public UndocumentedProblemBuilder createProblemBuilder();
 
     protected static void collect(Throwable failure) {
         problemsService.collectError(failure);

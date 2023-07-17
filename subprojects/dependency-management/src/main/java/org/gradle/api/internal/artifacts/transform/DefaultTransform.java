@@ -38,6 +38,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
@@ -202,14 +203,15 @@ public class DefaultTransform implements Transform {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .type(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY.name())
+                        .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
+                        .noLocation()
                         .severity(ERROR)
                         .message("is declared to be sensitive to absolute paths")
+                        .type(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY.name())
+                        .group(ProblemGroup.GENERIC)
                         .description("This is not allowed for cacheable transforms")
 //                        .withLongDescription("Absolute path sensitivity does not allow sharing the transform result between different machines, although that is the goal of cacheable transforms.")
-                        .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath")
-                        .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
-                        .noLocation());
+                        .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
             }
         }
     }
@@ -358,13 +360,14 @@ public class DefaultTransform implements Transform {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
-                            .type(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
-                            .severity(ERROR)
-                            .message("declares an output")
-                            .description("is annotated with an output annotation")
-                            .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
                             .documentedAt(userManual("validation_problems", "artifact_transform_should_not_declare_output"))
                             .noLocation()
+                            .severity(ERROR)
+                            .message("declares an output")
+                            .type(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.name())
+                            .group(ProblemGroup.TYPE_VALIDATION)
+                            .description("is annotated with an output annotation")
+                            .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
                     );
                 }
             })

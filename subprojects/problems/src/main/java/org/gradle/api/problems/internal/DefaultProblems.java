@@ -18,9 +18,7 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import java.util.Collection;
@@ -35,23 +33,20 @@ public class DefaultProblems extends Problems {
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
     }
 
-    public ProblemBuilder createProblemBuilder() {
+    public UndocumentedProblemBuilder createProblemBuilder() {
         return new DefaultProblemBuilder(buildOperationProgressEventEmitter);
     }
 
-    public ProblemBuilder createProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type) {
-        return new DefaultProblemBuilder(problemGroup, message, severity, type, buildOperationProgressEventEmitter);
-    }
-
-    public ProblemBuilder createErrorProblemBuilder(ProblemGroup problemGroup, String message, String type) {
-        return new DefaultProblemBuilder(problemGroup, message, ERROR, type, buildOperationProgressEventEmitter);
-    }
 
     public void collectError(Throwable failure) {
-        new DefaultProblemBuilder(GENERIC, failure.getMessage(), ERROR, "generic_exception", buildOperationProgressEventEmitter)
-            .cause(failure)
-            .noLocation()
+        new DefaultProblemBuilder(buildOperationProgressEventEmitter)
             .undocumented()
+            .noLocation()
+            .severity(ERROR)
+            .message(failure.getMessage())
+            .type("generic_exception")
+            .group(GENERIC)
+            .cause(failure)
             .report();
     }
 
