@@ -1,0 +1,62 @@
+help_1_services {
+  tasks = ["help", "--task", "simple"]
+  gradle-args = [
+      "--no-configuration-cache",
+      "--info",
+      "-DnumberOfServices=1",
+      "-DcreationWait=100"
+  ]
+}
+
+help_2_services {
+  tasks = ["help", "--task", "simple"]
+  gradle-args = [
+      "--no-configuration-cache",
+      "--info",
+      "-DnumberOfServices=2",
+      "-DcreationWait=100"
+  ]
+}
+
+help_10_services {
+  tasks = ["help", "--task", "simple"]
+  gradle-args = [
+      "--no-configuration-cache",
+      "--info",
+      "-DnumberOfServices=10",
+      "-DcreationWait=100"
+  ]
+}
+
+help_100_services {
+  tasks = ["help", "--task", "simple"]
+  gradle-args = [
+      "--no-configuration-cache",
+      "--info",
+      "-DnumberOfServices=100",
+      "-DcreationWait=100"
+  ]
+}
+
+
+help_1000_services {
+  tasks = ["help", "--task", "simple"]
+  gradle-args = [
+      "--no-configuration-cache",
+      "--info",
+      "-DnumberOfServices=1000",
+      "-DcreationWait=100"
+  ]
+}
+
+
+help_10000_services {
+  tasks = ["help", "--task", "simple"]
+  gradle-args = [
+      "--no-configuration-cache",
+      "--info",
+      "-DnumberOfServices=10000",
+      "-DcreationWait=100"
+  ]
+}
+
