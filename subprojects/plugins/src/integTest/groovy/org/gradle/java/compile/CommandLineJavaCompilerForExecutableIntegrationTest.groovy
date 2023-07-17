@@ -17,7 +17,7 @@
 
 package org.gradle.java.compile
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 
 import org.gradle.util.internal.TextUtil
 
@@ -25,11 +25,10 @@ class CommandLineJavaCompilerForExecutableIntegrationTest extends JavaCompilerIn
 
     @Override
     String compilerConfiguration() {
-        def executablePath = AvailableJavaHomes.jdk11.getExecutable("javac").absolutePath
         """
             compileJava.options.with {
                 fork = true
-                forkOptions.executable = "${TextUtil.normaliseFileSeparators(executablePath)}"
+                forkOptions.executable = "${TextUtil.normaliseFileSeparators(Jvm.current().getExecutable("javac").absolutePath)}"
             }
         """
     }

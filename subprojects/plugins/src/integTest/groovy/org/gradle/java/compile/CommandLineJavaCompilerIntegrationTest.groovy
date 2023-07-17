@@ -17,18 +17,17 @@
 
 package org.gradle.java.compile
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.internal.TextUtil
 
 class CommandLineJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
 
     @Override
     String compilerConfiguration() {
-        def javaHomePath = AvailableJavaHomes.jdk11.javaHome.toString()
         """
             compileJava.options.with {
                 fork = true
-                forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(javaHomePath)}")
+                forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(Jvm.current().javaHome.toString())}")
             }
         """
     }
