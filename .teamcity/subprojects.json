@@ -112,13 +112,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "build-scan-performance",
-    "path": "subprojects/build-scan-performance",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "cli",
     "path": "subprojects/cli",
     "unitTests": true,
@@ -282,6 +275,13 @@
   {
     "name": "enterprise-operations",
     "path": "platforms/enterprise/enterprise-operations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "enterprise-plugin-performance",
+    "path": "platforms/enterprise/enterprise-plugin-performance",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

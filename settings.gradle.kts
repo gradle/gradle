@@ -159,6 +159,7 @@ platform("enterprise") {
     subproject("enterprise")
     subproject("enterprise-logging")
     subproject("enterprise-operations")
+    subproject("enterprise-plugin-performance")
     subproject("enterprise-workers")
 }
 
@@ -187,7 +188,6 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
-    subproject("build-scan-performance")
     subproject("precondition-tester")
 }
 
