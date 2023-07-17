@@ -21,51 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class UpgradeGradlePluginTransformsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildTestFixture.withBuildInSubDir()
-        singleProjectBuild("updateable-plugin") {
-            file("src/main/java/com/example/UpdateablePlugin.java").java """
-                package com.example;
 
-                import org.gradle.api.*;
-
-                public class UpdateablePlugin implements Plugin<Project> {
-                    public void apply(Project project) {
-                        System.out.println("Hello from updateable plugin");
-                    }
-                }
-            """
-            buildFile """
-                apply plugin: 'java-gradle-plugin'
-
-                gradlePlugin {
-                    plugins {
-                        greeting {
-                            id = 'com.example.updateable-plugin'
-                            implementationClass = 'com.example.UpdateablePlugin'
-                        }
-                    }
-                }
-
-                configurations {
-                    runtimeElements {
-                        attributes {
-                            attribute(Attribute.of("org.gradle.plugin.runtime", String), "8.0")
-                        }
-                    }
-//                    runtimeElementsForGradle8 {
-//                        outgoing {
-//                            artifact(tasks.jar)
-//                        }
-//                        attributes {
-//                            def runtimeAttributes = configurations.runtimeElements.attributes
-//                            runtimeAttributes.keySet().each { key ->
-//                                attribute(key, runtimeAttributes.getAttribute(key))
-//                            }
-//
-//                        }
-//                    }
-                }
-            """
-        }
         singleProjectBuild("old-plugin") {
             file("src/main/java/com/example/OldPlugin.java").java """
                 package com.example;
@@ -92,69 +48,15 @@ class UpgradeGradlePluginTransformsIntegrationTest extends AbstractIntegrationSp
             """
         }
 
-        file("buildSrc/src/main/java/com/example/UpgradePluginTransform.java").java """
-            package com.example;
-
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import org.gradle.api.file.*;
-            import org.gradle.api.provider.*;
-            import org.gradle.api.artifacts.transform.*;
-            import javax.inject.Inject;
-            import java.io.File;
-
-            public abstract class UpgradePluginTransform implements TransformAction<TransformParameters.None> {
-                @PathSensitive(PathSensitivity.NAME_ONLY)
-                @InputArtifact
-                public abstract Provider<FileSystemLocation> getInputArtifact();
-
-                private File getInput() {
-                    return getInputArtifact().get().getAsFile();
-                }
-
-                public void transform(TransformOutputs outputs) {
-                    outputs.file(getInputArtifact());
-                    System.out.println("Transformed " + getInput().getName());
-                }
-            }
-        """
         settingsFile << """
             pluginManagement {
                 includeBuild("old-plugin")
-                includeBuild("updateable-plugin")
             }
             rootProject.name = "consumer"
         """
         buildFile """
-            buildscript {
-                def gradleRuntime = Attribute.of("org.gradle.plugin.runtime", String)
-
-                configurations {
-                    classpath {
-                        println "Configuring classpath " + this
-//                        attributes {
-//                            attribute(gradleRuntime, GradleVersion.current().version)
-//                        }
-                    }
-                }
-
-                dependencies {
-                    println "Configuring dependencies " + this
-
-                    attributesSchema {
-                        attribute(gradleRuntime) {
-
-                        }
-                    }
-                    registerTransform(com.example.UpgradePluginTransform) {
-                        from.attribute(gradleRuntime, "8.0")
-                        to.attribute(gradleRuntime, GradleVersion.current().version)
-                    }
-                }
-            }
             plugins {
                 id 'com.example.old-plugin'
-                id 'com.example.updateable-plugin'
             }
         """
     }
@@ -169,6 +71,5 @@ class UpgradeGradlePluginTransformsIntegrationTest extends AbstractIntegrationSp
         succeeds("help")
         then:
         outputContains("Hello from old plugin")
-        outputContains("Hello from updateable plugin")
     }
 }

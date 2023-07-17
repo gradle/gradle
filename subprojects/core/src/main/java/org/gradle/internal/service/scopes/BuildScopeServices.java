@@ -490,7 +490,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(CompileOperationFactory.class));
     }
 
-    protected BuildSourceBuilder createBuildSourceBuilder(BuildState currentBuild, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath, NamedObjectInstantiator instantiator) {
+    protected BuildSourceBuilder createBuildSourceBuilder(BuildState currentBuild, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
         return new BuildSourceBuilder(
             currentBuild,
             fileLockManager,
@@ -499,7 +499,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 PluginsProjectConfigureActions.of(
                     BuildSrcProjectConfigurationAction.class,
                     cachingServiceLocator),
-                instantiator,
                 cachedClasspathTransformer),
             buildRegistry,
             publicBuildPath);

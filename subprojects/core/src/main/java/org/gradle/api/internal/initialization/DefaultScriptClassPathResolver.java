@@ -23,12 +23,14 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.GradleRuntimeVersion;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.initialization.upgrade.UpgradePluginTransform;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -40,31 +42,47 @@ import java.util.List;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private final List<ScriptClassPathInitializer> initializers;
-    private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
 
-    public DefaultScriptClassPathResolver(List<ScriptClassPathInitializer> initializers, NamedObjectInstantiator instantiator, CachedClasspathTransformer classpathTransformer) {
+    public DefaultScriptClassPathResolver(List<ScriptClassPathInitializer> initializers, CachedClasspathTransformer classpathTransformer) {
         this.initializers = initializers;
-        this.instantiator = instantiator;
         this.classpathTransformer = classpathTransformer;
     }
 
     @Override
-    public void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler) {
+    public void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler, ObjectFactory objectFactory) {
         // should ideally reuse the `JvmEcosystemUtilities` but this code is too low level
         // and this service is therefore not available!
         AttributeContainer attributes = configuration.getAttributes();
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));
-        attributes.attribute(Category.CATEGORY_ATTRIBUTE, instantiator.named(Category.class, Category.LIBRARY));
-        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
-        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
+        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
         attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().getMajorVersion()));
-        attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
+        attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objectFactory.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
 
         configuration.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
             version.require(Log4jBannedVersion.LOG4J2_CORE_REQUIRED_VERSION);
             version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
         })));
+
+        // Request plugin compiled to the current Gradle version
+        attributes.attribute(GradleRuntimeVersion.GRADLE_RUNTIME_VERSION_ATTRIBUTE, objectFactory.named(GradleRuntimeVersion.class, GradleVersion.current().getVersion()));
+
+        // If the plugin does not define a Gradle runtime version, mark it as such
+        dependencyHandler.getArtifactTypes().getByName("jar").getAttributes()
+            .attribute(GradleRuntimeVersion.GRADLE_RUNTIME_VERSION_ATTRIBUTE, objectFactory.named(GradleRuntimeVersion.class, "unknown"));
+
+        dependencyHandler.getAttributesSchema().attribute(GradleRuntimeVersion.GRADLE_RUNTIME_VERSION_ATTRIBUTE);
+        dependencyHandler.getAttributesSchema().attributeDisambiguationPrecedence(GradleRuntimeVersion.GRADLE_RUNTIME_VERSION_ATTRIBUTE);
+
+        dependencyHandler.registerTransform(
+            UpgradePluginTransform.class,
+            spec -> {
+                spec.getFrom().attribute(GradleRuntimeVersion.GRADLE_RUNTIME_VERSION_ATTRIBUTE, objectFactory.named(GradleRuntimeVersion.class, "unknown"));
+                spec.getTo().attribute(GradleRuntimeVersion.GRADLE_RUNTIME_VERSION_ATTRIBUTE, objectFactory.named(GradleRuntimeVersion.class, GradleVersion.current().getVersion()));
+            }
+        );
     }
 
     @Override

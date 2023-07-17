@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -87,6 +89,14 @@ public abstract class JavaEcosystemSupport {
      */
     @Deprecated
     public static final String DEPRECATED_JAVA_RUNTIME_RESOURCES = "java-runtime-resources";
+
+    public static void configureDependencyHandler(DependencyHandler dependencyHandler, ObjectFactory objectFactory) {
+        AttributesSchema attributesSchema = dependencyHandler.getAttributesSchema();
+        JavaEcosystemSupport.configureSchema(attributesSchema, objectFactory);
+        dependencyHandler.getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
+            .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME))
+            .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+    }
 
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);

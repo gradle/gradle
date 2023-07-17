@@ -71,7 +71,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
         this.scriptClassPathResolver = scriptClassPathResolver;
-        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
     }
 
     @Override
@@ -138,10 +137,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
+            JavaEcosystemSupport.configureDependencyHandler(dependencyHandler, dependencyResolutionServices.getObjectFactory());
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.createWithRole(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET);
-            scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler);
+            scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler, dependencyResolutionServices.getObjectFactory());
         }
     }
 
