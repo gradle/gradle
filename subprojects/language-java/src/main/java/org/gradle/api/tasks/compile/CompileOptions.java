@@ -53,20 +53,6 @@ import java.util.Map;
 public abstract class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
-    private boolean failOnError = true;
-
-    private boolean verbose;
-
-    private boolean listFiles;
-
-    private boolean deprecation;
-
-    private boolean warnings = true;
-
-    private String encoding;
-
-    private boolean debug = true;
-
     private DebugOptions debugOptions;
 
     private boolean fork;
@@ -105,118 +91,58 @@ public abstract class CompileOptions extends AbstractOptions {
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
-    }
-
-    /**
-     * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
-     */
-    @Input
-    public boolean isFailOnError() {
-        return failOnError;
+        this.getFailOnError().convention(true);
+        this.getVerbose().convention(false);
+        this.getListFiles().convention(false);
+        this.getDeprecation().convention(false);
+        this.getWarnings().convention(true);
+        this.getDebug().convention(true);
     }
 
     /**
      * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
      */
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
-    }
+    @Input
+    public abstract Property<Boolean> getFailOnError();
 
     /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
      */
     @Console
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    /**
-     * Sets whether to produce verbose output. Defaults to {@code false}.
-     */
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
+    public abstract Property<Boolean> getVerbose();
 
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
      */
     @Console
-    public boolean isListFiles() {
-        return listFiles;
-    }
-
-    /**
-     * Sets whether to log the files to be compiled. Defaults to {@code false}.
-     */
-    public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
-    }
+    public abstract Property<Boolean> getListFiles();
 
     /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
      */
     @Console
-    public boolean isDeprecation() {
-        return deprecation;
-    }
-
-    /**
-     * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
-     */
-    public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
-    }
+    public abstract Property<Boolean> getDeprecation();
 
     /**
      * Tells whether to log warning messages. The default is {@code true}.
      */
     @Console
-    public boolean isWarnings() {
-        return warnings;
-    }
-
-    /**
-     * Sets whether to log warning messages. The default is {@code true}.
-     */
-    public void setWarnings(boolean warnings) {
-        this.warnings = warnings;
-    }
+    public abstract Property<Boolean> getWarnings();
 
     /**
      * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
      */
-    @Nullable
     @Optional
     @Input
-    public String getEncoding() {
-        return encoding;
-    }
-
-    /**
-     * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
-     * case the platform default encoding will be used.
-     */
-    public void setEncoding(@Nullable String encoding) {
-        this.encoding = encoding;
-    }
+    public abstract Property<String> getEncoding();
 
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     @Input
-    public boolean isDebug() {
-        return debug;
-    }
-
-    /**
-     * Sets whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
-     */
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
+    public abstract Property<Boolean> getDebug();
 
     /**
      * Returns options for generating debugging information.
@@ -370,7 +296,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Calling this method will set {@code debug} to {@code true}.
      */
     public CompileOptions debug(Map<String, Object> debugArgs) {
-        debug = true;
+        getDebug().set(true);
         debugOptions.define(debugArgs);
         return this;
     }
