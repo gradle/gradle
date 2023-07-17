@@ -182,10 +182,10 @@ platforms:
     name: 'gradle_enterprise'
     subprojects:
       - 'subprojects/build-scan-performance/'
-      - 'subprojects/enterprise/'
-      - 'subprojects/enterprise-logging/'
+      - 'platforms/enterprise/enterprise/'
+      - 'platforms/enterprise/enterprise-logging/'
       - 'platforms/enterprise/enterprise-operations/'
-      - 'subprojects/enterprise-workers/'
+      - 'platforms/enterprise/enterprise-workers/'
   - ide:
     name: 'ide'
     subprojects:

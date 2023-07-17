@@ -267,14 +267,14 @@
   },
   {
     "name": "enterprise",
-    "path": "subprojects/enterprise",
+    "path": "platforms/enterprise/enterprise",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "enterprise-logging",
-    "path": "subprojects/enterprise-logging",
+    "path": "platforms/enterprise/enterprise-logging",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -288,7 +288,7 @@
   },
   {
     "name": "enterprise-workers",
-    "path": "subprojects/enterprise-workers",
+    "path": "platforms/enterprise/enterprise-workers",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
