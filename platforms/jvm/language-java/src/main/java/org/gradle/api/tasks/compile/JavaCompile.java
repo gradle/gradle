@@ -140,7 +140,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @TaskAction
     protected void compile(InputChanges inputs) {
         DefaultJavaCompileSpec spec = createSpec();
-        if (!compileOptions.getIncremental().getOrElse(false)) {
+        if (!compileOptions.getIncremental().get()) {
             performFullCompilation(spec);
         } else {
             performIncrementalCompilation(inputs, spec);

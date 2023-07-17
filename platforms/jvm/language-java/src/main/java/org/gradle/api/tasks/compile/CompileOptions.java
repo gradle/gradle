@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -38,9 +39,9 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -54,20 +55,6 @@ import java.util.Map;
 public abstract class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
-    private boolean failOnError = true;
-
-    private boolean verbose;
-
-    private boolean listFiles;
-
-    private boolean deprecation;
-
-    private boolean warnings = true;
-
-    private String encoding;
-
-    private boolean debug = true;
-
     private DebugOptions debugOptions;
 
     private boolean fork;
@@ -76,14 +63,9 @@ public abstract class CompileOptions extends AbstractOptions {
 
     private FileCollection bootstrapClasspath;
 
-    private String extensionDirs;
-
     private List<String> compilerArgs = Lists.newArrayList();
     private final List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
-
     private FileCollection sourcepath;
-
-    private FileCollection annotationProcessorPath;
 
     private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
@@ -104,118 +86,149 @@ public abstract class CompileOptions extends AbstractOptions {
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
-        getIncremental().convention(true);
-    }
-
-    /**
-     * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
-     */
-    @Input
-    public boolean isFailOnError() {
-        return failOnError;
+        this.getFailOnError().convention(true);
+        this.getVerbose().convention(false);
+        this.getListFiles().convention(false);
+        this.getDeprecation().convention(false);
+        this.getWarnings().convention(true);
+        this.getDebug().convention(true);
+        this.getIncremental().convention(true);
     }
 
     /**
      * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
+     *
+     * @since 8.5
      */
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+    @Input
+    @Incubating
+    @UpgradedProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
+
+    /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.5
+     */
+    @Incubating
+    @ReplacedBy("failOnError")
+    public Property<Boolean> getIsFailOnError() {
+        return getFailOnError();
     }
 
     /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
+     *
+     * @since 8.5
      */
     @Console
-    public boolean isVerbose() {
-        return verbose;
-    }
+    @Incubating
+    @UpgradedProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getVerbose();
 
     /**
-     * Sets whether to produce verbose output. Defaults to {@code false}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.5
      */
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
+    @Incubating
+    @ReplacedBy("verbose")
+    public Property<Boolean> getIsVerbose() {
+        return getVerbose();
     }
 
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
+     *
+     * @since 8.5
      */
     @Console
-    public boolean isListFiles() {
-        return listFiles;
-    }
+    @Incubating
+    @UpgradedProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getListFiles();
 
     /**
-     * Sets whether to log the files to be compiled. Defaults to {@code false}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.5
      */
-    public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
+    @Incubating
+    @ReplacedBy("listFiles")
+    public Property<Boolean> getIsListFiles() {
+        return getListFiles();
     }
 
     /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     *
+     * @since 8.5
      */
     @Console
-    public boolean isDeprecation() {
-        return deprecation;
-    }
+    @Incubating
+    @UpgradedProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDeprecation();
 
     /**
-     * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.5
      */
-    public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
+    @Incubating
+    @ReplacedBy("deprecation")
+    public Property<Boolean> getIsDeprecation() {
+        return getDeprecation();
     }
 
     /**
      * Tells whether to log warning messages. The default is {@code true}.
+     *
+     * @since 8.5
      */
     @Console
-    public boolean isWarnings() {
-        return warnings;
-    }
+    @Incubating
+    @UpgradedProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getWarnings();
 
     /**
-     * Sets whether to log warning messages. The default is {@code true}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.5
      */
-    public void setWarnings(boolean warnings) {
-        this.warnings = warnings;
+    @Incubating
+    @ReplacedBy("warnings")
+    public Property<Boolean> getIsWarnings() {
+        return getWarnings();
     }
 
     /**
      * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
      */
-    @Nullable
     @Optional
     @Input
-    public String getEncoding() {
-        return encoding;
-    }
-
-    /**
-     * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
-     * case the platform default encoding will be used.
-     */
-    public void setEncoding(@Nullable String encoding) {
-        this.encoding = encoding;
-    }
+    @UpgradedProperty
+    public abstract Property<String> getEncoding();
 
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     *
+     * @since 8.5
      */
     @Input
-    public boolean isDebug() {
-        return debug;
-    }
+    @Incubating
+    @UpgradedProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDebug();
 
     /**
-     * Sets whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.5
      */
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    @Incubating
+    @ReplacedBy("debug")
+    public Property<Boolean> getIsDebug() {
+        return getDebug();
     }
 
     /**
@@ -291,19 +304,10 @@ public abstract class CompileOptions extends AbstractOptions {
     /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
-    @Nullable
     @Optional
     @Input
-    public String getExtensionDirs() {
-        return extensionDirs;
-    }
-
-    /**
-     * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
-     */
-    public void setExtensionDirs(@Nullable String extensionDirs) {
-        this.extensionDirs = extensionDirs;
-    }
+    @UpgradedProperty
+    public abstract Property<String> getExtensionDirs();
 
     /**
      * Returns any additional arguments to be passed to the compiler.
@@ -370,24 +374,22 @@ public abstract class CompileOptions extends AbstractOptions {
      * Calling this method will set {@code debug} to {@code true}.
      */
     public CompileOptions debug(Map<String, Object> debugArgs) {
-        debug = true;
+        getDebug().set(true);
         debugOptions.define(debugArgs);
         return this;
     }
 
     /**
-     * Returns whether incremental compilation is enabled.
+     * informs whether to use incremental compilation feature.
      *
-     * @return {@code true} if incremental compilation is enabled, {@code false} otherwise.
      * @since 8.5
      */
     @Internal
+    @Incubating
     @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
     public abstract Property<Boolean> getIncremental();
 
     /**
-     * Added for Kotlin source compatibility, should be removed.
-     *
      * TODO: Add deprecation warning
      *
      * @since 8.5
@@ -456,22 +458,10 @@ public abstract class CompileOptions extends AbstractOptions {
      * @return The annotation processor path, or {@code null} if annotation processing is disabled.
      * @since 3.4
      */
-    @Nullable
     @Optional
     @Classpath
-    public FileCollection getAnnotationProcessorPath() {
-        return annotationProcessorPath;
-    }
-
-    /**
-     * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
-     *
-     * @param annotationProcessorPath The annotation processor path, or {@code null} to disable annotation processing.
-     * @since 3.4
-     */
-    public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
-        this.annotationProcessorPath = annotationProcessorPath;
-    }
+    @UpgradedProperty
+    public abstract ConfigurableFileCollection getAnnotationProcessorPath();
 
     /**
      * Configures the Java language version for this compile task ({@code --release} compiler flag).

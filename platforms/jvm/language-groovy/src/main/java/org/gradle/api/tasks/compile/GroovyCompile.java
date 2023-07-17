@@ -90,7 +90,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     public GroovyCompile() {
         ObjectFactory objectFactory = getObjectFactory();
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
-        compileOptions.getIncremental().convention(false);
+        compileOptions.getIncremental().set(false);
         compileOptions.getIncrementalAfterFailure().convention(true);
         this.compileOptions = compileOptions;
 
@@ -240,7 +240,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(groovyCompileOptions));
         spec.getCompileOptions().setSupportsCompilerApi(true);
-        if (getOptions().getIncremental().getOrElse(false)) {
+        if (getOptions().getIncremental().get()) {
             validateIncrementalCompilationOptions(sourceRoots, spec.annotationProcessingConfigured());
             spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
         }
