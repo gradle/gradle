@@ -65,6 +65,9 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                     2.times {
                         maybeExpectOrgGradleUtilGUtilDeprecation(androidPluginVersion)
                     }
+                    if (GradleContextualExecuter.configCache) {
+                        expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersionNumber)
+                    }
                 }.build()
 
         then:
