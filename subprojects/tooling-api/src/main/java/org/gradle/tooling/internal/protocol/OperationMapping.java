@@ -16,47 +16,40 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationType;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 @NonNullApi
 public class OperationMapping {
 
-    private static final Map<String, OperationType> OPERATION_TYPE_MAPPING_NAME_TO_TYPE = createMapping();
+    private static final BiMap<String, OperationType> OPERATION_TYPE_MAPPING_NAME_TO_TYPE = createMapping();
 
     @Nonnull
-    private static Map<String, OperationType> createMapping() {
-        HashMap<String, OperationType> map = new HashMap<>();
-//        return ImmutableMap.<String, OperationType>builderWithExpectedSize(OperationType.values().length)
-            map.put(InternalBuildProgressListener.TEST_EXECUTION, OperationType.TEST);
+    private static BiMap<String, OperationType> createMapping() {
+//        HashMap<String, OperationType> map = new HashMap<>();
+
+        ImmutableBiMap.Builder<String, OperationType> map = ImmutableBiMap.builderWithExpectedSize(OperationType.values().length);
+        map.put(InternalBuildProgressListener.TEST_EXECUTION, OperationType.TEST);
         map.put(InternalBuildProgressListener.TASK_EXECUTION, OperationType.TASK);
-        map .put(InternalBuildProgressListener.WORK_ITEM_EXECUTION, OperationType.WORK_ITEM);
-        map .put(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, OperationType.PROJECT_CONFIGURATION);
-        map .put(InternalBuildProgressListener.TRANSFORM_EXECUTION, OperationType.TRANSFORM);
-        map .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC);
-        map .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT);
-        map .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD);
-        map .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE);
-        map .put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS);
-//            .build();
-        return map;
+        map.put(InternalBuildProgressListener.WORK_ITEM_EXECUTION, OperationType.WORK_ITEM);
+        map.put(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, OperationType.PROJECT_CONFIGURATION);
+        map.put(InternalBuildProgressListener.TRANSFORM_EXECUTION, OperationType.TRANSFORM);
+        map.put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC);
+        map.put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT);
+        map.put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD);
+        map.put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE);
+        map.put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS);
+        return map.build();
+//        return map;
     }
 
-    private static final Map<OperationType, String> OPERATION_TYPE_MAPPING_TYPE_TO_NAME = createReverseMap();
-
-    private static Map<OperationType, String> createReverseMap() {
-//        ImmutableMap.Builder<OperationType, String> reverseMapBuilder = ImmutableMap.builderWithExpectedSize(OperationType.values().length);
-        HashMap<OperationType, String> map = new HashMap<>();
-        for (Map.Entry<String, OperationType> entry : OPERATION_TYPE_MAPPING_NAME_TO_TYPE.entrySet()) {
-            map.put(entry.getValue(), entry.getKey());
-        }
-        return map;
-    }
+    private static final Map<OperationType, String> OPERATION_TYPE_MAPPING_TYPE_TO_NAME = OPERATION_TYPE_MAPPING_NAME_TO_TYPE.inverse();
 
     public static String getOperationName(OperationType operationType) {
         return OPERATION_TYPE_MAPPING_TYPE_TO_NAME.get(operationType);
