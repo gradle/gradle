@@ -41,6 +41,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 
+import javax.annotation.Nullable;
+
 @NonNullApi
 public class TestProgressBroadcaster extends ProgressListenerBroadcasterAdapter implements ProgressListenerBroadcaster {
     private final DescriptorCache dc;
@@ -68,7 +70,7 @@ public class TestProgressBroadcaster extends ProgressListenerBroadcasterAdapter 
         }
     }
 
-    private TestProgressEvent toTestProgressEvent(InternalTestProgressEvent event) {
+    private @Nullable TestProgressEvent toTestProgressEvent(InternalTestProgressEvent event) {
         if (event instanceof InternalTestStartedProgressEvent) {
             return testStartedEvent((InternalTestStartedProgressEvent) event);
         } else if (event instanceof InternalTestFinishedProgressEvent) {
@@ -83,7 +85,7 @@ public class TestProgressBroadcaster extends ProgressListenerBroadcasterAdapter 
         return new DefaultTestFinishEvent(event.getEventTime(), event.getDisplayName(), clientDescriptor, toTestResult(event.getResult()));
     }
 
-    private static TestOperationResult toTestResult(InternalTestResult result) {
+    private static @Nullable TestOperationResult toTestResult(InternalTestResult result) {
         if (result instanceof InternalTestSuccessResult) {
             return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalTestSkippedResult) {

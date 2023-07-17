@@ -21,14 +21,16 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
+import javax.annotation.Nullable;
+
 @NonNullApi
 public class ProgressListenerBroadcasterAdapter {
     private ListenerBroadcast<ProgressListener> listeners = new ListenerBroadcast<>(ProgressListener.class);
     private final Class<?> handledEventType;
     private final Class<?> handleProgressEventType;
-    private final Class<?> descriptorClass;
+    private final @Nullable Class<?> descriptorClass;
 
-    public ProgressListenerBroadcasterAdapter(Class<?> handledEventType, Class<?> handleProgressEventType, Class<?> descriptorClass) {
+    public ProgressListenerBroadcasterAdapter(Class<?> handledEventType, Class<?> handleProgressEventType, @Nullable Class<?> descriptorClass) {
         this.handledEventType = handledEventType;
         this.handleProgressEventType = handleProgressEventType;
         this.descriptorClass = descriptorClass;
