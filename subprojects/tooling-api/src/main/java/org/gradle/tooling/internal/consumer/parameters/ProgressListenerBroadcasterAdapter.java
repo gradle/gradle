@@ -22,7 +22,7 @@ import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
 @NonNullApi
-class ProgressListenerBroadcasterAdapter {
+public class ProgressListenerBroadcasterAdapter {
     private ListenerBroadcast<ProgressListener> listeners = new ListenerBroadcast<>(ProgressListener.class);
     private final Class<?> handledEventType;
     private final Class<?> handleProgressEventType;
@@ -46,11 +46,11 @@ class ProgressListenerBroadcasterAdapter {
         return listeners;
     }
 
-    boolean canHandleDescriptor(Class<?> aClass) {
+    public boolean canHandleDescriptor(Class<?> aClass) {
         return descriptorClass != null && descriptorClass.isAssignableFrom(aClass);
     }
 
-    void broadCastInterProgressEvent(InternalProgressEvent progressEvent) {
+    public void broadCastInterProgressEvent(InternalProgressEvent progressEvent) {
 //        listeners.getSource().onProgress(progressEvent);
     }
 }

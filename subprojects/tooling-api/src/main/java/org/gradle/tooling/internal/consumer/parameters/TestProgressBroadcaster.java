@@ -42,11 +42,11 @@ import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEv
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 
 @NonNullApi
-class TestProgressBroadcaster extends ProgressListenerBroadcasterAdapter implements ProgressListenerBroadcaster {
+public class TestProgressBroadcaster extends ProgressListenerBroadcasterAdapter implements ProgressListenerBroadcaster {
     private final DescriptorCache dc;
 
     public TestProgressBroadcaster(DescriptorCache descriptorCache) {
-        super(InternalTestProgressEvent.class, TestProgressEvent.class);
+        super(InternalTestProgressEvent.class, TestProgressEvent.class, null);
         this.dc = descriptorCache;
     }
 
