@@ -17,9 +17,8 @@
 package org.gradle.api.internal.tasks.options;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaMethod;
@@ -44,7 +43,7 @@ public class MethodOptionElement {
             PropertySetter setter = mutateUsingReturnValue(method);
             return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
         }
-        if (ListProperty.class.isAssignableFrom(method.getReturnType()) || SetProperty.class.isAssignableFrom(method.getReturnType())) {
+        if (HasMultipleValues.class.isAssignableFrom(method.getReturnType())) {
             assertCanUseMethodReturnType(optionName, method);
             PropertySetter setter = mutateUsingReturnValue(method);
             Class<?> elementType = setter.getRawType();
@@ -68,11 +67,8 @@ public class MethodOptionElement {
     }
 
     private static PropertySetter mutateUsingReturnValue(Method method) {
-        if (ListProperty.class.isAssignableFrom(method.getReturnType())) {
-            return new ListPropertyValueSetter(method);
-        }
-        if (SetProperty.class.isAssignableFrom(method.getReturnType())) {
-            return new SetPropertyValueSetter(method);
+        if (HasMultipleValues.class.isAssignableFrom(method.getReturnType())) {
+            return new MultipleValuePropertyValueSetter(method);
         }
         return new PropertyValueSetter(method);
     }
@@ -157,27 +153,14 @@ public class MethodOptionElement {
     }
 
     @NonNullApi
-    private static class ListPropertyValueSetter extends PropertyValueSetter {
-        public ListPropertyValueSetter(Method method) {
+    private static class MultipleValuePropertyValueSetter extends PropertyValueSetter {
+        public MultipleValuePropertyValueSetter(Method method) {
             super(method);
         }
 
         @Override
         public void setValue(Object target, Object value) {
-            ListProperty<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
-            property.set((Iterable<?>) value);
-        }
-    }
-
-    @NonNullApi
-    private static class SetPropertyValueSetter extends PropertyValueSetter {
-        public SetPropertyValueSetter(Method method) {
-            super(method);
-        }
-
-        @Override
-        public void setValue(Object target, Object value) {
-            SetProperty<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
+            HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
             property.set((Iterable<?>) value);
         }
     }

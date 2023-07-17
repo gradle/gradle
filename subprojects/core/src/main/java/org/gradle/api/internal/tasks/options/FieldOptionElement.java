@@ -18,9 +18,8 @@ package org.gradle.api.internal.tasks.options;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaMethod;
@@ -40,7 +39,7 @@ public class FieldOptionElement {
             PropertySetter setter = mutateUsingGetter(field);
             return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
         }
-        if (ListProperty.class.isAssignableFrom(fieldType) || SetProperty.class.isAssignableFrom(fieldType)) {
+        if (HasMultipleValues.class.isAssignableFrom(fieldType)) {
             PropertySetter setter = mutateUsingGetter(field);
             Class<?> elementType = setter.getRawType();
             return new MultipleValueOptionElement(optionName, option, elementType, setter, optionValueNotationParserFactory);
@@ -55,11 +54,8 @@ public class FieldOptionElement {
     }
 
     private static PropertySetter mutateUsingGetter(final Field field) {
-        if (ListProperty.class.isAssignableFrom(field.getType())) {
-            return new ListPropertyFieldSetter(getGetter(field), field);
-        }
-        if (SetProperty.class.isAssignableFrom(field.getType())) {
-            return new SetPropertyFieldSetter(getGetter(field), field);
+        if (HasMultipleValues.class.isAssignableFrom(field.getType())) {
+            return new MultipleValuePropertyFieldSetter(getGetter(field), field);
         }
         return new PropertyFieldSetter(getGetter(field), field);
     }
@@ -160,27 +156,14 @@ public class FieldOptionElement {
     }
 
     @NonNullApi
-    private static class ListPropertyFieldSetter extends PropertyFieldSetter {
-        public ListPropertyFieldSetter(Method getter, Field field) {
+    private static class MultipleValuePropertyFieldSetter extends PropertyFieldSetter {
+        public MultipleValuePropertyFieldSetter(Method getter, Field field) {
             super(getter, field);
         }
 
         @Override
         public void setValue(Object target, Object value) {
-            ListProperty<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getGetter()).invoke(target));
-            property.set((Iterable<?>) value);
-        }
-    }
-
-    @NonNullApi
-    private static class SetPropertyFieldSetter extends PropertyFieldSetter {
-        public SetPropertyFieldSetter(Method getter, Field field) {
-            super(getter, field);
-        }
-
-        @Override
-        public void setValue(Object target, Object value) {
-            SetProperty<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getGetter()).invoke(target));
+            HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getGetter()).invoke(target));
             property.set((Iterable<?>) value);
         }
     }
