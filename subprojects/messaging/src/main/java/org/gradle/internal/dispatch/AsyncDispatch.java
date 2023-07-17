@@ -75,7 +75,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
             }
         });
         onDispatchThreadStart(dispatch, dispatcher);
-        executor.execute(new CurrentBuildOperationPreservingRunnable(dispatcher));
+        executor.execute(CurrentBuildOperationPreservingRunnable.wrapIfNeeded(dispatcher));
     }
 
     private void dispatchMessages(Dispatch<? super T> dispatch) {

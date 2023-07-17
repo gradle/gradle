@@ -24,7 +24,6 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.problems.Location;
-import org.gradle.problems.buildtree.ProblemLocationAnalyzer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -80,8 +79,8 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             // When analysing an exception stack trace, consider all the user code in the stack.
             // This is because we cannot tell the difference between:
             // - a validation exception thrown in user code that is called from other user code, where the caller should be blamed
-            // - an unexpected exception thrown in user code, where this code should be blamed
-            // So, for now, just blame the first user code that can be identified
+            // - an unexpected exception thrown in user code that is called from other user code, where the called code should be blamed
+            // So, for now, just blame the first user code that can be identified. This gives the user some clues for where to start
             startPos = 0;
             endPos = stack.size();
         } else {

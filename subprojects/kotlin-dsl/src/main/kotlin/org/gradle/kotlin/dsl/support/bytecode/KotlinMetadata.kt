@@ -18,26 +18,34 @@ package org.gradle.kotlin.dsl.support.bytecode
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
-import kotlinx.metadata.KmAnnotation
-import kotlinx.metadata.KmFunctionVisitor
-import kotlinx.metadata.KmTypeVisitor
+import kotlinx.metadata.KmClassifier
+import kotlinx.metadata.KmFunction
+import kotlinx.metadata.KmPackage
+import kotlinx.metadata.KmProperty
+import kotlinx.metadata.KmType
+import kotlinx.metadata.KmTypeParameter
+import kotlinx.metadata.KmTypeProjection
+import kotlinx.metadata.KmValueParameter
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
-import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
-import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
-import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
-import kotlinx.metadata.jvm.JvmTypeExtensionVisitor
+import kotlinx.metadata.jvm.KmModule
+import kotlinx.metadata.jvm.KmPackageParts
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
+import kotlinx.metadata.jvm.getterSignature
+import kotlinx.metadata.jvm.moduleName
+import kotlinx.metadata.jvm.signature
+import kotlinx.metadata.jvm.syntheticMethodForAnnotations
+import org.gradle.kotlin.dsl.accessors.ExtensionSpec
+import org.gradle.kotlin.dsl.accessors.accessorDescriptorFor
+import org.gradle.kotlin.dsl.accessors.nonInlineGetterFlags
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
-
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
-
 import java.io.File
 
 
@@ -55,35 +63,33 @@ fun publicKotlinClass(
 internal
 fun writeFileFacadeClassHeader(
     moduleName: String,
-    fileFacadeWriter: KotlinClassMetadata.FileFacade.Writer.() -> Unit
+    kmPackage: KmPackage.() -> Unit
 ) = beginFileFacadeClassHeader().run {
-    fileFacadeWriter()
+    kmPackage()
     closeHeader(moduleName)
 }
 
 
 internal
-fun beginFileFacadeClassHeader() = KotlinClassMetadata.FileFacade.Writer()
+fun beginFileFacadeClassHeader() = KmPackage()
 
 
 internal
-fun KotlinClassMetadata.FileFacade.Writer.closeHeader(moduleName: String): KotlinClassHeader {
-    (visitExtensions(JvmPackageExtensionVisitor.TYPE) as JvmPackageExtensionVisitor).run {
-        visitModuleName(moduleName)
-        visitEnd()
-    }
-    visitEnd()
-    return write().header
+fun KmPackage.closeHeader(moduleName: String): KotlinClassHeader {
+    this.moduleName = moduleName
+    return KotlinClassMetadata.FileFacade.Writer().also { this.accept(it) }.write().header
 }
 
 
 internal
-fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray =
-    KotlinModuleMetadata.Writer().run {
-        visitPackageParts("org.gradle.kotlin.dsl", fileFacades.map { it.value }, emptyMap())
-        visitEnd()
-        write().bytes
-    }
+fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray {
+    val kmModule = KmModule()
+    kmModule.packageParts["org.gradle.kotlin.dsl"] = KmPackageParts(
+        fileFacades.map { it.value }.toMutableList(),
+        emptyMap<String, String>().toMutableMap()
+    )
+    return KotlinModuleMetadata.Writer().also { kmModule.accept(it) }.write().bytes
+}
 
 
 internal
@@ -145,172 +151,146 @@ fun ClassWriter.visitKotlinMetadataAnnotation(header: KotlinClassHeader) {
 
 
 internal
-inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
-    receiverType: KmTypeBuilder,
-    nullableReturnType: KmTypeBuilder,
+fun newValueParameterOf(
     name: String,
-    parameterName: String,
-    parameterType: KmTypeBuilder,
-    signature: JvmMethodSignature,
-    functionFlags: Flags = publicFunctionFlags
-) {
-    writeFunctionOf(
-        receiverType,
-        nullableReturnType,
-        name,
-        signature = signature,
-        parameters = { visitParameter(parameterName, parameterType) },
-        returnTypeFlags = flagsOf(Flag.Type.IS_NULLABLE),
-        functionFlags = functionFlags
+    type: KmType,
+    flags: Flags = 0
+): KmValueParameter {
+    val kmValueParameter = KmValueParameter(flags, name)
+    kmValueParameter.type = type
+    return kmValueParameter
+}
+
+
+internal
+fun newOptionalValueParameterOf(
+    name: String,
+    type: KmType
+): KmValueParameter =
+    newValueParameterOf(name, nullable(type), flagsOf(Flag.ValueParameter.DECLARES_DEFAULT_VALUE))
+
+
+internal
+fun newTypeParameterOf(
+    flags: Flags = 0,
+    name: String,
+    id: Int = 0,
+    variance: KmVariance,
+    upperBound: KmType,
+): KmTypeParameter {
+    val kmTypeParameter = KmTypeParameter(flags, name, id, variance)
+    kmTypeParameter.upperBounds += upperBound
+    return kmTypeParameter
+}
+
+
+internal
+fun nullable(kmType: KmType): KmType = kmType.also { it.flags = flagsOf(Flag.Type.IS_NULLABLE) }
+
+
+internal
+fun newClassTypeOf(
+    name: String,
+    vararg arguments: KmTypeProjection
+): KmType {
+    val kmType = KmType(0)
+    kmType.classifier = KmClassifier.Class(name)
+    kmType.arguments.addAll(arguments)
+    return kmType
+}
+
+
+internal
+fun newTypeParameterTypeOf(id: Int): KmType {
+    val kmType = KmType(0)
+    kmType.classifier = KmClassifier.TypeParameter(id)
+    return kmType
+}
+
+
+internal
+fun KmPackage.addKmProperty(extensionSpec: ExtensionSpec, getterSignature: JvmMethodSignature) {
+    properties += newPropertyOf(
+        name = extensionSpec.name,
+        getterFlags = nonInlineGetterFlags,
+        receiverType = extensionSpec.receiverType.kmType,
+        returnType = extensionSpec.returnType.kmType,
+        getterSignature = getterSignature
     )
 }
 
 
 internal
-fun KmFunctionVisitor.visitOptionalParameter(parameterName: String, parameterType: KmTypeBuilder) {
-    visitParameter(
-        parameterName,
-        parameterType,
-        parameterFlags = flagsOf(Flag.ValueParameter.DECLARES_DEFAULT_VALUE),
-        parameterTypeFlags = flagsOf(Flag.Type.IS_NULLABLE)
-    )
-}
-
-
-internal
-inline fun KmFunctionVisitor.visitParameter(
-    parameterName: String,
-    parameterType: KmTypeBuilder,
-    parameterFlags: Flags = 0,
-    parameterTypeFlags: Flags = 0
-) {
-    visitValueParameter(parameterFlags, parameterName)!!.run {
-        visitType(parameterTypeFlags).with(parameterType)
-        visitEnd()
-    }
-}
-
-
-internal
-inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
-    receiverType: KmTypeBuilder,
-    returnType: KmTypeBuilder,
+fun newFunctionOf(
+    flags: Flags = publicFunctionFlags,
+    receiverType: KmType,
+    returnType: KmType,
     name: String,
-    parameters: KmFunctionVisitor.() -> Unit,
-    signature: JvmMethodSignature,
-    returnTypeFlags: Flags = 0,
-    functionFlags: Flags = publicFunctionFlags
-) {
-    visitFunction(functionFlags, name)!!.run {
-        visitReceiverParameterType(0).with(receiverType)
-        parameters()
-        visitReturnType(returnTypeFlags).with(returnType)
-        visitSignature(signature)
-        visitEnd()
-    }
+    valueParameters: Iterable<KmValueParameter> = listOf(),
+    typeParameters: Iterable<KmTypeParameter> = listOf(),
+    signature: JvmMethodSignature
+): KmFunction {
+    val kmFunction = KmFunction(flags, name)
+    kmFunction.receiverParameterType = receiverType
+    kmFunction.valueParameters.addAll(valueParameters)
+    kmFunction.typeParameters.addAll(typeParameters)
+    kmFunction.returnType = returnType
+    kmFunction.signature = signature
+    return kmFunction
 }
 
 
 internal
-fun KmFunctionVisitor.visitSignature(genericOverload: JvmMethodSignature) {
-    (visitExtensions(JvmFunctionExtensionVisitor.TYPE) as JvmFunctionExtensionVisitor).run {
-        visit(genericOverload)
-        visitEnd()
-    }
+fun newPropertyOf(
+    name: String,
+    getterFlags: Flags = inlineGetterFlags,
+    receiverType: KmType,
+    returnType: KmType,
+    getterSignature: JvmMethodSignature
+): KmProperty {
+    val kmProperty = KmProperty(readOnlyPropertyFlags, name, getterFlags, 6)
+    kmProperty.receiverParameterType = receiverType
+    kmProperty.returnType = returnType
+    kmProperty.getterSignature = getterSignature
+    kmProperty.syntheticMethodForAnnotations = null
+    return kmProperty
 }
 
 
 internal
-fun KotlinClassMetadata.FileFacade.Writer.writePropertyOf(
-    receiverType: KmTypeBuilder,
-    returnType: KmTypeBuilder,
-    propertyName: String,
-    getterSignature: JvmMethodSignature,
-    getterFlags: Flags = inlineGetterFlags
-) {
-    visitProperty(readOnlyPropertyFlags, propertyName, getterFlags, 6)!!.run {
-        visitReceiverParameterType(0).with(receiverType)
-        visitReturnType(0).with(returnType)
-        (visitExtensions(JvmPropertyExtensionVisitor.TYPE) as JvmPropertyExtensionVisitor).run {
-            visit(flagsOf(), null, getterSignature, null)
-            visitSyntheticMethodForAnnotations(null)
-            visitEnd()
-        }
-        visitEnd()
-    }
+fun genericTypeOf(type: KmType, argument: KmType): KmType {
+    type.arguments += KmTypeProjection(KmVariance.INVARIANT, argument)
+    return type
 }
 
 
 internal
-inline fun KmTypeVisitor?.with(builder: KmTypeBuilder) {
-    this!!.run {
-        builder()
-        visitEnd()
-    }
+fun genericTypeOf(type: KmType, arguments: Iterable<KmType>): KmType {
+    arguments.forEach { genericTypeOf(type, it) }
+    return type
 }
 
 
 internal
-fun genericTypeOf(genericType: KmTypeBuilder, genericArgument: KmTypeBuilder): KmTypeBuilder = {
-    genericType()
-    visitArgument(0, KmVariance.INVARIANT)!!.run {
-        genericArgument()
-        visitEnd()
-    }
-}
+fun actionTypeOf(type: KmType): KmType =
+    newClassTypeOf("org/gradle/api/Action", KmTypeProjection(KmVariance.INVARIANT, type))
 
 
 internal
-fun genericTypeOf(genericType: KmTypeBuilder, genericArguments: Iterable<KmTypeBuilder>): KmTypeBuilder = {
-    genericType()
-    genericArguments.forEach { argument ->
-        visitArgument(0, KmVariance.INVARIANT)!!.run {
-            argument()
-            visitEnd()
-        }
-    }
-}
+fun providerOfStar(): KmType =
+    newClassTypeOf("org/gradle/api/provider/Provider", KmTypeProjection.STAR)
 
 
 internal
-fun actionTypeOf(parameterType: KmTypeBuilder): KmTypeBuilder = {
-    visitClass("org/gradle/api/Action")
-    visitArgument(0, KmVariance.INVARIANT).with(parameterType)
-}
+fun providerConvertibleOfStar(): KmType =
+    newClassTypeOf("org/gradle/api/provider/ProviderConvertible", KmTypeProjection.STAR)
 
 
 internal
-fun providerOfStar(): KmTypeBuilder = {
-    visitClass("org/gradle/api/provider/Provider")
-    visitStarProjection()
-}
-
-
-internal
-fun providerConvertibleOfStar(): KmTypeBuilder = {
-    visitClass("org/gradle/api/provider/ProviderConvertible")
-    visitStarProjection()
-}
-
-
-/**
- * [receiverType].() -> [returnType]
- */
-internal
-fun extensionFunctionTypeOf(receiverType: KmTypeBuilder, returnType: KmTypeBuilder): KmTypeBuilder = {
-    visitClass("kotlin/Function1")
-    visitArgument(0, KmVariance.INVARIANT).with(receiverType)
-    visitArgument(0, KmVariance.INVARIANT).with(returnType)
-    (visitExtensions(JvmTypeExtensionVisitor.TYPE) as JvmTypeExtensionVisitor).run {
-        visit(false)
-        visitAnnotation(KmAnnotation(className = "kotlin/ExtensionFunctionType", arguments = emptyMap()))
-        visitEnd()
-    }
-}
-
-
-internal
-typealias KmTypeBuilder = KmTypeVisitor.() -> Unit
+fun jvmGetterSignatureFor(pluginsExtension: ExtensionSpec): JvmMethodSignature = jvmGetterSignatureFor(
+    pluginsExtension.name,
+    accessorDescriptorFor(pluginsExtension.receiverType.internalName, pluginsExtension.returnType.internalName)
+)
 
 
 internal

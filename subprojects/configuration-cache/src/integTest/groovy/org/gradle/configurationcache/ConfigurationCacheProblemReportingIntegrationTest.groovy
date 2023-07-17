@@ -23,6 +23,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.invocation.DefaultGradle
 import spock.lang.Ignore
 
+import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReport
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -52,7 +53,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         '''
 
         when:
-        configurationCacheRun 'help'
+        configurationCacheRun 'help', '--info'
 
         then:
         outputContains 'provider = provider'
@@ -132,6 +133,90 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)?.isDirectory()
+    }
+
+    def "link to report is not shown with --warn if there are no-CC problems"() {
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('doIt') {
+                // just so we had something for the CC report,
+                System.getenv('JAVA_HOME')
+                doLast {
+                    println("Done")
+                }
+            }
+        """
+
+        when:
+        run(ENABLE_CLI_OPT, '--warn', 'doIt')
+
+        then:
+        testDirectory.file('out/reports/configuration-cache').isDirectory()
+        resolveConfigurationCacheReportDirectory(testDirectory.file('out'), output) == null
+    }
+
+    def "link to report is shown with --info if there are no-CC problems"() {
+        def reportDir = testDirectory.file('out/reports/configuration-cache')
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('doIt') {
+                // just so we had something for the CC report,
+                System.getenv('JAVA_HOME')
+                doLast {
+                    println("Done")
+                }
+            }
+        """
+
+        when:
+        run(ENABLE_CLI_OPT, '--info', 'doIt')
+
+        then:
+        reportDir.isDirectory()
+
+        def reportLocationShown = resolveConfigurationCacheReport(testDirectory.file('out'), output)
+        reportDir.isDescendant(reportLocationShown)
+    }
+
+    def "link to report is logged as warning when there are no-CC problems if internal option is used"() {
+        def reportDir = testDirectory.file('out/reports/configuration-cache')
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('doIt') {
+                // just so we had something for the CC report,
+                System.getenv('JAVA_HOME')
+                doLast {
+                    println("Done")
+                }
+            }
+        """
+
+        when:
+        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, 'doIt')
+
+        then:
+        reportDir.isDirectory()
+
+        def reportLocationShown = resolveConfigurationCacheReport(testDirectory.file('out'), output)
+        reportDir.isDescendant(reportLocationShown)
+    }
+
+    def "report is not created when there are no CC problems or inputs"() {
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('noProblemsOrInputs') {
+                // no build configuration inputs or problems
+                doLast {
+                    println("Success")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRunLenient 'noProblemsOrInputs'
+
+        then:
+        !testDirectory.file('out/reports/configuration-cache').isDirectory()
     }
 
     def "state serialization errors always halt the build and invalidate the cache"() {
@@ -1171,22 +1256,23 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 530 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 100: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1000: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1005: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1010: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1015: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1020: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1025: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1030: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1035: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1040: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1045: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 105: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1050: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1055: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 50: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 500: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 505: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 510: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 515: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 520: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 525: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 530: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 535: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 540: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 545: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 55: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 550: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 555: invocation of 'Task.project' at execution time is unsupported.")
             totalProblemsCount = 530
+            problemsWithStackTraceCount = 50
         }
         failure.assertHasFailure("Configuration cache problems found in this build.") { failure ->
             failure.assertHasCauses(5)

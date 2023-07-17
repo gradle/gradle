@@ -34,8 +34,7 @@ enum class StageName(val stageName: String, val description: String, val uuid: S
     READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments", "ReadyforRelease"),
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
     EXPERIMENTAL_VFS_RETENTION("Experimental FS Watching", "On demand checks to run tests with file system watching enabled", "ExperimentalVfsRetention"),
-    EXPERIMENTAL_PERFORMANCE("Experimental Performance", "Try out new performance test running", "ExperimentalPerformance"),
-    EXPERIMENTAL_BUILD_CACHE_NG("Experimental BuildCacheNG", "Try out new build cache", "ExperimentalBuildCacheNG");
+    EXPERIMENTAL_PERFORMANCE("Experimental Performance", "Try out new performance test running", "ExperimentalPerformance");
 
     val id: String
         get() = stageName.replace(" ", "").replace("-", "")
@@ -60,7 +59,7 @@ data class CIBuildModel(
         Stage(
             StageName.QUICK_FEEDBACK_LINUX_ONLY,
             specificBuilds = listOf(
-                SpecificBuild.CompileAll, SpecificBuild.SanityCheck
+                SpecificBuild.CompileAll, SpecificBuild.SanityCheck, SpecificBuild.CompileAllBuildCacheNG, SpecificBuild.CompileAllWithNGRemote
             ),
             functionalTests = listOf(
                 TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
@@ -182,12 +181,6 @@ data class CIBuildModel(
                 PerformanceTestCoverage(12, PerformanceTestType.per_commit, Os.MACOS, numberOfBuckets = 5, withoutDependencies = true),
                 PerformanceTestCoverage(13, PerformanceTestType.per_day, Os.LINUX, numberOfBuckets = 30, withoutDependencies = true)
             )
-        ),
-        Stage(
-            StageName.EXPERIMENTAL_BUILD_CACHE_NG,
-            trigger = Trigger.eachCommit,
-            runsIndependent = true,
-            specificBuilds = listOf(SpecificBuild.CompileAllBuildCacheNG),
         )
     ),
     val subprojects: GradleSubprojectProvider
@@ -203,9 +196,8 @@ interface BuildTypeBucket {
     fun getDescription(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
 }
 
-data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
+data class GradleSubproject(val name: String, val path: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
     fun hasTestsOf(testType: TestType) = (unitTests && testType.unitTests) || (functionalTests && testType.functionalTests) || (crossVersionTests && testType.crossVersionTests)
-    fun asDirectoryName() = name.replace(Regex("([A-Z])")) { "-" + it.groups[1]!!.value.lowercase() }
 }
 
 data class Stage(
@@ -280,7 +272,7 @@ data class TestCoverage(
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180, val maxParallelForks: Int = 4) {
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
-    quick(true, true, true, 120, 2),
+    quick(true, true, true, 120, 4),
 
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
     platform(true, true, true),
@@ -332,7 +324,7 @@ enum class PerformanceTestType(
     ),
     historical(
         displayName = "Historical Performance Test",
-        timeout = 2280,
+        timeout = 600,
         defaultBaselines = "last",
         channel = "historical",
         extraParameters = "--checks none --cross-version-only"
@@ -360,6 +352,11 @@ enum class SpecificBuild {
     CompileAllBuildCacheNG {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return CompileAllBuildCacheNG(model, stage)
+        }
+    },
+    CompileAllWithNGRemote {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return CompileAllBuildCacheNG(model, stage, oldCacheWithNgRemote = true)
         }
     },
     SanityCheck {

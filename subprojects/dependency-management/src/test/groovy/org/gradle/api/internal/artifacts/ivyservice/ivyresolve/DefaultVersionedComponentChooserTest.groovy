@@ -28,10 +28,10 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.AttributeMatcher
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.result.ComponentSelectionContext
@@ -55,13 +55,13 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules, attributesSchema)
 
     def "chooses latest version for component meta data"() {
-        def one = Stub(ComponentGraphResolveMetadata) {
+        def one = Stub(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Stub(ComponentGraphResolveMetadata) {
+        def two = Stub(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
-        def three = Stub(ComponentGraphResolveMetadata) {
+        def three = Stub(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
         }
 
@@ -79,10 +79,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
     }
 
     def "chooses non-generated descriptor over generated"() {
-        def one = Mock(ComponentGraphResolveMetadata) {
+        def one = Mock(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Mock(ComponentGraphResolveMetadata) {
+        def two = Mock(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
 

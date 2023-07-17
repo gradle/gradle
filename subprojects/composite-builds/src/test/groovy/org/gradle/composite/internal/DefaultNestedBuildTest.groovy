@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
@@ -76,7 +75,6 @@ class DefaultNestedBuildTest extends Specification {
 
     def "runs action and does not finish build"() {
         given:
-        services.add(new BuildModelParameters(false, false, false, false, false, false, false, LogLevel.DEBUG))
         def build = build()
 
         when:

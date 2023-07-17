@@ -110,10 +110,8 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         final String value = toJvmArgsString(invocation.launcherJvmArgs);
         environmentVars.put(jvmOptsEnvVar, value);
 
-        // Add a JAVA_HOME if none provided
-        if (!environmentVars.containsKey("JAVA_HOME")) {
-            environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
-        }
+        // Always set JAVA_HOME, so the daemon process runs on the configured JVM
+        environmentVars.put("JAVA_HOME", getJavaHome());
     }
 
     @Override
@@ -127,7 +125,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
         final Jvm current = Jvm.current();
-        if (getJavaHome().equals(current.getJavaHome()) && JavaVersion.current().isJava9Compatible() && !isUseDaemon()) {
+        if (getJavaHomeLocation().equals(current.getJavaHome()) && JavaVersion.current().isJava9Compatible() && !isUseDaemon()) {
             buildJvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
         }
         return buildJvmOptions;
@@ -145,7 +143,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     @Override
     protected boolean supportsWhiteSpaceInEnvVars() {
         final Jvm current = Jvm.current();
-        if (getJavaHome().equals(current.getJavaHome())) {
+        if (getJavaHomeLocation().equals(current.getJavaHome())) {
             // we can tell for sure
             return current.getJavaVersion().isJava7Compatible();
         } else {

@@ -137,14 +137,6 @@ include::sample[dir="snippets/groovy/groovyDependency/kotlin",files="build.gradl
 include::sample[dir="snippets/groovy/groovyDependency/groovy",files="build.gradle[tags=bundled-groovy-dependency]"]
 ====
 
-The Groovy library doesn't necessarily have to come from a remote repository. It could also come from a local `lib` directory, perhaps checked in to source control:
-
-.Configuration of Groovy file dependency
-====
-include::sample[dir="snippets/tutorial/groovyWithFlatDir/kotlin",files="build.gradle.kts[tags=groovy-dependency]"]
-include::sample[dir="snippets/tutorial/groovyWithFlatDir/groovy",files="build.gradle[tags=groovy-dependency]"]
-====
-
 [[sec:automatic_configuration_of_groovyclasspath]]
 == Automatic configuration of groovyClasspath
 

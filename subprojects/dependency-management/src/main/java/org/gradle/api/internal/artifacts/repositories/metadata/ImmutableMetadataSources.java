@@ -16,13 +16,10 @@
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.hash.Hasher;
 
 /**
  * An immutable, usable representation of metadata sources.
  */
 public interface ImmutableMetadataSources {
     ImmutableList<MetadataSource<?>> sources();
-
-    void appendId(Hasher hasher);
 }

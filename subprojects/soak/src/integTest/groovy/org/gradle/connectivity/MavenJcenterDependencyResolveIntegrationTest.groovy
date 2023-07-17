@@ -16,10 +16,10 @@
 package org.gradle.connectivity
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(TestPrecondition.ONLINE)
+@Requires(UnitTestPreconditions.Online)
 class MavenJcenterDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     def "resolves a minimal dependency from bintray's jcenter"() {
         given:

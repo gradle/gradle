@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.ComponentMetadataVersionLister
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
@@ -63,12 +64,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
     final ProviderFactory providerFactory = Mock()
 
-    final DefaultIvyArtifactRepository repository = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder,
-        artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager,
-        moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser,
-        metadataFactory, SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory(), urlArtifactRepositoryFactory,
-        TestUtil.checksumService, providerFactory, new VersionParser()
-    )
+    final DefaultIvyArtifactRepository repository = newRepo()
 
     def "default values"() {
         expect:
@@ -296,7 +292,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "You must specify a base url or at least one artifact pattern for the Ivy repository 'null'."
+        e.message == "You must specify a base url or at least one artifact pattern for the Ivy repository 'repo'."
     }
 
     def "can set a custom metadata rule"() {
@@ -331,7 +327,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         supplier.rules.configurableRules[0].ruleClass == CustomMetadataSupplierWithParams
-        supplier.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
+        supplier.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1, 2, 3]] as Object[]
     }
 
     def "can set a custom version lister"() {
@@ -365,7 +361,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         lister.rules.configurableRules[0].ruleClass == CustomVersionListerWithParams
-        lister.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
+        lister.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1, 2, 3]] as Object[]
     }
 
     def "can retrieve metadataSources"() {
@@ -393,6 +389,223 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         metadataSources.isArtifactEnabled()
         metadataSources.isGradleMetadataEnabled()
         metadataSources.isIgnoreGradleMetadataRedirectionEnabled()
+    }
+
+    def "repositories have the same id when base url and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        same.url = new URI("http://localhost")
+        different.url = new URI("http://localhost/repo")
+
+        and:
+        _ * fileResolver.resolveUri(_) >> { URI uri -> uri }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        different.url = new URI("http://localhost")
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+    }
+
+    def "repositories have the same id when layout and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        repo.layout(layout)
+        same.url = new URI("http://localhost")
+        same.layout(layout)
+        different.url = new URI("http://localhost")
+
+        and:
+        _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        different.layout(layout)
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+
+        where:
+        layout << ["ivy", "maven", "pattern"]
+    }
+
+    def "repositories have the same id when m2 compatible and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        repo.patternLayout { it.m2compatible = true }
+        same.url = new URI("http://localhost")
+        same.patternLayout { it.m2compatible = true }
+        different.url = new URI("http://localhost")
+        different.patternLayout { it.m2compatible = false }
+
+        and:
+        _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+    }
+
+    def "repositories have the same id when layout patterns and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        repo.patternLayout {
+            patterns(it)
+        }
+        same.url = new URI("http://localhost")
+        same.patternLayout {
+            patterns(it)
+        }
+        different.url = new URI("http://localhost")
+        different.patternLayout {}
+
+        and:
+        _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        different.patternLayout {
+            patterns(it)
+        }
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+
+        where:
+        patterns << [
+            { IvyPatternRepositoryLayout layout -> layout.ivy("[thing]") },
+            { IvyPatternRepositoryLayout layout -> layout.artifact("[thing].jar") },
+            { IvyPatternRepositoryLayout layout ->
+                layout.ivy("[thing]")
+                layout.artifact("[thing].jar")
+            },
+        ]
+    }
+
+    def "repositories have the same id when additional ivy patterns and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        repo.ivyPattern("http://localhost/[thing]")
+        same.url = new URI("http://localhost")
+        same.ivyPattern("http://localhost/[thing]")
+        different.url = new URI("http://localhost")
+
+        and:
+        _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
+        _ * fileResolver.resolveUri({ it instanceof String }) >> { String uri -> new URI(uri) }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        different.ivyPattern("http://localhost/[thing]")
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+    }
+
+    def "repositories have the same id when additional artifact patterns and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        repo.artifactPattern("http://localhost/[thing]")
+        same.url = new URI("http://localhost")
+        same.artifactPattern("http://localhost/[thing]")
+        different.url = new URI("http://localhost")
+
+        and:
+        _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
+        _ * fileResolver.resolveUri({ it instanceof String }) >> { String uri -> new URI(uri) }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        different.artifactPattern("http://localhost/[thing]")
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+    }
+
+    def "repositories have the same id when metadata sources and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        source(repo)
+        same.url = new URI("http://localhost")
+        source(same)
+        different.url = new URI("http://localhost")
+
+        and:
+        _ * fileResolver.resolveUri(_) >> { URI uri -> uri }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        source(different)
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+
+        where:
+        source << [
+            { IvyArtifactRepository repository -> repository.metadataSources.gradleMetadata() },
+            { IvyArtifactRepository repository ->
+                repository.metadataSources.ignoreGradleMetadataRedirection()
+            },
+            { IvyArtifactRepository repository -> repository.metadataSources.artifact() }
+        ]
+    }
+
+    private DefaultIvyArtifactRepository newRepo() {
+        def repo = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder,
+            artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager,
+            moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser,
+            metadataFactory, SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory(), urlArtifactRepositoryFactory,
+            TestUtil.checksumService, providerFactory, new VersionParser()
+        )
+        repo.name = 'repo'
+        return repo
     }
 
     private void standardMockFileTransport() {

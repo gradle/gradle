@@ -20,7 +20,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.workers.fixtures.OptionsVerifier
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Assume
@@ -30,7 +31,7 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @IntegrationTestTimeout(180)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled && (Jvm.current().jre != null)
+    boolean isOracleJDK = TestPrecondition.satisfied(UnitTestPreconditions.JdkOracle) && (Jvm.current().jre != null)
 
     WorkerExecutorFixture.WorkActionClass workActionThatPrintsWorkingDirectory
 
@@ -125,6 +126,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
             task runInDaemon(type: WorkerTask) {
                 isolationMode = 'processIsolation'
                 workActionClass = ${workActionThatVerifiesOptions.name}.class
+                def fileTree = (${isOracleJDK}) ? project.fileTree(new File(Jvm.current().jre, "lib")).include("*.jar") : null
                 additionalForkOptions = { options ->
                     options.with {
                         ${optionsVerifier.toDsl()}

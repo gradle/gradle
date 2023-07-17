@@ -22,6 +22,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildModelParameters {
+    private final boolean parallelProjectExecution;
     private final boolean configureOnDemand;
     private final boolean configurationCache;
     private final boolean isolatedProjects;
@@ -32,6 +33,7 @@ public class BuildModelParameters {
     private final LogLevel configurationCacheLogLevel;
 
     public BuildModelParameters(
+        boolean parallelProjectExecution,
         boolean configureOnDemand,
         boolean configurationCache,
         boolean isolatedProjects,
@@ -41,6 +43,7 @@ public class BuildModelParameters {
         boolean invalidateCoupledProjects,
         LogLevel configurationCacheLogLevel
     ) {
+        this.parallelProjectExecution = parallelProjectExecution;
         this.configureOnDemand = configureOnDemand;
         this.configurationCache = configurationCache;
         this.isolatedProjects = isolatedProjects;
@@ -49,6 +52,10 @@ public class BuildModelParameters {
         this.parallelToolingApiActions = parallelToolingApiActions;
         this.invalidateCoupledProjects = invalidateCoupledProjects;
         this.configurationCacheLogLevel = configurationCacheLogLevel;
+    }
+
+    public boolean isParallelProjectExecution() {
+        return parallelProjectExecution;
     }
 
     /**

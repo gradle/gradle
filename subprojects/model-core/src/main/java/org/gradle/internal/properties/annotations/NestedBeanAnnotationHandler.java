@@ -22,15 +22,11 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public NestedBeanAnnotationHandler(Collection<Class<? extends Annotation>> allowedModifiers) {
@@ -43,35 +39,15 @@ public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandl
     }
 
     @Override
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         if (Map.class.isAssignableFrom(propertyMetadata.getDeclaredType().getRawType())) {
             Class<?> keyType = JavaReflectionUtil.extractNestedType((TypeToken<Map<?, ?>>) propertyMetadata.getDeclaredType(), Map.class, 0).getRawType();
-            validateKeyType(propertyMetadata, validationContext, keyType);
-        }
-    }
-
-    @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-    }
-
-    private static final ImmutableSet<Class<?>> SUPPORTED_KEY_TYPES = ImmutableSet.of(Enum.class, Integer.class, String.class);
-
-    private static String getSupportedKeyTypes() {
-        return SUPPORTED_KEY_TYPES.stream().map(cls -> "'" + cls.getSimpleName() + "'").collect(Collectors.joining(", "));
-    }
-
-    private static void validateKeyType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> keyType) {
-        if (!SUPPORTED_KEY_TYPES.contains(keyType)) {
-            validationContext.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
-                    .reportAs(WARNING)
-                    .forProperty(propertyMetadata.getPropertyName())
-                    .withDescription(() -> "where key of nested map is of type '" + keyType.getName() + "'")
-                    .happensBecause("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
-                    .addPossibleSolution("Change type of key to one of the following types: " + getSupportedKeyTypes())
-                    .documentedAt("validation_problems", "unsupported_key_type_of_nested_map")
-            );
+            NestedValidationUtil.validateKeyType(validationContext, propertyMetadata.getPropertyName(), keyType);
         }
     }
 }

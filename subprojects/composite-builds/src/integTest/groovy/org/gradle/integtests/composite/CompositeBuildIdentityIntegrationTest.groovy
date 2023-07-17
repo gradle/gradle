@@ -145,6 +145,7 @@ Required by:
                 assert rootComponent.id.build.currentBuild
                 assert rootComponent.id.projectPath == ':'
                 assert rootComponent.id.projectName == 'buildA'
+                assert rootComponent.id.buildTreePath == ':'
 
                 def components = rootComponent.dependencies.selected
                 assert components.size() == 1
@@ -154,7 +155,8 @@ Required by:
                 assert componentId.build.name == '${buildName}'
                 assert !componentId.build.currentBuild
                 assert componentId.projectPath == ':'
-                assert componentId.projectName == '${buildName}'
+                assert componentId.projectName == '${dependencyName}'
+                assert componentId.buildTreePath == ':buildB'
 
                 components = buildRootProject.dependencies.selected
                 assert components.size() == 1
@@ -164,6 +166,7 @@ Required by:
                 assert !componentId.build.currentBuild
                 assert componentId.projectPath == ':b1'
                 assert componentId.projectName == 'b1'
+                assert componentId.buildTreePath == ':buildB:b1'
 
                 def selectors = rootComponent.dependencies.requested
                 assert selectors.size() == 1

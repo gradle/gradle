@@ -139,6 +139,9 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
                     package org.acme;
 
                     class SampleMainTest {
+
+                        @org.junit.jupiter.api.Test
+                        public void sampleTest() { }
                     }
             """
         when:

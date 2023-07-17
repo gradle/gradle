@@ -113,6 +113,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         disallowChanges = true;
     }
 
+    public boolean isFinalizing() {
+        return state != State.Mutable;
+    }
+
     @Override
     public void disallowChanges() {
         disallowChanges = true;

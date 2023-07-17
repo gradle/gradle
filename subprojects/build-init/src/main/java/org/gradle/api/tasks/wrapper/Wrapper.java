@@ -39,6 +39,7 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapUtil;
+import org.gradle.util.internal.WrapperDistributionUrlConverter;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.Download;
 import org.gradle.wrapper.GradleWrapperMain;
@@ -54,6 +55,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -138,7 +140,7 @@ public abstract class Wrapper extends DefaultTask {
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
         checkProperties(existingProperties);
-        validateDistributionUrl();
+        validateDistributionUrl(propertiesFile.getParentFile());
         writeProperties(propertiesFile, existingProperties);
         writeWrapperTo(jarFileDestination);
 
@@ -169,10 +171,10 @@ public abstract class Wrapper extends DefaultTask {
 
     private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
 
-    private void validateDistributionUrl() {
+    private void validateDistributionUrl(File uriRoot) {
         if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
             String url = getDistributionUrl();
-            URI uri = URI.create(url);
+            URI uri = getDistributionUri(uriRoot, url);
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
                     throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
@@ -184,6 +186,14 @@ public abstract class Wrapper extends DefaultTask {
                     throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e);
                 }
             }
+        }
+    }
+
+    private static URI getDistributionUri(File uriRoot, String url) {
+        try {
+            return WrapperDistributionUrlConverter.convertDistributionUrl(url, uriRoot);
+        } catch (URISyntaxException e) {
+            throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
         }
     }
 
@@ -409,7 +419,7 @@ public abstract class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersionResolver.getGradleVersion() != null) {
-            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
+            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toASCIIString();
         } else {
             return null;
         }

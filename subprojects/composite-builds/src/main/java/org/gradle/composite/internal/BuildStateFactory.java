@@ -101,7 +101,7 @@ public class BuildStateFactory {
         return buildDefinition;
     }
 
-    private StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameter containingBuildParameters) {
+    private static StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameter containingBuildParameters) {
         final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());

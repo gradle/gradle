@@ -42,29 +42,29 @@ class OptionReaderTest extends Specification {
         options[0].argumentType == Void.TYPE
         options[0].availableValues == [] as Set
 
-        options[1].name == "booleanValue"
-        options[1].description == "boolean value"
+        options[1].name == "no-aFlag"
+        options[1].description == "Disables option --aFlag"
         options[1].argumentType == Void.TYPE
         options[1].availableValues == [] as Set
 
-        options[2].name == "enumValue"
-        options[2].description == "enum value"
-        options[2].argumentType == String
-        options[2].availableValues == ["ABC", "DEF"] as Set
+        options[2].name == "booleanValue"
+        options[2].description == "boolean value"
+        options[2].argumentType == Void.TYPE
+        options[2].availableValues == [] as Set
 
-        options[3].name == "multiString"
-        options[3].description == "a list of strings"
-        options[3].argumentType == List
+        options[3].name == "no-booleanValue"
+        options[3].description == "Disables option --booleanValue"
+        options[3].argumentType == Void.TYPE
         options[3].availableValues == [] as Set
 
-        options[4].name == "no-aFlag"
-        options[4].description == "Disables option --aFlag"
-        options[4].argumentType == Void.TYPE
-        options[4].availableValues == [] as Set
+        options[4].name == "enumValue"
+        options[4].description == "enum value"
+        options[4].argumentType == String
+        options[4].availableValues == ["ABC", "DEF"] as Set
 
-        options[5].name == "no-booleanValue"
-        options[5].description == "Disables option --booleanValue"
-        options[5].argumentType == Void.TYPE
+        options[5].name == "multiString"
+        options[5].description == "a list of strings"
+        options[5].argumentType == List
         options[5].availableValues == [] as Set
 
         options[6].name == "objectValue"
@@ -87,15 +87,15 @@ class OptionReaderTest extends Specification {
         options[0].argumentType == Void.TYPE
         options[0].availableValues == [] as Set
 
-        options[1].name == "enumValue"
-        options[1].description == "enum value"
-        options[1].argumentType == String
-        options[1].availableValues == ["ABC", "DEF"] as Set
+        options[1].name == "no-booleanValue"
+        options[1].description == "Disables option --booleanValue"
+        options[1].argumentType == Void.TYPE
+        options[1].availableValues == [] as Set
 
-        options[2].name == "no-booleanValue"
-        options[2].description == "Disables option --booleanValue"
-        options[2].argumentType == Void.TYPE
-        options[2].availableValues == [] as Set
+        options[2].name == "enumValue"
+        options[2].description == "enum value"
+        options[2].argumentType == String
+        options[2].availableValues == ["ABC", "DEF"] as Set
 
         options[3].name == "objectValue"
         options[3].description == "object value"
@@ -148,6 +148,24 @@ class OptionReaderTest extends Specification {
         options[1].description == "Option clashing with opposite option"
         options[2].name == "rerun"
         options[2].description == "Causes the task to be re-run even if up-to-date."
+    }
+
+    def "task only opposite option"() {
+        when:
+        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithOnlyOppositeOption(), reader).getAll()
+        int ownOptions = 4
+        then:
+        options.size() == ownOptions + builtInOptionCount
+        options[0].name == "my-option1"
+        options[0].description == "Opposite option of --no-my-option1"
+        options[1].name == "no-my-option1"
+        options[1].description == "Opposite option Boolean"
+        options[2].name == "my-option2"
+        options[2].description == "Opposite option of --no-my-option2"
+        options[3].name == "no-my-option2"
+        options[3].description == "Opposite option Property<Boolean>"
+        options[4].name == "rerun"
+        options[4].description == "Causes the task to be re-run even if up-to-date."
     }
 
     def "fail when multiple methods define same option"() {
@@ -221,10 +239,15 @@ class OptionReaderTest extends Specification {
         options[3].argumentType == Void.TYPE
         options[3].availableValues.isEmpty()
 
-        options[4].name == "field5"
-        options[4].description == "Descr Field5"
-        options[4].argumentType == List
+        options[4].name == "no-field4"
+        options[4].description == "Disables option --field4"
+        options[4].argumentType == Void.TYPE
         options[4].availableValues.isEmpty()
+
+        options[5].name == "field5"
+        options[5].description == "Descr Field5"
+        options[5].argumentType == List
+        options[5].availableValues.isEmpty()
     }
 
     def "handles property field options"() {
@@ -557,6 +580,14 @@ class OptionReaderTest extends Specification {
         Boolean field1
         @Option(option = 'no-my-option', description = "Option clashing with opposite option")
         Boolean field2
+    }
+
+    public static class TestClassWithOnlyOppositeOption {
+        @Option(option = 'no-my-option1', description = "Opposite option Boolean")
+        Boolean field1
+
+        @Option(option = 'no-my-option2', description = "Opposite option Property<Boolean>")
+        Property<Boolean> field2
     }
 
     public static class TestClassWithFields {

@@ -66,6 +66,9 @@ class FunctionalTest(
     ).filter { it.isNotBlank() }.joinToString(separator = " ")
 
     if (parallelizationMethod is ParallelizationMethod.TeamCityParallelTests && parallelizationMethod.numberOfBatches > 1) {
+        params {
+            param("env.TEAMCITY_PARALLEL_TESTS_ENABLED", "1")
+        }
         features {
             parallelTests {
                 this.numberOfBatches = parallelizationMethod.numberOfBatches

@@ -154,7 +154,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * @param config The action used to configure the layout.
      * @since 5.0
      */
-    void patternLayout(Action<? super  IvyPatternRepositoryLayout> config);
+    void patternLayout(Action<? super IvyPatternRepositoryLayout> config);
 
     /**
      * Returns the meta-data provider used when resolving artifacts from this repository. The provider is responsible for locating and interpreting the meta-data

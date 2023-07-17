@@ -26,11 +26,11 @@ import java.util.List;
 public interface VariantTransformRegistry {
 
     /**
-     * Register an artifact transformation.
+     * Register an artifact transform.
      *
      * @see TransformAction
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
-    List<ArtifactTransformRegistration> getTransforms();
+    List<TransformRegistration> getRegistrations();
 }

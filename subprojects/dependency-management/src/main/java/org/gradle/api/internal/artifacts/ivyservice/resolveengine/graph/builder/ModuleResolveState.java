@@ -34,9 +34,10 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ class ModuleResolveState implements CandidateModule {
     private static final int MAX_SELECTION_CHANGE = 1000;
 
     private final ComponentMetaDataResolver metaDataResolver;
-    private final IdGenerator<Long> idGenerator;
+    private final ComponentIdGenerator idGenerator;
     private final ModuleIdentifier id;
     private final List<EdgeState> unattachedDependencies = new LinkedList<>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
@@ -85,7 +86,7 @@ class ModuleResolveState implements CandidateModule {
     private int selectionChangedCounter;
 
     ModuleResolveState(
-        IdGenerator<Long> idGenerator,
+        ComponentIdGenerator idGenerator,
         ModuleIdentifier id,
         ComponentMetaDataResolver metaDataResolver,
         ImmutableAttributesFactory attributesFactory,
@@ -301,7 +302,7 @@ class ModuleResolveState implements CandidateModule {
         assert id.getModule().equals(this.id);
         ComponentState moduleRevision = versions.get(id);
         if (moduleRevision == null) {
-            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver);
+            moduleRevision = new ComponentState(idGenerator.nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver);
             versions.put(id, moduleRevision);
         }
         return moduleRevision;
@@ -461,7 +462,7 @@ class ModuleResolveState implements CandidateModule {
         for (ComponentState componentState : versions.values()) {
             if (componentState.getMetadataOrNull() == null) {
                 // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
-                componentState.setState(LenientPlatformGraphResolveState.of((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
+                componentState.setState(LenientPlatformGraphResolveState.of(idGenerator, (ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState), ComponentGraphSpecificResolveState.EMPTY_STATE);
             }
         }
     }

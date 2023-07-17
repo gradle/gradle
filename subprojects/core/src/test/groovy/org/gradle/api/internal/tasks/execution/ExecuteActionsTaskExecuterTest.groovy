@@ -22,7 +22,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsEnterpriseInternal
-import org.gradle.api.internal.changedetection.TaskExecutionMode
+import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionMode
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
@@ -212,7 +212,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         taskOutputs.setPreviousOutputFiles(_ as FileCollection)
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
-        executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
+        executionContext.getTaskExecutionMode() >> DefaultTaskExecutionMode.incremental()
         executionContext.getTaskProperties() >> taskProperties
         executionContext.getValidationContext() >> validationContext
         executionContext.getValidationAction() >> { { c -> } as TaskExecutionContext.ValidationAction }

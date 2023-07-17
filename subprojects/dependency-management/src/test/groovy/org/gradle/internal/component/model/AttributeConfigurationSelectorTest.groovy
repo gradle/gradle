@@ -45,17 +45,17 @@ class AttributeConfigurationSelectorTest extends Specification {
 
     private ComponentGraphResolveState targetState
     private ComponentGraphResolveMetadata targetComponent
-    private ConfigurationMetadata selected
+    private VariantGraphResolveState selected
     private ImmutableAttributes consumerAttributes = ImmutableAttributes.EMPTY
     private List<Capability> requestedCapabilities = []
     private List<IvyArtifactName> artifacts = []
-    private ConfigurationMetadata defaultConfiguration
+    private ConfigurationGraphResolveState defaultConfiguration
 
     def "selects a variant when there's no ambiguity"() {
         given:
         component(
-                variant("api", attributes('org.gradle.usage': 'java-api')),
-                variant("runtime", attributes('org.gradle.usage': 'java-runtime'))
+            variant("api", attributes('org.gradle.usage': 'java-api')),
+            variant("runtime", attributes('org.gradle.usage': 'java-runtime'))
         )
 
         and:
@@ -76,8 +76,8 @@ class AttributeConfigurationSelectorTest extends Specification {
     def "fails to select a variant when there are more than one candidate"() {
         given:
         component(
-                variant("api1", attributes('org.gradle.usage': 'java-api')),
-                variant("api2", attributes('org.gradle.usage': 'java-api'))
+            variant("api1", attributes('org.gradle.usage': 'java-api')),
+            variant("api2", attributes('org.gradle.usage': 'java-api'))
         )
 
         and:
@@ -99,8 +99,8 @@ All of them match the consumer attributes:
     def "fails to select a variant when there no matching candidates"() {
         given:
         component(
-                variant("api", attributes('org.gradle.usage': 'java-api')),
-                variant("runtime", attributes('org.gradle.usage': 'java-runtime'))
+            variant("api", attributes('org.gradle.usage': 'java-api')),
+            variant("runtime", attributes('org.gradle.usage': 'java-runtime'))
         )
 
         and:
@@ -123,7 +123,7 @@ All of them match the consumer attributes:
         component(Optional.empty())
 
         and:
-        defaultConfiguration(variant("default", attributes([:])))
+        defaultConfiguration()
 
         when:
         performSelection()
@@ -137,7 +137,7 @@ All of them match the consumer attributes:
         component(Optional.empty())
 
         and:
-        defaultConfiguration(variant("default", attributes('org.gradle.usage': 'java-api')))
+        defaultConfiguration(attributes('org.gradle.usage': 'java-api'))
         consumerAttributes('org.gradle.usage': 'cplusplus-headers')
 
         when:
@@ -152,8 +152,8 @@ All of them match the consumer attributes:
     def "can select a variant thanks to the capabilities"() {
         given:
         component(
-                variant("api1", attributes('org.gradle.usage': 'java-api'), capability('first')),
-                variant("api2", attributes('org.gradle.usage': 'java-api'), capability('second'))
+            variant("api1", attributes('org.gradle.usage': 'java-api'), capability('first')),
+            variant("api2", attributes('org.gradle.usage': 'java-api'), capability('second'))
         )
 
         and:
@@ -175,8 +175,8 @@ All of them match the consumer attributes:
     def "can select a variant thanks to the implicit capability"() {
         given:
         component(
-                variant("api1", attributes('org.gradle.usage': 'java-api')),
-                variant("api2", attributes('org.gradle.usage': 'java-api'), capability('second'))
+            variant("api1", attributes('org.gradle.usage': 'java-api')),
+            variant("api2", attributes('org.gradle.usage': 'java-api'), capability('second'))
         )
 
         and:
@@ -203,9 +203,9 @@ All of them match the consumer attributes:
     def "fails if more than one variant provides the implicit capability"() {
         given:
         component(
-                variant("api1", attributes('org.gradle.usage': 'java-api')),
-                variant("api2", attributes('org.gradle.usage': 'java-api')),
-                variant("api3", attributes('org.gradle.usage': 'java-api'), capability('lib'), capability('second'))
+            variant("api1", attributes('org.gradle.usage': 'java-api')),
+            variant("api2", attributes('org.gradle.usage': 'java-api')),
+            variant("api3", attributes('org.gradle.usage': 'java-api'), capability('lib'), capability('second'))
         )
 
         and:
@@ -323,8 +323,8 @@ All of them match the consumer attributes:
     def "should select the variant which matches the most attributes"() {
         given:
         component(
-                variant("first", attributes('org.gradle.usage': 'java-api')),
-                variant("second", attributes('org.gradle.usage': 'java-api', 'other': true))
+            variant("first", attributes('org.gradle.usage': 'java-api')),
+            variant("second", attributes('org.gradle.usage': 'java-api', 'other': true))
         )
 
         and:
@@ -340,8 +340,8 @@ All of them match the consumer attributes:
     def "should not select variant whenever 2 variants provide different extra attributes"() {
         given:
         component(
-                variant("first", attributes('org.gradle.usage': 'java-api', extra: 'v1')),
-                variant("second", attributes('org.gradle.usage': 'java-api', other: true))
+            variant("first", attributes('org.gradle.usage': 'java-api', extra: 'v1')),
+            variant("second", attributes('org.gradle.usage': 'java-api', other: true))
         )
 
         and:
@@ -368,8 +368,8 @@ All of them match the consumer attributes:
     def "should select the variant matching most closely the requested attributes when they provide more than one extra attributes"() {
         given:
         component(
-                variant("first", attributes('org.gradle.usage': 'java-api', extra: 'v1', other: true)),
-                variant("second", attributes('org.gradle.usage': 'java-api', other: true))
+            variant("first", attributes('org.gradle.usage': 'java-api', extra: 'v1', other: true)),
+            variant("second", attributes('org.gradle.usage': 'java-api', other: true))
         )
 
         and:
@@ -387,8 +387,8 @@ All of them match the consumer attributes:
     def "should select the variant which matches the most attributes and producer doesn't have requested value"() {
         given:
         component(
-                variant("first", attributes('org.gradle.usage': 'java-api')),
-                variant("second", attributes('org.gradle.usage': 'java-runtime', 'other': true))
+            variant("first", attributes('org.gradle.usage': 'java-api')),
+            variant("second", attributes('org.gradle.usage': 'java-runtime', 'other': true))
         )
         attributesSchema.attribute(Attribute.of("org.gradle.usage", String)) {
             it.compatibilityRules.add(UsageCompatibilityRule)
@@ -404,12 +404,10 @@ All of them match the consumer attributes:
     }
 
     def "should select the variant which matches the requested classifier"() {
-        def variant1 = variant("first", ImmutableAttributes.EMPTY)
-        def variant2 = variant("second", ImmutableAttributes.EMPTY)
+        def variant1 = variantWithArtifacts("first", artifact('foo', null))
+        def variant2 = variantWithArtifacts("second", artifact('foo', 'classy'))
 
         given:
-        variant1.getArtifacts() >> ImmutableList.of(artifact('foo', null))
-        variant2.getArtifacts() >> ImmutableList.of(artifact('foo', 'classy'))
         component(variant1, variant2)
 
         and:
@@ -464,11 +462,11 @@ All of them match the consumer attributes:
 
     private void performSelection() {
         selected = AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(
-                consumerAttributes,
-                requestedCapabilities,
-                targetState,
-                attributesSchema,
-                artifacts
+            consumerAttributes,
+            requestedCapabilities,
+            targetState,
+            attributesSchema,
+            artifacts
         ).variants[0]
     }
 
@@ -496,15 +494,26 @@ All of them match the consumer attributes:
         requestedCapabilities << c
     }
 
-    private void defaultConfiguration(ConfigurationMetadata configuration) {
-        defaultConfiguration = configuration
+    private void defaultConfiguration(ImmutableAttributes attrs = attributes([:])) {
+        def variant = Stub(VariantGraphResolveState) {
+            getName() >> 'default'
+        }
+        def metadata = Stub(ConfigurationGraphResolveMetadata) {
+            isCanBeConsumed() >> true
+        }
+        defaultConfiguration = Stub(ConfigurationGraphResolveState) {
+            getName() >> 'default'
+            getAttributes() >> attrs
+            getMetadata() >> metadata
+            asVariant() >> variant
+        }
     }
 
-    private void component(ConfigurationMetadata... variants) {
+    private void component(VariantGraphResolveState... variants) {
         component(Optional.of(ImmutableList.copyOf(variants)))
     }
 
-    private void component(Optional<List<ConfigurationMetadata>> variants) {
+    private void component(Optional<List<VariantGraphResolveState>> variants) {
         targetComponent = Stub(ComponentGraphResolveMetadata) {
             getModuleVersionId() >> Stub(ModuleVersionIdentifier) {
                 getGroup() >> 'org'
@@ -524,16 +533,38 @@ All of them match the consumer attributes:
         targetState = Stub(ComponentGraphResolveState) {
             getMetadata() >> targetComponent
             getCandidatesForGraphVariantSelection() >> candidates
-            resolveArtifactsFor(_) >> { VariantGraphResolveMetadata variant -> variant }
         }
     }
 
-    private ModuleConfigurationMetadata variant(String name, ImmutableAttributes attributes, Capability... capabilities) {
-        Stub(ModuleConfigurationMetadata) {
+    private VariantGraphResolveState variant(String name, ImmutableAttributes attributes, Capability... capabilities) {
+        def metadata = Stub(VariantGraphResolveMetadata) {
             getName() >> name
             getAttributes() >> attributes
             getCapabilities() >> ImmutableCapabilities.of(Lists.newArrayList(capabilities))
-            isCanBeConsumed() >> true
+        }
+        return Stub(VariantGraphResolveState) {
+            getName() >> name
+            getAttributes() >> attributes
+            getCapabilities() >> ImmutableCapabilities.of(Lists.newArrayList(capabilities))
+            getMetadata() >> metadata
+        }
+    }
+
+    private VariantGraphResolveState variantWithArtifacts(String name, ModuleComponentArtifactMetadata artifact) {
+        def metadata = Stub(VariantGraphResolveMetadata) {
+            getName() >> name
+            getAttributes() >> ImmutableAttributes.EMPTY
+            getCapabilities() >> ImmutableCapabilities.EMPTY
+        }
+        def artifactMetadata = Stub(VariantArtifactGraphResolveMetadata) {
+            getArtifacts() >> ImmutableList.of(artifact)
+        }
+        return Stub(VariantGraphResolveState) {
+            getName() >> name
+            getAttributes() >> ImmutableAttributes.EMPTY
+            getCapabilities() >> ImmutableCapabilities.EMPTY
+            getMetadata() >> metadata
+            resolveArtifacts() >> artifactMetadata
         }
     }
 

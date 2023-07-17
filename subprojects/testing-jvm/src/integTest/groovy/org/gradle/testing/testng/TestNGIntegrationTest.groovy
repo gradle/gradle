@@ -370,6 +370,8 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         and:
         file("src/test/java/SomeTest.java") << """
             public class SomeTest extends org.testng.Converter {
+                @org.testng.annotations.Test
+                public void test() {}
             }
         """
         then:

@@ -53,6 +53,21 @@ _By default, the build cache is *not* enabled._
 When set to true, individual input property hashes and the build cache key for each task are logged on the console. Learn more about <<build_cache.adoc#sec:task_output_caching, task output caching>>.
 _Default is `false`._
 
+`org.gradle.configuration-cache=(true,false)`::
+Enables <<configuration_cache.adoc#config_cache:usage:enable, configuration caching>>. Gradle will try to reuse the build configuration from previous builds.
+_Default is `false`._
+
+`org.gradle.configuration-cache.problems=(fail,warn)`::
+Configures how the configuration cache <<configuration_cache.adoc#config_cache:usage:ignore_problems, handles problems>>.
+Set to `warn` to report problems without failing the build.
+Set to `fail` to report problems and fail the build if there are any problems.
+_Default is `fail`._
+
+`org.gradle.configuration-cache.max-problems=(# of problems)`::
+
+Configures the <<configuration_cache.adoc#config_cache:usage:max_problems, maximum number of configuration cache problems>> allowed as warnings until Gradle fails the build.
+_Default is `512`._
+
 `org.gradle.configureondemand=(true,false)`::
 Enables incubating <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
 _Default is `false`._
@@ -367,7 +382,7 @@ Otherwise the client VM will fork a new VM to run the actual build in order to h
 Certain tasks, like the `test` task, also fork additional JVM processes. You can configure these through the tasks themselves.
 They all use `-Xmx512m` by default.
 
-.Set Java compile options for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] tasks
+.Set compile options for Java compilation tasks
 ====
 include::sample[dir="snippets/buildEnvironment/javaCompileOptions/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/buildEnvironment/javaCompileOptions/groovy",files="build.gradle[]"]

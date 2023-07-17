@@ -16,11 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.cache.GlobalCache;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
+@ServiceScope(Scopes.UserHome.class)
 public interface ArtifactCachesProvider extends Closeable, GlobalCache {
     String READONLY_CACHE_ENV_VAR = "GRADLE_RO_DEP_CACHE";
 

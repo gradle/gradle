@@ -35,11 +35,11 @@
             </tr>
             <tr>
                 <td>destinationDirectory</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>classesDirectory</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
         </table>
     </section>

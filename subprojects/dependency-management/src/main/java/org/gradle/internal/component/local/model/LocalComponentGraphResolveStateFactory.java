@@ -17,18 +17,21 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class LocalComponentGraphResolveStateFactory {
     private final AttributeDesugaring attributeDesugaring;
+    private final ComponentIdGenerator idGenerator;
 
-    public LocalComponentGraphResolveStateFactory(AttributeDesugaring attributeDesugaring) {
+    public LocalComponentGraphResolveStateFactory(AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         this.attributeDesugaring = attributeDesugaring;
+        this.idGenerator = idGenerator;
     }
 
     public LocalComponentGraphResolveState stateFor(LocalComponentMetadata metadata) {
-        return new DefaultLocalComponentGraphResolveState(metadata, attributeDesugaring);
+        return new DefaultLocalComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring, idGenerator);
     }
 }

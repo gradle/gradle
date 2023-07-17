@@ -27,6 +27,7 @@ import org.gradle.api.internal.capabilities.CapabilityInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.model.VariantGraphResolveMetadata
+import org.gradle.internal.component.model.VariantGraphResolveState
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
@@ -108,10 +109,14 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
     }
 
     NodeState node(ComponentState cs) {
-        return new NodeState(id++, Mock(ResolvedConfigurationIdentifier) { getId() >> Mock(ModuleVersionIdentifier) }, cs, Mock(VariantGraphResolveMetadata) {
+        def metadata = Mock(VariantGraphResolveMetadata) {
             getDependencies() >> []
             getCapabilities() >> ImmutableCapabilities.of([])
-        }, true) {
+        }
+        def state = Mock(VariantGraphResolveState) {
+            getMetadata() >> metadata
+        }
+        return new NodeState(id++, Mock(ResolvedConfigurationIdentifier) { getId() >> Mock(ModuleVersionIdentifier) }, cs, state, true) {
             @Override
             boolean isSelected() {
 

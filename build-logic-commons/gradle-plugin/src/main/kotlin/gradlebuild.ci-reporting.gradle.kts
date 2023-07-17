@@ -39,7 +39,7 @@ if ("CI" in System.getenv() && project.name != "gradle-kotlin-dsl-accessors") {
     val projectState = objects.newInstance(TestFilesCleanupProjectState::class.java)
 
     globalExtension.projectStates.put(path, projectState)
-    projectState.projectBuildDir = buildDir
+    projectState.projectBuildDir = layout.buildDirectory
     projectState.projectPath = path
     projectState.reportOnly = testFilesCleanup.reportOnly
 }

@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -49,7 +49,7 @@ class JdkToolsTest extends Specification {
         thrown IllegalStateException
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "throws when tools doesn't contain compiler"() {
         when:
         if (defaultCompilerClassAlreadyInjectedIntoExtensionClassLoader()) {

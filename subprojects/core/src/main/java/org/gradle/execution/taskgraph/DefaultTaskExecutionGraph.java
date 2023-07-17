@@ -311,13 +311,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
         @Override
         public void execute(Node node) {
-            BuildOperationRef previous = CurrentBuildOperationRef.instance().get();
-            CurrentBuildOperationRef.instance().set(parentOperation);
-            try {
-                delegate.execute(node);
-            } finally {
-                CurrentBuildOperationRef.instance().set(previous);
-            }
+            CurrentBuildOperationRef.instance().with(parentOperation, () -> delegate.execute(node));
         }
     }
 

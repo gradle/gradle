@@ -177,7 +177,7 @@
      *
      * @see [DependencyConstraintHandler.add]
      */
-    fun DependencyConstraintHandler.`api`(constraintNotation: Any): DependencyConstraint? =
+    fun DependencyConstraintHandler.`api`(constraintNotation: Any): DependencyConstraint =
         add("api", constraintNotation)
 
 
@@ -191,7 +191,7 @@
      *
      * @see [DependencyConstraintHandler.add]
      */
-    fun DependencyConstraintHandler.`api`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint? =
+    fun DependencyConstraintHandler.`api`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint =
         add("api", constraintNotation, block)
 
 
@@ -345,7 +345,7 @@
      * @see [DependencyConstraintHandler.add]
      */
     @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
-    fun DependencyConstraintHandler.`compile`(constraintNotation: Any): DependencyConstraint? =
+    fun DependencyConstraintHandler.`compile`(constraintNotation: Any): DependencyConstraint =
         add("compile", constraintNotation)
 
 
@@ -360,7 +360,7 @@
      * @see [DependencyConstraintHandler.add]
      */
     @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
-    fun DependencyConstraintHandler.`compile`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint? =
+    fun DependencyConstraintHandler.`compile`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint =
         add("compile", constraintNotation, block)
 
 

@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultResolverResults
+import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
@@ -37,7 +37,6 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     def delegate = Mock(ConfigurationResolver)
     def resolveContext = Stub(ResolveContext)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
-    def results = new DefaultResolverResults()
     def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
 
     def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory, Stub(BuildIdentifier))
@@ -50,7 +49,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> false
 
         when:
-        dependencyResolver.resolveBuildDependencies(resolveContext, results)
+        def results = dependencyResolver.resolveBuildDependencies(resolveContext)
 
         then:
         def localComponentsResult = results.resolvedLocalComponents
@@ -75,7 +74,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> false
 
         when:
-        dependencyResolver.resolveGraph(resolveContext, results)
+        def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
         def result = results.resolutionResult
@@ -102,8 +101,8 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> false
 
         when:
-        dependencyResolver.resolveGraph(resolveContext, results)
-        dependencyResolver.resolveArtifacts(resolveContext, results)
+        def results = dependencyResolver.resolveGraph(resolveContext)
+        results = dependencyResolver.resolveArtifacts(resolveContext, results)
 
         then:
         def resolvedConfig = results.resolvedConfiguration
@@ -127,7 +126,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> false
 
         when:
-        dependencyResolver.resolveBuildDependencies(resolveContext, results)
+        dependencyResolver.resolveBuildDependencies(resolveContext)
 
         then:
 
@@ -145,7 +144,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> false
 
         when:
-        dependencyResolver.resolveGraph(resolveContext, results)
+        dependencyResolver.resolveGraph(resolveContext)
 
         then:
 
@@ -161,13 +160,14 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         ResolutionStrategyInternal resolutionStrategy = Mock()
         DependencyLockingProvider lockingProvider = Mock()
         DependencyLockingState lockingState = Mock()
+        ResolverResults delegateResults = Mock()
 
         resolveContext.name >> 'lockedConf'
         resolveContext.resolutionStrategy >> resolutionStrategy
         resolveContext.hasDependencies() >> false
 
         when:
-        dependencyResolver.resolveGraph(resolveContext, results)
+        def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
         1 * resolutionStrategy.dependencyLockingEnabled >> true
@@ -175,39 +175,49 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         1 * lockingProvider.loadLockState('lockedConf') >> lockingState
         1 * lockingState.mustValidateLockState() >> true
         1 * lockingState.lockedDependencies >> [DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')]
-        1 * delegate.resolveGraph(resolveContext, results)
+        1 * delegate.resolveGraph(resolveContext) >> delegateResults
+        results == delegateResults
     }
 
     def "delegates to backing service to resolve build dependencies when there are one or more dependencies"() {
         given:
+        ResolverResults delegateResults = Mock()
         resolveContext.hasDependencies() >> true
 
         when:
-        dependencyResolver.resolveBuildDependencies(resolveContext, results)
+        def results = dependencyResolver.resolveBuildDependencies(resolveContext)
 
         then:
-        1 * delegate.resolveBuildDependencies(resolveContext, results)
+        1 * delegate.resolveBuildDependencies(resolveContext) >> delegateResults
+        results == delegateResults
     }
 
     def "delegates to backing service to resolve graph when there are one or more dependencies"() {
         given:
+        ResolverResults delegateResults = Mock()
         resolveContext.hasDependencies() >> true
 
         when:
-        dependencyResolver.resolveGraph(resolveContext, results)
+        def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
-        1 * delegate.resolveGraph(resolveContext, results)
+        1 * delegate.resolveGraph(resolveContext) >> delegateResults
+        results == delegateResults
     }
 
     def "delegates to backing service to resolve artifacts when there are one or more dependencies"() {
         given:
+        def graphResults = Mock(ResolverResults) {
+            getArtifactResolveState() >> Mock(ArtifactResolveState)
+        }
+        ResolverResults delegateResults = Mock()
         resolveContext.hasDependencies() >> true
 
         when:
-        dependencyResolver.resolveArtifacts(resolveContext, results)
+        def results = dependencyResolver.resolveArtifacts(resolveContext, graphResults)
 
         then:
-        1 * delegate.resolveArtifacts(resolveContext, results)
+        1 * delegate.resolveArtifacts(resolveContext, graphResults) >> delegateResults
+        results == delegateResults
     }
 }

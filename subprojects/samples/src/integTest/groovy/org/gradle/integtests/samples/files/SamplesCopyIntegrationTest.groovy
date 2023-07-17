@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -30,30 +30,10 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("files/copy")
-    def "can copy a single file with #dsl dsl"() {
-        given:
-        def dslDir = sample.dir.file(dsl)
-        executer.inDirectory(dslDir)
-        def reportsDir = dslDir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-
-        when:
-        succeeds('copyReport')
-
-        then:
-        dslDir.file('build/toArchive/my-report.pdf').isFile()
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @UsesSample("files/copy")
     def "can copy a single file using task properties for the paths with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
-        def reportsDir = dslDir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport2')
@@ -70,9 +50,11 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         given:
         def dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
+        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
-        succeeds('copyReport3')
+        succeeds('copyReport')
 
         then:
         dslDir.file('build/toArchive/my-report.pdf').isFile()
@@ -339,7 +321,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("files/copy")
-    @IgnoreIf({ TestPrecondition.CASE_INSENSITIVE_FS.fulfilled })
+    @Requires(UnitTestPreconditions.CaseSensitiveFs)
     def "can use copy task with rename with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)

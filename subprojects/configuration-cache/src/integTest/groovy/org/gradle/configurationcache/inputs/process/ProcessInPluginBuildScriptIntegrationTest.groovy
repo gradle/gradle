@@ -43,7 +43,11 @@ class ProcessInPluginBuildScriptIntegrationTest extends AbstractProcessIntegrati
         then:
         failure.assertOutputContains("Hello")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Settings file '${relativePath(file)}': external process started")
+            if (file.endsWith(".gradle.kts")) {
+                withProblem("Settings file '${relativePath(file)}': external process started")
+            } else {
+                withProblem("Settings file '${relativePath(file)}': line 5: external process started")
+            }
         }
 
         where:
@@ -92,7 +96,11 @@ class ProcessInPluginBuildScriptIntegrationTest extends AbstractProcessIntegrati
         then:
         failure.assertOutputContains("Hello")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file '${relativePath(file)}': external process started")
+            if (file.endsWith(".gradle.kts")) {
+                withProblem("Build file '${relativePath(file)}': external process started")
+            } else {
+                withProblem("Build file '${relativePath(file)}': line 8: external process started")
+            }
         }
 
         where:

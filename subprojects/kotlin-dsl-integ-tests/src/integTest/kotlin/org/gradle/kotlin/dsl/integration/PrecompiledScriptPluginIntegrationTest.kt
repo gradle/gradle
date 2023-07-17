@@ -7,7 +7,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -756,7 +756,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         )
 
         buildAndFail("help")
-            .assertHasCause("The precompiled plugin (${"src/main/kotlin/java.gradle.kts".replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.")
+            .assertHasCauseWorkingAroundIssue25636("The precompiled plugin (${"src/main/kotlin/java.gradle.kts".replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.")
             .assertHasResolution(getPrecompiledPluginsLink())
     }
 
@@ -772,7 +772,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withDefaultSettings()
 
         buildAndFail("help")
-            .assertHasCause("The precompiled plugin (${"src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
+            .assertHasCauseWorkingAroundIssue25636("The precompiled plugin (${"src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
             .assertHasResolution(getPrecompiledPluginsLink())
     }
 
@@ -790,7 +790,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withDefaultSettings()
 
         buildAndFail("help")
-            .assertHasCause("The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
+            .assertHasCauseWorkingAroundIssue25636("The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
             .assertHasResolution(getPrecompiledPluginsLink())
     }
 
@@ -925,7 +925,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withKotlinDslPlugin()
         val init = withPrecompiledKotlinScript("init.gradle.kts", "")
         buildAndFail(":compileKotlin").apply {
-            assertHasCause("Precompiled script '${normaliseFileSeparators(init.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.init.gradle.kts'.")
+            assertHasCauseWorkingAroundIssue25636("Precompiled script '${normaliseFileSeparators(init.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.init.gradle.kts'.")
         }
     }
 
@@ -935,13 +935,12 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withKotlinDslPlugin()
         val settings = withPrecompiledKotlinScript("settings.gradle.kts", "")
         buildAndFail(":compileKotlin").apply {
-            assertHasCause("Precompiled script '${normaliseFileSeparators(settings.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.settings.gradle.kts'.")
+            assertHasCauseWorkingAroundIssue25636("Precompiled script '${normaliseFileSeparators(settings.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.settings.gradle.kts'.")
         }
     }
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/12955")
-    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
     fun `captures output of schema collection and displays it on errors`() {
 
         fun outputFrom(origin: String, logger: Boolean = true) = buildString {
@@ -1022,7 +1021,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/12955")
-    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
     fun `captures output of schema collection but not of concurrent tasks`() {
 
         val repeatOutput = 50
@@ -1135,6 +1133,46 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
     }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/16154")
+    @Test
+    fun `file annotations and package statement in precompiled script plugin handled correctly`() {
+        withKotlinBuildSrc()
+
+        val pluginId = "my-plugin"
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            """
+                @file:Suppress("UnstableApiUsage")
+
+                package bar
+
+                println("foo")
+            """
+        )
+
+        withBuildScript(
+            """
+                plugins {
+                    id("bar.$pluginId")
+                }
+            """
+        )
+
+        build(":help").apply {
+            assertTaskExecuted(":help")
+            assertOutputContains("foo")
+        }
+    }
+}
+
+
+// TODO remove once https://github.com/gradle/gradle/issues/25636 is fixed
+private
+fun ExecutionFailure.assertHasCauseWorkingAroundIssue25636(cause: String) = run {
+    assertHasFailures(error.split(cause).dropLastWhile(String::isEmpty).size - 1)
+    assertHasCause(cause)
 }
 
 

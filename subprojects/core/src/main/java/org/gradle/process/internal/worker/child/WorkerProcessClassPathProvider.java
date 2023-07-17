@@ -191,6 +191,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getAllRequiredModulesClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-plugin-use").getAllRequiredModulesClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-workers").getAllRequiredModulesClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-instrumentation-declarations").getAllRequiredModulesClasspath());
             return classpath;
         }
 

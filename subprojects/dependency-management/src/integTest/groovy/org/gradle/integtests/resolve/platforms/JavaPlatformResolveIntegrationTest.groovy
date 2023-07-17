@@ -298,7 +298,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
     }
 
-    @ToBeFixedForConfigurationCache(because = "serializes the incorrect artifact in ArtifactCollection used by resolve fixture")
     @Issue("gradle/gradle#8312")
     def "can resolve a platform with a constraint to determine the platform version via a transitive constraint"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0")

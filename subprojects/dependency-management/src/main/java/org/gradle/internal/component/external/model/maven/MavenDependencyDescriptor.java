@@ -22,13 +22,13 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantSelectionResult;
 
 import javax.annotation.Nullable;
@@ -85,28 +85,28 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      */
     @Override
     public VariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponentState) {
-        ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
-        ImmutableList.Builder<ConfigurationGraphResolveMetadata> result = ImmutableList.builder();
+        ImmutableList.Builder<VariantGraphResolveState> result = ImmutableList.builder();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {
             // From every configuration other than compile, include both the runtime and compile dependencies
-            ConfigurationGraphResolveMetadata runtime = findTargetConfiguration(fromComponent, fromConfiguration, targetComponent, "runtime");
-            result.add(runtime);
-            requiresCompile = !runtime.getHierarchy().contains("compile");
+            ConfigurationGraphResolveState runtime = findTargetConfiguration(fromComponent, fromConfiguration, targetComponentState, "runtime");
+            result.add(runtime.asVariant());
+            requiresCompile = !runtime.getMetadata().getHierarchy().contains("compile");
         }
         if (requiresCompile) {
             // From compile configuration, or when the target's runtime configuration does not extend from compile, include the compile dependencies
-            result.add(findTargetConfiguration(fromComponent, fromConfiguration, targetComponent, "compile"));
+            ConfigurationGraphResolveState compile = findTargetConfiguration(fromComponent, fromConfiguration, targetComponentState, "compile");
+            result.add(compile.asVariant());
         }
-        ConfigurationGraphResolveMetadata master = targetComponent.getConfiguration("master");
-        if (master != null && (!master.getDependencies().isEmpty() || !targetComponentState.resolveArtifactsFor(master).getArtifacts().isEmpty())) {
-            result.add(master);
+        ConfigurationGraphResolveState master = targetComponentState.getConfiguration("master");
+        if (master != null && (!master.getMetadata().getDependencies().isEmpty() || !master.asVariant().resolveArtifacts().getArtifacts().isEmpty())) {
+            result.add(master.asVariant());
         }
         return new VariantSelectionResult(result.build(), false);
     }
 
-    private ConfigurationGraphResolveMetadata findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent, String target) {
-        ConfigurationGraphResolveMetadata configuration = targetComponent.getConfiguration(target);
+    private ConfigurationGraphResolveState findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, String target) {
+        ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(target);
         if (configuration == null) {
             configuration = targetComponent.getConfiguration("default");
             if (configuration == null) {

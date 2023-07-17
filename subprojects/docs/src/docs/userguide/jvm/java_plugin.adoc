@@ -159,8 +159,6 @@ include::javaProjectTestLayout.adoc[]
 
 include::javaProjectGenericLayout.adoc[]
 
-[[sec:java_convention_properties]]
-
 [[sec:changing_java_project_layout]]
 === Changing the project layout
 
@@ -195,12 +193,12 @@ The name of the source set, used to identify it.
 The output files of the source set, containing its compiled classes and resources.
 
 `output.classesDirs` — (read-only) link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
-_Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
+_Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
 +
 The directories to generate the classes of this source set into. May contain directories for other JVM languages, e.g. _build/classes/kotlin/main_.
 
 `output.resourcesDir` — `File`::
-_Default value_: `$buildDir/resources/$name`, e.g. _build/resources/main_
+_Default value_: `layout.buildDirectory.dir("resources/$name")`, e.g. _build/resources/main_
 +
 The directory to generate the resources of this source set into.
 
@@ -228,7 +226,7 @@ _Default value_: `src/$name/java`, e.g. _src/main/java_
 The source directories containing the Java source files of this source set.  You can set this to any value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
 
 `java.destinationDirectory` — `DirectoryProperty`::
-_Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
+_Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
 +
 The directory to generate compiled Java sources into. You can set this to any value that is described in <<working_with_files.adoc#sec:single_file_paths,this section>>.
 
@@ -412,13 +410,13 @@ Automatically packages source code and creates a variant `sourceElements` with a
 The name of the directory to generate reports into, relative to the build directory. Default value: `reports`
 
 `(read-only) File reportsDir`::
-The directory to generate reports into. Default value: `__buildDir__/__reporting.baseDir__`
+The directory to generate reports into. Default value: `__reporting.baseDirectory__`
 
 `String testResultsDirName`::
 The name of the directory to generate test result .xml files into, relative to the build directory. Default value: `test-results`
 
 `(read-only) File testResultsDir`::
-The directory to generate test result .xml files into. Default value: `__buildDir__/__testResultsDirName__`
+The directory to generate test result .xml files into. Default value: `layout.buildDirectory.dir(__testResultsDirName__)`
 
 `String testReportDirName`::
 The name of the directory to generate the test report into, relative to the reports directory. Default value: `tests`
@@ -430,19 +428,19 @@ The directory to generate the test report into. Default value: `__reportsDir__/t
 The name of the directory to generate libraries into, relative to the build directory. Default value: `libs`
 
 `(read-only) File libsDir`::
-The directory to generate libraries into. Default value: `__buildDir__/__libsDirName__`
+The directory to generate libraries into. Default value: `layout.buildDirectory.dir(__libsDirName__)`
 
 `String distsDirName`::
 The name of the directory to generate distributions into, relative to the build directory. Default value: `distributions`
 
 `(read-only) File distsDir`::
-The directory to generate distributions into. Default value: `__buildDir__/__distsDirName__`
+The directory to generate distributions into. Default value: `layout.buildDirectory.dir(__distsDirName__)`
 
 `String docsDirName`::
 The name of the directory to generate documentation into, relative to the build directory. Default value: `docs`
 
 `(read-only) File docsDir`::
-The directory to generate documentation into. Default value: `__buildDir__/__docsDirName__`
+The directory to generate documentation into. Default value: `layout.buildDirectory.dir(__docsDirName__)`
 
 `String dependencyCacheDirName`::
 The name of the directory to cache source dependency information relative to the build directory. Default value: `dependency-cache`.
@@ -458,6 +456,7 @@ The basename to use for archives, such as JAR or ZIP files. Default value: `__pr
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.
 
+[[sec:java_convention_properties]]
 == Convention properties (deprecated)
 
 The Java Plugin adds a number of convention properties to the project. You can use these properties in your build script as though they were properties of the project object.

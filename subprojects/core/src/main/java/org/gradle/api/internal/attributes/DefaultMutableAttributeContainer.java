@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -52,7 +53,10 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
 
     @Override
     public Set<Attribute<?>> keySet() {
-        return Sets.union(state.keySet(), lazyAttributes.keySet());
+        // Need to copy the result since if the user calls getAttribute() while iterating over the returned set,
+        // realizing a lazy attribute will add to `state` and remove from `lazyAttributes`.
+        // This avoids a ConcurrentModificationException.
+        return ImmutableSet.copyOf(Sets.union(state.keySet(), lazyAttributes.keySet()));
     }
 
     @Override

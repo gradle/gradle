@@ -16,10 +16,10 @@
 
 package org.gradle.smoketests
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(TestPrecondition.JDK11_OR_LATER)
+@Requires(UnitTestPreconditions.Jdk11OrLater)
 class SpotlessPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {

@@ -16,9 +16,11 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.GradleVersion
 
+@DoesNotSupportNonAsciiPaths(reason = "Old Gradle versions don't deal well with non-ASCII paths")
 class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     final MavenFileRepository repo = new MavenFileRepository(file("maven-repo"))
 

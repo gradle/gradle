@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
@@ -48,39 +49,12 @@ import spock.lang.Specification
 class MavenResolverTest extends Specification {
     def module = Mock(MavenModuleResolveMetadata)
     def transport = Stub(RepositoryTransport)
-    def resolver = resolver()
 
     def "has useful string representation"() {
+        def resolver = resolver()
+
         expect:
         resolver.toString() == "Maven repository 'repo'"
-    }
-
-    def "resolvers are differentiated by useGradleMetadata flag"() {
-        given:
-        def resolver1 = resolver()
-        def resolver2 = resolver(true)
-
-        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
-
-        expect:
-        resolver1.id != resolver2.id
-    }
-
-    def "resolvers are differentiated by alwaysProvidesMetadataForModules flag"() {
-        given:
-        def resolver1 = resolver(false, false)
-        def resolver2 = resolver(false, true)
-
-        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
-
-        expect:
-        resolver1.id != resolver2.id
     }
 
     def "correctly sets caching of component metadata rules depending on maven repository transport"() {
@@ -88,7 +62,7 @@ class MavenResolverTest extends Specification {
         transport.isLocal() >> isLocal
         ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "foo"), "1.0")
         ImmutableMetadataSources metadataSources = mockMetadataSourcesForComponentMetadataRulesCachingTest()
-        def resolver = resolver(false, false, metadataSources)
+        def resolver = resolver(metadataSources)
 
         when:
         BuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult()
@@ -123,7 +97,7 @@ class MavenResolverTest extends Specification {
         return metadataSources
     }
 
-    private MavenResolver resolver(boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false, ImmutableMetadataSources metadataSources = null) {
+    private MavenResolver resolver(ImmutableMetadataSources metadataSources = null) {
         MetadataArtifactProvider metadataArtifactProvider = new MavenMetadataArtifactProvider()
         def fileResourceRepository = Stub(FileResourceRepository)
         def moduleIdentifierFactory = Stub(ImmutableModuleIdentifierFactory)
@@ -137,16 +111,18 @@ class MavenResolverTest extends Specification {
                         moduleIdentifierFactory, validator
                     ))
                 }
-                appendId(_) >> { args ->
-                    args[0].putBoolean(useGradleMetadata)
-                    args[0].putBoolean(alwaysProvidesMetadataForModules)
-                }
             }
         }
 
         def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
-        new MavenResolver("repo", new URI("http://localhost"), transport, Stub(LocallyAvailableResourceFinder), Stub(FileStore), metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister, Mock(Instantiator), TestUtil.checksumService)
+        def builder = new MavenRepositoryDescriptor.Builder("repo", new URI("http://localhost"))
+        builder.metadataSources = []
+        builder.authenticated = false
+        builder.authenticationSchemes = []
+        builder.artifactUrls = []
+        def descriptor = builder.create()
+        new MavenResolver(descriptor, new URI("http://localhost"), transport, Stub(LocallyAvailableResourceFinder), Stub(FileStore), metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister, Mock(Instantiator), TestUtil.checksumService)
     }
 }

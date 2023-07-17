@@ -21,8 +21,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
@@ -30,7 +30,10 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_3
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.junit.Assume.assumeTrue
 
-@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
+@Requires([
+    UnitTestPreconditions.CanInstallExecutable,
+    UnitTestPreconditions.NotMacOs
+])
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample cppLib = sample(testDirectoryProvider, 'cpp-lib')
     @Rule public final Sample cppExe = sample(testDirectoryProvider, 'cpp-exe')
@@ -255,8 +258,8 @@ Util build type: RELEASE
 
     @ToBeFixedForConfigurationCache
     @RequiresInstalledToolChain(GCC_COMPATIBLE) // latest clang seems to have issues:
-    // /usr/bin/ld: /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/test files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainExecutablePlatformLinux/3aor34f2b62iejk2eq3fn5ikr/platform-linux.o:(.data+0x0): multiple definition of `platform_name';
-    // /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/test files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainC/dey3oyi6y0a9luwot945rff8j/main.o:(.bss+0x0): first defined here
+    // /usr/bin/ld: /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/teŝt files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainExecutablePlatformLinux/3aor34f2b62iejk2eq3fn5ikr/platform-linux.o:(.data+0x0): multiple definition of `platform_name';
+    // /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/teŝt files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainC/dey3oyi6y0a9luwot945rff8j/main.o:(.bss+0x0): first defined here
     //clang: error: linker command failed with exit code 1 (use -v to see invocation)
     def sourcesetvariant() {
         given:

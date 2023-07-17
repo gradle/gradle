@@ -156,9 +156,9 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
 
             task resolve {
                 doLast {
-                    def filesA = configurations.first.resolvedConfiguration.lenientConfiguration.files*.name
-                    def filesB = configurations.second.resolvedConfiguration.lenientConfiguration.files*.name
-                    def filesC = configurations.third.resolvedConfiguration.lenientConfiguration.files*.name
+                    def filesA = configurations.first.incoming.artifactView { lenient = true }.files.files*.name
+                    def filesB = configurations.second.incoming.artifactView { lenient = true }.files.files*.name
+                    def filesC = configurations.third.incoming.artifactView { lenient = true }.files.files*.name
                     println "Resolved: \${filesA} \${filesB} \${filesC}"
                 }
             }

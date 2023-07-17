@@ -16,32 +16,30 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.VariantGraphResolveState
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
+import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
-class ComponentResultSerializerTest extends SerializerSpec {
-
-    private ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer()
+class ComponentResultSerializerTest extends Specification {
     def serializer = new ComponentResultSerializer(
-        new DefaultImmutableModuleIdentifierFactory(),
-        new ResolvedVariantResultSerializer(
-            componentIdentifierSerializer,
-            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
-        ),
+        new ThisBuildOnlyComponentDetailsSerializer(),
+        new ThisBuildOnlySelectedVariantSerializer(),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
-        componentIdentifierSerializer,
         false
     )
 
@@ -51,74 +49,81 @@ class ComponentResultSerializerTest extends SerializerSpec {
         def attributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
-        def v1 = Mock(ResolvedVariantResult) {
-            getOwner() >> componentIdentifier
-            getDisplayName() >> "v1"
-            getAttributes() >> ImmutableAttributes.EMPTY
-            getCapabilities() >> [capability('foo')]
-            getExternalVariant() >> Optional.empty()
+        def v1Result = Mock(ResolvedVariantResult)
+        def v1State = Mock(VariantGraphResolveState) {
+            getInstanceId() >> 1
+            getVariantResult(null) >> v1Result
         }
-        def v3 = Mock(ResolvedVariantResult) {
+        def v1 = Mock(ResolvedGraphVariant) {
+            getNodeId() >> 1
+            getOwner() >> componentIdentifier
+            getResolveState() >> v1State
+            getExternalVariant() >> null
+        }
+        def v3Result = Mock(ResolvedVariantResult)
+        def v3State = Mock(VariantGraphResolveState) {
+            getInstanceId() >> 3
+            getVariantResult(null) >> v3Result
+        }
+        def v3 = Mock(ResolvedGraphVariant) {
+            getNodeId() >> 3
             getOwner() >> extId
-            getDisplayName() >> "v3"
-            getAttributes() >> attributes
-            getCapabilities() >> [capability('bar'), capability('baz')]
-            getExternalVariant() >> Optional.empty()
+            getResolveState() >> v3State
+            getExternalVariant() >> null
         }
-        def v2 = Mock(ResolvedVariantResult) {
+        def v2Result = Mock(ResolvedVariantResult)
+        def v2State = Mock(VariantGraphResolveState) {
+            getInstanceId() >> 2
+            getVariantResult(v3Result) >> v2Result
+        }
+        def v2 = Mock(ResolvedGraphVariant) {
+            getNodeId() >> 2
             getOwner() >> componentIdentifier
-            getDisplayName() >> "v2"
-            getAttributes() >> attributes
-            getCapabilities() >> [capability('bar'), capability('baz')]
-            getExternalVariant() >> Optional.of(v3)
+            getResolveState() >> v2State
+            getExternalVariant() >> v3
         }
-        def selection = new DetachedComponentResult(12L,
-            newId('org', 'foo', '2.0'),
-            ComponentSelectionReasons.requested(),
-            componentIdentifier, [v1, v2], [v1, v2],
-            'repoName')
+        def componentMetadata = Stub(ComponentGraphResolveMetadata) {
+            moduleVersionId >> newId('org', 'foo', '2.0')
+        }
+        def componentState = Stub(ComponentGraphResolveState) {
+            id >> componentIdentifier
+            metadata >> componentMetadata
+        }
+        def component = Stub(ResolvedGraphComponent) {
+            resolveState >> componentState
+            selectionReason >> ComponentSelectionReasons.requested()
+            selectedVariants >> [v1, v2]
+            repositoryName >> 'repoName'
+        }
 
         when:
-        def result = serialize(selection, serializer)
+        def serialized = serialize(component)
+        def result = deserialize(serialized)
 
         then:
-        result.resultId == 12L
+        result.id == componentIdentifier
         result.selectionReason == ComponentSelectionReasons.requested()
         result.moduleVersion == newId('org', 'foo', '2.0')
-        result.componentId == componentIdentifier
         for (def variants : [result.selectedVariants, result.availableVariants]) {
             variants.size() == 2
-            variants[0].displayName == 'v1'
-            variants[0].attributes == ImmutableAttributes.EMPTY
-            variants[0].capabilities.size() == 1
-            variants[0].capabilities[0].group == 'org'
-            variants[0].capabilities[0].name == 'foo'
-            variants[0].capabilities[0].version == '1.0'
-            variants[0].owner == componentIdentifier
-            variants[1].displayName == 'v2'
-            variants[1].attributes == attributes.asImmutable()
-            variants[1].capabilities.size() == 2
-            variants[1].capabilities[0].group == 'org'
-            variants[1].capabilities[0].name == 'bar'
-            variants[1].capabilities[0].version == '1.0'
-            variants[1].capabilities[1].group == 'org'
-            variants[1].capabilities[1].name == 'baz'
-            variants[1].capabilities[1].version == '1.0'
-            variants[1].owner == componentIdentifier
-            variants[1].externalVariant.present
-            def external = variants[1].externalVariant.get()
-            external.displayName == 'v3'
-            external.attributes == attributes.asImmutable()
-            external.capabilities.size() == 2
-            external.capabilities[0].group == 'org'
-            external.capabilities[0].name == 'bar'
-            external.capabilities[0].version == '1.0'
-            external.capabilities[1].group == 'org'
-            external.capabilities[1].name == 'baz'
-            external.capabilities[1].version == '1.0'
-            external.owner == extId
+            variants[0] == v1Result
+            variants[1] == v2Result
         }
-        result.repositoryName == 'repoName'
+        result.repositoryId == 'repoName'
+    }
+
+    private byte[] serialize(ResolvedGraphComponent component) {
+        def outstr = new ByteArrayOutputStream()
+        def encoder = new KryoBackedEncoder(outstr)
+        serializer.write(encoder, component)
+        encoder.flush()
+        return outstr.toByteArray()
+    }
+
+    private ResolvedComponentResult deserialize(byte[] serialized) {
+        def builder = new DefaultResolutionResultBuilder()
+        serializer.readInto(new KryoBackedDecoder(new ByteArrayInputStream(serialized)), builder)
+        return builder.complete(0).root
     }
 
     private Capability capability(String name) {

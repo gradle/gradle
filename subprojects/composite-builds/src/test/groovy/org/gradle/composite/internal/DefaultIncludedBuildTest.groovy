@@ -67,6 +67,7 @@ class DefaultIncludedBuildTest extends Specification {
         expect:
         def id = build.idToReferenceProjectFromAnotherBuild(projectId)
         id.identityPath == projectId.identityPath
+        id.identityPath.path == projectId.buildTreePath
         id.projectPath == projectId.projectPath
         id.projectName == projectId.projectName
     }

@@ -45,7 +45,7 @@ import java.util.Set;
 /**
  * A {@link VariantSelector} which uses attribute matching to select a matching variant. If no producer variant
  * is compatible with the requested attributes, this selector will attempt to construct a chain of artifact
- * transformations that can produce a variant compatible with the requested attributes.
+ * transforms that can produce a variant compatible with the requested attributes.
  */
 class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
@@ -55,7 +55,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
     private final boolean selectFromAllVariants;
-    private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
+    private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -65,7 +65,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         ImmutableAttributes requested,
         boolean ignoreWhenNoMatches,
         boolean selectFromAllVariants,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
+        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
@@ -74,7 +74,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.requested = requested;
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.selectFromAllVariants = selectFromAllVariants;
-        this.dependenciesResolver = dependenciesResolver;
+        this.dependenciesResolverFactory = dependenciesResolverFactory;
     }
 
     @Override
@@ -140,7 +140,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            return factory.asTransformed(result.getRoot(), result.getVariantChain(), dependenciesResolver, transformedVariantFactory);
+            return factory.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory);
         }
 
         if (!transformedVariants.isEmpty()) {
@@ -155,7 +155,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     }
 
     /**
-     * Attempt to disambiguate between multiple potential transformation candidates. This first performs attribute matching on the {@code candidates}.
+     * Attempt to disambiguate between multiple potential transform candidates. This first performs attribute matching on the {@code candidates}.
      * If that does not produce a single result, then a subset of the results of attribute matching is returned, where the candidates which have
      * incompatible attributes values with the <strong>last</strong> candidate are included.
      */

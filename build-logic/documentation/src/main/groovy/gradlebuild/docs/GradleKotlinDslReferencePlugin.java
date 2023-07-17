@@ -28,7 +28,6 @@ import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
-import org.jetbrains.dokka.Platform;
 
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
@@ -73,14 +72,21 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
                 task.getGeneratedClasses().set(project.getLayout().getBuildDirectory().dir("gradle-kotlin-dsl-extensions/classes"));
             });
 
-        NamedDomainObjectContainer<DokkaSourceSetSpec> sourceSets = getDokkatooExtension(project).getDokkatooSourceSets();
-        sourceSets.register("kotlin_dsl", spec -> {
+        NamedDomainObjectContainer<DokkaSourceSetSpec> kotlinSourceSet = getDokkatooExtension(project).getDokkatooSourceSets();
+        kotlinSourceSet.register("kotlin_dsl", spec -> {
             spec.getDisplayName().set("Kotlin DSL");
             spec.getSourceRoots().from(extension.getKotlinDslSource());
             spec.getSourceRoots().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedSources));
             spec.getClasspath().from(extension.getClasspath());
             spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
-            spec.getAnalysisPlatform().set(Platform.jvm);
+            spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
+        });
+
+        NamedDomainObjectContainer<DokkaSourceSetSpec> javaSourceSet = getDokkatooExtension(project).getDokkatooSourceSets();
+        javaSourceSet.register("java_api", spec -> {
+            spec.getDisplayName().set("Java API");
+            spec.getSourceRoots().from(extension.getDocumentedSource());
+            spec.getClasspath().from(extension.getClasspath());
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
         });
     }

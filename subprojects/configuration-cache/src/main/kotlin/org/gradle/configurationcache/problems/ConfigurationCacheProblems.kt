@@ -146,13 +146,14 @@ class ConfigurationCacheProblems(
         val summary = summarizer.get()
         val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
         val hasTooManyProblems = hasTooManyProblems(summary)
+        val hasNoProblems = summary.problemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
         val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount)
         if (htmlReportFile == null) {
-            // there was nothing to report
-            require(summary.problemCount == 0)
+            // there was nothing to report (no problems, no build configuration inputs)
+            require(hasNoProblems)
             return
         }
 
@@ -176,7 +177,9 @@ class ConfigurationCacheProblems(
             }
 
             else -> {
-                logger.warn(summary.textForConsole(cacheActionText, htmlReportFile))
+                val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
+                val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
+                log(summary.textForConsole(cacheActionText, htmlReportFile))
             }
         }
     }

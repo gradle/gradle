@@ -56,4 +56,31 @@ public class CurrentBuildOperationRef {
         ref.remove();
     }
 
+    /**
+     * Callable with generic exception.
+     */
+    public interface Callable<T, E extends Throwable> {
+        T call() throws E;
+    }
+
+    public <T, E extends Throwable> T with(@Nullable BuildOperationRef state, Callable<T, E> block) throws E {
+        BuildOperationRef oldState = get();
+        try {
+            set(state);
+            return block.call();
+        } finally {
+            set(oldState);
+        }
+    }
+
+    public void with(@Nullable BuildOperationRef state, Runnable block) {
+        BuildOperationRef oldState = get();
+        try {
+            set(state);
+            block.run();
+        } finally {
+            set(oldState);
+        }
+    }
+
 }

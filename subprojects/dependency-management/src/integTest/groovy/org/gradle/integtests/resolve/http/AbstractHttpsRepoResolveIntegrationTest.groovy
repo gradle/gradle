@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.http
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
@@ -23,6 +24,7 @@ import org.gradle.test.fixtures.server.http.AuthScheme
 import org.junit.Rule
 
 import static org.gradle.util.Matchers.containsText
+import static org.gradle.util.Matchers.matchesRegexp
 
 abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule TestResources resources = new TestResources(temporaryFolder)
@@ -101,6 +103,48 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         failure.assertHasCause("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/")
+        // exact error might vary depending on JVM version and OS
+        failure.assertThatCause(matchesRegexp("Got (socket|SSL handshake) exception during request. It might be caused by SSL misconfiguration"))
+    }
+
+    def "build fails when client has invalid ssl configuration and has underlying cause in output"() {
+        keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+
+        setupBuildFile(repoType)
+
+        when:
+        keyStore.configureServerAndClientCerts(executer)
+        executer.withArgument("-Djavax.net.ssl.keyStore=Not-Existing-File").withArgument("--stacktrace")
+        fails "libs"
+
+        then:
+        failure.assertHasCause("Could not resolve my-group:my-module:1.0")
+        failure.assertHasErrorOutput("java.io.FileNotFoundException: Not-Existing-File")
+        failure.assertHasErrorOutput("Could not initialize SSL context. Used properties")
+        outputDoesNotContain("Trust store file ") // There should be no warning about trust store
+    }
+
+    def "build fails with a relevant message when client has invalid trust store configuration"() {
+        keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+
+        setupBuildFile(repoType)
+
+        when:
+        keyStore.configureServerAndClientCerts(executer)
+        executer.withArgument("-Djavax.net.ssl.trustStore=Not-Existing-File")
+        fails "libs"
+
+        then:
+        failure.assertHasCause("Could not resolve my-group:my-module:1.0")
+        outputContains("Trust store file Not-Existing-File does not exist or is not readable. This may lead to SSL connection failures.")
+        // depending on JVM version, the error might occur either during SSL context initialization or during request
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_18)) {
+            failure.assertHasCause("Got SSL handshake exception during request. It might be caused by SSL misconfiguration")
+        } else {
+            failure.assertHasErrorOutput("Could not initialize SSL context. Used properties")
+        }
     }
 
     private void setupBuildFile(String repoType, boolean withCredentials = false) {

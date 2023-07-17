@@ -49,6 +49,8 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.file.Deleter;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -161,7 +163,13 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
-        spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
+        List<File> effectiveClasspath;
+        if (scalaCompileOptions.getKeepAliveMode().get() == KeepAliveMode.DAEMON) {
+            effectiveClasspath = getCachedClasspathTransformer().transform(DefaultClassPath.of(getClasspath()), CachedClasspathTransformer.StandardTransform.None).getAsFiles();
+        } else {
+            effectiveClasspath = ImmutableList.copyOf(getClasspath());
+        }
+        spec.setCompileClasspath(effectiveClasspath);
         configureCompatibilityOptions(spec);
         spec.setCompileOptions(getOptions());
         spec.setScalaCompileOptions(new MinimalScalaCompileOptions(scalaCompileOptions));
@@ -294,4 +302,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
 
     @Inject
     protected abstract JavaToolchainService getJavaToolchainService();
+
+    @Inject
+    protected abstract CachedClasspathTransformer getCachedClasspathTransformer();
 }

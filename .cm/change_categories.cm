@@ -70,8 +70,8 @@ is:
   docs: {{ (files | allDocs) or (files | match(regex=r/\.adoc$/) | every) }} # This won't catch a mix of .adoc and non .adoc changes, see: https://github.com/linear-b/gitstream/issues/93
   tests: {{ files | allTests }}
 
-  # Also just an approximation
-  build_script_change: {{ files | reject(regex=r/\/src\/(samples|snippets)\//) | match(list=build_logic_files) | some }}
+  # Exclude anything under samples/snippets sourceSets, or any sort of test resource file
+  build_script_change: {{ files | reject(regex=r/.*\/src\/(samples|snippets)\//) | reject(regex=r/.*\/(crossVersionTest|docsTest|functionalTest|integTest|smokeTest|test|testFixtures)\/resources\//) | match(list=build_logic_files) | some }}
 
 build_logic_files:
   - 'build.gradle.kts'
@@ -81,44 +81,55 @@ build_logic_files:
 
 # Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
 platforms:
-  - build_infrastructure:
-    name: 'build-infrastructure'
+  - bt_ge_build_cache:
+    name: 'bt_ge_build_cache'
     subprojects:
-      - 'subprojects/distributions-dependencies/'
-      - 'subprojects/distributions-full/'
+      - 'subprojects/build-cache/'
+      - 'subprojects/build-cache-base/'
+      - 'subprojects/build-cache-http/'
+      - 'subprojects/build-cache-packaging/'
+      - 'subprojects/build-operations/'
+      - 'subprojects/files/'
+      - 'subprojects/hashing/'
+      - 'subprojects/snapshots/'
+  - build_infrastructure:
+    name: 'build_infrastructure'
+    subprojects:
+      - '.teamcity/'
+      - '.github/'
+      - '/build-logic/'
+      - '/build-logic-commons/'
+      - '/build-logic-settings/'
+      - '/build.gradle*'
+      - '/settings.gradle*'
+      - 'gradle/shared-with-buildSrc/'
       - 'subprojects/internal-architecture-testing/'
       - 'subprojects/internal-build-reports/'
       - 'subprojects/internal-integ-testing/'
       - 'subprojects/internal-performance-testing/'
       - 'subprojects/internal-testing/'
-      - 'subprojects/build-logic/'
-      - 'subprojects/build-logic-commons/'
-      - 'subprojects/build-logic-settings/'
   - cc:
-    name: 'configuration-cache'
+    name: 'configuration_cache'
     subprojects:
       - 'subprojects/api-metadata/'
       - 'subprojects/base-annotations/'
+      - 'subprojects/base-services-groovy/'
       - 'subprojects/configuration-cache/'
+      - 'subprojects/file-collections/'
       - 'subprojects/instrumentation-agent'
       - 'subprojects/internal-instrumentation-api/'
       - 'subprojects/internal-instrumentation-processor/'
-      - 'subprojects/kotlin-dsl/'
-      - 'subprojects/kotlin-dsl-integ-tests/'
-      - 'subprojects/kotlin-dsl-plugins/'
-      - 'subprojects/kotlin-dsl-provider-plugins/'
+      - 'subprojects/model-core/'
+      - 'subprojects/model-groovy/'
   - core:
     name: 'core'
     subprojects:
       - 'subprojects/base-services/'
-      - 'subprojects/base-services-groovy/'
       - 'subprojects/bootstrap/'
       - 'subprojects/build-option/'
       - 'subprojects/cli/'
-      - 'subprojects/core-platform/'
       - 'subprojects/distributions-basics/'
       - 'subprojects/distributions-core/'
-      - 'subprojects/file-collections/'
       - 'subprojects/file-temp/'
       - 'subprojects/file-watching/'
       - 'subprojects/files/'
@@ -129,15 +140,11 @@ platforms:
       - 'subprojects/logging/'
       - 'subprojects/logging-api/'
       - 'subprojects/messaging/'
-      - 'subprojects/model-core/'
-      - 'subprojects/model-groovy/'
       - 'subprojects/persistent-cache/'
       - 'subprojects/problems/'
       - 'subprojects/process-services/'
       - 'subprojects/snapshots/'
-      - 'subprojects/worker-processes/'
       - 'subprojects/worker-services/'
-      - 'subprojects/workers/'
       - 'subprojects/wrapper/'
       - 'subprojects/wrapper-shared/'
   - documentation:
@@ -150,39 +157,48 @@ platforms:
   - execution:
     name: 'execution'
     subprojects:
+      - 'subprojects/base-annotations/'
       - 'subprojects/build-cache/'
       - 'subprojects/build-cache-base/'
       - 'subprojects/build-cache-http/'
       - 'subprojects/build-cache-packaging/'
+      - 'subprojects/build-operations/'
       - 'subprojects/build-profile/'
       - 'subprojects/execution/'
+      - 'subprojects/file-watchind/'
+      - 'subprojects/files/'
+      - 'subprojects/functional/'
+      - 'subprojects/hashing/'
+      - 'subprojects/snapshots/'
+      - 'subprojects/worker-processes/'
+      - 'subprojects/workers/'
   - extensibility:
     name: 'extensibility'
     subprojects:
       - 'subprojects/plugin-development/'
       - 'subprojects/plugin-use/'
       - 'subprojects/test-kit/'
-  - ge_integration:
-    name: 'ge-integration'
+  - gradle_enterprise:
+    name: 'gradle_enterprise'
     subprojects:
-      - 'subprojects/build-scan-performance/'
-      - 'subprojects/enterprise/'
-      - 'subprojects/enterprise-logging/'
-      - 'subprojects/enterprise-operations/'
-      - 'subprojects/enterprise-workers/'
+      - 'platforms/enterprise/enterprise/'
+      - 'platforms/enterprise/enterprise-logging/'
+      - 'platforms/enterprise/enterprise-operations/'
+      - 'platforms/enterprise/enterprise-plugin-performance/'
+      - 'platforms/enterprise/enterprise-workers/'
   - ide:
     name: 'ide'
     subprojects:
+      - 'platforms/ide/'
       - 'subprojects/ide/'
       - 'subprojects/tooling-api/'
       - 'subprojects/tooling-api-builders/'
   - jvm:
     name: 'jvm'
     subprojects:
-      - 'subprojects/code-quality/'
+      - 'platforms/jvm/'
       - 'subprojects/distributions-jvm/'
       - 'subprojects/distributions-publishing/'
-      - 'subprojects/ear/'
       - 'subprojects/jacoco/'
       - 'subprojects/java-compiler-plugin/'
       - 'subprojects/jvm-services/'
@@ -196,9 +212,20 @@ platforms:
       - 'subprojects/testing-junit-platform/'
       - 'subprojects/testing-jvm/'
       - 'subprojects/testing-jvm-infrastructure/'
-  - release_coordination:
-    name: 'release-coordination'
+  - kotlin_dsl:
+    name: 'kotlin_dsl'
     subprojects:
+      - 'build-logic/kotlin-dsl/'
+      - 'subprojects/kotlin-dsl/'
+      - 'subprojects/kotlin-dsl-integ-tests/'
+      - 'subprojects/kotlin-dsl-plugins/'
+      - 'subprojects/kotlin-dsl-provider-plugins/'
+      - 'subprojects/kotlin-dsl-tooling-builders/'
+      - 'subprojects/kotlin-dsl-tooling-models/'
+  - release_coordination:
+    name: 'release_coordination'
+    subprojects:
+      - 'subprojects/core-platform/'
       - 'subprojects/distributions-dependencies/'
       - 'subprojects/distributions-full/'
       - 'subprojects/performance/'
@@ -210,11 +237,9 @@ platforms:
       - 'subprojects/antlr/'
       - 'subprojects/build-init/'
       - 'subprojects/dependency-management/'
-      - 'subprojects/diagnostics/'
       - 'subprojects/ivy/'
       - 'subprojects/maven/'
       - 'subprojects/platform-base/'
-      - 'subprojects/platform-native/'
       - 'subprojects/publish/'
       - 'subprojects/reporting/'
       - 'subprojects/resources/'
@@ -228,13 +253,16 @@ platforms:
       - 'subprojects/version-control/'
 
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.jvm.members)) or (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.build_scan.members)) }}
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
 
 teams:
   build_scan:
     members:
       - 'alllex'
       - 'wolfs'
+  dev_prod:
+    members:
+      - 'blindpirate'
   execution:
     members:
       - 'asodja'
@@ -242,6 +270,7 @@ teams:
       - 'FrauBoes'
   ide:
     members:
+      - 'hegyibalint'
       - 'donat'
       - 'reinsch82'
   jvm:

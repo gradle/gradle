@@ -52,7 +52,7 @@ public interface BuildableModuleComponentMetaDataResolveResult<T> extends Resour
     void resolved(T metaData);
 
     /**
-     * Replaces the meta-data for this result. Must be resolved.
+     * Replaces the meta-data for this result. This result must already be resolved.
      */
     void setMetadata(T metaData);
 

@@ -18,8 +18,8 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.language.fixtures.HelperProcessorFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
@@ -336,7 +336,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
-    @Requires(TestPrecondition.JDK16_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk16OrLater)
     def "doesn't recompile when record implementation changes"() {
         given:
         buildFile << """
@@ -375,7 +375,7 @@ record Foo(String property) {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
-    @Requires(TestPrecondition.JDK16_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk16OrLater)
     def "recompiles when record components change"() {
         given:
         buildFile << """
@@ -414,7 +414,7 @@ record Foo(String property, int newProperty) {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
-    @Requires(TestPrecondition.JDK17_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "recompiles when sealed modifier is changed"() {
         given:
         buildFile << """

@@ -47,7 +47,8 @@ public class PCHCompileTaskConfig extends CompileTaskConfig {
         final Project project = task.getProject();
         task.source(sourceSet.getPrefixHeaderFile());
 
-        task.getObjectFileDir().set(new File(binary.getNamingScheme().getOutputDirectory(project.getBuildDir(), "objs"), languageSourceSet.getProjectScopedName() + "PCH"));
+
+        task.getObjectFileDir().fileProvider(project.getLayout().getBuildDirectory().getAsFile().map(it -> new File(binary.getNamingScheme().getOutputDirectory(it, "objs"), languageSourceSet.getProjectScopedName() + "PCH")));
 
         task.dependsOn(project.getTasks().withType(PrefixHeaderFileGenerateTask.class).matching(new Spec<PrefixHeaderFileGenerateTask>() {
             @Override

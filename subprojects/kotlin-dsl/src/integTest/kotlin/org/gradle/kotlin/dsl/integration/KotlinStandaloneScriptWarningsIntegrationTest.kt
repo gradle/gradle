@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.junit.Before
@@ -28,12 +29,12 @@ class KotlinStandaloneScriptWarningsIntegrationTest : AbstractKotlinIntegrationT
 
     @Before
     fun setup() {
-        withFile("gradle.properties", "org.gradle.kotlin.dsl.allWarningsAsErrors=true")
         executer.beforeExecute { noDeprecationChecks() }
     }
 
     @Test
     fun `fails on warning in project script`() {
+        withAllWarningsAsErrors()
         val script = withBuildScript(scriptContentWithWarning)
         buildAndFail("help").apply {
             assertHasWarningLineFor(script)
@@ -43,6 +44,7 @@ class KotlinStandaloneScriptWarningsIntegrationTest : AbstractKotlinIntegrationT
 
     @Test
     fun `fails on warning in settings script`() {
+        withAllWarningsAsErrors()
         val script = withSettings(scriptContentWithWarning)
         buildAndFail("help").apply {
             assertHasWarningLineFor(script)
@@ -52,6 +54,7 @@ class KotlinStandaloneScriptWarningsIntegrationTest : AbstractKotlinIntegrationT
 
     @Test
     fun `fails on warning in initialization script`() {
+        withAllWarningsAsErrors()
         val script = withFile("my-init.gradle.kts", scriptContentWithWarning)
         buildAndFail("help", "-I", script.name).apply {
             assertHasWarningLineFor(script)
@@ -61,8 +64,24 @@ class KotlinStandaloneScriptWarningsIntegrationTest : AbstractKotlinIntegrationT
 
     @Test
     fun `fails on warning in applied script`() {
+        withAllWarningsAsErrors()
         val script = withFile("my-script.gradle.kts", scriptContentWithWarning)
         withBuildScript("""apply(from = "${script.name}")""")
+        buildAndFail("help").apply {
+            assertHasWarningLineFor(script)
+            assertHasDetailedErrorOutput()
+        }
+    }
+
+    @Test
+    fun `fails on warning after allWarningsOnError is enabled`() {
+
+        val script = withBuildScript(scriptContentWithWarning)
+        build("help").apply {
+            assertHasWarningLineFor(script)
+        }
+
+        withAllWarningsAsErrors()
         buildAndFail("help").apply {
             assertHasWarningLineFor(script)
             assertHasDetailedErrorOutput()
@@ -78,8 +97,21 @@ class KotlinStandaloneScriptWarningsIntegrationTest : AbstractKotlinIntegrationT
         """.trimIndent()
 
     private
+    fun withAllWarningsAsErrors() {
+        withFile("gradle.properties", "org.gradle.kotlin.dsl.allWarningsAsErrors=true")
+    }
+
+    private
+    fun ExecutionResult.assertHasWarningLineFor(script: File) =
+        assertOutputContains(warningLineFor(script))
+
+    private
     fun ExecutionFailure.assertHasWarningLineFor(script: File) =
-        assertHasErrorOutput("w: ${clickableUrlFor(script)}:3:1: 'SomeDeprecatedType' is deprecated. BECAUSE")
+        assertHasErrorOutput(warningLineFor(script))
+
+    private
+    fun warningLineFor(script: File) =
+        "w: ${clickableUrlFor(script)}:3:1: 'SomeDeprecatedType' is deprecated. BECAUSE"
 
     private
     fun ExecutionFailure.assertHasDetailedErrorOutput() =

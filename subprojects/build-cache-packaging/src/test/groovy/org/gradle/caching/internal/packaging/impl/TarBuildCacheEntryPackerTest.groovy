@@ -16,11 +16,13 @@
 
 package org.gradle.caching.internal.packaging.impl
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
@@ -121,7 +123,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
         "unicode" | "tree-dezső"
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Requires(UnitTestPreconditions.UnixDerivative)
     def "can pack tree directory with files having #type characters in name"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
         sourceOutputDir.file(fileName) << "output"
@@ -236,5 +238,39 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
 
         then:
         targetDir.assertIsEmptyDir()
+    }
+
+    def "catch escaping path in tar archive entry during unpacking"() {
+        given:
+        def targetDir = temporaryFolder.file("target")
+        def output = new ByteArrayOutputStream()
+
+        new TarArchiveOutputStream(output).withCloseable { tar ->
+            def metadataBytes = "".bytes
+            def metadataEntry = new TarArchiveEntry("METADATA")
+            metadataEntry.size = metadataBytes.length
+            tar.putArchiveEntry(metadataEntry)
+            tar.write(metadataBytes)
+            tar.closeArchiveEntry()
+
+            tar.putArchiveEntry(new TarArchiveEntry("tree-destinationDir/"))
+            tar.closeArchiveEntry()
+
+            def evilBytes = "evil".bytes
+            def evilEntry = new TarArchiveEntry("tree-destinationDir/../evil.txt")
+            evilEntry.size = evilBytes.length
+            tar.putArchiveEntry(evilEntry)
+            tar.write(evilBytes)
+            tar.closeArchiveEntry()
+        }
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        unpack input, prop("destinationDir", DIRECTORY, targetDir)
+
+        then:
+        def iae = thrown(IllegalArgumentException)
+        iae.message == "'tree-destinationDir/../evil.txt' is not a safe archive entry or path name."
+        !temporaryFolder.file("evil.txt").exists()
     }
 }

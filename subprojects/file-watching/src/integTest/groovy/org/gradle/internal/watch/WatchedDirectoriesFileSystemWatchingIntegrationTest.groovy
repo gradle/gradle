@@ -26,8 +26,8 @@ import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -192,10 +192,8 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
             project.buildDir = file("${buildDir}")
 
-            task myClean {
-                doLast {
-                    delete buildDir
-                }
+            task myClean(type: Delete) {
+                delete buildDir
             }
 
             task producer {
@@ -382,7 +380,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         result.assertNotPostBuildOutput("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching.")
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "does not start watching on unsupported file system"() {
         def testDirectoryProviderOnUnsupportedDrive = TestNameTestDirectoryProvider.forFatDrive(getClass())
         def projectDir = testDirectoryProviderOnUnsupportedDrive.createDir("project")

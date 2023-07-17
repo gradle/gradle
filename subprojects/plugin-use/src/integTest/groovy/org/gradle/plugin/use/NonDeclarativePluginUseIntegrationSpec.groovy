@@ -190,7 +190,13 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
             }
 
             task buildscriptDependencies {
-                def moduleVersion = buildscript.configurations.classpath.resolvedConfiguration.resolvedArtifacts.find { it.name == "test" }.moduleVersion.id.version
+                def moduleVersion = buildscript.configurations.classpath.incoming.artifacts.artifacts
+                    .collect { it.id }
+                    .findAll { it.componentIdentifier instanceof ModuleComponentIdentifier }
+                    .collect { it.componentIdentifier as ModuleComponentIdentifier }
+                    .find { it.module == "test" }
+                    .version
+
                 doLast {
                     println "buildscriptDependencies - " + moduleVersion
                 }

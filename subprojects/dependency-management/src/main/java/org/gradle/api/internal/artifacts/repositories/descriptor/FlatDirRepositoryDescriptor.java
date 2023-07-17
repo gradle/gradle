@@ -30,16 +30,26 @@ public final class FlatDirRepositoryDescriptor extends RepositoryDescriptor {
         DIRS,
     }
 
-    public final ImmutableList<File> dirs;
+    private final ImmutableList<File> dirs;
+    private final IvyRepositoryDescriptor backingDescriptor;
 
-    public FlatDirRepositoryDescriptor(String name, Collection<File> dirs) {
-        super(name);
+    public FlatDirRepositoryDescriptor(String name, Collection<File> dirs, IvyRepositoryDescriptor backingDescriptor) {
+        super(backingDescriptor.getId(), name);
         this.dirs = ImmutableList.copyOf(dirs);
+        this.backingDescriptor = backingDescriptor;
     }
 
     @Override
     public Type getType() {
         return Type.FLAT_DIR;
+    }
+
+    public ImmutableList<File> getDirs() {
+        return dirs;
+    }
+
+    public IvyRepositoryDescriptor getBackingDescriptor() {
+        return backingDescriptor;
     }
 
     @Override

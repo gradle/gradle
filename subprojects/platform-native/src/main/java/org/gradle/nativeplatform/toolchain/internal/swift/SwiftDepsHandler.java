@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.IoActions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -61,7 +62,7 @@ class SwiftDepsHandler {
 
     SwiftDeps parse(File moduleSwiftDeps) throws FileNotFoundException {
         return IoActions.withResource(new FileInputStream(moduleSwiftDeps), fileInputStream -> {
-            Yaml yaml = new Yaml(new Constructor(SwiftDeps.class));
+            Yaml yaml = new Yaml(new Constructor(SwiftDeps.class, new LoaderOptions()));
             return yaml.loadAs(fileInputStream, SwiftDeps.class);
         });
     }

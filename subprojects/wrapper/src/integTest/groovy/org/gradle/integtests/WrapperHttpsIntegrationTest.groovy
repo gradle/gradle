@@ -51,8 +51,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         keyStore = TestKeyStore.init(resources.dir)
         // We need to set the SSL properties as arguments here even for non-embedded test mode
         // because we want them to be set on the wrapper client JVM, not the daemon one
-        wrapperExecuter.withArguments("-Djavax.net.ssl.trustStore=$keyStore.keyStore.path",
-            "-Djavax.net.ssl.trustStorePassword=$keyStore.keyStorePassword")
+        wrapperExecuter.withArguments(keyStore.getTrustStoreArguments())
         server.configure(keyStore)
         server.withBasicAuthentication(DEFAULT_USER, DEFAULT_PASSWORD)
         server.start()
@@ -73,7 +72,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     private prepareWrapper(String baseUrl) {
-        prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"), keyStore.keyStore.path, keyStore.keyStorePassword)
+        prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"), keyStore)
     }
 
     def "does not warn about using basic authentication over secure connection"() {
@@ -193,9 +192,9 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     private ExecutionResult runWithVersion(String baseUrl, String version) {
-        result = wrapperExecuter.withCommandLineGradleOpts("-Dorg.gradle.internal.services.base.url=$baseUrl",
-            "-Djavax.net.ssl.trustStore=$keyStore.keyStore.path",
-            "-Djavax.net.ssl.trustStorePassword=$keyStore.keyStorePassword")
+        def jvmOpts = ["-Dorg.gradle.internal.services.base.url=$baseUrl".toString()]
+        jvmOpts.addAll(keyStore.getTrustStoreArguments())
+        result = wrapperExecuter.withCommandLineGradleOpts(jvmOpts)
             .withArguments("wrapper", "--gradle-version", version)
             .run()
     }

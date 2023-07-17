@@ -17,13 +17,18 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.hamcrest.Matcher
+import spock.lang.Issue
 
+import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.startsWith
 
-abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract void writeBrokenRunnerOrExtension(String className)
     abstract void writeClassUsingBrokenRunnerOrExtension(String className, String runnerOrExtensionName)
     abstract String getInitializationErrorTestName()
@@ -31,6 +36,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractJUnitMult
     abstract String getBeforeClassErrorTestName()
     abstract String getAfterClassErrorTestName()
     abstract Matcher<? super String>[] getBrokenBeforeAndAfterMatchers()
+    abstract boolean hasStableInitializationErrors()
 
     def "reports and breaks build when tests fail"() {
         given:
@@ -274,12 +280,221 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractJUnitMult
         result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
         result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
         result.testClass('org.gradle.BrokenBeforeAndAfter').assertTestFailed('ok', brokenBeforeAndAfterMatchers)
-        result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
         result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
         result.testClass('org.gradle.CustomException').assertTestFailed('custom', startsWith('Exception with a custom toString implementation'))
-        result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', startsWith('java.lang.NoClassDefFoundError'))
         result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
+        if (hasStableInitializationErrors()) {
+            result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+            result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', startsWith('java.lang.NoClassDefFoundError'))
+            result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23602")
+    def "handles unserializable exception thrown from test"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """
+
+        file('src/test/java/PoisonTest.java') << """
+            ${testFrameworkImports}
+
+            public class PoisonTest {
+                @Test public void passingTest() { }
+
+                @Test public void testWithUnserializableException() {
+                    if (true) {
+                        throw new UnserializableException();
+                    }
+                }
+
+                @Test public void normalFailingTest() {
+                    assert false;
+                }
+
+                private static class WriteReplacer implements java.io.Serializable {
+                    private Object readResolve() {
+                        return new RuntimeException();
+                    }
+                }
+
+                private static class UnserializableException extends RuntimeException {
+                    private Object writeReplace() {
+                        return new WriteReplacer();
+                    }
+                }
+            }
+        """
+
+        when:
+        fails("test")
+
+        then:
+        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
+            assertTestPassed("passingTest")
+            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
+            assertTestFailed("normalFailingTest", containsString("AssertionError"))
+        }
+    }
+
+    def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
+        given:
+        file('src/test/java/ExceptionTest.java') << """
+            ${testFrameworkImports}
+            import java.io.*;
+
+            public class ExceptionTest {
+
+                static class BadlyBehavedException extends Exception {
+                    BadlyBehavedException() {
+                        super("Broken writeObject()");
+                    }
+
+                    private void writeObject(ObjectOutputStream os) throws IOException {
+                        throw new IOException("Failed strangely");
+                    }
+                }
+
+                @Test
+                public void testThrow() throws Throwable {
+                    throw new BadlyBehavedException();
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """.stripIndent()
+
+        when:
+        runAndFail "test"
+
+        then:
+        failureHasCause "There were failing tests"
+
+        and:
+        def results = new DefaultTestExecutionResult(file("."))
+        results.assertTestClassesExecuted("ExceptionTest")
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
+    }
+
+    def "fails cleanly even if an exception is thrown that doesn't de-serialize cleanly"() {
+        given:
+
+        file('src/test/java/ExceptionTest.java') << """
+            ${testFrameworkImports}
+            import java.io.*;
+
+            public class ExceptionTest {
+                static class BadlyBehavedException extends Exception {
+                    BadlyBehavedException() {
+                        super("Broken readObject()");
+                    }
+
+                    private void readObject(ObjectInputStream os) throws IOException {
+                        throw new IOException("Failed strangely");
+                    }
+                }
+
+                @Test
+                public void testThrow() throws Throwable {
+                    throw new BadlyBehavedException();
+                }
+            }
+        """.stripIndent()
+        file('build.gradle') << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """.stripIndent()
+
+        when:
+        // an exception was thrown so we should fail here
+        runAndFail "test"
+
+        then:
+        failureHasCause "There were failing tests"
+
+        and:
+        def results = new DefaultTestExecutionResult(file("."))
+        results.assertTestClassesExecuted("ExceptionTest")
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
+    }
+
+    @Requires([UnitTestPreconditions.Jdk14OrLater, IntegTestPreconditions.NotEmbeddedExecutor])
+    def "useful NPE messages are transported to the daemon"() {
+        buildFile << """
+            apply plugin:'java-library'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+
+            test {
+                ${configureTestFramework}
+                jvmArgs("-XX:+ShowCodeDetailsInExceptionMessages")
+            }
+        """.stripIndent()
+
+        file('src/test/java/UsefulNPETest.java') << """
+            ${testFrameworkImports}
+
+            public class UsefulNPETest {
+                @Test
+                public void testUsefulNPE() {
+                    Object o = null;
+                    o.toString();
+                }
+
+                @Test
+                public void testDeepUsefulNPE() {
+                    other(null);
+                }
+
+                @Test
+                public void testFailingGetMessage() {
+                    throw new NullPointerException() {
+                        public String getMessage() {
+                            throw new RuntimeException();
+                        }
+                    };
+                }
+
+                void other(Object param) {
+                    try {
+                       System.out.println(param.toString());
+                    } catch (NullPointerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+
+            }
+        """.stripIndent()
+
+        when:
+        fails 'test'
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("UsefulNPETest")
+            .testFailed("testUsefulNPE", equalTo('java.lang.NullPointerException: Cannot invoke "Object.toString()" because "o" is null'))
+        result.testClass("UsefulNPETest")
+            .testFailed("testDeepUsefulNPE", equalTo('java.lang.RuntimeException: java.lang.NullPointerException: Cannot invoke "Object.toString()" because "param" is null'))
+        result.testClass("UsefulNPETest")
+            .testFailed("testFailingGetMessage", equalTo('Could not determine failure message for exception of type UsefulNPETest$1: java.lang.RuntimeException'))
     }
 
     String failureAssertionError(String message) {

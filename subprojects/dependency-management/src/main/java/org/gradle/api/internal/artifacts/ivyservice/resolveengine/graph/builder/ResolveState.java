@@ -43,9 +43,10 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 
@@ -68,7 +69,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Map<ResolvedConfigurationIdentifier, NodeState> nodes;
     private final Map<SelectorCacheKey, SelectorState> selectors;
     private final RootNode root;
-    private final IdGenerator<Long> idGenerator;
+    private final ComponentIdGenerator idGenerator;
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
     private final Deque<NodeState> queue;
@@ -90,7 +91,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ResolutionConflictTracker conflictTracker;
 
     public ResolveState(
-        IdGenerator<Long> idGenerator,
+        ComponentIdGenerator idGenerator,
         LocalComponentGraphResolveState rootComponentState,
         String rootConfigurationName,
         DependencyToComponentIdResolver idResolver,
@@ -139,7 +140,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         // Create root component and module
         ModuleResolveState rootModule = getModule(moduleVersionId.getModule(), true);
         ComponentState rootComponent = rootModule.getVersion(moduleVersionId, rootComponentMetadata.getId());
-        rootComponent.setState(rootComponentState);
+        rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
 
         this.selectorStateResolver = new SelectorStateResolver<>(conflictResolver, this, rootComponent, resolveOptimizations, versionComparator, versionParser);
@@ -147,9 +148,13 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
         // Create root node
         ResolvedConfigurationIdentifier rootNodeId = new ResolvedConfigurationIdentifier(moduleVersionId, rootConfigurationName);
-        VariantGraphResolveMetadata rootVariant = rootComponentMetadata.getConfiguration(rootConfigurationName);
-        root = new RootNode(idGenerator.generateId(), rootComponent, rootNodeId, this, syntheticDependencies, rootVariant);
+        VariantGraphResolveState rootVariant = rootComponentState.getConfiguration(rootConfigurationName).asVariant();
+        root = new RootNode(idGenerator.nextGraphNodeId(), rootComponent, rootNodeId, this, syntheticDependencies, rootVariant);
         nodes.put(rootNodeId, root);
+    }
+
+    public ComponentIdGenerator getIdGenerator() {
+        return idGenerator;
     }
 
     public ResolutionConflictTracker getConflictTracker() {
@@ -177,10 +182,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     @Override
-    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state) {
+    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
         ComponentState componentState = getModule(id.getModule()).getVersion(id, componentIdentifier);
         if (!componentState.alreadyResolved()) {
-            componentState.setState(state);
+            componentState.setState(state, graphState);
         }
         return componentState;
     }
@@ -189,9 +194,9 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return nodes.values();
     }
 
-    public NodeState getNode(ComponentState module, VariantGraphResolveMetadata variant, boolean selectedByVariantAwareResolution) {
+    public NodeState getNode(ComponentState module, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
         ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.getId(), variant.getName());
-        return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.generateId(), id, module, this, variant, selectedByVariantAwareResolution));
+        return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.nextGraphNodeId(), id, module, this, variant, selectedByVariantAwareResolution));
     }
 
     public Collection<SelectorState> getSelectors() {
@@ -202,7 +207,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         boolean isVirtualPlatformEdge = dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata;
         SelectorState selectorState = selectors.computeIfAbsent(new SelectorCacheKey(dependencyState.getRequested(), ignoreVersion, isVirtualPlatformEdge), req -> {
             ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();
-            return new SelectorState(idGenerator.generateId(), dependencyState, idResolver, this, moduleIdentifier, ignoreVersion);
+            return new SelectorState(idGenerator.nextGraphNodeId(), dependencyState, idResolver, this, moduleIdentifier, ignoreVersion);
         });
         selectorState.update(dependencyState);
         return selectorState;

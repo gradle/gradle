@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
-import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -66,30 +66,22 @@ public class DefaultIvyPatternRepositoryLayout extends AbstractRepositoryLayout 
     }
 
     @Override
-    public void apply(URI baseUri, PatternBasedResolver resolver) {
-        if (baseUri == null) {
-            return;
+    public void apply(@Nullable URI baseUri, IvyRepositoryDescriptor.Builder builder) {
+        builder.setLayoutType("Pattern");
+        builder.setM2Compatible(m2compatible);
+
+        for (String pattern : artifactPatterns) {
+            builder.addArtifactPattern(pattern);
+            builder.addArtifactResource(baseUri, pattern);
         }
 
-        resolver.setM2compatible(m2compatible);
-
-        for (String artifactPattern : artifactPatterns) {
-            resolver.addArtifactLocation(baseUri, artifactPattern);
+        for (String pattern : ivyPatterns) {
+            builder.addIvyPattern(pattern);
         }
 
-        Set<String> usedIvyPatterns = ivyPatterns.isEmpty() ? artifactPatterns : ivyPatterns;
-        for (String ivyPattern : usedIvyPatterns) {
-            resolver.addDescriptorLocation(baseUri, ivyPattern);
+        Set<String> effectivePatterns = ivyPatterns.isEmpty() ? artifactPatterns : ivyPatterns;
+        for (String pattern : effectivePatterns) {
+            builder.addIvyResource(baseUri, pattern);
         }
-    }
-
-    @Override
-    public Set<String> getIvyPatterns() {
-        return ImmutableSet.copyOf(ivyPatterns);
-    }
-
-    @Override
-    public Set<String> getArtifactPatterns() {
-        return ImmutableSet.copyOf(artifactPatterns);
     }
 }

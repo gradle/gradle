@@ -6,6 +6,7 @@ description = "Collection of test fixtures for both unit tests and integration t
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":functional"))
     implementation(project(":native"))
 
     implementation(libs.groovy)

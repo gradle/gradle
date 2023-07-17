@@ -29,13 +29,16 @@ public interface GraphSelectionCandidates {
     /**
      * Returns the set of variants to select from. Should only be called when {@link #isUseVariants()} returns true.
      */
-    List<? extends VariantGraphResolveMetadata> getVariants();
+    List<? extends VariantGraphResolveState> getVariants();
 
     /**
      * Returns the configuration to use when variant selection is not being used.
      */
     @Nullable
-    ConfigurationGraphResolveMetadata getLegacyConfiguration();
+    ConfigurationGraphResolveState getLegacyConfiguration();
 
+    /**
+     * The set of consumable configurations available. Used for diagnostics.
+     */
     List<? extends ConfigurationGraphResolveMetadata> getCandidateConfigurations();
 }

@@ -30,6 +30,8 @@ public interface ComponentResolutionState extends StringVersioned {
 
     ModuleVersionIdentifier getId();
 
+    String getRepositoryName();
+
     /**
      * Returns the meta-data for the component. Resolves if not already resolved.
      *

@@ -21,11 +21,15 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,13 +65,28 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         }
 
         if (_ineligiblePropertyNames.contains(propertyName)) {
-            throw DocumentedFailure.builder()
-                .withSummary("Using internal convention mapping with a Provider backed property.")
-                .withUpgradeGuideSection(7, "convention_mapping")
-                .build();
+            // When there's a Property, use its `.convention()` method instead
+            // This is something we added to support properties migrated in the future from
+            // Java bean to Property where old code uses ConventionMapping to set conventions.
+            Class<? extends IConventionAware> sourceType = _source.getClass();
+            Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
+            if (getter != null && Property.class.isAssignableFrom(getter.getReturnType())) {
+                Property<Object> property;
+                try {
+                    property = Cast.uncheckedNonnullCast(getter.invoke(_source));
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    throw new IllegalStateException(String.format("Could not access property %s.%s", sourceType.getSimpleName(), propertyName), e);
+                }
+                property.convention(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
+            } else {
+                throw DocumentedFailure.builder()
+                    .withSummary("Using internal convention mapping with a Provider backed property.")
+                    .withUpgradeGuideSection(7, "convention_mapping")
+                    .build();
+            }
+        } else {
+            _mappings.put(propertyName, mapping);
         }
-
-        _mappings.put(propertyName, mapping);
         return mapping;
     }
 

@@ -17,11 +17,11 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.hamcrest.CoreMatchers.equalTo
 
-abstract class AbstractTestReportIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
     def "report includes results of most recent invocation"() {
         given:

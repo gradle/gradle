@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependenciesMetadata
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -36,9 +35,8 @@ import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
-import org.gradle.internal.component.model.ComponentGraphResolveState
-import org.gradle.internal.component.model.GraphSelectionCandidates
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
+import org.gradle.internal.component.model.VariantGraphResolveMetadata
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -92,6 +90,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
         ivyMetadataFactory.create(componentIdentifier, dependencies)
     }
+
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
             MavenDependencyType type = addAllDependenciesAsConstraints() ? MavenDependencyType.OPTIONAL_DEPENDENCY : MavenDependencyType.DEPENDENCY
@@ -99,6 +98,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
         mavenMetadataFactory.create(componentIdentifier, dependencies)
     }
+
     private gradleComponentMetadata(String[] deps) {
         def metadata = mavenMetadataFactory.create(componentIdentifier, [])
         //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
@@ -271,23 +271,17 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata("toRemove")
     }
 
-    def selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
-        selectTargetConfigurationMetadata(targetComponent.asImmutable())
+    VariantGraphResolveMetadata selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
+        return selectTargetConfigurationMetadata(targetComponent.asImmutable())
     }
 
-    def selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
+    VariantGraphResolveMetadata selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
-        def candidates = Stub(GraphSelectionCandidates)
-        candidates.useVariants >> { immutable.variantsForGraphTraversal.isPresent() }
-        candidates.variants >> { immutable.variantsForGraphTraversal.get() }
-        candidates.legacyConfiguration >> { immutable.getConfiguration(Dependency.DEFAULT_CONFIGURATION) }
-        def state = Stub(ComponentGraphResolveState)
-        state.metadata >> immutable
-        state.candidatesForGraphVariantSelection >> candidates
+        def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
 
-        consumer.selectVariants(attributes, state, schema, [] as Set).variants[0]
+        return consumer.selectVariants(attributes, state, schema, [] as Set).variants[0].metadata
     }
 }

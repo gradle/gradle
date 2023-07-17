@@ -103,7 +103,9 @@ abstract class ProjectDelegate : Project {
     override fun getLogger(): Logger =
         delegate.logger
 
+    @Deprecated("Use layout.buildDirectory instead", ReplaceWith("layout.buildDirectory.get()"))
     override fun getBuildDir(): File =
+        @Suppress("DEPRECATION")
         delegate.buildDir
 
     override fun getAnt(): AntBuilder =
@@ -162,6 +164,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getPath(): String =
         delegate.path
+
+    override fun getBuildTreePath(): String =
+        delegate.buildTreePath
 
     override fun zipTree(zipPath: Any): FileTree =
         delegate.zipTree(zipPath)
@@ -241,11 +246,15 @@ abstract class ProjectDelegate : Project {
     override fun components(configuration: Action<in SoftwareComponentContainer>) =
         delegate.components(configuration)
 
+    @Deprecated("Use layout.buildDirectory instead", ReplaceWith("layout.buildDirectory.set(path)"))
     override fun setBuildDir(path: File) {
+        @Suppress("DEPRECATION")
         delegate.buildDir = path
     }
 
+    @Deprecated("Use layout.buildDirectory instead", ReplaceWith("layout.buildDirectory.set(file(path))"))
     override fun setBuildDir(path: Any) =
+        @Suppress("DEPRECATION")
         delegate.setBuildDir(path)
 
     override fun defaultTasks(vararg defaultTasks: String?) =

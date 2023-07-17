@@ -84,8 +84,6 @@ class DefaultScriptPluginFactoryTest extends Specification {
         configuration.getFiles() >> Collections.emptySet()
         baseScope.getExportClassLoader() >> baseChildClassLoader
         classpathHasher.hash(_ as ClassPath) >> TestHashCodes.hashCodeFrom(123)
-
-        1 * autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(_, _) >> PluginRequests.EMPTY
     }
 
     void "configures a target object using script"() {

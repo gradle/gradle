@@ -18,11 +18,11 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestClassExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.hamcrest.CoreMatchers.containsString
 
-abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract void assertTestSkippedOrPassed(TestClassExecutionResult testClassResult, String testName)
 
     def "can run tests using JUnit"() {

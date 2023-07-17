@@ -35,6 +35,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileApp
 import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTestSuite
+import org.gradle.nativeplatform.fixtures.app.SwiftXCTestWithDepAndCustomXCTestSuite
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
@@ -429,7 +430,7 @@ apply plugin: 'swift-library'
     }
 
     @ToBeFixedForConfigurationCache
-    def 'can build xctest bundle which transitively dependencies on other Swift libraries'() {
+    def 'can build xctest bundle which transitively depends on other Swift libraries'() {
         given:
         def app = new SwiftAppWithLibraries()
         settingsFile << """
@@ -456,16 +457,9 @@ apply plugin: 'swift-library'
         app.greeter.writeToProject(file('hello'))
         app.logger.writeToProject(file('log'))
 
-        file('src/test/swift/MainTest.swift') << """
-            import XCTest
-            import App
+        def test = new SwiftXCTestWithDepAndCustomXCTestSuite('bundle', 'Main','XCTAssert(main() == 0)', ['App'] as String[], [] as String[])
+        test.writeToProject(testDirectory)
 
-            public class MainTest : XCTestCase {
-                public func testMain() {
-                    XCTAssert(main() == 0)
-                }
-            }
-        """
         when:
         succeeds 'test'
 
@@ -516,16 +510,9 @@ apply plugin: 'swift-library'
         app.greeter.writeToProject(file('Sources/Hello'))
         app.logger.writeToProject(file('Sources/Log'))
 
-        file('Tests/AppTests/UtilTest.swift') << """
-            import XCTest
-            import App
+        def test = new SwiftXCTestWithDepAndCustomXCTestSuite('testing', 'Main', 'XCTAssert(main() == 0)', ['App'] as String[], [] as String[])
+        test.writeToProject(testDirectory)
 
-            public class MainTest : XCTestCase {
-                public func testMain() {
-                    XCTAssert(main() == 0)
-                }
-            }
-        """
         when:
         succeeds 'test'
 

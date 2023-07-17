@@ -33,6 +33,7 @@ dependencies {
     implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":model-core")))
 
     integTestImplementation(project(":plugins"))
     integTestImplementation(testFixtures(project(":testing-base")))

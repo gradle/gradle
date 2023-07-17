@@ -21,10 +21,10 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Issue
@@ -86,7 +86,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         }
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "symbolic links for directories are handled properly - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -111,7 +111,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         walkerInstance << walkers
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "symbolic links for files are handled properly - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -137,7 +137,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     }
 
     @Issue("GRADLE-3400")
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "missing symbolic link that gets filtered doesn't cause an exception - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")

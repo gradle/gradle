@@ -51,6 +51,12 @@ class ConfigurationCacheStartParameter(
 
     val encryptionAlgorithm: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)
 
+    /**
+     * Should be provided if a link to the report is expected even if no errors were found.
+     * Useful in testing.
+     */
+    val alwaysLogReportLinkAsWarning: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.report-link-as-warning", false)
+
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
 
@@ -60,8 +66,14 @@ class ConfigurationCacheStartParameter(
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
 
+    val isIgnoreInputsInTaskGraphSerialization: Boolean
+        get() = startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization
+
     val maxProblems: Int
         get() = startParameter.configurationCacheMaxProblems
+
+    val ignoredFileSystemCheckInputs: String?
+        get() = startParameter.configurationCacheIgnoredFileSystemCheckInputs
 
     val isDebug: Boolean
         get() = startParameter.isConfigurationCacheDebug

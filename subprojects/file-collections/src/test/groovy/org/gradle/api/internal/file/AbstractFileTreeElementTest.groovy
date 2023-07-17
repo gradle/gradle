@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file
 
+import org.gradle.api.file.FilePermissions
 import org.gradle.api.file.RelativePath
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -68,8 +69,8 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
         def file = new TestFileTreeElement(temporaryFolder.file("someFile"), chmod)
 
         expect:
-        dir.getMode() == FileSystem.DEFAULT_DIR_MODE
-        file.getMode() == FileSystem.DEFAULT_FILE_MODE
+        dir.getPermissions().toUnixNumeric() == FileSystem.DEFAULT_DIR_MODE
+        file.getPermissions().toUnixNumeric() == FileSystem.DEFAULT_FILE_MODE
     }
 
     private TestFile writeToFile(String name, String content) {
@@ -82,46 +83,49 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
         private final TestFile file
         private final Integer mode
 
-        public TestFileTreeElement(TestFile file, Chmod chmod) {
+        TestFileTreeElement(TestFile file, Chmod chmod) {
             this(file, null, chmod)
         }
 
-        public TestFileTreeElement(TestFile file, Integer mode, Chmod chmod) {
+        TestFileTreeElement(TestFile file, Integer mode, Chmod chmod) {
             super(chmod)
             this.file = file
             this.mode = mode
         }
 
-        public String getDisplayName() {
+        String getDisplayName() {
             return "display name"
         }
 
-        public File getFile() {
+        File getFile() {
             return file
         }
 
-        public long getLastModified() {
+        long getLastModified() {
             return file.lastModified()
         }
 
-        public boolean isDirectory() {
+        boolean isDirectory() {
             return file.isDirectory()
         }
 
-        public long getSize() {
+        long getSize() {
             return file.length()
         }
 
-        public RelativePath getRelativePath() {
+        RelativePath getRelativePath() {
             throw new UnsupportedOperationException()
         }
 
-        public InputStream open() {
+        InputStream open() {
             return GFileUtils.openInputStream(file)
         }
 
-        public int getMode() {
-            return mode == null ? super.getMode() : mode
+        FilePermissions getPermissions() {
+            if (mode == null) {
+                return super.getPermissions()
+            }
+            return new DefaultFilePermissions(mode)
         }
     }
 }
