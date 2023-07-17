@@ -22,7 +22,6 @@ import groovy.transform.stc.FromString
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails
@@ -563,11 +562,6 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
     BuildOperationRecord actionExecution(BuildOperationRecord transformExecution) {
         def actionExecution = buildOperations.search(transformExecution, ExecuteTransformActionBuildOperationType)
         return actionExecution.empty ? null : Iterables.getOnlyElement(actionExecution)
-    }
-
-    @Override
-    protected ConfigurationCacheBuildOperationsFixture newConfigurationCacheFixture() {
-        return super.newConfigurationCacheFixture()
     }
 
     List<BuildOperationRecord> getTransformExecutions() {
