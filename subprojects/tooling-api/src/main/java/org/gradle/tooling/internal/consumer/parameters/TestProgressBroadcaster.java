@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.TestFinishEvent;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
@@ -42,13 +43,14 @@ import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEv
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 @NonNullApi
 public class TestProgressBroadcaster extends ProgressListenerBroadcasterAdapter implements ProgressListenerBroadcaster {
     private final DescriptorCache dc;
 
-    public TestProgressBroadcaster(DescriptorCache descriptorCache) {
-        super(InternalTestProgressEvent.class, TestProgressEvent.class, null);
+    public TestProgressBroadcaster(DescriptorCache descriptorCache, List<ProgressListener> listener) {
+        super(InternalTestProgressEvent.class, TestProgressEvent.class, null, listener);
         this.dc = descriptorCache;
     }
 

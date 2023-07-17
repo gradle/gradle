@@ -214,7 +214,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             listener.addAll(listeners.getOrDefault(operationType, noListeners));
         }
 
-        broadcasters.add(new TestProgressBroadcaster(descriptorCache));
+        broadcasters.add(new TestProgressBroadcaster(descriptorCache, listeners.getOrDefault(OperationType.TEST, noListeners)));
 
         testProgressListeners = this.listeners.get(OperationType.TEST);
         taskProgressListeners = this.listeners.get(OperationType.TASK);

@@ -16,13 +16,16 @@
 
 package org.gradle.tooling.internal.consumer.parameters;
 
+import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.TaskProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 
+import java.util.List;
+
 public class TaskProgressBroadcaster extends ProgressListenerBroadcasterAdapter implements ProgressListenerBroadcaster{
-    public TaskProgressBroadcaster() {
-        super(TaskProgressEvent.class, InternalTaskDescriptor.class, null);
+    public TaskProgressBroadcaster(List<ProgressListener> listener) {
+        super(TaskProgressEvent.class, InternalTaskDescriptor.class, null, listener);
     }
 
     @Override
