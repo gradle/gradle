@@ -315,7 +315,7 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
                     def projectPath = project.layout.projectDirectory.asFile.absolutePath
                     project.tasks.register("printDeclarations") {
                         pluginDeclarations.all {
-                            println("Plugin: id=\${it.id.get()}, description=\${it.description.get()}, tags=\${it.tags.get()}, files=\${it.myFiles.files.collect { it.path.replace(projectPath, '')} }")
+                            println("Plugin: id=\${it.id.get()}, description=\${it.description.get()}, tags=\${it.tags.get()}, files=\${it.myFiles.files.collect { it.path.replace(projectPath, '').replace('\\\\', '/') } }")
                         }
                     }
                 }
