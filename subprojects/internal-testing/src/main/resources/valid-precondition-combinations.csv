@@ -70,6 +70,7 @@ UnitTestPreconditions$Windows
 UnitTestPreconditions$Windows,UnitTestPreconditions$Jdk7OrLater,UnitTestPreconditions$Jdk8OrEarlier
 UnitTestPreconditions$Windows,IntegTestPreconditions$IsEmbeddedExecutor
 UnitTestPreconditions$WorkingDir
+UnitTestPreconditions$OnRemoteTestDistributionExecutor
 
 IntegTestPreconditions$CanPublishToS3
 IntegTestPreconditions$HasMsBuild
