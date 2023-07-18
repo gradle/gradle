@@ -306,21 +306,7 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Groovy lazy property assignment with NamedDomainObjectContainer"() {
-        given:
         buildFile """
-            class PluginDeclarationPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    NamedDomainObjectContainer<PluginDeclaration> pluginDeclarations = project.container(PluginDeclaration)
-                    project.extensions.add('pluginDeclarations', pluginDeclarations)
-                    def projectPath = project.layout.projectDirectory.asFile.absolutePath
-                    project.tasks.register("printDeclarations") {
-                        pluginDeclarations.all {
-                            println("Plugin: id=\${it.id.get()}, description=\${it.description.get()}, tags=\${it.tags.get()}, files=\${it.myFiles.files.collect { it.path.replace(projectPath, '').replace('\\\\', '/') } }")
-                        }
-                    }
-                }
-            }
-
             abstract class PluginDeclaration {
                 final String name
                 final Property<String> id
@@ -334,7 +320,7 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: PluginDeclarationPlugin
+            project.extensions.add('pluginDeclarations', project.container(PluginDeclaration))
 
             pluginDeclarations {
                 myPlugin {
@@ -344,13 +330,17 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
                     myFiles = files("a/b/c")
                 }
             }
+
+            pluginDeclarations.all {
+                assert it.id.get() == "my-id"
+                assert it.description.get() == "hello"
+                assert it.tags.get() == ["tag1", "tag2"]
+                assert it.myFiles.files == files("a/b/c").files
+            }
         """
 
-        when:
-        run("printDeclarations")
-
-        then:
-        outputContains("Plugin: id=my-id, description=hello, tags=[tag1, tag2], files=[/a/b/c]")
+        expect:
+        run("help")
     }
 
     private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {
