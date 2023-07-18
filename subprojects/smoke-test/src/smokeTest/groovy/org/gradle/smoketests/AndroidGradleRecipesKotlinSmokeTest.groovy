@@ -23,11 +23,14 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
+import static org.junit.Assume.assumeFalse
+
 class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://github.com/gradle/gradle/issues/23014')
-    def "android gradle recipes: custom BuildConfig field in Kotlin (agp=#agpVersion)"() {
+    def "android gradle recipes: custom BuildConfig field in Kotlin (agp=#agpVersion, provider=#providerType)"() {
         given:
+        assumeFalse("WIP", providerType.toString().contains('map{}.map{}'))
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
 
         and:
@@ -38,20 +41,14 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
 
         file('build.gradle.kts') << """
             buildscript {
-                repositories {
-                    ${googleRepository(GradleDsl.KOTLIN)}
-                    ${mavenCentralRepository(GradleDsl.KOTLIN)}
-                }
+                $repositoriesBlock
                 dependencies {
                     classpath("com.android.tools.build:gradle:$agpVersion")
                     classpath(kotlin("gradle-plugin", version = "$kotlinVersionNumber"))
                 }
             }
             allprojects {
-                repositories {
-                    ${googleRepository(GradleDsl.KOTLIN)}
-                    ${mavenCentralRepository(GradleDsl.KOTLIN)}
-                }
+                $repositoriesBlock
             }
         """
 
@@ -90,15 +87,11 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
 
             androidComponents {
                 onVariants {
-                    it.buildConfigFields.put("MyCustomField", customFieldValueProvider
-                        .flatMap { task -> task.fieldValueOutputFile }
-                        .map { file ->
-                            BuildConfigField(
-                                "String",
-                                "\\"{file.asFile.readText(Charsets.UTF_8)}\\"",
-                                "My custom field"
-                            )
-                        }
+                    it.buildConfigFields.put("MyCustomField",
+                        customFieldValueProvider
+                            .${provider['mapBegin']}
+                            BuildConfigField("String", "\\"{${provider['get']}}\\"", "My custom field")
+                            ${provider['mapEnd']}
                     )
                 }
             }
@@ -136,14 +129,14 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             </manifest>'''.stripIndent()
 
         and:
-        def runner = useAgpVersion(agpVersion, runner('assembleDebug'))
+        def runner = useAgpVersion(agpVersion, runner(taskName))
 
         when: 'running the build for the 1st time'
         beforeAndroidBuild(runner)
         def result = runnerWithDeprecations(runner, agpVersion, kotlinVersionNumber).build()
 
         then:
-        result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
+        result.task(":app:$taskName").outcome == TaskOutcome.SUCCESS
 
         and:
         assertConfigurationCacheStateStored()
@@ -156,14 +149,39 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         ).build()
 
         then:
-        result.task(':app:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
+        result.task(":app:$taskName").outcome == TaskOutcome.UP_TO_DATE
 
         and:
         assertConfigurationCacheStateLoaded()
 
         where:
-        agpVersion << TestedVersions.androidGradle
+        [agpVersion, provider] << [
+            AGP_VERSIONS.latestsStable,
+            [
+                [type: 'flatMap{map{}}',
+                 mapBegin: 'flatMap { it.fieldValueOutputFile.map {', mapEnd: '} }',
+                 get: 'it.asFile.readText(Charsets.UTF_8)'],
+                [type: 'flatMap{}.map{}',
+                 mapBegin: 'flatMap { it.fieldValueOutputFile }.map {', mapEnd: '}',
+                 get: 'it.asFile.readText(Charsets.UTF_8)'],
+                [type: 'flatMap{}.map{}.map{}',
+                 mapBegin: 'flatMap { it.fieldValueOutputFile }.map { it.asFile.readText(Charsets.UTF_8) }.map {',
+                 mapEnd: '}',
+                 get: 'it']
+            ]
+        ].combinations()
+        providerType = provider['type']
         kotlinVersionNumber = VersionNumber.parse('1.7.0')
+        taskName = 'compileDebugKotlin'
+    }
+
+    private getRepositoriesBlock() {
+        """
+            repositories {
+                ${googleRepository(GradleDsl.KOTLIN)}
+                ${mavenCentralRepository(GradleDsl.KOTLIN)}
+            }
+        """
     }
 
     private beforeAndroidBuild(SmokeTestGradleRunner runner) {
