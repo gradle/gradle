@@ -172,6 +172,66 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         storeTimeMetadata == loadTimeMetadata
     }
 
+    def "can publish maven publication metadata to non-authenticating remote repository"() {
+        with(server) {
+            // or else insecure protocol enforcement is skipped
+            useHostname()
+            start()
+        }
+        def remoteRepo = new MavenHttpRepository(server, mavenRepo)
+
+        def repositoryName = "testrepo"
+        settingsFile "rootProject.name = 'root'"
+        buildFile buildFileConfiguration("""
+            repositories {
+                maven {
+                    name "${repositoryName}"
+                    url "${remoteRepo.uri}"
+                    allowInsecureProtocol true
+                    // no credentials
+                }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+        def metadataFile = file('build/publications/maven/module.json')
+        def tasks = [
+            "generateMetadataFileForMavenPublication",
+            "generatePomFileForMavenPublication",
+            "publishMavenPublicationTo${repositoryName}Repository",
+            "publishAllPublicationsTo${repositoryName}Repository"
+        ]
+
+        expect:
+        !GUtil.isSecureUrl(server.uri)
+
+        when:
+        prepareMavenHttpRepository(remoteRepo, null)
+        configurationCacheRun(*tasks)
+        server.resetExpectations()
+
+        then:
+        configurationCache.assertStateStored()
+        metadataFile.exists()
+
+        when:
+        def storeTimeRepo = mavenRepoFiles()
+        def storeTimeMetadata = metadataFile.text
+        metadataFile.delete()
+        deleteDirectory(mavenRepo.rootDir)
+
+        prepareMavenHttpRepository(remoteRepo, null)
+        configurationCacheRun(*tasks)
+        server.resetExpectations()
+
+        then:
+        configurationCache.assertStateLoaded()
+        def loadTimeRepo = mavenRepoFiles()
+        storeTimeRepo == loadTimeRepo
+        def loadTimeMetadata = metadataFile.text
+        storeTimeMetadata == loadTimeMetadata
+    }
+
+
     @Issue("https://github.com/gradle/gradle/issues/22618")
     @Ignore("This relies on being able to reliably detect unsafe credentials")
     def "cannot use unsafe credentials provider with configuration cache"() {
@@ -323,6 +383,9 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
                 maven {
                     name "${repositoryName}"
                     url "${remoteRepo.uri}"
+                    metadataSources {
+                        gradleMetadata()
+                    }
                     allowInsecureProtocol true
                     ${credentialsBlock}
                 }

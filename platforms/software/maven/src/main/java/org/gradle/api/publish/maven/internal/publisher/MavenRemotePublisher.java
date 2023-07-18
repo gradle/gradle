@@ -37,6 +37,7 @@ import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 import java.util.TimeZone;
 
 public class MavenRemotePublisher extends AbstractMavenPublisher {
@@ -50,7 +51,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
 
     @Override
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
-        URI repositoryUrl = artifactRepository.getUrl();
+        URI repositoryUrl = Objects.requireNonNull(artifactRepository.getUrl(), () -> String.format("URL must be configured for repository '%s'", artifactRepository.getName()));
         LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), repositoryUrl);
 
         String protocol = repositoryUrl.getScheme().toLowerCase();
