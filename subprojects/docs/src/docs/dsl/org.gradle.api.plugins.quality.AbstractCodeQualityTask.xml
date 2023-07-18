@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>ignoreFailures</td>
-                <td><literal>project.checkstyle.ignoreFailures</literal></td>
+                <td>false</td>
             </tr>
             <tr>
                 <td>javaLauncher</td>
