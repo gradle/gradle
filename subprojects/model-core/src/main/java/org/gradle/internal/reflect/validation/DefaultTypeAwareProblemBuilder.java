@@ -62,12 +62,15 @@ public class DefaultTypeAwareProblemBuilder extends DefaultProblemBuilder implem
         if (parentProperty == null) {
             return this;
         }
-        String existingParentProperty = additionalMetadata.get(PARENT_PROPERTY_NAME);
-        if (existingParentProperty == null) {
-            withMetadata(PARENT_PROPERTY_NAME, parentProperty);
-        } else {
-            withMetadata(PARENT_PROPERTY_NAME, existingParentProperty + "." + parentProperty);
-        }
+        withMetadata(PARENT_PROPERTY_NAME, getParentProperty(parentProperty));
         return this;
+    }
+
+    private String getParentProperty(String parentProperty) {
+        String existingParentProperty = additionalMetadata.get(PARENT_PROPERTY_NAME);
+        if(existingParentProperty == null) {
+            return parentProperty;
+        }
+        return existingParentProperty + "." + parentProperty;
     }
 }

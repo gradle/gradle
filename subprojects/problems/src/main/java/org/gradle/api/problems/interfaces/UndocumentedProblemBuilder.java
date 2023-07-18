@@ -19,7 +19,7 @@ package org.gradle.api.problems.interfaces;
 import org.gradle.api.Incubating;
 
 /**
- * Problems API.
+ * Builder that is part of the {@link ProblemBuilder} concept.
  *
  * @since 8.4
  */

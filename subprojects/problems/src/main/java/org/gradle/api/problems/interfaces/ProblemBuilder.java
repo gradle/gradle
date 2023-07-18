@@ -23,6 +23,30 @@ import javax.annotation.Nullable;
 /**
  * A builder interface for {@link Problem} instances.
  *
+ * This is the last interface in the builder chain.
+ *
+ * before this can be used the following interfaces must be used in order:
+ * <ul>
+ *     <li>{@link UndocumentedProblemBuilder}
+ *     <li>{@link UnlocatedProblemBuilder}
+ *     <li>{@link ProblemBuilderWithoutSeverity}
+ *     <li>{@link ProblemBuilderWithoutMessage}
+ *     <li>{@link UnTypedProblemBuilder}
+ *     <li>{@link UngroupedProblemBuilder}
+ * </ul>
+ *
+ * An example of how to use the builder:
+ * <pre>{@code
+ *  <problemService>.createProblemBuilder()
+ *          .undocumented()
+ *          .noLocation()
+ *          .severity(Severity.ERROR)
+ *          .message("test problem")
+ *          .type(ValidationProblemId.TEST_PROBLEM.name())
+ *          .group(ProblemGroup.TYPE_VALIDATION)
+ *          .description("this is a test")
+ *  }</pre>
+ *
  * @since 8.4
  */
 @Incubating
