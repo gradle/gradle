@@ -371,14 +371,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                         if (metaBeanProperty.getSetter() == null) {
                             if (metaBeanProperty.getField() == null) {
-                                Class<?> propertyType = metaBeanProperty.getType();
-                                if (HasConfigurableValue.class.isAssignableFrom(propertyType)) {
-                                    value = propertySetTransformer.transformValue(propertyType, value);
-                                    LazyGroovySupport propertyValue = (LazyGroovySupport) metaBeanProperty.getGetter().invoke(bean, new Object[0]);
-                                    propertyValue.setFromAnyValue(value);
-                                } else {
-                                    throw setReadOnlyProperty(name);
-                                }
+                                trySetReadOnlyProperty(name, value, metaBeanProperty);
                             } else {
                                 value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
                                 metaBeanProperty.getField().setProperty(bean, value);
@@ -423,6 +416,19 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             return setOpaqueProperty(metaClass, name, value);
+        }
+
+        private void trySetReadOnlyProperty(String name, Object value, MetaBeanProperty metaBeanProperty) {
+            Class<?> propertyType = metaBeanProperty.getType();
+            if (HasConfigurableValue.class.isAssignableFrom(propertyType)) {
+                Object propertyValue = metaBeanProperty.getGetter().invoke(bean, new Object[0]);
+                if (propertyValue instanceof LazyGroovySupport) {
+                    value = propertySetTransformer.transformValue(propertyType, value);
+                    ((LazyGroovySupport) propertyValue).setFromAnyValue(value);
+                    return;
+                }
+            }
+            throw setReadOnlyProperty(name);
         }
 
         protected DynamicInvokeResult setOpaqueProperty(MetaClass metaClass, String name, Object value) {
