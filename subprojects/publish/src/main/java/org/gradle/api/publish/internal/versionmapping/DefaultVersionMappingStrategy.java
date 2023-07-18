@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultVersionMappingStrategy implements VersionMappingStrategyInternal {
-    private boolean enabled;
     private final ObjectFactory objectFactory;
     private final ConfigurationContainer configurations;
     private final AttributesSchemaInternal schema;
@@ -78,16 +77,6 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     @Override
     public void usage(String usage, Action<? super VariantVersionMappingStrategy> action) {
         variant(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, usage), action);
-    }
-
-    @Override
-    public void enable() {
-        this.enabled = true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
     }
 
     @Override

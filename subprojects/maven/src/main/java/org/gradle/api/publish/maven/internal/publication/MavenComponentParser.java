@@ -136,7 +136,6 @@ public class MavenComponentParser {
                 projectDependencyResolver,
                 versionRangeMapper,
                 versionMappingStrategy.findStrategyForVariant(attributes),
-                versionMappingStrategy.isEnabled(),
                 publicationWarningsCollector
             );
 
@@ -224,20 +223,17 @@ public class MavenComponentParser {
         private final ProjectDependencyPublicationResolver projectDependencyResolver;
         private final VersionRangeMapper versionRangeMapper;
         private final VariantVersionMappingStrategyInternal versionMappingStrategy;
-        private final boolean versionMappingInUse;
         private final PublicationWarningsCollector publicationWarningsCollector;
 
         public MavenDependencyFactory(
             ProjectDependencyPublicationResolver projectDependencyResolver,
             VersionRangeMapper versionRangeMapper,
             VariantVersionMappingStrategyInternal versionMappingStrategy,
-            boolean versionMappingInUse,
             PublicationWarningsCollector publicationWarningsCollector
         ) {
             this.projectDependencyResolver = projectDependencyResolver;
             this.versionRangeMapper = versionRangeMapper;
             this.versionMappingStrategy = versionMappingStrategy;
-            this.versionMappingInUse = versionMappingInUse;
             this.publicationWarningsCollector = publicationWarningsCollector;
         }
 
@@ -303,14 +299,12 @@ public class MavenComponentParser {
         }
 
         private Coordinates resolveCoordinates(String groupId, String artifactId, @Nullable String version, @Nullable Path identityPath) {
-            if (versionMappingInUse) {
-                ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.maybeResolveVersion(groupId, artifactId, identityPath);
-                if (resolvedVersion != null) {
-                    return Coordinates.from(resolvedVersion);
-                }
+            ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.maybeResolveVersion(groupId, artifactId, identityPath);
+            if (resolvedVersion != null) {
+                return Coordinates.from(resolvedVersion);
             }
 
-            // Version mapping is disabled. Attempt to convert Gradle's rich version notation to Maven's.
+            // Version mapping is disabled or did not discover coordinates. Attempt to convert Gradle's rich version notation to Maven's.
             if (version == null) {
                 return new Coordinates(groupId, artifactId, null);
             }

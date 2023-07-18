@@ -347,7 +347,6 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
     @Override
     public void versionMapping(Action<? super VersionMappingStrategy> configureAction) {
-        versionMappingStrategy.enable();
         configureAction.execute(versionMappingStrategy);
     }
 
