@@ -85,11 +85,16 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
 
     @Override
     public ClassLoaderScope createChild(String name, @Nullable ClassLoaderScopeOrigin origin) {
-        return new DefaultClassLoaderScope(id.child(name), this, origin, classLoaderCache, listener);
+        return new MutableClassLoaderScope(new DefaultClassLoaderScope(id.child(name), this, origin, classLoaderCache, listener));
     }
 
     @Override
     public ClassLoaderScope createLockedChild(String name, @Nullable ClassLoaderScopeOrigin origin, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
         return new ImmutableClassLoaderScope(id.child(name), this, origin, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener);
+    }
+
+    @Override
+    public ClassLoaderScope getOriginalScope() {
+        return this;
     }
 }

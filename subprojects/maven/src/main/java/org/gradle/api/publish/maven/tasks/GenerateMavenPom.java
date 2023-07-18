@@ -20,9 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
-import org.gradle.api.publish.maven.internal.publication.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
 import org.gradle.api.tasks.Internal;
@@ -118,57 +116,14 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
-        mavenPomSpec().writeTo(getDestination());
-    }
-
-    private MavenPomFileGenerator.MavenPomSpec mavenPomSpec() {
-        return mavenPomSpec.get();
+        mavenPomSpec.get().writeTo(getDestination());
     }
 
     private MavenPomFileGenerator.MavenPomSpec computeMavenPomSpec() {
-        MavenPomInternal pomInternal = (MavenPomInternal) getPom();
-
-        MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(
-            pomInternal.getProjectIdentity(),
+        return new MavenPomFileGenerator(
             getVersionRangeMapper(),
-            pomInternal.getVersionMappingStrategy(),
             compileScopeAttributes.get(),
-            runtimeScopeAttributes.get(),
-            pomInternal.writeGradleMetadataMarker());
-        pomGenerator.configureFrom(pomInternal);
-
-        MavenPomDependencies dependencies = pomInternal.getDependencies().get();
-        for (MavenDependencyInternal mavenDependency : dependencies.getApiDependencyManagement()) {
-            pomGenerator.addCompileDependencyManagement(mavenDependency);
-        }
-
-        for (MavenDependencyInternal mavenDependency : dependencies.getRuntimeDependencyManagement()) {
-            pomGenerator.addRuntimeDependencyManagement(mavenDependency);
-        }
-
-        for (MavenDependencyInternal mavenDependency : dependencies.getImportDependencyManagement()) {
-            pomGenerator.addImportDependencyManagement(mavenDependency);
-        }
-
-        for (MavenDependencyInternal apiDependency : dependencies.getApiDependencies()) {
-            pomGenerator.addCompileDependency(apiDependency);
-        }
-
-        for (MavenDependencyInternal runtimeDependency : dependencies.getRuntimeDependencies()) {
-            pomGenerator.addRuntimeDependency(runtimeDependency);
-        }
-
-        for (MavenDependencyInternal optionalApiDependency : dependencies.getOptionalApiDependencies()) {
-            pomGenerator.addOptionalCompileDependency(optionalApiDependency);
-        }
-
-        for (MavenDependencyInternal optionalRuntimeDependency : dependencies.getOptionalRuntimeDependencies()) {
-            pomGenerator.addOptionalRuntimeDependency(optionalRuntimeDependency);
-        }
-
-        pomGenerator.withXml(pomInternal.getXmlAction());
-
-        return pomGenerator.toSpec();
+            runtimeScopeAttributes.get()
+        ).generateSpec((MavenPomInternal) getPom());
     }
-
 }

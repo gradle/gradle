@@ -27,11 +27,9 @@ subprojects/model-core/                         @gradle/bt-configuration-cache
 subprojects/model-groovy/                       @gradle/bt-configuration-cache
 
 # Gradle Enterprise
-subprojects/build-scan-performance/         @gradle/bt-build-scan
-subprojects/enterprise/                     @ldaley @gradle/ge-testing @gradle/ge-build-insights @gradle/bt-build-scan
-subprojects/enterprise-logging/             @gradle/ge-build-insights @gradle/bt-build-scan @gradle/ge-testing
-subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt-build-scan
-subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
+platforms/enterprise                        @gradle/ge-build-insights @gradle/bt-build-scan
+platforms/enterprise/enterprise/            @ldaley @gradle/ge-testing @gradle/ge-build-insights @gradle/bt-build-scan
+platforms/enterprise/enterprise-logging/    @gradle/ge-build-insights @gradle/bt-build-scan @gradle/ge-testing
 
 # JVM platform
 platforms/jvm/                              @gradle/bt-jvm

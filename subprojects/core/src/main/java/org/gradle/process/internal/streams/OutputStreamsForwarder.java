@@ -17,7 +17,7 @@
 package org.gradle.process.internal.streams;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.process.internal.StreamsHandler;
 
 import java.io.OutputStream;
@@ -33,8 +33,8 @@ public class OutputStreamsForwarder implements StreamsHandler {
     private final boolean readErrorStream;
     private final CountDownLatch completed;
     private Executor executor;
-    private ExecOutputHandleRunner standardOutputReader;
-    private ExecOutputHandleRunner standardErrorReader;
+    private volatile ExecOutputHandleRunner standardOutputReader;
+    private volatile ExecOutputHandleRunner standardErrorReader;
 
     public OutputStreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, boolean readErrorStream) {
         this.standardOutput = standardOutput;
@@ -55,9 +55,19 @@ public class OutputStreamsForwarder implements StreamsHandler {
     @Override
     public void start() {
         if (readErrorStream) {
-            executor.execute(CurrentBuildOperationPreservingRunnable.wrapIfNeeded(standardErrorReader));
+            standardErrorReader.associateBuildOperation(CurrentBuildOperationRef.instance().get());
+            executor.execute(standardErrorReader);
         }
-        executor.execute(CurrentBuildOperationPreservingRunnable.wrapIfNeeded(standardOutputReader));
+        standardOutputReader.associateBuildOperation(CurrentBuildOperationRef.instance().get());
+        executor.execute(standardOutputReader);
+    }
+
+    @Override
+    public void removeStartupContext() {
+        standardOutputReader.clearAssociatedBuildOperation();
+        if (readErrorStream) {
+            standardErrorReader.clearAssociatedBuildOperation();
+        }
     }
 
     @Override

@@ -16,7 +16,10 @@ plugins {
 description = "Provides a platform dependency to align all distribution versions"
 
 val antVersion = "1.10.13"
-val asmVersion = "9.4"
+// Don't forget to bump versions in
+// subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
+// when upgrading ASM.
+val asmVersion = "9.5"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
 val jacksonVersion = "2.14.1"

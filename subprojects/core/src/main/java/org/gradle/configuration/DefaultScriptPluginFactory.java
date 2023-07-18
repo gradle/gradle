@@ -51,9 +51,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final CompileOperationFactory compileOperationFactory;
     private ScriptPluginFactory scriptPluginFactory;
 
-    public DefaultScriptPluginFactory(ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, Factory<LoggingManagerInternal> loggingFactoryManager,
-                                      AutoAppliedPluginHandler autoAppliedPluginHandler, PluginRequestApplicator pluginRequestApplicator,
-                                      CompileOperationFactory compileOperationFactory) {
+    public DefaultScriptPluginFactory(
+        ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, Factory<LoggingManagerInternal> loggingFactoryManager,
+        AutoAppliedPluginHandler autoAppliedPluginHandler, PluginRequestApplicator pluginRequestApplicator,
+        CompileOperationFactory compileOperationFactory
+    ) {
         this.scriptServices = scriptServices;
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingFactoryManager = loggingFactoryManager;
@@ -111,11 +113,10 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             initialRunner.run(target, services);
 
             PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
-            PluginRequests mergedPluginRequests = autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target);
 
             PluginManagerInternal pluginManager = topLevelScript ? initialPassScriptTarget.getPluginManager() : null;
-            pluginRequestApplicator.applyPlugins(mergedPluginRequests, scriptHandler, pluginManager, targetScope);
-
+            PluginRequests autoAppliedPlugins = autoAppliedPluginHandler.getAutoAppliedPlugins(initialPluginRequests, target);
+            pluginRequestApplicator.applyPlugins(initialPluginRequests, autoAppliedPlugins, scriptHandler, pluginManager, targetScope);
             // Pass 2, compile everything except buildscript {}, pluginManagement{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);
             scriptType = scriptTarget.getScriptClass();

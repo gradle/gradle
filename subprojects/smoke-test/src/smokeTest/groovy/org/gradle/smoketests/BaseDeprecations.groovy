@@ -57,6 +57,12 @@ class BaseDeprecations {
         "Consult the upgrading guide for further information: " +
         DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","java_convention_deprecation")
 
+    public static final String FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION = "The Provider.forUseAtConfigurationTime method has been deprecated. " +
+        "This is scheduled to be removed in Gradle 9.0. " +
+        "Simply remove the call. " +
+        "Consult the upgrading guide for further information: " +
+        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_7", "for_use_at_configuration_time_deprecation")
+
     final SmokeTestGradleRunner runner
 
     BaseDeprecations(SmokeTestGradleRunner runner) {

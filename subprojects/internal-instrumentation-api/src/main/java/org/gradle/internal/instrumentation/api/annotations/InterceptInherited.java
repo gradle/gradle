@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks that a method call on subtypes should also be intercepted
+ * Marks that a method call on subtypes should also be intercepted, it's only allowed for Gradle types.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)

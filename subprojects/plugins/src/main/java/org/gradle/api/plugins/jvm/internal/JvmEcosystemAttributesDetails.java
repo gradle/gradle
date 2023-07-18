@@ -94,4 +94,11 @@ public interface JvmEcosystemAttributesDetails {
      * Expresses that variants which are optimized for standard JVMs should be preferred.
      */
     JvmEcosystemAttributesDetails preferStandardJVM();
+
+    /**
+     * Provides or requires the source files of a component.
+     *
+     * @return {@code this}
+     */
+    JvmEcosystemAttributesDetails asSources();
 }

@@ -378,7 +378,7 @@ subprojects {
              plugins {
                 java
                 `maven-publish`
-                kotlin("jvm") version "1.7.21"
+                kotlin("jvm") version "1.8.22"
             }
             repositories {
                 mavenCentral()
@@ -394,7 +394,7 @@ subprojects {
                 }
             }
             (publishing.publications["maven"] as MavenPublication).artifacts
-            (components["java"] as org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent).apply {
+            (components["java"] as AdhocComponentWithVariants).apply {
                 withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
             }
         """
@@ -418,7 +418,7 @@ subprojects {
              plugins {
                 java
                 `ivy-publish`
-                kotlin("jvm") version "1.7.21"
+                kotlin("jvm") version "1.8.22"
             }
             repositories {
                 mavenCentral()
@@ -434,7 +434,7 @@ subprojects {
                 }
             }
             (publishing.publications["ivy"] as IvyPublication).artifacts
-            (components["java"] as org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent).apply {
+            (components["java"] as AdhocComponentWithVariants).apply {
                 withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
             }
         """
