@@ -17,7 +17,7 @@ tasks.withType<Test>().configureEach {
 // end::parallel-4[]
 
 // tag::parallel-calculated[]
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 // end::parallel-calculated[]
 
 // tag::fork-every[]
@@ -25,8 +25,8 @@ tasks.withType<Test>().configureEach {
 // end::fork-every[]
 
 // tag::disable-reports[]
-    reports.html.required.set(false)
-    reports.junitXml.required.set(false)
+    reports.html.required = false
+    reports.junitXml.required = false
 // end::disable-reports[]
 
 // tag::parallel-4[]

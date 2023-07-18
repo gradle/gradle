@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@
 package org.gradle.kotlin.dsl.assignment.internal
 
 
+/**
+ * TODO: Remove once kotlin-dsl plugin is updated
+ */
 object KotlinDslAssignment {
-
-    const val ASSIGNMENT_SYSTEM_PROPERTY = "org.gradle.unsafe.kotlin.assignment"
-
-    fun isAssignmentOverloadEnabled() =
-        System.getProperty(ASSIGNMENT_SYSTEM_PROPERTY, "false").trim() == "true"
+    fun isAssignmentOverloadEnabled() = true
 }

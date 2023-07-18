@@ -20,7 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaProject
-import static org.gradle.plugins.ide.tooling.r210.ToolingApiEclipseModelCrossVersionSpec.javaSourceCompatibility
+
+import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
 
 @TargetGradleVersion(">=2.12")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {

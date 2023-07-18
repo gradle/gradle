@@ -263,7 +263,11 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     }
 
     private static void describeTargetJvm(Object targetJvm, StringBuilder sb) {
-        sb.append("Java ").append(targetJvm);
+        if (targetJvm.equals(Integer.MAX_VALUE)) {
+            sb.append("any Java version");
+        } else {
+            sb.append("Java ").append(targetJvm);
+        }
     }
 
     private static void describeTargetJvmEnvironment(Object targetJvmEnvironment, StringBuilder sb) {

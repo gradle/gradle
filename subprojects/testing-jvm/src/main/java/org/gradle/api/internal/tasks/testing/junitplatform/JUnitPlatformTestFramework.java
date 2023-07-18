@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -24,6 +25,9 @@ import org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -32,10 +36,13 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitPlatformTestFramework implements TestFramework {
+    private static final Logger LOGGER = Logging.getLogger(JUnitPlatformTestFramework.class);
 
     private static final List<TestFrameworkDistributionModule> DISTRIBUTION_MODULES =
         ImmutableList.of(
@@ -59,15 +66,17 @@ public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
     private final boolean useImplementationDependencies;
+    private final Provider<Boolean> dryRun;
 
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies) {
-        this(filter, useImplementationDependencies, new JUnitPlatformOptions());
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, Provider<Boolean> dryRun) {
+        this(filter, useImplementationDependencies, new JUnitPlatformOptions(), dryRun);
     }
 
-    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options) {
+    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options, Provider<Boolean> dryRun) {
         this.filter = filter;
         this.useImplementationDependencies = useImplementationDependencies;
         this.options = options;
+        this.dryRun = dryRun;
     }
 
     @UsedByScanPlugin("test-retry")
@@ -79,7 +88,8 @@ public class JUnitPlatformTestFramework implements TestFramework {
         return new JUnitPlatformTestFramework(
             (DefaultTestFilter) newTestFilters,
             useImplementationDependencies,
-            copiedOptions
+            copiedOptions,
+            dryRun
         );
     }
 
@@ -88,9 +98,10 @@ public class JUnitPlatformTestFramework implements TestFramework {
         if (!JavaVersion.current().isJava8Compatible()) {
             throw new UnsupportedJavaRuntimeException("Running JUnit Platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
         }
+        validateOptions();
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), options.getIncludeEngines(), options.getExcludeEngines(),
-            options.getIncludeTags(), options.getExcludeTags()
+            options.getIncludeTags(), options.getExcludeTags(), dryRun.get()
         ));
     }
 
@@ -124,4 +135,20 @@ public class JUnitPlatformTestFramework implements TestFramework {
         // this test framework doesn't hold any state
     }
 
+    private void validateOptions() {
+        Set<String> intersection = Sets.newHashSet(options.getIncludeTags());
+        intersection.retainAll(options.getExcludeTags());
+        if (!intersection.isEmpty()) {
+            if (intersection.size() == 1) {
+                LOGGER.warn("The tag '" + intersection.iterator().next() + "' is both included and excluded.  " +
+                    "This will result in the tag being excluded, which may not be what was intended.  " +
+                    "Please either include or exclude the tag but not both.");
+            } else {
+                String allTags = intersection.stream().sorted().map(s -> "'" + s + "'").collect(Collectors.joining(", "));
+                LOGGER.warn("The tags " + allTags + " are both included and excluded.  " +
+                    "This will result in the tags being excluded, which may not be what was intended.  " +
+                    "Please either include or exclude the tags but not both.");
+            }
+        }
+    }
 }

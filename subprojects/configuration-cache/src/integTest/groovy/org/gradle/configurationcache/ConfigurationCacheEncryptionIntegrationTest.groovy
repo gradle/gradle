@@ -19,68 +19,45 @@ package org.gradle.configurationcache
 import com.google.common.primitives.Bytes
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
-import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
+import java.security.KeyStore
 import java.util.stream.Stream
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
-import static org.gradle.configurationcache.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
-import static org.gradle.util.Matchers.containsLine
-import static org.gradle.util.Matchers.matchesRegexp
 
 class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    String encryptionKeyText
-    String encryptionKeyAsBase64
+    TestFile keyStoreDir
 
     def setup() {
-        encryptionKeyText = "01234567890123456789012345678901"
-        encryptionKeyAsBase64 = Base64.encoder.encodeToString(encryptionKeyText.getBytes(StandardCharsets.UTF_8))
+        keyStoreDir = new TestFile(testDirectory, 'keystores')
     }
 
-    def "configuration cache can be loaded without errors if encryption is #status, #encryptionTransformation"() {
+    def "configuration cache can be loaded without errors using #encryptionTransformation"() {
         given:
         def additionalOpts = [
             "-Dorg.gradle.configuration-cache.internal.encryption-alg=${encryptionTransformation}"
         ]
         def configurationCache = newConfigurationCacheFixture()
-        runWithEncryption(status, ["help"], additionalOpts)
+        runWithEncryption(true, ["help"], additionalOpts)
 
         when:
-        runWithEncryption(status, ["help"], additionalOpts)
+        runWithEncryption(true, ["help"], additionalOpts)
 
         then:
         configurationCache.assertStateLoaded()
 
         where:
-        status      | encryptionTransformation
-        false       | ""
-        true        | "AES/ECB/PKCS5PADDING"
-        true        | "AES/CBC/PKCS5PADDING"
-    }
-
-    def "configuration cache encryption is #status with option #options"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-
-        when:
-        runWithEncryption(status, ["help"], ["--info"] + options)
-
-        then:
-        configurationCache.assertStateStored()
-        status == containsLine(result.output, "Encryption of the configuration cache is enabled.")
-
-        where:
-        status  | options
-        true    | []
-        false   | ["--no-configuration-cache-encryption"]
-        true    | ["--configuration-cache-encryption"]
-        true    | ["-Dorg.gradle.configuration-cache.encryption=true"]
-        false   | ["-Dorg.gradle.configuration-cache.encryption=false"]
-        true    | ["--configuration-cache-encryption", "-Dorg.gradle.configuration-cache.encryption=false"]
-        false   | ["--no-configuration-cache-encryption", "-Dorg.gradle.configuration-cache.encryption=true"]
+        _ | encryptionTransformation
+        _ | "AES/ECB/PKCS5PADDING"
+        _ | "AES/CBC/PKCS5PADDING"
     }
 
     def "configuration cache is #encrypted if enabled=#enabled"() {
@@ -146,9 +123,9 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         isFoundInDirectory(cacheDir, "sensitive".getBytes()) == !enabled
         isFoundInDirectory(cacheDir, "SENSITIVE".getBytes()) == !enabled
         where:
-        encrypted       |   enabled
-        "encrypted"     |   true
-        "unencrypted"   |   false
+        encrypted     | enabled
+        "encrypted"   | true
+        "unencrypted" | false
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {
@@ -160,110 +137,89 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         }
     }
 
-    def "new configuration cache entry if was encrypted but encryption is off"() {
+    def "new configuration cache entry if keystore is not found"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        runWithEncryption(true)
+        runWithEncryption()
+        findKeystoreFile().delete()
 
         when:
-        runWithEncryption(false)
+        runWithEncryption()
 
         then:
         configurationCache.assertStateStored()
         outputContains("Calculating task graph as no configuration cache is available for tasks: help")
     }
 
-    def "new configuration cache entry if was not encrypted but encryption is on"() {
+    def "new configuration cache entry if key is not found"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        runWithEncryption(false)
+        runWithEncryption()
+
+        and:
+        def keyStoreFile = findKeystoreFile()
+
+        KeyStore ks = KeyStore.getInstance(KeyStoreKeySource.KEYSTORE_TYPE)
+        keyStoreFile.withInputStream { ks.load(it, new char[]{'c', 'c'}) }
+        ks.deleteEntry("gradle-secret")
+        keyStoreFile.withOutputStream { ks.store(it, new char[]{'c', 'c'}) }
 
         when:
-        runWithEncryption(true)
+        runWithEncryption()
 
         then:
         configurationCache.assertStateStored()
         outputContains("Calculating task graph as no configuration cache is available for tasks: help")
     }
 
-    def "encryption disabled if requested but key in env var is not present"() {
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "build fails if keystore cannot be created"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
+        def fs = NativeServicesTestFixture.instance.get(FileSystem)
+        assert keyStoreDir.mkdir()
+        fs.chmod(keyStoreDir, 0444)
 
         when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): ""])
+        fails(*(["help", "--configuration-cache"] + encryptionOptions))
 
         then:
-        configurationCache.assertStateStored()
-        outputContains("Encryption was requested but could not be enabled")
-    }
+        failureDescriptionStartsWith "Error loading encryption key from custom Java keystore at ${keyStoreDir}"
 
-    def "encryption disabled if requested but key in env var is invalid"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-        def invalidEncryptionKey = Base64.encoder.encodeToString((encryptionKeyText + "foo").getBytes(StandardCharsets.UTF_8))
-
-        when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): invalidEncryptionKey])
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains("Encryption was requested but could not be enabled")
-        containsLine(result.output, matchesRegexp(".*java.security.InvalidKeyException.*"))
-        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
-    }
-
-    def "encryption disabled if requested but key is not long enough"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-        def insufficientlyLongEncryptionKey = Base64.encoder.encodeToString("01234567".getBytes(StandardCharsets.UTF_8))
-
-        when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): insufficientlyLongEncryptionKey])
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains("Encryption was requested but could not be enabled")
-        containsLine(result.output, matchesRegexp(".*Encryption key length is \\d* bytes, but must be at least \\d* bytes long"))
-        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
-    }
-
-    def "new configuration cache entry if env var key changes"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-        def differentKey = "O6lTi7qNmAAIookBZGqHqyDph882NPQOXW5P5K2yupM="
-
-        when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): this.encryptionKeyAsBase64])
-
-        then:
-        configurationCache.assertStateStored()
-
-        when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): differentKey])
-
-        then:
-        configurationCache.assertStateStored()
+        cleanup:
+        fs.chmod(keyStoreDir, 0666)
     }
 
     void runWithEncryption(
-        boolean enabled,
+        boolean enabled = true,
         List<String> tasks = ["help"],
         List<String> additionalArgs = [],
         Map<String, String> envVars = [:]
     ) {
-        def args = [
-            "--${enabled ? "" : "no-"}configuration-cache-encryption"
-        ]
-        def allArgs = tasks + args + additionalArgs
-        if (enabled && !envVars.containsKey(GRADLE_ENCRYPTION_KEY_ENV_KEY)) {
-            envVars << [(GRADLE_ENCRYPTION_KEY_ENV_KEY): encryptionKeyAsBase64]
-        }
+        def allArgs = tasks + getEncryptionOptions(enabled) + additionalArgs
         executer.withEnvironmentVars(envVars)
         configurationCacheRun(*allArgs)
     }
 
+    private List<String> getEncryptionOptions(boolean enabled = true) {
+        if (!enabled) {
+            return [
+                "-Dorg.gradle.configuration-cache.internal.encryption=false"
+            ]
+        }
+        return [
+            '-s',
+            "-Dorg.gradle.configuration-cache.internal.key-store-dir=${keyStoreDir}",
+        ]
+    }
+
     private boolean isSubArray(byte[] contents, byte[] toFind) {
-        return Bytes.indexOf(contents, toFind) >= 0
+        Bytes.indexOf(contents, toFind) >= 0
+    }
+
+    private TestFile findKeystoreFile() {
+        def keyStoreDirFiles = keyStoreDir.allDescendants()
+        def keyStorePath = keyStoreDirFiles.find { it.endsWith('gradle.keystore') }
+        assert keyStorePath != null
+        keyStoreDir.file(keyStorePath)
     }
 }

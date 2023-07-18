@@ -15,12 +15,13 @@
  */
 package org.gradle.wrapper;
 
+import org.gradle.util.internal.WrapperDistributionUrlConverter;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Properties;
 
 public class WrapperExecutor {
@@ -31,6 +32,7 @@ public class WrapperExecutor {
     public static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
     public static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
     public static final String NETWORK_TIMEOUT_PROPERTY = "networkTimeout";
+    public static final String VALIDATE_DISTRIBUTION_URL = "validateDistributionUrl";
     private final Properties properties;
     private final File propertiesFile;
     private final WrapperConfiguration config = new WrapperConfiguration();
@@ -52,34 +54,25 @@ public class WrapperExecutor {
         if (propertiesFile.exists()) {
             try {
                 loadProperties(propertiesFile, properties);
-                config.setDistribution(prepareDistributionUri());
+                config.setDistribution(WrapperDistributionUrlConverter.convertDistributionUrl(readDistroUrl(), propertiesFile.getParentFile()));
                 config.setDistributionBase(getProperty(DISTRIBUTION_BASE_PROPERTY, config.getDistributionBase()));
                 config.setDistributionPath(getProperty(DISTRIBUTION_PATH_PROPERTY, config.getDistributionPath()));
                 config.setDistributionSha256Sum(getProperty(DISTRIBUTION_SHA_256_SUM, config.getDistributionSha256Sum(), false));
                 config.setZipBase(getProperty(ZIP_STORE_BASE_PROPERTY, config.getZipBase()));
                 config.setZipPath(getProperty(ZIP_STORE_PATH_PROPERTY, config.getZipPath()));
                 config.setNetworkTimeout(getProperty(NETWORK_TIMEOUT_PROPERTY, config.getNetworkTimeout()));
+                config.setValidateDistributionUrl(getProperty(VALIDATE_DISTRIBUTION_URL, config.getValidateDistributionUrl()));
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }
         }
     }
 
-    private URI prepareDistributionUri() throws URISyntaxException {
-        URI source = readDistroUrl();
-        if (source.getScheme() == null) {
-            //no scheme means someone passed a relative url. In our context only file relative urls make sense.
-            return new File(propertiesFile.getParentFile(), source.getSchemeSpecificPart()).toURI();
-        } else {
-            return source;
-        }
-    }
-
-    private URI readDistroUrl() throws URISyntaxException {
+    private String readDistroUrl() {
         if (properties.getProperty(DISTRIBUTION_URL_PROPERTY) == null) {
             reportMissingProperty(DISTRIBUTION_URL_PROPERTY);
         }
-        return new URI(getProperty(DISTRIBUTION_URL_PROPERTY));
+        return getProperty(DISTRIBUTION_URL_PROPERTY);
     }
 
     private static void loadProperties(File propertiesFile, Properties properties) throws IOException {
@@ -120,6 +113,10 @@ public class WrapperExecutor {
 
     private int getProperty(String propertyName, int defaultValue) {
         return Integer.parseInt(getProperty(propertyName, String.valueOf(defaultValue)));
+    }
+
+    private boolean getProperty(String propertyName, boolean defaultValue) {
+        return Boolean.parseBoolean(getProperty(propertyName, String.valueOf(defaultValue)));
     }
 
     private String getProperty(String propertyName, String defaultValue, boolean required) {

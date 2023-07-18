@@ -24,16 +24,7 @@ class ConsoleTestNGTestWorkerFunctionalTest extends AbstractConsoleJvmTestWorker
     }
 
     @Override
-    String testDependency() {
-        'org.testng:testng:6.9.13.6'
-    }
-
-    @Override
     String testFrameworkConfiguration() {
-        """
-            tasks.withType(Test) {
-                useTestNG()
-            }
-        """
+        'testing.suites.test.useTestNG()'
     }
 }

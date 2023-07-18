@@ -31,6 +31,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildTypeSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.Requirements
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
@@ -102,7 +103,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
         *.psoutput => $hiddenArtifactDestination
         build/*.threaddump => $hiddenArtifactDestination
         build/report-* => $hiddenArtifactDestination
-        build/tmp/test files/** => $hiddenArtifactDestination/test-files
+        build/tmp/teŝt files/** => $hiddenArtifactDestination/teŝt-files
         build/errorLogs/** => $hiddenArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
@@ -134,6 +135,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
             executionTimeoutMin = timeout
         }
         testFailure = false
+        supportTestRetry = true
         add {
             failOnText {
                 conditionType = BuildFailureOnText.ConditionType.CONTAINS
@@ -273,3 +275,27 @@ fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64)
 }
 
 fun String.toCapitalized() = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
+/**
+ * Define clean up rules for the project.
+ * See https://www.jetbrains.com/help/teamcity/teamcity-data-clean-up.html#Clean-up+Rules
+ *
+ * @param historyDays days number of days to store build history .
+ * @param artifactsDays number of days to store artifacts. In the stored history, artifacts older than this number will be cleaned up.
+ * @param artifactPatterns patterns for artifacts clean-up. If not specified, all artifacts will be removed.
+ */
+fun Project.cleanupRule(historyDays: Int, artifactsDays: Int, artifactsPatterns: String? = null) {
+    features {
+        this@cleanupRule.cleanup {
+            baseRule {
+                history(days = historyDays)
+            }
+            baseRule {
+                artifacts(
+                    days = artifactsDays,
+                    artifactPatterns = artifactsPatterns
+                )
+            }
+        }
+    }
+}

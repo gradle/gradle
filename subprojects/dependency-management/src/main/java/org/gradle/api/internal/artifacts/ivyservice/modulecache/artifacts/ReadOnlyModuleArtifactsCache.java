@@ -35,7 +35,7 @@ public class ReadOnlyModuleArtifactsCache extends DefaultModuleArtifactsCache {
     }
 
     @Override
-    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
+    public CachedArtifacts cacheArtifacts(ModuleComponentRepository<?> repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
         return operationShouldNotHaveBeenCalled();
     }
 

@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
@@ -41,7 +41,7 @@ public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet, Vari
     private final ComponentArtifactResolveVariantState allVariants;
     private final Set<ResolvedVariant> legacyVariants;
 
-    DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants) {
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants) {
         this.componentIdentifier = componentIdentifier;
         this.schema = schema;
         this.selectionAttributes = selectionAttributes;
@@ -70,11 +70,11 @@ public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet, Vari
     }
 
     @Override
-    public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
+    public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory, TransformedVariantFactory transformedVariantFactory) {
         if (componentIdentifier instanceof ProjectComponentIdentifier) {
-            return transformedVariantFactory.transformedProjectArtifacts(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolver);
+            return transformedVariantFactory.transformedProjectArtifacts(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
         } else {
-            return transformedVariantFactory.transformedExternalArtifacts(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolver);
+            return transformedVariantFactory.transformedExternalArtifacts(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
         }
     }
 

@@ -17,13 +17,13 @@
 package org.gradle.integtests.resolve.maven;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class MavenDependencyManagementImportOrderTest extends AbstractIntegrationSpec {
 	@Issue("https://github.com/gradle/gradle/issues/2212")
-    @Requires(TestPrecondition.ONLINE)
+    @Requires(UnitTestPreconditions.Online)
 	def "Verify that gradle resolves org.wildfly.swarm:undertow the same as maven"() {
 		when:
 		buildFile.text = """
@@ -37,8 +37,9 @@ dependencies {
 	}
 }
 task verifyUndertowVersion {
-	doLast {	
-		def fileNames = configurations.test.files.collect { it.name }
+    def files = configurations.test
+	doLast {
+		def fileNames = files.collect { it.name }
 		assert fileNames.contains('undertow-servlet-1.4.11.Final.jar')
 		assert !fileNames.contains('undertow-servlet-1.2.9.Final.jar')
 	}
@@ -166,8 +167,9 @@ dependencies {
 	test 'group:level1:1'
 }
 task verifyVersion {
+    def files = configurations.test
 	doLast {
-		def fileNames = configurations.test.files.collect { it.name }
+		def fileNames = files.collect { it.name }
 		assert fileNames.contains('level1-1.jar')
 		assert fileNames.contains('level2-1.jar')
 		assert !fileNames.contains('level2-2.jar')
@@ -178,6 +180,4 @@ task verifyVersion {
 		then:
 		succeeds 'verifyVersion'
 	}
-
-
 }

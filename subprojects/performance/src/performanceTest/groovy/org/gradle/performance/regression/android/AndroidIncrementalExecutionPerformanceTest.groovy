@@ -46,7 +46,8 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.args.addAll(["--no-build-cache", "--no-scan"])
-        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.PROPERTY_NAME}=warn")
+        // use the deprecated property so it works with previous versions
+        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.DEPRECATED_PROPERTY_NAME}=warn")
         applyEnterprisePlugin()
     }
 

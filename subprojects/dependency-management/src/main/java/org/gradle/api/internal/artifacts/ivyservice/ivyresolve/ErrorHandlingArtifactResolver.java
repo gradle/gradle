@@ -15,11 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -33,7 +31,7 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         try {
             resolver.resolveArtifactsWithType(component, artifactType, result);
         } catch (Exception t) {
@@ -42,9 +40,9 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     }
 
     @Override
-    public void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
         try {
-            resolver.resolveArtifact(ownerId, artifact, moduleSources, result);
+            resolver.resolveArtifact(component, artifact, result);
         } catch (Exception t) {
             result.failed(new ArtifactResolveException(artifact.getId(), t));
         }

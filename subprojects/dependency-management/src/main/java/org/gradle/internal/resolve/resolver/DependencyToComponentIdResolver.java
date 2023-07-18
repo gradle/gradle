@@ -22,6 +22,12 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
 import javax.annotation.Nullable;
 
+/**
+ * Responsible for taking a dependency declaration and locating the matching component. The component can be returned either the resolution state for the component, if this state is cheaply available
+ * to this resolver, or an id for the component if not.
+ *
+ * <p>At some point in the future, this should resolve to a set of candidates rather than a single instance.
+ */
 public interface DependencyToComponentIdResolver {
     /**
      * Resolves the given dependency to a component instance. Failures should be attached to the result.

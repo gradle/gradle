@@ -20,9 +20,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.javadoc.Groovydoc;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to provide support for compiling and documenting Groovy
@@ -45,10 +45,10 @@ public abstract class GroovyPlugin implements Plugin<Project> {
             groovyDoc.setDescription("Generates Groovydoc API documentation for the main source code.");
             groovyDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
 
-            JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
-            groovyDoc.setClasspath(component.getMainOutput().plus(component.getSourceSet().getCompileClasspath()));
+            JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
+            groovyDoc.setClasspath(mainFeature.getSourceSet().getOutput().plus(mainFeature.getSourceSet().getCompileClasspath()));
 
-            SourceDirectorySet groovySourceSet = component.getSourceSet().getExtensions().getByType(GroovySourceDirectorySet.class);
+            SourceDirectorySet groovySourceSet = mainFeature.getSourceSet().getExtensions().getByType(GroovySourceDirectorySet.class);
             groovyDoc.setSource(groovySourceSet);
         });
     }

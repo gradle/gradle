@@ -35,12 +35,9 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
-import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
 import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.jvm.toolchain.internal.JavaToolchainInput
-import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.process.CommandLineArgumentProvider
 
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
@@ -236,7 +233,7 @@ class TestTest extends AbstractConventionTaskTest {
         metadata.getLanguageVersion() >> Jvm.current().javaVersion
         metadata.getCapabilities() >> Collections.emptySet()
         metadata.getJavaHome() >> Jvm.current().javaHome.toPath()
-        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory(), Mock(JavaToolchainInput), false, Stub(BuildOperationProgressEventEmitter))
+        def toolchain = new JavaToolchain(metadata, TestFiles.fileFactory(), Mock(JavaToolchainInput), false)
         def launcher = new DefaultToolchainJavaLauncher(toolchain)
 
         when:

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadata;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -29,6 +30,7 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -45,34 +47,31 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMetadata> {
     private final URI root;
-    private final List<URI> artifactRoots = new ArrayList<>();
     private final MavenMetadataLoader mavenMetaDataLoader;
 
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
     private final MavenLocalRepositoryAccess localAccess = new MavenLocalRepositoryAccess();
     private final MavenRemoteRepositoryAccess remoteAccess = new MavenRemoteRepositoryAccess();
 
-    public MavenResolver(String name,
-                         URI rootUri,
-                         RepositoryTransport transport,
-                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                         ImmutableMetadataSources metadataSources,
-                         MetadataArtifactProvider metadataArtifactProvider,
-                         MavenMetadataLoader mavenMetadataLoader,
-                         @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
-                         Instantiator injector,
-                         ChecksumService checksumService) {
-        super(name, transport.isLocal(),
+    public MavenResolver(
+        MavenRepositoryDescriptor descriptor,
+        URI rootUri,
+        RepositoryTransport transport,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        ImmutableMetadataSources metadataSources,
+        MetadataArtifactProvider metadataArtifactProvider,
+        MavenMetadataLoader mavenMetadataLoader,
+        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
+        @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
+        Instantiator injector,
+        ChecksumService checksumService) {
+        super(descriptor, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
             locallyAvailableResourceFinder,
@@ -85,7 +84,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             checksumService);
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
-        updatePatterns();
     }
 
     @Override
@@ -103,7 +101,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     @Override
-    protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+    protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
         MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = isNonUniqueSnapshot(moduleComponentIdentifier)
             ? findUniqueSnapshotVersion(moduleComponentIdentifier, result)
             : composeUniqueSnapshotVersion(moduleComponentIdentifier);
@@ -121,7 +119,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         return artifactType == ArtifactType.MAVEN_POM;
     }
 
-    private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
+    private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result, MavenUniqueSnapshotModuleSource snapshotSource) {
         resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(MutableModuleSources.of(snapshotSource)));
     }
 
@@ -136,24 +134,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         });
     }
 
-    public void addArtifactLocation(URI baseUri) {
-        artifactRoots.add(baseUri);
-        updatePatterns();
-    }
-
     private M2ResourcePattern getWholePattern() {
         return new M2ResourcePattern(root, MavenPattern.M2_PATTERN);
-    }
-
-    private void updatePatterns() {
-        setIvyPatterns(Collections.singletonList(getWholePattern()));
-
-        List<ResourcePattern> artifactPatterns = new ArrayList<>();
-        artifactPatterns.add(getWholePattern());
-        for (URI artifactRoot : artifactRoots) {
-            artifactPatterns.add(new M2ResourcePattern(artifactRoot, MavenPattern.M2_PATTERN));
-        }
-        setArtifactPatterns(artifactPatterns);
     }
 
     @Nullable
@@ -193,12 +175,12 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getLocalAccess() {
         return localAccess;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getRemoteAccess() {
         return remoteAccess;
     }
 

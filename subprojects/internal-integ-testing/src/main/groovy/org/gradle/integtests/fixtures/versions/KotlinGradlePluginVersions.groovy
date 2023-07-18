@@ -26,6 +26,16 @@ import org.gradle.util.internal.VersionNumber
  */
 class KotlinGradlePluginVersions {
 
+    static final List<String> LANGUAGE_VERSIONS = [
+        "1.4",
+        "1.5",
+        "1.6",
+        "1.7",
+        "1.8",
+        "1.9",
+        "2.0",
+    ]
+
     private final Factory<Properties> propertiesFactory
     private Properties properties
 

@@ -27,6 +27,7 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.event.ListenerManager
@@ -46,7 +47,8 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 
 internal
-const val BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED = true
+const val KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY =
+    "org.gradle.kotlin.dsl.scriptCompilationAvoidance"
 
 
 internal
@@ -105,7 +107,8 @@ object BuildServices {
         workspaceProvider: KotlinDslWorkspaceProvider,
         @Suppress("UNUSED_PARAMETER") kotlinCompilerContextDisposer: KotlinCompilerContextDisposer,
         fileCollectionFactory: FileCollectionFactory,
-        inputFingerprinter: InputFingerprinter
+        inputFingerprinter: InputFingerprinter,
+        gradlePropertiesController: GradlePropertiesController,
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -126,7 +129,8 @@ object BuildServices {
             executionEngine,
             workspaceProvider,
             fileCollectionFactory,
-            inputFingerprinter
+            inputFingerprinter,
+            gradlePropertiesController,
         )
 
     @Suppress("unused")
@@ -138,7 +142,7 @@ object BuildServices {
         classpathFingerprinter: ClasspathFingerprinter
     ) =
         DefaultClasspathHasher(
-            if (BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED) {
+            if (isKotlinScriptCompilationAvoidanceEnabled) {
                 KotlinCompileClasspathFingerprinter(
                     cacheService,
                     fileCollectionSnapshotter,
@@ -157,4 +161,8 @@ object BuildServices {
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
         { id, creator -> jarCache[id, creator] }
+
+    private
+    val isKotlinScriptCompilationAvoidanceEnabled: Boolean
+        get() = System.getProperty(KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY, "true") == "true"
 }

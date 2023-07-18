@@ -16,10 +16,13 @@
 package org.gradle.cache;
 
 import org.gradle.api.Action;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.io.File;
 
+@ServiceScope(Scope.Global.class)
 public interface FileLockManager {
     /**
      * Creates a lock for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
@@ -60,7 +63,7 @@ public interface FileLockManager {
 
     enum LockMode {
         /**
-         * No synchronisation is done.
+         * Support processes asking for access.
          */
         OnDemand,
         /**
@@ -72,7 +75,7 @@ public interface FileLockManager {
          */
         Exclusive,
         /**
-         * No locking whatsoever
+         * No locking whatsoever.
          */
         None
     }

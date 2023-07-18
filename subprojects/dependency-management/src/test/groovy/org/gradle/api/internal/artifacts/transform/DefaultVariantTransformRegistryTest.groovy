@@ -55,7 +55,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def instantiatorFactory = TestUtil.instantiatorFactory()
-    def transformerInvocationFactory = Mock(TransformerInvocationFactory)
+    def transformInvocationFactory = Mock(TransformInvocationFactory)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionFactory = Mock(FileCollectionFactory)
     def propertyWalker = Mock(PropertyWalker)
@@ -70,21 +70,21 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def registryFactory = new DefaultTransformationRegistrationFactory(
+    def registryFactory = new DefaultTransformRegistrationFactory(
         new TestBuildOperationExecutor(),
         isolatableFactory,
         classLoaderHierarchyHasher,
-        transformerInvocationFactory,
+        transformInvocationFactory,
         fileCollectionFactory,
         Mock(FileLookup),
         inputFingerprinter,
         calculatedValueContainerFactory,
         domainObjectContext,
-        new ArtifactTransformParameterScheme(
+        new TransformParameterScheme(
             instantiatorFactory.injectScheme(),
             inspectionScheme
         ),
-        new ArtifactTransformActionScheme(
+        new TransformActionScheme(
             instantiatorFactory.injectScheme(
                 ImmutableSet.of(InputArtifact, InputArtifactDependencies)
             ),
@@ -107,12 +107,12 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        registry.transforms.size() == 1
-        def registration = registry.transforms[0]
+        registry.registrations.size() == 1
+        def registration = registry.registrations[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestTransform
-        registration.transformationStep.transformer.isolatedParameters.supplier.parameterObject instanceof TestTransform.Parameters
+        registration.transformStep.transform.implementationClass == TestTransform
+        registration.transformStep.transform.isolatedParameters.supplier.parameterObject instanceof TestTransform.Parameters
     }
 
     def "creates registration for parameterless action"() {
@@ -123,12 +123,12 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        registry.transforms.size() == 1
-        def registration = registry.transforms[0]
+        registry.registrations.size() == 1
+        def registration = registry.registrations[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == ParameterlessTestTransform
-        registration.transformationStep.transformer.isolatedParameters.supplier.parameterObject == null
+        registration.transformStep.transform.implementationClass == ParameterlessTestTransform
+        registration.transformStep.transform.isolatedParameters.supplier.parameterObject == null
     }
 
     def "cannot use TransformParameters as parameter type"() {

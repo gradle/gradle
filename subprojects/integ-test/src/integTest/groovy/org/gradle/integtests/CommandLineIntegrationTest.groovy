@@ -18,16 +18,15 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.PreconditionVerifier
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.internal.GFileUtils
-import org.gradle.util.PreconditionVerifier
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,7 +38,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
     @Rule
-    public final PreconditionVerifier verifier = new PreconditionVerifier()
+    public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
     @Before
     void setup() {
@@ -53,41 +52,42 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void canDefineJavaHomeUsingEnvironmentVariable() {
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
 
         // Handle JAVA_HOME specified
-        executer.withEnvironmentVars('JAVA_HOME': javaHome).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withJavaHome(javaHome).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
 
         // Handle JAVA_HOME with trailing separator
-        executer.withEnvironmentVars('JAVA_HOME': javaHome + File.separator).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withJavaHome(javaHome + File.separator).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
 
         if (!OperatingSystem.current().isWindows()) {
             return
         }
 
         // Handle JAVA_HOME wrapped in quotes
-        executer.withEnvironmentVars('JAVA_HOME': "\"$javaHome\"").withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withJavaHome("\"$javaHome\"").withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
 
         // Handle JAVA_HOME with slash separators. This is allowed by the JVM
-        executer.withEnvironmentVars('JAVA_HOME': javaHome.replace(File.separator, '/')).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withJavaHome(javaHome.replace(File.separator, '/')).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void usesJavaCommandFromPathWhenJavaHomeNotSpecified() {
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
 
         String path = String.format('%s%s%s', Jvm.current().javaExecutable.parentFile, File.pathSeparator, System.getenv('PATH'))
-        executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '').withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withEnvironmentVars('PATH': path).withJavaHome('').withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
-
-        def failure = executer.withEnvironmentVars('JAVA_HOME': testDirectory).withTasks('checkJavaHome').runWithFailure()
+        def failure = executer.withJavaHome(testDirectory).withTasks('checkJavaHome').runWithFailure()
         if (OperatingSystem.current().isWindows()) {
             assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
         } else {
@@ -96,10 +96,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires([UnitTestPreconditions.Symlinks, IntegTestPreconditions.NotEmbeddedExecutor])
     void failsWhenJavaHomeNotSetAndPathDoesNotContainJava() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
-
         def links = ['basename', 'dirname', 'uname', 'which', 'sed', 'sh', 'bash']
         def binDir = file('fake-bin')
         try {
@@ -112,7 +110,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
                 path = binDir.absolutePath
             }
 
-            def failure = executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '').withTasks('checkJavaHome').runWithFailure()
+            def failure = executer.withEnvironmentVars('PATH': path).withJavaHome('').withTasks('checkJavaHome').runWithFailure()
             assert failure.error.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
         } finally {
             links.each {
@@ -144,10 +142,9 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Requires(TestPrecondition.NOT_EC2_AGENT)
+    @Requires([UnitTestPreconditions.NotEC2Agent, IntegTestPreconditions.NotEmbeddedExecutor])
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
     void checkDefaultGradleUserHome() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         File userHome = file('customUserHome')
         executer
@@ -166,16 +163,15 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariable() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }
 
     @Test
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Requires([UnitTestPreconditions.UnixDerivative, IntegTestPreconditions.NotEmbeddedExecutor])
     void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariableWithLinebreaks() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": """
             -DcustomProp1=custom-value
@@ -184,8 +180,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void canSpecifySystemPropertiesUsingJavaOptsEnvironmentVariable() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("JAVA_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }
@@ -231,10 +227,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires([UnitTestPreconditions.Symlinks, IntegTestPreconditions.NotEmbeddedExecutor])
     void resolvesLinksWhenDeterminingHomeDirectory() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
-
         def script = file('bin/my app')
         script.parentFile.createDir()
         script.createLink(distribution.gradleHomeDir.file('bin/gradle'))
@@ -247,9 +241,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void usesScriptBaseNameAsApplicationNameForUseInLogMessages() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
-
         def binDir = distribution.gradleHomeDir.file('bin')
         def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
         try {

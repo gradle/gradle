@@ -41,6 +41,7 @@ import org.gradle.kotlin.dsl.plugins.embedded.kotlinArtifactConfigurationNames
 abstract class KotlinDslBasePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
+
         apply<EmbeddedKotlinPlugin>()
 
         extensions.create("kotlinDslPluginOptions", KotlinDslPluginOptions::class.java)

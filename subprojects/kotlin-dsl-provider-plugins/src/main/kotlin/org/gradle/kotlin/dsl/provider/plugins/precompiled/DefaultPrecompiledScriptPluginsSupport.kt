@@ -16,6 +16,7 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -318,6 +319,9 @@ fun configureKotlinCompilerArguments(
         taskContainer.compileKotlin {
             if (hasLazyKotlinCompilerOptions) {
                 configureKotlinCompilerArgumentsLazily(resolverEnvironment)
+                doFirst {
+                    validateKotlinCompilerArguments()
+                }
             } else {
                 doFirst {
                     configureKotlinCompilerArgumentsEagerly(resolverEnvironment)
@@ -341,6 +345,25 @@ fun Task.configureKotlinCompilerArgumentsLazily(resolverEnvironment: Provider<St
             val freeCompilerArgs = getProperty("freeCompilerArgs") as ListProperty<String>
             freeCompilerArgs.addAll(scriptTemplatesArgs)
             freeCompilerArgs.add(resolverEnvironment.mappedToScriptResolverEnvironmentArg)
+        }
+    }
+}
+
+
+private
+fun Task.validateKotlinCompilerArguments() {
+    withGroovyBuilder {
+        getProperty("compilerOptions").withGroovyBuilder {
+            @Suppress("unchecked_cast")
+            val freeCompilerArgs = getProperty("freeCompilerArgs") as ListProperty<String>
+            if (!freeCompilerArgs.get().containsAll(scriptTemplatesArgs)) {
+                throw InvalidUserCodeException(
+                    "Kotlin compiler arguments of ${this@validateKotlinCompilerArguments} do not work for the `kotlin-dsl` plugin. " +
+                        "The 'freeCompilerArgs' property has been reassigned. " +
+                        "It must instead be appended to. " +
+                        "Please use 'freeCompilerArgs.addAll(\"your\", \"args\")' to fix this."
+                )
+            }
         }
     }
 }
@@ -443,12 +466,9 @@ fun SourceDirectorySet.collectScriptPluginFiles(): Set<File> =
         .files
 
 
-/**
- * Uses the Groovy builder to access the `kotlin` source set because KGP types are not available here.
- */
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = withGroovyBuilder { getProperty("kotlin") } as SourceDirectorySet
+    get() = extensions.getByName("kotlin") as SourceDirectorySet
 
 
 private
@@ -462,18 +482,23 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
     if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw PrecompiledScriptException(
             String.format(
-                "The precompiled plugin (%s) cannot start with '%s' or be in the '%s' package.\n\n%s", this.relativePath(scriptPlugin.scriptFile),
-                DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE,
-                PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
-            )
+                "The precompiled plugin (%s) cannot start with '%s' or be in the '%s' package.", this.relativePath(scriptPlugin.scriptFile),
+                DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE
+            ),
+            null,
+            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
         )
     }
     val existingPlugin = plugins.findPlugin(scriptPlugin.id)
     if (existingPlugin != null && existingPlugin.javaClass.getPackage().name.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw PrecompiledScriptException(
             String.format(
-                "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.\n\n%s", this.relativePath(scriptPlugin.scriptFile), scriptPlugin.id, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
-            )
+                "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.",
+                this.relativePath(scriptPlugin.scriptFile),
+                scriptPlugin.id
+            ),
+            null,
+            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
         )
     }
 }

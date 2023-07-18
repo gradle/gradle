@@ -22,7 +22,6 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
-import kotlinx.metadata.jvm.KmModuleVisitor
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectContainer
@@ -39,7 +38,6 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.plugins.Convention
 import org.gradle.api.reflect.TypeOf.parameterizedTypeOf
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
@@ -318,7 +316,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
         }
         val customConvention = mock<CustomConvention>()
-        val convention = mock<Convention> {
+        @Suppress("deprecation")
+        val convention = mock<org.gradle.api.plugins.Convention> {
             on { plugins } doReturn mapOf("customConvention" to customConvention)
         }
         val project = mock<ProjectInternal> {
@@ -361,8 +360,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     val convention: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = this
                 }
 
-                val k: DependencyConstraint? = dependencies.constraints.api("direct:accessor:1.0")
-                val l: DependencyConstraint? = dependencies.constraints.api("direct:accessor-with-action") {
+                val k: DependencyConstraint = dependencies.constraints.api("direct:accessor:1.0")
+                val l: DependencyConstraint = dependencies.constraints.api("direct:accessor-with-action") {
                     val constraint: DependencyConstraint = this
                 }
 
@@ -444,11 +443,13 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // val i
             @Suppress("deprecation")
             verify(project).convention
+            @Suppress("deprecation")
             verify(convention).plugins
 
             // val j
             @Suppress("deprecation")
             verify(project).convention
+            @Suppress("deprecation")
             verify(convention).plugins
 
             // val k
@@ -495,8 +496,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
         buildAccessorsFor(schema, classPath, srcDir, binDir)
 
-        dumpKotlinMetadataOf(binDir)
-
         eval(
             script = script,
             target = target,
@@ -511,23 +510,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     fun buildAccessorsFor(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File) {
         withSynchronousIO {
             buildAccessorsFor(schema, classPath, srcDir, binDir)
-        }
-    }
-
-    private
-    fun dumpKotlinMetadataOf(moduleDir: File) {
-        withClassLoaderFor(DefaultClassPath.of(moduleDir)) {
-            visitMetadataOfModule(
-                moduleDir, moduleDir.name,
-                object : KmModuleVisitor() {
-                    override fun visitPackageParts(fqName: String, fileFacades: List<String>, multiFileClassParts: Map<String, String>) {
-                        fileFacades.forEach {
-                            val fileFacadeClassName = it.replace('/', '.')
-                            dumpFileFacadeHeaderOf(loadClass(fileFacadeClassName))
-                        }
-                    }
-                }
-            )
         }
     }
 }

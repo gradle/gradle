@@ -34,13 +34,7 @@ class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             apply plugin:'java-library'
             ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
-            }
-
-            test {
-                useJUnitPlatform()
-            }
+            testing.suites.test.useJUnitJupiter()
         """
 
         file('src/test/java/TestCaseWithThrowingBeforeAllAndAfterAllCallbacks.java') << """
@@ -94,13 +88,7 @@ class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             apply plugin:'java-library'
             ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
-            }
-
-            test {
-                useJUnitPlatform()
-            }
+            testing.suites.test.useJUnitJupiter()
         """
 
         file('src/test/java/SuppressedExceptionsAccidentallyThrownNotShownByGradleTest.java') << """

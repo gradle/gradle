@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.file.ConfigurableFileCollection
-
+import org.gradle.api.file.FileCollection
 import kotlin.reflect.KProperty
 
 
@@ -37,3 +37,14 @@ operator fun ConfigurableFileCollection.getValue(receiver: Any?, property: KProp
  */
 operator fun ConfigurableFileCollection.setValue(receiver: Any?, property: KProperty<*>, value: Iterable<*>) =
     setFrom(value)
+
+
+/**
+ * Sets the ConfigurableFileCollection to contain the source paths of passed collection.
+ * This is the same as calling ConfigurableFileCollection.setFrom(fileCollection: FileCollection).
+ *
+ * @since 8.2
+ */
+fun ConfigurableFileCollection.assign(fileCollection: FileCollection) {
+    this.setFrom(fileCollection)
+}

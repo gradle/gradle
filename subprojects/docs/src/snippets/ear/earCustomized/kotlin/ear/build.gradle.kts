@@ -8,20 +8,16 @@ repositories { mavenCentral() }
 dependencies {
     // The following dependencies will be the ear modules and
     // will be placed in the ear root
-    deploy(project(path = ":war", configuration = "archives"))
+    deploy(project(path = ":war", configuration = "war"))
 
     // The following dependencies will become ear libs and will
     // be placed in a dir configured via the libDirName property
     earlib(group = "log4j", name = "log4j", version = "1.2.15", ext = "jar")
 }
 
-tasks.named<Ear>("ear") {
-    appDirectory.set(file("src/main/app"))  // use application metadata found in this folder
-}
-
-ear {
-    // put dependent libraries into APP-INF/lib inside the generated EAR
-    libDirName = "APP-INF/lib"
+tasks.ear {
+    appDirectory = file("src/main/app")  // use application metadata found in this folder
+    libDirName = "APP-INF/lib" // put dependent libraries into APP-INF/lib inside the generated EAR
     deploymentDescriptor {  // custom entries for application.xml:
 //      fileName = "application.xml"  // same as the default value
 //      version = "6"  // same as the default value

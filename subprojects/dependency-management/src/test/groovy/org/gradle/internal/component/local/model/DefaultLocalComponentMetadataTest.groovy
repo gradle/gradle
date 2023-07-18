@@ -40,7 +40,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -54,6 +54,8 @@ import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import java.util.function.Consumer
 
 /**
  * Tests {@link DefaultLocalComponentMetadata}.
@@ -76,6 +78,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     def configurationsProvider = Mock(ConfigurationsProvider) {
         size() >> { this.configurations.size() }
         getAll() >> { this.configurations.values() }
+        visitAll(_) >> { Consumer<ConfigurationInternal> visitor -> this.configurations.values().forEach {visitor.accept(it) } }
         findByName(_) >> { String name -> this.configurations.get(name) }
     }
 
@@ -378,7 +381,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     ConfigurationInternal configuration(String name, List<ConfigurationInternal> extendsFrom) {
 
         DependencySet dependencies = new DefaultDependencySet(Describables.of("dependencies"), Mock(ConfigurationInternal) {
-            isCanBeDeclaredAgainst() >> true
+            isCanBeDeclared() >> true
         }, TestUtil.domainObjectCollectionFactory().newDomainObjectSet(Dependency))
 
         DependencyConstraintSet dependencyConstraints = Mock() {
@@ -401,6 +404,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def conf = Mock(ConfigurationInternal) {
             getName() >> name
             getAttributes() >> ImmutableAttributes.EMPTY
+            isCanBeDeclared() >> true
             getDependencies() >> dependencies
             getDependencyConstraints() >> dependencyConstraints
             getExcludeRules() >> new LinkedHashSet<ExcludeRule>()
@@ -438,14 +442,14 @@ class DefaultLocalComponentMetadataTest extends Specification {
         return new DslOriginDependencyMetadataWrapper(Mock(LocalOriginDependencyMetadata), dependency)
     }
 
-    class TestDependencyMetadataFactory implements DependencyDescriptorFactory {
+    class TestDependencyMetadataFactory implements DependencyMetadataFactory {
         @Override
-        LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, ModuleDependency dependency) {
+        LocalOriginDependencyMetadata createDependencyMetadata(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, ModuleDependency dependency) {
             return dependencyMetadata(dependency)
         }
 
         @Override
-        LocalOriginDependencyMetadata createDependencyConstraintDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
+        LocalOriginDependencyMetadata createDependencyConstraintMetadata(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
             throw new UnsupportedOperationException()
         }
     }

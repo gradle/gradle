@@ -16,14 +16,11 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
-import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.StructuredMessage
 
 
 /** Reports all usages of the tracked TaskDependency APIs as problems using the [problems] listener.
@@ -50,13 +47,13 @@ class ReportingTaskDependencyUsageTracker(
 
     private
     fun reportProjectIsolationProblemOnApiUsage() {
-        val message = StructuredMessage.build {
+        val problem = problemFactory.problem {
             text("Project ")
             reference(referrer.identityPath.toString())
             text(" cannot access task dependencies directly")
         }
-        val exception = InvalidUserCodeException(message.toString().capitalized())
-        val problem = problemFactory.problem(message, exception)
+            .exception()
+            .build()
         problems.onProblem(problem)
     }
 }

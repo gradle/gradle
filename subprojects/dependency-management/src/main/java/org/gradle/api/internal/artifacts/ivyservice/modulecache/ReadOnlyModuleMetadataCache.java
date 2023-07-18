@@ -40,12 +40,12 @@ public class ReadOnlyModuleMetadataCache extends PersistentModuleMetadataCache {
     }
 
     @Override
-    public CachedMetadata cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
+    public CachedMetadata cacheMissing(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id) {
         return operationShouldNotHaveBeenCalled();
     }
 
     @Override
-    public CachedMetadata cacheMetaData(ModuleComponentRepository repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metadata) {
+    public CachedMetadata cacheMetaData(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metadata) {
         return operationShouldNotHaveBeenCalled();
     }
 

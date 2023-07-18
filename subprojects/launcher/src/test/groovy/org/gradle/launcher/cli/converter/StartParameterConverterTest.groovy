@@ -91,20 +91,20 @@ class StartParameterConverterTest extends Specification {
     def "can provide start parameter option as command-line option"() {
         expect:
         def parameter = convert("--configuration-cache")
-        parameter.configurationCache
+        parameter.configurationCache.get()
     }
 
     def "can provide start parameter option as system property on command-line"() {
         expect:
-        def parameter = convert("-Dorg.gradle.unsafe.configuration-cache=true")
-        parameter.configurationCache
+        def parameter = convert("-Dorg.gradle.configuration-cache=true")
+        parameter.configurationCache.get()
     }
 
     def "can provide start parameter option as persistent property"() {
         expect:
-        userHome.file("gradle.properties") << "org.gradle.unsafe.configuration-cache=true"
+        userHome.file("gradle.properties") << "org.gradle.configuration-cache=true"
         def parameter = convert()
-        parameter.configurationCache
+        parameter.configurationCache.get()
     }
 
     def "system property on command-line has precedence over persistent property"() {

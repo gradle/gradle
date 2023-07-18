@@ -16,10 +16,8 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment.ASSIGNMENT_SYSTEM_PROPERTY
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
@@ -29,37 +27,32 @@ import java.io.File
 class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    fun `can use assignment for properties in init scripts when assignment overload is enabled`() {
-        withAssignmentOverload()
+    fun `can use assignment for properties in init scripts`() {
         val initScript = withInitScriptWithAssignment()
 
         // Expect
         build("-I", initScript.absolutePath).apply {
             assertOutputContains("Init property value: Hello world")
-            assertOutputContains("Kotlin DSL property assignment is an incubating feature.")
         }
     }
 
     @Test
-    fun `can use assignment for properties in settings scripts when assignment overload is enabled`() {
-        withAssignmentOverload()
+    fun `can use assignment for properties in settings scripts`() {
         withSettingsWithAssignment()
 
         // Expect
         build().apply {
             assertOutputContains("Settings property value: Hello world")
-            assertOutputContains("Kotlin DSL property assignment is an incubating feature.")
         }
     }
 
     @Test
-    fun `can use assignment for properties in build scripts when assignment overload is enabled`() {
+    fun `can use assignment for properties in build scripts`() {
         // Given
-        withAssignmentOverload()
         val outputFile = withBuildScriptWithAssignment()
 
         // When
-        val result = build("myTask")
+        build("myTask")
 
         // Then
         assertEquals(
@@ -67,124 +60,11 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
             "Hello world",
             outputFile.readText()
         )
-        result.assertOutputContains("Kotlin DSL property assignment is an incubating feature.")
-    }
-
-    @Test
-    fun `cannot use assignment for properties in init scripts when assignment overload is not enabled`() {
-        // Given
-        val initScript = withInitScriptWithAssignment()
-
-        // When
-        val failure = buildAndFail("-I", initScript.absolutePath)
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-    }
-
-    @Test
-    fun `cannot use assignment for properties in settings scripts when assignment overload is not enabled`() {
-        // Given
-        withSettingsWithAssignment()
-
-        // When
-        val failure = buildAndFail()
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-    }
-
-    @Test
-    fun `cannot use assignment for properties in build scripts when assignment overload is not enabled`() {
-        // Given
-        withBuildScriptWithAssignment()
-
-        // When
-        val failure = buildAndFail("myTask")
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-    }
-
-    @Test
-    fun `opt-in flag change is correctly detected for init scripts`() {
-        // Given
-        val initScript = withInitScriptWithAssignment()
-
-        // When
-        withAssignmentOverload()
-
-        // Then
-        build("-I", initScript.absolutePath)
-
-        // When
-        withAssignmentOverload(enabled = false)
-        val failure = buildAndFail("-I", initScript.absolutePath)
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-
-        // When
-        withAssignmentOverload()
-
-        // Then
-        build("-I", initScript.absolutePath)
-    }
-
-    @Test
-    fun `opt-in flag change is correctly detected for settings scripts`() {
-        // Given
-        withSettingsWithAssignment()
-
-        // When
-        withAssignmentOverload()
-
-        // Then
-        build()
-
-        // When
-        withAssignmentOverload(enabled = false)
-        val failure = buildAndFail()
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-
-        // When
-        withAssignmentOverload()
-
-        // Then
-        build()
-    }
-
-    @Test
-    fun `opt-in flag change is correctly detected for build scripts`() {
-        // Given
-        withBuildScriptWithAssignment()
-
-        // When
-        withAssignmentOverload()
-
-        // Then
-        build("myTask")
-
-        // When
-        withAssignmentOverload(enabled = false)
-        val failure = buildAndFail("myTask")
-
-        // Then
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-
-        // When
-        withAssignmentOverload()
-
-        // Then
-        build("myTask")
     }
 
     @Test
     fun `assign operator compiles with all possible Property types`() {
         // Given
-        withAssignmentOverload()
         withBuildScript("""
             abstract class MyTask : DefaultTask() {
                 @get:Input
@@ -305,10 +185,5 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
                 println("Init property value: " + container.property.get())
             """.trimIndent()
         )
-    }
-
-    private
-    fun withAssignmentOverload(enabled: Boolean = true) {
-        withFile("gradle.properties", "systemProp.$ASSIGNMENT_SYSTEM_PROPERTY=$enabled")
     }
 }

@@ -32,7 +32,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
-            
+
             project(':libInclude') {
                 configurations.create('default')
                 task jar {}
@@ -71,20 +71,27 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 assert component instanceof ModuleComponentIdentifier
                 return component.group == 'org.include'
             }
-            
+
             task check {
+                def files1 = configurations.compile
+                def files2 = configurations.compile.incoming.artifactView({}).files
+                def files3 = configurations.compile.incoming.artifactView({componentFilter { true }}).files
+                def files4 = configurations.compile.incoming.artifactView({componentFilter { false }}).files
+                def filterView = configurations.compile.incoming.artifactView({componentFilter(artifactFilter)})
+                def files5 = filterView.files
+                def artifacts1 = filterView.artifacts
+                def files6 = filterView.artifacts.artifactFiles
                 doLast {
                     def all = ['included-1.3.jar', 'excluded-2.3.jar', 'libInclude.jar', 'libExclude.jar']
                     def filtered = ['included-1.3.jar', 'libInclude.jar']
-                    assert configurations.compile.collect { it.name } == all
-                    assert configurations.compile.incoming.artifactView({}).getFiles().collect { it.name } == all
-                    assert configurations.compile.incoming.artifactView({componentFilter { true }}).files.collect { it.name } == all
-                    assert configurations.compile.incoming.artifactView({componentFilter { false }}).files.collect { it.name } == []
+                    assert files1.collect { it.name } == all
+                    assert files2.files.collect { it.name } == all
+                    assert files3.collect { it.name } == all
+                    assert files4.collect { it.name } == []
 
-                    def filterView = configurations.compile.incoming.artifactView({componentFilter(artifactFilter)})
-                    assert filterView.files.collect { it.name } == filtered
-                    assert filterView.artifacts.collect { it.file.name } == filtered
-                    assert filterView.artifacts.artifactFiles.collect { it.name } == filtered
+                    assert files5.collect { it.name } == filtered
+                    assert artifacts1.collect { it.file.name } == filtered
+                    assert files6.collect { it.name } == filtered
                 }
             }
 """
@@ -106,7 +113,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             }
             def filteredView = configurations.compile.incoming.artifactView({componentFilter(artifactFilter)}).files
             def unfilteredView = configurations.compile.incoming.artifactView({componentFilter({ true })}).files
-            
+
             task checkFiltered {
                 inputs.files(filteredView)
                 doLast {
@@ -147,7 +154,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             }
             def artifactFilter = { component -> component instanceof ModuleComponentIdentifier}
             def filteredView = configurations.compile.incoming.artifactView{componentFilter(artifactFilter)}.files
-            
+
             task checkFiltered {
                 inputs.files(filteredView)
                 doLast {
@@ -175,7 +182,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             }
             def artifactFilter = { component -> component instanceof ProjectComponentIdentifier}
             def filteredView = configurations.compile.incoming.artifactView{componentFilter(artifactFilter)}.files
-            
+
             task checkFiltered {
                 inputs.files(filteredView)
                 doLast {
@@ -198,13 +205,13 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             dependencies {
                 compile files("internalLocalLibExclude.jar")
             }
-            
-            def artifactFilter = { component -> 
+
+            def artifactFilter = { component ->
                 println "filter applied to " + component
-                false 
+                false
             }
             def filteredView = configurations.compile.incoming.artifactView{componentFilter(artifactFilter)}.files
-            
+
             task checkFiltered {
                 inputs.files(filteredView)
                 doLast {
@@ -237,7 +244,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             dependencies {
                 compile project('libInclude')
                 compile project('libExclude')
-                
+
                 registerTransform(Jar2Class) {
                     from.attribute(Attribute.of('artifactType', String), "jar")
                     to.attribute(Attribute.of('artifactType', String), "class")

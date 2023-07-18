@@ -24,7 +24,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.AttributeSelectionUtils;
-import org.gradle.internal.component.model.ComponentAttributeMatcher;
+import org.gradle.internal.component.model.DefaultAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -100,7 +100,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     @Override
     public AttributeMatcher withProducer(AttributesSchemaInternal producerSchema) {
         return matcherCache.computeIfAbsent(producerSchema, key ->
-            new ComponentAttributeMatcher(new DefaultAttributeSelectionSchema(this, producerSchema)));
+            new DefaultAttributeMatcher(new DefaultAttributeSelectionSchema(this, producerSchema)));
     }
 
     @Override

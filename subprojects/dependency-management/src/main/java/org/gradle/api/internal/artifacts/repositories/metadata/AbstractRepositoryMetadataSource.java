@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolverDescriptorParseContext;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
@@ -48,7 +49,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponentResolveMetadata> extends AbstractMetadataSource<S> {
+abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponentResolveMetadata> implements MetadataSource<S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     final MetadataArtifactProvider metadataArtifactProvider;
@@ -64,7 +65,7 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
     }
 
     @Override
-    public S create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleVersionIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult result) {
+    public S create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleVersionIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
         S parsedMetadataFromRepository = parseMetaDataFromArtifact(repositoryName, componentResolvers, moduleVersionIdentifier, artifactResolver, result);
         if (parsedMetadataFromRepository != null) {
             LOGGER.debug("Metadata file found for module '{}' in repository '{}'.", moduleVersionIdentifier, repositoryName);
@@ -82,7 +83,7 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
             if (parseResult != null) {
                 if (parseResult.hasGradleMetadataRedirectionMarker()) {
                     if (result instanceof BuildableModuleComponentMetaDataResolveResult) {
-                        ((BuildableModuleComponentMetaDataResolveResult) result).redirectToGradleMetadata();
+                        ((BuildableModuleComponentMetaDataResolveResult<?>) result).redirectToGradleMetadata();
                     } else {
                         throw new IllegalStateException("Unexpected Gradle metadata redirection answer");
                     }

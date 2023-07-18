@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":cli"))
     implementation(project(":build-option"))
+    implementation(project(":problems"))
 
     implementation(project(":native"))
     implementation(libs.julToSlf4j)
@@ -45,9 +46,4 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/internal/featurelifecycle/**")
     excludePatterns.add("org/gradle/util/**")
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

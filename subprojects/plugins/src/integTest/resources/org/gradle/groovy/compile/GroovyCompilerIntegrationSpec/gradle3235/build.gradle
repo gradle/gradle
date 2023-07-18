@@ -8,3 +8,7 @@ dependencies {
     implementation 'javax.servlet:servlet-api:2.4'
     implementation 'javax.servlet:jsp-api:2.0'
 }
+
+testing.suites.test {
+    useJUnitJupiter()
+}

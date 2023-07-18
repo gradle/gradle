@@ -16,21 +16,23 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.initialization.DefaultPlannedTask;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * A {@link ToPlannedTaskConverter} for {@link TaskNode}s.
  * <p>
- * Only can convert {@link LocalTaskNode}s to {@link org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask}s.
+ * Only can convert {@link LocalTaskNode}s to planned tasks.
  */
+@NonNullApi
 public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
     @Override
@@ -39,35 +41,64 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
     }
 
     @Override
+    public NodeIdentity.NodeType getConvertedNodeType() {
+        return NodeIdentity.NodeType.TASK;
+    }
+
+    @Override
     public TaskIdentity getNodeIdentity(Node node) {
         TaskNode taskNode = (TaskNode) node;
-        org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate = taskNode.getTask().getTaskIdentity();
-        return new TaskIdentity() {
-            @Override
-            public NodeType getNodeType() {
-                return NodeType.TASK;
-            }
+        return new PlannedTaskIdentity(taskNode.getTask().getTaskIdentity());
+    }
 
-            @Override
-            public String getBuildPath() {
-                return delegate.getBuildPath();
-            }
+    private static class PlannedTaskIdentity implements TaskIdentity {
+        private final org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate;
 
-            @Override
-            public String getTaskPath() {
-                return delegate.getTaskPath();
-            }
+        public PlannedTaskIdentity(org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate) {
+            this.delegate = delegate;
+        }
 
-            @Override
-            public long getTaskId() {
-                return delegate.getId();
-            }
+        @Override
+        public NodeIdentity.NodeType getNodeType() {
+            return NodeIdentity.NodeType.TASK;
+        }
 
-            @Override
-            public String toString() {
-                return "Task " + delegate.getTaskPath();
+        @Override
+        public String getBuildPath() {
+            return delegate.getBuildPath();
+        }
+
+        @Override
+        public String getTaskPath() {
+            return delegate.getTaskPath();
+        }
+
+        @Override
+        public long getTaskId() {
+            return delegate.getId();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
             }
-        };
+            if (!(o instanceof PlannedTaskIdentity)) {
+                return false;
+            }
+            PlannedTaskIdentity that = (PlannedTaskIdentity) o;
+            return delegate.equals(that.delegate);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(delegate);
+        }
+
+        @Override
+        public String toString() {
+            return "Task " + delegate.getIdentityPath();
+        }
     }
 
     @Override
@@ -76,19 +107,15 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.PlannedTask convert(Node node, DependencyLookup dependencyLookup) {
+    public DefaultPlannedTask convert(Node node, List<? extends NodeIdentity> nodeDependencies) {
         if (!isInSamePlan(node)) {
             throw new IllegalArgumentException("Cannot convert task from another plan: " + node);
         }
 
         LocalTaskNode taskNode = (LocalTaskNode) node;
-        List<? extends NodeIdentity> nodeDependencies = dependencyLookup.findNodeDependencies(taskNode);
-        @SuppressWarnings("unchecked")
-        List<TaskIdentity> taskDependencies = (List<TaskIdentity>) dependencyLookup.findTaskDependencies(taskNode);
         return new DefaultPlannedTask(
             getNodeIdentity(taskNode),
             nodeDependencies,
-            taskDependencies,
             getTaskIdentities(taskNode.getMustSuccessors()),
             getTaskIdentities(taskNode.getShouldSuccessors()),
             getTaskIdentities(taskNode.getFinalizers())

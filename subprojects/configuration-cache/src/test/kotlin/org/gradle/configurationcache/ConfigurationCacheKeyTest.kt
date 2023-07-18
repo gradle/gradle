@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
@@ -135,7 +136,7 @@ class ConfigurationCacheKeyTest {
                 ),
                 startParameter,
                 DefaultInternalOptions(mapOf()),
-                BuildModelParameters(false, true, false, false, false, false, false)
+                BuildModelParameters(false, false, true, false, false, false, false, false, LogLevel.LIFECYCLE)
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {

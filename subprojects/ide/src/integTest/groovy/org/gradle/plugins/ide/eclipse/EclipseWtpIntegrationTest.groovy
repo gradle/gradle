@@ -37,10 +37,10 @@ dependencies {
         libsDir.mkdir()
         libsDir.createFile("foo.jar")
 
-        // when
+        // when:
         runEclipseTask(buildFile)
 
-        // then
+        // then:
         libEntriesInClasspathFileHaveFilenames("foo.jar")
     }
 
@@ -67,13 +67,13 @@ dependencies {
 
     @Test
     @ToBeFixedForConfigurationCache
-    void respectsDependencySubstitutionRules() {
-        //given
+    void "respects dependency substitution rules"() {
+        // given:
         mavenRepo.module("gradle", "foo").publish()
         mavenRepo.module("gradle", "bar").publish()
         mavenRepo.module("gradle", "baz").publish()
 
-        //when
+        // when:
         runEclipseTask "include 'sub'",
         """apply plugin: 'java'
            apply plugin: 'war'
@@ -100,7 +100,7 @@ dependencies {
            }
         """
 
-        //then
+        // then:
         def classpath = getClasspath()
 
         classpath.assertHasLibs('bar-1.0.jar', 'baz-1.0.jar')
@@ -108,13 +108,92 @@ dependencies {
         classpath.lib('baz-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
     }
 
+    @Test
+    @ToBeFixedForConfigurationCache
+    void "included build"() {
+        // given:
+        createRootProject()
+        createIncludedBuild()
+
+        // when:
+        def result = executer.withTasks("eclipse").run()
+
+        // then:
+        result.error == ""
+    }
+
+    private createIncludedBuild() {
+        file("includedBuild/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+            group = "org.example"
+            version = "1.0-SNAPSHOT"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                testImplementation(platform("org.junit:junit-bom:5.9.1"))
+                testImplementation("org.junit.jupiter:junit-jupiter")
+            }
+
+            tasks.test {
+                useJUnitPlatform()
+            }
+        """
+        file("includedBuild/settings.gradle.kts") << """
+            rootProject.name = "GradleEclipseWTPWithIncludedBuild_Included"
+        """
+    }
+
+    private createRootProject() {
+        file("build.gradle.kts") << """
+            plugins {
+                id("java")
+                id("eclipse")
+                id("ear")
+            }
+
+            group = "org.example"
+            version = "1.0-SNAPSHOT"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation("org.example:GradleEclipseWTPWithIncludedBuild_Included:1.0-SNAPSHOT")
+                earlib("org.example:GradleEclipseWTPWithIncludedBuild_Included:1.0-SNAPSHOT")
+            }
+
+            tasks.test {
+                useJUnitPlatform()
+            }
+        """
+        file("settings.gradle.kts") << """
+            rootProject.name = "GradleEclipseWTPWithIncludedBuild"
+
+            includeBuild("includedBuild")
+        """
+        file("src/main/java/org/example/Main.java") << """
+            package org.example;
+
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Hello World!");
+                }
+            }
+        """
+    }
+
     private generateEclipseFilesForWebProject(myArtifactVersion = "1.0") {
         def repoDir = file("repo")
         maven(repoDir).module("mygroup", "myartifact", myArtifactVersion).dependsOnModules("myartifactdep").publish()
         maven(repoDir).module("mygroup", "myartifactdep").publish()
 
-        def settingsFile = file("settings.gradle")
-        settingsFile << """
+        file("settings.gradle") << """
 include("web")
 include("java1")
 include("java2")
@@ -185,7 +264,7 @@ apply plugin: "groovy"
         executer.withTasks("eclipse").run()
     }
 
-	private Set getHandleFilenames(projectModules) {
+	private static Set getHandleFilenames(projectModules) {
 		projectModules."wb-module"."dependent-module".@handle*.text().collect { it.substring(it.lastIndexOf("/") + 1) } as Set
 	}
 }

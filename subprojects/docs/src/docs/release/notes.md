@@ -16,7 +16,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
@@ -52,6 +52,16 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
 
+### Dry run mode for test execution
+
+It is now possible to run a test without actual test execution. 
+
+This can be useful for quickly verifying which tests will run when [filtering a test suite](userguide/java_testing.html#test_filtering).
+
+Dry run mode can be enabled by either the `--test-dry-run` command-line option or via the [dryRun](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:dryRun) property.
+
+This mode is compatible with the JUnit and TestNG frameworks.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
@@ -70,9 +80,17 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+<!--
+This section will be populated automatically
+-->
+
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
+
+<!--
+This section will be populated automatically
+-->
 
 ## External contributions
 

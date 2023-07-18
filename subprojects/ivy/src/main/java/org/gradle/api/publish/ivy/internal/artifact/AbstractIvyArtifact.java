@@ -84,6 +84,7 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
         return Strings.emptyToNull(classifier != null ? classifier : getDefaultClassifier());
     }
 
+    @Nullable
     protected abstract String getDefaultClassifier();
 
     @Override
@@ -97,6 +98,7 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
         return Strings.emptyToNull(conf != null ? conf : getDefaultConf());
     }
 
+    @Nullable
     protected abstract String getDefaultConf();
 
     @Override

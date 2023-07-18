@@ -11,7 +11,7 @@
             <tr><td>arguments</td><td></td></tr>
             <tr><td>antlrClasspath</td><td><literal>project.configurations.antlr</literal></td></tr>
             <tr><td>outputDirectory</td><td>
-                <filename><replaceable>${project.buildDir}</replaceable>/generated-src/antlr/<replaceable>${sourceSet.name}</replaceable></filename></td></tr>
+                <filename><replaceable>${project.layout.buildDirectory}</replaceable>/generated-src/antlr/<replaceable>${sourceSet.name}</replaceable></filename></td></tr>
             <tr><td>trace</td><td><literal>false</literal></td></tr>
             <tr><td>traceLexer</td><td><literal>false</literal></td></tr>
             <tr><td>traceParser</td><td><literal>false</literal></td></tr>

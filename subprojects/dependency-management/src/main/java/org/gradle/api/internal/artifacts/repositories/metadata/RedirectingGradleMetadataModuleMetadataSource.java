@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -37,7 +38,7 @@ import java.util.List;
  * It also means that we're going to pay a small price if Gradle metadata is present: we would fetch
  * a POM file and parse it, then fetch Gradle metadata and parse it (doing twice the work).
  */
-public class RedirectingGradleMetadataModuleMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
+public class RedirectingGradleMetadataModuleMetadataSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
     private final MetadataSource<?> delegate;
     private final MetadataSource<MutableModuleComponentResolveMetadata> gradleModuleMetadataSource;
 
@@ -47,7 +48,7 @@ public class RedirectingGradleMetadataModuleMetadataSource extends AbstractMetad
     }
 
     @Override
-    public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult result) {
+    public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
         MutableModuleComponentResolveMetadata metadata = delegate.create(repositoryName, componentResolvers, moduleComponentIdentifier, prescribedMetaData, artifactResolver, result);
         if (result.shouldUseGradleMetatada()) {
             MutableModuleComponentResolveMetadata resolveMetadata = gradleModuleMetadataSource.create(repositoryName, componentResolvers, moduleComponentIdentifier, prescribedMetaData, artifactResolver, result);

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -35,6 +36,7 @@ import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInt
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata;
@@ -46,11 +48,16 @@ import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * Encapsulates all logic required to build a {@link LocalConfigurationMetadata} from a
@@ -58,12 +65,14 @@ import java.util.Collection;
  * between DSL and internal metadata types.
  */
 public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurationMetadataBuilder {
-    private final DependencyDescriptorFactory dependencyDescriptorFactory;
+    private final DependencyMetadataFactory dependencyMetadataFactory;
     private final ExcludeRuleConverter excludeRuleConverter;
 
-    public DefaultLocalConfigurationMetadataBuilder(DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                    ExcludeRuleConverter excludeRuleConverter) {
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    public DefaultLocalConfigurationMetadataBuilder(
+        DependencyMetadataFactory dependencyMetadataFactory,
+        ExcludeRuleConverter excludeRuleConverter
+    ) {
+        this.dependencyMetadataFactory = dependencyMetadataFactory;
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
@@ -99,10 +108,21 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             }
         });
 
+        // We must call this before collecting dependency state, since dependency actions may modify the hierarchy.
+        runDependencyActionsInHierarchy(configuration);
+
         // Collect all dependencies and excludes in hierarchy.
         ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
-        DependencyState dependencies = getState(configurationsProvider, hierarchy, componentId, dependencyCache);
+
+        CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencies =
+            calculatedValueContainerFactory.create(Describables.of("Dependency state for", configuration.getDescription()), context -> {
+                // TODO: Do we need to acquire project lock from `model`? getState calls user code.
+                DependencyState state = getState(configurationsProvider, hierarchy, componentId, dependencyCache);
+                return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
+                    maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
+                );
+            });
 
         return new DefaultLocalConfigurationMetadata(
             configuration.getName(),
@@ -114,11 +134,9 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             attributes,
             ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet())),
             configuration.isCanBeConsumed(),
-            configuration.getConsumptionDeprecation(),
+            configuration.isDeprecatedForConsumption(),
             configuration.isCanBeResolved(),
-            maybeForceDependencies(dependencies.dependencies, attributes),
-            dependencies.files,
-            dependencies.excludes,
+            dependencies,
             variantsBuilder.build(),
             artifactBuilder.build(),
             model,
@@ -128,9 +146,33 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     }
 
     /**
+     * Runs the dependency actions for all configurations in {@code conf}'s hierarchy.
+     *
+     * <p>Specifically handles the case where {@link Configuration#extendsFrom} is called during the
+     * dependency action execution.</p>
+     */
+    private static void runDependencyActionsInHierarchy(ConfigurationInternal conf) {
+        Set<Configuration> seen = new HashSet<>();
+        Queue<Configuration> remaining = new ArrayDeque<>();
+        remaining.add(conf);
+        seen.add(conf);
+
+        while (!remaining.isEmpty()) {
+            Configuration current = remaining.remove();
+            ((ConfigurationInternal) current).runDependencyActions();
+
+            for (Configuration parent : current.getExtendsFrom()) {
+                if (seen.add(parent)) {
+                    remaining.add(parent);
+                }
+            }
+        }
+    }
+
+    /**
      * Collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
-    public DependencyState getState(
+    private DependencyState getState(
         ConfigurationsProvider configurations,
         ImmutableSet<String> hierarchy,
         ComponentIdentifier componentId,
@@ -140,14 +182,14 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
         ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
 
-        for (ConfigurationInternal config : configurations.getAll()) {
+        configurations.visitAll(config -> {
             if (hierarchy.contains(config.getName())) {
                 DependencyState defined = getDefinedState(config, componentId, cache);
                 dependencies.addAll(defined.dependencies);
                 files.addAll(defined.files);
                 excludes.addAll(defined.excludes);
             }
-        }
+        });
 
         return new DependencyState(dependencies.build(), files.build(), excludes.build());
     }
@@ -163,9 +205,8 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
      * Calculate the defined dependencies and excludes for {@code configuration}, while converting the
      * DSL representation to the internal representation.
      */
+    @SuppressWarnings("deprecation")
     private DependencyState doGetDefinedState(ConfigurationInternal configuration, ComponentIdentifier componentId) {
-        // Run any actions to add/modify dependencies
-        configuration.runDependencyActions();
 
         AttributeContainer attributes = configuration.getAttributes();
 
@@ -173,11 +214,18 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet.Builder<LocalFileDependencyMetadata> fileBuilder = ImmutableSet.builder();
         ImmutableList.Builder<ExcludeMetadata> excludeBuilder = ImmutableList.builder();
 
+        // Configurations that are not declarable should not have dependencies or constraints present,
+        // but we need to allow dependencies to be checked to avoid emitting many warnings when the
+        // Kotlin plugin is applied.  This is because applying the Kotlin plugin adds dependencies
+        // to the testRuntimeClasspath configuration, which is not declarable.
+        // To demonstrate this, add a check for configuration.isCanBeDeclared() && configuration.assertHasNoDeclarations() if not
+        // and run tests such as KotlinDslPluginTest, or the building-kotlin-applications samples and you'll configurations which
+        // aren't declarable but have declared dependencies present.
         for (Dependency dependency : configuration.getDependencies()) {
             if (dependency instanceof ModuleDependency) {
                 ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                dependencyBuilder.add(dependencyDescriptorFactory.createDependencyDescriptor(
-                    componentId, configuration.getName(), attributes, moduleDependency
+                dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
+                        componentId, configuration.getName(), attributes, moduleDependency
                 ));
             } else if (dependency instanceof FileCollectionDependency) {
                 final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
@@ -187,9 +235,13 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             }
         }
 
+        // Configurations that are not declarable should not have dependencies or constraints present,
+        // no smoke-tested plugins add constraints, so we should be able to safely throw an exception here
+        // if we find any - but we'll avoid doing so for now to avoid breaking any existing builds and to
+        // remain consistent with the behavior for dependencies.
         for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
-            dependencyBuilder.add(dependencyDescriptorFactory.createDependencyConstraintDescriptor(
-                componentId, configuration.getName(), attributes, dependencyConstraint)
+            dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
+                    componentId, configuration.getName(), attributes, dependencyConstraint)
             );
         }
 

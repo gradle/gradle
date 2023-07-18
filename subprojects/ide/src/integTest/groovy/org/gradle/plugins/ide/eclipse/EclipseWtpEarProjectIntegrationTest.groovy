@@ -93,7 +93,10 @@ class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec
                deploy 'org.example:lib2-impl:2.0'
            }
 
-           libDirName = 'APP-INF/lib'
+           tasks.withType(Ear) {
+              ear.libDirName = 'APP-INF/lib'
+           }
+
         """
 
         when:

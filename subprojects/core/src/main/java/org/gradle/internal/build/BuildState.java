@@ -54,11 +54,6 @@ public interface BuildState {
     boolean isImportableBuild();
 
     /**
-     * Note: may change value over the lifetime of this build, as this is often a function of the name of the root project in the build and this is not known until the settings have been configured. A temporary value will be returned when child builds need to create projects for some reason.
-     */
-    Path getCurrentPrefixForProjectsInChildBuilds();
-
-    /**
      * Calculates the identity path for a project in this build.
      */
     Path calculateIdentityPathForProject(Path projectPath) throws IllegalStateException;

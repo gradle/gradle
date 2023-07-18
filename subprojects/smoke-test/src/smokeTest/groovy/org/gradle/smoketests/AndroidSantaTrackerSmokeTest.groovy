@@ -16,6 +16,8 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
 import java.util.jar.JarOutputStream
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -34,7 +36,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
 
         then:
         assertConfigurationCacheStateStored()
@@ -61,7 +63,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 
         when:
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        def result = buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
         then:
@@ -71,7 +73,12 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        if (GradleContextualExecuter.notConfigCache) {
+            buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
+        } else {
+            buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(checkoutDir, agpVersion)
+        }
+
         def md5After = compiledClassFile.md5Hash
 
         then:
@@ -107,6 +114,16 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
+        runner.deprecations(SantaTrackerDeprecations) {
+            expectProjectConventionDeprecationWarning(agpVersion)
+            expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            expectBasePluginConventionDeprecation(agpVersion)
+            expectBuildIdentifierIsCurrentBuildDeprecation()
+            if (agpVersion.startsWith('7.')) {
+                expectBuildIdentifierNameDeprecation()
+            }
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+        }
         def result = runner.buildAndFail()
 
         then:
@@ -120,6 +137,14 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
+        runner.deprecations(SantaTrackerDeprecations) {
+            if (GradleContextualExecuter.notConfigCache) {
+                expectProjectConventionDeprecationWarning(agpVersion)
+                expectAndroidConventionTypeDeprecationWarning(agpVersion)
+                expectBasePluginConventionDeprecation(agpVersion)
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+            }
+        }
         result = runner.buildAndFail()
 
         then:
@@ -149,10 +174,25 @@ class SantaTrackerConfigurationCacheWorkaround {
             androidAnalyticsSetting.parentFile.mkdirs()
             androidAnalyticsSetting.createNewFile()
         }
+        File androidCacheDir = new File(System.getProperty("user.home"), ".android/cache")
+        if (!androidCacheDir.exists()) {
+            androidCacheDir.mkdirs()
+        }
+        File androidLock = new File(gradleHome, "android.lock")
+        if (!androidLock.exists()) {
+            androidLock.parentFile.mkdirs()
+            androidLock.createNewFile()
+        }
         def androidFakeDependency = new File(gradleHome, "android/FakeDependency.jar")
         if (!androidFakeDependency.exists()) {
             androidFakeDependency.parentFile.mkdirs()
             new JarOutputStream(new FileOutputStream(androidFakeDependency)).close()
+        }
+        File androidSdkRoot = new File(System.getenv("ANDROID_SDK_ROOT"))
+        File androidSdkPackageXml = new File(androidSdkRoot, "platform-tools/package.xml")
+        if (!androidSdkPackageXml.exists()) {
+            androidSdkPackageXml.parentFile.mkdirs()
+            androidSdkPackageXml.createNewFile()
         }
     }
 }

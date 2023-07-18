@@ -14,10 +14,11 @@ java {
 }
 
 dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.12.4")
+    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.13.4")
 
     implementation(project(":commons"))
-    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.0.10")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10")
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.1.0")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
+    implementation("org.gradle:test-retry-gradle-plugin:1.5.2")
 }

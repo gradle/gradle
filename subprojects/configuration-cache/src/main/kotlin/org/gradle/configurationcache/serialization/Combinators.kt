@@ -340,7 +340,7 @@ fun Decoder.readTransformedClassPath(): ClassPath {
 
 
 internal
-fun Encoder.writeFile(file: File?) {
+fun Encoder.writeFile(file: File) {
     BaseSerializerFactory.FILE_SERIALIZER.write(this, file)
 }
 

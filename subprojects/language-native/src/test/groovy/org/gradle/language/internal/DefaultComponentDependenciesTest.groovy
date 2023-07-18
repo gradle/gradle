@@ -34,7 +34,7 @@ class DefaultComponentDependenciesTest extends Specification {
     DefaultComponentDependencies dependencies
 
     def setup() {
-        configurations.bucket("impl") >> implDeps
+        configurations.dependencyScopeUnlocked("impl") >> implDeps
         implDeps.dependencies >> deps
 
         dependencies = new DefaultComponentDependencies(configurations, "impl") {

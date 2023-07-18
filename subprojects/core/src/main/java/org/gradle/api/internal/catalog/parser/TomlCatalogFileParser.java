@@ -37,15 +37,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 public class TomlCatalogFileParser {
     public static final String CURRENT_VERSION = "1.1";
@@ -111,7 +112,7 @@ public class TomlCatalogFileParser {
         if (result.hasErrors()) {
             List<TomlParseError> errors = result.errors();
             throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
-                spec.withShortDescription(() -> "Parsing failed with " + errors.size() + " error" + (errors.size() > 1 ? "s" : ""))
+                spec.withShortDescription(() -> "Parsing failed with " + errors.size() + " error" + getPluralEnding(errors))
                     .happensBecause(() -> {
                         StringBuilder reason = new StringBuilder();
                         for (TomlParseError error : errors) {
@@ -154,8 +155,8 @@ public class TomlCatalogFileParser {
         }
         List<String> keys = librariesTable.keySet()
             .stream()
-            .sorted(Comparator.comparing(String::length))
-            .collect(Collectors.toList());
+            .sorted(comparing(String::length))
+            .collect(toList());
         for (String alias : keys) {
             parseLibrary(alias, librariesTable, builder, strictVersionParser);
         }
@@ -167,8 +168,8 @@ public class TomlCatalogFileParser {
         }
         List<String> keys = pluginsTable.keySet()
             .stream()
-            .sorted(Comparator.comparing(String::length))
-            .collect(Collectors.toList());
+            .sorted(comparing(String::length))
+            .collect(toList());
         for (String alias : keys) {
             parsePlugin(alias, pluginsTable, builder, strictVersionParser);
         }
@@ -180,8 +181,8 @@ public class TomlCatalogFileParser {
         }
         List<String> keys = versionsTable.keySet()
             .stream()
-            .sorted(Comparator.comparing(String::length))
-            .collect(Collectors.toList());
+            .sorted(comparing(String::length))
+            .collect(toList());
         for (String alias : keys) {
             parseVersion(alias, versionsTable, builder, strictVersionParser);
         }
@@ -191,11 +192,11 @@ public class TomlCatalogFileParser {
         if (bundlesTable == null) {
             return;
         }
-        List<String> keys = bundlesTable.keySet().stream().sorted().collect(Collectors.toList());
+        List<String> keys = bundlesTable.keySet().stream().sorted().collect(toList());
         for (String alias : keys) {
             List<String> bundled = expectArray(builder, "bundle", alias, bundlesTable, alias).toList().stream()
                 .map(String::valueOf)
-                .collect(Collectors.toList());
+                .collect(toList());
             builder.bundle(alias, bundled);
         }
     }
@@ -245,7 +246,7 @@ public class TomlCatalogFileParser {
         if (!allowedKeys.containsAll(actualKeys)) {
             Set<String> difference = Sets.difference(actualKeys, allowedKeys);
             throw new InvalidUserDataException("On " + context + " expected to find any of " + oxfordListOf(allowedKeys, "or")
-                + " but found unexpected key" + (difference.size() > 1 ? "s " : " ") + oxfordListOf(difference, "and")
+                + " but found unexpected key" + getPluralEnding(difference)+ " " + oxfordListOf(difference, "and")
                 + ".");
         }
     }
@@ -312,7 +313,7 @@ public class TomlCatalogFileParser {
             rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream()
                 .map(String::valueOf)
                 .map(v -> notEmpty(builder, v, "rejected version", alias))
-                .collect(Collectors.toList()) : null;
+                .collect(toList()) : null;
             rejectAll = expectBoolean(builder, "alias", alias, versionTable, "rejectAll");
         } else if (version != null) {
             throwUnexpectedVersionSyntax(alias, builder, version);
@@ -380,7 +381,7 @@ public class TomlCatalogFileParser {
             rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream()
                 .map(String::valueOf)
                 .map(v -> notEmpty(builder, v, "rejected version", alias))
-                .collect(Collectors.toList()) : null;
+                .collect(toList()) : null;
             rejectAll = expectBoolean(builder, "alias", alias, versionTable, "rejectAll");
         } else if (version != null) {
             throwUnexpectedVersionSyntax(alias, builder, version);
@@ -427,7 +428,7 @@ public class TomlCatalogFileParser {
             rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream()
                 .map(String::valueOf)
                 .map(v -> notEmpty(builder, v, "rejected version", alias))
-                .collect(Collectors.toList()) : null;
+                .collect(toList()) : null;
             rejectAll = expectBoolean(builder, "alias", alias, versionTable, "rejectAll");
         } else if (version != null) {
             throwUnexpectedVersionSyntax(alias, builder, version);

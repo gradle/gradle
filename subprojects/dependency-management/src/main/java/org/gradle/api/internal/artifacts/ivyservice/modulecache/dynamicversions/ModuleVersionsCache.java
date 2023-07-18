@@ -23,9 +23,9 @@ import java.util.Set;
 
 public interface ModuleVersionsCache {
 
-    void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions);
+    void cacheModuleVersionList(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId, Set<String> listedVersions);
 
-    CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId);
+    CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId);
 
     interface CachedModuleVersionList {
         Set<String> getModuleVersions();

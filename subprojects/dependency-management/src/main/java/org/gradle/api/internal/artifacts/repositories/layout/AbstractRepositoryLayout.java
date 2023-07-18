@@ -16,8 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.layout;
 
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
-import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Set;
 
@@ -29,9 +30,9 @@ public abstract class AbstractRepositoryLayout implements RepositoryLayout {
      * Given the base URI, apply the patterns and other configuration for this layout to the supplied resolver.
      *
      * @param baseUri The base URI for the repository.
-     * @param resolver The ivy resolver that will be used to resolve this layout.
+     * @param builder The configuration builder to apply the changes to.
      */
-    public abstract void apply(URI baseUri, PatternBasedResolver resolver);
+    public abstract void apply(@Nullable URI baseUri, IvyRepositoryDescriptor.Builder builder);
 
     /**
      * Add any schemes registered as patterns in this layout, given the supplied base URI.
@@ -40,13 +41,9 @@ public abstract class AbstractRepositoryLayout implements RepositoryLayout {
      * @param baseUri The baseUri of the repository.
      * @param schemes The set of schemes to add to.
      */
-    public void addSchemes(URI baseUri, Set<String> schemes) {
+    public void addSchemes(@Nullable URI baseUri, Set<String> schemes) {
         if (baseUri != null) {
             schemes.add(baseUri.getScheme());
         }
     }
-
-    public abstract Set<String> getIvyPatterns();
-
-    public abstract Set<String> getArtifactPatterns();
 }

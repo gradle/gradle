@@ -21,6 +21,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
@@ -36,6 +37,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
+import spock.lang.Issue
 
 
 class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
@@ -241,11 +243,35 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         )
 
         executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
+        executer.expectDocumentedDeprecationWarning(
             "The org.gradle.util.WrapUtil type has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
         )
+        executer.expectDocumentedDeprecationWarning(
+            "The Project.getConvention() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
+        if (GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning(
+                "The Provider.forUseAtConfigurationTime method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Simply remove the call. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
+        }
 
         assertThat(
             build("print-kotlin-version").output,
@@ -274,6 +300,34 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         assertThat(
             build("plugins").output,
             containsString("*BasePlugin\$Inject*")
+        )
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/24503")
+    fun `can use configuration provider in dependencies block`() {
+
+        withClassJar("fixture.jar", DeepThought::class.java)
+
+        withBuildScript(
+            """
+            buildscript {
+                val classpath2 = configurations.named("classpath")
+                dependencies { classpath2(files("fixture.jar")) }
+            }
+
+            task("compute") {
+                doLast {
+                    val computer = ${DeepThought::class.qualifiedName}()
+                    val answer = computer.compute()
+                    println("*" + answer + "*")
+                }
+            }
+            """
+        )
+
+        assert(
+            build("compute").output.contains("*42*")
         )
     }
 

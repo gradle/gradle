@@ -25,6 +25,8 @@ import java.util.function.Supplier;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.apache.commons.lang.StringUtils.uncapitalize;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutions;
+import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class VersionCatalogProblem extends BaseProblem<VersionCatalogProblemId, StandardSeverity, String> {
     VersionCatalogProblem(VersionCatalogProblemId versionCatalogProblemId,
@@ -40,37 +42,16 @@ public class VersionCatalogProblem extends BaseProblem<VersionCatalogProblemId, 
 
     public void reportInto(TreeFormatter output) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Problem: In " + uncapitalize(getWhere()) + ", " + maybeAppendDot(uncapitalize(getShortDescription())));
+        formatter.node("Problem: In " + uncapitalize(getWhere()) + ", " + endLineWithDot(uncapitalize(getShortDescription())));
         getWhy().ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(maybeAppendDot(reason)));
+            formatter.node("Reason: " + capitalize(endLineWithDot(reason)));
         });
-        List<Solution> possibleSolutions = getPossibleSolutions();
-        int solutionCount = possibleSolutions.size();
-        if (solutionCount > 0) {
-            formatter.blankLine();
-            if (solutionCount == 1) {
-                formatter.node("Possible solution: " + capitalize(maybeAppendDot(possibleSolutions.get(0).getShortDescription())));
-            } else {
-                formatter.node("Possible solutions");
-                formatter.startNumberedChildren();
-                possibleSolutions.forEach(solution ->
-                    formatter.node(capitalize(maybeAppendDot(solution.getShortDescription())))
-                );
-                formatter.endChildren();
-            }
-        }
+        renderSolutions(formatter, getPossibleSolutions());
         getDocumentationLink().ifPresent(docLink -> {
             formatter.blankLine();
-            formatter.node("Please refer to ").append(docLink).append(" for more details about this problem.");
+            formatter.node(docLink);
         });
         output.node(formatter.toString());
-    }
-
-    private static String maybeAppendDot(String txt) {
-        if (txt.endsWith(".") || txt.endsWith("\n")) {
-            return txt;
-        }
-        return txt + ".";
     }
 }

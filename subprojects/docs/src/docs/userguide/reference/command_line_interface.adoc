@@ -293,6 +293,8 @@ By default, this report shows only those tasks which have been assigned to a tas
 $ gradle tasks --all
 ----
 
+The option `--no-all` can be used to limit the report to tasks assigned to a task group.
+
 If you need to be more precise, you can display only the tasks from a specific group using the `--group` option.
 
 ----
@@ -312,6 +314,8 @@ include::{snippetsPath}/tutorial/projectReports/tests/taskHelp.out[]
 
 This information includes the full task path, the task type, possible <<sec:task_options,task-specific command line options>> and the description of the given task.
 
+Additionally, you can get detailed information about the task class types using the `--types` option, or use `--no-types` to hide this information.
+
 === Reporting dependencies
 
 Build scans give a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
@@ -324,7 +328,7 @@ This will give you a link to a web-based report, where you can find dependency i
 
 image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
-Learn more in <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Viewing and debugging dependencies>>.
+Learn more in <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Viewing and debugging dependencies>>.
 
 === Listing project dependencies
 
@@ -334,7 +338,7 @@ Running `gradle dependencies` gives you a list of the dependencies of the select
 $ gradle dependencies
 ----
 
-Concrete examples of build scripts and output available in the <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Viewing and debugging dependencies>>.
+Concrete examples of build scripts and output available in the <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Viewing and debugging dependencies>>.
 
 Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
 
@@ -451,7 +455,7 @@ Build projects in parallel. For limitations of this option, see <<multi_project_
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
 
 `--profile`::
-Generates a high-level performance report in the `$buildDir/reports/profile` directory. `--scan` is preferred.
+Generates a high-level performance report in the `layout.buildDirectory.dir("reports/profile")` directory. `--scan` is preferred.
 
 `--scan`::
 Generate a build scan with detailed performance diagnostics.
@@ -621,7 +625,7 @@ Specifies the build file. For example: `gradle --build-file=foo.gradle`. The def
 Specifies the settings file. For example: `gradle --settings-file=somewhere/else/settings.gradle`
 
 `-g`, `--gradle-user-home`::
-Specifies the Gradle user home directory. The default is the `.gradle` directory in the user's home directory.
+Specifies the Gradle User Home directory. The default is the `.gradle` directory in the user's home directory.
 
 `-p`, `--project-dir`::
 Specifies the start directory for Gradle. Defaults to current directory.

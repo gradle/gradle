@@ -31,9 +31,10 @@ include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags
 
 The plugin adds an extension named `distributions` of type link:{groovyDslPath}/org.gradle.api.distribution.DistributionContainer.html[DistributionContainer] to the project. It also creates a single distribution in the distributions container extension named `main`. If your build only produces one distribution you only need to configure this distribution (or use the defaults).
 
-You can run `gradle distZip` to package the main distribution as a ZIP, or `gradle distTar` to create a TAR file. To build both types of archives just run `gradle assembleDist`. The files will be created at `__$buildDir__/distributions/__${project.name}__-__${project.version}__.__«ext»__`.
+You can run `gradle distZip` to package the main distribution as a ZIP, or `gradle distTar` to create a TAR file. To build both types of archives just run `gradle assembleDist`.
+The files will be created at `__layout.buildDirectory.dir__("distributions/__${project.name}__-__${project.version}__.__«ext»__")`.
 
-You can run `gradle installDist` to assemble the uncompressed distribution into `__$buildDir__/install/__${project.name}__`.
+You can run `gradle installDist` to assemble the uncompressed distribution into `__layout.buildDirectory.dir__("install/__${project.name}__")`.
 
 [[sec:distribution_tasks]]
 == Tasks
@@ -80,7 +81,7 @@ include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags
 
 Given that the project name is `myproject` and version `1.2`, running `gradle customDistZip` will produce a ZIP file named `myproject-custom-1.2.zip`.
 
-Running `gradle installCustomDist` will install the distribution contents into `__$buildDir__/install/custom`.
+Running `gradle installCustomDist` will install the distribution contents into `__layout.buildDirectory.dir__("install/custom")`.
 
 [[sec:distribution_contents]]
 == Distribution contents
@@ -112,8 +113,6 @@ To publish a distribution to an Ivy repository with the <<publishing_ivy.adoc#pu
 include::sample[dir="snippets/ivy-publish/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
 include::sample[dir="snippets/ivy-publish/distribution/groovy",files="build.gradle[tags=publishing]"]
 ====
-
-WARNING: The Ivy Publish Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
 
 Similarly, to publish a distribution to a Maven repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, add one or both of its archive tasks to a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] as follows:
 

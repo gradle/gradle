@@ -26,7 +26,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.internal.ConfigurationSoftwareComponentVariant;
+import org.gradle.api.publish.internal.component.ConfigurationSoftwareComponentVariant;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

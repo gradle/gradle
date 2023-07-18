@@ -264,7 +264,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * generated into.  The default value for the build directory is <code><i>projectDir</i>/build</code></p>
      *
      * @return The build directory. Never returns null.
+     * @deprecated Use {@code getLayout().getBuildDirectory()} instead
      */
+    @Deprecated
     File getBuildDir();
 
     /**
@@ -273,7 +275,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The build directory
      * @since 4.0
+     * @deprecated Use {@code getLayout().getBuildDirectory()} and set the {@link org.gradle.api.file.DirectoryProperty}
      */
+    @Deprecated
     void setBuildDir(File path);
 
     /**
@@ -282,7 +286,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * amongst other things, a relative or absolute path or File object to specify the build directory.</p>
      *
      * @param path The build directory. This is evaluated as per {@link #file(Object)}
+     * @deprecated Use {@code getLayout().getBuildDirectory()} and set the {@link org.gradle.api.file.DirectoryProperty}
      */
+    @Deprecated
     void setBuildDir(Object path);
 
     /**
@@ -545,6 +551,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The path. Never returns null.
      */
     String getPath();
+
+    /**
+     * Returns a path to the project for the full build tree.
+     *
+     * @return The build tree path
+     * @since 8.3
+     */
+    @Incubating
+    String getBuildTreePath();
 
     /**
      * <p>Returns the names of the default tasks of this project. These are used when no tasks names are provided when

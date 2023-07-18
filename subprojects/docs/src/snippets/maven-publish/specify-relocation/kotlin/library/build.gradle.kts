@@ -35,10 +35,10 @@ publishing {
                 distributionManagement {
                     relocation {
                         // New artifact coordinates
-                        groupId.set("com.new-example")
-                        artifactId.set("lib")
-                        version.set("2.0.0")
-                        message.set("groupId has been changed")
+                        groupId = "com.new-example"
+                        artifactId = "lib"
+                        version = "2.0.0"
+                        message = "groupId has been changed"
                     }
                 }
             }

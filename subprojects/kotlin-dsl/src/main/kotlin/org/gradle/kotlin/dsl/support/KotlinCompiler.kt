@@ -21,32 +21,27 @@ import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
-import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
-
+import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentContainerContributor
+import org.jetbrains.kotlin.assignment.plugin.CliAssignPluginResolutionAltererExtension
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
-
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
-
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
-
 import org.jetbrains.kotlin.codegen.CompilationException
-
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-
 import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
@@ -61,37 +56,26 @@ import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget
-import org.jetbrains.kotlin.config.JvmTarget.JVM_19
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
+import org.jetbrains.kotlin.config.JvmTarget.JVM_20
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
-
 import org.jetbrains.kotlin.extensions.internal.InternalNonStableExtensionPoints
-
 import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.resolve.extensions.AssignResolutionAltererExtension
-
-import org.jetbrains.kotlin.assignment.plugin.CliAssignPluginResolutionAltererExtension
-import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentContainerContributor
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
-
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
 import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.SCRIPT_DEFINITIONS
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
-
 import org.jetbrains.kotlin.utils.PathUtil
-
 import org.slf4j.Logger
-
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
-
 import kotlin.reflect.KClass
-
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
@@ -112,6 +96,7 @@ fun compileKotlinScriptModuleTo(
     scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
     logger: Logger,
+    allWarningsAsErrors: Boolean,
     pathTranslation: (String) -> String
 ) = compileKotlinScriptModuleTo(
     outputDirectory,
@@ -120,7 +105,7 @@ fun compileKotlinScriptModuleTo(
     scriptFiles,
     scriptDef,
     classPath,
-    LoggingMessageCollector(logger, pathTranslation)
+    LoggingMessageCollector(logger, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
 )
 
 
@@ -212,11 +197,9 @@ object KotlinAssignmentCompilerPlugin {
 
     @OptIn(InternalNonStableExtensionPoints::class)
     fun apply(project: Project) {
-        if (KotlinDslAssignment.isAssignmentOverloadEnabled()) {
-            val annotations = listOf(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
-            AssignResolutionAltererExtension.Companion.registerExtension(project, CliAssignPluginResolutionAltererExtension(annotations))
-            StorageComponentContainerContributor.registerExtension(project, AssignmentComponentContainerContributor(annotations))
-        }
+        val annotations = listOf(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
+        AssignResolutionAltererExtension.Companion.registerExtension(project, CliAssignPluginResolutionAltererExtension(annotations))
+        StorageComponentContainerContributor.registerExtension(project, AssignmentComponentContainerContributor(annotations))
     }
 }
 
@@ -241,11 +224,12 @@ fun compileToDirectory(
     moduleName: String,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File>
+    classPath: Iterable<File>,
+    onCompilerWarning: EmbeddedKotlinCompilerWarning = EmbeddedKotlinCompilerWarning.WARN,
 ): Boolean {
 
     withRootDisposable {
-        withMessageCollectorFor(logger) { messageCollector ->
+        withMessageCollectorFor(logger, onCompilerWarning) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector, jvmTarget).apply {
                 addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
                 put(OUTPUT_DIRECTORY, outputDirectory)
@@ -277,8 +261,8 @@ inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
 
 
 private
-inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
-    val messageCollector = messageCollectorFor(log)
+inline fun <T> withMessageCollectorFor(log: Logger, onCompilerWarning: EmbeddedKotlinCompilerWarning, action: (MessageCollector) -> T): T {
+    val messageCollector = messageCollectorFor(log, onCompilerWarning)
     withCompilationExceptionHandler(messageCollector) {
         return action(messageCollector)
     }
@@ -386,10 +370,10 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, jvmTarget: Java
 
 internal
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 18
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 20
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JVM_19
+        else JVM_20
 }
 
 
@@ -400,6 +384,7 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true,
         AnalysisFlags.skipPrereleaseCheck to true,
+        AnalysisFlags.allowUnstableDependencies to true,
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
     ),
     specificFeatures = mapOf(
@@ -454,8 +439,21 @@ fun disposeKotlinCompilerContext() =
 
 
 internal
-fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it }): LoggingMessageCollector =
-    LoggingMessageCollector(log, pathTranslation)
+fun messageCollectorFor(
+    log: Logger,
+    allWarningsAsErrors: Boolean,
+    pathTranslation: (String) -> String,
+): LoggingMessageCollector =
+    messageCollectorFor(log, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
+
+
+internal
+fun messageCollectorFor(
+    log: Logger,
+    onCompilerWarning: EmbeddedKotlinCompilerWarning = EmbeddedKotlinCompilerWarning.WARN,
+    pathTranslation: (String) -> String = { it }
+): LoggingMessageCollector =
+    LoggingMessageCollector(log, onCompilerWarning, pathTranslation)
 
 
 internal
@@ -529,9 +527,22 @@ const val indent = "  "
 
 
 internal
+enum class EmbeddedKotlinCompilerWarning {
+    FAIL, WARN, DEBUG
+}
+
+
+private
+fun onCompilerWarningsFor(allWarningsAsErrors: Boolean) =
+    if (allWarningsAsErrors) EmbeddedKotlinCompilerWarning.FAIL
+    else EmbeddedKotlinCompilerWarning.WARN
+
+
+internal
 class LoggingMessageCollector(
     internal val log: Logger,
-    private val pathTranslation: (String) -> String
+    private val onCompilerWarning: EmbeddedKotlinCompilerWarning,
+    private val pathTranslation: (String) -> String,
 ) : MessageCollector {
 
     val errors = arrayListOf<ScriptCompilationError>()
@@ -555,15 +566,24 @@ class LoggingMessageCollector(
         fun taggedMsg() =
             "${severity.presentableName[0]}: ${msg()}"
 
-        when (severity) {
-            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> {
-                errors += ScriptCompilationError(message, location)
-                log.error { taggedMsg() }
-            }
+        fun onError() {
+            errors += ScriptCompilationError(message, location)
+            log.error { taggedMsg() }
+        }
 
+        fun onWarning() {
+            when (onCompilerWarning) {
+                EmbeddedKotlinCompilerWarning.FAIL -> onError()
+                EmbeddedKotlinCompilerWarning.WARN -> log.warn { taggedMsg() }
+                EmbeddedKotlinCompilerWarning.DEBUG -> log.debug { taggedMsg() }
+            }
+        }
+
+        when (severity) {
+            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> onError()
             in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-            CompilerMessageSeverity.STRONG_WARNING -> log.warn { taggedMsg() }
-            CompilerMessageSeverity.WARNING -> log.warn { taggedMsg() }
+            CompilerMessageSeverity.STRONG_WARNING -> onWarning()
+            CompilerMessageSeverity.WARNING -> onWarning()
             CompilerMessageSeverity.INFO -> log.info { msg() }
             else -> log.debug { taggedMsg() }
         }

@@ -140,10 +140,10 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readRootBuildState(graph, loadAfterStore)
+                readRootBuildState(graph, graphBuilder, loadAfterStore)
             }
         }
     }
@@ -309,7 +309,9 @@ class ConfigurationCacheIO internal constructor(
             propertyFactory = service(),
             filePropertyFactory = service(),
             fileResolver = service(),
+            objectFactory = service(),
             instantiator = service(),
+            fileSystemOperations = service(),
             listenerManager = service(),
             taskNodeFactory = service(),
             ordinalGroupFactory = service(),
@@ -331,6 +333,7 @@ class ConfigurationCacheIO internal constructor(
             documentationRegistry = service(),
             javaSerializationEncodingLookup = service(),
             flowProviders = service(),
+            transformStepNodeFactory = service(),
         )
 
     private

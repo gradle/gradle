@@ -18,31 +18,36 @@ package org.gradle.internal.operations;
 
 public class CurrentBuildOperationPreservingRunnable implements Runnable {
 
+    public static Runnable wrapIfNeeded(Runnable delegate) {
+        return wrapIfNeeded(delegate, CurrentBuildOperationRef.instance());
+    }
+
+    static Runnable wrapIfNeeded(Runnable delegate, CurrentBuildOperationRef ref) {
+        if (delegate instanceof CurrentBuildOperationPreservingRunnable && ((CurrentBuildOperationPreservingRunnable) delegate).ref == ref) {
+            // Even if the build operation of the delegate would be different, it would override a new wrapper anyway,
+            // so we can just return the delegate.
+            return delegate;
+        }
+        BuildOperationRef buildOperation = ref.get();
+        if (buildOperation == null) {
+            // No build operation, so no need to wrap.
+            return delegate;
+        }
+        return new CurrentBuildOperationPreservingRunnable(delegate, ref, buildOperation);
+    }
+
     private final Runnable delegate;
     private final CurrentBuildOperationRef ref;
     private final BuildOperationRef buildOperation;
 
-    public CurrentBuildOperationPreservingRunnable(Runnable delegate) {
-        this(delegate, CurrentBuildOperationRef.instance());
-    }
-
-    CurrentBuildOperationPreservingRunnable(Runnable delegate, CurrentBuildOperationRef ref) {
+    private CurrentBuildOperationPreservingRunnable(Runnable delegate, CurrentBuildOperationRef ref, BuildOperationRef buildOperation) {
         this.delegate = delegate;
         this.ref = ref;
-        this.buildOperation = ref.get();
+        this.buildOperation = buildOperation;
     }
 
     @Override
     public void run() {
-        if (buildOperation == null) {
-            delegate.run();
-        } else {
-            ref.set(buildOperation);
-            try {
-                delegate.run();
-            } finally {
-                ref.clear();
-            }
-        }
+        ref.with(buildOperation, delegate);
     }
 }

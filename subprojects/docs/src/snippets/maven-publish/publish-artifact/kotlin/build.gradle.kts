@@ -7,8 +7,11 @@ group = "org.gradle.sample"
 version = "1.0"
 
 // tag::custom-artifact[]
+configurations {
+    create("conf")
+}
 val rpmFile = layout.buildDirectory.file("rpms/my-package.rpm")
-val rpmArtifact = artifacts.add("archives", rpmFile.get().asFile) {
+val rpmArtifact = artifacts.add("conf", rpmFile.get().asFile) {
     type = "rpm"
     builtBy("rpm")
 }

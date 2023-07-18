@@ -21,8 +21,8 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -347,7 +347,7 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
 class JavaIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrementalCompilationAfterFailureIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "incremental compilation after failure works with modules #description"() {
         file("impl/build.gradle") << """
             def layout = project.layout
@@ -542,5 +542,44 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
         description | fileWithErrorSuffix | compileErrorClassAnnotation
         "Java"      | "java"              | ""
         "Groovy"    | "groovy"            | COMPILE_STATIC_ANNOTATION
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22814")
+    def 'does full recompilation on fatal failure'() {
+        given:
+        def a = source("class A extends ABase implements WithTrait { def m() { println('a') } }")
+        source "class ABase { def mBase() { println(A) } }"
+        source """
+            import groovy.transform.SelfType
+            @SelfType(ABase)
+            trait WithTrait {
+                final AllPluginsValidation allPlugins = new AllPluginsValidation(this)
+
+                static class AllPluginsValidation {
+                    final ABase base
+                    AllPluginsValidation(ABase base) {
+                        this.base = base
+                    }
+                }
+            }
+        """
+        run "compileGroovy"
+        outputs.recompiledClasses('ABase', 'A', 'WithTrait', 'WithTrait$Trait$FieldHelper', 'WithTrait$AllPluginsValidation', 'WithTrait$Trait$Helper')
+
+        when:
+        a.text = "class A extends ABase implements WithTrait { def m() { println('b') } }"
+
+        then:
+        executer.withStackTraceChecksDisabled()
+        def execution = runAndFail "compileGroovy"
+        execution.assertHasCause("Unrecoverable compilation error")
+
+        when:
+        executer.withStacktraceEnabled()
+        run"compileGroovy", "--info"
+
+        then:
+        outputs.recompiledClasses('ABase', 'A', 'WithTrait', 'WithTrait$Trait$FieldHelper', 'WithTrait$AllPluginsValidation', 'WithTrait$Trait$Helper')
+        outputContains("Full recompilation is required")
     }
 }

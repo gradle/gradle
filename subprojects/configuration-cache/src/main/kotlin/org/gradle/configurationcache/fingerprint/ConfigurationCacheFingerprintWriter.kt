@@ -68,10 +68,10 @@ import org.gradle.groovy.scripts.internal.ScriptSourceListener
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
+import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.properties.InputBehavior
@@ -91,7 +91,7 @@ class ConfigurationCacheFingerprintWriter(
     projectScopedContext: DefaultWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val taskExecutionTracker: TaskExecutionTracker,
+    private val workExecutionTracker: WorkExecutionTracker,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
 ) : ValueSourceProviderFactory.ValueListener,
@@ -117,10 +117,12 @@ class ConfigurationCacheFingerprintWriter(
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
+        val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
         val instrumentationAgentUsed: Boolean
+        val ignoredFileSystemCheckInputs: String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode
-        fun hashCodeOfDirectoryContent(file: File): HashCode
+        fun hashCodeOfDirectoryChildrenNames(file: File): HashCode
         fun displayNameOf(file: File): String
         fun reportProblem(exception: Throwable? = null, documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder)
         fun reportInput(input: PropertyProblem)
@@ -179,7 +181,9 @@ class ConfigurationCacheFingerprintWriter(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
                 host.startParameterProperties,
-                host.instrumentationAgentUsed
+                host.ignoreInputsInConfigurationCacheTaskGraphWriting,
+                host.instrumentationAgentUsed,
+                host.ignoredFileSystemCheckInputs
             )
         )
     }
@@ -242,7 +246,7 @@ class ConfigurationCacheFingerprintWriter(
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
     private
-    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
+    fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
 
     override fun fileObserved(file: File) {
         fileObserved(file, null)
@@ -264,7 +268,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun directoryChildrenObserved(directory: File, consumer: String?) {
-        if (isInputTrackingDisabled() || isExecutingTask()) {
+        if (isInputTrackingDisabled() || isExecutingWork()) {
             return
         }
         sink().captureDirectoryChildren(directory)
@@ -272,7 +276,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileSystemEntryObserved(file: File, consumer: String?) {
-        if (isInputTrackingDisabled() || isExecutingTask()) {
+        if (isInputTrackingDisabled() || isExecutingWork()) {
             return
         }
         sink().captureFileSystemEntry(file)
@@ -321,7 +325,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileOpened(file: File, consumer: String?) {
-        if (isInputTrackingDisabled() || isExecutingTask()) {
+        if (isInputTrackingDisabled() || isExecutingWork()) {
             // Ignore files that are read as part of the task actions. These should really be task
             // inputs. Otherwise, we risk fingerprinting files such as:
             // - temporary files that will be gone at the end of the build.
@@ -333,7 +337,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileCollectionObserved(fileCollection: FileCollectionInternal) {
-        if (isInputTrackingDisabled() || isExecutingTask()) {
+        if (isInputTrackingDisabled() || isExecutingWork()) {
             // See #fileOpened() above
             return
         }
@@ -792,7 +796,7 @@ class ConfigurationCacheFingerprintWriter(
             if (!capturedDirectories.add(file)) {
                 return
             }
-            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOfDirectoryContent(file)))
+            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOfDirectoryChildrenNames(file)))
         }
 
         fun captureRemoteScript(uri: URI) {

@@ -17,7 +17,6 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
@@ -47,7 +46,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     private final AbstractDynamicObject dynamicDelegate;
     private DynamicObject parent;
-    private final Convention convention;
+    private final org.gradle.api.plugins.Convention convention;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
     private final DynamicObject extraPropertiesDynamicObject;
@@ -60,7 +59,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         this(delegate, dynamicDelegate, new DefaultConvention(instanceGenerator));
     }
 
-    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Convention convention) {
+    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, org.gradle.api.plugins.Convention convention) {
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
         this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate.getClass(), convention.getExtraProperties());
@@ -140,7 +139,12 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     @Override
     @Deprecated
-    public Convention getConvention() {
+    public org.gradle.api.plugins.Convention getConvention() {
+// TODO nag once KGP doesn't register conventions anymore
+//        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
+//            .willBeRemovedInGradle9()
+//            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
+//            .nagUser();
         return convention;
     }
 

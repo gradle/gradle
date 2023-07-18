@@ -21,8 +21,8 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -93,7 +93,7 @@ class JabbaInstallationSupplierTest extends Specification {
 
         then:
         directoriesAsStablePaths(directories) == stablePaths([new File(candidates, "jdk/11.0.6.hs-adpt").absolutePath])
-        directories*.source == ["jabba"]
+        directories*.source == ["Jabba"]
     }
 
     def "supplies multiple installations for multiple paths"() {
@@ -112,10 +112,10 @@ class JabbaInstallationSupplierTest extends Specification {
             new File(candidates, "jdk/14").absolutePath,
             new File(candidates, "jdk/8.0.262.fx-librca").absolutePath
         ])
-        directories*.source == ["jabba", "jabba", "jabba"]
+        directories*.source == ["Jabba", "Jabba", "Jabba"]
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "supplies installations with symlinked candidate"() {
         given:
         def otherLocation = temporaryFolder.createDir("other")
@@ -132,7 +132,7 @@ class JabbaInstallationSupplierTest extends Specification {
             new File(candidates, "jdk/14-real").absolutePath,
             new File(candidates, "jdk/other-symlinked").absolutePath
         ])
-        directories*.source == ["jabba", "jabba"]
+        directories*.source == ["Jabba", "Jabba"]
     }
 
     def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {

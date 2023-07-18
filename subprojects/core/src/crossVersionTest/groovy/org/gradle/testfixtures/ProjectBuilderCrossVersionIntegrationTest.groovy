@@ -21,15 +21,15 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
-import static org.gradle.util.TestPrecondition.JDK11_OR_EARLIER
 
 @Issue("GRADLE-3558")
-@Requires(JDK11_OR_EARLIER)
+@Requires(UnitTestPreconditions.Jdk11OrEarlier)
 // Avoid testing version range in favor of better coverage build performance.
 @TargetVersions(['5.0', '6.8'])
 class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationSpec {

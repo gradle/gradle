@@ -30,13 +30,17 @@ import org.gradle.util.GradleVersion
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
+    def shouldCheckForDeprecationWarnings(){
+        false
+    }
+
     def "builds the model even if idea plugin not applied"() {
 
-        file('build.gradle').text = '''
+        buildFile.text = '''
 apply plugin: 'java'
 description = 'this is a project'
 '''
-        file('settings.gradle').text = 'rootProject.name = \"test project\"'
+        settingsFile.text = 'rootProject.name = \"test project\"'
 
         when:
         IdeaProject project = loadToolingModel(IdeaProject)
@@ -52,7 +56,7 @@ description = 'this is a project'
 
     def "provides basic project information"() {
 
-        file('build.gradle').text = """
+        buildFile.text = """
 apply plugin: 'java'
 apply plugin: 'idea'
 
@@ -279,7 +283,7 @@ project(':impl') {
     }
 }
 """
-        file('settings.gradle').text = "include 'api', 'impl'"
+        settingsFile.text = "include 'api', 'impl'"
 
         when:
         BasicIdeaProject project = withConnection { connection -> connection.getModel(BasicIdeaProject.class) }

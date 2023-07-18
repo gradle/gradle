@@ -33,6 +33,8 @@ Class <org.gradle.kotlin.dsl.KotlinGradleScriptTemplate> extends/implements org.
 Class <org.gradle.kotlin.dsl.KotlinProjectScriptTemplate> extends/implements org.gradle.kotlin.dsl.support.DefaultKotlinScript that is Gradle Internal API in (KotlinProjectScriptTemplate.kt:0)
 Class <org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate> extends/implements org.gradle.kotlin.dsl.support.DefaultKotlinScript that is Gradle Internal API in (KotlinSettingsScriptTemplate.kt:0)
 Class <org.gradle.kotlin.dsl.NamedDomainObjectContainerScope> extends/implements org.gradle.kotlin.dsl.support.delegates.NamedDomainObjectContainerDelegate that is Gradle Internal API in (NamedDomainObjectContainerExtensions.kt:0)
+Class <org.gradle.kotlin.dsl.ProjectExtensionsKt$configure$1$1> extends/implements org.gradle.internal.Factory that is Gradle Internal API in (ProjectExtensions.kt:0)
+Class <org.gradle.kotlin.dsl.ProjectExtensionsKt$the$1$1> extends/implements org.gradle.internal.Factory that is Gradle Internal API in (ProjectExtensions.kt:0)
 Class <org.gradle.kotlin.dsl.SettingsScriptApi> extends/implements org.gradle.kotlin.dsl.support.delegates.SettingsDelegate that is Gradle Internal API in (SettingsScriptApi.kt:0)
 Class <org.gradle.kotlin.dsl.TaskContainerScope> extends/implements org.gradle.kotlin.dsl.support.delegates.TaskContainerDelegate that is Gradle Internal API in (TaskContainerExtensions.kt:0)
 Class <org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript> extends/implements org.gradle.kotlin.dsl.support.delegates.ProjectDelegate that is Gradle Internal API in (PrecompiledProjectScript.kt:0)

@@ -19,10 +19,12 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
@@ -37,7 +39,6 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         detector = Mock(JvmMetadataDetector)
         output = new TestStyledTextOutput()
 
-        task.installationRegistry = Mock(JavaInstallationRegistry)
         task.metadataDetector = detector
         task.providerFactory = createProviderFactory(true, true)
         task.outputFactory = Mock(StyledTextOutputFactory) {
@@ -53,7 +54,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         def jdk82 = testLocation("1.8.0_404")
 
         given:
-        task.installationRegistry.listInstallations() >> [jdk14, jdk15, jdk9, jdk8, jdk82]
+        task.installationRegistry = createRegistry([jdk14, jdk15, jdk9, jdk8, jdk82])
         detector.getMetadata(jdk14) >> metadata("14", "+2")
         detector.getMetadata(jdk15) >> metadata("15-ea", "+2")
         detector.getMetadata(jdk9) >> metadata("9", "+2")
@@ -118,7 +119,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         def noSuchDirectory = testLocation("noSuchDirectory")
 
         given:
-        task.installationRegistry.listInstallations() >> [jdk14, invalid, noSuchDirectory]
+        task.installationRegistry = createRegistry([jdk14, invalid, noSuchDirectory])
         detector.getMetadata(jdk14) >> metadata("14", "+1")
         detector.getMetadata(invalid) >> newInvalidMetadata()
         detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
@@ -159,7 +160,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         }
 
         given:
-        task.installationRegistry.listInstallations() >> [path]
+        task.installationRegistry = createRegistry([path])
         detector.getMetadata(path) >> JvmInstallationMetadata.failure(path.location, createFailureWithNCauses(nCauses))
 
         when:
@@ -218,7 +219,7 @@ $errorLines
     def "reports download and detection options"() {
         given:
         task.providerFactory = createProviderFactory(false, false)
-        task.installationRegistry.listInstallations() >> []
+        task.installationRegistry = createRegistry([])
 
         when:
         task.showToolchains()
@@ -237,7 +238,7 @@ $errorLines
         def noSuchDirectory = testLocation("noSuchDirectory")
 
         given:
-        task.installationRegistry.listInstallations() >> [invalid, noSuchDirectory]
+        task.installationRegistry = createRegistry([invalid, noSuchDirectory])
         detector.getMetadata(invalid) >> newInvalidMetadata()
         detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
 
@@ -276,6 +277,15 @@ $errorLines
         providerFactory
     }
 
+    private JavaInstallationRegistry createRegistry(List<InstallationLocation> locations) {
+        return new JavaInstallationRegistry(null, detector, null, null, new NoOpProgressLoggerFactory()) {
+            @Override
+            protected Set<InstallationLocation> listInstallations() {
+                return locations;
+            }
+        }
+    }
+
     private static InstallationLocation testLocation(String javaHomePath) {
         return new InstallationLocation(new File(javaHomePath), "TestSource");
     }
@@ -289,11 +299,6 @@ $errorLines
         @Override
         protected JavaInstallationRegistry getInstallationRegistry() {
             installationRegistry
-        }
-
-        @Override
-        protected JvmMetadataDetector getMetadataDetector() {
-            return metadataDetector
         }
 
         @Override

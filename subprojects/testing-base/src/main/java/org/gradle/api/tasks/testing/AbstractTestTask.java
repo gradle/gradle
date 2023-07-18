@@ -26,6 +26,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -59,13 +60,13 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.VerificationException;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -481,15 +482,31 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private void handleCollectedResults(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
-        } else if (testCountLogger.getTotalTests() == 0 && shouldFailOnNoMatchingTests()) {
-            throw new TestExecutionException(createNoMatchingTestErrorMessage());
+        } else if (testCountLogger.getTotalTests() == 0) {
+            if (!hasFilter()) {
+                emitDeprecationMessage();
+            } else if (shouldFailOnNoMatchingTests()) {
+                throw new TestExecutionException(createNoMatchingTestErrorMessage());
+            }
         }
     }
 
+    private void emitDeprecationMessage() {
+        DeprecationLogger.deprecateBehaviour("No test executed.")
+            .withAdvice("There are test sources present but no test was executed. Please check your test configuration.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "test_task_fail_on_no_test_executed")
+            .nagUser();
+    }
+
     private boolean shouldFailOnNoMatchingTests() {
-        return filter.isFailOnNoMatchingTests() && (!filter.getIncludePatterns().isEmpty()
+        return filter.isFailOnNoMatchingTests() && hasFilter();
+    }
+
+    private boolean hasFilter() {
+        return !filter.getIncludePatterns().isEmpty()
             || !filter.getCommandLineIncludePatterns().isEmpty()
-            || !filter.getExcludePatterns().isEmpty());
+            || !filter.getExcludePatterns().isEmpty();
     }
 
     private String createNoMatchingTestErrorMessage() {
@@ -551,7 +568,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * For more information on supported patterns see {@link TestFilter}
      */
-    @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
+    @Option(option = "tests", description = "Sets test class or method name to be included (in addition to the test task filters), '*' is supported.")
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
         return this;
@@ -618,7 +635,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (getIgnoreFailures()) {
             getLogger().warn(message);
         } else {
-            throw new VerificationException(message);
+            throw new MarkedVerificationException(message);
         }
     }
 

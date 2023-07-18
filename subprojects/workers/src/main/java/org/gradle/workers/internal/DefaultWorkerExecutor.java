@@ -25,6 +25,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
@@ -245,26 +246,25 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private Class<?>[] getParamClasses(Class<?> actionClass, WorkParameters parameters) {
-        Object[] params = new Object[]{parameters};
-
-        List<Class<?>> classes = Lists.newArrayList();
-        classes.add(actionClass);
-        for (Object param : params) {
-            if (param != null) {
-                classes.add(param.getClass());
-            }
+        if (parameters != null) {
+            return new Class<?>[]{actionClass, parameters.getClass()};
         }
-        return classes.toArray(new Class<?>[0]);
+        return new Class<?>[]{actionClass};
     }
 
     @Contextual
-    private static class WorkExecutionException extends RuntimeException {
+    private static class WorkExecutionException extends RuntimeException implements NonGradleCauseExceptionsHolder {
         WorkExecutionException(String description, Throwable cause) {
             super(toMessage(description), cause);
         }
 
         private static String toMessage(String description) {
             return "A failure occurred while executing " + description;
+        }
+
+        @Override
+        public boolean hasCause(Class<?> type) {
+            return type.isInstance(getCause());
         }
     }
 

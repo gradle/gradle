@@ -17,11 +17,20 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+
+
     @LeaksFileHandles("Puts gradle user home in integration test dir")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "root component identifier has the correct type when resolving a script classpath"() {
         given:
         def module = mavenRepo().module("org.gradle", "test", "1.45")
@@ -87,7 +96,13 @@ rootProject.name = 'testproject'
 """
         expect:
         fails "help"
-        failureHasCause("Conflict(s) found for the following module(s):")
+        failureHasCause("Conflict found for the following module:")
+        failure.assertHasResolutions("Run with :dependencyInsight --configuration classpath " +
+            "--dependency org.gradle:test to get more insight on how to solve the conflict.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
     }
 
     @Issue("gradle/gradle#19300")

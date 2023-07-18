@@ -19,6 +19,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -55,6 +56,7 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         outputContains "Resolved at configuration time: [impl.jar, foo-1.0.jar]"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
     def "configuring project dependencies by map is validated"() {
         settingsFile << "include 'impl'"
         buildFile << """

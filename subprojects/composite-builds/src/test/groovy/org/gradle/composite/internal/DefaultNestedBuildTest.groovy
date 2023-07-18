@@ -53,7 +53,6 @@ class DefaultNestedBuildTest extends Specification {
 
     DefaultNestedBuild build() {
         _ * factory.servicesForBuild(buildDefinition, _, owner) >> Mock(BuildModelControllerServices.Supplier)
-        _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
         _ * factory.newInstance(buildDefinition, _, owner, _) >> controller
         _ * buildDefinition.name >> "nested"
         services.add(Stub(BuildOperationExecutor))
@@ -76,7 +75,6 @@ class DefaultNestedBuildTest extends Specification {
 
     def "runs action and does not finish build"() {
         given:
-        services.add(new BuildModelParameters(false, false, false, false, false, false, false))
         def build = build()
 
         when:

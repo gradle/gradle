@@ -8,13 +8,11 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-}
-
-tasks.named('test', Test) {
-    useJUnitPlatform()
-    testLogging {
-        exceptionFormat = TestExceptionFormat.FULL
+testing.suites.test {
+    useJUnitJupiter()
+    targets.test.testTask.configure {
+        testLogging {
+            exceptionFormat = TestExceptionFormat.FULL
+        }
     }
 }

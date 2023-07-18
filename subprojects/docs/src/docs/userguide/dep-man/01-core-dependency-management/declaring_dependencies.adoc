@@ -82,7 +82,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 
 At this point, we have 3 different configurations with different roles:
 
-- `someConfiguration` declares the dependencies of my application. It's just a bucket that can hold a list of dependencies.
+- `someConfiguration` declares the dependencies of my application. It is simply a collection of dependencies.
 - `compileClasspath` and `runtimeClasspath` are configurations _meant to be resolved_: when resolved they should contain the compile classpath, and the runtime classpath of the application respectively.
 
 This distinction is represented by the `canBeResolved` flag in the `Configuration` type.
@@ -113,7 +113,7 @@ In short, a configuration's role is determined by the `canBeResolved` and `canBe
 .Configuration roles
 |===
 |Configuration role|can be resolved|can be consumed
-|Bucket of dependencies|false|false
+|Dependency Scope|false|false
 |Resolve for certain usage|true|false
 |Exposed to consumers|false|true
 |Legacy, don't use|true|true
@@ -307,7 +307,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 ====
 
 One issue with the `project(":some:path")` notation is that you have to remember the path to every project you want to depend on.
-In addition, changing a project path requires you to change all places where the project dependency is used, but it is easy to miss one or more occurrences (because you have to rely on search and replace).
+In addition, changing a <<intro_multi_project_builds#sec:project_path,project path>> requires you to change all places where the project dependency is used, but it is easy to miss one or more occurrences (because you have to rely on search and replace).
 
 Since Gradle 7, Gradle offers an experimental type-safe API for project dependencies.
 The same example as above can now be rewritten as:

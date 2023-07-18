@@ -23,6 +23,7 @@ import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.watch.registry.WatchMode;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 
@@ -34,9 +35,10 @@ public class StartParameterInternal extends StartParameter {
     private Option.Value<Boolean> configurationCache = Option.Value.defaultValue(false);
     private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
-    private boolean configurationCacheEncryption = true;
     private boolean configurationCacheDebug;
+    private boolean configurationCacheIgnoreInputsInTaskGraphSerialization = false;
     private int configurationCacheMaxProblems = 512;
+    private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private boolean searchUpwards = true;
@@ -70,6 +72,7 @@ public class StartParameterInternal extends StartParameter {
         p.isolatedProjects = isolatedProjects;
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
+        p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
@@ -176,12 +179,29 @@ public class StartParameterInternal extends StartParameter {
         this.configurationCacheDebug = configurationCacheDebug;
     }
 
+    public boolean isConfigurationCacheIgnoreInputsInTaskGraphSerialization() {
+        return configurationCacheIgnoreInputsInTaskGraphSerialization;
+    }
+
+    public void setConfigurationCacheIgnoreInputsInTaskGraphSerialization(boolean ignoreInputsInTaskGraphSerialization) {
+        configurationCacheIgnoreInputsInTaskGraphSerialization = ignoreInputsInTaskGraphSerialization;
+    }
+
     public int getConfigurationCacheMaxProblems() {
         return configurationCacheMaxProblems;
     }
 
     public void setConfigurationCacheMaxProblems(int configurationCacheMaxProblems) {
         this.configurationCacheMaxProblems = configurationCacheMaxProblems;
+    }
+
+    @Nullable
+    public String getConfigurationCacheIgnoredFileSystemCheckInputs() {
+        return configurationCacheIgnoredFileSystemCheckInputs;
+    }
+
+    public void setConfigurationCacheIgnoredFileSystemCheckInputs(@Nullable String configurationCacheIgnoredFileSystemCheckInputs) {
+        this.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
     }
 
     public boolean isConfigurationCacheRecreateCache() {
@@ -206,13 +226,5 @@ public class StartParameterInternal extends StartParameter {
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
-    }
-
-    public void setConfigurationCacheEncryption(boolean value) {
-        this.configurationCacheEncryption = value;
-    }
-
-    public boolean isConfigurationCacheEncryption() {
-        return configurationCacheEncryption;
     }
 }

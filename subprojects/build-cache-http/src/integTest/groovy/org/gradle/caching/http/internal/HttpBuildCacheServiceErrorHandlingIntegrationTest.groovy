@@ -50,11 +50,12 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
                 }
             }
 
-            task customTask(type: CustomTask) {
+            def customTask = tasks.register("customTask", CustomTask) {
                 outputFile = file('build/outputFile.bin')
             }
 
-            task customTask2(type: CustomTask) {
+            tasks.register("customTask2", CustomTask) {
+                mustRunAfter(customTask)
                 outputFile = file('build/outputFile2.bin')
             }
         """.stripIndent()

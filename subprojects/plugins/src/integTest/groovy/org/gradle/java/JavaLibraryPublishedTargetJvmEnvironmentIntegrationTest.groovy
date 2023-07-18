@@ -168,6 +168,7 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
                         'org.gradle.dependency.bundling': 'external',
                         'org.gradle.status': 'release'
                     ])
+                    byConstraint()
                     artifact(classifier: 'jre')
                 }
             }

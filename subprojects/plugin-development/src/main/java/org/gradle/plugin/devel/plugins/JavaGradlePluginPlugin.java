@@ -64,7 +64,6 @@ import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 import org.gradle.process.CommandLineArgumentProvider;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -164,12 +163,11 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
         project.getTasks().named(JAR_TASK, Jar.class, jarTask -> {
-            List<PluginDescriptor> descriptors = new ArrayList<>();
-            Set<String> classList = new HashSet<>();
-            PluginDescriptorCollectorAction pluginDescriptorCollector = new PluginDescriptorCollectorAction(descriptors);
-            ClassManifestCollectorAction classManifestCollector = new ClassManifestCollectorAction(classList);
+            PluginValidationActionsState actionsState = new PluginValidationActionsState();
+            PluginDescriptorCollectorAction pluginDescriptorCollector = new PluginDescriptorCollectorAction(actionsState);
+            ClassManifestCollectorAction classManifestCollector = new ClassManifestCollectorAction(actionsState);
             Provider<Collection<PluginDeclaration>> pluginsProvider = project.provider(() -> extension.getPlugins().getAsMap().values());
-            PluginValidationAction pluginValidationAction = new PluginValidationAction(pluginsProvider, descriptors, classList);
+            PluginValidationAction pluginValidationAction = new PluginValidationAction(pluginsProvider, actionsState);
 
             jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorCollector);
             jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector);
@@ -178,7 +176,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private GradlePluginDevelopmentExtension createExtension(Project project) {
-        SourceSet defaultPluginSourceSet = JavaPluginHelper.getJavaComponent(project).getSourceSet();
+        SourceSet defaultPluginSourceSet = JavaPluginHelper.getJavaComponent(project).getMainFeature().getSourceSet();
         SourceSet defaultTestSourceSet = JavaPluginHelper.getDefaultTestSuite(project).getSources();
         return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, project, defaultPluginSourceSet, defaultTestSourceSet);
     }
@@ -283,22 +281,58 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     /**
-     * Implements plugin validation tasks to validate that a proper plugin jar is produced.
+     * A state shared by the validation process.
+     * <p>
+     * This separate class is required to ensure the shared state remains shared after deserialization of actions from the configuration cache.
+     *
+     * @see #configureJarTask(Project, GradlePluginDevelopmentExtension)
      */
-    static class PluginValidationAction implements Action<Task> {
-        private final Provider<Collection<PluginDeclaration>> plugins;
-        private final Collection<PluginDescriptor> descriptors;
+    static class PluginValidationActionsState {
+        private final List<PluginDescriptor> descriptors;
         private final Set<String> classes;
 
-        PluginValidationAction(Provider<Collection<PluginDeclaration>> plugins, @Nullable Collection<PluginDescriptor> descriptors, Set<String> classes) {
-            this.plugins = plugins;
+        public PluginValidationActionsState() {
+            this(new ArrayList<>(), new HashSet<>());
+        }
+
+        public PluginValidationActionsState(List<PluginDescriptor> descriptors, Set<String> classes) {
             this.descriptors = descriptors;
             this.classes = classes;
         }
 
+        public void addPluginClass(String className) {
+            classes.add(className);
+        }
+
+        public void addPluginDescriptor(PluginDescriptor descriptor) {
+            descriptors.add(descriptor);
+        }
+
+        public Set<String> getCollectedClasses() {
+            return classes;
+        }
+
+        public List<PluginDescriptor> getCollectedDescriptors() {
+            return descriptors;
+        }
+    }
+
+    /**
+     * Implements plugin validation tasks to validate that a proper plugin jar is produced.
+     */
+    static class PluginValidationAction implements Action<Task> {
+        private final Provider<Collection<PluginDeclaration>> plugins;
+        private final PluginValidationActionsState actionsState;
+
+        PluginValidationAction(Provider<Collection<PluginDeclaration>> plugins, PluginValidationActionsState actionsState) {
+            this.plugins = plugins;
+            this.actionsState = actionsState;
+        }
+
         @Override
         public void execute(Task task) {
-            if (descriptors == null || descriptors.isEmpty()) {
+            List<PluginDescriptor> descriptors = actionsState.getCollectedDescriptors();
+            if (descriptors.isEmpty()) {
                 LOGGER.warn(String.format(NO_DESCRIPTOR_WARNING_MESSAGE, task.getPath()));
             } else {
                 Set<String> pluginFileNames = Sets.newHashSet();
@@ -330,7 +364,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         }
 
         boolean hasFullyQualifiedClass(String fqClass) {
-            return classes.contains(fqClass.replaceAll("\\.", "/") + ".class");
+            return actionsState.getCollectedClasses().contains(fqClass.replaceAll("\\.", "/") + ".class");
         }
     }
 
@@ -338,10 +372,10 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
      * A file copy action that collects plugin descriptors as they are added to the jar.
      */
     static class PluginDescriptorCollectorAction implements Action<FileCopyDetails> {
-        List<PluginDescriptor> descriptors;
+        private final PluginValidationActionsState actionsState;
 
-        PluginDescriptorCollectorAction(List<PluginDescriptor> descriptors) {
-            this.descriptors = descriptors;
+        PluginDescriptorCollectorAction(PluginValidationActionsState actionsState) {
+            this.actionsState = actionsState;
         }
 
         @Override
@@ -355,7 +389,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
                 return;
             }
             if (descriptor.getImplementationClassName() != null) {
-                descriptors.add(descriptor);
+                actionsState.addPluginDescriptor(descriptor);
             }
         }
     }
@@ -364,15 +398,15 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
      * A file copy action that collects class file paths as they are added to the jar.
      */
     static class ClassManifestCollectorAction implements Action<FileCopyDetails> {
-        Set<String> classList;
+        private final PluginValidationActionsState actionsState;
 
-        ClassManifestCollectorAction(Set<String> classList) {
-            this.classList = classList;
+        ClassManifestCollectorAction(PluginValidationActionsState actionsState) {
+            this.actionsState = actionsState;
         }
 
         @Override
         public void execute(FileCopyDetails fileCopyDetails) {
-            classList.add(fileCopyDetails.getRelativePath().toString());
+            actionsState.addPluginClass(fileCopyDetails.getRelativePath().toString());
         }
     }
 

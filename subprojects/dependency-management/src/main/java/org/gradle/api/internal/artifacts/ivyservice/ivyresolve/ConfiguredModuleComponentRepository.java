@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 
 /**
  * A ModuleComponentRepository providing some user-configuration values.
  */
-public interface ConfiguredModuleComponentRepository extends ModuleComponentRepository {
+public interface ConfiguredModuleComponentRepository extends ModuleComponentRepository<ModuleComponentResolveMetadata> {
 
     /**
      * Should the 'dynamic resolve mode' be used for this (Ivy) repository, where the 'revConstraint'

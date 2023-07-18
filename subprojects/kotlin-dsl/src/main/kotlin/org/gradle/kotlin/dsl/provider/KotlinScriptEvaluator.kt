@@ -28,6 +28,7 @@ import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
@@ -51,6 +52,7 @@ import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.snapshot.ValueSnapshot
+import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
@@ -101,7 +103,8 @@ class StandardKotlinScriptEvaluator(
     private val executionEngine: ExecutionEngine,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val inputFingerprinter: InputFingerprinter
+    private val inputFingerprinter: InputFingerprinter,
+    private val gradlePropertiesController: GradlePropertiesController,
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -150,16 +153,31 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
-        Interpreter(InterpreterHost(jvmTarget))
+        Interpreter(InterpreterHost(gradlePropertiesController, jvmTarget))
     }
 
-    inner class InterpreterHost(override val jvmTarget: JavaVersion) : Interpreter.Host {
+    inner class InterpreterHost(
+        private val gradlePropertiesController: GradlePropertiesController,
+        override val jvmTarget: JavaVersion,
+    ) : Interpreter.Host {
+
+        override val allWarningsAsErrors: Boolean =
+            gradlePropertiesController.gradleProperties.find("org.gradle.kotlin.dsl.allWarningsAsErrors") == "true"
 
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {
                 val stage1BlocksAccessorClassPathGenerator = it.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
                 stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(it).bin
             } ?: ClassPath.EMPTY
+
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {
+            val project = scriptHost.target as Project
+            val projectAccessorsClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
+            return projectAccessorsClassPathGenerator.projectAccessorsClassPath(
+                project,
+                compilationClassPathOf(scriptHost.targetScope)
+            ).bin
+        }
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
 
@@ -246,6 +264,7 @@ class StandardKotlinScriptEvaluator(
             executionEngineFor(scriptHost).createRequest(
                 CompileKotlinScript(
                     jvmTarget,
+                    allWarningsAsErrors,
                     programId,
                     compilationClassPath,
                     accessorsClassPath,
@@ -336,6 +355,7 @@ class StandardKotlinScriptEvaluator(
 internal
 class CompileKotlinScript(
     private val jvmTarget: JavaVersion,
+    private val allWarningsAsErrors: Boolean,
     private val programId: ProgramId,
     private val compilationClassPath: ClassPath,
     private val accessorsClassPath: ClassPath,
@@ -347,20 +367,20 @@ class CompileKotlinScript(
 ) : UnitOfWork {
 
     companion object {
-        const val ASSIGNMENT_OVERLOAD_ENABLED = "assignmentOverloadEnabled"
         const val JVM_TARGET = "jvmTarget"
+        const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
         const val TEMPLATE_ID = "templateId"
         const val SOURCE_HASH = "sourceHash"
         const val COMPILATION_CLASS_PATH = "compilationClassPath"
         const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
-        val IDENTITY_HASH__PROPERTIES = listOf(ASSIGNMENT_OVERLOAD_ENABLED, JVM_TARGET, TEMPLATE_ID, SOURCE_HASH, COMPILATION_CLASS_PATH, ACCESSORS_CLASS_PATH)
+        val IDENTITY_HASH__PROPERTIES = listOf(JVM_TARGET, TEMPLATE_ID, SOURCE_HASH, COMPILATION_CLASS_PATH, ACCESSORS_CLASS_PATH)
     }
 
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
-        visitor.visitInputProperty(ASSIGNMENT_OVERLOAD_ENABLED) { programId.assignmentOverloadEnabled }
         visitor.visitInputProperty(JVM_TARGET) { jvmTarget.majorVersion }
+        visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { allWarningsAsErrors }
         visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
         visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
         visitor.visitClassPathProperty(COMPILATION_CLASS_PATH, compilationClassPath)

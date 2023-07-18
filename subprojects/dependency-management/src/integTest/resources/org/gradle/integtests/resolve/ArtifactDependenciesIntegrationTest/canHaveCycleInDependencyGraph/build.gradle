@@ -13,25 +13,3 @@ dependencies {
 
 file("projectA-1.2.jar").text = ''
 file("projectB-1.5.jar").text = ''
-
-defaultTasks 'listJars'
-
-task listJars {
-    doLast {
-        def compile = configurations.compile
-
-        Set jars = compile.collect { it.name } as Set
-        assert ['projectA-1.2.jar', 'projectB-1.5.jar'] as Set == jars
-
-        Set artifacts = compile.resolvedConfiguration.resolvedArtifacts.collect {
-            "${it.name}-${it.type}-${it.extension}" as String
-        } as Set
-        assert ['projectA-jar-jar', 'projectB-jar-jar'] as Set == artifacts
-
-        Set modules = compile.resolvedConfiguration.resolvedArtifacts.collect {
-            def dep = it.moduleVersion
-            "${dep.id.group}-${dep.id.name}-${dep.id.version}" as String
-        } as Set
-        assert ['test-projectA-1.2', 'test-projectB-1.5'] as Set == modules
-    }
-}

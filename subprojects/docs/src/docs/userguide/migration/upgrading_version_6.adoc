@@ -26,10 +26,11 @@ image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
 This is so that you can see any deprecation warnings that apply to your build.
 +
-Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
 . Update your plugins.
 +
-Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
+Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed.
+The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
 +
 . Run `gradle wrapper --gradle-version 7.0` to update the project to 7.0.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
@@ -216,7 +217,8 @@ configurations {
 }
 ```
 
-The result of dependency resolution for your custom configuration may not be the same as Gradle 6.x or before. You may notice missing dependencies or artifacts.
+The result of dependency resolution for your custom configuration may not be the same as Gradle 6.x or before.
+You may notice missing dependencies or artifacts.
 ====
 
 ==== Location of temporary project files for `ProjectBuilder`
@@ -233,7 +235,8 @@ If the test uses `ProjectBuilder.withProjectDir(...)`, it is unaffected.
 Tests that use the <<test_kit#test_kit, TestKit>> API used to create temporary files under the system temporary directory as defined by `java.io.tmpdir`.
 These files were used to store copies of Gradle distributions or another test-only Gradle User Home.
 
-TestKit tests will now create temporary files under the `Test` task's temporary directory. This path is usually under the project build directory.
+TestKit tests will now create temporary files under the `Test` task's temporary directory.
+This path is usually under the project build directory.
 This may cause test failures when the test expects particular file paths.
 
 If the test uses `GradleRunner.withTestKitDir(...)`, it is unaffected.
@@ -483,7 +486,8 @@ This may impact Kotlin consumers where the return types of APIs are no longer nu
 
 ==== Projects imported into Eclipse now include custom source set classpaths
 
-Previously, projects imported by Eclipse only included dependencies for the main and test source sets. The compile and runtime classpaths of custom source sets were ignored.
+Previously, projects imported by Eclipse only included dependencies for the main and test source sets.
+The compile and runtime classpaths of custom source sets were ignored.
 
 Since Gradle 6.8, projects imported into Eclipse include the compile and runtime classpath for every source set defined by the build.
 
@@ -788,7 +792,8 @@ There were no deprecations between Gradle 6.1 and 6.2.
 
 ==== Querying a mapped output property of a task before the task has completed
 
-Querying the value of a mapped output property before the task has completed can cause strange build failures because it indicates stale or non-existent outputs may be used by mistake. This behavior is deprecated and will emit a deprecation warning. This will become an error in Gradle 7.0.
+Querying the value of a mapped output property before the task has completed can cause strange build failures because it indicates stale or non-existent outputs may be used by mistake.
+This behavior is deprecated and will emit a deprecation warning. This will become an error in Gradle 7.0.
 
 The following example demonstrates this problem where the Producer's output file is parsed before the Producer executes:
 ```
@@ -830,7 +835,8 @@ If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm
 
 ==== `ProjectLayout` is no longer available to worker actions as a service
 
-In Gradle 6.0, the `ProjectLayout` service was made available to worker actions via service injection. This service allowed for mutable state to leak into a worker action and introduced a way for dependencies to go undeclared in the worker action.
+In Gradle 6.0, the `ProjectLayout` service was made available to worker actions via service injection.
+This service allowed for mutable state to leak into a worker action and introduced a way for dependencies to go undeclared in the worker action.
 
 `ProjectLayout` has been removed from the available services.  Worker actions that were using `ProjectLayout` should switch to injecting the `projectDirectory` or `buildDirectory` as a parameter instead.
 

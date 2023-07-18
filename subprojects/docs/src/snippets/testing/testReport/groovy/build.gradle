@@ -7,7 +7,6 @@ plugins {
 // A resolvable configuration to collect test reports data
 configurations {
     testReportData {
-        canBeResolved = true
         canBeConsumed = false
         attributes {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))

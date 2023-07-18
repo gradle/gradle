@@ -18,11 +18,13 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
 class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "rules are not fired when no candidate matches selector"() {
         buildFile << """
 
@@ -42,7 +44,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
 
             task lenientCheck {
                 doLast {
-                    def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                    def artifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts.artifacts
                     assert artifacts.size() == 0
                     assert candidates.empty
                 }
@@ -194,9 +196,11 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
 
             task resolveConf {
+                def files = configurations.conf
+                def modules = provider { fired }
                 doLast {
-                    configurations.conf.files
-                    assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
+                    files.files
+                    assert modules.get().sort() == [ 'child', 'child_dep', 'parent_dep' ]
                 }
             }
         """
@@ -398,10 +402,13 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             configurations.add(configurations.conf.copy())
 
             task('assertDeps') {
+                def conf = configurations.conf
+                def confCopy = configurations.confCopy
+                def notCopy = configurations.notCopy
                 doLast {
-                    assert configurations.conf.files*.name == ['api-1.1.jar']
-                    assert configurations.confCopy.files*.name == ['api-1.1.jar']
-                    assert configurations.notCopy.files*.name == ['api-1.2.jar']
+                    assert conf*.name == ['api-1.1.jar']
+                    assert confCopy*.name == ['api-1.1.jar']
+                    assert notCopy*.name == ['api-1.2.jar']
                 }
             }
         """
@@ -466,6 +473,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         checkDependencies()
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can provide component selection rule as rule source"() {
         buildFile << """
 
@@ -484,9 +492,9 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
 
             checkDeps.doLast {
-                def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
+                def artifacts = configurations.conf.incoming.artifacts.artifacts
                 assert artifacts.size() == 1
-                assert artifacts[0].moduleVersion.id.version == '1.1'
+                assert artifacts[0].id.componentIdentifier.version == '1.1'
                 assert ruleSource.candidates == ['1.2', '1.1']
             }
 

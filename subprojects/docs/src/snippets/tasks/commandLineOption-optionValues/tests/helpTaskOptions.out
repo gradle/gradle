@@ -7,12 +7,16 @@ Type
      UrlProcess (UrlProcess)
 
 Options
+     --http     Configures the http protocol to be allowed.
+
+     --no-http     Disables option --http.
+
      --output-type     Configures the output type.
                        Available values are:
                             CONSOLE
                             FILE
 
-     --url     Configures the URL to be write to the output.
+     --url     Configures the URL to send the request to.
 
      --rerun     Causes the task to be re-run even if up-to-date.
 

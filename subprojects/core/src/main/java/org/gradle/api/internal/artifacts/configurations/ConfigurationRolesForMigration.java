@@ -17,92 +17,94 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
 
 /**
- * The roles here are all meant to be temporary roles used for migration only, to be removed in Gradle 9.0.
- * <p>
- * While we currently (Gradle 8.x) have to support the legacy behavior of configurations, we want to encode
- * the knowledge of what the minimally required intended behavior is, so that we easily migrate to the
- * {@link #eventualRole} in Gradle 9.0.
- * <p>
- * This is meant to only support <strong>narrowing migrations</strong>, that restrict usage that was previously
- * allowed.  The migrations should transition from an intended role in the {@link ConfigurationRoles} enum to
- * another intended role in the {@link ConfigurationRoles} enum.  This is <strong>not</strong> meant to support
- * general-case migrations from any usage pattern to any other.
+ * This class defines a set of configuration roles which each describe an intermediate state between a current role
+ * and a future role which will replace it in the next major Gradle version. These roles represent a narrowing migration
+ * from one role to another by marking usages which are present in the current role but not present in the eventual role
+ * as deprecated.
+ *
+ * <p>The roles here are all meant to be temporary roles used for migration only, to be removed in Gradle 9.0.</p>
+ *
+ * <p>This is meant to only support <strong>narrowing migrations</strong>, that restrict usage that was previously
+ * allowed. The migrations should transition from a role defined in {@link ConfigurationRoles} to another
+ * role defined in {@link ConfigurationRoles}. This is <strong>not</strong> meant to support general-case
+ * migrations from any usage pattern to any other.</p>
  */
-public enum ConfigurationRolesForMigration implements ConfigurationRole {
+public final class ConfigurationRolesForMigration {
+
+    private ConfigurationRolesForMigration() {
+        // Private to prevent instantiation.
+    }
+
+    /**
+     * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
+     */
     @Deprecated
-    LEGACY_TO_INTENDED_RESOLVABLE_BUCKET(ConfigurationRoles.LEGACY, ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET),
-    @Deprecated
-    LEGACY_TO_INTENDED_CONSUMABLE(ConfigurationRoles.LEGACY, ConfigurationRoles.INTENDED_CONSUMABLE),
+    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
 
-    @Deprecated
-    INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE(ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET, ConfigurationRoles.INTENDED_RESOLVABLE),
-    @Deprecated
-    INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE(ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET, ConfigurationRoles.INTENDED_CONSUMABLE);
+    /**
+     * A legacy configuration that will become a consumable configuration in the next major version.
+     */
+    @SuppressWarnings("deprecation")
+    public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE);
 
-    private final boolean consumable;
-    private final boolean resolvable;
-    private final boolean declarableAgainst;
-    private final boolean consumptionDeprecated;
-    private final boolean resolutionDeprecated;
-    private final boolean declarationAgainstDeprecated;
+    /**
+     * A resolvable dependency scope that will become a resolvable configuration in the next major version.
+     */
+    @SuppressWarnings("deprecation")
+    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE);
 
-    private final ConfigurationRole initialRole;
-    private final ConfigurationRole eventualRole;
+    /**
+     * A consumable dependency scope that will become a consumable configuration in the next major version.
+     */
+    @SuppressWarnings("deprecation")
+    public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRoles.CONSUMABLE);
 
-    ConfigurationRolesForMigration(ConfigurationRoles initialRole, ConfigurationRoles eventualRole) {
-        Preconditions.checkArgument(!initialRole.isConsumptionDeprecated() && !initialRole.isResolutionDeprecated() && !initialRole.isDeclarationAgainstDeprecated(), "The initial role must not contain deprecated usages.");
+    /**
+     * All known migration roles.
+     */
+    public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
+        LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
+        LEGACY_TO_CONSUMABLE,
+        RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+        CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
+    );
 
-        this.consumable = initialRole.isConsumable();
-        this.resolvable = initialRole.isResolvable();
-        this.declarableAgainst = initialRole.isDeclarableAgainst();
+    /**
+     * Computes the difference between two roles, such that any usage that is allowed in the
+     * initial role but not allowed in the eventual role will be deprecated in the returned role.
+     */
+    private static ConfigurationRole difference(ConfigurationRole initialRole, ConfigurationRole eventualRole) {
+        Preconditions.checkArgument(
+            !initialRole.isConsumptionDeprecated() && !initialRole.isResolutionDeprecated() && !initialRole.isDeclarationAgainstDeprecated(),
+            "The initial role must not contain deprecated usages."
+        );
+        Preconditions.checkArgument(
+            !eventualRole.isConsumptionDeprecated() && !eventualRole.isResolutionDeprecated() && !eventualRole.isDeclarationAgainstDeprecated(),
+            "The eventual role must not contain deprecated usages."
+        );
 
         /*
          * Since we're assuming strictly narrowing usage from a non-deprecated initial role, for each usage we want this migration
          * role to deprecate a usage iff that usage will change from allowed -> disallowed when migrating from the initial role to the
          * eventual role.
          */
-        this.consumptionDeprecated = initialRole.isConsumable() && !eventualRole.isConsumable();
-        this.resolutionDeprecated = initialRole.isResolvable() && !eventualRole.isResolvable();
-        this.declarationAgainstDeprecated = initialRole.isDeclarableAgainst() && !eventualRole.isDeclarableAgainst();
+        boolean consumptionDeprecated = initialRole.isConsumable() && !eventualRole.isConsumable();
+        boolean resolutionDeprecated = initialRole.isResolvable() && !eventualRole.isResolvable();
+        boolean declarationAgainstDeprecated = initialRole.isDeclarable() && !eventualRole.isDeclarable();
 
-        this.initialRole = initialRole;
-        this.eventualRole = eventualRole;
-    }
-
-    @Override
-    public String getName() {
-        return initialRole.getName(); // The display name is the initialRole's name, as this describes the current role
-    }
-
-    @Override
-    public boolean isConsumable() {
-        return consumable;
-    }
-
-    @Override
-    public boolean isResolvable() {
-        return resolvable;
-    }
-
-    @Override
-    public boolean isDeclarableAgainst() {
-        return declarableAgainst;
-    }
-
-    @Override
-    public boolean isConsumptionDeprecated() {
-        return consumptionDeprecated;
-    }
-
-    @Override
-    public boolean isResolutionDeprecated() {
-        return resolutionDeprecated;
-    }
-
-    @Override
-    public boolean isDeclarationAgainstDeprecated() {
-        return declarationAgainstDeprecated;
+        return new DefaultConfigurationRole(
+            initialRole.getName(),
+            initialRole.isConsumable(),
+            initialRole.isResolvable(),
+            initialRole.isDeclarable(),
+            consumptionDeprecated,
+            resolutionDeprecated,
+            declarationAgainstDeprecated
+        );
     }
 }

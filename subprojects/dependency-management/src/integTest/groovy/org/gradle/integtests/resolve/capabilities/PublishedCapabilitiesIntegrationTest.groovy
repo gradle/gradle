@@ -236,13 +236,12 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
 
             tasks.register("dumpCapabilitiesFromArtifactView") {
+                def artifactCollection = configurations.conf.incoming.artifactView {
+                    attributes {
+                        attribute(Attribute.of("artifactType", String), "jar")
+                    }
+                }.artifacts
                 doFirst {
-                    def artifactCollection = configurations.conf.incoming.artifactView {
-                        attributes {
-                            attribute(Attribute.of("artifactType", String), "jar")
-                        }
-                    }.artifacts
-
                     artifactCollection.artifacts.each {
                         println "Artifact: \${it.id.componentIdentifier.displayName}"
                         println "  - artifact: \${it.file}"

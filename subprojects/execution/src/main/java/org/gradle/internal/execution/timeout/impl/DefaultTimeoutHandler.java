@@ -154,13 +154,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
         }
 
         private void doAsPartOfBuildOperation(Runnable runnable) {
-            BuildOperationRef previousBuildOperationRef = currentBuildOperationRef.get();
-            try {
-                currentBuildOperationRef.set(this.buildOperationRef);
-                runnable.run();
-            } finally {
-                currentBuildOperationRef.set(previousBuildOperationRef);
-            }
+            currentBuildOperationRef.with(this.buildOperationRef, runnable);
         }
 
         @Override

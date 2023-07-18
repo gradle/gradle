@@ -67,12 +67,22 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:core:2.9.4", "org:core:2.7.9")
+                edge("org:core:2.9.4", "org:core:2.7.9") {
+                    byConstraint('belongs to platform org:platform:2.7.9')
+                    forced()
+                }
                 edge("org:databind:{strictly 2.7.9}", "org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
+                    byConstraint('belongs to platform org:platform:2.7.9')
+                    forced()
+                    module('org:annotations:2.7.9') {
+                        byConstraint('belongs to platform org:platform:2.7.9')
+                        forced()
+                    }
                     module('org:core:2.7.9')
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
+                    byConstraint('belongs to platform org:platform:2.7.9')
+                    forced()
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
@@ -305,10 +315,24 @@ include 'other'
             root(":", ":test:") {
                 module("com.amazonaws:aws-java-sdk-core:1.11.438") {
                     edge("org:cbor:2.6.7", "org:cbor:2.8.10") {
-                        module("org:core:2.8.10")
+                        byConstraint("belongs to platform org:platform:2.8.11.1")
+                        byConflictResolution("between versions 2.8.10 and 2.6.7")
+                        forced()
+                        module("org:core:2.8.10") {
+                            byConstraint("belongs to platform org:platform:2.8.11.1")
+                            byConflictResolution("between versions 2.8.10 and 2.6.7")
+                            forced()
+                        }
                     }
                     edge("org:databind:2.6.7.1", "org:databind:2.8.11.1") {
-                        edge("org:annotations:2.8.0", "org:annotations:2.8.10")
+                        byConstraint("belongs to platform org:platform:2.8.11.1")
+                        byAncestor()
+                        forced()
+                        edge("org:annotations:2.8.0", "org:annotations:2.8.10") {
+                            byConstraint("belongs to platform org:platform:2.8.11.1")
+                            byConflictResolution("between versions 2.8.10 and 2.8.0")
+                            forced()
+                        }
                         module("org:core:2.8.10")
                     }
                 }
@@ -350,10 +374,22 @@ include 'other'
             root(":", ":test:") {
                 module("com.amazonaws:aws-java-sdk-core:1.11.438") {
                     module("org:cbor:2.6.7") {
-                        module("org:core:2.6.7")
+                        byConstraint("belongs to platform org:platform:2.6.7.1")
+                        forced()
+                        module("org:core:2.6.7") {
+                            byConstraint("belongs to platform org:platform:2.6.7.1")
+                            forced()
+                        }
                     }
                     edge("org:databind:2.8.0", "org:databind:2.6.7.1") {
-                        edge("org:annotations:2.6.0", "org:annotations:2.6.7")
+                        byConstraint("belongs to platform org:platform:2.6.7.1")
+                        byAncestor()
+                        forced()
+                        edge("org:annotations:2.6.0", "org:annotations:2.6.7") {
+                            byConstraint("belongs to platform org:platform:2.6.7.1")
+                            byConflictResolution("between versions 2.6.7 and 2.6.0")
+                            forced()
+                        }
                         module("org:core:2.6.7")
                     }
                 }

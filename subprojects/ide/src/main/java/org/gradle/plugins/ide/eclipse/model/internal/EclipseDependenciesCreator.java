@@ -124,6 +124,12 @@ public class EclipseDependenciesCreator {
             if (artifactId instanceof ComponentArtifactMetadata) {
                 buildDependencies = ((ComponentArtifactMetadata) artifactId).getBuildDependencies();
             }
+            if (!asJavaModule) {
+                Project artifactProject = project.findProject(componentIdentifier.getProjectPath());
+                if (artifactProject != null) {
+                    asJavaModule = EclipseClassPathUtil.isInferModulePath(artifactProject);
+                }
+            }
             projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), buildDependencies, testDependency, asJavaModule));
         }
 

@@ -24,6 +24,15 @@ import org.gradle.util.TestUtil
 
 class JavaExecTest extends AbstractProjectBuilderSpec {
 
+    def 'Jvm arguments are empty by default'() {
+        when:
+        def task = project.tasks.create("run", JavaExec)
+
+        then:
+        task.jvmArgs != null
+        task.jvmArgs.isEmpty()
+    }
+
     def 'fails if custom executable does not exist'() {
         def task = project.tasks.create("run", JavaExec)
         def invalidExecutable = temporaryFolder.file("invalid")

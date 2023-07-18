@@ -19,15 +19,15 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.junit.Assert.assertTrue
 
 @TestReproducibleArchives
 class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "file and directory permissions are preserved when using #taskName task"() {
         given:
         createDir('parent') {
@@ -57,7 +57,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "untarTo"
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "file and directory permissions can be overridden in #taskName task"() {
         given:
         createDir('parent') {
@@ -73,8 +73,8 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 task pack(type: $taskName) {
                     archiveFileName = "$archName"
                     destinationDirectory = projectDir
-                    fileMode = 0774
-                    dirMode = 0756
+                    filePermissions { unix("0774") }
+                    dirPermissions { unix("0756") }
                     from 'parent'
                 }
                 """
@@ -92,7 +92,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "file and directory permissions are preserved for unpacked #taskName archives"() {
         given:
         TestFile testDir = createDir('testdir') {
@@ -121,7 +121,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "tarTo"    | "tarTree"
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "file and directory permissions are not preserved when dealing with #taskName archives on OS with no permission support"() {
         given:
         TestFile testDir = createDir('root') {

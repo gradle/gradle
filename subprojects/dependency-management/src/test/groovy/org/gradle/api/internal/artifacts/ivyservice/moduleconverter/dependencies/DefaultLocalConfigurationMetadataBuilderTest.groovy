@@ -39,9 +39,9 @@ import spock.lang.Specification
  * Tests {@link DefaultLocalConfigurationMetadataBuilder}
  */
 class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
-    def dependencyDescriptorFactory = Mock(DependencyDescriptorFactory)
+    def dependencyMetadataFactory = Mock(DependencyMetadataFactory)
     def excludeRuleConverter = Mock(ExcludeRuleConverter)
-    def converter = new DefaultLocalConfigurationMetadataBuilder(dependencyDescriptorFactory, excludeRuleConverter)
+    def converter = new DefaultLocalConfigurationMetadataBuilder(dependencyMetadataFactory, excludeRuleConverter)
 
     def configuration = Mock(ConfigurationInternal)
     def dependencySet = Mock(DependencySet)
@@ -58,6 +58,7 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
 
         component.getId() >> componentId
         component.getConfigurationNames() >> ["config"]
+        configuration.isCanBeDeclared() >> true
         configuration.name >> "config"
         configuration.extendsFrom >> []
         configuration.hierarchy >> [configuration]
@@ -95,11 +96,15 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
 
         then:
         1 * configuration.runDependencyActions()
-        1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
-        1 * dependencyDescriptorFactory.createDependencyDescriptor(componentId, "config", _, dependency1) >> dependencyDescriptor1
-        1 * dependencyDescriptorFactory.createDependencyDescriptor(componentId, "config", _, dependency2) >> dependencyDescriptor2
 
-        metaData.dependencies == [dependencyDescriptor1, dependencyDescriptor2]
+        when:
+        def dependencies = metaData.dependencies
+
+        then:
+        1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
+        1 * dependencyMetadataFactory.createDependencyMetadata(componentId, "config", _, dependency1) >> dependencyDescriptor1
+        1 * dependencyMetadataFactory.createDependencyMetadata(componentId, "config", _, dependency2) >> dependencyDescriptor2
+        dependencies == [dependencyDescriptor1, dependencyDescriptor2]
     }
 
     def "adds DependencyConstraint instances from configuration"() {
@@ -113,11 +118,15 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
 
         then:
         1 * configuration.runDependencyActions()
-        1 * dependencyConstraintSet.iterator() >> [dependencyConstraint1, dependencyConstraint2].iterator()
-        1 * dependencyDescriptorFactory.createDependencyConstraintDescriptor(componentId, "config", _, dependencyConstraint1) >> dependencyDescriptor1
-        1 * dependencyDescriptorFactory.createDependencyConstraintDescriptor(componentId, "config", _, dependencyConstraint2) >> dependencyDescriptor2
 
-        metaData.dependencies == [dependencyDescriptor1, dependencyDescriptor2]
+        when:
+        def dependencies = metaData.dependencies
+
+        then:
+        1 * dependencyConstraintSet.iterator() >> [dependencyConstraint1, dependencyConstraint2].iterator()
+        1 * dependencyMetadataFactory.createDependencyConstraintMetadata(componentId, "config", _, dependencyConstraint1) >> dependencyDescriptor1
+        1 * dependencyMetadataFactory.createDependencyConstraintMetadata(componentId, "config", _, dependencyConstraint2) >> dependencyDescriptor2
+        dependencies == [dependencyDescriptor1, dependencyDescriptor2]
     }
 
     def "adds FileCollectionDependency instances from configuration"() {
@@ -129,9 +138,13 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
 
         then:
         1 * configuration.runDependencyActions()
-        1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
 
-        metaData.files*.source == [dependency1, dependency2]
+        when:
+        def files = metaData.files
+
+        then:
+        1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
+        files*.source == [dependency1, dependency2]
     }
 
     def "adds exclude rule from configuration"() {
@@ -143,10 +156,14 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
 
         then:
         1 * configuration.runDependencyActions()
+
+        when:
+        def excludes = metaData.excludes
+
+        then:
         1 * configuration.excludeRules >> ([excludeRule] as Set)
         1 * excludeRuleConverter.convertExcludeRule(excludeRule) >> ivyExcludeRule
-
-        metaData.getExcludes() == ImmutableList.of(ivyExcludeRule)
+        excludes == ImmutableList.of(ivyExcludeRule)
     }
 
     def create() {

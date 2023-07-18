@@ -12,7 +12,7 @@ dependencies {
 
 // tag::walk-task[]
 tasks.register<DependencyGraphWalk>("walkDependencyGraph") {
-    dependencies.set(configurations["scm"].incoming)
+    dependencies = configurations["scm"].incoming
 }
 
 abstract class DependencyGraphWalk: DefaultTask() {

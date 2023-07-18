@@ -104,11 +104,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public Path getCurrentPrefixForProjectsInChildBuilds() {
-        return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildDefinition.getName());
-    }
-
-    @Override
     public Path calculateIdentityPathForProject(Path projectPath) {
         return getBuildController().getGradle().getIdentityPath().append(projectPath);
     }

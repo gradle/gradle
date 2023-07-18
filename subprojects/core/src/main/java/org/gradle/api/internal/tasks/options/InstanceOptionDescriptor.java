@@ -46,6 +46,10 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         this.clashing = clashing;
     }
 
+    public OptionElement getOptionElement() {
+        return this.optionElement;
+    }
+
     @Override
     public String getName() {
         return optionElement.getOptionName();

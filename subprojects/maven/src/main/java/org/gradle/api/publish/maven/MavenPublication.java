@@ -25,7 +25,7 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * A {@code MavenPublication} is the representation/configuration of how Gradle should publish something in Maven format.
  *
- * You directly add a named Maven Publication the project's {@code publishing.publications} container by providing {@link MavenPublication} as the type.
+ * You directly add a named Maven publication the project's {@code publishing.publications} container by providing {@link MavenPublication} as the type.
  * <pre>
  * publishing {
  *   publications {

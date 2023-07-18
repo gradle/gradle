@@ -27,7 +27,6 @@ import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
-import spock.lang.Ignore
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
@@ -197,8 +196,8 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         'none' | 'none' | '11'      | '11'
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3729")
     def "can compile source and run tests using Java #javaVersion for Groovy "() {
+        Assume.assumeTrue(GroovyCoverage.supportsJavaVersion("$versionNumber", javaVersion))
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
         Assume.assumeTrue(jdk != null)
 
@@ -209,9 +208,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
                 testImplementation "org.spockframework:spock-core:${getSpockVersion(versionNumber)}"
             }
 
-            test {
-                useJUnitPlatform()
-            }
+            testing.suites.test.useJUnitJupiter()
         """
 
         file("src/test/groovy/GroovySpec.groovy") << """
@@ -238,7 +235,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         JavaVersion.forClass(classFile("groovy", "test", "GroovySpec.class").bytes) == groovyTarget
 
         where:
-        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it }
+        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_20 }
     }
 
     private def getSpockVersion(VersionNumber groovyVersion) {

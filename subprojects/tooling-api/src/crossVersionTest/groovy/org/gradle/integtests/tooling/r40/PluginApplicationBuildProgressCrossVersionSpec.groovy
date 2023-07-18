@@ -500,11 +500,10 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         """
 
         when:
-        withConnection { connection ->
-            def operation = connection.newBuild()
+        withConnection {
+            it.newBuild()
                 .addProgressListener(events)
-            collectOutputs(operation)
-            operation.run()
+                .run()
         }
 
         then:

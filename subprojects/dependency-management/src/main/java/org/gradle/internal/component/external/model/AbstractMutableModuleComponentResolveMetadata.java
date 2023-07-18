@@ -526,12 +526,14 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
                 && Objects.equal(excludes, that.excludes)
                 && Objects.equal(reason, that.reason)
                 && Objects.equal(attributes, that.attributes)
-                && Objects.equal(requestedCapabilities, that.requestedCapabilities);
+                && Objects.equal(requestedCapabilities, that.requestedCapabilities)
+                && Objects.equal(endorsing, that.endorsing)
+                && Objects.equal(dependencyArtifact, that.dependencyArtifact);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes);
+            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes, endorsing, dependencyArtifact);
         }
     }
 

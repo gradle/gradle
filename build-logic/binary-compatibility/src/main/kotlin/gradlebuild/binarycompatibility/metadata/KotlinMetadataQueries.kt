@@ -29,7 +29,6 @@ import javassist.Modifier
 import javassist.bytecode.annotation.Annotation
 import javassist.bytecode.annotation.AnnotationImpl
 import kotlinx.metadata.Flag
-import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import java.lang.reflect.Proxy
 
@@ -73,22 +72,22 @@ object KotlinMetadataQueries {
 
     private
     fun <T : Any?> queryKotlinMetadata(ctClass: CtClass, defaultResult: T, query: (KotlinClassMetadata) -> T): T =
-        ctClass.kotlinClassHeader
+        ctClass.metadata
             ?.let { KotlinClassMetadata.read(it) }
             ?.let { query(it) }
             ?: defaultResult
 
     private
-    val CtClass.kotlinClassHeader: KotlinClassHeader?
+    val CtClass.metadata: Metadata?
         get() = ctAnnotation<Metadata>()?.let { annotation ->
-            KotlinClassHeader(
-                kind = annotation.getMemberValue("k")?.intValue,
-                metadataVersion = annotation.getMemberValue("mv")?.intArrayValue,
-                data1 = annotation.getMemberValue("d1")?.stringArrayValue,
-                data2 = annotation.getMemberValue("d2")?.stringArrayValue,
-                extraString = annotation.getMemberValue("xs")?.stringValue,
-                packageName = annotation.getMemberValue("pn")?.stringValue,
-                extraInt = annotation.getMemberValue("xi")?.intValue
+            Metadata(
+                kind = annotation.getMemberValue("k")?.intValue ?: 1,
+                metadataVersion = annotation.getMemberValue("mv")?.intArrayValue ?: IntArray(0),
+                data1 = annotation.getMemberValue("d1")?.stringArrayValue ?: arrayOf(),
+                data2 = annotation.getMemberValue("d2")?.stringArrayValue ?: arrayOf(),
+                extraString = annotation.getMemberValue("xs")?.stringValue ?: "",
+                packageName = annotation.getMemberValue("pn")?.stringValue ?: "",
+                extraInt = annotation.getMemberValue("xi")?.intValue ?: 0
             )
         }
 

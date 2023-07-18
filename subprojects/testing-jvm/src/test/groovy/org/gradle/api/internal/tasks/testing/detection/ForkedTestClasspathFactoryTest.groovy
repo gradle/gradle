@@ -68,7 +68,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
         def classpath = underTest.create([new File("cls.jar")], [new File("mod.jar")], framework, false)
 
         then:
-        classpath.applicationClasspath == [new File("app-cls-external.jar"), new File("app-mod-external.jar"), new File("cls.jar")]
+        classpath.applicationClasspath == [new File("cls.jar"), new File("app-cls-external.jar"), new File("app-mod-external.jar")]
         classpath.applicationModulepath == [new File("mod.jar")]
         classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS + 2
         classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
@@ -83,8 +83,8 @@ class ForkedTestClasspathFactoryTest extends Specification {
         def classpath = underTest.create([new File("cls.jar")], [new File("mod.jar")], framework, true)
 
         then:
-        classpath.applicationClasspath == [new File("app-cls-external.jar"), new File("cls.jar")]
-        classpath.applicationModulepath == [new File("app-mod-external.jar"), new File("mod.jar")]
+        classpath.applicationClasspath == [new File("cls.jar"), new File("app-cls-external.jar")]
+        classpath.applicationModulepath == [new File("mod.jar"), new File("app-mod-external.jar")]
         classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS + 1
         classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
         classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS + 1
@@ -138,8 +138,8 @@ class ForkedTestClasspathFactoryTest extends Specification {
 
         then:
         if (loadsAll) {
-            assert classpath.applicationClasspath.take(2) == ["a", "b"].collect { new File("$it-external.jar") }
-            assert classpath.applicationModulepath.take(2) == ["c", "d"].collect { new File("$it-external.jar") }
+            assert classpath.applicationClasspath.takeRight(2) == ["a", "b"].collect { new File("$it-external.jar") }
+            assert classpath.applicationModulepath.takeRight(2) == ["c", "d"].collect { new File("$it-external.jar") }
             assert classpath.implementationClasspath.takeRight(2) == ["e", "f"].collect { new URL("file://$it-external.jar") }
             assert classpath.implementationModulepath == ["g", "h"].collect { new URL("file://$it-external.jar") }
         } else {
@@ -190,8 +190,8 @@ class ForkedTestClasspathFactoryTest extends Specification {
 
         then:
         if (loadsAll) {
-            assert classpath.applicationClasspath.take(2) == ["a", "b"].collect { new File("$it-external.jar") }
-            assert classpath.applicationModulepath.take(2) == ["c", "d"].collect { new File("$it-external.jar") }
+            assert classpath.applicationClasspath.takeRight(2) == ["a", "b"].collect { new File("$it-external.jar") }
+            assert classpath.applicationModulepath.takeRight(2) == ["c", "d"].collect { new File("$it-external.jar") }
             assert classpath.implementationClasspath.takeRight(2) == ["e", "f"].collect { new URL("file://$it-external.jar") }
             assert classpath.implementationModulepath == ["g", "h"].collect { new URL("file://$it-external.jar") }
         } else {

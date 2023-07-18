@@ -19,6 +19,8 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
+import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 import static org.gradle.util.internal.GUtil.loadProperties
 
 class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -59,7 +61,8 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     private expectOutputDeprecation(GradleExecuter runWithTasks) {
         runWithTasks.expectDocumentedDeprecationWarning("The WriteProperties.outputFile property has been deprecated. This is scheduled to be removed in Gradle 9.0." +
-            " Please use the destinationFile property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.WriteProperties.html#org.gradle.api.tasks.WriteProperties:outputFile for more details.")
+            " Please use the destinationFile property instead. " +
+            String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.WriteProperties.html#org.gradle.api.tasks.WriteProperties:outputFile"))
     }
 
     def "simple properties are written sorted alphabetically with #outputProprertyName"() {

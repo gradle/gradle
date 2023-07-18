@@ -297,10 +297,13 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         outputContains("because file '$testFileName' has changed")
 
         where:
-        testCase                                | fileAccess
-        "reading text with default encoding"    | (TestFile it) -> { UndeclaredFileAccess.fileText(testFilePath(it)) }
-        "reading text with customized encoding" | (TestFile it) -> { UndeclaredFileAccess.fileTextWithEncoding(testFilePath(it)) }
-        "constructing a file input stream"      | (TestFile it) -> { UndeclaredFileAccess.fileInputStreamConstructor(testFilePath(it)) }
+        testCase                                        | fileAccess
+        "reading text with default encoding"            | (TestFile it) -> { UndeclaredFileAccess.fileText(testFilePath(it)) }
+        "reading text with customized encoding"         | (TestFile it) -> { UndeclaredFileAccess.fileTextWithEncoding(testFilePath(it)) }
+        "constructing a file input stream"              | (TestFile it) -> { UndeclaredFileAccess.fileInputStreamConstructor(testFilePath(it)) }
+        "constructing a byte channel"                   | (TestFile it) -> { UndeclaredFileAccess.filesNewByteChannel(testFilePath(it)) }
+        "constructing a byte channel with open options" | (TestFile it) -> { UndeclaredFileAccess.filesNewByteChannelWithOpenOptions(testFilePath(it)) }
+        "reading lines from a file"                     | (TestFile it) -> { UndeclaredFileAccess.fileReadLines(testFilePath(it)) }
     }
 }
 

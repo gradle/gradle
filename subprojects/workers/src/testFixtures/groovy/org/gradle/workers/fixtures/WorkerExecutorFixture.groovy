@@ -24,7 +24,7 @@ class WorkerExecutorFixture {
     def outputFileDir
     def outputFileDirPath
     def list = [ 1, 2, 3 ]
-    private final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    private final TestNameTestDirectoryProvider temporaryFolder
     final WorkParameterClass testParameterType
     final WorkActionClass workActionThatCreatesFiles
     final WorkActionClass workActionThatFails

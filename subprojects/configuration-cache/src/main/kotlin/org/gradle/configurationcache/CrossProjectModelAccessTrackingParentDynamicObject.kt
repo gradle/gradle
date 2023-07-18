@@ -18,15 +18,11 @@ package org.gradle.configurationcache
 
 import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import java.util.Locale
@@ -116,21 +112,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     private
     fun maybeReportProjectIsolationViolation(memberKind: MemberKind, memberName: String?) {
         if (dynamicCallProblemReporting.unreportedProblemInCurrentCall(PROBLEM_KEY)) {
-            val trace = run {
-                val location = problemFactory.locationForCaller()
-                when (memberKind) {
-                    MemberKind.PROPERTY -> {
-                        if (memberName != null)
-                            PropertyTrace.Property(PropertyKind.PropertyUsage, memberName, PropertyTrace.Project(referrerProject.path, location))
-                        else location
-                    }
-
-                    // method lookup is more clear from the stack trace, so keep the minimal trace pointing to the location:
-                    MemberKind.METHOD -> location
-                }
-            }
-
-            val message = StructuredMessage.build {
+            val problem = problemFactory.problem {
                 text("Project ")
                 reference(referrerProject.identityPath.toString())
                 text(" cannot dynamically look up a ")
@@ -138,8 +120,21 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
                 text(" in the parent project ")
                 reference(ownerProject.identityPath.toString())
             }
-            val exception = InvalidUserCodeException(message.toString().capitalized())
-            problems.onProblem(PropertyProblem(trace, message, exception, null))
+                .mapLocation { location ->
+                    when (memberKind) {
+                        MemberKind.PROPERTY -> {
+                            if (memberName != null)
+                                PropertyTrace.Property(PropertyKind.PropertyUsage, memberName, PropertyTrace.Project(referrerProject.path, location))
+                            else location
+                        }
+
+                        // method lookup is more clear from the stack trace, so keep the minimal trace pointing to the location:
+                        MemberKind.METHOD -> location
+                    }
+                }
+                .exception()
+                .build()
+            problems.onProblem(problem)
         }
     }
 

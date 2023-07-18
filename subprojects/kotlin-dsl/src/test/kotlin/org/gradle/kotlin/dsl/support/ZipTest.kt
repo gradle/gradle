@@ -47,7 +47,7 @@ class ZipTest : TestWithTempFiles() {
             unzipTo(file("output/directory"), maliciousZip)
             fail()
         } catch (ex: IllegalArgumentException) {
-            assertThat(ex.message, equalTo("'path/../../traversal.txt' is not a safe zip entry name.".replace('/', File.separatorChar)))
+            assertThat(ex.message, equalTo("'path/../../traversal.txt' is not a safe archive entry or path name.".replace('/', File.separatorChar)))
         }
         assertFalse(file("output").exists())
     }

@@ -19,12 +19,15 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled
 import org.gradle.api.GradleException
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.internal.exceptions.ResolutionProvider
 import java.lang.reflect.InvocationTargetException
 
 
 @Contextual
 class PrecompiledScriptException
-internal constructor(message: String, cause: Throwable? = null) : GradleException(message, reduceCause(cause))
+internal constructor(message: String, cause: Throwable? = null, private val resolution: String? = null) : GradleException(message, reduceCause(cause)), ResolutionProvider {
+    override fun getResolutions(): List<String> = listOfNotNull(resolution)
+}
 
 
 private

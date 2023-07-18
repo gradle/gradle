@@ -7,8 +7,8 @@ plugins {
 // tag::configure-distribution[]
 distributions {
     main {
-        distributionBaseName.set("someName")
-        distributionClassifier.set("classifier")
+        distributionBaseName = "someName"
+        distributionClassifier = "classifier"
         contents {
             from("src/readme")
         }

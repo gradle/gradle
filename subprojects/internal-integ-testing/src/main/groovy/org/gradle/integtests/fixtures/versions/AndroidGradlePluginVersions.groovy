@@ -28,50 +28,16 @@ import static org.junit.Assume.assumeTrue
 /**
  * Android Gradle Plugin Versions.
  *
- * If you need to iterate locally on changes to AGP sources:
- * - hardcode latest nightly to `4.0.0-dev`
- * - change the repository url in `AGP_NIGHTLY_REPOSITORY_DECLARATION` to `file:///path/to/agp-src/out/repo`
- * - run `./gradlew :publishAndroidGradleLocal` in `/path/to/agp-src/tools`
+ * See UpdateAgpVersions.
  */
 class AndroidGradlePluginVersions {
 
     public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
 
-    private static final String AGP_NIGHTLY_REPOSITORY_DECLARATION = '''
-        maven {
-            name = 'agp-nightlies'
-            url = 'https://repo.gradle.org/gradle/ext-snapshots-local/'
-        }
-    '''
-
-    private static final String AGP_NIGHTLY_REPOSITORY_INIT_SCRIPT = """
-        allprojects {
-            buildscript {
-                repositories {
-                    $AGP_NIGHTLY_REPOSITORY_DECLARATION
-                }
-            }
-            repositories {
-                $AGP_NIGHTLY_REPOSITORY_DECLARATION
-            }
-        }
-    """
-
     private static final VersionNumber AGP_8_0 = VersionNumber.parse('8.0.0')
     private static final VersionNumber AGP_7_0 = VersionNumber.parse('7.0.0')
     private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
     private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
-
-    static boolean isAgpNightly(String agpVersion) {
-        return agpVersion.contains("-") && agpVersion.substring(agpVersion.indexOf("-") + 1).matches("^[0-9].*")
-    }
-
-    static File createAgpNightlyRepositoryInitScript() {
-        File mirrors = File.createTempFile("mirrors", ".gradle")
-        mirrors.deleteOnExit()
-        mirrors << AGP_NIGHTLY_REPOSITORY_INIT_SCRIPT
-        return mirrors
-    }
 
     private final Factory<Properties> propertiesFactory
     private Properties properties
@@ -115,7 +81,7 @@ class AndroidGradlePluginVersions {
     }
 
     List<String> getNightlies() {
-        return getVersionList("nightly")
+        return getVersionList("nightlyVersion")
     }
 
     List<String> getLatestsPlusNightly() {
@@ -134,6 +100,48 @@ class AndroidGradlePluginVersions {
 
     List<String> getLatestsFromMinorPlusNightly(String lowerBound) {
         return [getLatestsFromMinor(lowerBound), nightlies].flatten() as List<String>
+    }
+
+    boolean isAgpNightly(String agpVersion) {
+        return agpVersion in nightlies
+    }
+
+    File createAgpNightlyRepositoryInitScript() {
+        File mirrors = File.createTempFile("mirrors", ".gradle")
+        mirrors.deleteOnExit()
+        mirrors << agpNightlyRepositoryInitScript
+        return mirrors
+    }
+
+    private String getAgpNightlyRepositoryInitScript() {
+        return """
+            beforeSettings { settings ->
+                settings.pluginManagement.repositories {
+                    $agpNightlyRepositoryDeclaration
+                    gradlePluginPortal()
+                }
+            }
+            allprojects {
+                buildscript {
+                    repositories {
+                        $agpNightlyRepositoryDeclaration
+                    }
+                }
+                repositories {
+                    $agpNightlyRepositoryDeclaration
+                }
+            }
+        """
+    }
+
+    private String getAgpNightlyRepositoryDeclaration() {
+        def nightlyBuildId = getVersionList("nightlyBuildId").first()
+        return """
+            maven {
+                name = 'agp-nightly-build-$nightlyBuildId'
+                url = 'https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/'
+            }
+        """
     }
 
     private List<String> getVersionList(String name) {

@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
@@ -90,8 +91,9 @@ class AndroidTestProject implements TestProject {
 
         runner.args.add("-DagpVersion=${agpVersion}")
 
-        def buildJavaHome = AvailableJavaHomes.getJdk(AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion)).javaHome
-        runner.addBuildMutator { invocation -> new JavaHomeMutator(invocation, buildJavaHome) }
+        def javaVersion = AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion)
+        def buildJavaHome = AvailableJavaHomes.getJdk(javaVersion).javaHome
+        runner.addBuildMutator { invocation -> new JavaVersionMutator(invocation, javaVersion, buildJavaHome) }
 
         def minimumGradle = AGP_VERSIONS.getMinimumGradleBaseVersionFor(agpVersion)
         if (minimumGradle != null) {
@@ -99,12 +101,14 @@ class AndroidTestProject implements TestProject {
         }
     }
 
-    static class JavaHomeMutator implements BuildMutator {
+    static class JavaVersionMutator implements BuildMutator {
         private final File buildJavaHome
+        private final JavaVersion javaVersion
         private final InvocationSettings invocation
 
-        JavaHomeMutator(InvocationSettings invocation, File buildJavaHome) {
+        JavaVersionMutator(InvocationSettings invocation, JavaVersion javaVersion, File buildJavaHome) {
             this.invocation = invocation
+            this.javaVersion = javaVersion
             this.buildJavaHome = buildJavaHome
         }
 
@@ -112,6 +116,7 @@ class AndroidTestProject implements TestProject {
         void beforeScenario(ScenarioContext context) {
             def gradleProps = new File(invocation.projectDir, "gradle.properties")
             gradleProps << "\norg.gradle.java.home=${buildJavaHome.absolutePath.replace("\\", "/")}\n"
+            gradleProps << "\nsystemProp.javaVersion=${javaVersion.majorVersion}\n"
         }
     }
 

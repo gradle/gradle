@@ -43,10 +43,12 @@ class JvmTest extends Specification {
 
     def setup() {
         JavaVersion.resetCurrent()
+        OperatingSystem.resetCurrent()
     }
 
     def cleanup() {
         JavaVersion.resetCurrent()
+        OperatingSystem.resetCurrent()
     }
 
     def assertJreHomeIfNotJava9(Jvm jvm, TestFile softwareRoot, String jreHome) {
@@ -339,38 +341,16 @@ class JvmTest extends Specification {
         jvm.is(current)
     }
 
-    def "uses system property to determine if Sun/Oracle JVM"() {
-        when:
-        System.properties['java.vm.vendor'] = 'Sun'
-        def jvm = Jvm.createCurrent()
-
-        then:
-        jvm.getClass() == Jvm.JvmImplementation
-    }
-
-    def "uses system property to determine if Apple JVM"() {
-        when:
-        System.properties['java.vm.vendor'] = 'Apple Inc.'
-        def jvm = Jvm.createCurrent()
-
-        then:
-        jvm.getClass() == Jvm.AppleJvm
-
-        when:
-        System.properties['java.vm.vendor'] = 'Sun'
-        jvm = Jvm.createCurrent()
-
-        then:
-        jvm.getClass() == Jvm.JvmImplementation
-    }
-
     def "uses system property to determine if IBM JVM"() {
         when:
-        System.properties['java.vm.vendor'] = 'IBM Corporation'
-        def jvm = Jvm.createCurrent()
+        System.properties[vendorProperty] = 'IBM Corporation'
+        def jvm = Jvm.current()
 
         then:
-        jvm.getClass() == Jvm.IbmJvm
+        jvm.isIbmJvm()
+
+        where:
+        vendorProperty << ['java.vendor', 'java.vm.vendor']
     }
 
     def "finds executable for java home supplied"() {
@@ -523,5 +503,20 @@ class JvmTest extends Specification {
         java9Vm.jre == null
         java9Vm.toolsJar == null
         java9Vm.standaloneJre == null
+    }
+
+    def "filters environment variables"() {
+        def env = [
+            'APP_NAME_1234': 'App',
+            'JAVA_MAIN_CLASS_1234': 'MainClass',
+            'OTHER': 'value',
+            'TERM_SESSION_ID': '1234',
+            'ITERM_SESSION_ID': '1234'
+        ]
+
+        def jvm = Jvm.current()
+
+        expect:
+        jvm.getInheritableEnvironmentVariables(env) == ['OTHER': 'value']
     }
 }

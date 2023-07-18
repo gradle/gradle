@@ -403,6 +403,14 @@ public class TestFile extends File {
     }
 
     /**
+     * Inserts the given text at the start of the file
+     */
+    public void prepend(String text) {
+        String original = getText();
+        setText(text + original);
+    }
+
+    /**
      * Inserts the given text on a new line before the given text
      */
     public void insertBefore(String text, String newText) {
@@ -629,10 +637,14 @@ public class TestFile extends File {
         }
     }
 
-    public boolean isSelfOrDescendent(File file) {
+    public boolean isSelfOrDescendant(File file) {
         if (file.getAbsolutePath().equals(getAbsolutePath())) {
             return true;
         }
+        return isDescendant(file);
+    }
+
+    public boolean isDescendant(File file) {
         return file.getAbsolutePath().startsWith(getAbsolutePath() + File.separatorChar);
     }
 

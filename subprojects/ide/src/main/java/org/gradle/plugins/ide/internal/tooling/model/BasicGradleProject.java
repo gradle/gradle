@@ -25,6 +25,7 @@ import java.util.Set;
 public class BasicGradleProject extends PartialBasicGradleProject {
     private File projectDirectory;
     private Set<BasicGradleProject> children = new LinkedHashSet<BasicGradleProject>();
+    private String buildTreePath;
 
 
     public File getProjectDirectory() {
@@ -55,6 +56,15 @@ public class BasicGradleProject extends PartialBasicGradleProject {
 
     public BasicGradleProject addChild(BasicGradleProject child) {
         children.add(child);
+        return this;
+    }
+
+    public String getBuildTreePath() {
+        return buildTreePath;
+    }
+
+    public BasicGradleProject setBuildTreePath(String path) {
+        buildTreePath = path;
         return this;
     }
 }

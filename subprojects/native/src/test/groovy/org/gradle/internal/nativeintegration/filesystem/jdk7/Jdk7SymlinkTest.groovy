@@ -19,8 +19,8 @@ package org.gradle.internal.nativeintegration.filesystem.jdk7
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -33,13 +33,13 @@ class Jdk7SymlinkTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def 'on symlink supporting system, it will return true for supported symlink'() {
         expect:
-        new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.getRoot())).isSymlinkCreationSupported()
+        new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.createDir("tmp"))).isSymlinkCreationSupported()
     }
 
-    @Requires(TestPrecondition.NO_SYMLINKS)
+    @Requires(UnitTestPreconditions.NoSymlinks)
     def 'on non symlink supporting system, it will return false for supported symlink'() {
         expect:
         !new WindowsJdk7Symlink().isSymlinkCreationSupported()
@@ -48,16 +48,16 @@ class Jdk7SymlinkTest extends Specification {
     def 'deletes test files after symlink support test with #create'() {
         expect:
         listSymlinkTestFiles().findAll { !it.delete() }.empty
-        create(temporaryFolder.root)
+        create(temporaryFolder.createDir("tmp"))
         listSymlinkTestFiles().empty
 
         where:
         create << [{ it -> new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(it)) }, { new WindowsJdk7Symlink() }]
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def 'can create and detect symlinks'() {
-        def symlink = new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.getRoot()))
+        def symlink = new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.createDir("tmp")))
         def testDirectory = temporaryFolder.getTestDirectory().createDir()
 
         when:
@@ -73,7 +73,7 @@ class Jdk7SymlinkTest extends Specification {
         symlink.isSymlink(new File(testDirectory, 'testDir'))
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def 'can detect Windows symbolic links as symbolic links'() {
         def symlink = new WindowsJdk7Symlink()
         def testDirectory = temporaryFolder.getTestDirectory().createDir()
@@ -91,7 +91,7 @@ class Jdk7SymlinkTest extends Specification {
         symlink.isSymlink(new File(testDirectory, 'testDir'))
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def 'does not detect Windows hard links as symbolic links'() {
         def symlink = new WindowsJdk7Symlink()
         def testDirectory = temporaryFolder.getTestDirectory().createDir()
@@ -103,7 +103,7 @@ class Jdk7SymlinkTest extends Specification {
         !symlink.isSymlink(new File(testDirectory, 'testFile'))
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def 'can detect Windows junction point as symbolic links'() {
         def symlink = new WindowsJdk7Symlink()
         def testDirectory = temporaryFolder.getTestDirectory().createDir()

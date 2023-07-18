@@ -30,6 +30,10 @@ import java.util.List;
 public class CompileJavaBuildOperationType implements BuildOperationType<CompileJavaBuildOperationType.Details, CompileJavaBuildOperationType.Result> {
 
     public interface Details {
+        /**
+         * Returns the name of the task that is executing the compilation.
+         */
+        String getTaskIdentityPath();
     }
 
     public interface Result {

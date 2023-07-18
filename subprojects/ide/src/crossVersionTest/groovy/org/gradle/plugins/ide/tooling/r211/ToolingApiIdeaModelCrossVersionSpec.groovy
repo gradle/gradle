@@ -21,9 +21,9 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
 
-import static org.gradle.plugins.ide.tooling.r210.ToolingApiEclipseModelCrossVersionSpec.javaSourceCompatibility
+import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
+import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
 
 @TargetGradleVersion(">=2.11")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
@@ -223,7 +223,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
             allprojects {
                 apply plugin:'java'
                 apply plugin:'idea'
-                ${javaTargetCompatibility(JavaVersion.VERSION_1_5)}
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
         """
@@ -248,7 +248,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
             allprojects {
                 apply plugin:'java'
                 apply plugin:'idea'
-                ${javaTargetCompatibility(JavaVersion.VERSION_1_5)}
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
         """
@@ -269,21 +269,21 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         settingsFile << "\ninclude 'root', 'child1', ':child2:child3', 'child4'"
         buildFile << """
             apply plugin:'java'
-            ${javaTargetCompatibility(JavaVersion.VERSION_1_5)}
+            ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
 
             project(':child1') {
                 apply plugin:'java'
-                ${javaTargetCompatibility(JavaVersion.VERSION_1_5)}
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
             project(':child2') {
                 apply plugin:'java'
-                ${javaTargetCompatibility(JavaVersion.VERSION_1_6)}
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
             }
 
             project(':child2:child3') {
                 apply plugin:'java'
-                ${javaTargetCompatibility(JavaVersion.VERSION_1_7)}
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_7)}
             }
             project(':child4') {
             }
@@ -315,13 +315,5 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 
     private JavaVersion getDefaultIdeaPluginLanguageLevelForJavaProjects() {
         return JavaVersion.current()
-    }
-
-    private String javaTargetCompatibility(JavaVersion javaVersion) {
-        if (targetVersion >= GradleVersion.version("5.0")) {
-            return "java.targetCompatibility = JavaVersion.${javaVersion.name()}"
-        } else {
-            return "targetCompatibility = ${javaVersion.toString()}"
-        }
     }
 }

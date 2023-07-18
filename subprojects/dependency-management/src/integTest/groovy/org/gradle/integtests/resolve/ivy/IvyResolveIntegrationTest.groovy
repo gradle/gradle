@@ -58,6 +58,7 @@ dependencies {
         resolve.expectGraph {
             root(":", "org.gradle:test:1.0") {
                 module("org.gradle:test:1.45") {
+                    byConflictResolution("between versions 1.45 and 1.0")
                     artifact()
                     artifact(classifier: "classifier")
                     artifact(name: "test-extra")
@@ -378,6 +379,7 @@ dependencies {
                     configuration('alice')
                     byConstraint()
                     module('org:bar:1.0') {
+                        notRequested()
                         byAncestor()
                         byConstraint()
                         configuration('extra')

@@ -99,18 +99,15 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match (see " +
-                    Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() +
-                    ") and toolchain auto-provisioning is not enabled (see " +
-                    Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() + ").");
+            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain auto-provisioning is not enabled.",
+                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() + ".");
         }
 
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
         if (repositories.isEmpty()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match (see " +
-                    Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() +
-                    ") and toolchain download repositories have not been configured (see " +
-                    Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ").");
+            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain download repositories have not been configured.",
+                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() + ".",
+                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ".");
         }
 
         for (RealizedJavaToolchainRepository request : repositories) {
@@ -121,10 +118,9 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             }
         }
 
-        throw new ToolchainDownloadFailedException("No locally installed toolchains match (see " +
-                Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() +
-                ") and the configured toolchain download repositories aren't able to provide a match either (see " +
-                Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ").");
+        throw new ToolchainDownloadFailedException("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.",
+            "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() + ".",
+            "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ".");
     }
 
     private File provisionInstallation(JavaToolchainSpec spec, URI uri, Collection<Authentication> authentications) {

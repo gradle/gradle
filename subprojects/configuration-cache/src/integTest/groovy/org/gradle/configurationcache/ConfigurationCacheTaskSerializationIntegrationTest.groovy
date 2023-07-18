@@ -21,6 +21,69 @@ import java.util.logging.Level
 
 class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "using a tasks from same project as 'files(#type)' input is allowed"() {
+        file("copy1source.txt") << "Copy 1"
+        file("copy2source.txt") << "Copy 2"
+
+        buildFile << """
+            def copy1 = tasks.register("copy1", Copy) {
+                destinationDir = layout.buildDirectory.dir("copy1").get().asFile
+                from file("copy1source.txt")
+            }
+
+            def copy2 = tasks.register("copy2", Copy) {
+                destinationDir = layout.buildDirectory.dir("copy2").get().asFile
+                from file("copy2source.txt")
+            }
+
+            tasks.register("reader") {
+                inputs.files($tasksInput)
+                doLast {
+                    println inputs.files.files*.name
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "reader"
+
+        then:
+        outputContains expectedOutput
+
+        where:
+        type                             | tasksInput             | expectedOutput
+        "Task"                           | "copy1.get()"          | "[copy1]"
+        "TaskProvider"                   | "copy1"                | "[copy1]"
+        "Array[Task, TaskProvider]"      | "copy1.get(), copy2"   | "[copy1, copy2]"
+        "Collection(Task, TaskProvider)" | "[copy1.get(), copy2]" | "[copy1, copy2]"
+    }
+
+    def "using a tasks from another project as 'files(#type)' input is prohibited"() {
+        settingsFile << """
+            include ':foo'
+        """
+
+        buildFile << """
+            tasks.register("dependency")
+        """
+
+        file("foo/build.gradle") << """
+            tasks.register("dependent") {
+                inputs.files(parent.tasks.findByPath(':dependency'))
+            }
+        """
+
+        when:
+        configurationCacheFails ":foo:dependent"
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Task `:foo:dependent` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.DefaultTask'")
+            totalProblemsCount = 1
+            problemsWithStackTraceCount = 0
+        }
+    }
+
     def "restores task fields whose value is an object graph with cycles"() {
         buildFile << """
             class SomeBean {

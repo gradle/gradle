@@ -103,10 +103,11 @@ public class LayoutToPropertiesConverter {
         }
 
         for (final Object key : properties.keySet()) {
+            String keyAsString = key.toString();
             BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions, new Spec<BuildOption<?>>() {
                 @Override
                 public boolean isSatisfiedBy(BuildOption<?> option) {
-                    return option.getGradleProperty() != null ? option.getGradleProperty().equals(key.toString()) : false;
+                    return keyAsString.equals(option.getGradleProperty()) || keyAsString.equals(option.getDeprecatedGradleProperty());
                 }
             });
 

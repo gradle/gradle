@@ -16,6 +16,8 @@
 
 package org.gradle.internal.normalization.java
 
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -273,7 +275,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
     }
 
     void "target binary compatibility is maintained"() {
-        Assume.assumeFalse(target == "1.6" && !org.gradle.util.TestPrecondition.SUPPORTS_TARGETING_JAVA6.fulfilled)
+        Assume.assumeFalse(target == "1.6" && !canTargetJava6())
+        Assume.assumeFalse(target == "1.7" && !canTargetJava7())
 
         given:
         def api = toApi(target, [A: 'public class A {}'])
@@ -296,6 +299,14 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         '1.6'  | 50
         '1.7'  | 51
         '1.8'  | 52
+    }
+
+    private boolean canTargetJava6() {
+        TestPrecondition.satisfied(UnitTestPreconditions.Jdk12OrEarlier)
+    }
+
+    private boolean canTargetJava7() {
+        TestPrecondition.satisfied(UnitTestPreconditions.Jdk19OrEarlier)
     }
 
     def "should not remove public field"() {

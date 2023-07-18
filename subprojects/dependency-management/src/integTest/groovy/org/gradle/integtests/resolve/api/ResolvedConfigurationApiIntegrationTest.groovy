@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
 @FluidDependenciesResolveTest
@@ -37,6 +38,7 @@ allprojects {
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the ResolvedConfiguration API")
     def "artifacts may have no extension"() {
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
         m1.artifact(type: 'jar', ext: '')
@@ -80,6 +82,7 @@ task show {
         outputContains("classifiers: [null, null, classy]")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the ResolvedConfiguration API")
     def "reports multiple failures to resolve components"() {
         buildFile << """
             repositories { maven { url '${mavenHttpRepo.uri}' } }
@@ -113,6 +116,7 @@ task show {
         failure.assertHasCause("Could not resolve test:test2:1.2.")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the ResolvedConfiguration API")
     def "reports failure to resolve artifact"() {
         buildFile << """
             repositories { maven { url '${mavenHttpRepo.uri}' } }

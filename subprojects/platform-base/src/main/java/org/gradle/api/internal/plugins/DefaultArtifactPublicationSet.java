@@ -77,6 +77,9 @@ public abstract class DefaultArtifactPublicationSet {
 
         @Override
         public int size() {
+            if (artifacts == null) {
+                return 0;
+            }
             return artifacts.size();
         }
 

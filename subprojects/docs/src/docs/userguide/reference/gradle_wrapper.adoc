@@ -64,6 +64,7 @@ The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties
 * The type of Gradle distribution. By default that’s the `-bin` distribution containing only the runtime but no sample code and documentation.
 * The Gradle version used for executing the build. By default the `wrapper` task picks the exact same Gradle version that was used to generate the Wrapper files.
 * Optionally, a timeout in ms used when downloading the gradle distribution.
+* Optionally, a boolean to set the validation of the distribution url.
 
 
 .Example: The generated distribution URL
@@ -77,6 +78,7 @@ All of those aspects are configurable at the time of generating the Wrapper file
 
 `--gradle-version`::
 The Gradle version used for downloading and executing the Wrapper.
+The resulting distribution url is validated before it is written to the properties file.
 +
 The following labels are allowed:
 +
@@ -94,12 +96,21 @@ The default value is `bin`.
 The full URL pointing to Gradle distribution ZIP file.
 Using this option makes `--gradle-version` and `--distribution-type` obsolete as the URL already contains this information.
 This option is extremely valuable if you want to host the Gradle distribution inside your company’s network.
+The url is validated before it is written to the properties file.
 
 `--gradle-distribution-sha256-sum`::
 The SHA256 hash sum used for <<#sec:verification,verifying the downloaded Gradle distribution>>.
 
 `--network-timeout`::
 The network timeout to use when downloading the gradle distribution, in ms. The default value is `10000`.
+
+`--no-validate-url`::
+Disables the validation of the configured distribution url.
+
+`--validate-url`::
+Enables the validation of the configured distribution url. Enabled by default.
+
+If the distribution url is configured with `--gradle-version` or `--gradle-distribution-url`, the url is validated by sending a HEAD request in the case of the `https` scheme or by checking the existence of the file in the case of the `file` scheme.
 
 Let’s assume the following use case to illustrate the use of the command line options. You would like to generate the Wrapper with version {gradleVersion} and use the `-all` distribution to enable your IDE to enable code-completion and being able to navigate to the Gradle source code. Those requirements are captured by the following command line execution:
 

@@ -18,8 +18,8 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @IntegrationTestTimeout(180)
@@ -148,7 +148,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
     }
 
-    def "all daemons are stopped with the build session"() {
+    def "all daemons are stopped with the build session except Java"() {
         fixture.withWorkActionClassInBuildScript()
         file('src/main/java').createDir()
         file('src/main/java/Test.java') << "public class Test {}"
@@ -170,10 +170,10 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
 
         then:
         sinceSnapshot().count("Started Gradle worker daemon") == 2
-        sinceSnapshot().contains("Stopped 2 worker daemon(s).")
+        sinceSnapshot().contains("Stopped 1 worker daemon(s).")
     }
 
-    @Requires(TestPrecondition.UNIX)
+    @Requires(UnitTestPreconditions.Unix)
     def "worker daemons exit after the build is complete"() {
         fixture.withWorkActionClassInBuildScript()
         buildFile << """

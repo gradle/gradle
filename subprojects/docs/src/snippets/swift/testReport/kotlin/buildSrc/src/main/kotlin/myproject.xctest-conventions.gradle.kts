@@ -6,7 +6,7 @@ plugins {
 extensions.configure<SwiftXCTestSuite>() {
     binaries.configureEach {
         // Disable the test report for the individual test task
-        runTask.get().reports.html.required.set(false)
+        runTask.get().reports.html.required = false
     }
 }
 

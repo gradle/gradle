@@ -27,20 +27,20 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.capabilities.CapabilitiesMetadata
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
+import org.gradle.api.internal.artifacts.TransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory
+import org.gradle.api.internal.artifacts.transform.DefaultTransformDependencies
+import org.gradle.api.internal.artifacts.transform.TransformChain
+import org.gradle.api.internal.artifacts.transform.TransformDependencies
+import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
-import org.gradle.api.internal.artifacts.transform.Transformation
-import org.gradle.api.internal.artifacts.transform.TransformationStep
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.VariantDefinition
 import org.gradle.api.internal.artifacts.transform.VariantSelector
@@ -83,8 +83,8 @@ class LocalFileDependencyBackedArtifactSetCodec(
         //   - calculate the attributes for each of the files eagerly rather than writing the mappings
         //   - when the selector would not apply a transform, then write only the files and nothing else
         //   - otherwise, write only the transform and attributes for each file rather than writing the transform registry
-        val noRequestedAttributes = value.selector.requestedAttributes.isEmpty
-        writeBoolean(noRequestedAttributes)
+        val requestedAttributes = !value.selector.requestedAttributes.isEmpty
+        writeBoolean(requestedAttributes)
         write(value.dependencyMetadata.componentId)
         write(value.dependencyMetadata.files)
         write(value.componentFilter)
@@ -99,8 +99,8 @@ class LocalFileDependencyBackedArtifactSetCodec(
             }
         }
 
-        if (!noRequestedAttributes) {
-            // Write the file extension -> transformation mappings
+        if (requestedAttributes) {
+            // Write the file extension -> transform mappings
             // This currently uses a dummy set of variants to calculate the mappings.
             // Do not write this if it will not be used
             // TODO - simplify extracting the mappings
@@ -110,11 +110,11 @@ class LocalFileDependencyBackedArtifactSetCodec(
             val mappings = mutableMapOf<ImmutableAttributes, MappingSpec>()
             value.artifactTypeRegistry.visitArtifactTypes { sourceAttributes ->
                 val recordingSet = RecordingVariantSet(value.dependencyMetadata.files, sourceAttributes)
-                val selected = value.selector.select(recordingSet, recordingSet)
+                val selected = value.selector.maybeSelect(recordingSet, recordingSet)
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
                 } else if (recordingSet.targetAttributes != null) {
-                    mappings[sourceAttributes] = TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformation!!)
+                    mappings[sourceAttributes] = TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformChain!!)
                 } else {
                     mappings[sourceAttributes] = IdentityMapping
                 }
@@ -128,7 +128,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
     }
 
     override suspend fun ReadContext.decode(): LocalFileDependencyBackedArtifactSet {
-        val noRequestedAttributes = readBoolean()
+        val requestedAttributes = readBoolean()
         val componentId = read() as ComponentIdentifier?
         val files = readNonNull<FileCollectionInternal>()
         val filter = readNonNull<Spec<ComponentIdentifier>>()
@@ -149,7 +149,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
             registry
         }
 
-        val selector = if (noRequestedAttributes) {
+        val selector = if (!requestedAttributes) {
             NoTransformsSelector()
         } else {
             val matchingOnArtifactFormat = readBoolean()
@@ -167,7 +167,7 @@ class RecordingVariantSet(
     private val attributes: ImmutableAttributes
 ) : ResolvedVariantSet, ResolvedVariant, VariantSelector.Factory, ResolvedArtifactSet {
     var targetAttributes: ImmutableAttributes? = null
-    var transformation: Transformation? = null
+    var transformChain: TransformChain? = null
 
     override fun asDescribable(): DisplayName {
         return Describables.of(source)
@@ -224,10 +224,10 @@ class RecordingVariantSet(
     override fun asTransformed(
         sourceVariant: ResolvedVariant,
         variantDefinition: VariantDefinition,
-        dependenciesResolver: ExtraExecutionGraphDependenciesResolverFactory,
+        dependenciesResolverFactory: TransformUpstreamDependenciesResolverFactory,
         transformedVariantFactory: TransformedVariantFactory
     ): ResolvedArtifactSet {
-        this.transformation = variantDefinition.transformation
+        this.transformChain = variantDefinition.transformChain
         this.targetAttributes = variantDefinition.targetAttributes
         return sourceVariant.artifacts
     }
@@ -239,16 +239,16 @@ sealed class MappingSpec
 
 
 private
-class TransformMapping(private val targetAttributes: ImmutableAttributes, private val transformation: Transformation) : MappingSpec(), VariantDefinition {
+class TransformMapping(private val targetAttributes: ImmutableAttributes, private val transformChain: TransformChain) : MappingSpec(), VariantDefinition {
     override fun getTargetAttributes(): ImmutableAttributes {
         return targetAttributes
     }
 
-    override fun getTransformation(): Transformation {
-        return transformation
+    override fun getTransformChain(): TransformChain {
+        return transformChain
     }
 
-    override fun getTransformationStep(): TransformationStep {
+    override fun getTransformStep(): TransformStep {
         throw UnsupportedOperationException()
     }
 
@@ -321,17 +321,17 @@ class FixedFileMetadata(
 
 
 private
-class EmptyDependenciesResolverFactory : ExtraExecutionGraphDependenciesResolverFactory, TransformUpstreamDependenciesResolver, TransformUpstreamDependencies {
+class EmptyDependenciesResolverFactory : TransformUpstreamDependenciesResolverFactory, TransformUpstreamDependenciesResolver, TransformUpstreamDependencies {
 
     override fun getConfigurationIdentity(): ConfigurationIdentity? {
         return null
     }
 
-    override fun create(componentIdentifier: ComponentIdentifier, transformation: Transformation): TransformUpstreamDependenciesResolver {
+    override fun create(componentIdentifier: ComponentIdentifier, transformChain: TransformChain): TransformUpstreamDependenciesResolver {
         return this
     }
 
-    override fun dependenciesFor(transformationStep: TransformationStep): TransformUpstreamDependencies {
+    override fun dependenciesFor(transformStep: TransformStep): TransformUpstreamDependencies {
         return this
     }
 
@@ -346,8 +346,8 @@ class EmptyDependenciesResolverFactory : ExtraExecutionGraphDependenciesResolver
     override fun finalizeIfNotAlready() {
     }
 
-    override fun computeArtifacts(): Try<ArtifactTransformDependencies> {
-        return Try.successful(DefaultArtifactTransformDependencies(FileCollectionFactory.empty()))
+    override fun computeArtifacts(): Try<TransformDependencies> {
+        return Try.successful(DefaultTransformDependencies(FileCollectionFactory.empty()))
     }
 }
 
@@ -358,7 +358,7 @@ object NoOpTransformedVariantFactory : TransformedVariantFactory {
         componentIdentifier: ComponentIdentifier,
         sourceVariant: ResolvedVariant,
         variantDefinition: VariantDefinition,
-        dependenciesResolverFactory: ExtraExecutionGraphDependenciesResolverFactory
+        dependenciesResolverFactory: TransformUpstreamDependenciesResolverFactory
     ): ResolvedArtifactSet {
         throw UnsupportedOperationException("Should not be called")
     }
@@ -367,7 +367,7 @@ object NoOpTransformedVariantFactory : TransformedVariantFactory {
         componentIdentifier: ComponentIdentifier,
         sourceVariant: ResolvedVariant,
         variantDefinition: VariantDefinition,
-        dependenciesResolverFactory: ExtraExecutionGraphDependenciesResolverFactory
+        dependenciesResolverFactory: TransformUpstreamDependenciesResolverFactory
     ): ResolvedArtifactSet {
         throw UnsupportedOperationException("Should not be called")
     }
@@ -380,7 +380,7 @@ object EmptyVariantTransformRegistry : VariantTransformRegistry {
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun getTransforms(): MutableList<ArtifactTransformRegistration> {
+    override fun getRegistrations(): MutableList<TransformRegistration> {
         throw UnsupportedOperationException("Should not be called")
     }
 }

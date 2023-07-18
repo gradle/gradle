@@ -193,7 +193,6 @@ class IsolatedProjectsFixture {
 
     private void assertHasWarningThatIncubatingFeatureUsed() {
         spec.outputContains(ConfigurationCacheFixture.ISOLATED_PROJECTS_MESSAGE)
-        spec.outputDoesNotContain(ConfigurationCacheFixture.CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ConfigurationCacheFixture.CONFIGURE_ON_DEMAND_MESSAGE)
     }
 

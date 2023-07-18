@@ -18,10 +18,13 @@ package org.gradle.smoketests
 
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Requires(UnitTestPreconditions.Jdk17OrLater)
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
@@ -35,15 +38,19 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
             ${mavenCentralRepository()}
 
-            project.setProperty('applicationDefaultJvmArgs', ['-DFOO=42'])
+            application {
+                applicationDefaultJvmArgs = ['-DFOO=42']
+            }
 
             dependencies {
                 implementation 'org.springframework.boot:spring-boot-starter'
-                testImplementation 'org.springframework.boot:spring-boot-starter-test'
             }
 
-            tasks.named('test') {
-                useJUnitPlatform()
+            testing.suites.test {
+                useJUnitJupiter()
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter-test'
+                }
             }
         """.stripIndent()
 
@@ -76,14 +83,17 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """
 
         when:
-        def buildResult = runner('assembleBootDist', 'check').build()
+        def smokeTestRunner = runner('assembleBootDist', 'check')
+        // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
+        def buildResult = smokeTestRunner.build()
 
         then:
         buildResult.task(':assembleBootDist').outcome == SUCCESS
         buildResult.task(':check').outcome == SUCCESS
 
         when:
-        def runResult = runner('bootRun').build()
+        smokeTestRunner = runner('bootRun')
+        def runResult = smokeTestRunner.build()
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS

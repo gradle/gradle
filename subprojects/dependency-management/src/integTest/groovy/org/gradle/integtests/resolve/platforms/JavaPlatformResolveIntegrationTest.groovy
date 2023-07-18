@@ -196,6 +196,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     noArtifacts()
                 }
                 edge('org:foo:1.2', 'org:foo:1.1') {
+                    forced()
                     byConstraint()
                 }
             }
@@ -246,6 +247,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     noArtifacts()
                 }
                 edge('org:foo:1.1', 'org:foo:1.0') {
+                    forced()
                     configuration = 'api'
                 }
             }
@@ -296,7 +298,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
     }
 
-    @ToBeFixedForConfigurationCache(because = "serializes the incorrect artifact in ArtifactCollection used by resolve fixture")
     @Issue("gradle/gradle#8312")
     def "can resolve a platform with a constraint to determine the platform version via a transitive constraint"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0")
@@ -563,6 +564,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     configuration = 'runtime'
                     module('org:foo:1.0') {
                         configuration = 'runtime'
+                        byConstraint()
                         module('org:foobar:1.0') {
                             configuration = 'runtime'
                         }
@@ -620,7 +622,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                edge("org.test:depA", "org.test:depA:1.0")
+                edge("org.test:depA", "org.test:depA:1.0") {
+                    byConstraint()
+                }
                 module("org.test:depB:1.0") {
                     module("org.test:depC:1.0") {
                         module('org.test:platform:1.0') {
@@ -837,6 +841,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20684")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "multiple platform deselection - reselection does not leave pending constraints in graph - different issue"() {
         given:
         def depJackDb20 = mavenHttpRepo.module('jack', 'db', '2.0').withModuleMetadata()
