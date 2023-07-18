@@ -174,7 +174,7 @@ Options
 
      --prop2     Configures command line option 'prop2'.
 
-     --no-prop2     Disables option --prop2
+     --no-prop2     Disables option --prop2.
 
      --prop3     Configures command line option 'prop3'.""")
     }

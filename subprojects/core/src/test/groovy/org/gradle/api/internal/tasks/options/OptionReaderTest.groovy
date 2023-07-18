@@ -43,7 +43,7 @@ class OptionReaderTest extends Specification {
         options[0].availableValues == [] as Set
 
         options[1].name == "no-aFlag"
-        options[1].description == "Disables option --aFlag"
+        options[1].description == "Disables option --aFlag."
         options[1].argumentType == Void.TYPE
         options[1].availableValues == [] as Set
 
@@ -53,7 +53,7 @@ class OptionReaderTest extends Specification {
         options[2].availableValues == [] as Set
 
         options[3].name == "no-booleanValue"
-        options[3].description == "Disables option --booleanValue"
+        options[3].description == "Disables option --booleanValue."
         options[3].argumentType == Void.TYPE
         options[3].availableValues == [] as Set
 
@@ -88,7 +88,7 @@ class OptionReaderTest extends Specification {
         options[0].availableValues == [] as Set
 
         options[1].name == "no-booleanValue"
-        options[1].description == "Disables option --booleanValue"
+        options[1].description == "Disables option --booleanValue."
         options[1].argumentType == Void.TYPE
         options[1].availableValues == [] as Set
 
@@ -157,11 +157,11 @@ class OptionReaderTest extends Specification {
         then:
         options.size() == ownOptions + builtInOptionCount
         options[0].name == "my-option1"
-        options[0].description == "Opposite option of --no-my-option1"
+        options[0].description == "Opposite option of --no-my-option1."
         options[1].name == "no-my-option1"
         options[1].description == "Opposite option Boolean"
         options[2].name == "my-option2"
-        options[2].description == "Opposite option of --no-my-option2"
+        options[2].description == "Opposite option of --no-my-option2."
         options[3].name == "no-my-option2"
         options[3].description == "Opposite option Property<Boolean>"
         options[4].name == "rerun"
@@ -240,7 +240,7 @@ class OptionReaderTest extends Specification {
         options[3].availableValues.isEmpty()
 
         options[4].name == "no-field4"
-        options[4].description == "Disables option --field4"
+        options[4].description == "Disables option --field4."
         options[4].argumentType == Void.TYPE
         options[4].availableValues.isEmpty()
 
