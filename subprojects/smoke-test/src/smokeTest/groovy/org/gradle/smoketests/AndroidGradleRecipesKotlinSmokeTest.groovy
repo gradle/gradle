@@ -139,7 +139,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         def runner = useAgpVersion(agpVersion, runner('assembleDebug'))
 
         when: 'running the build for the 1st time'
-        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
+        beforeAndroidBuild(runner)
         def result = runnerWithDeprecations(runner, agpVersion, kotlinVersionNumber).build()
 
         then:
@@ -149,7 +149,6 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         assertConfigurationCacheStateStored()
 
         when: 'running the build for the 2nd time'
-        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = (
             GradleContextualExecuter.isConfigCache()
                 ? runner
@@ -165,6 +164,13 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         where:
         agpVersion << TestedVersions.androidGradle
         kotlinVersionNumber = VersionNumber.parse('1.7.0')
+    }
+
+    private beforeAndroidBuild(SmokeTestGradleRunner runner) {
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(
+            runner.projectDir,
+            IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir
+        )
     }
 
     private SmokeTestGradleRunner runnerWithDeprecations(
