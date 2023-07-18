@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.problems.interfaces.Problem
+import org.gradle.api.problems.interfaces.ProblemGroup
 import org.gradle.api.problems.interfaces.Severity
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.execution.WorkValidationContext
@@ -42,7 +43,6 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
     def emitter = Mock(BuildOperationProgressEventEmitter)
     def step = new ValidateStep<>(virtualFileSystem, warningReporter,new DefaultProblems(emitter), delegate)
     def delegateResult = Mock(Result)
-
 
     def setup() {
         def validationContext = new DefaultWorkValidationContext(new DocumentationRegistry(), WorkValidationContext.TypeOriginInspector.NO_OP)
@@ -81,12 +81,13 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             validationContext.forType(JobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .documentedAt(userManual("id", "section"))
+                    .noLocation()
                     .severity(Severity.ERROR)
                     .message("Validation error")
-                    .documentedAt(userManual("id", "section"))
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
                     .description("Test")
-                    .noLocation()
             }
         }
         0 * _
@@ -112,22 +113,24 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             validationContext.forType(JobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .documentedAt(userManual("id", "section"))
+                    .noLocation()
                     .severity(Severity.ERROR)
                     .message("Validation error #1")
-                    .documentedAt(userManual("id", "section"))
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
                     .description("Test")
-                    .noLocation()
             }
             validationContext.forType(SecondaryJobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .documentedAt(userManual("id", "section"))
+                    .noLocation()
                     .severity(Severity.ERROR)
                     .message("Validation error #2")
-                    .documentedAt(userManual("id", "section"))
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
                     .description("Test")
-                    .noLocation()
             }
         }
         0 * _
@@ -144,12 +147,13 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             validationContext.forType(JobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .documentedAt(userManual("id", "section"))
+                    .noLocation()
                     .severity(Severity.WARNING)
                     .message("Validation warning")
-                    .documentedAt(userManual("id", "section"))
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
                     .description("Test")
-                    .noLocation()
             }
         }
 
@@ -182,22 +186,24 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             typeContext.visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .documentedAt(userManual("id", "section"))
+                    .noLocation()
                     .severity(Severity.ERROR)
                     .message("Validation error")
-                    .documentedAt(userManual("id", "section"))
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
                     .description("Test")
-                    .noLocation()
             }
             typeContext.visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .documentedAt(userManual("id", "section"))
+                    .noLocation()
                     .severity(Severity.WARNING)
                     .message("Validation warning")
-                    .documentedAt(userManual("id", "section"))
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .group(ProblemGroup.TYPE_VALIDATION)
                     .description("Test")
-                    .noLocation()
             }
         }
 

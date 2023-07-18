@@ -189,17 +189,6 @@ import static java.util.Collections.emptyList;
  */
 public class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
-//    private final ListenerBroadcast<ProgressListener> testProgressListeners;
-//    private final ListenerBroadcast<ProgressListener> taskProgressListeners;
-//    private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners;
-//    private final ListenerBroadcast<ProgressListener> workItemProgressListeners;
-//    private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners;
-//    private final ListenerBroadcast<ProgressListener> transformProgressListeners;
-//    private final ListenerBroadcast<ProgressListener> testOutputProgressListeners;
-//    private final ListenerBroadcast<ProgressListener> fileDownloadListeners;
-//    private final ListenerBroadcast<ProgressListener> buildPhaseListeners;
-//    private final ListenerBroadcast<ProgressListener> problemListeners;
-
     private final ListenerBroadcast<ProgressListener> testProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> taskProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
@@ -219,26 +208,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
         List<ProgressListener> noListeners = emptyList();
 
-//        for (OperationType operationType : OperationMapping.getOperationTypes()) {
-//            ListenerBroadcast<ProgressListener> listener = this.listeners.get(operationType);
-//            if(listener == null) {
-//                listener = new ListenerBroadcast<>(ProgressListener.class);
-//                this.listeners.put(operationType, listener);
-//            }
-//            listener.addAll(listeners.getOrDefault(operationType, noListeners));
-//        }
-//
-//        testProgressListeners = this.listeners.get(OperationType.TEST);
-//        taskProgressListeners = this.listeners.get(OperationType.TASK);
-//        buildOperationProgressListeners = this.listeners.get(OperationType.GENERIC);
-//        workItemProgressListeners = this.listeners.get(OperationType.WORK_ITEM);
-//        projectConfigurationProgressListeners = this.listeners.get(OperationType.PROJECT_CONFIGURATION);
-//        transformProgressListeners = this.listeners.get(OperationType.TRANSFORM);
-//        testOutputProgressListeners = this.listeners.get(OperationType.TEST_OUTPUT);
-//        fileDownloadListeners = this.listeners.get(OperationType.FILE_DOWNLOAD);
-//        buildPhaseListeners = this.listeners.get(OperationType.BUILD_PHASE);
-//        problemListeners = this.listeners.get(OperationType.PROBLEMS);
-
         testProgressListeners.addAll(listeners.getOrDefault(OperationType.TEST, noListeners));
         taskProgressListeners.addAll(listeners.getOrDefault(OperationType.TASK, noListeners));
         buildOperationProgressListeners.addAll(listeners.getOrDefault(OperationType.GENERIC, noListeners));
@@ -254,11 +223,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     @Override
     public List<String> getSubscribedOperations() {
         List<String> operations = new ArrayList<>();
-//        for (Map.Entry<OperationType, ListenerBroadcast<ProgressListener>> operationTypeListenerBroadcastEntry : this.listeners.entrySet()) {
-//            if (!operationTypeListenerBroadcastEntry.getValue().isEmpty()) {
-//                operations.add(OperationMapping.getOperationName(operationTypeListenerBroadcastEntry.getKey()));
-//            }
-//        }
 
         if (!testProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.TEST_EXECUTION);
