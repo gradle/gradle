@@ -55,7 +55,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             }
         """
 
-        file('app/build.gradle.kts') << '''
+        file('app/build.gradle.kts') << """
             import com.android.build.api.artifact.*
             import com.android.build.api.variant.*
 
@@ -84,9 +84,8 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             android {
                 namespace = "org.gradle.smoketests.androidrecipes"
                 compileSdkVersion(29)
-                defaultConfig {
-                    minSdkVersion(21)
-                }
+                buildToolsVersion("${TestedVersions.androidTools}")
+                buildFeatures { buildConfig = true }
             }
 
             androidComponents {
@@ -103,7 +102,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
                     )
                 }
             }
-        '''
+        """
 
         file('app/src/main/kotlin/org/gradle/smoketests/androidrecipes/MainActivity.kt') << '''
             package org.gradle.smoketests.androidrecipes
