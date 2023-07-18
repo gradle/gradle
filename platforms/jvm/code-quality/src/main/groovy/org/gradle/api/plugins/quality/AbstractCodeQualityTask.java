@@ -20,9 +20,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.api.tasks.WorkerProcessTask;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
@@ -39,7 +41,7 @@ import javax.inject.Inject;
  */
 @Incubating
 @DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
-abstract public class AbstractCodeQualityTask extends SourceTask implements VerificationTask, WorkerProcessTask {
+abstract public class AbstractCodeQualityTask extends SourceTask implements VerificationTask {
     private static final String OPEN_MODULES_ARG = "java.prefs/java.util.prefs=ALL-UNNAMED";
     // TODO - Convert VerificationTask to use property-based API and deprecate boolean methods
     private final Property<Boolean> ignoreFailures;
@@ -87,4 +89,32 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
             forkOptions.jvmArgs("--add-opens", OPEN_MODULES_ARG);
         }
     }
+
+    /**
+     * Java launcher used to start the worker process
+     */
+    @Nested
+    public abstract Property<JavaLauncher> getJavaLauncher();
+
+    /**
+     * The minimum heap size for the worker process.  When unspecified, no minimum heap size is set.
+     *
+     * Supports units like the command-line option {@code -Xms} such as {@code "1g"}.
+     *
+     * @return The minimum heap size.
+     */
+    @Optional
+    @Input
+    public abstract Property<String> getMinHeapSize();
+
+    /**
+     * The maximum heap size for the worker process.  If unspecified, a maximum heap size will be provided by Gradle.
+     *
+     * Supports units like the command-line option {@code -Xmx} such as {@code "1g"}.
+     *
+     * @return The maximum heap size.
+     */
+    @Optional
+    @Input
+    public abstract Property<String> getMaxHeapSize();
 }
