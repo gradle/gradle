@@ -41,6 +41,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
+import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
@@ -582,8 +583,12 @@ class DefaultMavenPublicationTest extends Specification {
         def versionRangeMapper = Mock(VersionRangeMapper) {
             map(_) >> { "mapped-" + it[0] }
         }
+
+        def versionMappingStrategy = Mock(VersionMappingStrategyInternal) {
+            findStrategyForVariant(_) >> Mock(VariantVersionMappingStrategyInternal)
+        }
         def publication = objectFactory.newInstance(DefaultMavenPublication.class, "pub-name", module, notationParser, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(),
-            AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, Mock(VersionMappingStrategyInternal), DependencyManagementTestUtil.platformSupport(),
+            AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, versionMappingStrategy, DependencyManagementTestUtil.platformSupport(),
             versionRangeMapper, Mock(DocumentationRegistry), TestFiles.taskDependencyFactory())
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))

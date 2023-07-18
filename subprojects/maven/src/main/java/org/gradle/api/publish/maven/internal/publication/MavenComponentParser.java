@@ -48,15 +48,18 @@ import org.gradle.api.publish.internal.component.MavenPublishingAwareVariant;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenPomDependencies;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -96,24 +99,45 @@ public class MavenComponentParser {
     private final VersionRangeMapper versionRangeMapper;
     private final DocumentationRegistry documentationRegistry;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
     public MavenComponentParser(
         PlatformSupport platformSupport,
         VersionRangeMapper versionRangeMapper,
         DocumentationRegistry documentationRegistry,
-        ProjectDependencyPublicationResolver projectDependencyResolver
+        ProjectDependencyPublicationResolver projectDependencyResolver,
+        NotationParser<Object, MavenArtifact> mavenArtifactParser
     ) {
         this.platformSupport = platformSupport;
         this.versionRangeMapper = versionRangeMapper;
         this.documentationRegistry = documentationRegistry;
         this.projectDependencyResolver = projectDependencyResolver;
+        this.mavenArtifactParser = mavenArtifactParser;
     }
 
-    public Result build(
+    public Set<MavenArtifact> parseArtifacts(SoftwareComponentInternal component) {
+        component.finalizeValue();
+
+        // TODO Artifact names should be determined by the source variant. We shouldn't
+        //      blindly "pass-through" the artifact file name.
+        Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
+        return component.getUsages().stream()
+            .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant))
+            .flatMap(variant -> variant.getArtifacts().stream())
+            .filter(artifact -> {
+                ArtifactKey key = new ArtifactKey(artifact.getFile(), artifact.getClassifier(), artifact.getExtension());
+                return seenArtifacts.add(key);
+            })
+            .map(mavenArtifactParser::parseNotation)
+            .collect(Collectors.toSet());
+    }
+
+    public DependencyResult parseDependencies(
         SoftwareComponentInternal component,
         ModuleVersionIdentifier coordinates,
         VersionMappingStrategyInternal versionMappingStrategy
     ) {
+        component.finalizeValue();
         MavenPublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
         Set<PublishedDependency> seenDependencies = Sets.newHashSet();
@@ -186,7 +210,7 @@ public class MavenComponentParser {
             }
         }
 
-        return new Result(
+        return new DependencyResult(
             new DefaultMavenPomDependencies(
                 ImmutableList.copyOf(dependencies),
                 ImmutableList.<MavenDependency>builder().addAll(constraints).addAll(platforms).build()
@@ -354,11 +378,11 @@ public class MavenComponentParser {
         }
     }
 
-    public static class Result {
+    public static class DependencyResult {
         private final MavenPomDependencies dependencies;
         private final PublicationWarningsCollector warnings;
 
-        public Result(
+        public DependencyResult(
             MavenPomDependencies dependencies,
             PublicationWarningsCollector warnings
         ) {
@@ -391,6 +415,29 @@ public class MavenComponentParser {
 
         public static Coordinates from(ModuleVersionIdentifier identifier) {
             return new Coordinates(identifier.getGroup(), identifier.getName(), identifier.getVersion());
+        }
+    }
+
+    private static class ArtifactKey {
+        final File file;
+        final String classifier;
+        final String extension;
+
+        public ArtifactKey(File file, @Nullable String classifier, @Nullable String extension) {
+            this.file = file;
+            this.classifier = classifier;
+            this.extension = extension;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            ArtifactKey other = (ArtifactKey) obj;
+            return file.equals(other.file) && Objects.equal(classifier, other.classifier) && Objects.equal(extension, other.extension);
+        }
+
+        @Override
+        public int hashCode() {
+            return file.hashCode() ^ Objects.hashCode(classifier, extension);
         }
     }
 

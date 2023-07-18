@@ -16,8 +16,6 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
@@ -50,7 +48,6 @@ import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
-import org.gradle.api.publish.internal.component.MavenPublishingAwareVariant;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
@@ -75,13 +72,11 @@ import org.gradle.util.internal.GUtil;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -90,7 +85,6 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     private final String name;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final TaskDependencyFactory taskDependencyFactory;
-    private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private final MavenPomInternal pom;
@@ -131,10 +125,11 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
         this.taskDependencyFactory = taskDependencyFactory;
-        this.mavenArtifactParser = mavenArtifactParser;
+
+        MavenComponentParser mavenComponentParser = new MavenComponentParser(platformSupport, versionRangeMapper, documentationRegistry, projectDependencyResolver, mavenArtifactParser);
 
         this.componentArtifacts = objectFactory.setProperty(MavenArtifact.class);
-        this.componentArtifacts.convention(getComponent().map(this::readComponentArtifacts));
+        this.componentArtifacts.convention(getComponent().map(mavenComponentParser::parseArtifacts));
         this.componentArtifacts.finalizeValueOnRead();
 
         this.mainArtifacts = objectFactory.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory, collectionCallbackActionDecorator);
@@ -145,10 +140,8 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.pom = objectFactory.newInstance(DefaultMavenPom.class, objectFactory);
         pom.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
         pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
-
-        MavenComponentParser mavenComponentParser = new MavenComponentParser(platformSupport, versionRangeMapper, documentationRegistry, projectDependencyResolver);
         pom.getDependencies().set(getComponent().map(component -> {
-            MavenComponentParser.Result result = mavenComponentParser.build(component, getCoordinates(), versionMappingStrategy);
+            MavenComponentParser.DependencyResult result = mavenComponentParser.parseDependencies(component, getCoordinates(), versionMappingStrategy);
             if (!silenceAllPublicationWarnings) {
                 result.getWarnings().complete(getDisplayName() + " pom metadata", silencedVariants);
             }
@@ -269,25 +262,6 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         if (!artifactsOverridden && componentArtifacts.isPresent()) {
             mainArtifacts.addAll(componentArtifacts.get());
         }
-    }
-
-    private Set<MavenArtifact> readComponentArtifacts(SoftwareComponentInternal component) {
-        // Finalize the component to avoid GMM later modification
-        // See issue https://github.com/gradle/gradle/issues/20581
-        component.finalizeValue();
-
-        // TODO Artifact names should be determined by the source variant. We shouldn't
-        //      blindly "pass-through" the artifact file name.
-        Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
-        return component.getUsages().stream()
-            .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant))
-            .flatMap(variant -> variant.getArtifacts().stream())
-            .filter(artifact -> {
-                ArtifactKey key = new ArtifactKey(artifact.getFile(), artifact.getClassifier(), artifact.getExtension());
-                return seenArtifacts.add(key);
-            })
-            .map(mavenArtifactParser::parseNotation)
-            .collect(Collectors.toSet());
     }
 
     @Override
@@ -579,29 +553,6 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             artifactPath.append(extension);
         }
         return artifactPath.toString();
-    }
-
-    private static class ArtifactKey {
-        final File file;
-        final String classifier;
-        final String extension;
-
-        public ArtifactKey(File file, @Nullable String classifier, @Nullable String extension) {
-            this.file = file;
-            this.classifier = classifier;
-            this.extension = extension;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            ArtifactKey other = (ArtifactKey) obj;
-            return file.equals(other.file) && Objects.equal(classifier, other.classifier) && Objects.equal(extension, other.extension);
-        }
-
-        @Override
-        public int hashCode() {
-            return file.hashCode() ^ Objects.hashCode(classifier, extension);
-        }
     }
 
     private static class SerializableMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
