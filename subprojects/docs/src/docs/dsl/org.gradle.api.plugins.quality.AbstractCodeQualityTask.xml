@@ -24,14 +24,6 @@
                 <td>maxHeapSize</td>
                 <td></td>
             </tr>
-            <tr>
-                <td>systemProperties</td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>environment</td>
-                <td></td>
-            </tr>
         </table>
     </section>
     <section>

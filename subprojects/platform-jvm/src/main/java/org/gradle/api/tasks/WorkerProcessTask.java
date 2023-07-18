@@ -28,26 +28,28 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 @Incubating
 public interface WorkerProcessTask {
     /**
-     * JavaLauncher for toolchain support
+     * Java launcher used to start the worker process
      */
     @Nested
     Property<JavaLauncher> getJavaLauncher();
 
     /**
-     * The minimum heap size for the worker process, if any.
-     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
+     * The minimum heap size for the worker process.  When unspecified, no minimum heap size is set.
+     * 
+     * Supports units like the command-line option {@code -Xms} such as {@code "1g"}.
      *
-     * @return The minimum heap size. Value should be null if the default minimum heap size should be used.
+     * @return The minimum heap size. 
      */
     @Optional
     @Input
     Property<String> getMinHeapSize();
 
     /**
-     * The maximum heap size for the worker process, if any.
-     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
+     * The maximum heap size for the worker process.  If unspecified, a maximum heap size will be provided by Gradle.
+     * 
+     * Supports units like the command-line option {@code -Xmx} such as {@code "1g"}.
      *
-     * @return The minimum heap size. Value should be null if the default maximum heap size should be used.
+     * @return The maximum heap size. 
      */
     @Optional
     @Input
