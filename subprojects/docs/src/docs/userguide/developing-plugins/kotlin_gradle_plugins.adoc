@@ -2,7 +2,7 @@
 
 In addition to <<kotlin_dsl.adoc, writing build scripts>>, Gradle also supports writing plugins in https://www.jetbrains.com/opensource/kotlin/[Kotlin].
 
-There are multiple options to write your Kotlin plugins and multiple compatibility considerations. 
+There are multiple options to write your Kotlin plugins and multiple compatibility considerations.
 This page includes a non-exhaustive list of dependencies and compiler configurations, and explores their impact on compatibility and usability.
 
 It also describes the different development plugins that you can use to set up these different options.
@@ -11,11 +11,11 @@ It also describes the different development plugins that you can use to set up t
 [[sec:dependencies]]
 == Different dependencies
 
-Like other JVM projects, Gradle plugins are JAR files with dependencies. 
-However,  unlike other JVM projects, Gradle provides fixed versions of some dependencies at runtime. 
+Like other JVM projects, Gradle plugins are JAR files with dependencies.
+However,  unlike other JVM projects, Gradle provides fixed versions of some dependencies at runtime.
 Those dependencies are `compileOnly` dependencies and need to be compatible with the version of Gradle your plugin is running in.
 
-If you are writing convention plugins, this is typically not an issue. 
+If you are writing convention plugins, this is typically not an issue.
 However, if you distribute your plugins, you should pay particular attention to their compatibility.
 
 [[sec:gradle_api]]
@@ -37,10 +37,10 @@ TIP: `gradleApi()` must be a `compileOnly` dependency, because the correct Gradl
 
 The Gradle API version provided by `gradleApi()` is the same as the version of Gradle used to build the plugin.
 
-For example, if the plugin is built using Gradle version 7.6.1, then `gradleApi()` will also be version 7.6.1. 
+For example, if the plugin is built using Gradle version 7.6.1, then `gradleApi()` will also be version 7.6.1.
 If the plugin is later built with Gradle {gradleVersion}, then the `gradleApi()` will change to version {gradleVersion}.
 
-This implicit link affects the Gradle versions your plugin supports. 
+This implicit link affects the Gradle versions your plugin supports.
 It's easy to build a plugin using one version of Gradle that has functions or classes that are not present in other versions of Gradle.
 
 If a plugin uses the functionality of the Gradle API that is missing in the Gradle being used to run the plugin, it might result in a runtime exception, such as `NoSuchMethodError`.
@@ -107,7 +107,7 @@ dependencies {
 }
 ----
 
-The Kotlin compatibility matrix can be found in the https://docs.gradle.org/current/userguide/compatibility.html#kotlin[Gradle compatibility page]. 
+The Kotlin compatibility matrix can be found in the https://docs.gradle.org/current/userguide/compatibility.html#kotlin[Gradle compatibility page].
 If you want your plugin to be compatible with a given version of Gradle, you must use a compatible version of kotlin-stdlib.
 For example, if you need your plugin to be compatible with Gradle 7.0, you cannot use the Kotlin 1.5 API (such as https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/lowercase.htmllowercase).
 You need to compile against `kotlin-stdlib:1.4.31`.
@@ -123,7 +123,7 @@ For similar reasons, any transitive dependency of your plugin must use a `kotlin
 While you can ensure that at compile time for your code, it's often more complicated for dependencies,.
 So test your plugins and/or double-check your transitive dependencies.
 
-Note: The `kotlin-stdlib` version is independent of your Kotlin Gradle Plugin version. 
+Note: The `kotlin-stdlib` version is independent of your Kotlin Gradle Plugin version.
 You can use a newer Kotlin Gradle Plugin version with an older `kotlin-stdlib` using the https://kotlinlang.org/docs/compiler-reference.html#api-version-version[`apiVersion`] compiler argument.
 
 TIP: Because it is provided by Gradle at runtime, `kotlin-stdlib` must be a `compileOnly` dependency.
@@ -138,7 +138,7 @@ dependencies {
 }
 ----
 
-Not all plugins need `kotlin-reflect` but if yours does, the situation is the same as for `kotlin-stdlib`. 
+Not all plugins need `kotlin-reflect` but if yours does, the situation is the same as for `kotlin-stdlib`.
 `kotlin-reflect` needs to be compatible with the https://docs.gradle.org/current/userguide/compatibility.html#kotlin[target Gradle version].
 
 TIP: Because it is provided by Gradle at runtime, `gradle-api` must be a `compileOnly` dependency.
@@ -160,8 +160,8 @@ dependencies {
 }
 ----
 
-Gradle does not provide these dependencies at runtime and should use the `implementation` configuration (or `api` if part of your plugin API). 
-Because Gradle may load different plugins with conflicting dependencies in the same https://dev.to/autonomousapps/build-compile-run-a-crash-course-in-classpaths-f4g[classloader], your plugin users may experience crashes if symbols are incompatible or missing. 
+Gradle does not provide these dependencies at runtime and should use the `implementation` configuration (or `api` if part of your plugin API).
+Because Gradle may load different plugins with conflicting dependencies in the same https://dev.to/autonomousapps/build-compile-run-a-crash-course-in-classpaths-f4g[classloader], your plugin users may experience crashes if symbols are incompatible or missing.
 To mitigate this, you can relocate your dependencies.
 
 [[sec:compiler_options]]
@@ -200,8 +200,7 @@ The latter looks closer to `build.gradle.kts` scripts and is more concise but is
 [[sec:kotlin_assignment]]
 === `kotlin-assignment` compiler plugin
 
-The `kotlin-assignment` compiler plugin is still experimental. 
-It allows overriding assignments so that Kotlin callers do not have to call `.set()` on https://docs.gradle.org/current/javadoc/org/gradle/api/provider/Property.html[Property]:
+The https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.assignment/1.8.20[`kotlin-assignment` compiler plugin] allows overriding assignments so that Kotlin callers do not have to call `.set()` on https://docs.gradle.org/current/javadoc/org/gradle/api/provider/Property.html[Property]:
 
 
 ----
@@ -221,7 +220,7 @@ tasks.jar.configure {
 [[sec:api_version]]
 === `apiVersion` compiler option
 
-The https://kotlinlang.org/docs/compiler-reference.html#api-version-version[Kotlin compiler apiVersion option] enforces the generated bytecode to use declaration from the given version only. 
+The https://kotlinlang.org/docs/compiler-reference.html#api-version-version[Kotlin compiler apiVersion option] enforces the generated bytecode to use declaration from the given version only.
 This is important to stay compatible with the Kotlin version embedded by Gradle.
 
 Note: while this enforces your code is compatible with a given version of Kotlin stdlib and Gradle, it does not check dependencies, so it is important to check your dependencies are also compatible.
@@ -229,8 +228,8 @@ Note: while this enforces your code is compatible with a given version of Kotlin
 [[sec:sam_conversion_class]]
 === `-Xsam-conversions=class` compiler option
 
-`-Xsam-conversions=class` sets up the implementation strategy for SAM (single abstract method) conversion to always generate anonymous classes, instead of using the `invokedynamic` JVM instruction. 
-This is to make sure the lambdas are serializable and provide better support for configuration cache and incremental build. 
+`-Xsam-conversions=class` sets up the implementation strategy for SAM (single abstract method) conversion to always generate anonymous classes, instead of using the `invokedynamic` JVM instruction.
+This is to make sure the lambdas are serializable and provide better support for configuration cache and incremental build.
 This is particularly important for lambdas used from `doLast`:
 See https://github.com/gradle/gradle/issues/17052[Issue #17052] for more information.
 
@@ -272,7 +271,7 @@ Let's see what each plugin is doing.
 * performs validation of plugin metadata during `jar` task execution.
 * adds the `gradleTestKit()` dependency to the `testImplementation` configuration
 
-You always want this plugin to develop custom Gradle plugins (although other plugins might apply it for you). 
+You always want this plugin to develop custom Gradle plugins (although other plugins might apply it for you).
 Refer to the full <<java_gradle_plugin.adoc, documentation>> for more information.
 
 [[sec:kotlin_jvm]]
@@ -280,7 +279,7 @@ Refer to the full <<java_gradle_plugin.adoc, documentation>> for more informatio
 
 `"org.jetbrains.kotlin.jvm"` is the plugin configuring the Kotlin compiler, amongst many other things.
 
-You usually always want this plugin to develop custom Gradle plugins (although other plugins might apply it for you). 
+You usually always want this plugin to develop custom Gradle plugins (although other plugins might apply it for you).
 Refer to the full https://kotlinlang.org/docs/gradle.html[documentation] for more information.
 
 [[sec:embedded-kotlin]]
@@ -291,7 +290,7 @@ Refer to the full https://kotlinlang.org/docs/gradle.html[documentation] for mor
 * applies the `"org.jetbrains.kotlin.jvm"` plugin using the same version as the Gradle embedded version
 * adds `kotlin-stdlib` and `kotlin-reflect` to the `compileOnly` dependency
 
-Use this plugin if you want to use the same Kotlin version to develop your plugins that the version used by your Gradle build. 
+Use this plugin if you want to use the same Kotlin version to develop your plugins that the version used by your Gradle build.
 This is especially useful if you do not intend to distribute your plugins (i.e. convention plugins).
 
 [[sec:kotlin-dsl]]
@@ -313,11 +312,11 @@ This is especially useful if you do not intend to distribute your plugins (i.e. 
 ** `-Xjsr305=strict` for https://kotlinlang.org/docs/java-interop.html#compiler-configuration[increased null safety]
 
 
-The `kotlin-dsl` plugin is an all-in-one plugin. 
+The `kotlin-dsl` plugin is an all-in-one plugin.
 By applying the `kotlin-dsl-precompiled-script-plugins` and the same options as Gradle when compiling scripts, it allows you to write plugins using the `.gradle.kts` file.
 
-Like the `embedded-kotlin` plugin, it uses the same Kotlin version as your Gradle build. 
-This is useful if you do not intend to distribute your plugins (i.e. convention plugins). 
+Like the `embedded-kotlin` plugin, it uses the same Kotlin version as your Gradle build.
+This is useful if you do not intend to distribute your plugins (i.e. convention plugins).
 If you need to distribute your plugin, make sure to use a Kotlin version that is compatible with the Gradle version you are targeting.
 
 
