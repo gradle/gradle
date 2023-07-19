@@ -18,7 +18,9 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -42,6 +44,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             apply plugin: "java-gradle-plugin"
         """
     }
+
+    def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     String iterableSymbol = '.*'
 
@@ -307,6 +311,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile').forTransformAction() }, 'validation_problems', 'annotation_invalid_in_context'),
             error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
+
+        def n = DefaultProblem.class.name
+
+        def problems = operations.problems()
+        assert problems.size() == 1
     }
 
     @ValidationTestFor([
