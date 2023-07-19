@@ -29,8 +29,8 @@ class BazelFileContentGenerator {
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:maven_rules.bzl", "maven_dependency_plugin", "maven_jar")
 
-RULES_JVM_EXTERNAL_TAG = "2.8"
-RULES_JVM_EXTERNAL_SHA = "79c9850690d7614ecdb72d68394f994fef7534b292c4867ce5e7dec0aa7bdfad"
+RULES_JVM_EXTERNAL_TAG = "4.5"
+RULES_JVM_EXTERNAL_SHA = "b17d7388feb9bfa7f2fa09031b32707df529f26c91ab9e5d909eb1676badd9a6"
 
 http_archive(
     name = "rules_jvm_external",
@@ -61,9 +61,12 @@ maven_install(
             transitiveSubProjectNumbers.addAll(transitive)
         }
         subProjectNumbers?.addAll(transitiveSubProjectNumbers)
-        def subProjectDependencies = ''
+        Set<String> subProjectDependencies = [] as HashSet
         if (subProjectNumbers?.size() > 0) {
-            subProjectDependencies = subProjectNumbers.collect { "      \"//project$it:project$it\"" }.join(",\n")
+            subProjectDependencies.addAll(subProjectNumbers.collect { "      \"//project$it:project$it\"".toString() })
+        }
+        if (subProjectNumber != null && subProjectNumber % 4 == 0 && subProjectNumber != 0) {
+            subProjectDependencies.add("      \"//project0:project0\"")
         }
         if (!isRoot) {
             """
@@ -76,7 +79,7 @@ java_library(
     javacopts = ["-XepDisableAllChecks"],
     visibility = ["//visibility:public"],
     deps = [
-${subProjectDependencies}
+${subProjectDependencies.join(",\n")}
     ]
 )
 
@@ -86,7 +89,7 @@ junit_tests(
     srcs = glob(["src/test/java/**/*.java"]),
     deps = [
         "project${subProjectNumber}",
-        ${subProjectDependencies}
+        ${subProjectDependencies.join(",\n")}
     ],
 )
 """

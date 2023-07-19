@@ -325,23 +325,34 @@ abstract class FileContentGenerator {
     String generateProductionClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
         def properties = ''
         def ownPackageName = packageName(classNumber, subProjectNumber)
-        def imports = ''
+        Set<String> imports = [] as HashSet
         def children = dependencyTree.getTransitiveChildClassIds(classNumber)
         (0..Math.max(propertyCount, children.size()) - 1).each {
             def propertyType
+            int childNumber
+            def initialization
             if (it < children.size()) {
-                def childNumber = children.get(it)
+                childNumber = children.get(it)
                 propertyType = "Production${childNumber}"
                 def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.getProjectIdForClass(childNumber))
                 if (childPackageName != ownPackageName) {
-                    imports += imports == '' ? '\n        ' : ''
-                    imports += "import ${childPackageName}.Production${childNumber};\n        "
+                    imports.add("import ${childPackageName}.Production${childNumber};".toString())
                 }
+                initialization = ""
+            } else if (it == 0 && subProjectNumber % 4 == 0 && subProjectNumber != 0) {
+                imports.add("import org.gradle.test.performance.compilationavoidanceexperiment.project0.p0.Production0;")
+                propertyType = "Production0"
+                initialization = " = new " + propertyType + "()"
+            } else if (it == 1 && subProjectNumber % 4 == 0 && subProjectNumber != 0) {
+                propertyType = "String"
+                initialization = " = property0.getProperty1()"
             } else {
                 propertyType = "String"
+                initialization = ""
             }
+
             properties += """
-            private $propertyType property$it;
+            private $propertyType property$it$initialization;
 
             public $propertyType getProperty$it() {
                 return property$it;
@@ -355,7 +366,9 @@ abstract class FileContentGenerator {
 
         """
         package ${ownPackageName};
-        ${imports}
+
+        ${imports.join("\n")}
+
         public class Production$classNumber {
             $properties
         }
@@ -365,7 +378,7 @@ abstract class FileContentGenerator {
     String generateTestClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
         def testMethods = ""
         def ownPackageName = packageName(classNumber, subProjectNumber)
-        def imports = ''
+        Set<String> imports = [] as HashSet
         def children = dependencyTree.getTransitiveChildClassIds(classNumber)
         (0..Math.max(propertyCount, children.size()) - 1).each {
             def propertyType
@@ -376,9 +389,12 @@ abstract class FileContentGenerator {
                 propertyValue = "new Production${childNumber}()"
                 def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.getProjectIdForClass(childNumber))
                 if (childPackageName != ownPackageName) {
-                    imports += imports == '' ? '\n        ' : ''
-                    imports += "import ${childPackageName}.Production${childNumber};\n        "
+                    imports.add("import ${childPackageName}.Production${childNumber};".toString())
                 }
+            } else if (it == 0 && subProjectNumber % 4 == 0 && subProjectNumber != 0) {
+                propertyType = "Production0"
+                propertyValue = "new Production0()"
+                imports.add("import org.gradle.test.performance.compilationavoidanceexperiment.project0.p0.Production0;")
             } else {
                 propertyType = "String"
                 propertyValue = '"value"'
@@ -395,7 +411,9 @@ abstract class FileContentGenerator {
 
         """
         package ${packageName(classNumber, subProjectNumber)};
-        ${imports}
+
+        ${imports.join("\\n")}
+
         import org.${config.useTestNG ? 'testng.annotations' : 'junit'}.Test;
         import static org.${config.useTestNG ? 'testng' : 'junit'}.Assert.*;
 
@@ -432,19 +450,22 @@ abstract class FileContentGenerator {
     private dependenciesBlock(String api, String implementation, String testImplementation, Integer subProjectNumber, DependencyTree dependencyTree) {
         def hasParent = dependencyTree.hasParentProject(subProjectNumber)
         def subProjectNumbers = dependencyTree.getChildProjectIds(subProjectNumber)
-        def subProjectDependencies = ''
+        def subProjectDependencies = []
         if (subProjectNumbers?.size() > 0) {
             def abiProjectNumber = subProjectNumbers.get(DependencyTree.API_DEPENDENCY_INDEX)
-            subProjectDependencies = subProjectNumbers.collect {
+            subProjectDependencies.addAll(subProjectNumbers.collect {
                 it == abiProjectNumber ? projectDependencyDeclaration(hasParent ? api : implementation, abiProjectNumber) : projectDependencyDeclaration(implementation, it)
-            }.join("\n            ")
+            })
+        }
+        if (subProjectNumber % 4 == 0 && subProjectNumber != 0) {
+            subProjectDependencies.add(projectDependencyDeclaration("implementation", 0))
         }
         def block = """
                     ${config.externalApiDependencies.keySet().collect { versionCatalogDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
                     ${config.externalImplementationDependencies.keySet().collect { versionCatalogDependencyDeclaration(implementation, it) }.join("\n            ")}
                     ${versionCatalogDependencyDeclaration(testImplementation, config.useTestNG ? 'testng' : 'junit')}
 
-                    $subProjectDependencies
+                    ${subProjectDependencies.join("\n            ")}
         """
         return """
             dependencies {
