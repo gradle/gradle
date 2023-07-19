@@ -27,7 +27,7 @@ When configuring Gradle behavior, you can use these methods, listed in order of 
 |Order |Method |Example |Notes
 
 |1
-|<<command_line_interface.adoc#command_line_interface, Command-line flags>>
+|<<command_line_interface#command_line_interface, Command-line flags>>
 |`--build-cache`
 |These have precedence over properties and environment variables.
 
@@ -54,7 +54,7 @@ You can also read information about the environment in the build logic.
 
 [[sec:gradle_command_line_flags]]
 == 1. Command-line flags
-The command line interface, along with the available flags, is described in <<#command_line_interface,its own section>>.
+The command line interface, along with the available flags, is described in <<command_line_interface#command_line_interface,its own section>>.
 
 
 [[sec:gradle_system_properties]]
