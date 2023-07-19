@@ -156,17 +156,19 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
 
         where:
         [agpVersion, provider] << [
-            AGP_VERSIONS.latestsStable,
+            AGP_VERSIONS.latestsStableOrRC,
             [
                 [type: 'flatMap{map{}}',
                  mapBegin: 'flatMap { it.fieldValueOutputFile.map {', mapEnd: '} }',
                  get: 'it.asFile.readText(Charsets.UTF_8)'],
+                [type: 'flatMap{map{}.map{}}',
+                 mapBegin: 'flatMap { it.fieldValueOutputFile.map { it.asFile.readText(Charsets.UTF_8) }.map {', mapEnd: '} }',
+                 get: 'it'],
                 [type: 'flatMap{}.map{}',
                  mapBegin: 'flatMap { it.fieldValueOutputFile }.map {', mapEnd: '}',
                  get: 'it.asFile.readText(Charsets.UTF_8)'],
                 [type: 'flatMap{}.map{}.map{}',
-                 mapBegin: 'flatMap { it.fieldValueOutputFile }.map { it.asFile.readText(Charsets.UTF_8) }.map {',
-                 mapEnd: '}',
+                 mapBegin: 'flatMap { it.fieldValueOutputFile }.map { it.asFile.readText(Charsets.UTF_8) }.map {', mapEnd: '}',
                  get: 'it']
             ]
         ].combinations()
