@@ -78,6 +78,8 @@ abstract class AbstractIntegrationSpec extends Specification {
     private GradleExecuter executor
     private boolean ignoreCleanupAssertions
 
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
     GradleExecuter getExecuter() {
         if (executor == null) {
             executor = createExecuter()
@@ -463,6 +465,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
+        assert !buildOperations.problems().empty
         return failure
     }
 

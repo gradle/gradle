@@ -18,14 +18,11 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
-
-    final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)

@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -45,7 +44,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
     }
 
-    def operations = new BuildOperationsFixture(executer, temporaryFolder)
+//    def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     String iterableSymbol = '.*'
 

@@ -18,12 +18,9 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import spock.lang.Issue
 
 class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
-
-    final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)

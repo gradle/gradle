@@ -17,12 +17,9 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 
 class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationSpec {
-
-    final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "settings details are exposed"() {
         settingsFile << ""

@@ -17,11 +17,8 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 
 class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegrationSpec {
-
-    final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "multiproject settings with customizations are exposed correctly"() {
         settingsFile << """
