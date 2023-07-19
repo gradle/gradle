@@ -296,7 +296,7 @@ fun configureTests() {
                     preferredMaxDuration = Duration.ofSeconds(this)
                 }
                 // No limit; use all available executors
-                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else null
+                distribution.maxRemoteExecutors = 0
 
                 // Test distribution annotation-class filters
                 // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
