@@ -750,7 +750,7 @@ Lazy property assignment is supported from IntelliJ 2022.3 and from Android Stud
 
 [[sec:kotlin]]
 
-See <<../developing-plugins/kotlin_gradle_plugins.adoc, the dedicated page>> for more details about how to write your plugins in Kotlin
+See the <<../developing-plugins/kotlin_gradle_plugins.adoc, Kotlin Gradle plugins dedicated page>> for more details about how to write your plugins in Kotlin.
 
 == The embedded Kotlin
 
