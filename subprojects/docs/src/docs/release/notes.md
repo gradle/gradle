@@ -93,7 +93,7 @@ This release brings another series of improvements.
 
 #### Simplified plugin request when needing the embedded Kotlin version
 
-Gradle allowed to use the [`kotlin(String)`](kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html) as a shortcut to apply plugins in the [`org.jetbrains` namespace](https://plugins.gradle.org/search?term=org.jetbrains.kotlin).
+Gradle allows using [`kotlin(String)`](kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html) as a shortcut to apply plugins in the [`org.jetbrains` namespace](https://plugins.gradle.org/search?term=org.jetbrains.kotlin).
 However this requires specifying the version of the plugin to apply.
 
 Starting with this Gradle version, you can use [embeddedKotlin()](kotlin-dsl/gradle/org.gradle.kotlin.dsl/embedded-kotlin.html) instead:
@@ -109,7 +109,7 @@ This will result in applying the plugin with a version matching the Kotlin versi
 <a name="kotlin_k2"></a>
 #### Build scripts now accept dependencies compiled with Kotlin K2 compiler
 
-As announced by the Kotlin team, the [K2 compiler is going stable Kotlin 2.0](https://blog.jetbrains.com/kotlin/2023/02/k2-kotlin-2-0/).
+As announced by the Kotlin team, the [K2 compiler is going stable in Kotlin 2.0](https://blog.jetbrains.com/kotlin/2023/02/k2-kotlin-2-0/).
 
 Starting with Kotlin 1.9.0-RC and until the release of Kotlin 2.0, you can easily test the K2 compiler in your Gradle projects.
 In order to do so, add `-Pkotlin.experimental.tryK2=true` to your command line invocations or add it to your `gradle.properties` file:
