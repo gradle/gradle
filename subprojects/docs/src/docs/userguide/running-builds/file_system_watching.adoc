@@ -8,7 +8,7 @@ By watching the file system, Gradle keeps the VFS current between builds.
 
 Gradle enables file system watching by default for supported operating systems since Gradle 7.
 
-To force file system watching for a build, run the build with the `--watch-fs` flag.
+Run the build with the '--watch-fs' flag to force file system watching for a build.
 
 To force file system watching for all builds (unless disabled with `--no-watch-fs`), add the following value to `gradle.properties`:
 
@@ -61,8 +61,7 @@ Network file systems like Samba and NFS are not supported.
 ====
 
 File system watching is not compatible with symlinks.
-If your project files include symlinks, symlinked files
-do not benefit from file system watching optimizations.
+If your project files include symlinks, symlinked files do not benefit from file system-watching optimizations.
 
 ====
 
@@ -70,7 +69,7 @@ do not benefit from file system watching optimizations.
 
 When enabled by default, file system watching acts conservatively when it encounters content on unsupported file systems.
 This can happen if you mount a project directory or subdirectory from a network drive.
-When enabled by default, Gradle doesn't retain information about unsupported file systems between builds.
+Gradle doesn't retain information about unsupported file systems between builds when enabled by default.
 If you explicitly enable file system watching, Gradle retains information about unsupported file systems between builds.
 
 == Logging
@@ -81,12 +80,9 @@ Set the `org.gradle.vfs.verbose` Daemon option to `true` to enable verbose loggi
 
 You can do this on the command line with the following command:
 
-====
-[listing.terminal]
 ----
 $ gradle <task> -Dorg.gradle.vfs.verbose=true
 ----
-====
 
 Or configure the property in the `gradle.properties` file in the project root or your Gradle User Home:
 
@@ -102,6 +98,8 @@ This produces the following output at the start and end of the build:
 
 ----
 $ gradle assemble --watch-fs -Dorg.gradle.vfs.verbose=true
+----
+----
 Received 3 file system events since last build while watching 1 locations
 Virtual file system retained information about 2 files, 2 directories and 0 missing files since last build
 > Task :compileJava NO-SOURCE
@@ -116,8 +114,8 @@ Received 5 file system events during the current build while watching 1 location
 Virtual file system retains information about 3 files, 2 directories and 2 missing files until next build
 ----
 
-On Windows and macOS, Gradle might report changes received since the last build even if you haven't changed anything.
-These are harmless notifications about changes to Gradle's own caches and can be ignored safely.
+On Windows and macOS, Gradle might report changes received since the last build, even if you haven't changed anything.
+These are harmless notifications about changes to Gradle's caches and can be safely ignored.
 
 [[sec:daemon_watch_fs_troubleshooting]]
 == Troubleshooting
@@ -125,7 +123,7 @@ These are harmless notifications about changes to Gradle's own caches and can be
 Gradle does not detect some changes::
 _Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack]._
 If a build declares its inputs and outputs correctly, this should not happen.
-So it’s either a bug we need to fix, or your build is lacking declaration for some inputs or outputs.
+So it's either a bug we must fix or your build lacks declaration for some inputs or outputs.
 
 VFS state dropped due to lost state::
 Did you receive a message that reads `Dropped VFS state due to lost state` during a build?
@@ -133,7 +131,7 @@ _Please https://gradle-community.slack.com/app_redirect?channel=file-system-watc
 This means that your build cannot benefit from file system watching for one of the following reasons:
 
 * the Daemon received an unknown file system event
-* too many changes happened and the watching API couldn’t handle it
+* too many changes happened, and the watching API couldn't handle it
 
 Too many open files on macOS::
 If you receive the `java.io.IOException: Too many open files` error on macOS, raise your open files limit.
@@ -159,9 +157,12 @@ To increase the limit to e.g. 512K watches run the following:
 [source,bash]
 ----
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+----
+[source,bash]
+----
 sudo sysctl -p --system
 ----
 
 Each used inotify watch takes up to 1KB of memory.
 Assuming inotify uses all the 512K watches then file system watching could use up to 500MB.
-In a memory constrained environment, you may want to disable file system watching.
+In a memory-constrained environment, you may want to disable file system watching.

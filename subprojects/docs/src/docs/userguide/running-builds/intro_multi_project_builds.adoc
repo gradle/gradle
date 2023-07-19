@@ -15,8 +15,8 @@
 [[intro_multi_project_builds]]
 = Multi-Project Builds
 
-While occasional small projects and monolithic applications may contain a single build file and source tree, it’s often more common for a project to have been split into smaller, interdependent modules.
-The word “interdependent” is important in this case; it is why you typically want to link the many modules together through a single build.
+While occasional small projects and monolithic applications may contain a single build file and source tree, it's often more common for a project to have been split into smaller, interdependent modules.
+The word "interdependent" is vital in this case, so you typically want to link the many modules together through a single build.
 
 Gradle supports this scenario through _multi-project_ builds.
 This section of the manual is an introduction to running multi-project builds.
@@ -33,14 +33,14 @@ The rest of a project path is a colon-separated sequence of project names, where
 
 You can see the project paths when running `gradle projects` shown <<sec:identifying_project_structure,below>>.
 
-In most cases, project paths reflect the filesystem layout, but there are exceptions.
+Project paths usually reflect the filesystem layout, but there are exceptions.
 Most notably for composite builds.
 See how to declare <<declaring_dependencies_between_subprojects#declaring_dependencies_between_subprojects, dependencies between subprojects>> using `include` and how to <<composite_builds#defining_composite_builds,create composite builds>> with `includeBuild`.
 
 [[sec:identifying_project_structure]]
 == Identifying project structure
 
-To identify the project structure, you can use the `gradle projects` command.
+You can use the `gradle projects` command to identify the project structure.
 
 As an *example*, let's use a multi-project build with the following structure:
 ----
@@ -53,18 +53,18 @@ include::{snippetsPath}/java/multiproject/tests/listProjects.out[]
 From a user's perspective, multi-project builds are collections of tasks you can run.
 The difference is that you may want to control _which_ project's tasks get executed.
 
-The following sections will cover the two options you have for executing tasks in a multi-project build.
+The following sections will cover your two options for executing tasks in a multi-project build.
 
 [[sec:executing_tasks_by_name]]
 == Executing tasks by name
 
-The command `gradle test` will execute the `test` task in any subprojects, relative to the current working directory, that have that task.
+The command `gradle test` will execute the `test` task in any subprojects relative to the current working directory that have that task.
 
 If you run the command from the root project directory, you will run `test` in _api_, _shared_, _services:shared_ and _services:webservice_.
 
 If you run the command from the _services_ project directory, you will only execute the task in _services:shared_ and _services:webservice_.
 
-The basic rule behind Gradle's behavior is to *execute all tasks down the hierarchy which have _this_ name*.
+The basic rule behind Gradle's behavior is to *execute all tasks down the hierarchy with _this_ name*.
 And *complain if there is _no_ such task found* in any of the subprojects traversed.
 
 [NOTE]
@@ -72,30 +72,30 @@ And *complain if there is _no_ such task found* in any of the subprojects traver
 Some task selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects to reduce the amount of information printed on the screen.
 ====
 
-Gradle looks down the hierarchy, starting with the _current directory_, for tasks with the given name, and executes them.
+Gradle looks down the hierarchy, starting with the _current directory_, for tasks with the given name and executes them.
 
-One thing is important to note.
+One thing is essential to note.
 Gradle _always_ evaluates _every_ project of the multi-project build and creates all existing task objects.
 Then, according to the task name arguments and the current directory, Gradle filters the tasks which should be executed.
 
 Because of Gradle's <<sharing_build_logic_between_subprojects#sec:convention_plugins_vs_cross_configuration,cross project configuration>>, _every_ project has to be evaluated before _any_ task gets executed.
 
-When you are using the Gradle wrapper, executing a task for a specific subproject by running Gradle from the subproject's directory doesn't work well because you have to specify the path to the wrapper script if you're not in the project root.
-For example, if you want to run the `build` task for the _webservice_ subproject, and you're in the _webservice_ subproject directory, you would have to run `../../gradlew build`.
+When using the Gradle wrapper, executing a task for a specific subproject by running Gradle from the subproject's directory doesn't work well because you have to specify the path to the wrapper script if you're not in the project root.
+For example, if you want to run the `build` task for the _webservice_ subproject, and you're in the _webservice_ subproject directory, you must run `../../gradlew build`.
 
-The next section shows how this can be achieved directly from the project's root directory.
+The following section shows how this can be achieved directly from the project's root directory.
 
 [[sec:executing_tasks_by_fully_qualified_name]]
 == Executing tasks by fully qualified name
 
-You can use a task's fully qualified name to execute a specific task in a specific subproject.
+You can use a task's fully qualified name to execute a specific task in a particular subproject.
 For example: `gradle :services:webservice:build` will run the `build` task of the _webservice_ subproject.
 
-The fully qualified name of a task is simply its <<sec:project_path,project path>> plus the task name.
+The fully qualified name of a task is its <<sec:project_path,project path>> plus the task name.
 
 This approach works for any task, so if you want to know what tasks are in a particular subproject, use the `tasks` task, e.g. `gradle :services:webservice:tasks`.
 
-Regardless of which technique you use to execute tasks, Gradle will take care of building any subprojects that the target depends on.
+Regardless of which technique you use to execute tasks, Gradle will build any subprojects that the target depends on.
 You don't have to worry about the <<multi_project_builds.adoc#multi_project_builds,inter-project dependencies>>.
 
 [[sec:multiproject_build_and_test]]
@@ -103,14 +103,14 @@ You don't have to worry about the <<multi_project_builds.adoc#multi_project_buil
 
 The `build` task of the Java plugin is typically used to compile, test, and perform code style checks (if the CodeQuality plugin is used) of a single project.
 
-In multi-project builds, you may often want to do all of these tasks across a range of projects.
+In multi-project builds, you may often want to do all of these tasks across various projects.
 The `buildNeeded` and `buildDependents` tasks can help with this.
 
 In <<declaring_dependencies_between_subprojects#javadependencies_2,this example>>, the `:services:person-service` project depends on both the `:api` and `:shared` projects.
 The `:api` project also depends on the `:shared` project.
 
-Assuming you are working on a single project, the `:api` project, and you have been making changes, but have not built the entire project since performing a `clean`.
-You want to build any necessary supporting jars, but only perform code quality and unit tests on the parts of the project you have changed.
+Assuming you are working on a single project, the `:api` project, and you have been making changes but have not built the entire project since performing a `clean`.
+You want to build any necessary supporting JARs but only perform code quality and unit tests on the parts of the project you have changed.
 
 The `build` task does this:
 
@@ -125,7 +125,7 @@ include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuild.o
 =====
 ====
 
-If you have just gotten the latest version of source from your version control system which included changes in other projects that `:api` depends on, you might want to build all the projects you depend on AND test them too.
+If you have just gotten the latest version of the source from your version control system, which included changes in other projects that `:api` depends on, you might want to build all the projects you depend on AND test them too.
 
 The `buildNeeded` task builds AND tests all the projects from the project dependencies of the testRuntime configuration:
 
@@ -140,7 +140,7 @@ include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildNe
 ====
 
 You may want to refactor some part of the `:api` project that is used in other projects.
-If you make these types of changes, it is not sufficient to test only the `:api` project. You need to test all projects that depend on the `:api` project.
+If you make these changes, testing only the `:api` project is not sufficient. You must test all projects that depend on the `:api` project.
 
 The `buildDependents` task tests ALL the projects that have a project dependency (in the testRuntime configuration) on the specified project:
 
@@ -154,7 +154,7 @@ include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildDe
 =====
 ====
 
-Finally, you may want to build and test everything in all projects.
+Finally, you can build and test everything in all projects.
 Any task you run in the root project folder will cause that same-named task to be run on all the children.
 
 You can run `gradle build` to build and test ALL projects.

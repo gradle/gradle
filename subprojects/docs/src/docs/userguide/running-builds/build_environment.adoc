@@ -15,12 +15,12 @@
 [[build_environment]]
 = Build Environment
 
-Gradle provides multiple mechanisms for configuring behavior of Gradle itself and specific projects.
+Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects.
 The following is a reference for using these mechanisms.
 
 == Configuring Gradle
 
-When configuring Gradle behavior you can use these methods, listed in order of highest to lowest precedence (first one wins):
+When configuring Gradle behavior, you can use these methods, listed in order of highest to lowest precedence (the first one wins):
 
 [cols="1,1,1,2"]
 |===
@@ -47,20 +47,20 @@ When configuring Gradle behavior you can use these methods, listed in order of h
 |Sourced by the environment that executes Gradle
 |===
 
-== Configuring your Build Environment
+== Configuring your build environment
 You can configure the build using the same mechanisms.
 
 You can also read information about the environment in the build logic.
 
 [[sec:gradle_command_line_flags]]
 == 1. Command-line flags
-The command line interface along with the available flags is described in <<#command_line_interface,its own section>>.
+The command line interface, along with the available flags, is described in <<#command_line_interface,its own section>>.
 
 
 [[sec:gradle_system_properties]]
 == 2. System properties
 
-Using the `-D` command-line option, you can pass a system property to the JVM which runs Gradle.
+Using the `-D` command-line option, you can pass a system property to the JVM, which runs Gradle.
 
 The `-D` option of the `gradle` command has the same effect as the `-D` option of the `java` command.
 
@@ -80,9 +80,9 @@ Specify password for downloading a Gradle distribution using the Gradle wrapper.
 `gradle.user.home=(path to directory)`::
 Specify the `GRADLE_USER_HOME` directory.
 `https.protocols`::
-Specify the supported TLS versions in a comma separated format. For example: `TLSv1.2,TLSv1.3`.
+Specify the supported TLS versions in a comma-separated format. For example: `TLSv1.2,TLSv1.3`.
 
-In a multi project build, `systemProp` properties set in any project except the root will be ignored.
+In a multi-project build, `systemProp` properties set in any project except the root will be ignored.
 Only the root project's `gradle.properties` file will be checked for properties that begin with `systemProp`.
 
 The following examples demonstrate how to use System properties.
@@ -136,10 +136,10 @@ The following properties can be used to configure the Gradle build environment:
 `org.gradle.caching=(true,false)`::
 When set to `true`, Gradle will reuse task outputs from any previous build when possible, <<build_cache.adoc#build_cache,resulting in much faster builds>>.
 +
-_Default is `false`, the build cache is *not* enabled._
+_Default is `false`; the build cache is *not* enabled._
 
 `org.gradle.caching.debug=(true,false)`::
-When set to `true`, individual input property hashes, and the build cache key for each task, are <<build_cache.adoc#sec:task_output_caching,logged on the console>>.
+When set to `true`, individual input property hashes and the build cache key for each task are <<build_cache.adoc#sec:task_output_caching,logged on the console>>.
 +
 _Default is `false`._
 
@@ -174,7 +174,7 @@ _Default depends on how Gradle is invoked._
 
 `org.gradle.continuous.quietperiod=(# of quiet period millis)`::
 When using <<command_line_interface.adoc#sec:continuous_build,continuous build>>, Gradle will wait for the quiet period to pass before triggering another build.
-Any additional changes within this quiet period restarts the quiet period countdown.
+Any additional changes within this quiet period restart the quiet period countdown.
 +
 _Default is `250` milliseconds._
 
@@ -198,7 +198,7 @@ _Default is `false`._
 Specifies the host address to listen on or connect to when debug is enabled.
 In the server mode on Java 9 and above, passing `*` for the host will make the server listen on all network interfaces.
 +
-_Default is `null`, no host address is passed to JDWP (on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces)._
+_Default is `null`; no host address is passed to JDWP (on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces)._
 
 `org.gradle.debug.port=(port number)`::
 Specifies the port number to listen on when debug is enabled.
@@ -218,7 +218,7 @@ _Default is `true`._
 
 `org.gradle.java.home=(path to JDK home)`::
 Specifies the Java home for the Gradle build process.
-The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, using a JDK is safer.
+The value can be set to either a `jdk` or `jre` location; however, depending on what your build does, using a JDK is safer.
 This does not affect the version of Java used to launch the <<#sec:gradle_environment_variables,Gradle client VM>>.
 +
 _Default is derived from your environment (`JAVA_HOME` or the path to `java`) if the setting is unspecified._
@@ -264,7 +264,7 @@ _Default is `false`._
 
 `org.gradle.vfs.watch=(true,false)`::
 Toggles <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
-When enabled Gradle re-uses information it collects about the file system between builds.
+When enabled, Gradle reuses information it collects about the file system between builds.
 +
 _Default is `true` on operating systems where Gradle supports this feature._
 
@@ -276,16 +276,16 @@ _Default is `summary`._
 `org.gradle.welcome=(never,once)`::
 Controls whether Gradle should print a welcome message.
 +
-If set to `never` then the welcome message will be suppressed.
+If set to `never`, then the welcome message will be suppressed.
 +
-If set to `once` then the message is printed once for each new version of Gradle.
+If set to `once`, then the message is printed once for each new version of Gradle.
 +
 _Default is `once`._
 
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the <<command_line_interface.adoc#sec:command_line_performance,given number of workers>>.
 +
-_Default is number of CPU processors._
+_Default is the number of CPU processors._
 
 The following examples demonstrate how to use Gradle properties.
 
@@ -353,7 +353,7 @@ Defaults to `<home directory of the current user>/.gradle` if not set.
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM.
 +
-This VM is also used for the daemon, unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
+This VM is also used for the daemon unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
 
 The following examples demonstrate how to use environment variables.
 
@@ -375,7 +375,7 @@ include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="build
 Project properties are available on the link:{groovyDslPath}/org.gradle.api.Project.html[Project] object.
 They can be set from the command line using the `-P` / `--project-prop` <<command_line_interface.adoc#sec:environment_options, environment option>>.
 
-The following examples demonstrate how to set project properties different ways.
+The following examples demonstrate how to set project properties in different ways.
 
 *Example 1:* Setting a project property via the *command line*:
 ====
@@ -387,7 +387,7 @@ $ gradle -PgradlePropertiesProp=commandLineValue
 Gradle can also set project properties when it sees specially-named system properties or environment variables.
 If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`.
 Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`.
-Both of the following will set the `foo` property on your Project object to `"bar"`.
+Both of the following will set the `foo' property on your Project object to `"bar"`.
 
 *Example 2:* Setting a project property via a *system property*:
 ====
@@ -403,8 +403,8 @@ ORG_GRADLE_PROJECT_foo=bar
 ----
 ====
 
-This feature is useful when you don't have admin rights to a continuous integration server, and you need to set property values that should not be easily visible.
-Since you cannot use the `-P` option in that scenario, nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern.
+This feature is useful when you don't have admin rights to a continuous integration server and you need to set property values that should not be easily visible.
+Since you cannot use the `-P` option in that scenario nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern.
 This won't be visible to normal users on the system.
 
 The following examples demonstrate how to use project properties.
@@ -432,9 +432,9 @@ include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gr
 
 [NOTE]
 ====
-If a project property is referenced but does not exist, an exception will be thrown and the build will fail.
+If a project property is referenced but does not exist, an exception will be thrown, and the build will fail.
 
-You should check for existence of optional project properties before you access them using the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:hasProperty(java.lang.String)[Project.hasProperty(java.lang.String)] method.
+You should check for the existence of optional project properties before you access them using the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:hasProperty(java.lang.String)[Project.hasProperty(java.lang.String)] method.
 ====
 
 [[sec:configuring_jvm_memory]]
@@ -484,7 +484,7 @@ See other examples in the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test
 
 link:https://scans.gradle.com[Build scans] will tell you information about the JVM that executed the build when you use the `--scan` option:
 
-[caption="Build Environment in build scans",link=https://scans.gradle.com/s/sample/cpp-parallel/infrastructure]
+[caption= "Build Environment in build scans",link=https://scans.gradle.com/s/sample/cpp-parallel/infrastructure]
 image::build-scan-infrastructure.png[Build Environment in Build Scan]
 
 [[sec:configuring_task_using_project_properties]]

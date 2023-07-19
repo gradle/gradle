@@ -20,7 +20,8 @@ The command-line interface is the **primary method of interacting with Gradle**.
 The following is a reference for executing and customizing the Gradle command-line.
 It also serves as a reference when writing scripts or configuring continuous integration.
 
-**Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged**. It is recommended that you substitute `./gradlew` or `gradlew.bat` for `gradle` in the following examples.
+**Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged**.
+Substitute `./gradlew` or `gradlew.bat` for `gradle` in the following examples.
 
 Executing Gradle on the command-line conforms to the following structure:
 
@@ -34,13 +35,13 @@ Options are allowed _before_ and _after_ task names.
 gradle [--option-name...] [taskName...]
 ----
 
-If multiple tasks are specified, they should be separated with a space.
+If multiple tasks are specified, you should separate them with a space.
 
 ----
 gradle [taskName1 taskName2...] [--option-name...]
 ----
 
-Options that accept values can be specified with or without `=` between the option and argument. Use of `=` is recommended.
+Options that accept values can be specified with or without `=` between the option and argument. The use of `=` is recommended.
 
 ----
 gradle [...] --console=plain
@@ -53,7 +54,7 @@ gradle [...] --build-cache
 gradle [...] --no-build-cache
 ----
 
-Many long-form options have short option equivalents. The following are equivalent:
+Many long-form options have short-option equivalents. The following are equivalent:
 
 ----
 gradle --help
@@ -62,14 +63,16 @@ gradle -h
 
 [NOTE]
 ====
-Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<build_environment.adoc#sec:gradle_configuration_properties, configuring build environment guide>> for details.
+Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed.
+See the <<build_environment.adoc#sec:gradle_configuration_properties, Configuring build environment guide>> for details.
 ====
 
 == Command-line usage
 
-The following sections describe use of the Gradle command-line interface.
+The following sections describe the use of the Gradle command-line interface.
 
-Some plugins also add their own command line options, for example `--tests` which is added by <<java_testing.adoc#test_filtering,Java test filtering>>.
+Some plugins also add their own command line options.
+For example, `--tests`, which is added by <<java_testing.adoc#test_filtering,Java test filtering>>.
 For more information on exposing command line options for your own tasks, see <<custom_tasks.adoc#sec:declaring_and_using_command_line_options,Declaring command-line options>>.
 
 [[sec:command_line_executing_tasks]]
@@ -122,7 +125,7 @@ $ gradle :subproject:taskName
 $ gradle subproject:taskName
 ----
 
-You can also run a task for _all_ subprojects by using a task _selector_ that consists of the task name only.
+You can also run a task for _all_ subprojects using a task _selector_ that consists of only the task name.
 
 The following command runs the `test` task for all subprojects when invoked from the _root project directory_:
 
@@ -151,7 +154,7 @@ When executing the Gradle Wrapper from a subproject directory, reference `gradle
 
 === Executing multiple tasks
 You can also specify multiple tasks.
-The precise order of execution is determined by the tasks' dependencies, and a task having no dependencies may execute earlier than it is listed on the command-line.
+The tasks' dependencies determine the precise order of execution, and a task having no dependencies may execute earlier than it is listed on the command-line.
 
 For example, the following will execute the `test` and `deploy` tasks in the order that they are listed on the command-line and will also execute the dependencies for each task.
 
@@ -160,7 +163,7 @@ $ gradle test deploy
 ----
 
 === Command line order safety
-Although Gradle will always attempt to execute the build as quickly as possible, command line ordering safety will also be honored.
+Although Gradle will always attempt to execute the build quickly, command line ordering safety will also be honored.
 
 For example, the following will
 execute `clean` and `build` along with their dependencies:
@@ -169,11 +172,11 @@ execute `clean` and `build` along with their dependencies:
 $ gradle clean build
 ----
 
-However, the intention implied in the command line order is that `clean` should run first, and then `build`.  It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster, since `clean` would remove what `build` created.
+However, the intention implied in the command line order is that `clean` should run first and then `build`. It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster since `clean` would remove what `build` created.
 
-Conversely, if the command line order was `build` followed by `clean`, it would not be correct to execute `clean` before `build`.  Although Gradle will execute the build as quickly as possible, it will also respect the safety of the order of tasks specified on the command line and ensure that `clean` runs before `build` when specified in that order.
+Conversely, if the command line order was `build` followed by `clean`, it would not be correct to execute `clean` before `build`. Although Gradle will execute the build as quickly as possible, it will also respect the safety of the order of tasks specified on the command line and ensure that `clean` runs before `build` when specified in that order.
 
-Note that command line order safety relies on tasks properly declaring what they create, consume, or remove.  See <<incremental_build.adoc#incremental_build,up-to-date checks>> for additional information.
+Note that <<incremental_build.adoc#incremental_build,command line order safety>> relies on tasks properly declaring what they create, consume, or remove.
 
 [[sec:excluding_tasks_from_the_command_line]]
 === Excluding tasks from execution
@@ -189,7 +192,7 @@ include::{snippetsPath}/tutorial/excludeTasks/tests/excludeTask.out[]
 .Simple Task Graph
 image::commandLineTutorialTasks.png[]
 
-You can see that the `test` task is not executed, even though it is a dependency of the `dist` task. The `test` task's dependencies such as `compileTest` are not executed either. Those dependencies of `test` that are required by another task, such as `compile`, are still executed.
+You can see that the `test` task is not executed, even though it depends on the `dist` task. The `test` task's dependencies, such as `compileTest`, are not executed either. Those dependencies of `test` that another task requires, such as `compile`, are still executed.
 
 [[sec:rerun_tasks]]
 === Forcing tasks to execute
@@ -214,27 +217,27 @@ You can use the `--continue` option to force Gradle to execute every task when a
 $ gradle test --continue
 ----
 
-When executed with `--continue`, Gradle executes _every_ task in the build if all the dependencies for that task completed without failure.
+When executed with `--continue`, Gradle executes _every_ task in the build if all the dependencies for that task are completed without failure.
 
 For example, tests do not run if there is a compilation error in the code under test because the `test` task depends on the `compilation` task.
 Gradle outputs each of the encountered failures at the end of the build.
 
 [NOTE]
 ====
-Many test suites fail the entire `test` task if any tests fail.
+If any tests fail, many test suites fail the entire `test` task.
 Code coverage and reporting tools frequently run after the test task, so "fail fast" behavior may halt execution before those tools run.
 ====
 
 [[sec:name_abbreviation]]
 === Name abbreviation
-When you specify tasks on the command-line, you don’t have to provide the full name of the task.
-You can provide enough of the task name to uniquely identify the task.
+When you specify tasks on the command-line, you don't have to provide the full name of the task.
+You can provide enough of the task name to identify the task uniquely.
 For example, it is likely `gradle che` is enough for Gradle to identify the `check` task.
 
-The same applies for project names. You can execute the `check` task in the `library` subproject with the `gradle lib:che` command.
+The same applies to project names. You can execute the `check` task in the `library` subproject with the `gradle lib:che` command.
 
 You can use https://en.wikipedia.org/wiki/Camel_case[camel case] patterns for more complex abbreviations. These patterns are expanded to match camel case and https://en.wikipedia.org/wiki/Kebab_case[kebab case] names.
-For example the pattern `foBa` (or `fB`) matches `fooBar` and `foo-bar`.
+For example, the pattern `foBa` (or `fB`) matches `fooBar` and `foo-bar`.
 
 More concretely, you can run the `compileTest` task in the `my-awesome-library` subproject with the command `gradle mAL:cT`.
 
@@ -248,17 +251,17 @@ include::{snippetsPath}/tutorial/nameMatching/tests/nameMatching.out[]
 Abbreviations can also be used with the `-x` command-line option.
 
 === Tracing name expansion
-For complex projects, it might not be obvious if the intended tasks were executed. When using abbreviated names, a single typo can lead to the execution of unexpected tasks.
+For complex projects, it might be ambiguous if the intended tasks were executed. When using abbreviated names, a single typo can lead to the execution of unexpected tasks.
 
 When `INFO`, or more <<logging.adoc#logLevels,verbose logging>> is enabled, the output will contain extra information about the project and task name expansion.
 
 For example, when executing the `mAL:cT` command on the previous example, the following log messages will be visible:
 
 ----
-No exact project with name ‘:mAL’ has been found. Checking for abbreviated names.
-Found exactly one project that matches the abbreviated name ‘:mAL’: ':my-awesome-library'.
-No exact task with name ‘:cT’ has been found. Checking for abbreviated names.
-Found exactly one task name, that matches the abbreviated name ‘:cT’: ':compileTest'.
+No exact project with name ':mAL' has been found. Checking for abbreviated names.
+Found exactly one project that matches the abbreviated name ':mAL': ':my-awesome-library'.
+No exact task with name ':cT' has been found. Checking for abbreviated names.
+Found exactly one task name, that matches the abbreviated name ':cT': ':compileTest'.
 ----
 
 == Common tasks
@@ -273,7 +276,7 @@ $ gradle build
 ----
 
 === Running applications
-It is common for applications to be run with the `run` task, which assembles the application and executes some script or binary:
+It is common for applications to run with the `run` task, which assembles the application and executes some script or binary:
 
 ----
 $ gradle run
@@ -296,7 +299,8 @@ $ gradle clean
 [[sec:command_line_project_reporting]]
 == Project reporting
 
-Gradle provides several built-in tasks which show particular details of your build. This can be useful for understanding the structure and dependencies of your build, and for debugging problems.
+Gradle provides several built-in tasks which show particular details of your build.
+This can be useful for understanding your build's structure and dependencies, as well as debugging problems.
 
 === Listing projects
 Running the `projects` task gives you a list of the subprojects of the selected project, displayed in a hierarchy:
@@ -315,7 +319,7 @@ Running `gradle tasks` gives you a list of the main tasks of the selected projec
 $ gradle tasks
 ----
 
-By default, this report shows only those tasks which have been assigned to a task group.
+By default, this report shows only those tasks assigned to a task group.
 
 Groups (such as verification, publishing, help, build...) are available as the header of each section when listing tasks:
 
@@ -345,7 +349,7 @@ You can obtain more information in the task listing using the `--all` option:
 $ gradle tasks --all
 ----
 
-The option `--no-all` can be used to limit the report to tasks assigned to a task group.
+The option `--no-all` can limit the report to tasks assigned to a task group.
 
 If you need to be more precise, you can display only the tasks from a specific group using the `--group` option:
 
@@ -368,7 +372,7 @@ include::{snippetsPath}/tutorial/projectReports/tests/taskHelp.out[]
 
 This information includes the full task path, the task type, possible <<sec:task_options,task-specific command line options>>, and the description of the given task.
 
-You can get detailed information about the task class types using the `--types` option, or use `--no-types` to hide this information.
+You can get detailed information about the task class types using the `--types` option or using `--no-types` to hide this information.
 
 === Reporting dependencies
 https://scans.gradle.com/[Build Scans] give a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
@@ -514,7 +518,7 @@ Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. (duplicate of
 
 Try these options when optimizing and <<performance.adoc#performance_gradle,improving>> build performance.
 
-Many of these options can be <<build_environment.adoc#sec:gradle_configuration_properties,specified>> in the `gradle.properties` file so command-line flags are not necessary.
+Many of these options can be <<build_environment.adoc#sec:gradle_configuration_properties,specified>> in the `gradle.properties` file, so command-line flags are unnecessary.
 
 `--build-cache`, `--no-build-cache`::
 Toggles the <<build_cache.adoc#build_cache, Gradle Build Cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
@@ -533,7 +537,7 @@ Set to `fail` to report problems and fail the build if there are any problems.
 Toggles <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
 
 `--max-workers`::
-Sets maximum number of workers that Gradle may use. _Default is number of processors_.
+Sets the maximum number of workers that Gradle may use. _Default is number of processors_.
 
 `--parallel`, `--no-parallel`::
 Build projects in parallel. For limitations of this option, see <<multi_project_configuration_and_execution.adoc#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
@@ -551,20 +555,20 @@ image::gradle-core-test-build-scan-performance.png[Build Scan performance report
 
 `--watch-fs`, `--no-watch-fs`::
 Toggles <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
-When enabled Gradle re-uses information it collects about the file system between builds.
+When enabled, Gradle reuses information it collects about the file system between builds.
 _Enabled by default on operating systems where Gradle supports this feature._
 
 === Gradle daemon options
 You can manage the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> through the following command line options.
 
 `--daemon`, `--no-daemon`::
-Use the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> to run the build. Starts the daemon if not running or existing daemon busy. _Default is on_.
+Use the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> to run the build. Starts the daemon if not running or the existing daemon is busy. _Default is on_.
 
 `--foreground`::
 Starts the Gradle Daemon in a foreground process.
 
 `--status` (Standalone command)::
-Run `gradle --status` to list running and recently stopped Gradle daemons. Only displays daemons of the same Gradle version.
+Run `gradle --status` to list running and recently stopped Gradle daemons. It only displays daemons of the same Gradle version.
 
 `--stop` (Standalone command)::
 Run `gradle --stop` to stop all Gradle Daemons of the same version.
@@ -607,11 +611,11 @@ Specifies which type of console output to generate.
 +
 Set to `plain` to generate plain text only. This option disables all color and other rich output in the console output. This is the default when Gradle is _not_ attached to a terminal.
 +
-Set to `auto` (the default) to enable color and other rich output in the console output when the build process is attached to a console, or to generate plain text only when not attached to a console. _This is the default when Gradle is attached to a terminal._
+Set to `auto` (the default) to enable color and other rich output in the console output when the build process is attached to a console or to generate plain text only when not attached to a console. _This is the default when Gradle is attached to a terminal._
 +
 Set to `rich` to enable color and other rich output in the console output, regardless of whether the build process is not attached to a console. When not attached to a console, the build output will use ANSI control characters to generate the rich output.
 +
-Set to `verbose` to enable color and other rich output like the `rich`, but output task names and outcomes at the lifecycle log level, as is done by default in Gradle 3.5 and earlier.
+Set to `verbose` to enable color and other rich output like `rich` with output task names and outcomes at the lifecycle log level, (as is done by default in Gradle 3.5 and earlier).
 
 [[sec:command_line_warnings]]
 === Showing or hiding warnings
@@ -645,40 +649,39 @@ image::rich-cli.png[alt="Gradle Rich Console"]
 
 Features:
 
- * Progress bar and timer visually describe the overall status
- * Parallel work-in-progress lines below describe what is happening now
- * Colors and fonts are used to highlight important output and errors
+* Progress bar and timer visually describe the overall status
+* Parallel work-in-progress lines below describe what is happening now
+* Colors and fonts are used to highlight significant output and errors
 
 [[sec:command_line_execution_options]]
 == Execution options
-The following options affect how builds are executed, by changing what is built or how dependencies are resolved.
+The following options affect how builds are executed by changing what is built or how dependencies are resolved.
 
 `--include-build`::
-Run the build as a composite, including the specified build. See <<composite_builds.adoc#composite_builds, Composite Builds>>.
+Run the build as a <<composite_builds.adoc#composite_builds,composite>>, including the specified build.
 
 `--offline`::
-Specifies that the build should operate without accessing network resources. Learn more about <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
+Specifies that the build should operate <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,without accessing network resources>>.
 
 `-U`, `--refresh-dependencies`::
-Refresh the state of dependencies. Learn more about how to use this in the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,dependency management docs>>.
+Refresh the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,state of dependencies>>.
 
 `--continue`::
-Continue task execution after a task failure. See <<command_line_interface.adoc#sec:continue_build_on_failure, Continuing the build when a failure occurs>>.
+<<command_line_interface.adoc#sec:continue_build_on_failure,Continue task execution>> after a task failure.
 
 `-m`, `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
 
 `-t`, `--continuous`::
-Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change. See <<#sec:continuous_build, Continuous Build>> for more details.
+Enables <<#sec:continuous_build,continuous build>>. Gradle does not exit and will re-execute tasks when task file inputs change.
 
 `--write-locks`::
-Indicates that all resolved configurations that are _lockable_ should have their lock state persisted.
-Learn more about this in <<dependency_locking.adoc#dependency-locking,dependency locking>>.
+Indicates that all resolved configurations that are _lockable_ should have their <<dependency_locking.adoc#dependency-locking,lock state>> persisted.
 
 `--update-locks <group:name>[,<group:name>]*`::
-Indicates that versions for the specified modules have to be updated in the lock file.
+Indicates that versions for the specified modules have to be updated in the <<dependency_locking.adoc#dependency-locking,lock file>>.
++
 This flag also implies `--write-locks`.
-Learn more about this in <<dependency_locking.adoc#dependency-locking,dependency locking>>.
 
 `-a`, `--no-rebuild`::
 Do not rebuild project dependencies.
@@ -689,10 +692,12 @@ Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fi
 Learn more about this in <<dependency_verification.adoc#verifying-dependencies,dependency verification>>.
 
 `-F=(strict,lenient,off)`, `--dependency-verification=(strict,lenient,off)`::
-Configures the dependency verification mode, see <<dependency_verification.adoc#sec:disabling-verification,what the options mean here>>. The default mode is `strict`.
+Configures the <<dependency_verification.adoc#sec:disabling-verification,dependency verification mode>>.
++
+The default mode is `strict`.
 
 `-M`, `--write-verification-metadata`::
-Generates checksums for dependencies used in the project (comma-separated list) for dependency verification. See <<dependency_verification.adoc#sec:bootstrapping-verification,how to bootstrap dependency verification>>.
+Generates checksums for dependencies used in the project (comma-separated list) for <<dependency_verification.adoc#sec:bootstrapping-verification,dependency verification>>.
 
 `--refresh-keys`::
 Refresh the public keys used for dependency verification.
@@ -720,13 +725,13 @@ Specifies the start directory for Gradle. Defaults to current directory.
 Specifies the project-specific cache directory. Default value is `.gradle` in the root project directory.
 
 `-D`, `--system-prop`::
-Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<build_environment.adoc#sec:gradle_system_properties,System Properties>>.
+Sets a <<build_environment.adoc#sec:gradle_system_properties,system property>> of the JVM, for example `-Dmyprop=myvalue`.
 
 `-I`, `--init-script`::
-Specifies an initialization script. See <<init_scripts.adoc#init_scripts,Init Scripts>>.
+Specifies an <<init_scripts.adoc#init_scripts,initialization script>>.
 
 `-P`, `--project-prop`::
-Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<build_environment.adoc#sec:project_properties,Project Properties>>.
+Sets a <<build_environment.adoc#sec:project_properties,project property>> of the root project, for example `-Pmyprop=myvalue`.
 
 `-Dorg.gradle.jvmargs`::
 Set JVM arguments.
@@ -737,13 +742,13 @@ Set JDK home dir.
 [[sec:task_options]]
 == Task options
 
-Tasks may define task-specific options which are different than most of the global options described in the sections above (which are interpreted by Gradle itself, can appear anywhere in the command line, and can be listed using the `--help` option).
+Tasks may define task-specific options which are different from most of the global options described in the sections above (which are interpreted by Gradle itself, can appear anywhere in the command line, and can be listed using the `--help` option).
 
 Task options:
 
-1. are consumed and interpreted by the tasks themselves;
-2. *must* be specified immediately after the task in the command-line;
-3. may be listed using `gradle help --task someTask` (see <<#sec:show_task_details, Show task usage details>>).
+1. Are consumed and interpreted by the tasks themselves;
+2. *Must* be specified immediately after the task in the command-line;
+3. May be listed using `gradle help --task someTask` (see <<#sec:show_task_details, Show task usage details>>).
 
 To learn how to declare command-line options for your own tasks, see <<custom_tasks.adoc#sec:declaring_and_using_command_line_options,Declaring and Using Command Line Options>>.
 
@@ -752,19 +757,21 @@ To learn how to declare command-line options for your own tasks, see <<custom_ta
 Built-in task options are options available as task options for all tasks. At this time, the following built-in task options exist:
 
 `--rerun`::
-Causes the task to be re-run even if up-to-date. Similar to `<<#sec:rerun_tasks,--rerun-tasks>>`, but for a specific task.
+Causes the task to be rerun even if up-to-date. Similar to `<<#sec:rerun_tasks,--rerun-tasks>>`, but for a specific task.
 
 [[sec:command_line_bootstrapping_projects]]
 == Bootstrapping new projects
 
 === Creating new Gradle builds
-Use the built-in `gradle init` task to create a new Gradle builds, with new or existing projects.
+Use the built-in `gradle init` task to create a new Gradle build, with new or existing projects.
 
 ----
 $ gradle init
 ----
 
-Most of the time you'll want to specify a project type. Available types include `basic` (default), `java-library`, `java-application`, and more. See <<build_init_plugin.adoc#build_init_plugin, init plugin documentation>> for details.
+Most of the time, a project type is specified.
+Available types include `basic` (default), `java-library`, `java-application`, and more.
+See <<build_init_plugin.adoc#build_init_plugin, init plugin documentation>> for details.
 
 ----
 $ gradle init --type java-library
@@ -778,7 +785,7 @@ $ gradle wrapper --gradle-version=8.1
 ----
 
 You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. +
-Full details on how to use these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
+Full details on using these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
 
 [[sec:continuous_build]]
 == Continuous build
@@ -793,13 +800,12 @@ $ gradle test --continuous
 ----
 
 Gradle will behave as if you ran `gradle test` after a change to sources or tests that contribute to the requested tasks.
-This means that unrelated changes (such as changes to build scripts) will not trigger a rebuild.
+This means unrelated changes (such as changes to build scripts) will not trigger a rebuild.
 To incorporate build logic changes, the continuous build must be restarted manually.
 
-Continuous build uses file system watching to detect changes to the inputs.
+Continuous build uses <<file_system_watching.adoc#sec:daemon_watch_fs,file system watching>> to detect changes to the inputs.
 If file system watching does not work on your system, then continuous build won't work either.
 In particular, continuous build does not work when using `--no-daemon`.
-See <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
 
 When Gradle detects a change to the inputs, it will not trigger the build immediately.
 Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.
