@@ -15,8 +15,7 @@
 [[command_line_interface]]
 = Command-Line Interface
 
-[.lead]
-The command-line interface is the primary method of interacting with Gradle.
+The command-line interface is the **primary method of interacting with Gradle**.
 
 The following is a reference for executing and customizing the Gradle command-line.
 It also serves as a reference when writing scripts or configuring continuous integration.

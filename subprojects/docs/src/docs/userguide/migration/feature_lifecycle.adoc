@@ -29,20 +29,18 @@ The Gradle _feature lifecycle_ has been designed to meet these goals. It also se
 The term _feature_ typically means an API or DSL method or property in this context, but it is not restricted to this definition.
 Command line arguments and modes of execution (e.g. the Build Daemon) are two examples of other kinds of features.
 
-
 [[sec:states]]
-== States
+== Feature States
 
 Features can be in one of four states:
 
-1. Internal
-2. Incubating
-3. Public
-4. Deprecated
-
+1. <<#sec:internal,Internal>>
+2. <<#sec:incubating_state,Incubating>>
+3. <<#sec:public,Public>>
+4. <<#sec:deprecated,Deprecated>>
 
 [[sec:internal]]
-=== Internal
+== 1. Internal
 
 _Internal_ features are not designed for public use and are only intended to be used by Gradle itself. They can change in any way at any point in time without any notice.
 Therefore, we recommend avoiding the use of such features.
@@ -52,7 +50,7 @@ If it appears in this User Manual, the DSL Reference, or the API Reference, then
 _Internal_ features may evolve into public features.
 
 [[sec:incubating_state]]
-=== Incubating
+== 2. Incubating
 
 Features are introduced in the _incubating_ state to allow real-world feedback to be incorporated into the feature before it is made public.
 It also gives users who are willing to test potential future changes early access.
@@ -68,7 +66,7 @@ This results in a special mark for them in the DSL and API references.
 If an _incubating_ feature is discussed in this User Manual, it will be explicitly said to be in the _incubating_ state.
 
 [[feature_preview]]
-==== Feature Preview API
+=== Feature Preview API
 
 The feature preview API allows certain _incubating_ features to be activated by adding `enableFeaturePreview('FEATURE')` in your _settings_ file.
 Individual preview features will be announced in release notes.
@@ -76,7 +74,7 @@ Individual preview features will be announced in release notes.
 When _incubating_ features are either promoted to _public_ or removed, the feature preview flags for them become obsolete, have no effect, and should be removed from the settings file.
 
 [[sec:public]]
-=== Public
+== 3. Public
 
 The default state for a non-internal feature is _public_. Anything that is documented in the User Manual, DSL Reference, or API reference that is not explicitly said to be _incubating_ or _deprecated_ is considered _public_.
 Features are said to be *promoted* from an _incubating_ state to _public_.
@@ -86,7 +84,7 @@ A _public_ feature will *never* be removed or intentionally changed without unde
 All public features are subject to the backward compatibility policy.
 
 [[sec:deprecated]]
-=== Deprecated
+== 4. Deprecated
 
 Some features may be replaced or become irrelevant due to the natural evolution of Gradle.
 Such features will eventually be removed from Gradle after being _deprecated_.
