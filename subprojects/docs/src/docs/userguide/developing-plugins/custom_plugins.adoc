@@ -6,7 +6,8 @@ Gradle allows you to implement your own plugins, so you can reuse your build log
 
 You can implement a Gradle plugin in any language you like, provided the implementation ends up compiled as JVM bytecode.
 In our examples, we are going to use Java as the implementation language for standalone plugin project and Groovy or Kotlin in the buildscript plugin examples.
-In general, a plugin implemented using Java or Kotlin, which are statically typed, will perform better than the same plugin implemented using Groovy. If you're writing your plugin in Kotlin, you might be interested in the <<kotlin_gradle_plugins.adoc, Writing your plugins in Kotlin>> page.
+In general, a plugin implemented using Java or Kotlin, which are statically typed, will perform better than the same plugin implemented using Groovy. 
+If you're writing your plugin in Kotlin, you might be interested in <<kotlin_gradle_plugins.adoc,Writing your plugins in Kotlin>>.
 
 [[sec:packaging_a_plugin]]
 == Packaging a plugin

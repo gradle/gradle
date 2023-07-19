@@ -5,7 +5,10 @@ Writing plugin code is a routine activity for advanced build authors.
 The activity usually involves writing the plugin implementation, creating custom task type for executing desired functionality and making the runtime behavior configurable for the end user by exposing a declarative and expressive DSL.
 In this section you will learn established practices to make you a better plugin developer and how to make a plugin as accessible and useful for consumers as possible.
 
-Gradle supports writing plugins in Groovy, Java and Kotlin. Java is the most universal language because it doesn't come with an additional runtime. Because of this reason, this page focuses on Java. If you're writing your plugins in Kotlin make sure to check the <<kotlin_gradle_plugins.adoc, dedicated>> page for Kotlin-specific considerations.
+Gradle supports writing plugins in Groovy, Java, and Kotlin. 
+Java is the most universal language because it doesn't come with an additional runtime. 
+For this reason, this page focuses on Java. 
+If you're writing your plugins in Kotlin, check out the dedicated <<kotlin_gradle_plugins.adoc, dedicated Kotlin Gradle plugin page>>.
 
 This section assumes you have:
 
