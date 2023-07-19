@@ -334,8 +334,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
     private
     fun loadAccessibilityInfoFor(className: String): TypeAccessibilityInfo {
-        val classBytes = classBytesRepository.classBytesFor(className)
-            ?: return TypeAccessibilityInfo(listOf(nonAvailable(className)))
+        val classBytes = loadClassBytes(className) ?: return TypeAccessibilityInfo(listOf(nonAvailable(className)))
         val classReader = ClassReader(classBytes)
         val access = classReader.access
         return TypeAccessibilityInfo(
@@ -349,6 +348,11 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
             ),
             hasTypeParameters(classReader)
         )
+    }
+
+    private
+    fun loadClassBytes(className: String): ByteArray? {
+        return classBytesRepository.classBytesFor(className) ?: ClassBytesRepository.classBytesViaBootstrapClassloaderFor(className)
     }
 
     private

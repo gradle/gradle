@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
@@ -46,6 +47,20 @@ typealias ClassBytesIndex = (String) -> ClassBytesSupplier?
  */
 internal
 class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPath = ClassPath.EMPTY) : Closeable {
+
+    companion object {
+        fun classBytesViaBootstrapClassloaderFor(sourceName: String): ByteArray? {
+            try {
+                val classAsPath = sourceName.replace('.', '/') + ".class"
+                val bootstrapClassLoader = ClassLoaderUtils.getPlatformClassLoader()
+                val resourceAsStream = bootstrapClassLoader.getResourceAsStream(classAsPath)
+                return resourceAsStream?.readBytes()
+            } catch (e: Exception) {
+                // best effort attempt failed, ignoring the failure
+                return null
+            }
+        }
+    }
 
     private
     val openJars = mutableMapOf<File, JarFile>()

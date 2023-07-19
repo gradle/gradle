@@ -834,7 +834,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         """)
 
         val result = build("help")
-        assertThat(result.output, containsString("Type of `javaTypeExtension` receiver is Any"))
+        assertThat(result.output, containsString("Type of `javaTypeExtension` receiver is MessageDigest"))
         assertThat(result.output, containsString("`javaTypeExtension` is MessageDigest? true"))
     }
 
