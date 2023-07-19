@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SourceTask;
@@ -43,12 +44,10 @@ import javax.inject.Inject;
 @DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
 abstract public class AbstractCodeQualityTask extends SourceTask implements VerificationTask {
     private static final String OPEN_MODULES_ARG = "java.prefs/java.util.prefs=ALL-UNNAMED";
-    // TODO - Convert VerificationTask to use property-based API and deprecate boolean methods
-    private final Property<Boolean> ignoreFailures;
 
     @Inject
     public AbstractCodeQualityTask() {
-        this.ignoreFailures = getObjectFactory().property(Boolean.class).convention(false);
+        getIgnoreFailuresProperty().convention(false);
         getJavaLauncher().convention(getToolchainService().launcherFor(new CurrentJvmToolchainSpec(getObjectFactory())));
     }
 
@@ -57,7 +56,7 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
      */
     @Override
     public boolean getIgnoreFailures() {
-        return ignoreFailures.get();
+        return getIgnoreFailuresProperty().get();
     }
 
     /**
@@ -65,8 +64,11 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
      */
     @Override
     public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures.set(ignoreFailures);
+        this.getIgnoreFailuresProperty().set(ignoreFailures);
     }
+
+    @Internal
+    abstract protected Property<Boolean> getIgnoreFailuresProperty();
 
     @Inject
     abstract protected ObjectFactory getObjectFactory();
