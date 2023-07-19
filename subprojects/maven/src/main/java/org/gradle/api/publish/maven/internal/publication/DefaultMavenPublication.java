@@ -126,7 +126,13 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.versionMappingStrategy = versionMappingStrategy;
         this.taskDependencyFactory = taskDependencyFactory;
 
-        MavenComponentParser mavenComponentParser = new MavenComponentParser(platformSupport, versionRangeMapper, documentationRegistry, projectDependencyResolver, mavenArtifactParser);
+        MavenComponentParser mavenComponentParser = new MavenComponentParser(
+            platformSupport,
+            versionRangeMapper,
+            documentationRegistry,
+            projectDependencyResolver,
+            mavenArtifactParser
+        );
 
         this.componentArtifacts = objectFactory.setProperty(MavenArtifact.class);
         this.componentArtifacts.convention(getComponent().map(mavenComponentParser::parseArtifacts));
@@ -138,9 +144,9 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.publishableArtifacts = new CompositePublicationArtifactSet<>(taskDependencyFactory, MavenArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
 
         this.pom = objectFactory.newInstance(DefaultMavenPom.class, objectFactory);
-        pom.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
-        pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
-        pom.getDependencies().set(getComponent().map(component -> {
+        this.pom.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
+        this.pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
+        this.pom.getDependencies().set(getComponent().map(component -> {
             MavenComponentParser.DependencyResult result = mavenComponentParser.parseDependencies(component, getCoordinates(), versionMappingStrategy);
             if (!silenceAllPublicationWarnings) {
                 result.getWarnings().complete(getDisplayName() + " pom metadata", silencedVariants);
