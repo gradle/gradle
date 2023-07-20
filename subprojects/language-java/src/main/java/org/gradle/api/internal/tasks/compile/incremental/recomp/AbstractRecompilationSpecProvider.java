@@ -203,7 +203,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     private static void addModuleInfoToCompile(RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        Set<String> moduleInfoSources = sourceFileClassNameConverter.getRelativeSourcePaths(MODULE_INFO_CLASS_NAME);
+        Set<String> moduleInfoSources = sourceFileClassNameConverter.getRelativeSourcePathsThatExist(MODULE_INFO_CLASS_NAME);
         if (!moduleInfoSources.isEmpty()) {
             // Always recompile module-info.java if present.
             // This solves case for incremental compilation where some package was deleted and exported in module-info, but compilation doesn't fail.

@@ -19,7 +19,7 @@ tasks.test {
 }
 
 val integrationTestJarTask = tasks.register<Jar>(integrationTest.jarTaskName) {
-    archiveClassifier.set("integration-tests")
+    archiveClassifier = "integration-tests"
     from(integrationTest.output)
 }
 

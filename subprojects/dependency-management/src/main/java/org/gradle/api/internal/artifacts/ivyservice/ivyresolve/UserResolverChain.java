@@ -30,7 +30,6 @@ import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 
 public class UserResolverChain implements ComponentResolvers {
     private final RepositoryChainDependencyToComponentIdResolver componentIdResolver;
@@ -68,11 +67,6 @@ public class UserResolverChain implements ComponentResolvers {
 
     @Override
     public ArtifactResolver getArtifactResolver() {
-        return artifactResolver;
-    }
-
-    @Override
-    public OriginArtifactSelector getArtifactSelector() {
         return artifactResolver;
     }
 

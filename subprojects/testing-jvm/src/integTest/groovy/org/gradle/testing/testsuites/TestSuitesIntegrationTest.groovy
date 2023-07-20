@@ -610,7 +610,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
 
-    def "eagerly iterating over dependency bucket does not break automatic dependencies for test suite"() {
+    def "eagerly iterating over dependency scope does not break automatic dependencies for test suite"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -1000,5 +1000,42 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':app:assemble', ':app:integrationTest'
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/integrationTest')
         unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25604")
+    def "test suite configurations can be copied"() {
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                        dependencies {
+                            implementation 'org.assertj:assertj-core:3.24.2'
+                        }
+                    }
+                }
+            }
+
+            // alphabetical ordering seems to interfere here, if we used `s` instead of `t`, the check passes just fine
+            def testImplHolder = configurations.create("uasdf")
+            def testCopy = configurations.testImplementation.copy()
+            configurations.add(testCopy)
+            testImplHolder.extendsFrom(testCopy)
+
+            task assertCopyCanBeResolved {
+                def resolved = testImplHolder
+                doLast {
+                    assert resolved.files.size() == 9
+                }
+            }
+        """
+        expect:
+        executer.noDeprecationChecks() // deprecated copy() on dependency scope
+        succeeds("assertCopyCanBeResolved")
     }
 }

@@ -9,6 +9,19 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Adam](https://github.com/aSemy),
+[Ahmed Ehab](https://github.com/ahmedehabb),
+[Aurimas](https://github.com/liutikas),
+[Baptiste Decroix](https://github.com/bdecroix-spiria),
+[Björn Kautler](https://github.com/Vampire),
+[Borewit](https://github.com/Borewit),
+[Korov](https://github.com/Korov),
+[Mohammed Thavaf](https://github.com/mthavaf),
+[Patrick Brückner](https://github.com/madmuffin1),
+[Philip Wedemann](https://github.com/hfhbd),
+[Róbert Papp](https://github.com/TWiStErRob),
+[Shi Chen](https://github.com/CsCherrYY),
+[Tony Robalik](https://github.com/autonomousapps)
 
 ## Upgrade instructions
 
@@ -51,22 +64,23 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
+### Maven toolchain declarations with environment variables are now supported
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
+Using [toolchains](userguide/toolchains.html) is the recommended way of specifying Java versions for JVM projects.
+By default, Gradle automatically detects local JRE/JDK installations so no further configuration is required by the user.
+One of the auto-detection formats that Gradle supports is Maven Toolchain specification.
 
--->
+With this Gradle release, if you rely on the integration with Maven toolchain definitions, Gradle now supports the use of environment variables placeholders inside `toolchain.xml` files.
+The placeholder will be resolved by looking at environment variables known to the Gradle build.
 
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+<a name="ssl"></a>
+### SSL improvements for non-standard keystores and truststores
 
-The following are the features that have been promoted in this Gradle release.
+Previously, Gradle exhibited limitations when interfacing with non-standard keystores and truststores.
+This affected users on Linux systems with FIPS enabled and also Windows users who were storing certificates in the Trusted Root Certification Authorities store.
 
-<!--
-### Example promoted
--->
+SSL context creation has been improved to be more aligned with the default implementation and to support these cases.
+
 
 ## Fixed issues
 

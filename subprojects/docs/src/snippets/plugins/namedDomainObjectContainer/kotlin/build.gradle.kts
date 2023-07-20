@@ -6,7 +6,7 @@ download {
     // Can use a block to configure the container contents
     resources {
         register("gradle") {
-            uri.set(uri("https://gradle.org"))
+            uri = uri("https://gradle.org")
         }
     }
 }

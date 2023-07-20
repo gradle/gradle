@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-@file:Incubating
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.provider.HasMultipleValues
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 import java.io.File
 
 
@@ -33,9 +30,7 @@ import java.io.File
  *
  * @since 8.2
  */
-@Incubating
 fun <T> Property<T>.assign(value: T?) {
-    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(value)
 }
 
@@ -45,9 +40,7 @@ fun <T> Property<T>.assign(value: T?) {
  *
  * @since 8.2
  */
-@Incubating
 fun <T> Property<T>.assign(value: Provider<out T?>) {
-    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(value)
 }
 
@@ -57,9 +50,7 @@ fun <T> Property<T>.assign(value: Provider<out T?>) {
  *
  * @since 8.2
  */
-@Incubating
 fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File?) {
-    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(file)
 }
 
@@ -69,9 +60,7 @@ fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File?) {
  *
  * @since 8.2
  */
-@Incubating
 fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(provider: Provider<File?>) {
-    KotlinDslAssignment.emitIncubatingLogMessage()
     this.fileProvider(provider)
 }
 
@@ -81,9 +70,7 @@ fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(provider: Prov
  *
  * @since 8.2
  */
-@Incubating
 fun <T> HasMultipleValues<T>.assign(elements: Iterable<T?>?) {
-    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(elements)
 }
 
@@ -93,9 +80,7 @@ fun <T> HasMultipleValues<T>.assign(elements: Iterable<T?>?) {
  *
  * @since 8.2
  */
-@Incubating
 fun <T> HasMultipleValues<T>.assign(provider: Provider<out Iterable<T?>?>) {
-    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(provider)
 }
 
@@ -105,9 +90,7 @@ fun <T> HasMultipleValues<T>.assign(provider: Provider<out Iterable<T?>?>) {
  *
  * @since 8.2
  */
-@Incubating
 fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
-    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(entries)
 }
 
@@ -117,8 +100,6 @@ fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
  *
  * @since 8.2
  */
-@Incubating
 fun <K, V> MapProperty<K, V>.assign(provider: Provider<out Map<out K?, V?>?>) {
-    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(provider)
 }

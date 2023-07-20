@@ -12,7 +12,7 @@ interface CustomSourceSetConvention {
 sourceSets {
     main {
         withConvention(CustomSourceSetConvention::class) {
-            someOption.set("some value")
+            someOption = "some value"
         }
     }
 }

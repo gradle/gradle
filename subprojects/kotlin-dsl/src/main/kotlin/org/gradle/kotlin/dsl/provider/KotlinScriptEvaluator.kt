@@ -367,20 +367,18 @@ class CompileKotlinScript(
 ) : UnitOfWork {
 
     companion object {
-        const val ASSIGNMENT_OVERLOAD_ENABLED = "assignmentOverloadEnabled"
         const val JVM_TARGET = "jvmTarget"
         const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
         const val TEMPLATE_ID = "templateId"
         const val SOURCE_HASH = "sourceHash"
         const val COMPILATION_CLASS_PATH = "compilationClassPath"
         const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
-        val IDENTITY_HASH__PROPERTIES = listOf(ASSIGNMENT_OVERLOAD_ENABLED, JVM_TARGET, TEMPLATE_ID, SOURCE_HASH, COMPILATION_CLASS_PATH, ACCESSORS_CLASS_PATH)
+        val IDENTITY_HASH__PROPERTIES = listOf(JVM_TARGET, TEMPLATE_ID, SOURCE_HASH, COMPILATION_CLASS_PATH, ACCESSORS_CLASS_PATH)
     }
 
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
-        visitor.visitInputProperty(ASSIGNMENT_OVERLOAD_ENABLED) { programId.assignmentOverloadEnabled }
         visitor.visitInputProperty(JVM_TARGET) { jvmTarget.majorVersion }
         visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { allWarningsAsErrors }
         visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }

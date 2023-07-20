@@ -114,13 +114,13 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  * }
  *
  * test {
- *   // Discover and execute JUnit4-based tests
+ *   // discover and execute JUnit4-based tests
  *   useJUnit()
  *
- *   // Discover and execute TestNG-based tests
+ *   // discover and execute TestNG-based tests
  *   useTestNG()
  *
- *   // Discover and execute JUnit Platform-based tests
+ *   // discover and execute JUnit Platform-based tests
  *   useJUnitPlatform()
  *
  *   // set a system property for the test JVM(s)
@@ -145,8 +145,11 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *      logger.lifecycle("Running test: " + descriptor)
  *   }
  *
- *   // Fail the 'test' task on the first test failure
+ *   // fail the 'test' task on the first test failure
  *   failFast = true
+ *
+ *   // skip an actual test execution
+ *   dryRun = true
  *
  *   // listen to standard out and standard error of the test JVM(s)
  *   onOutput { descriptor, event -&gt;

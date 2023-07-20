@@ -13,16 +13,16 @@ publishing {
             // end::versions-resolved[]
             descriptor {
                 license {
-                    name.set("The Apache License, Version 2.0")
-                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    name = "The Apache License, Version 2.0"
+                    url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
                 }
                 author {
-                    name.set("Jane Doe")
-                    url.set("http://example.com/users/jane")
+                    name = "Jane Doe"
+                    url = "http://example.com/users/jane"
                 }
                 description {
-                    text.set("A concise description of my library")
-                    homepage.set("http://www.example.com/library")
+                    text = "A concise description of my library"
+                    homepage = "http://www.example.com/library"
                 }
             }
 // tag::versions-resolved[]

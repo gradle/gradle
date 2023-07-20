@@ -56,6 +56,9 @@
                 <td>group</td>
             </tr>
             <tr>
+                <td>layout</td>
+            </tr>
+            <tr>
                 <td>logger</td>
             </tr>
             <tr>

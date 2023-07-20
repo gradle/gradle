@@ -30,4 +30,10 @@ public interface SourceFileClassNameConverter {
      * Empty if the source for this class could not be determined.
      */
     Set<String> getRelativeSourcePaths(String className);
+
+    /**
+     * Same as above, but only return files that actually exist.
+     * The return value can be empty if the class given as argument does not exist.
+     */
+    Set<String> getRelativeSourcePathsThatExist(String className);
 }

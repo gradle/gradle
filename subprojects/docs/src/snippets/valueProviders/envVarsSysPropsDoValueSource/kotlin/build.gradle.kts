@@ -18,7 +18,7 @@ abstract class EnvVarsWithSubstringValueSource : ValueSource<Map<String, String>
 // tag::create-provider[]
 val jdkLocationsProvider = providers.of(EnvVarsWithSubstringValueSource::class) {
     parameters {
-        substring.set("JDK")
+        substring = "JDK"
     }
 }
 // end::create-provider[]

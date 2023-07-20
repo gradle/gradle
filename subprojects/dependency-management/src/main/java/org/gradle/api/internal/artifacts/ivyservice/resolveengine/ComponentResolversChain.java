@@ -32,7 +32,6 @@ import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DefaultArtifactSelector;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -56,20 +55,15 @@ public class ComponentResolversChain {
         List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<>(1 + providers.size());
         componentMetaDataResolvers.add(VirtualComponentMetadataResolver.INSTANCE);
         List<ArtifactResolver> artifactResolvers = new ArrayList<>(providers.size());
-        List<OriginArtifactSelector> artifactSelectors = new ArrayList<>(providers.size());
         for (ComponentResolvers provider : providers) {
             depToComponentIdResolvers.add(provider.getComponentIdResolver());
             componentMetaDataResolvers.add(provider.getComponentResolver());
-            OriginArtifactSelector artifactSelector = provider.getArtifactSelector();
-            if (artifactSelector != null) {
-                artifactSelectors.add(artifactSelector);
-            }
             artifactResolvers.add(provider.getArtifactResolver());
         }
         dependencyToComponentIdResolver = new DependencyToComponentIdResolverChain(depToComponentIdResolvers);
         componentMetaDataResolver = new ComponentMetaDataResolverChain(componentMetaDataResolvers);
         artifactResolverChain = new ErrorHandlingArtifactResolver(new ArtifactResolverChain(artifactResolvers));
-        artifactSelector = new DefaultArtifactSelector(artifactSelectors, artifactResolverChain, artifactTypeRegistry, calculatedValueContainerFactory, resolvedVariantCache);
+        artifactSelector = new DefaultArtifactSelector(artifactResolverChain, artifactTypeRegistry, calculatedValueContainerFactory, resolvedVariantCache);
     }
 
     public ArtifactSelector getArtifactSelector() {

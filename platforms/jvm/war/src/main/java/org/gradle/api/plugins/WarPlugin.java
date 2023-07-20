@@ -123,11 +123,12 @@ public abstract class WarPlugin implements Plugin<Project> {
         configureConfigurations((RoleBasedConfigurationContainerInternal) configurationContainer, mainFeature);
     }
 
+    @SuppressWarnings("deprecation")
     private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
-        Configuration providedCompileConfiguration = configurationContainer.resolvableBucket(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
+        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeUnlocked(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
             setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
 
-        Configuration providedRuntimeConfiguration = configurationContainer.resolvableBucket(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
+        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeUnlocked(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
             extendsFrom(providedCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
 

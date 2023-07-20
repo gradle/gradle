@@ -19,11 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.VariantArtifactResolveState;
+import org.gradle.internal.component.model.DependencyMetadata;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 /**
  * A {@link ResolvedGraphDependency} that is used during the resolution of the dependency graph.
@@ -38,7 +36,7 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
 
     boolean contributesArtifacts();
 
-    List<ComponentArtifactMetadata> getArtifacts(VariantArtifactResolveState targetVariant);
+    DependencyMetadata getDependencyMetadata();
 
     ImmutableAttributes getAttributes();
 

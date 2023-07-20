@@ -51,7 +51,7 @@ You can also invoke Gradle via its <<command_line_interface.adoc#command_line_in
 == Education
 The **<<about_manual.adoc#about_manual,Gradle User Manual>>** is the official documentation for the Gradle Build Tool.
 
-* **Getting Started Tutorial** — <<getting_started.adoc#getting_started,Learn Gradle basics>> and the benefits of building your App with Gradle.
+* **Getting Started Tutorial** — <<introduction#introduction,Learn Gradle basics>> and the benefits of building your App with Gradle.
 * **Training Courses** — Head over to the link:https://gradle.org/courses/[courses page] to sign up for free Gradle training.
 
 == Support

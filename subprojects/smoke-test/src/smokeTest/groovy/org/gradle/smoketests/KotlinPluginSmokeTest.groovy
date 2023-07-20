@@ -49,6 +49,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
+                    expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
             }.build()
 
@@ -101,6 +102,9 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectConventionTypeDeprecation(versionNumber)
                 expectJavaPluginConventionDeprecation(versionNumber)
                 expectBasePluginConventionDeprecation(versionNumber)
+                if (GradleContextualExecuter.isConfigCache()) {
+                    expectForUseAtConfigurationTimeDeprecation(versionNumber)
+                }
             }.build()
 
         then:
@@ -158,6 +162,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
+                    expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
             }.build()
 
@@ -171,10 +176,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
 
-        assumeFalse(kotlinVersion.startsWith("1.3."))
-        assumeFalse(kotlinVersion.startsWith("1.4."))
-        assumeFalse(kotlinVersion.startsWith("1.5."))
         assumeFalse(kotlinVersion.startsWith("1.6."))
+        assumeFalse(kotlinVersion.startsWith("1.7."))
 
         given:
         buildFile << """
@@ -202,6 +205,9 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectProjectConventionDeprecation(versionNumber)
                 expectConventionTypeDeprecation(versionNumber)
                 expectJavaPluginConventionDeprecation(versionNumber)
+                if (GradleContextualExecuter.isConfigCache()) {
+                    expectForUseAtConfigurationTimeDeprecation(versionNumber)
+                }
             }.build()
 
         then:

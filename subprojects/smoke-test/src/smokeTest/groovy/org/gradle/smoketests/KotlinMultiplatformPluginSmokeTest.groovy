@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 import org.gradle.smoketests.WithKotlinDeprecations.ProjectTypes
@@ -139,6 +140,9 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             expectConventionTypeDeprecation(kotlinVersionNumber)
             2.times { expectJavaPluginConventionDeprecation(kotlinVersionNumber) }
             expectBuildIdentifierNameDeprecation(kotlinVersionNumber)
+            if (GradleContextualExecuter.configCache || kotlinVersionNumber == VersionNumber.parse("1.7.22")) {
+                expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
+            }
         }
         testRunner.expectLegacyDeprecationWarningIf(
                 kotlinVersionNumber == VersionNumber.parse("1.7.0"),

@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -57,6 +58,15 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
         )
+        if (GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning(
+                "The Provider.forUseAtConfigurationTime method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Simply remove the call. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation"
+            )
+        }
 
         build("help").apply {
 
