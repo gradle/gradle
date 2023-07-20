@@ -71,9 +71,9 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
+    private final ClasspathFileHasher fileHasher;
     private final Policy policy;
     private final CachedClasspathTransformer.Transform transform;
-    private final ClasspathFileHasher fileHasher;
 
     /**
      * Instrumentation policy. There are some differences when instrumenting classes to be loaded by the instrumenting agent, this interface encapsulates them.
@@ -112,6 +112,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         FileLockManager fileLockManager,
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
+        ClasspathFileHasher classpathFileHasher,
         Policy policy,
         CachedClasspathTransformer.Transform transform,
         GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
@@ -119,12 +120,20 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         this.fileLockManager = fileLockManager;
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
+
+        HashCode configHash = configHashFor(policy, transform, gradleCoreInstrumentingTypeRegistry);
+        this.fileHasher = sourceSnapshot -> {
+            Hasher hasher = Hashing.defaultFunction().newHasher();
+            hasher.putHash(configHash);
+            hasher.putHash(classpathFileHasher.hashOf(sourceSnapshot));
+            return hasher.hash();
+        };
+
         this.policy = policy;
         this.transform = transform;
-        this.fileHasher = new InstrumentingFileHasher(configHashFor(transform, gradleCoreInstrumentingTypeRegistry));
     }
 
-    private HashCode configHashFor(CachedClasspathTransformer.Transform transform, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+    private static HashCode configHashFor(Policy policy, CachedClasspathTransformer.Transform transform, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
@@ -503,24 +512,6 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
 
             // The entry is not in the versioned directory at all.
             return false;
-        }
-    }
-
-    @NonNullApi
-    private static class InstrumentingFileHasher implements ClasspathFileHasher {
-
-        private final HashCode configHash;
-
-        public InstrumentingFileHasher(HashCode configHash) {
-            this.configHash = configHash;
-        }
-
-        public HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot) {
-            Hasher hasher = Hashing.defaultFunction().newHasher();
-            hasher.putHash(configHash);
-            // TODO - apply runtime classpath normalization?
-            hasher.putHash(sourceSnapshot.getHash());
-            return hasher.hash();
         }
     }
 }
