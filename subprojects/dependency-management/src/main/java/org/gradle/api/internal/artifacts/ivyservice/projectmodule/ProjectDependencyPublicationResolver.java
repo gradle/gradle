@@ -16,17 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.Path;
 
 public interface ProjectDependencyPublicationResolver {
     /**
-     * Determines the coordinates of the given type that should be used to reference the given dependency.
+     * Determines the coordinates of the given type that should be used to reference the
+     * project identified by {@code identityPath}.
      */
-    <T> T resolve(Class<T> coordsType, ProjectDependency dependency);
-
-    /**
-     * Determines the coordinates of the given type that should be used to reference the given dependency.
-     */
-    <T> T resolve(Class<T> coordsType, ProjectInternal projectInternal);
+    <T> T resolve(Class<T> coordsType, Path identityPath);
 }

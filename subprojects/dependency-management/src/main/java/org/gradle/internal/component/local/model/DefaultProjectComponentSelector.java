@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -32,7 +33,7 @@ import org.gradle.util.Path;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultProjectComponentSelector implements ProjectComponentSelector {
+public class DefaultProjectComponentSelector implements ProjectComponentSelectorInternal {
     private final BuildIdentifier buildIdentifier;
     private final Path projectPath;
     private final Path identityPath;
@@ -84,6 +85,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return DeprecationLogger.whileDisabled(buildIdentifier::getName);
     }
 
+    @Override
     public Path getIdentityPath() {
         return identityPath;
     }
@@ -105,8 +107,8 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
-        if (identifier instanceof DefaultProjectComponentIdentifier) {
-            DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) identifier;
+        if (identifier instanceof ProjectComponentIdentifier) {
+            ProjectComponentIdentifierInternal projectComponentIdentifier = (ProjectComponentIdentifierInternal) identifier;
             return projectComponentIdentifier.getIdentityPath().equals(identityPath);
         }
 

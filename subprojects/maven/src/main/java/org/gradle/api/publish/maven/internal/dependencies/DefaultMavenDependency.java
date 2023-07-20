@@ -17,6 +17,7 @@ package org.gradle.api.publish.maven.internal.dependencies;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -84,7 +85,7 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
     }
 
     @Override
-    public String getProjectPath() {
+    public Path getProjectIdentityPath() {
         return null;
     }
 }
