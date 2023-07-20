@@ -302,7 +302,7 @@ class OptionReaderTest extends Specification {
         options[3].availableValues.isEmpty()
 
         options[4].name == "no-field4"
-        options[4].description == "Disables option --field4"
+        options[4].description == "Disables option --field4."
         options[4].argumentType == Void.TYPE
         options[4].availableValues.isEmpty()
 
