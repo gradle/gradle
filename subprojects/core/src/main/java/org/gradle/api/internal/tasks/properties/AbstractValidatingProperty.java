@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Suppliers;
+import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
@@ -42,8 +44,9 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         this.validationAction = validationAction;
     }
 
-    public static void reportValueNotSet(String propertyName, TypeValidationContext context) {
+    public static void reportValueNotSet(String propertyName, TypeValidationContext context, boolean hasConfigurableValue) {
         context.visitPropertyProblem(problem -> {
+            ProblemBuilder problemBuilder = problem.forProperty(propertyName)
             problem.forProperty(propertyName)
                 .label("doesn't have a configured value")
                 .documentedAt(userManual("validation_problems", "value_not_set"))
@@ -52,8 +55,11 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(org.gradle.api.problems.interfaces.Severity.ERROR)
                 .details("This property isn't marked as optional and no value has been configured")
-                .solution("Assign a value to '" + propertyName + "'")
                 .solution("Mark property '" + propertyName + "' as optional");
+            if (hasConfigurableValue) {
+                problemBuilder.solution("Assign a value to '" + propertyName + "'");
+            }
+            problemBuilder.solution("Mark property '" + propertyName + "' as optional");
         });
     }
 
@@ -67,7 +73,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
             validationAction.validate(propertyName, valueSupplier, context);
         } else {
             if (!optional) {
-                reportValueNotSet(propertyName, context);
+                reportValueNotSet(propertyName, context, hasConfigurableValue(unnested));
             }
         }
     }
@@ -78,6 +84,10 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
             return ((Provider<?>) value).isPresent();
         }
         return value != null;
+    }
+
+    private static boolean hasConfigurableValue(@Nullable Object value) {
+        return value == null || HasConfigurableValue.class.isAssignableFrom(value.getClass());
     }
 
     @Override
