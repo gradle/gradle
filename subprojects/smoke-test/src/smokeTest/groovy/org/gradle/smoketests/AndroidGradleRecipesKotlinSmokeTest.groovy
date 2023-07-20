@@ -23,14 +23,11 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
-import static org.junit.Assume.assumeFalse
-
 class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://github.com/gradle/gradle/issues/23014')
     def "android gradle recipes: custom BuildConfig field in Kotlin (agp=#agpVersion, provider=#providerType)"() {
         given:
-        assumeFalse("WIP", providerType.toString().contains('map{}.map{}'))
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
 
         and:

@@ -468,24 +468,27 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 }
             }
             if (fixed) {
-                Map<K, V> entries = new LinkedHashMap<>();
                 SideEffectBuilder<? super Map<K, V>> sideEffectBuilder = SideEffect.builder();
-                for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
-                    entryCollector.addAll(value.getFixedValue().entrySet(), entries);
-                    sideEffectBuilder.add(SideEffect.fixedFrom(value));
-                }
+                ImmutableMap<K, V> entries = collectEntries(values, sideEffectBuilder);
+                return maybeChangingContent(ExecutionTimeValue.fixedValue(entries), changingContent)
+                    .withSideEffect(sideEffectBuilder.build());
+            }
+            return ExecutionTimeValue.changingValue(new CollectingProvider<>(values));
+        }
 
-                ExecutionTimeValue<Map<K, V>> value = ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
-                if (changingContent) {
-                    value = value.withChangingContent();
-                }
-                return value.withSideEffect(sideEffectBuilder.build());
-            }
-            List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers = new ArrayList<>();
+        @NotNull
+        private ImmutableMap<K, V> collectEntries(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values, SideEffectBuilder<? super Map<K, V>> sideEffectBuilder) {
+            Map<K, V> entries = new LinkedHashMap<>();
             for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
-                providers.add(value.toProvider());
+                entryCollector.addAll(value.getFixedValue().entrySet(), entries);
+                sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
-            return ExecutionTimeValue.changingValue(new CollectingProvider<K, V>(providers));
+            return ImmutableMap.copyOf(entries);
+        }
+
+        @NotNull
+        private ExecutionTimeValue<Map<K, V>> maybeChangingContent(ExecutionTimeValue<Map<K, V>> value, boolean changingContent) {
+            return changingContent ? value.withChangingContent() : value;
         }
 
         @Override
@@ -495,10 +498,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     private static class CollectingProvider<K, V> extends AbstractMinimalProvider<Map<K, V>> {
-        private final List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers;
+        private final List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values;
 
-        public CollectingProvider(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers) {
-            this.providers = providers;
+        public CollectingProvider(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values) {
+            this.values = values;
         }
 
         @Nullable
@@ -508,11 +511,16 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.changingValue(this);
+        }
+
+        @Override
         protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
             Map<K, V> entries = new LinkedHashMap<>();
             SideEffectBuilder<? super Map<K, V>> sideEffectBuilder = SideEffect.builder();
-            for (ProviderInternal<? extends Map<? extends K, ? extends V>> provider : providers) {
-                Value<? extends Map<? extends K, ? extends V>> value = provider.calculateValue(consumer);
+            for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> provider : values) {
+                Value<? extends Map<? extends K, ? extends V>> value = provider.toProvider().calculateValue(consumer);
                 if (value.isMissing()) {
                     return Value.missing();
                 }
