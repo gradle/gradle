@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -25,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -37,15 +40,15 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.function.LongFunction;
 
 /**
  * Adapts a {@link DependencyArtifactsVisitor} to a {@link DependencyGraphVisitor}. Calculates the artifacts contributed by each edge in the graph and forwards the results to the artifact visitor.
  */
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private int nextId;
-    private final Map<Long, ArtifactsForNode> artifactsByNodeId = Maps.newHashMap();
+    private final Long2ObjectMap<ArtifactsForNode> artifactsByNodeId = new Long2ObjectOpenHashMap<>();
     private final VariantArtifactResolver variantResolver;
     private final DependencyArtifactsVisitor artifactResults;
     private final ArtifactTypeRegistry artifactTypeRegistry;
@@ -109,25 +112,25 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             return doResolveVariantArtifacts(component, variant, dependency);
         }
 
-        return artifactsByNodeId.computeIfAbsent(toNode.getNodeId(), key ->
-            doResolveVariantArtifacts(component, variant, dependency)
+        return artifactsByNodeId.computeIfAbsent(toNode.getNodeId(),
+            (LongFunction<ArtifactsForNode>) value -> doResolveVariantArtifacts(component, variant, dependency)
         );
     }
 
     private ArtifactsForNode doResolveVariantArtifacts(ComponentGraphResolveState component, VariantGraphResolveState variant, DependencyGraphEdge dependency) {
-        ExcludeSpec exclusions = dependency.getExclusions();
         VariantArtifactResolveState variantState = variant.prepareForArtifactResolution();
         List<IvyArtifactName> artifacts = dependency.getDependencyMetadata().getArtifacts();
 
         ImmutableSet<ResolvedVariant> resolvedVariants = !artifacts.isEmpty() ?
             ImmutableSet.of(variantState.resolveAdhocArtifacts(variantResolver, artifacts)) :
-            variantState.resolveArtifacts(variantResolver, exclusions);
+            variantState.resolveArtifacts(variantResolver, dependency.getExclusions());
 
         ImmutableAttributes overriddenAttributes = dependency.getAttributes();
         ComponentGraphResolveMetadata graphMetadata = component.getMetadata();
+        ComponentIdentifier componentId = graphMetadata.getId();
+        AttributesSchemaInternal schema = graphMetadata.getAttributesSchema();
 
-        ResolvedVariantSet ownResolvedVariants = new DefaultResolvedVariantSet(
-            graphMetadata.getId(), graphMetadata.getAttributesSchema(), overriddenAttributes, resolvedVariants);
+        ResolvedVariantSet ownResolvedVariants = new DefaultResolvedVariantSet(componentId, schema, overriddenAttributes, resolvedVariants);
         Lazy<ResolvedVariantSet> resolvedVariantsForReselection = Lazy.locking().of(() -> {
             // TODO: Currently, this contains all variants in the entire component,
             // however in practice when using withVariantReselection the user likely
@@ -135,14 +138,14 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             // the current variant.
             ImmutableSet<ResolvedVariant> allResolvedVariants = component.prepareForArtifactResolution()
                 .getVariantsForArtifactSelection()
-                .map(variants -> collectReselectionVariants(variant.getName(), resolvedVariants, exclusions, variants))
+                .map(variants -> collectReselectionVariants(variant.getName(), resolvedVariants, dependency.getExclusions(), variants))
                 .orElse(resolvedVariants);
 
-            return new DefaultResolvedVariantSet(graphMetadata.getId(), graphMetadata.getAttributesSchema(), overriddenAttributes, allResolvedVariants);
+            return new DefaultResolvedVariantSet(componentId, schema, overriddenAttributes, allResolvedVariants);
         });
 
         int id = nextId++;
-        return new ArtifactsForNode(id, new ResolvedVariantArtifactSet(graphMetadata.getId(), resolvedVariantsForReselection::get, ownResolvedVariants));
+        return new ArtifactsForNode(id, new ResolvedVariantArtifactSet(componentId, resolvedVariantsForReselection::get, ownResolvedVariants));
     }
 
     private ImmutableSet<ResolvedVariant> collectReselectionVariants(String variantName, Set<ResolvedVariant> variantArtifacts, ExcludeSpec exclusions, List<VariantArtifactResolveState> variants) {
