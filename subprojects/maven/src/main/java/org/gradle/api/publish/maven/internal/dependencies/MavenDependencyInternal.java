@@ -26,6 +26,8 @@ import java.util.Collection;
 public interface MavenDependencyInternal extends MavenDependency {
     Collection<DependencyArtifact> getArtifacts();
     Collection<ExcludeRule> getExcludeRules();
+
+    @Nullable
     Path getProjectIdentityPath();
 
     @Override

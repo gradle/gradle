@@ -22,6 +22,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.ivy.IvyDependency;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
+
 public interface IvyDependencyInternal extends IvyDependency {
     Iterable<DependencyArtifact> getArtifacts();
 
@@ -29,5 +31,6 @@ public interface IvyDependencyInternal extends IvyDependency {
 
     ImmutableAttributes getAttributes();
 
+    @Nullable
     Path getProjectIdentityPath();
 }
