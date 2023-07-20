@@ -22,17 +22,19 @@ import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.gradle.api.NonNullApi;
 
+import javax.annotation.Nullable;
+
 import static org.gradle.internal.classpath.Instrumented.INTERCEPTOR_RESOLVER;
 
 /**
  * Injects the logic for Groovy calls instrumentation into the Groovy metaclasses.
  */
-@SuppressWarnings("unused") // used in generated code
 @NonNullApi
 public class InstrumentedGroovyMetaClassHelper {
     /**
      * Should be invoked on an object that a Groovy Closure can dispatch the calls to. Injects the call interception logic into the metaclass of that object.
-     * This is normally done for closure delegates, while the owner and thisObject are covered in {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksInClosureConstructor(Object, Object)}
+     * This is done for closure delegates that are reassigned, while the owner, thisObject, and the initial delegate are covered in
+     * {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksToEffectivelyInstrumentClosure(Closure)}
      */
     public static void addInvocationHooksInClosureDispatchObject(@Nullable Object object, boolean isEffectivelyInstrumented) {
         if (object == null) {
@@ -43,21 +45,13 @@ public class InstrumentedGroovyMetaClassHelper {
         }
     }
 
-    /**
-     * Should be invoked on a closure's owner and thisObject in the course of its constructor. Adds Groovy call interception logic
-     * to the metaclasses of the two objects.
-     */
-    public static void addInvocationHooksInClosureConstructor(Object owner, Object thisObject) {
-        addInvocationHooksToMetaClass(owner.getClass());
-        addInvocationHooksToMetaClass(thisObject.getClass());
-    }
-
     public static void addInvocationHooksToEffectivelyInstrumentClosure(Closure<?> closure) {
         addInvocationHooksToMetaClass(closure.getThisObject().getClass());
         addInvocationHooksToMetaClass(closure.getOwner().getClass());
         addInvocationHooksToMetaClass(closure.getDelegate().getClass());
     }
 
+    @SuppressWarnings("unused") // resolved via a method handle
     public static void addInvocationHooksToMetaClassIfInstrumented(Class<?> javaClass, String callableName) {
         if (INTERCEPTOR_RESOLVER.isAwareOfCallSiteName(callableName)) {
             addInvocationHooksToMetaClass(javaClass);
