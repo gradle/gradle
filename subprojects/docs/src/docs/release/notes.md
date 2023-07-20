@@ -1,6 +1,16 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features the support for [persistent Java compiler daemons](#faster-java-compilation) to speed up Java compilation.
+Gradle will also use [less memory for dependency resolution](#reduced-memory-consumption).
+The effect is significant, particularly for large builds such as Android builds.
+
+Gradle now supports running on Java 20.
+
+For Kotlin DSL, build authors can [try out the Kotlin K2 compiler](#kotlin_k2) for build logic with some limitations.
+See the [Kotlin DSL](#kotlin-dsl-improvements) dedicated section for more information.
+
+This release also brings several usability improvements, including better [CodeNarc output](#improved-codenarc-output), a [dry run mode](#dry-run-mode-for-test-execution) for test execution,
+improved [output for task options](#group-opposite-boolean-build-and-task-options-together), and upgraded [SSL support](#ssl).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -9,6 +19,19 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Adam](https://github.com/aSemy),
+[Ahmed Ehab](https://github.com/ahmedehabb),
+[Aurimas](https://github.com/liutikas),
+[Baptiste Decroix](https://github.com/bdecroix-spiria),
+[Björn Kautler](https://github.com/Vampire),
+[Borewit](https://github.com/Borewit),
+[Korov](https://github.com/Korov),
+[Mohammed Thavaf](https://github.com/mthavaf),
+[Patrick Brückner](https://github.com/madmuffin1),
+[Philip Wedemann](https://github.com/hfhbd),
+[Róbert Papp](https://github.com/TWiStErRob),
+[Shi Chen](https://github.com/CsCherrYY),
+[Tony Robalik](https://github.com/autonomousapps)
 
 ## Upgrade instructions
 
@@ -51,32 +74,23 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
+### Maven toolchain declarations with environment variables are now supported
 
-### Dry run mode for test execution
+Using [toolchains](userguide/toolchains.html) is the recommended way of specifying Java versions for JVM projects.
+By default, Gradle automatically detects local JRE/JDK installations so no further configuration is required by the user.
+One of the auto-detection formats that Gradle supports is Maven Toolchain specification.
 
-It is now possible to run a test without actual test execution. 
+With this Gradle release, if you rely on the integration with Maven toolchain definitions, Gradle now supports the use of environment variables placeholders inside `toolchain.xml` files.
+The placeholder will be resolved by looking at environment variables known to the Gradle build.
 
-This can be useful for quickly verifying which tests will run when [filtering a test suite](userguide/java_testing.html#test_filtering).
+<a name="ssl"></a>
+### SSL improvements for non-standard keystores and truststores
 
-Dry run mode can be enabled by either the `--test-dry-run` command-line option or via the [dryRun](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:dryRun) property.
+Previously, Gradle exhibited limitations when interfacing with non-standard keystores and truststores.
+This affected users on Linux systems with FIPS enabled and also Windows users who were storing certificates in the Trusted Root Certification Authorities store.
 
-This mode is compatible with the JUnit and TestNG frameworks.
+SSL context creation has been improved to be more aligned with the default implementation and to support these cases.
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
-
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
