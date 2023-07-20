@@ -326,7 +326,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    def "value not set because it is derived from a property that does not provide any value"() {
+    def "value not set because it is derived from a property whose value cannot be configured"() {
         groovyTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.model.*;
@@ -351,9 +351,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
             }
         """
 
-        run("run")
-
         expect:
-        assertValidationSucceeds()
+        fails "run"
+        failure.assertHasDescription("A problem was found with the configuration of task ':run' (type 'MyTask').")
+        failureDescriptionContains(missingNonConfigurableValueMessage({ type('MyTask').property('message') }))
     }
 }

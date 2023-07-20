@@ -54,6 +54,20 @@ Possible solutions:
   1. Assign a value to 'someProperty'.
   2. Mark property 'someProperty' as optional.
 """
+        when:
+        render(missingNonConfigurableValueMessage() {
+            type('SomeType')
+            property('someProperty')
+        })
+
+        then:
+        outputEquals """
+Type 'SomeType' property 'someProperty' doesn't have a configured value.
+
+Reason: This property isn't marked as optional and no value has been configured.
+
+Possible solution: Mark property 'someProperty' as optional.
+"""
 
         when:
         render missingValueMessage {
