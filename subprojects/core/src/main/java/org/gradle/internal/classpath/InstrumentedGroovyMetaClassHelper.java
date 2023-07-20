@@ -34,7 +34,10 @@ public class InstrumentedGroovyMetaClassHelper {
      * Should be invoked on an object that a Groovy Closure can dispatch the calls to. Injects the call interception logic into the metaclass of that object.
      * This is normally done for closure delegates, while the owner and thisObject are covered in {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksInClosureConstructor(Object, Object)}
      */
-    public static void addInvocationHooksInClosureDispatchObject(Object object, boolean isEffectivelyInstrumented) {
+    public static void addInvocationHooksInClosureDispatchObject(@Nullable Object object, boolean isEffectivelyInstrumented) {
+        if (object == null) {
+            return;
+        }
         if (isEffectivelyInstrumented) {
             addInvocationHooksToMetaClass(object.getClass());
         }

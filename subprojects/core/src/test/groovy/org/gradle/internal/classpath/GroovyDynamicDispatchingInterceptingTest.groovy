@@ -55,6 +55,31 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
     // Define a nested classes so that we can freely modify the metaClass of it loaded in the child class loader
     class NestedClass {}
 
+    def 'setting a null delegate in a closure is safe'() {
+        given:
+        def transformedClosure = instrumentedClasses.instrumentedClosure {
+            if (delegate != null) {
+                test()
+            }
+            return null
+        }
+        def receiver = new InterceptorTestReceiver()
+
+        when:
+        transformedClosure.delegate = receiver
+        transformedClosure()
+
+        then: 'the closure is an effectively instrumented one now, so we can test its null safety'
+        GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass
+
+        when:
+        transformedClosure.delegate = null
+        transformedClosure()
+
+        then:
+        noExceptionThrown()
+    }
+
     def 'setting a delegate of a closure before invoking an intercepted method in it replaces the metaclass of the delegate'() {
         given:
         def transformedClosure = instrumentedClasses.instrumentedClosure {
