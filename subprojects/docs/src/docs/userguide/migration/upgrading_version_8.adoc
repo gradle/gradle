@@ -35,6 +35,21 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.4]]
+== Upgrading from 8.3 and earlier
+
+=== Deprecations
+
+[[generate_maven_pom_method_deprecations]]
+==== Deprecated `GenerateMavenPom` methods
+
+The following methods on `link:{javadocPath}/org/gradle/api/publish/maven/tasks/GenerateMavenPom.html[GenerateMavenPom]` are deprecated and will be removed in Gradle 9.0.
+They were never intended to be public API.
+
+- `getVersionRangeMapper`
+- `withCompileScopeAttributes`
+- `withRuntimeScopeAttributes`
+
 [[changes_8.3]]
 == Upgrading from 8.2 and earlier
 

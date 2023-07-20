@@ -36,5 +36,10 @@ public interface SoftwareComponentInternal extends SoftwareComponent {
      */
     Set<? extends UsageContext> getUsages();
 
+    /**
+     * Finalize the component to avoid GMM later modification.
+     *
+     * @see <a href="https://github.com/gradle/gradle/issues/20581">Issue</a>
+     */
     default void finalizeValue() {}
 }

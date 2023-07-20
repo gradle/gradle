@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.publish.maven.internal.dependencies;
 
-import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.publish.maven.MavenDependency;
-import org.gradle.util.Path;
+import java.util.List;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
+/**
+ * Represents the {@code <dependencies>} and {@code <dependencyManagement>} elements of a Maven POM.
+ */
+public interface MavenPomDependencies {
 
-public interface MavenDependencyInternal extends MavenDependency {
-    Collection<DependencyArtifact> getArtifacts();
-    Collection<ExcludeRule> getExcludeRules();
+    List<MavenDependency> getDependencies();
 
-    @Nullable
-    Path getProjectIdentityPath();
+    List<MavenDependency> getDependencyManagement();
 
-    @Override
-    @Nullable
-    String getVersion();
 }
