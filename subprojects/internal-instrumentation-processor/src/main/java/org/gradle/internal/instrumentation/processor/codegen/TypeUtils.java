@@ -21,7 +21,30 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import org.objectweb.asm.Type;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class TypeUtils {
+
+    private static final Map<Type, Object> PRIMITIVE_TYPES_DEFAULT_VALUES;
+    static {
+        Map<Type, Object> map = new HashMap<>();
+        map.put(Type.BYTE_TYPE, (byte) 0);
+        map.put(Type.SHORT_TYPE, (short) 0);
+        map.put(Type.INT_TYPE, 0);
+        map.put(Type.LONG_TYPE, 0L);
+        map.put(Type.FLOAT_TYPE, 0.0f);
+        map.put(Type.DOUBLE_TYPE, 0.0d);
+        map.put(Type.CHAR_TYPE, '\u0000');
+        map.put(Type.BOOLEAN_TYPE, false);
+        PRIMITIVE_TYPES_DEFAULT_VALUES = Collections.unmodifiableMap(map);
+    }
+
+    public static Object getDefaultValue(Type type) {
+        return PRIMITIVE_TYPES_DEFAULT_VALUES.get(type);
+    }
+
     /**
      * Converts an ASM {@link Type} to a JavaPoet {@link TypeName}.
      */
