@@ -78,15 +78,16 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                      * super.setDelegate(newDelegate);
                      */
 
-                    mv.visitVarInsn(Opcodes.ALOAD, 1);
+                    _ALOAD(1);
                     _ALOAD(0);
                     _GETFIELD(classData.className, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z");
                     String descriptor = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, BOOLEAN_TYPE);
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, getType(InstrumentedGroovyMetaClassHelper.class).getInternalName(), "addInvocationHooksInClosureDispatchObject", descriptor, false);
+                    _INVOKESTATIC(getType(InstrumentedGroovyMetaClassHelper.class).getInternalName(), "addInvocationHooksInClosureDispatchObject", descriptor, false);
 
-                    mv.visitVarInsn(Opcodes.ALOAD, 0);
-                    mv.visitVarInsn(Opcodes.ALOAD, 1);
-                    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, getType(Closure.class).getInternalName(), "setDelegate", "(Ljava/lang/Object;)V", false);
+                    _ALOAD(0);
+                    _ALOAD(1);
+                    _INVOKESPECIAL(getType(Closure.class).getInternalName(), "setDelegate", "(Ljava/lang/Object;)V", false);
+
                     mv.visitCode();
                 }
             }
