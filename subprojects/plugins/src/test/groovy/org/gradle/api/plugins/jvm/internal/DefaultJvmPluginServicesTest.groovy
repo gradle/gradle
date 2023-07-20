@@ -60,8 +60,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
     def "configures compileClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
-        def config
-        config = Stub(ConfigurationInternal) {
+        def config = Stub(ConfigurationInternal) {
             getAttributes() >> mutable
         }
         def javaCompileProvider = Stub(TaskProvider) {
@@ -80,6 +79,18 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
                 (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
                 (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
                 (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
+        ]
+
+        when:
+        jvmLanguageUtilities.useDefaultTargetPlatformInference(config, javaCompileProvider)
+
+        then:
+        mutable.asMap() == [
+                (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+                (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
+                (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+                (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
+                (TARGET_JVM_VERSION_ATTRIBUTE): 8
         ]
     }
 

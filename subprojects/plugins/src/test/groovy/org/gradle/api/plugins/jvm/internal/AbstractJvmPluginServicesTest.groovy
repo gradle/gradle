@@ -62,4 +62,9 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
         TestUtil.instantiatorFactory().decorateScheme().instantiator(),
         project
     )
+
+    DefaultJvmLanguageUtilities jvmLanguageUtilities = new DefaultJvmLanguageUtilities(
+        TestUtil.providerFactory(),
+        project
+    )
 }
