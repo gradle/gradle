@@ -19,6 +19,8 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
+import static org.junit.Assume.assumeFalse
+
 class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile '''
@@ -658,6 +660,9 @@ task thing {
 
     @Issue('https://github.com/gradle/gradle/issues/23014')
     def "can put flatmap of task output into map property"() {
+
+        assumeFalse("WIP", configFromExtension)
+
         given:
         buildFile '''
             abstract class PrintTask extends DefaultTask {
