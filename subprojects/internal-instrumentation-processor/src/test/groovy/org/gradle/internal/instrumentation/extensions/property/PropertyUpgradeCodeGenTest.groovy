@@ -53,7 +53,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             public class Task_Adapter {
                 public static int access_get_maxErrors(Task self) {
-                    return self.getMaxErrors().get();
+                    return self.getMaxErrors().getOrNull();
                 }
 
                 public static void access_set_maxErrors(Task self, int arg0) {
@@ -115,7 +115,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             public class Task_Adapter {
                 public static boolean access_get_incremental(Task self) {
-                    return self.getIncremental().get();
+                    return self.getIncremental().getOrNull();
                 }
 
                 public static Task access_set_incremental(Task self, boolean arg0) {
@@ -175,14 +175,14 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .hasSourceEquivalentTo(generatedClass)
 
         where:
-        upgradedType                  | originalType     | getCall              | setCall            | fullImport
-        "Property<Integer>"           | "Integer"        | ".get()"             | ".set(arg0)"       | "java.lang.Integer"
-        "Property<String>"            | "String"         | ".get()"             | ".set(arg0)"       | "java.lang.String"
-        "ListProperty<String>"        | "List"           | ".get()"             | ".set(arg0)"       | "java.util.List"
-        "MapProperty<String, String>" | "Map"            | ".get()"             | ".set(arg0)"       | "java.util.Map"
-        "RegularFileProperty"         | "File"           | ".getAsFile().get()" | ".fileValue(arg0)" | "java.io.File"
-        "DirectoryProperty"           | "File"           | ".getAsFile().get()" | ".fileValue(arg0)" | "java.io.File"
-        "ConfigurableFileCollection"  | "FileCollection" | ""                   | ".setFrom(arg0)"   | "org.gradle.api.file.FileCollection"
+        upgradedType                  | originalType     | getCall                    | setCall            | fullImport
+        "Property<Integer>"           | "Integer"        | ".getOrNull()"             | ".set(arg0)"       | "java.lang.Integer"
+        "Property<String>"            | "String"         | ".getOrNull()"             | ".set(arg0)"       | "java.lang.String"
+        "ListProperty<String>"        | "List"           | ".getOrNull()"             | ".set(arg0)"       | "java.util.List"
+        "MapProperty<String, String>" | "Map"            | ".getOrNull()"             | ".set(arg0)"       | "java.util.Map"
+        "RegularFileProperty"         | "File"           | ".getAsFile().getOrNull()" | ".fileValue(arg0)" | "java.io.File"
+        "DirectoryProperty"           | "File"           | ".getAsFile().getOrNull()" | ".fileValue(arg0)" | "java.io.File"
+        "ConfigurableFileCollection"  | "FileCollection" | ""                         | ".setFrom(arg0)"   | "org.gradle.api.file.FileCollection"
     }
 
     def "should correctly generate interceptor when property name contains get"() {

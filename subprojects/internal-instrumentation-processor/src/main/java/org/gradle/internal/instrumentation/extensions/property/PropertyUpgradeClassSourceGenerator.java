@@ -99,11 +99,11 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
     private static String getGetCall(UpgradedPropertyType upgradedPropertyType) {
         switch (upgradedPropertyType) {
             case FILE_SYSTEM_LOCATION_PROPERTY:
-                return ".getAsFile().get()";
+                return ".getAsFile().getOrNull()";
             case CONFIGURABLE_FILE_COLLECTION:
                 return "";
             default:
-                return ".get()";
+                return ".getOrNull()";
         }
     }
 
