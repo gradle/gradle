@@ -240,11 +240,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return DynamicInvokeResult.notFound();
             }
 
-            try {
-                ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD.invoke(bean.getClass(), name);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
+            maybeAddCallInterceptionHooksToMetaclass(name);
             MetaClass metaClass = getMetaClass();
 
             // First look for a property known to the meta-class
@@ -288,6 +284,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             return getOpaqueProperty(name);
+        }
+
+        private void maybeAddCallInterceptionHooksToMetaclass(String name) {
+            try {
+                ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD.invoke(bean.getClass(), name);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         }
 
         protected DynamicInvokeResult getOpaqueProperty(String name) {
@@ -382,11 +386,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return DynamicInvokeResult.notFound();
             }
 
-            try {
-                ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD.invoke(bean.getClass(), name);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
+            maybeAddCallInterceptionHooksToMetaclass(name);
 
             MetaClass metaClass = getMetaClass();
             MetaProperty property = lookupProperty(metaClass, name);
@@ -517,11 +517,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         public DynamicInvokeResult invokeMethod(String name, Object... arguments) {
-            try {
-                ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD.invoke(bean.getClass(), name);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
+            maybeAddCallInterceptionHooksToMetaclass(name);
 
             MetaClass metaClass = getMetaClass();
             MetaMethod metaMethod = lookupMethod(metaClass, name, inferTypes(arguments));
