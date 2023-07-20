@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMig
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.internal.DefaultJavaPlatformExtension;
+import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;

@@ -52,5 +52,5 @@ dependencies {
 }
 
 packageCycles {
-    excludePatterns.add("org/gradle/api/plugins/internal/**")
+    excludePatterns.add("org/gradle/api/internal/java/**")
 }
