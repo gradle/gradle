@@ -49,7 +49,15 @@ import javax.inject.Inject;
 @Incubating
 @NonExtensible
 @SuppressWarnings("JavadocReference")
-public interface DependencyModifier {
+public abstract class DependencyModifier {
+    /**
+     * Creates a new instance.
+     *
+     * @since 8.4
+     */
+    protected DependencyModifier() {
+    }
+
     /**
      * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
      *
@@ -59,7 +67,7 @@ public interface DependencyModifier {
      * @see DependencyFactory
      */
     @Inject
-    DependencyFactory getDependencyFactory();
+    protected abstract DependencyFactory getDependencyFactory();
 
     /**
      * Create an {@link ExternalModuleDependency} from the given notation and modifies it to select the variant of the given module as described in {@link #modify(ModuleDependency)}.
@@ -68,7 +76,7 @@ public interface DependencyModifier {
      * @return the modified dependency
      * @see DependencyFactory#create(CharSequence)
      */
-    default ExternalModuleDependency modify(CharSequence dependencyNotation) {
+    public final ExternalModuleDependency modify(CharSequence dependencyNotation) {
         return modify(getDependencyFactory().create(dependencyNotation));
     }
 
@@ -78,7 +86,7 @@ public interface DependencyModifier {
      * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
      */
-    default Provider<? extends MinimalExternalModuleDependency> modify(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
+    public final Provider<? extends MinimalExternalModuleDependency> modify(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return providerConvertibleToDependency.asProvider().map(this::modify);
     }
 
@@ -88,18 +96,37 @@ public interface DependencyModifier {
      * @param providerToDependency the provider
      * @return a provider to the modified dependency
      */
-    default <D extends ModuleDependency> Provider<D> modify(Provider<D> providerToDependency) {
+    public final <D extends ModuleDependency> Provider<D> modify(Provider<D> providerToDependency) {
         return providerToDependency.map(this::modify);
     }
 
     /**
      * Takes a given {@link ModuleDependency} and modifies the dependency to select the variant of the given module. Dependency resolution may fail if the given module does not have a compatible variant.
-     * <p><br></p>
+     *
+     * <p>
+     * The dependency will be copied, so the original dependency will not be modified.
+     * </p>
      *
      * @param dependency the dependency to modify
-     * @return the modified dependency
      * @param <D> the type of the {@link ModuleDependency}
-     * @implSpec This method must be implemented.
+     * @return the modified dependency
      */
-    <D extends ModuleDependency> D modify(D dependency);
+    public final <D extends ModuleDependency> D modify(D dependency) {
+        // Enforce a copy of the dependency to avoid modifying the original dependency
+        // The unchecked cast can be incorrect if D is an implementation type, but it shouldn't be used in that way.
+        @SuppressWarnings("unchecked")
+        D copy = (D) dependency.copy();
+        modifyImpl(copy);
+        return copy;
+    }
+
+    /**
+     * Modify the given dependency.
+     *
+     * @param dependency the dependency to modify
+     * @implSpec This method must be implemented.
+     * @since 8.4
+     */
+    protected abstract void modifyImpl(ModuleDependency dependency);
+
 }

@@ -55,17 +55,19 @@ public interface TestFixturesDependencyModifiers {
      * @see #modify(ModuleDependency)
      */
     @Incubating
-    abstract class TestFixturesDependencyModifier implements DependencyModifier {
+    abstract class TestFixturesDependencyModifier extends DependencyModifier {
         /**
          * {@inheritDoc}
          *
          * Selects the test fixtures variant of the given dependency.
          */
         @Override
-        public <D extends ModuleDependency> D modify(D dependency) {
+        public void modifyImpl(ModuleDependency dependency) {
             if (dependency instanceof ExternalDependency) {
+                String group = dependency.getGroup();
+                String name = dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
                 dependency.capabilities(capabilities -> {
-                    capabilities.requireCapability(new DefaultImmutableCapability(dependency.getGroup(), dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+                    capabilities.requireCapability(new DefaultImmutableCapability(group, name, null));
                 });
             } else if (dependency instanceof ProjectDependency) {
                 ProjectDependency projectDependency = Cast.uncheckedCast(dependency);
@@ -73,7 +75,6 @@ public interface TestFixturesDependencyModifiers {
             } else {
                 throw new IllegalStateException("Unknown dependency type: " + dependency.getClass());
             }
-            return dependency;
         }
     }
 }
