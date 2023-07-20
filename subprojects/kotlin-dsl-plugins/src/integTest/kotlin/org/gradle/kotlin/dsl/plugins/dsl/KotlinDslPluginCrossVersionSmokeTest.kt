@@ -81,4 +81,40 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
             )
         }
     }
+
+    @Test
+    fun `can run first version of kotlin-dsl plugin supporting lazy property assignment with deprecation warning`() {
+
+        assumeNonEmbeddedGradleExecuter()
+        val testedVersion = "4.0.2"
+        val blessedVersion = org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
+
+        withDefaultSettingsIn("buildSrc")
+        withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(testedVersion))
+        withFile("buildSrc/src/main/kotlin/some.gradle.kts", """println("some!")""")
+
+        withDefaultSettings()
+        withBuildScript("""plugins { id("some") }""")
+
+        executer.expectDocumentedDeprecationWarning("The KotlinDslAssignment.isAssignmentOverloadEnabled() method has been deprecated. This is scheduled to be removed in Gradle 9.0. The method was most likely called from `kotlin-dsl` plugin version 4.1.0 or earlier version used in the build: avoid specifying a version for `kotlin-dsl` plugin.")
+        executer.expectDocumentedDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
+
+        build("help").apply {
+            assertThat(
+                output,
+                containsString("This version of Gradle expects version '$blessedVersion' of the `kotlin-dsl` plugin but version '$testedVersion' has been applied to project ':buildSrc'. Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
+            )
+
+            assertThat(
+                output,
+                containsString("some!")
+            )
+        }
+    }
 }
