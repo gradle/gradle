@@ -21,6 +21,12 @@ import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 
+/**
+ * This class exposes a number of internal utilities for use by Gradle JVM plugins that use
+ * types specific to Java and other JVM languages, such as {@link HasCompileOptions} which are
+ * not available in the {@code platform-jvm} project and would otherwise be located on the
+ * {@link JvmPluginServices} type.
+ */
 public interface JvmLanguageUtilities {
     /**
      * Configures a configuration so that its exposed target jvm version is inferred from
