@@ -298,21 +298,21 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     //endregion
 
     private static Object invokeWithInterceptor(InstrumentedGroovyCallsTracker callsTracker, CallInterceptor interceptor, String name, InstrumentedGroovyCallsTracker.CallKind kind, Object receiver, Object[] arguments, String consumerClass, Callable<Object> doCallOriginal) {
-        final boolean[] invokedOriginal = {false};
+        final InvokedFlag invokedOriginal = new InvokedFlag();
 
         try {
             if (consumerClass.equals(callsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind))) {
-                Invocation invocation = callOriginalReportingInvocation(receiver, arguments, doCallOriginal, () -> invokedOriginal[0] = true);
+                Invocation invocation = callOriginalReportingInvocation(receiver, arguments, doCallOriginal, invokedOriginal);
                 return interceptor.doIntercept(invocation, consumerClass);
             } else {
-                invokedOriginal[0] = true;
+                invokedOriginal.run();
                 return doCallOriginal.call();
             }
         } catch (Throwable throwable) {
             ThrowAsUnchecked.doThrow(throwable);
             throw new IllegalStateException("this is an unreachable statement, the call above always throws an exception");
         } finally {
-            if (!invokedOriginal[0]) {
+            if (!invokedOriginal.invoked) {
                 callsTracker.markCurrentCallAsIntercepted(name, kind);
             }
         }
@@ -332,6 +332,16 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             }
         }
         return new InvocationImpl(receiver, arguments);
+    }
+
+    @NonNullApi
+    static class InvokedFlag implements Runnable {
+        public boolean invoked = false;
+
+        @Override
+        public void run() {
+            invoked = true;
+        }
     }
 
     @Override
