@@ -59,7 +59,6 @@ packageCycles {
     // Needed for the factory methods in the interface
     excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/internal/**")
-    excludePatterns.add("org/gradle/api/plugins/internal/**")
 }
 
 integTest.usesJavadocCodeSnippets = true
