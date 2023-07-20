@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -31,6 +30,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
@@ -58,7 +60,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     private MapSupplier<K, V> noValueSupplier() {
-        return Cast.uncheckedCast(NO_VALUE);
+        return uncheckedCast(NO_VALUE);
     }
 
     @Nullable
@@ -219,7 +221,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(Cast.uncheckedNonnullCast(value.getFixedValue()), Cast.uncheckedCast(value.getSideEffect())));
+            setSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
             setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue())));
         }
@@ -232,7 +234,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     protected String describeContents() {
-        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), getSupplier().toString());
+        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), getSupplier());
     }
 
     @Override
@@ -244,7 +246,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     protected MapSupplier<K, V> finalValue(MapSupplier<K, V> value, ValueConsumer consumer) {
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
+            return new FixedSupplier<>(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -453,8 +455,18 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
-            List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values = new ArrayList<>();
-            collector.calculateExecutionTimeValue(values::add);
+            List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> execTimeValues = collectExecutionTimeValues();
+            ExecutionTimeValue<Map<K, V>> fixedOrMissing = fixedOrMissingValueOf(execTimeValues);
+            return fixedOrMissing != null
+                ? fixedOrMissing
+                : ExecutionTimeValue.changingValue(new CollectingProvider<>(execTimeValues));
+        }
+
+        /**
+         * Try to simplify the set of execution values to either a missing value or a fixed value.
+         */
+        @Nullable
+        private ExecutionTimeValue<Map<K, V>> fixedOrMissingValueOf(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values) {
             boolean fixed = true;
             boolean changingContent = false;
             for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
@@ -473,10 +485,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 return maybeChangingContent(ExecutionTimeValue.fixedValue(entries), changingContent)
                     .withSideEffect(sideEffectBuilder.build());
             }
-            return ExecutionTimeValue.changingValue(new CollectingProvider<>(values));
+            return null;
         }
 
-        @NotNull
+        private List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> collectExecutionTimeValues() {
+            List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values = new ArrayList<>();
+            collector.calculateExecutionTimeValue(values::add);
+            return values;
+        }
+
         private ImmutableMap<K, V> collectEntries(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values, SideEffectBuilder<? super Map<K, V>> sideEffectBuilder) {
             Map<K, V> entries = new LinkedHashMap<>();
             for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
@@ -486,7 +503,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             return ImmutableMap.copyOf(entries);
         }
 
-        @NotNull
         private ExecutionTimeValue<Map<K, V>> maybeChangingContent(ExecutionTimeValue<Map<K, V>> value, boolean changingContent) {
             return changingContent ? value.withChangingContent() : value;
         }
@@ -507,7 +523,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Nullable
         @Override
         public Class<Map<K, V>> getType() {
-            return Cast.uncheckedCast(Map.class);
+            return uncheckedCast(Map.class);
         }
 
         @Override
@@ -519,8 +535,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
             Map<K, V> entries = new LinkedHashMap<>();
             SideEffectBuilder<? super Map<K, V>> sideEffectBuilder = SideEffect.builder();
-            for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> provider : values) {
-                Value<? extends Map<? extends K, ? extends V>> value = provider.toProvider().calculateValue(consumer);
+            for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> executionTimeValue : values) {
+                Value<? extends Map<? extends K, ? extends V>> value = executionTimeValue.toProvider().calculateValue(consumer);
                 if (value.isMissing()) {
                     return Value.missing();
                 }
