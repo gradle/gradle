@@ -1,16 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features the support for [persistent Java compiler daemons](#faster-java-compilation) to speed up Java compilation.
-Gradle will also use [less memory for dependency resolution](#reduced-memory-consumption).
-The effect is significant, particularly for large builds such as Android builds.
-
-Gradle now supports running on Java 20.
-
-For Kotlin DSL, build authors can [try out the Kotlin K2 compiler](#kotlin_k2) for build logic with some limitations.
-See the [Kotlin DSL](#kotlin-dsl-improvements) dedicated section for more information.
-
-This release also brings several usability improvements, including better [CodeNarc output](#improved-codenarc-output), a [dry run mode](#dry-run-mode-for-test-execution) for test execution,
-improved [output for task options](#group-opposite-boolean-build-and-task-options-together), and upgraded [SSL support](#ssl).
+This release features [1](), [2](), ... [n](), and more.
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
