@@ -237,7 +237,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, getClasspath())));
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
         if (isModule && !isSourcepathUserDefined) {
-            compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
+            compileOptions.getSourcepath().setFrom(getProjectLayout().files(sourcesRoots));
         }
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         configureCompileOptions(spec);

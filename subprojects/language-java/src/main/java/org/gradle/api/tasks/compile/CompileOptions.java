@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -62,10 +63,6 @@ public abstract class CompileOptions extends AbstractOptions {
 
     private List<String> compilerArgs = Lists.newArrayList();
     private final List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
-
-    private FileCollection sourcepath;
-
-    private FileCollection annotationProcessorPath;
 
     private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
@@ -325,48 +322,24 @@ public abstract class CompileOptions extends AbstractOptions {
      * If you wish to use any source path, it must be explicitly set.
      *
      * @return the source path
-     * @see #setSourcepath(FileCollection)
      */
-    @Optional
     @Nullable
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    public FileCollection getSourcepath() {
-        return sourcepath;
-    }
-
-    /**
-     * Sets the source path to use for the compilation.
-     *
-     * @param sourcepath the source path
-     */
-    public void setSourcepath(@Nullable FileCollection sourcepath) {
-        this.sourcepath = sourcepath;
-    }
-
+    @UpgradedProperty
+    public abstract ConfigurableFileCollection getSourcepath();
+    
     /**
      * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
      * @return The annotation processor path, or {@code null} if annotation processing is disabled.
      * @since 3.4
      */
-    @Nullable
     @Optional
     @Classpath
-    public FileCollection getAnnotationProcessorPath() {
-        return annotationProcessorPath;
-    }
-
-    /**
-     * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
-     *
-     * @param annotationProcessorPath The annotation processor path, or {@code null} to disable annotation processing.
-     * @since 3.4
-     */
-    public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
-        this.annotationProcessorPath = annotationProcessorPath;
-    }
+    @UpgradedProperty
+    public abstract ConfigurableFileCollection getAnnotationProcessorPath();
 
     /**
      * Configures the Java language version for this compile task ({@code --release} compiler flag).
