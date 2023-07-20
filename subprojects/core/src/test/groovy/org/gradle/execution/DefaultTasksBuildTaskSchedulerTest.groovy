@@ -19,7 +19,6 @@ package org.gradle.execution
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectState
 import org.gradle.configuration.project.BuiltInCommand
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.internal.DefaultTaskExecutionRequest
@@ -27,13 +26,12 @@ import org.gradle.internal.RunDefaultTasksExecutionRequest
 import spock.lang.Specification
 
 class DefaultTasksBuildTaskSchedulerTest extends Specification {
+    final projectConfigurer = Mock(ProjectConfigurer)
     final buildInCommand = Mock(BuiltInCommand)
     final delegate = Mock(BuildTaskScheduler)
-    final action = new DefaultTasksBuildTaskScheduler([buildInCommand], delegate)
+    final action = new DefaultTasksBuildTaskScheduler(projectConfigurer, [buildInCommand], delegate)
     final startParameter = Mock(StartParameterInternal)
-    final defaultProject = Mock(ProjectInternal) {
-        getOwner() >> Stub(ProjectState)
-    }
+    final defaultProject = Mock(ProjectInternal)
     final gradle = Mock(GradleInternal)
     final selector = Mock(EntryTaskSelector)
     final plan = Mock(ExecutionPlan)
