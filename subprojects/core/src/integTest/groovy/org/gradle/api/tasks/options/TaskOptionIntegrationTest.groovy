@@ -133,7 +133,7 @@ Options
 
     def "can render option with help for Java task with property"() {
         given:
-        file('buildSrc/src/main/java/SampleTask.java') << taskWithSinglePropertyOption('String')
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithSinglePropertyOption('Property', 'String')
         buildFile << sampleTask()
 
         when:
@@ -147,7 +147,7 @@ Options
 
     def "can render option with help for Groovy task with property"() {
         given:
-        buildFile << groovyTaskWithSinglePropertyOption('String')
+        buildFile << groovyTaskWithSinglePropertyOption('Property', 'String')
         buildFile << sampleTask()
 
         when:
@@ -200,9 +200,9 @@ Options
         outputContains("Value of myProp: fromConfigureTask")
     }
 
-    def "set value of property of type Property of type #optionType when #description for Java task"() {
+    def "set value of property of type #propertyType of type #optionType when #description for Java task"() {
         given:
-        file('buildSrc/src/main/java/SampleTask.java') << taskWithSinglePropertyOption(optionType)
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithSinglePropertyOption(propertyType, optionType)
         buildFile << sampleTask()
 
         when:
@@ -212,20 +212,30 @@ Options
         outputContains("Value of myProp: $optionValue")
 
         where:
-        optionType | options                        | optionValue         | description
-        'String'   | ['--myProp=test']              | 'test'              | 'provided'
-        'String'   | ['--myProp=ab\'c=123:x\\yz45'] | 'ab\'c=123:x\\yz45' | 'provided with special characters'
-        'String'   | []                             | 'null '             | 'not provided'
-        'Boolean'  | ['--myProp']                   | 'true'              | 'provided'
-        'Boolean'  | []                             | 'null '             | 'not provided'
-        'TestEnum' | ['--myProp=OPT_2']             | 'OPT_2'             | 'provided with upper case'
-        'TestEnum' | ['--myProp=opt_2']             | 'OPT_2'             | 'provided with lower case'
-        'TestEnum' | []                             | 'null'              | 'not provided'
+        propertyType     | optionType | options                              | optionValue         | description
+        'Property'       | 'String'   | ['--myProp=test']                    | 'test'              | 'provided'
+        'Property'       | 'String'   | ['--myProp=ab\'c=123:x\\yz45']       | 'ab\'c=123:x\\yz45' | 'provided with special characters'
+        'Property'       | 'String'   | []                                   | 'null '             | 'not provided'
+        'Property'       | 'Boolean'  | ['--myProp']                         | 'true'              | 'provided'
+        'Property'       | 'Boolean'  | []                                   | 'null '             | 'not provided'
+        'Property'       | 'TestEnum' | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
+        'Property'       | 'TestEnum' | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
+        'Property'       | 'TestEnum' | []                                   | 'null'              | 'not provided'
+        'ListProperty'   | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'ListProperty'   | 'String'   | []                                   | '[]'                | 'not provided'
+        'ListProperty'   | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
+        'ListProperty'   | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
+        'ListProperty'   | 'TestEnum' | []                                   | '[]'                | 'not provided'
+        'SetProperty'    | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'SetProperty'    | 'String'   | []                                   | '[]'                | 'not provided'
+        'SetProperty'    | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
+        'SetProperty'    | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
+        'SetProperty'    | 'TestEnum' | []                                   | '[]'                | 'not provided'
     }
 
-    def "set value of property of type Property of type #optionType when #description for Groovy task"() {
+    def "set value of property of type #propertyType of type #optionType when #description for Groovy task"() {
         given:
-        buildFile << groovyTaskWithSinglePropertyOption(optionType)
+        buildFile << groovyTaskWithSinglePropertyOption(propertyType, optionType)
         buildFile << sampleTask()
 
         when:
@@ -235,15 +245,25 @@ Options
         outputContains("Value of myProp: $optionValue")
 
         where:
-        optionType | options                        | optionValue         | description
-        'String'   | ['--myProp=test']              | 'test'              | 'provided'
-        'String'   | ['--myProp=ab\'c=123:x\\yz45'] | 'ab\'c=123:x\\yz45' | 'provided with special characters'
-        'String'   | []                             | 'null '             | 'not provided'
-        'Boolean'  | ['--myProp']                   | 'true'              | 'provided'
-        'Boolean'  | []                             | 'null '             | 'not provided'
-        'TestEnum' | ['--myProp=OPT_2']             | 'OPT_2'             | 'provided with upper case'
-        'TestEnum' | ['--myProp=opt_2']             | 'OPT_2'             | 'provided with lower case'
-        'TestEnum' | []                             | 'null'              | 'not provided'
+        propertyType     | optionType | options                              | optionValue         | description
+        'Property'       |'String'    | ['--myProp=test']                    | 'test'              | 'provided'
+        'Property'       |'String'    | ['--myProp=ab\'c=123:x\\yz45']       | 'ab\'c=123:x\\yz45' | 'provided with special characters'
+        'Property'       |'String'    | []                                   | 'null '             | 'not provided'
+        'Property'       |'Boolean'   | ['--myProp']                         | 'true'              | 'provided'
+        'Property'       |'Boolean'   | []                                   | 'null '             | 'not provided'
+        'Property'       |'TestEnum'  | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
+        'Property'       |'TestEnum'  | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
+        'Property'       |'TestEnum'  | []                                   | 'null'              | 'not provided'
+        'ListProperty'   | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'ListProperty'   | 'String'   | []                                   | '[]'                | 'not provided'
+        'ListProperty'   | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
+        'ListProperty'   | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
+        'ListProperty'   | 'TestEnum' | []                                   | '[]'                | 'not provided'
+        'SetProperty'    | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'SetProperty'    | 'String'   | []                                   | '[]'                | 'not provided'
+        'SetProperty'    | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
+        'SetProperty'    | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
+        'SetProperty'    | 'TestEnum' | []                                   | '[]'                | 'not provided'
     }
 
     static String sampleTask() {

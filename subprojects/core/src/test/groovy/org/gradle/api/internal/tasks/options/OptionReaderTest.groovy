@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.options
 
 import org.gradle.api.internal.tasks.TaskOptionsGenerator
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
 import spock.lang.Issue
@@ -106,6 +108,32 @@ class OptionReaderTest extends Specification {
         options[4].description == "string value"
         options[4].argumentType == String
         options[4].availableValues == ["dynValue1", "dynValue2"] as Set
+    }
+
+    def "can read options linked to property getter methods of type ListProperty of a task"() {
+        when:
+        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithListProperties(), reader).getAll()
+        then:
+        options[0].name == "enumValue"
+        options[0].description == "enum value"
+        options[0].argumentType == List
+
+        options[1].name == "stringValue"
+        options[1].description == "string value"
+        options[1].argumentType == List
+    }
+
+    def "can read options linked to property getter methods of type SetProperty of a task"() {
+        when:
+        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithSetProperties(), reader).getAll()
+        then:
+        options[0].name == "enumValue"
+        options[0].description == "enum value"
+        options[0].argumentType == List
+
+        options[1].name == "stringValue"
+        options[1].description == "string value"
+        options[1].argumentType == List
     }
 
     def "built-in options appear last"() {
@@ -272,8 +300,28 @@ class OptionReaderTest extends Specification {
         options[3].description == "Descr Field4"
         options[3].argumentType == Void.TYPE
         options[3].availableValues.isEmpty()
-    }
 
+        options[4].name == "no-field4"
+        options[4].description == "Disables option --field4."
+        options[4].argumentType == Void.TYPE
+        options[4].availableValues.isEmpty()
+
+        options[5].name == "field5"
+        options[5].description == "Descr Field5"
+        options[5].argumentType == List
+
+        options[6].name == "field6"
+        options[6].description == "Descr Field6"
+        options[6].argumentType == List
+
+        options[7].name == "field7"
+        options[7].description == "Descr Field7"
+        options[7].argumentType == List
+
+        options[8].name == "field8"
+        options[8].description == "Descr Field8"
+        options[8].argumentType == List
+    }
 
     def "throws decent error when description not set"() {
         when:
@@ -527,6 +575,30 @@ class OptionReaderTest extends Specification {
         }
     }
 
+    public static class TestClassWithListProperties {
+        @Option(option = "stringValue", description = "string value")
+        public ListProperty<String> getStringValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "enumValue", description = "enum value")
+        public ListProperty<TestEnum> getEnumValue() {
+            throw new UnsupportedOperationException()
+        }
+    }
+
+    public static class TestClassWithSetProperties {
+        @Option(option = "stringValue", description = "string value")
+        public SetProperty<String> getStringValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "enumValue", description = "enum value")
+        public SetProperty<TestEnum> getEnumValue() {
+            throw new UnsupportedOperationException()
+        }
+    }
+
     public static class CustomClass {
         String value
 
@@ -624,6 +696,18 @@ class OptionReaderTest extends Specification {
 
         @Option(description = "Descr Field4")
         final Property<Boolean> field4
+
+        @Option(description = "Descr Field5")
+        final ListProperty<String> field5
+
+        @Option(description = "Descr Field6")
+        final ListProperty<TestEnum> field6
+
+        @Option(description = "Descr Field7")
+        final SetProperty<String> field7
+
+        @Option(description = "Descr Field8")
+        final SetProperty<TestEnum> field8
 
         @OptionValues("field2")
         List<String> getField2Options() {
