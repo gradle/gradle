@@ -63,6 +63,7 @@ public abstract class CompileOptions extends AbstractOptions {
 
     private List<String> compilerArgs = Lists.newArrayList();
     private final List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
+    private FileCollection sourcepath;
 
     private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
@@ -322,14 +323,26 @@ public abstract class CompileOptions extends AbstractOptions {
      * If you wish to use any source path, it must be explicitly set.
      *
      * @return the source path
+     * @see #setSourcepath(FileCollection)
      */
+    @Optional
     @Nullable
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    @UpgradedProperty
-    public abstract ConfigurableFileCollection getSourcepath();
-    
+    public FileCollection getSourcepath() {
+        return sourcepath;
+    }
+
+    /**
+     * Sets the source path to use for the compilation.
+     *
+     * @param sourcepath the source path
+     */
+    public void setSourcepath(@Nullable FileCollection sourcepath) {
+        this.sourcepath = sourcepath;
+    }
+
     /**
      * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
