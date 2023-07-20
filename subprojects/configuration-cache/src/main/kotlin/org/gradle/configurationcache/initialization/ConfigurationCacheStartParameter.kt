@@ -18,16 +18,19 @@ package org.gradle.configurationcache.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.SupportedEncryptionAlgorithm
 import java.io.File
 
 
@@ -36,20 +39,41 @@ class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
-    modelParameters: BuildModelParameters
+    private val modelParameters: BuildModelParameters
 ) {
-    val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
+    val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getInternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
 
-    val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
+    val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")
+
+    val encryptionRequested: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.encryption", true)
+
+    val keystoreDir: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
+
+    val encryptionAlgorithm: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)
+
+    /**
+     * Should be provided if a link to the report is expected even if no errors were found.
+     * Useful in testing.
+     */
+    val alwaysLogReportLinkAsWarning: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.report-link-as-warning", false)
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
 
+    val configurationCacheLogLevel: LogLevel
+        get() = modelParameters.configurationCacheLogLevel
+
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
 
+    val isIgnoreInputsInTaskGraphSerialization: Boolean
+        get() = startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization
+
     val maxProblems: Int
         get() = startParameter.configurationCacheMaxProblems
+
+    val ignoredFileSystemCheckInputs: String?
+        get() = startParameter.configurationCacheIgnoredFileSystemCheckInputs
 
     val isDebug: Boolean
         get() = startParameter.isConfigurationCacheDebug
@@ -91,9 +115,6 @@ class ConfigurationCacheStartParameter(
     val isUpdateDependencyLocks
         get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
 
-    val isWriteDependencyVerifications
-        get() = startParameter.writeDependencyVerifications.isNotEmpty()
-
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
@@ -116,3 +137,13 @@ class ConfigurationCacheStartParameter(
     val isNoBuildScan: Boolean
         get() = startParameter.isNoBuildScan
 }
+
+
+private
+fun InternalOptions.getInternalFlag(systemPropertyName: String, defaultValue: Boolean = false): Boolean =
+    getOption(InternalFlag(systemPropertyName, defaultValue)).get()
+
+
+private
+fun InternalOptions.getInternalString(systemPropertyName: String, defaultValue: String?) =
+    getOption(StringInternalOption(systemPropertyName, defaultValue)).get()

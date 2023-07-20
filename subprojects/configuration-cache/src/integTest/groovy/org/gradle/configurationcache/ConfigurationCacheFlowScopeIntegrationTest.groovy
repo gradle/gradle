@@ -23,7 +23,108 @@ import org.gradle.test.fixtures.file.TestFile
 
 class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def '#target #injectionStyle with #parameter can react to task execution result'() {
+    def 'flow actions are isolated from each other'() {
+        given: 'flow actions that share a bean'
+        buildFile '''
+            import org.gradle.api.flow.*
+            import org.gradle.api.services.*
+            import java.util.concurrent.atomic.AtomicInteger
+
+            class FlowActionPlugin implements Plugin<Project> {
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+                @Inject FlowActionPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+                void apply(Project target) {
+                    def sharedBean = new Bean()
+                    def sharedBeanProvider = flowProviders.buildWorkResult.map { sharedBean }
+                    2.times {
+                        flowScope.always(IncrementAndPrint) {
+                            parameters.bean = sharedBeanProvider
+                        }
+                    }
+                }
+            }
+
+            class Bean {
+                AtomicInteger value = new AtomicInteger(41)
+            }
+
+            class IncrementAndPrint implements FlowAction<Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input Property<Bean> getBean()
+                }
+                void execute(Parameters parameters) {
+                    parameters.with {
+                        println("Bean.value = " + bean.get().value.incrementAndGet())
+                    }
+                }
+            }
+
+            apply type: FlowActionPlugin
+        '''
+
+        when:
+        configurationCacheRun 'help'
+
+        then: 'shared bean should have been isolated'
+        output.count('Bean.value = 42') == 2
+        outputDoesNotContain 'Bean.value = 43'
+    }
+
+    def 'flow actions cannot depend on tasks'() {
+        given:
+        buildFile '''
+            import org.gradle.api.flow.*
+            import org.gradle.api.services.*
+            import org.gradle.api.tasks.*
+
+            class FlowActionPlugin implements Plugin<Project> {
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+                @Inject FlowActionPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+                void apply(Project target) {
+                    def producer = target.tasks.register('producer', Producer) {
+                        outputFile = target.layout.buildDirectory.file('out')
+                    }
+                    flowScope.always(PrintAction) {
+                        parameters.text = producer.flatMap { it.outputFile }.map { it.asFile.text }
+                    }
+                }
+            }
+
+            abstract class Producer extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getOutputFile()
+                @TaskAction def produce() {
+                    outputFile.get().asFile << "42"
+                }
+            }
+
+            class PrintAction implements FlowAction<Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input Property<String> getText()
+                }
+                void execute(Parameters parameters) {
+                    println(parameters.text.get())
+                }
+            }
+
+            apply type: FlowActionPlugin
+        '''
+
+        when:
+        configurationCacheFails 'producer'
+
+        then:
+        failureCauseContains "Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported."
+    }
+
+    def '#target #injectionStyle with #parameter can react to build work result'() {
         given:
         def configCache = newConfigurationCacheFixture()
 
@@ -166,7 +267,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
 
                 void apply($targetType target) {
                     flowScope.always(SetLavaLampColor) {
-                        parameters.color = flowProviders.requestedTasksResult.map {
+                        parameters.color = flowProviders.buildWorkResult.map {
                             it.failure.present ? 'red' : 'green'
                         }
                     }
@@ -177,7 +278,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
 
                 interface Parameters extends FlowParameters {
                     @ServiceReference("lamp") Property<LavaLamp> getLamp()
-                    Property<String> getColor()
+                    @Input Property<String> getColor()
                 }
 
                 void execute(Parameters parameters) {
@@ -296,7 +397,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
 
                 void apply($targetType target) {
                     flowScope.always(SetLavaLampColor) {
-                        parameters.color = flowProviders.requestedTasksResult.map {
+                        parameters.color = flowProviders.buildWorkResult.map {
                             it.failure.present ? 'red' : 'green'
                         }
                     }
@@ -378,7 +479,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
                     def lamp = target.gradle.sharedServices.registerIfAbsent('lamp', LavaLamp) {}
                     flowScope.always(SetLavaLampColor) {
                         ${namedAnnotation ? '' : 'parameters.lamp = lamp'}
-                        parameters.color = flowProviders.requestedTasksResult.map {
+                        parameters.color = flowProviders.buildWorkResult.map {
                             it.failure.present ? 'red' : 'green'
                         }
                     }
@@ -428,14 +529,51 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         file(target.fileName)
     }
 
-    def "value source with task result provider cannot be obtained at configuration time"() {
+    def "task cannot depend on buildWorkResult, fails with clear message and problem is reported"() {
+        given:
+        buildFile '''
+            abstract class Fails extends DefaultTask {
+
+                @Input abstract Property<String> getColor()
+
+                @TaskAction void wontRun() {
+                    assert false
+                }
+            }
+
+            abstract class FailsPlugin implements Plugin<Project> {
+
+                @Inject abstract FlowProviders getFlowProviders()
+
+                void apply(Project target) {
+                    target.tasks.register('fails', Fails)  {
+                        color = flowProviders.buildWorkResult.map {
+                            it.failure.present ? 'red' : 'green'
+                        }
+                    }
+                }
+            }
+
+            apply type: FailsPlugin
+        '''
+
+        when:
+        configurationCacheFails 'fails'
+
+        then:
+        failureHasCause "Failed to calculate the value of task ':fails' property 'color'."
+        failureHasCause "Cannot access the value of 'BuildWorkResult' before it becomes available!"
+        failureDescriptionStartsWith "Configuration cache problems found in this build"
+    }
+
+    def "value source with build work result provider cannot be obtained at configuration time"() {
         given:
         buildFile("""
         import org.gradle.api.provider.*
 
         abstract class ResultSource implements ValueSource<String, Params> {
             interface Params extends ValueSourceParameters {
-                Property<RequestedTasksResult> getTasksResult();
+                Property<BuildWorkResult> getWorkResult();
             }
 
             @Override String obtain() {
@@ -450,7 +588,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         def flowProviders = objects.newInstance(FlowProvidersGetter).flowProviders
 
         providers.of(ResultSource) {
-            parameters.tasksResult = flowProviders.requestedTasksResult
+            parameters.workResult = flowProviders.buildWorkResult
         }.get()
 
         """)

@@ -20,12 +20,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
-@Requires(adhoc = { AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_8).size() > 1 })
+@Requires(IntegTestPreconditions.MoreThanOneJava8HomeAvailable)
 class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private File getOriginalJavaExecutable() {
@@ -68,8 +69,10 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
                 testImplementation "junit:junit:4.13"
             }
 
-            sourceCompatibility = "1.7"
-            targetCompatibility = "1.7"
+            java {
+                sourceCompatibility = "1.7"
+                targetCompatibility = "1.7"
+            }
 
             test {
                 executable "${TextUtil.escapeString(originalJavaExecutable)}"

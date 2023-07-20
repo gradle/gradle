@@ -35,12 +35,9 @@ trait ValidationMessageChecker {
         messageIndent = indent
     }
 
-    String userguideLink(String id, String section) {
-        documentationRegistry.getDocumentationFor(id, section)
-    }
 
     String learnAt(String id, String section) {
-        "Please refer to ${userguideLink(id, section)} for more details about this problem"
+        documentationRegistry.getDocumentationRecommendationFor("information", id, section)
     }
 
     @ValidationTestFor(
@@ -419,9 +416,38 @@ trait ValidationMessageChecker {
     )
     String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(UnsupportedValueType, "unsupported_value_type", spec)
-        config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
-            .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
-        config.render()
+        if (config.propertyType.contains("URL")) {
+            config.description("has @Input annotation used on type 'java.net.URL' or a property of this type")
+                .reason("Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type")
+                .solution("Use type 'java.net.URI' instead")
+                .render()
+        } else {
+            config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
+                .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
+                .render()
+        }
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    String nestedMapUnsupportedKeyType(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(NestedMapUnsupportedKeyType, "unsupported_key_type_of_nested_map", spec)
+        config.description("where key of nested map is of type '${config.keyType}'.")
+            .reason("Key of nested map must be one of the following types: 'Enum', 'Integer', 'String'")
+            .solution("Change type of key to one of the following types: 'Enum', 'Integer', 'String'")
+            .render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_TYPE_UNSUPPORTED
+    )
+    String nestedTypeUnsupported(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(NestedTypeUnsupported, "unsupported_nested_type", spec)
+        config.description("with nested type '${config.annotatedType}' is not supported.")
+            .reason("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.")
+            .solution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input.")
+            .render()
     }
 
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
@@ -433,7 +459,7 @@ trait ValidationMessageChecker {
             "This behavior has been deprecated. " +
             "This behavior is scheduled to be removed in Gradle 9.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/${docId}.html#${section} for more details."
+            documentationRegistry.getDocumentationRecommendationFor("information", docId, section)
         executer.expectDocumentedDeprecationWarning(deprecationMessage)
     }
 
@@ -948,6 +974,34 @@ trait ValidationMessageChecker {
 
         UnsupportedValueType unsupportedValueType(String unsupportedValueType) {
             this.unsupportedValueType = unsupportedValueType
+            this
+        }
+    }
+
+    static class NestedMapUnsupportedKeyType extends ValidationMessageDisplayConfiguration<NestedMapUnsupportedKeyType> {
+
+        String keyType
+
+        NestedMapUnsupportedKeyType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        NestedMapUnsupportedKeyType keyType(String keyType) {
+            this.keyType = keyType
+            this
+        }
+    }
+
+    static class NestedTypeUnsupported extends ValidationMessageDisplayConfiguration<NestedTypeUnsupported> {
+
+        String annotatedType
+
+        NestedTypeUnsupported(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        NestedTypeUnsupported annotatedType(String annotatedType) {
+            this.annotatedType = annotatedType
             this
         }
     }

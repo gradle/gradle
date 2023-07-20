@@ -21,6 +21,7 @@ import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.internal.Describables
 import org.gradle.util.Path
@@ -92,17 +93,13 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         def root = Stub(TestComponent)
         root.variants >> [child2, child3]
 
-        def publication = pub('mock', "pub-group", "pub-name", "pub-version")
-        publication.component >> root
+        def publication = pub('mock', "pub-group", "pub-name", "pub-version", root)
 
-        def publication2 = pub('pub2', "pub-group", "pub-name-child1", "pub-version")
-        publication2.component >> child1
+        def publication2 = pub('pub2', "pub-group", "pub-name-child1", "pub-version", child1)
 
-        def publication3 = pub('pub3', "pub-group", "pub-name-child2", "pub-version")
-        publication3.component >> child2
+        def publication3 = pub('pub3', "pub-group", "pub-name-child2", "pub-version", child2)
 
-        def publication4 = pub('pub4', "pub-group", "pub-name-child3", "pub-version")
-        publication4.component >> child3
+        def publication4 = pub('pub4', "pub-group", "pub-name-child3", "pub-version", child3)
 
         when:
         dependentProjectHasPublications(publication, publication2, publication3, publication4)
@@ -157,12 +154,9 @@ Found the following publications in <project>:
         def component3 = Stub(TestComponent)
 
         when:
-        def publication = pub('mock', "pub-group", "pub-name", "pub-version")
-        publication.component >> component1
-        def publication2 = pub('pub2', "other-group", "other-name1", "other-version")
-        publication2.component >> component2
-        def publication3 = pub('pub3', "other-group", "other-name2", "other-version")
-        publication3.component >> component3
+        def publication = pub('mock', "pub-group", "pub-name", "pub-version", component1)
+        def publication2 = pub('pub2', "other-group", "other-name1", "other-version", component2)
+        def publication3 = pub('pub3', "other-group", "other-name2", "other-version", component3)
 
         dependentProjectHasPublications(publication, publication2, publication3)
 
@@ -183,8 +177,7 @@ Found the following publications in <project>:
         def component1 = Stub(SoftwareComponentInternal)
 
         when:
-        def publication = pub('mock', "pub-group", "pub-name", "pub-version")
-        publication.component >> component1
+        def publication = pub('mock', "pub-group", "pub-name", "pub-version", component1)
         def publication2 = pub('pub2', "other-group", "other-name1", "other-version")
         def publication3 = pub('pub3', "other-group", "other-name2", "other-version")
 
@@ -225,11 +218,12 @@ Found the following publications in <project>:
         publicationRegistry.getPublications(ProjectComponentPublication, Path.path(":path")) >> (added as LinkedHashSet)
     }
 
-    private ProjectComponentPublication pub(def name, def group, def module, def version) {
+    private ProjectComponentPublication pub(def name, def group, def module, def version, def component = null) {
         def publication = Mock(ProjectComponentPublication)
         publication.name >> name
         publication.displayName >> Describables.of("publication '" + name + "'")
         publication.getCoordinates(ModuleVersionIdentifier) >> DefaultModuleVersionIdentifier.newId(group, module, version)
+        publication.component >> Providers.ofNullable(component)
         return publication
     }
 

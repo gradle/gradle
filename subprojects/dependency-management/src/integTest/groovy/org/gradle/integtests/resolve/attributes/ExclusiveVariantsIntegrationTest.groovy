@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.attributes
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
@@ -29,7 +30,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -42,7 +43,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -54,7 +55,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 resolver {
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -75,7 +76,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("resolveSample")
-        failure.assertHasDocumentedCause("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets. Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details. See https://docs.gradle.org/current/userguide/upgrading_version_7.html#unique_attribute_sets for more details.")
+        failure.assertHasDocumentedCause("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets. " +
+            "Consider adding an additional attribute to one of the configurations to disambiguate them.  " +
+            "Run the 'outgoingVariants' task for more details. ${documentationRegistry.getDocumentationRecommendationFor("information", "upgrading_version_7", "unique_attribute_sets")}")
 
         where:
         capability << ['default', 'org.test:sample:1.0']
@@ -91,7 +94,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -104,7 +107,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -138,7 +141,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -148,7 +151,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -182,7 +185,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -192,7 +195,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -220,7 +223,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -234,7 +237,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -263,7 +266,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleA {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -286,7 +289,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleB {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -327,7 +330,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleA {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -353,7 +356,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleB {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -387,7 +390,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 sample1 {
-                    canBeResolved = true
+                    assert canBeResolved
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -396,7 +399,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 sample2 {
-                    canBeResolved = true
+                    assert canBeResolved
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -420,8 +423,8 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     // Configurations that are both resolvable and consumable are legacy and should not be used
-                    canBeResolved = true
-                    canBeConsumed = true
+                    assert canBeResolved
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -431,8 +434,8 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     // Configurations that are both resolvable and consumable are legacy and should not be used
-                    canBeResolved = true
-                    canBeConsumed = true
+                    assert canBeResolved
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))

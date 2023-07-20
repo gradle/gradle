@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultIvyDescriptorMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifactProvider
@@ -61,21 +62,6 @@ class IvyResolverTest extends Specification {
         expect:
         def resolver = resolver()
         resolver.toString() == "Ivy repository 'repo'"
-    }
-
-    def "resolvers are differentiated by m2compatible flag"() {
-        given:
-        def resolver1 = resolver()
-        def resolver2 = resolver()
-
-        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.m2compatible = true
-
-        expect:
-        resolver1.id != resolver2.id
     }
 
     def "remote access fails directly for module id #moduleId with layout #layoutPattern"() {
@@ -134,41 +120,12 @@ class IvyResolverTest extends Specification {
         newId(mid("group", "name"), "")  | "[organization]/[module]-([revision])"
     }
 
-
-    def "resolvers are differentiated by useGradleMetadata flag"() {
-        given:
-        def resolver1 = resolver()
-        def resolver2 = resolver(null, true)
-
-        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
-
-        expect:
-        resolver1.id != resolver2.id
-    }
-
-    def "resolvers are differentiated by alwaysProvidesMetadataForModules flag"() {
-        given:
-        def resolver1 = resolver(null, false, false)
-        def resolver2 = resolver(null, false, true)
-
-        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
-
-        expect:
-        resolver1.id != resolver2.id
-    }
-
     def "correctly sets caching of component metadata rules depending on ivy repository transport"() {
         given:
         transport.isLocal() >> isLocal
         ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "foo"), "1.0")
         ImmutableMetadataSources metadataSources = mockMetadataSourcesForComponentMetadataRulesCachingTest()
-        def resolver = resolver(null, false, false, metadataSources)
+        def resolver = resolver(null, metadataSources)
 
         when:
         BuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult()
@@ -203,7 +160,7 @@ class IvyResolverTest extends Specification {
         return metadataSources
     }
 
-    private IvyResolver resolver(String ivyPattern = null, boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false , ImmutableMetadataSources metadataSources = null) {
+    private IvyResolver resolver(String ivyPattern = null, ImmutableMetadataSources metadataSources = null) {
         transport.resourceAccessor >> externalResourceAccessor
 
         MetadataArtifactProvider metadataArtifactProvider = new IvyMetadataArtifactProvider()
@@ -218,31 +175,33 @@ class IvyResolverTest extends Specification {
                         TestUtil.checksumService
                     ))
                 }
-                appendId(_) >> { args ->
-                    args[0].putBoolean(useGradleMetadata)
-                    args[0].putBoolean(alwaysProvidesMetadataForModules)
-                }
             }
         }
 
         def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
-        new IvyResolver(
-                "repo",
-                transport,
-                Stub(LocallyAvailableResourceFinder),
-                false,
-                Stub(FileStore),
-                supplier,
-                lister,
-                metadataSources,
-                metadataArtifactProvider, Mock(Instantiator),
-                TestUtil.checksumService).with {
-            if (ivyPattern) {
-                it.addDescriptorLocation(URI.create(""), ivyPattern)
-            }
-            it
+        def builder = new IvyRepositoryDescriptor.Builder("repo", new URI("http://localhost"))
+        builder.m2Compatible = false
+        builder.metadataSources = []
+        builder.authenticated = false
+        builder.authenticationSchemes = []
+        builder.layoutType = "test"
+        if (ivyPattern != null) {
+            builder.addIvyResource(new URI("http://localhost"), ivyPattern)
         }
+        def descriptor = builder.create()
+
+        new IvyResolver(
+            descriptor,
+            transport,
+            Stub(LocallyAvailableResourceFinder),
+            false,
+            Stub(FileStore),
+            supplier,
+            lister,
+            metadataSources,
+            metadataArtifactProvider, Mock(Instantiator),
+            TestUtil.checksumService)
     }
 }

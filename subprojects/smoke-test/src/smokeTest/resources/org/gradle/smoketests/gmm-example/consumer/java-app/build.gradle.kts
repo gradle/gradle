@@ -35,7 +35,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("myapp.App")
+    mainClass = "myapp.App"
 }
 
 

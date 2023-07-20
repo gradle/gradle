@@ -24,14 +24,12 @@ import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.problems.Location
-import org.gradle.problems.buildtree.ProblemLocationAnalyzer
+import org.gradle.problems.ProblemDiagnostics
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import spock.lang.Specification
 
 class DefaultExceptionAnalyserTest extends Specification {
-    private final ProblemLocationAnalyzer locationAnalyzer = Stub(ProblemLocationAnalyzer)
-    private final StackTraceElement element1 = new StackTraceElement("class", "method", "filename", 7)
-    private final StackTraceElement element2 = new StackTraceElement("class", "method", "filename", 11)
-    private final StackTraceElement element3 = new StackTraceElement("class", "method", "otherfile", 11)
+    private final ProblemDiagnosticsFactory diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
 
     def 'wraps original exception when it is not a contextual exception'() {
         given:
@@ -88,13 +86,11 @@ class DefaultExceptionAnalyserTest extends Specification {
 
     def 'adds location info from stack trace'() {
         def failure = new ContextualException()
-        def stackTrace = [element2, element1]
-        failure.setStackTrace(stackTrace as StackTraceElement[])
         def analyser = analyser()
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(stackTrace, true) >> location("<source>", 7)
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -111,18 +107,12 @@ class DefaultExceptionAnalyserTest extends Specification {
         def cause = new RuntimeException()
         def failure = new ContextualException(new RuntimeException(cause))
 
-        def stackTrace1 = [element3, element2]
-        failure.setStackTrace(stackTrace1 as StackTraceElement[])
-
-        def stackTrace2 = [element3, element2, element1]
-        cause.setStackTrace(stackTrace2 as StackTraceElement[])
-
         def analyser = analyser()
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(stackTrace1, true) >> location("<source>", 12)
-        _ * locationAnalyzer.locationForUsage(stackTrace2, true) >> location("<source>", 7)
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", 12)
+        _ * diagnosticsFactory.forException(cause) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -140,7 +130,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(_, _) >> null
+        _ * diagnosticsFactory.forException(failure) >> Mock(ProblemDiagnostics)
 
         when:
         analyser().collectFailures(failure, result)
@@ -248,13 +238,12 @@ class DefaultExceptionAnalyserTest extends Specification {
 
     def 'wraps arbitrary failure with location information'() {
         def failure = new RuntimeException()
-        def stackTrace = [element1, element3, element2]
-        failure.setStackTrace(stackTrace as StackTraceElement[])
+
         def analyser = analyser()
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(stackTrace, true) >> location("<source>", 7)
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -331,16 +320,18 @@ class DefaultExceptionAnalyserTest extends Specification {
     private Throwable locationAwareException(final Throwable cause) {
         final Throwable failure = Mock(TestException.class)
         failure.getCause() >> cause
-        failure.getStackTrace() >> ([element1] as StackTraceElement[])
         return failure
     }
 
-    private Location location(String longDisplayName, int line) {
-        return new Location(Describables.of(longDisplayName), Describables.of("short"), line)
+    private ProblemDiagnostics location(String longDisplayName, int line) {
+        def location = new Location(Describables.of(longDisplayName), Describables.of("short"), line)
+        return Stub(ProblemDiagnostics) {
+            getLocation() >> location
+        }
     }
 
     private DefaultExceptionAnalyser analyser() {
-        return new DefaultExceptionAnalyser(locationAnalyzer)
+        return new DefaultExceptionAnalyser(diagnosticsFactory)
     }
 
     @Contextual

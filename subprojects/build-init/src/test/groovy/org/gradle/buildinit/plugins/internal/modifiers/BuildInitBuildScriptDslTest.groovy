@@ -29,12 +29,12 @@ class BuildInitBuildScriptDslTest extends Specification {
         BuildInitDsl.fromName("kotlin") == BuildInitDsl.KOTLIN
     }
 
-    def "should convert null build script DSL string to the default groovy"() {
+    def "should convert null build script DSL string to the default kotlin"() {
         when:
         def result = BuildInitDsl.fromName(null)
 
         then:
-        result == BuildInitDsl.GROOVY
+        result == BuildInitDsl.KOTLIN
     }
 
     def "should throw exception for unknown build script DSL"() {
@@ -44,8 +44,8 @@ class BuildInitBuildScriptDslTest extends Specification {
         then:
         GradleException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""The requested build script DSL 'unknown' is not supported. Supported DSLs:
-  - 'groovy'
-  - 'kotlin'""")
+  - 'kotlin'
+  - 'groovy'""")
     }
 
     def "should list all supported build script DSLs"() {
@@ -54,7 +54,7 @@ class BuildInitBuildScriptDslTest extends Specification {
 
         then:
         result.size() == 2
-        result[0] == "groovy"
-        result[1] == "kotlin"
+        result[0] == "kotlin"
+        result[1] == "groovy"
     }
 }

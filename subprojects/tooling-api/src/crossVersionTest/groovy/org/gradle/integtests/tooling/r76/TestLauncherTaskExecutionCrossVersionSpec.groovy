@@ -20,7 +20,6 @@ import groovy.transform.stc.SimpleType
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestLauncher
 
@@ -236,7 +235,7 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         tasksExecutedInOrder(':test', ':setupTest')
     }
 
-    private def launchTestWithTestFilter(GradleConnector connector, @DelegatesTo(TestLauncher) @ClosureParams(value = SimpleType, options = ['org.gradle.tooling.TestLauncher']) Closure testLauncherSpec) {
+    private def launchTestWithTestFilter(connector, @DelegatesTo(TestLauncher) @ClosureParams(value = SimpleType, options = ['org.gradle.tooling.TestLauncher']) Closure testLauncherSpec) {
         withConnection(connector, connectionConfiguration(testLauncherSpec))
     }
 

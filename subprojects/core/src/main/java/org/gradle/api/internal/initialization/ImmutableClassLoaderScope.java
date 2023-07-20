@@ -88,6 +88,11 @@ public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     @Override
+    public MutableClassLoaderScope asMutable(String childSuffix) {
+        throw new UnsupportedOperationException("ImmutableClassLoaderScope is not mutable");
+    }
+
+    @Override
     public ClassLoaderScope lock() {
         return this;
     }

@@ -20,7 +20,6 @@ import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.internal.deprecation.DeprecationLogger
-
 import org.gradle.kotlin.dsl.*
 
 
@@ -62,4 +61,4 @@ fun nagUserAboutJvmTarget() {
 
 internal
 fun Project.kotlinDslPluginOptions(action: KotlinDslPluginOptions.() -> Unit) =
-    configure(action)
+    extensions.getByType<KotlinDslPluginOptions>().apply(action)

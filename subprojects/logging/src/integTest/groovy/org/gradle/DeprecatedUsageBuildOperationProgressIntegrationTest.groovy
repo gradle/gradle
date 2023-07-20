@@ -222,4 +222,24 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         includedBuildTaskDeprecations.details.stackTrace[0].fileName.endsWith("included${File.separator}build.gradle")
         includedBuildTaskDeprecations.details.stackTrace[0].lineNumber == 6
     }
+
+    def "collects stack traces for deprecation usages at certain limit, regardless of whether the deprecation has been encountered before"() {
+        file('settings.gradle') << "rootProject.name = 'root'"
+
+        51.times {
+            buildFile << """
+                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it').willBeRemovedInGradle9().undocumented().nagUser();
+            """
+        }
+
+        when:
+        executer.noDeprecationChecks()
+        run()
+
+        then:
+        def events = operations.only("Apply build file 'build.gradle' to root project 'root'").progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
+        events.size() == 51
+        events[0].details.stackTrace.size > 0
+        events[50].details.stackTrace.size == 0
+    }
 }

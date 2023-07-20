@@ -53,12 +53,12 @@ class IntegrationTestSamplesRunner extends SamplesRunner {
 
     @Override
     protected void runChild(final Sample sample, final RunNotifier notifier) {
-        super.runChild(sample, new RunNotifier() {
+        super.runChild(sample, new RunNotifierWrapper(notifier) {
             @Override
             public void fireTestFailure(Failure failure) {
                 String extraParameter = "configCache".equals(System.getProperty("org.gradle.integtest.executer")) ?
                     "-PenableConfigurationCacheForDocsTests=true" : "";
-                notifier.fireTestFailure(new Failure(failure.getDescription(), new GradleException(
+                super.fireTestFailure(new Failure(failure.getDescription(), new GradleException(
                     "Sample test run failed.\nTo understand how docsTest works, See:\n" +
                         "  https://github.com/gradle/gradle/blob/master/subprojects/docs/README.md#testing-docs\n" +
                         "To reproduce this failure, run:\n" +

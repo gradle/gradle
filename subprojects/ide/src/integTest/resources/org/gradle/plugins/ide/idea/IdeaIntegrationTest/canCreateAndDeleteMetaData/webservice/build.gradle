@@ -5,9 +5,8 @@ version = '2.5'
 dependencies {
     providedCompile 'org.slf4j:slf4j-api:1.5.8@jar'
     api project(':api'), files("$projectDir/lib/compile-1.0.jar")
-    runtimeOnly module("commons-lang:commons-lang:2.4") {
-        dependency("commons-io:commons-io:1.2")
-    }
+    runtimeOnly "commons-lang:commons-lang:2.4"
+    runtimeOnly "commons-io:commons-io:1.2"
 }
 
 cleanIdea.doLast {

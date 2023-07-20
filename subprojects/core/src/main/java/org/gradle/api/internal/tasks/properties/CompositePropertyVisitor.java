@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.api.services.BuildService;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
@@ -88,9 +89,9 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
+    public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitServiceReference(propertyName, optional, value, serviceName);
+            visitor.visitServiceReference(propertyName, optional, value, serviceName, buildServiceType);
         }
     }
 }

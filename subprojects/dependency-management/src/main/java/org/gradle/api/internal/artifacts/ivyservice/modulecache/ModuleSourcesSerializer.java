@@ -22,11 +22,14 @@ import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Map;
 
+@ServiceScope(Scopes.BuildTree.class)
 public class ModuleSourcesSerializer implements Serializer<ModuleSources> {
     private final Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> moduleSourceCodecs;
 

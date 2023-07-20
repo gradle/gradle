@@ -16,7 +16,62 @@
 
 package org.gradle.configurationcache
 
+import spock.lang.Issue
+
 class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue("https://github.com/gradle/gradle/issues/24411")
+    def "task marked not compatible may cause configuration of other tasks without failing build"() {
+        given:
+        buildFile("""
+            tasks.register("innocent") { task ->
+                // This task calls getProject() as part of its configuration.
+                println("Materialized task \${task.name} from project \${task.project.name}")
+            }
+
+            tasks.register("offender") {
+                notCompatibleWithConfigurationCache("calls getProject")
+                // This task reaches out to other task at execution time and triggers its configuration.
+                doLast { task ->
+                    println(task.project.tasks.named("innocent").get())
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("offender")
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withProblemsWithStackTraceCount(2)
+            withProblem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 4: execution of task ':offender' caused invocation of 'Task.project' in other task at execution time which is unsupported.")
+        }
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/22522')
+    def "reports problem for extra property accessed at execution time"() {
+        given:
+        buildKotlinFile '''
+            tasks.register("report") {
+                extra["outputFile"] = file("$buildDir/output.txt")
+                outputs.files(extra["outputFile"])
+                doLast {
+                    val outputFile: File by extra
+                    outputFile.writeText("")
+                }
+            }
+        '''
+
+        when:
+        configurationCacheFails(WARN_PROBLEMS_CLI_OPT, 'report')
+
+        then:
+        problems.assertResultHasProblems(failure) {
+            withProblem "Task `:report` of type `org.gradle.api.DefaultTask`: invocation of 'Task.extensions' at execution time is unsupported."
+        }
+    }
+
     def "honors task up-to-date spec"() {
         buildFile << """
             abstract class TaskWithComplexInputs extends DefaultTask {

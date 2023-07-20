@@ -20,6 +20,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPomScm;
 
+import javax.inject.Inject;
+
 public class DefaultMavenPomScm implements MavenPomScm {
 
     private final Property<String> connection;
@@ -27,6 +29,7 @@ public class DefaultMavenPomScm implements MavenPomScm {
     private final Property<String> url;
     private final Property<String> tag;
 
+    @Inject
     public DefaultMavenPomScm(ObjectFactory objectFactory) {
         connection = objectFactory.property(String.class);
         developerConnection = objectFactory.property(String.class);

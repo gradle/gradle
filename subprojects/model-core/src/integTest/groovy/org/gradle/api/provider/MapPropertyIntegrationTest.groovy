@@ -19,12 +19,15 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
+import static org.junit.Assume.assumeFalse
+
 class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile '''
             abstract class AbstractVerificationTask<K, V> extends DefaultTask {
 
-                @Internal
+                @Optional
+                @Input
                 final MapProperty<K, V> prop
                 @Internal
                 Map<K, V> expected = [:]
@@ -655,9 +658,13 @@ task thing {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/23014')
     def "can put flatmap of task output into map property"() {
+
+        assumeFalse("WIP", configFromExtension)
+
         given:
-        buildFile("""
+        buildFile '''
             abstract class PrintTask extends DefaultTask {
                 @OutputFile
                 abstract RegularFileProperty getOutput()
@@ -671,17 +678,39 @@ task thing {
             def printTask = tasks.register('print', PrintTask) {
                 output = layout.buildDirectory.file('file.txt')
             }
+        '''
 
+        def putValue = "put('key', printTask.$provider)"
+        def verifyConfig
+        if (configFromExtension) {
+            buildFile """
+                def extension = objects.mapProperty(String, String)
+                extension.$putValue
+            """
+            verifyConfig = "prop = extension"
+        } else {
+            verifyConfig = "prop.$putValue"
+        }
+
+        buildFile """
             verify {
-                dependsOn printTask
-                prop.put("key", printTask.flatMap { it.output }.map { it.asFile.text })
+                $verifyConfig
                 expected = [key: "Hello"]
             }
-        """)
+        """
 
         expect:
         2.times {
             succeeds("verify")
         }
+
+        where:
+        [provider, configFromExtension] << [
+            [
+                'flatMap { it.output }.map { it.asFile.text }',
+                'flatMap { it.output }.map { it.asFile }.map { it.text }',
+            ],
+            [false, true]
+        ].combinations()
     }
 }

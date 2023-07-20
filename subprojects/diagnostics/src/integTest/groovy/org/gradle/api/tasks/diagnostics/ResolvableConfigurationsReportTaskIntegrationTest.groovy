@@ -39,7 +39,7 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
             configurations.create("custom") {
                 description = "My custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
             }
         """
 
@@ -53,8 +53,8 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         buildFile << """
             configurations.create("legacy") {
                 description = "My legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -69,8 +69,8 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         buildFile << """
             configurations.create("legacy") {
                 description = "My custom legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -95,7 +95,7 @@ My custom legacy configuration""")
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
         """
@@ -121,7 +121,7 @@ My custom configuration
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
 
                 attributes {
@@ -158,7 +158,7 @@ Attributes
         buildFile << """
             configurations.create("someConf") {
                 description = "My first custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
 
                 attributes {
@@ -170,7 +170,7 @@ Attributes
 
             configurations.create("otherConf") {
                 description = "My second custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
 
                 attributes {
@@ -328,8 +328,8 @@ Extended Configurations
             configurations {
                 archiveLegacy {
                     description = 'Example legacy configuration.'
-                    canBeConsumed = true
-                    canBeResolved = true
+                    assert canBeConsumed
+                    assert canBeResolved
                 }
             }
 
@@ -453,7 +453,7 @@ Extended Configurations
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
         """
@@ -469,14 +469,14 @@ Extended Configurations
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
 
             configurations.create("legacy") {
                 description = "My custom configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -498,7 +498,7 @@ Extended Configurations
             configurations {
                 custom {
                     description = "My custom configuration"
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
 
                     attributes {
@@ -547,7 +547,7 @@ The following Attributes have compatibility rules defined.
             configurations {
                 custom {
                     description = "My custom configuration"
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
 
                     attributes {
@@ -598,7 +598,7 @@ The following Attributes have disambiguation rules defined.
             configurations {
                 custom {
                     description = "My custom configuration"
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
 
                     attributes {
@@ -661,7 +661,7 @@ The following Attributes have disambiguation rules defined.
             configurations {
                 custom {
                     description = "My custom configuration"
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
 
                     attributes {
@@ -714,20 +714,20 @@ The following Attributes have disambiguation rules defined.
         buildFile << """
             def base = configurations.create("base") {
                 description = "Base configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
 
             def mid = configurations.create("mid") {
                 description = "Mid configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom base
             }
 
             def leaf = configurations.create("leaf") {
                 description = "Leaf configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom mid
             }
@@ -766,20 +766,20 @@ Extended Configurations
         buildFile << """
             def base = configurations.create("base") {
                 description = "Base configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
 
             def mid = configurations.create("mid") {
                 description = "Mid configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom base
             }
 
             def leaf = configurations.create("leaf") {
                 description = "Leaf configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom mid
             }
@@ -817,13 +817,13 @@ Extended Configurations
         buildFile << """
             def base = configurations.create("base") {
                 description = "Base configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
 
             def mid = configurations.create("mid") {
                 description = "Mid configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom base
             }

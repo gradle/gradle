@@ -18,22 +18,31 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestFailureDetails;
 
+import javax.annotation.Nullable;
+import java.util.Arrays;
+
 public class DefaultTestFailureDetails implements TestFailureDetails {
 
     private final String message;
     private final String className;
     private final String stacktrace;
     private final boolean isAssertionFailure;
+    private final boolean isFileComparisonTestAssertionFailure;
     private final String expected;
     private final String actual;
+    private final byte[] expectedContent;
+    private final byte[] actualContent;
 
-    public DefaultTestFailureDetails(String message, String className, String stacktrace, boolean isAssertionFailure, String expected, String actual) {
+    public DefaultTestFailureDetails(String message, String className, String stacktrace, boolean isAssertionFailure, boolean isFileComparisonTestAssertionFailure, String expected, String actual, byte[] expectedContent, byte[] actualContent) {
         this.message = message;
         this.className = className;
         this.stacktrace = stacktrace;
         this.isAssertionFailure = isAssertionFailure;
+        this.isFileComparisonTestAssertionFailure = isFileComparisonTestAssertionFailure;
         this.expected = expected;
         this.actual = actual;
+        this.expectedContent = expectedContent;
+        this.actualContent = actualContent;
     }
 
     public String getMessage() {
@@ -53,6 +62,11 @@ public class DefaultTestFailureDetails implements TestFailureDetails {
     @Override
     public boolean isAssertionFailure() {
         return isAssertionFailure;
+    }
+
+    @Override
+    public boolean isFileComparisonFailure() {
+        return isFileComparisonTestAssertionFailure;
     }
 
     @Override
@@ -79,6 +93,9 @@ public class DefaultTestFailureDetails implements TestFailureDetails {
         if (isAssertionFailure != that.isAssertionFailure) {
             return false;
         }
+        if (isFileComparisonTestAssertionFailure != that.isFileComparisonTestAssertionFailure) {
+            return false;
+        }
         if (message != null ? !message.equals(that.message) : that.message != null) {
             return false;
         }
@@ -91,7 +108,13 @@ public class DefaultTestFailureDetails implements TestFailureDetails {
         if (expected != null ? !expected.equals(that.expected) : that.expected != null) {
             return false;
         }
-        return actual != null ? actual.equals(that.actual) : that.actual == null;
+        if (actual != null ? !actual.equals(that.actual) : that.actual != null) {
+            return false;
+        }
+        if (!Arrays.equals(expectedContent, that.expectedContent)) {
+            return false;
+        }
+        return Arrays.equals(actualContent, that.actualContent);
     }
 
     @Override
@@ -100,8 +123,23 @@ public class DefaultTestFailureDetails implements TestFailureDetails {
         result = 31 * result + (className != null ? className.hashCode() : 0);
         result = 31 * result + (stacktrace != null ? stacktrace.hashCode() : 0);
         result = 31 * result + (isAssertionFailure ? 1 : 0);
+        result = 31 * result + (isFileComparisonTestAssertionFailure ? 1 : 0);
         result = 31 * result + (expected != null ? expected.hashCode() : 0);
         result = 31 * result + (actual != null ? actual.hashCode() : 0);
+        result = 31 * result + Arrays.hashCode(expectedContent);
+        result = 31 * result + Arrays.hashCode(actualContent);
         return result;
+    }
+
+    @Nullable
+    @Override
+    public byte[] getExpectedContent() {
+        return expectedContent;
+    }
+
+    @Nullable
+    @Override
+    public byte[] getActualContent() {
+        return actualContent;
     }
 }

@@ -30,12 +30,12 @@ import org.gradle.internal.operations.BuildOperationQueue
 import spock.lang.Specification
 
 class TransformingAsyncArtifactListenerTest extends Specification {
-    def transformation = Mock(TransformationStep)
+    def transformStep = Mock(TransformStep)
     def targetAttributes = Mock(ImmutableAttributes)
     def result = ImmutableList.<ResolvedArtifactSet.Artifacts>builder()
-    def invocation = Mock(Deferrable<TransformationSubject>)
+    def invocation = Mock(Deferrable<TransformStepSubject>)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener = new TransformingAsyncArtifactListener([new BoundTransformationStep(transformation, Stub(TransformUpstreamDependencies))], targetAttributes, [], result)
+    def listener = new TransformingAsyncArtifactListener([new BoundTransformStep(transformStep, Stub(TransformUpstreamDependencies))], targetAttributes, [], result)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -64,7 +64,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         artifacts[0].startFinalization(operationQueue, true)
 
         then:
-        1 * transformation.createInvocation(_, _, _) >> invocation
+        1 * transformStep.createInvocation(_, _, _) >> invocation
         1 * invocation.getCompleted() >> Optional.empty()
         1 * operationQueue.add(_ as BuildOperation)
     }
@@ -83,8 +83,8 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         artifacts[0].startFinalization(operationQueue, true)
 
         then:
-        1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
-        2 * invocation.getCompleted() >> Optional.of(Try.successful(TransformationSubject.initial(artifact)))
+        1 * transformStep.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
+        2 * invocation.getCompleted() >> Optional.of(Try.successful(TransformStepSubject.initial(artifact)))
         0 * operationQueue._
     }
 }

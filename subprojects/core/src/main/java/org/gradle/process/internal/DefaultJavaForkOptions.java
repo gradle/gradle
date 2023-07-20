@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -206,6 +207,12 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    protected Map<String, ?> getInheritableEnvironment() {
+        // Filter out any environment variables that should not be inherited.
+        return Jvm.getInheritableEnvironmentVariables(super.getInheritableEnvironment());
+    }
+
+    @Override
     public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
         options.copyTo(target);
@@ -233,6 +240,16 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             && containsAll(getSystemProperties(), options.getSystemProperties())
             && containsAll(getEnvironment(), options.getEnvironment())
             && getBootstrapClasspath().getFiles().containsAll(options.getBootstrapClasspath().getFiles());
+    }
+
+    @Override
+    public void checkDebugConfiguration(Iterable<?> arguments) {
+        options.checkDebugConfiguration(arguments);
+    }
+
+    @Override
+    public void setExtraJvmArgs(Iterable<?> arguments) {
+        options.setExtraJvmArgs(arguments);
     }
 
     private static boolean hasJvmArgumentProviders(JavaForkOptions forkOptions) {

@@ -98,13 +98,13 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def candidate6 = candidate("compatible", "compatible", "compatible")
         def requested = requested("requested", "requested","requested")
         expect:
-        schema.matcher().matches([candidate1], requested, null, explanationBuilder) == [candidate1]
-        schema.matcher().matches([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate1]
-        schema.matcher().matches([candidate2, candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate2]
-        schema.matcher().matches([candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate3]
-        schema.matcher().matches([candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate4]
-        schema.matcher().matches([candidate5, candidate6], requested, null, explanationBuilder) == [candidate5]
-        schema.matcher().matches([candidate6], requested, null, explanationBuilder) == [candidate6]
+        schema.matcher().matches([candidate1], requested, explanationBuilder) == [candidate1]
+        schema.matcher().matches([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate1]
+        schema.matcher().matches([candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate2]
+        schema.matcher().matches([candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate3]
+        schema.matcher().matches([candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate4]
+        schema.matcher().matches([candidate5, candidate6], requested, explanationBuilder) == [candidate5]
+        schema.matcher().matches([candidate6], requested, explanationBuilder) == [candidate6]
     }
 
     def "disambiguates extra attributes in precedence order"() {
@@ -115,9 +115,9 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def requested = AttributeTestUtil.attributes("unknown": "unknown")
 
         expect:
-        schema.matcher().matches([candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate1]
-        schema.matcher().matches([candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate2]
-        schema.matcher().matches([candidate3, candidate4], requested, null, explanationBuilder) == [candidate3]
+        schema.matcher().matches([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1]
+        schema.matcher().matches([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate2]
+        schema.matcher().matches([candidate3, candidate4], requested, explanationBuilder) == [candidate3]
     }
 
     private static AttributeContainerInternal requested(String highestValue, String middleValue, String lowestValue) {

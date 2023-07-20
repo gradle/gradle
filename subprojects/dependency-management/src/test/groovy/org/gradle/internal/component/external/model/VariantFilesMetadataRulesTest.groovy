@@ -24,10 +24,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSupport
-import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
@@ -35,12 +32,9 @@ import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
-import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.SnapshotTestUtil
-import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -50,18 +44,9 @@ class VariantFilesMetadataRulesTest extends Specification {
     @Shared versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
     @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     @Shared attributes = AttributeTestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
-    @Shared schema = createSchema()
     @Shared mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     @Shared ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     @Shared defaultVariant
-
-    private DefaultAttributesSchema createSchema() {
-        def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
-        DependencyManagementTestUtil.platformSupport().configureSchema(schema)
-        GradlePluginVariantsSupport.configureSchema(schema)
-        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
-        schema
-    }
 
     private ivyComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
@@ -284,7 +269,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         artifacts[1].relativeUrl == 'added1.zip'
         artifacts[2].relativeUrl == '../path.jar'
 
-        metadataType == "gradle" ? artifacts[0] instanceof UrlBackedArtifactMetadata : artifacts[0] instanceof DefaultModuleComponentArtifactMetadata
+        artifacts[0] instanceof DefaultModuleComponentArtifactMetadata
         artifacts[1] instanceof UrlBackedArtifactMetadata
         artifacts[2] instanceof UrlBackedArtifactMetadata
 
@@ -322,18 +307,11 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    def selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
+    ConfigurationMetadata selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
         selectTargetConfigurationMetadata(targetComponent.asImmutable())
     }
 
-    def selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
-        def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
-        def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
-        def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
-        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
-        def state = Stub(ComponentGraphResolveState) {
-            metadata >> immutable
-        }
-        consumer.selectVariants(attributes, state, schema, [] as Set).variants[0]
+    ConfigurationMetadata selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
+        return immutable.getConfiguration("default")
     }
 }

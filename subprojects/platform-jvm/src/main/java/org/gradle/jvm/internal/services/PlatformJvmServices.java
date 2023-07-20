@@ -26,6 +26,7 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
 import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator;
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -44,8 +45,6 @@ import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupp
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
-import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
@@ -115,7 +114,6 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(JavaToolchainFactory.class);
         registration.add(DefaultJavaToolchainProvisioningService.class);
         registration.add(SecureFileDownloader.class);
         registration.add(JavaToolchainQueryService.class);

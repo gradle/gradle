@@ -16,24 +16,24 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 import spock.lang.Subject
 
 class CachedMetadataProviderTest extends Specification {
 
-    BuildableModuleComponentMetaDataResolveResult cachedResult = Mock()
+    def cachedResult = Stub(BuildableModuleComponentMetaDataResolveResult)
+    def componentState = Stub(ModuleComponentGraphResolveState)
     @Subject
     CachedMetadataProvider provider
-
 
     def 'verifies that metadata was provided when state is Resolved'() {
         given:
         cachedResult.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
+        cachedResult.metaData >> componentState
         provider = new CachedMetadataProvider(cachedResult)
-
 
         expect:
         provider.usable
@@ -56,9 +56,9 @@ class CachedMetadataProviderTest extends Specification {
     def 'returns IvyModuleDescriptor when available'() {
         given:
         cachedResult.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
-        cachedResult.metaData >> Mock(IvyModuleResolveMetadata)
+        cachedResult.metaData >> componentState
+        componentState.moduleResolveMetadata >> Mock(IvyModuleResolveMetadata)
         provider = new CachedMetadataProvider(cachedResult)
-
 
         expect:
         provider.ivyModuleDescriptor
@@ -67,9 +67,8 @@ class CachedMetadataProviderTest extends Specification {
     def 'returns null for IvyModuleDescriptor when not available'() {
         given:
         cachedResult.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
-        cachedResult.metaData >> Mock(ModuleComponentResolveMetadata)
+        cachedResult.metaData >> componentState
         provider = new CachedMetadataProvider(cachedResult)
-
 
         expect:
         !provider.ivyModuleDescriptor

@@ -20,9 +20,9 @@ The following two sections describe what is stored in each of them and how trans
 
 
 [[dir:gradle_user_home]]
-== Gradle user home directory
+== Gradle User Home directory
 
-The Gradle user home directory (`<home directory of the current user>/.gradle` by default) is used to store global configuration properties and initialization scripts as well as caches and log files.
+The Gradle User Home (`<home directory of the current user>/.gradle` by default) is used to store global configuration properties and initialization scripts as well as caches and log files.
 It is roughly structured as follows:
 
 [listing]
@@ -87,51 +87,71 @@ The retention period for each category can be configured independently via an in
 
 .Configuring cache retention
 ====
-include::sample[dir="snippets/initScripts/cacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/cacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 ====
 
 The frequency at which cache cleanup is invoked is also configurable.  There are three possible settings:
 
 - *DEFAULT:* Cleanup is performed periodically in the background (currently once every 24 hours).
-- *DISABLED:* Never cleanup Gradle user home.  This is useful in cases where Gradle user home is ephemeral or it's desirable to delay cleanup until an explicit point in the future.
+- *DISABLED:* Never cleanup Gradle User Home.  This is useful in cases where Gradle User Home is ephemeral or it's desirable to delay cleanup until an explicit point in the future.
 - *ALWAYS:* Cleanup is performed at the end of each build session.  This is useful in cases where it's desirable to ensure that cleanup has actually occurred before proceeding.  However, this does perform cache cleanup during the build (rather than in the background) which can be an expensive operation, so this option should only be used when absolutely necessary.
 
 .Disabling cache cleanup
 ====
-include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/disableCacheCleanup/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 ====
 
-Note that cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle user home.  This effectively couples the configuration of cache cleanup to the Gradle user home directory those settings apply to and limits the possibility of different conflicting settings from being applied to the same directory.
+Note that cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home.  This effectively couples the configuration of cache cleanup to the Gradle User Home those settings apply to and limits the possibility of different conflicting settings from different projects being applied to the same directory.
 
 [[dir:gradle_user_home:multi_version_cache_cleanup]]
-==== Sharing a Gradle user home directory between multiple versions of Gradle
+==== Sharing a Gradle User Home between multiple versions of Gradle
 
-It is common to share a single Gradle user home directory between multiple versions of Gradle.
-As stated above, there are caches in Gradle user home that are version-specific.
+It is common to share a single Gradle User Home between multiple versions of Gradle.
+As stated above, there are caches in Gradle User Home that are version-specific.
 In general, different versions of Gradle will perform maintenance on only the version-specific caches associated with each version.
 On the other hand, there are other caches that are shared between versions (e.g. the dependency artifact cache or the artifact transform cache).
 Beginning with Gradle version 8.0, the cache cleanup settings can be configured to custom retention periods.  However, older versions have retention periods that are fixed (7 or 30 days depending on the cache) and so the shared caches could be accessed by versions of Gradle with different settings for the retention of cache artifacts.  This means that:
 
-- If the retention period is _not_ customized, all versions that perform cleanup will have the same retention periods and there will be no effect due to sharing a Gradle user home directory with multiple versions.
+- If the retention period is _not_ customized, all versions that perform cleanup will have the same retention periods and there will be no effect due to sharing a Gradle User Home with multiple versions.
 - If the retention period is customized for Gradle versions greater than or equal to version 8.0 to use retention periods _shorter_ than the previously fixed periods, there will also be no effect.  The versions of Gradle aware of these settings will cleanup artifacts earlier than the previously fixed retention periods and older versions will effectively not participate in the cleanup of shared caches.
-- If the retention period is customized for Gradle versions greater than or equal to version 8.0 to use retention periods _longer_ than the previously fixed periods, the older versions of Gradle may clean the shared caches earlier than what is configured.  In this case, if it is desirable to maintain these shared cache entries for newer versions for the longer retention periods, they will not be able to share a Gradle user home directory with older versions and will need to use a separate directory.
+- If the retention period is customized for Gradle versions greater than or equal to version 8.0 to use retention periods _longer_ than the previously fixed periods, the older versions of Gradle may clean the shared caches earlier than what is configured.  In this case, if it is desirable to maintain these shared cache entries for newer versions for the longer retention periods, they will not be able to share a Gradle User Home with older versions and will need to use a separate directory.
 
-Another consideration when sharing the Gradle user home directory with versions of Gradle before version 8.0 is that the DSL elements to configure the cache retention settings are not available in earlier versions, so this must be accounted for in any init script that is shared between versions.
+Another consideration when sharing the Gradle User Home with versions of Gradle before version 8.0 is that the DSL elements to configure the cache retention settings are not available in earlier versions, so this must be accounted for in any init script that is shared between versions.
 This can easily be handled by conditionally applying a version-compliant script.
 Note that the version-compliant script should reside somewhere other than the `init.d` directory (such as a sub-directory) so that it is not automatically applied.
 
 .Configuring cache cleanup in a version-safe manner
 ====
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
 ====
 .Version-compliant cache configuration script
 ====
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/gradle8/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/gradle8/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/gradle8/cache-settings.gradle"]
 ====
+
+[[dir:gradle_user_home:cache_marking]]
+=== Cache marking
+Beginning with Gradle version 8.1, Gradle supports marking caches with a `CACHEDIR.TAG` file.
+It follows the format described in https://bford.info/cachedir/[the Cache Directory Tagging Specification].
+The purpose of this file is to allow tools to identify the directories that do not need to be searched or backed up.
+By default, the directories `caches`, `wrapper/dists`, `daemon`, and `jdks` in the Gradle User Home are marked with this file.
+
+[[dir:gradle_user_home:configure_cache_marking]]
+==== Configuring cache marking
+
+The cache marking feature can be configured via an init script in the Gradle User Home:
+
+.Configuring cache marking
+====
+include::sample[dir="snippets/initScripts/cacheMarking/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+====
+
+Note that cache marking settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home. This effectively couples the configuration of cache marking to the Gradle User Home those settings apply to and limits the possibility of different conflicting settings from different projects being applied to the same directory.
 
 [[dir:project_root]]
 == Project root directory

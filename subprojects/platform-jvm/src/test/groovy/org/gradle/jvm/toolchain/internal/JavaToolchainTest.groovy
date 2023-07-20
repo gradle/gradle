@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
@@ -32,15 +31,13 @@ class JavaToolchainTest extends Specification {
         given:
         def javaHome = new File("/jvm/$javaVersion").absoluteFile
         def metadata = JvmInstallationMetadata.from(javaHome, javaVersion, "vendor", "runtimeName", runtimeVersion, "jvmName", jvmVersion, "jvmVendor", "archName")
-        def compilerFactory = Mock(JavaCompilerFactory)
-        def toolFactory = Mock(ToolchainToolFactory)
 
         when:
-        def javaToolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), Mock(JavaToolchainInput) {
+        def javaToolchain = new JavaToolchain(metadata, TestFiles.fileFactory(), Mock(JavaToolchainInput) {
             getLanguageVersion() >> JavaLanguageVersion.of(languageVersion)
             getVendor() >> DefaultJvmVendorSpec.any().toString()
             getImplementation() >> JvmImplementation.VENDOR_SPECIFIC.toString()
-        }, false, Stub(BuildOperationProgressEventEmitter))
+        }, false)
         then:
         javaToolchain.languageVersion.asInt() == languageVersion
         javaToolchain.javaRuntimeVersion == runtimeVersion
@@ -61,7 +58,7 @@ class JavaToolchainTest extends Specification {
         }
 
         when:
-        def javaToolchain = new JavaToolchain(metadata, Stub(JavaCompilerFactory), Stub(ToolchainToolFactory), TestFiles.fileFactory(), Stub(JavaToolchainInput), false, Stub(BuildOperationProgressEventEmitter))
+        def javaToolchain = new JavaToolchain(metadata, TestFiles.fileFactory(), Stub(JavaToolchainInput), false)
         def installationMetadata = javaToolchain as JavaInstallationMetadata
 
         then:

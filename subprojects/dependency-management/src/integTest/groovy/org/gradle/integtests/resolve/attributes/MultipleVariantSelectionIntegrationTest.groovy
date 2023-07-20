@@ -260,10 +260,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {
-                    edge('org:test:1.0', 'org:test:1.0') {
-                        variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
-                    }
+                    edge('org:test:1.0', 'org:test:1.0')
                     module('org:test:1.0') {
+                        maybeByConflictResolution()
                         variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
                     }
                 }

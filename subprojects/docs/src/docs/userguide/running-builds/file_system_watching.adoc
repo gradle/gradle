@@ -88,7 +88,7 @@ $ gradle <task> -Dorg.gradle.vfs.verbose=true
 ----
 ====
 
-Or configure the property in the `gradle.properties` file in the project root or your Gradle user home:
+Or configure the property in the `gradle.properties` file in the project root or your Gradle User Home:
 
 ====
 .gradle.properties

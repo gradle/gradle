@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":language-java"))
     implementation(project(":scala"))
     implementation(project(":ear"))
+    implementation(project(":war"))
     implementation(project(":tooling-api"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))

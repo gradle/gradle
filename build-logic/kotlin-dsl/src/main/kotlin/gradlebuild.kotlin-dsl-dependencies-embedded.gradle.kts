@@ -26,7 +26,7 @@ plugins {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "4.0.7" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "4.1.1" // TODO:kotlin-dsl
 
 tasks {
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
@@ -39,6 +39,12 @@ tasks {
 
     sourceSets.main {
         kotlin.srcDir(apiExtensionsFileCollection)
+    }
+
+    // Workaround for https://github.com/gradle/gradle/issues/24131
+    // See gradlebuild.unittest-and-compile.gradle.kts
+    configurations["transitiveSourcesElements"].outgoing.artifact(apiExtensionsOutputDir) {
+        builtBy(generateKotlinDependencyExtensions)
     }
 
     processResources {

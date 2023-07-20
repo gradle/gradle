@@ -56,6 +56,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -97,8 +98,8 @@ object Config {
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
-    // Android Studio Electric Eel (2022.1.1) Beta 2
-    const val androidStudioVersion = "2022.1.1.12"
+    // Android Studio Giraffe (2022.3.1) Canary 8
+    const val androidStudioVersion = "2022.3.1.8"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
@@ -312,8 +313,14 @@ class PerformanceTestPlugin : Plugin<Project> {
                         else -> zipTree(singleFile)
                     }
                 }
-            )
-            into("$buildDir/android-studio")
+            ) {
+                eachFile {
+                    // Remove top folder when unzipping, that way we get rid of Android Studio.app folder that can cause issues on Mac
+                    // where MacOS would kill the Android Studio process right after start, issue: https://github.com/gradle/gradle-profiler/issues/469
+                    relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+                }
+            }
+            into(layout.buildDirectory.dir("android-studio"))
         }
     }
 
@@ -365,7 +372,7 @@ fun Project.performanceReportZipTaskFor(performanceReport: TaskProvider<out Perf
         from(performanceReport.get().performanceResults) {
             into("perf-results")
         }
-        destinationDirectory = buildDir
+        destinationDirectory = layout.buildDirectory
         archiveFileName = "performance-test-results.zip"
     }
 
@@ -576,15 +583,7 @@ class AndroidStudioSystemProperties(
         val systemProperties = mutableListOf<String>()
         if (autoDownloadAndroidStudio) {
             val androidStudioPath = studioInstallation.studioInstallLocation.asFile.get().absolutePath
-            val macOsAndroidStudioPath = "$androidStudioPath/Android Studio.app"
-            val macOsAndroidStudioPathPreview = "$androidStudioPath/Android Studio Preview.app"
-            val windowsAndLinuxPath = "$androidStudioPath/android-studio"
-            val studioHome = when {
-                isMacOsX && File(macOsAndroidStudioPath).exists() -> macOsAndroidStudioPath
-                isMacOsX -> macOsAndroidStudioPathPreview
-                else -> windowsAndLinuxPath
-            }
-            systemProperties.add("-Dstudio.home=$studioHome")
+            systemProperties.add("-Dstudio.home=$androidStudioPath")
         } else {
             if (androidStudioHome.isPresent) {
                 systemProperties.add("-Dstudio.home=${androidStudioHome.get()}")

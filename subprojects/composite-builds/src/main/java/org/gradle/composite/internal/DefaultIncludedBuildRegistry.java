@@ -171,7 +171,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
         BuildDefinition buildDefinition = buildStateFactory.buildDefinitionFor(buildSrcDir, owner);
         Path identityPath = assignPath(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
-        BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
+        BuildIdentifier buildIdentifier = idFor(identityPath);
         StandAloneNestedBuild build = buildStateFactory.createNestedBuild(buildIdentifier, identityPath, buildDefinition, owner);
         buildSrcBuildsByOwner.put(owner, build);
         nestedBuildsByRootDir.put(buildSrcDir, build);
@@ -179,7 +179,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public NestedBuildTree addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, String buildName) {
+    public NestedBuildTree addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName) {
         if (buildDefinition.getName() != null || buildDefinition.getBuildRootDir() != null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
@@ -187,7 +187,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         String name = MoreObjects.firstNonNull(buildName, dir.getName());
         validateNameIsNotBuildSrc(name, dir);
         Path identityPath = assignPath(owner, name, dir);
-        BuildIdentifier buildIdentifier = idFor(name);
+        BuildIdentifier buildIdentifier = idFor(identityPath);
         return buildStateFactory.createNestedTree(buildDefinition, buildIdentifier, identityPath, owner);
     }
 
@@ -200,7 +200,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
     }
 
-    private void validateNameIsNotBuildSrc(String name, File dir) {
+    private static void validateNameIsNotBuildSrc(String name, File dir) {
         if (SettingsInternal.BUILD_SRC.equals(name)) {
             throw new GradleException("Included build " + dir + " has build name 'buildSrc' which cannot be used as it is a reserved name.");
         }
@@ -222,10 +222,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
                 throw new IllegalStateException("build name is required");
             }
             validateNameIsNotBuildSrc(buildName, buildDir);
-            Path idPath = buildPath != null ? buildPath : assignPath(rootBuild, buildDefinition.getName(), buildDir);
-            BuildIdentifier buildIdentifier = idFor(buildName);
+            Path idPath = buildPath != null ? buildPath : assignPath(rootBuild, buildName, buildDir);
+            BuildIdentifier buildIdentifier = idFor(idPath);
 
-            includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
+            includedBuild = includedBuildFactory.createBuild(buildIdentifier, buildDefinition, isImplicit, rootBuild);
             includedBuildsByRootDir.put(buildDir, includedBuild);
             nestedBuildsByRootDir.put(buildDir, includedBuild);
             pendingIncludedBuilds.add(includedBuild);
@@ -239,15 +239,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         return includedBuild;
     }
 
-    private BuildIdentifier idFor(String buildName) {
-        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(buildName);
-
-        // Create a synthetic id for the build, if the id is already used
-        // Should instead use a structured id implementation of some kind instead
-        for (int count = 1; buildsByIdentifier.containsKey(buildIdentifier); count++) {
-            buildIdentifier = new DefaultBuildIdentifier(buildName + ":" + count);
-        }
-        return buildIdentifier;
+    private static BuildIdentifier idFor(Path absoluteBuildPath) {
+        return new DefaultBuildIdentifier(absoluteBuildPath);
     }
 
     private Path assignPath(BuildState owner, String name, File dir) {

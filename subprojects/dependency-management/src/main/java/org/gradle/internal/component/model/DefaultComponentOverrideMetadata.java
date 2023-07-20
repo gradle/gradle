@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 
@@ -27,27 +26,32 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
 
     private final boolean changing;
     private final IvyArtifactName artifact;
-    private final ClientModule clientModule;
 
-    public static ComponentOverrideMetadata forDependency(boolean changing, @Nullable IvyArtifactName mainArtifact, @Nullable ClientModule clientModule) {
+    @SuppressWarnings("deprecation")
+    private final org.gradle.api.artifacts.ClientModule clientModule;
+
+    @SuppressWarnings("deprecation")
+    public static ComponentOverrideMetadata forDependency(boolean changing, @Nullable IvyArtifactName mainArtifact, @Nullable org.gradle.api.artifacts.ClientModule clientModule) {
         if (!changing && mainArtifact == null && clientModule == null) {
             return EMPTY;
         }
         return new DefaultComponentOverrideMetadata(changing, mainArtifact, clientModule);
     }
 
-    private DefaultComponentOverrideMetadata(boolean changing, @Nullable IvyArtifactName artifact, @Nullable ClientModule clientModule) {
+    @SuppressWarnings("deprecation")
+    private DefaultComponentOverrideMetadata(boolean changing, @Nullable IvyArtifactName artifact, @Nullable org.gradle.api.artifacts.ClientModule clientModule) {
         this.changing = changing;
         this.artifact = artifact;
         this.clientModule = clientModule;
     }
 
     @Nullable
-    public static ClientModule extractClientModule(DependencyMetadata dependencyMetadata) {
+    @Deprecated
+    public static org.gradle.api.artifacts.ClientModule extractClientModule(DependencyMetadata dependencyMetadata) {
         if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
             Dependency source = ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
-            if (source instanceof ClientModule) {
-                return (ClientModule) source;
+            if (source instanceof org.gradle.api.artifacts.ClientModule) {
+                return (org.gradle.api.artifacts.ClientModule) source;
             }
         }
         return null;
@@ -70,7 +74,8 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
     }
 
     @Override
-    public ClientModule getClientModule() {
+    @Deprecated
+    public org.gradle.api.artifacts.ClientModule getClientModule() {
         return clientModule;
     }
 }

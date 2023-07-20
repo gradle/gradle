@@ -17,8 +17,9 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 // NB: there's nothing specific about Java support and continuous.
 //     this spec just lays out some more practical use cases than the other targeted tests.
@@ -49,7 +50,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        if (TestPrecondition.WINDOWS) {
+        if (TestPrecondition.satisfied(UnitTestPreconditions.Windows)) {
             //the main src dir might be locked, only delete children
             file("src/main/java").listFiles().each {
                 assert !it.deleteDir().exists()
@@ -164,7 +165,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
     }
 
     // Just exercises the dependency management layers to shake out any weirdness
-    @Requires(TestPrecondition.ONLINE)
+    @Requires(UnitTestPreconditions.Online)
     def "can resolve dependencies from remote repository"() {
         when:
         def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
@@ -252,7 +253,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executedAndNotSkipped ":compileJava"
     }
 
-    @Requires(TestPrecondition.NOT_LINUX)
+    @Requires(UnitTestPreconditions.NotLinux)
     def "creation of initial source file triggers build for hierarchical watchers"() {
         expect:
         succeeds("build")
@@ -267,7 +268,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executedAndNotSkipped ":compileJava"
     }
 
-    @Requires(TestPrecondition.LINUX)
+    @Requires(UnitTestPreconditions.Linux)
     def "creation of initial source file does not trigger build for non-hierarchical watchers"() {
         expect:
         succeeds("build")

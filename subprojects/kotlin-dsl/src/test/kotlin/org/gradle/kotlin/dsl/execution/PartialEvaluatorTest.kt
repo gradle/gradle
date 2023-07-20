@@ -428,7 +428,7 @@ class PartialEvaluatorTest {
             isResidualProgram(
                 Static(
                     SetupEmbeddedKotlin,
-                    Eval(fragment.source),
+                    CollectProjectScriptDependencies(fragment.source),
                     CloseTargetScope
                 )
             )
@@ -458,7 +458,7 @@ class PartialEvaluatorTest {
                 Dynamic(
                     Static(
                         SetupEmbeddedKotlin,
-                        Eval(buildscriptFragment.source),
+                        CollectProjectScriptDependencies(buildscriptFragment.source),
                         ApplyDefaultPluginRequests,
                         ApplyBasePlugins
                     ),

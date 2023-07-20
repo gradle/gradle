@@ -20,8 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -277,7 +277,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @ToBeFixedForConfigurationCache(because = ":buildDashboard")
-    @Requires(TestPrecondition.STABLE_GROOVY) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
+    @Requires(UnitTestPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
     void 'enabling an additional report renders buildDashboard out-of-date'() {
         given:
         goodCode()
@@ -379,7 +379,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @ToBeFixedForConfigurationCache(because = ":buildDashboard")
-    @Requires(TestPrecondition.STABLE_GROOVY) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
+    @Requires(UnitTestPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
     void 'dashboard includes CodeNarc reports'() {
         given:
         goodCode()

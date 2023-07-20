@@ -102,9 +102,9 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         }
     }
 
-    private class ProviderNotationConverter implements NotationConverter<Provider<? extends AbstractArchiveTask>, MavenArtifact> {
+    private class ProviderNotationConverter implements NotationConverter<Provider<?>, MavenArtifact> {
         @Override
-        public void convert(Provider<? extends AbstractArchiveTask> artifactTaskProvider, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
+        public void convert(Provider<?> artifactTaskProvider, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             MavenArtifact artifact = instantiator.newInstance(PublishArtifactBasedMavenArtifact.class, new LazyPublishArtifact(artifactTaskProvider, fileResolver, taskDependencyFactory), taskDependencyFactory);
             result.converted(artifact);
         }

@@ -16,12 +16,12 @@ library {
 
 // tag::configure-target-machines[]
 library {
-    targetMachines.set(listOf(machines.linux.x86_64, machines.macOS.x86_64))
+    targetMachines = listOf(machines.linux.x86_64, machines.macOS.x86_64)
 }
 // end::configure-target-machines[]
 
 // tag::configure-linkages[]
 library {
-    linkage.set(listOf(Linkage.STATIC, Linkage.SHARED))
+    linkage = listOf(Linkage.STATIC, Linkage.SHARED)
 }
 // end::configure-linkages[]

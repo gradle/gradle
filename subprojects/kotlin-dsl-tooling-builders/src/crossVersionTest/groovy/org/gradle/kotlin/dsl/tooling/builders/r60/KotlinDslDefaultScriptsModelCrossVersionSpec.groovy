@@ -19,6 +19,9 @@ package org.gradle.kotlin.dsl.tooling.builders.r60
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+
+import static org.gradle.kotlin.dsl.tooling.builders.KotlinScriptModelParameters.setModelParameters
 
 @TargetGradleVersion(">=6.0")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
@@ -32,7 +35,9 @@ class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScri
         def spec = withMultiProjectBuildWithBuildSrc()
 
         when:
-        def model = kotlinDslScriptsModelFor()
+        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+            setModelParameters(it, false)
+        }
 
         then:
         model.scriptModels.keySet() == spec.scripts.values() as Set
@@ -52,7 +57,9 @@ class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScri
         """
 
         when:
-        def model = kotlinDslScriptsModelFor(true)
+        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+            setModelParameters(it, true)
+        }
 
         then:
         model.scriptModels.keySet() == spec.scripts.values() as Set

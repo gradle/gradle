@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.ant)
     implementation(libs.ivy)
     implementation(libs.maven3SettingsBuilder)
+    implementation(libs.fastutil)
 
     testImplementation(project(":process-services"))
     testImplementation(project(":diagnostics"))
@@ -122,7 +123,7 @@ packageCycles {
 testFilesCleanup.reportOnly = true
 
 tasks.clean {
-    val testFiles = layout.buildDirectory.dir("tmp/test files")
+    val testFiles = layout.buildDirectory.dir("tmp/teŝt files")
     doFirst {
         // On daemon crash, read-only cache tests can leave read-only files around.
         // clean now takes care of those files as well
@@ -130,9 +131,4 @@ tasks.clean {
             include("**/read-only-cache/**")
         }.visit { this.file.setWritable(true) }
     }
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

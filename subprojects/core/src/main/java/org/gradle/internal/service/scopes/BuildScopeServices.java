@@ -109,6 +109,7 @@ import org.gradle.execution.plan.OrdinalGroupFactory;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
+import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
@@ -153,6 +154,10 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
+import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
+import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
+import org.gradle.initialization.properties.ProjectPropertiesLoader;
+import org.gradle.initialization.properties.SystemPropertiesInstaller;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -176,7 +181,7 @@ import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.TaskExecutionTracker;
+import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
@@ -351,21 +356,30 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected GradlePropertiesController createGradlePropertiesController(
-        IGradlePropertiesLoader propertiesLoader
+        IGradlePropertiesLoader propertiesLoader,
+        SystemPropertiesInstaller systemPropertiesInstaller,
+        ProjectPropertiesLoader projectPropertiesLoader
     ) {
-        return new DefaultGradlePropertiesController(propertiesLoader);
+        return new DefaultGradlePropertiesController(propertiesLoader, systemPropertiesInstaller, projectPropertiesLoader);
+    }
+
+    protected ProjectPropertiesLoader createProjectPropertiesLoader(
+        Environment environment
+    ) {
+        return new DefaultProjectPropertiesLoader((StartParameterInternal) get(StartParameter.class), environment);
     }
 
     protected IGradlePropertiesLoader createGradlePropertiesLoader(
-        Environment environment,
+        Environment environment
+    ) {
+        return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class), environment);
+    }
+
+    protected SystemPropertiesInstaller createSystemPropertiesInstaller(
         EnvironmentChangeTracker environmentChangeTracker,
         GradleInternal gradleInternal
     ) {
-        return new DefaultGradlePropertiesLoader(
-            (StartParameterInternal) get(StartParameter.class),
-            environment,
-            environmentChangeTracker,
-            gradleInternal);
+        return new DefaultSystemPropertiesInstaller(environmentChangeTracker, (StartParameterInternal) get(StartParameter.class), gradleInternal);
     }
 
     protected ValueSourceProviderFactory createValueSourceProviderFactory(
@@ -686,7 +700,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             isolatableFactory,
             sharedResourceLeaseRegistry,
             featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
-                ? new BuildServiceProviderNagger(services.get(TaskExecutionTracker.class))
+                ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );
     }

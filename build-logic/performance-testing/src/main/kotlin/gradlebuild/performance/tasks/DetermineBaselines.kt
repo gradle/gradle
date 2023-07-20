@@ -51,10 +51,10 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
             determinedBaselines = determineFlakinessDetectionBaseline()
         } else if (configuredBaselines.getOrElse("").isNotEmpty()) {
             determinedBaselines = configuredBaselines
-        } else if (!currentBranchIsMasterOrRelease()) {
-            determinedBaselines = forkPointCommitBaseline()
-        } else {
+        } else if (currentBranchIsMasterOrRelease() || isSecurityAdvisoryFork()) {
             determinedBaselines = defaultBaselines
+        } else {
+            determinedBaselines = forkPointCommitBaseline()
         }
 
         println("Determined baseline is: ${determinedBaselines.get()}")
@@ -76,6 +76,11 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     fun currentCommitBaseline() = commitBaseline(project.execAndGetStdout("git", "rev-parse", "HEAD"))
 
     private
+    fun isSecurityAdvisoryFork(): Boolean = project.execAndGetStdout("git", "remote", "-v")
+        .lines()
+        .any { it.contains("gradle/gradle-ghsa") } // ghsa = github-security-advisory
+
+    private
     fun forkPointCommitBaseline(): String {
         val source = tryGetUpstream() ?: "origin"
         project.execAndGetStdout("git", "fetch", source, "master", "release")
@@ -94,6 +99,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
         .lines()
         .find { it.contains("git@github.com:gradle/gradle.git") || it.contains("https://github.com/gradle/gradle.git") }
         .let {
+            // origin	https://github.com/gradle/gradle.git (fetch)
             val str = it?.replace(Regex("\\s+"), " ")
             return str?.substring(0, str.indexOf(' '))
         }

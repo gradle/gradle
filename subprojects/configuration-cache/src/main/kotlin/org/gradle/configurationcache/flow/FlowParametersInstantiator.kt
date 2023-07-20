@@ -16,17 +16,23 @@
 
 package org.gradle.configurationcache.flow
 
+import com.google.common.collect.ImmutableMap
+import org.gradle.api.Task
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
+import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
+import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
-import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.TypeValidationProblem
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -49,24 +55,41 @@ class FlowParametersInstantiator(
 
     private
     fun <P : FlowParameters> validate(type: Class<P>, parameters: P) {
+        val problems = ImmutableMap.builder<String, Severity>()
         inspection.propertyWalker.visitProperties(
             parameters,
             object : ProblemRecordingTypeValidationContext(DocumentationRegistry(), type, { Optional.empty() }) {
                 override fun recordProblem(problem: TypeValidationProblem) {
-                    if (problem.id != ValidationProblemId.MISSING_ANNOTATION) {
-                        TODO("${where(problem)}: ${problem.shortDescription}")
-                    }
+                    problems.put(
+                        TypeValidationProblemRenderer.renderMinimalInformationAbout(problem),
+                        problem.severity
+                    )
                 }
             },
             object : PropertyVisitor {
-                override fun visitServiceReference(propertyName: String, optional: Boolean, value: PropertyValue, serviceName: String?) {
+                override fun visitServiceReference(propertyName: String, optional: Boolean, value: PropertyValue, serviceName: String?, buildServiceType: Class<out BuildService<*>>) {
                     value.maybeFinalizeValue()
                 }
 
                 override fun visitInputProperty(propertyName: String, value: PropertyValue, optional: Boolean) {
+
+                    val taskDependencies = value.taskDependencies
+                    taskDependencies.visitDependencies(
+                        object : AbstractTaskDependencyResolveContext() {
+                            override fun add(dependency: Any) {
+                                problems.put(
+                                    "Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.",
+                                    Severity.ERROR
+                                )
+                            }
+
+                            override fun getTask(): Task? = null
+                        }
+                    )
                 }
             }
         )
+        DefaultTypeValidationContext.throwOnProblemsOf(type, problems.build())
     }
 
     private

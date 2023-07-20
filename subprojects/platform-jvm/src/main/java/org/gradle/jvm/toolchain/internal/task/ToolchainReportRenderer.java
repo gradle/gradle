@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal.task;
 import com.google.common.base.Strings;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.List;
@@ -30,7 +31,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ToolchainReportRenderer extends TextReportRenderer {
 
-    public void printToolchain(ReportableToolchain toolchain) {
+    public void printToolchain(JvmToolchainMetadata toolchain) {
         StyledTextOutput output = getTextOutput();
         JvmInstallationMetadata metadata = toolchain.metadata;
         String displayName = metadata.getDisplayName();
@@ -50,11 +51,11 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         getTextOutput().withStyle(Description).println(value);
     }
 
-    public void printInvalidToolchains(List<ReportableToolchain> invalidToolchains) {
-        if(!invalidToolchains.isEmpty()) {
+    public void printInvalidToolchains(List<JvmToolchainMetadata> invalidToolchains) {
+        if (!invalidToolchains.isEmpty()) {
             StyledTextOutput output = getTextOutput();
             output.withStyle(Identifier).println(" + Invalid toolchains");
-            for (ReportableToolchain toolchain : invalidToolchains) {
+            for (JvmToolchainMetadata toolchain : invalidToolchains) {
                 JvmInstallationMetadata metadata = toolchain.metadata;
                 output.withStyle(Identifier).println("     + " + metadata.getJavaHome());
                 printInvalidToolchainErrorLines(toolchain);
@@ -63,7 +64,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         }
     }
 
-    private void printInvalidToolchainErrorLines(ReportableToolchain invalidToolchain) {
+    private void printInvalidToolchainErrorLines(JvmToolchainMetadata invalidToolchain) {
         getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("Error:", 20, ' '));
         getTextOutput().withStyle(Description).println(invalidToolchain.metadata.getErrorMessage());
 

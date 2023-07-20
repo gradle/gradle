@@ -9,7 +9,7 @@ extra["signing.secretKeyRingFile"] = file("secKeyRingFile.gpg").absolutePath
 
 // tag::sign-task[]
 tasks.register<Zip>("stuffZip") {
-    archiveBaseName.set("stuff")
+    archiveBaseName = "stuff"
     from("src/stuff")
 }
 

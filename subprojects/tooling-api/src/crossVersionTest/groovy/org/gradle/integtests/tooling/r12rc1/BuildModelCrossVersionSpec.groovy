@@ -56,7 +56,6 @@ task setup {
         withConnection { ProjectConnection connection ->
             def builder = connection.model(HierarchicalEclipseProject.class)
             action(builder)
-            collectOutputs(builder)
             builder.get()
         }
 
@@ -84,7 +83,6 @@ task setup {
         withConnection { ProjectConnection connection ->
             def builder = connection.model(HierarchicalEclipseProject.class)
             action(builder)
-            collectOutputs(builder)
             builder.get()
         }
 

@@ -17,11 +17,11 @@
 package org.gradle.configurationcache
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires(UnitTestPreconditions.NotWindows)
 class ConfigurationCacheTestkitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "reports when a TestKit build runs with a Java agent and configuration caching enabled"() {
         def builder = artifactBuilder()

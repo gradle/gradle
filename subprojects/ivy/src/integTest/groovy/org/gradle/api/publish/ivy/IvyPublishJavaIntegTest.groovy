@@ -17,6 +17,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
@@ -1292,7 +1293,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
             }
 
@@ -1312,7 +1313,12 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         expect:
         fails('publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + variantAttributesLink())
+    }
+
+    private variantAttributesLink() {
+        documentationRegistry.getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category")
     }
 
     def "can not publish variant with attribute specifying category = verification if defining new attribute with string"() {
@@ -1322,7 +1328,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Attribute.of('org.gradle.category', String), 'verification')
             }
 
@@ -1342,7 +1348,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         expect:
         fails('publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + new DocumentationRegistry().getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category"))
     }
 
     def "can not publish test results from java test suite"() {
@@ -1387,7 +1394,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         expect:
         fails('test', 'publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testResultsElementsForTest' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testResultsElementsForTest' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + new DocumentationRegistry().getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category"))
     }
 
     def "can publish variants with attribute specifying category if value not verification"() {
@@ -1397,7 +1405,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'not verification'))
             }
 
@@ -1449,7 +1457,7 @@ $append
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }

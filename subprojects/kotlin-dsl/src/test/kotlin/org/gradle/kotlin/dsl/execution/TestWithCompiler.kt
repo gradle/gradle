@@ -75,11 +75,12 @@ abstract class TestWithCompiler : TestWithTempFiles() {
         ResidualProgramCompiler(
             outputDir,
             JavaVersion.current(),
+            false,
             testRuntimeClassPath,
             sourceHash,
             programKind,
             programTarget,
-            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.root)
+            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
         ).compile(program)
     }
 

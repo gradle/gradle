@@ -155,6 +155,9 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
                 package org.acme;
 
                 class SampleMainSuite {
+
+                    @org.junit.Test
+                    def sampleTest : Unit = { }
                 }
         """
         when:

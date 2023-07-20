@@ -83,4 +83,14 @@ public enum BuildOperationCategory implements BuildOperationMetadata {
     public boolean isShowHeader() {
         return showHeader;
     }
+
+    /**
+     * If the metadata corresponds to some {@link BuildOperationCategory}, then returns this category. Returns {@link #UNCATEGORIZED} if there is no defined corresponding category.
+     *
+     * @param metadata the metadata to find category for
+     * @return the category
+     */
+    public static BuildOperationCategory toCategory(BuildOperationMetadata metadata) {
+        return (metadata instanceof BuildOperationCategory) ? (BuildOperationCategory) metadata : UNCATEGORIZED;
+    }
 }

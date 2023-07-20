@@ -23,7 +23,8 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.DefaultCollectionEventRegister;
 import org.gradle.api.internal.collections.ElementSource;
-import org.gradle.api.internal.collections.FilteredCollection;
+import org.gradle.api.internal.collections.FilteredElementSource;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.DefaultListProperty;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -56,12 +57,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.store.onRealize(new Action<T>() {
-            @Override
-            public void execute(T value) {
-                doAddRealized(value, eventRegister.getAddActions());
-            }
-        });
+        this.store.onPendingAdded(SerializableLambdas.action(toAdd -> {
+            didAdd(toAdd);
+            eventRegister.fireObjectAdded(toAdd);
+        }));
+        this.store.setSubscriptionVerifier(eventRegister);
     }
 
     protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {
@@ -101,7 +101,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> ElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
-        return new FilteredCollection<T, S>(elementSource, filter);
+        return new FilteredElementSource<T, S>(elementSource, filter);
     }
 
     protected <S extends T> CollectionEventRegister<S> filteredEvents(CollectionFilter<S> filter) {
@@ -266,25 +266,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    private <I extends T> boolean doAddRealized(I toAdd, Action<? super I> notification) {
-        if (getStore().addRealized(toAdd)) {
-            didAdd(toAdd);
-            notification.execute(toAdd);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     @Override
     public void addLater(Provider<? extends T> provider) {
         assertMutable("addLater(Provider)");
         assertMutableCollectionContents();
         ProviderInternal<? extends T> providerInternal = Providers.internal(provider);
         store.addPending(providerInternal);
-        if (eventRegister.isSubscribed(providerInternal.getType())) {
-            doAddRealized(provider.get(), eventRegister.getAddActions());
-        }
     }
 
     @Override
@@ -301,11 +288,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             providerInternal = defaultListProperty;
         }
         store.addPendingCollection(providerInternal);
-        if (eventRegister.isSubscribed(providerInternal.getElementType())) {
-            for (T value : provider.get()) {
-                doAddRealized(value, eventRegister.getAddActions());
-            }
-        }
     }
 
     protected void didAdd(T toAdd) {

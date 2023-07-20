@@ -27,6 +27,7 @@ dependencies {
 // tag::java-basic-test-config[]
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test', Test) {
@@ -55,6 +56,7 @@ configurations {
 
 dependencies {
     intTestImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    intTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 // end::practical-integ-test-source-set[]
 

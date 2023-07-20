@@ -66,7 +66,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin eager object types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "var input: $inputType? = null"
         kotlinBuildFile(inputDeclaration, inputValue, "=")
 
@@ -87,7 +86,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin lazy object types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "abstract val input: $inputType"
         kotlinBuildFile(inputDeclaration, inputValue, "=")
 
@@ -169,7 +167,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin eager collection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def initValue = inputType.contains("Map<") ? "mutableMapOf<String, MyObject>()" : "mutableListOf<MyObject>()"
         def inputDeclaration = "var input: $inputType = $initValue"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
@@ -196,7 +193,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin lazy collection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "abstract val input: $inputType"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
 
@@ -266,7 +262,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin eager FileCollection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "var input: $inputType = project.files()"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
 
@@ -289,7 +284,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin lazy FileCollection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "abstract val input: $inputType"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
 

@@ -73,7 +73,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
             configurations {
                 ${configuration}Consumable {
                     extendsFrom($configuration)
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                     attributes {
                         attribute(Attribute.of("test", String), "test")
@@ -87,7 +87,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
             configurations {
                 consumer {
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                     attributes {
                         attribute(Attribute.of("test", String), "test")
                         ${plugin == 'codenarc' ?

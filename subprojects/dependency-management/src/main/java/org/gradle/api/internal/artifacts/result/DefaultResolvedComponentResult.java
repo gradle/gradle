@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,19 +44,21 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
     private final List<ResolvedVariantResult> selectedVariants;
+    private final Map<Long, ResolvedVariantResult> selectedVariantsById;
     private final List<ResolvedVariantResult> allVariants;
     private final String repositoryName;
     private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = ArrayListMultimap.create();
 
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId,
-        List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, String repositoryName
+        Map<Long, ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, @Nullable String repositoryName
     ) {
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
         this.componentId = componentId;
-        this.selectedVariants = selectedVariants;
-        this.allVariants = allVariants;
+        this.selectedVariantsById = selectedVariants;
+        this.selectedVariants = ImmutableList.copyOf(selectedVariants.values());
+        this.allVariants = allVariants.isEmpty() ? this.selectedVariants : allVariants;
         this.repositoryName = repositoryName;
     }
 
@@ -64,9 +67,15 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return componentId;
     }
 
+    @Override
+    @Deprecated
+    public String getRepositoryName() {
+        return repositoryName;
+    }
+
     @Nullable
     @Override
-    public String getRepositoryName() {
+    public String getRepositoryId() {
         return repositoryName;
     }
 
@@ -112,7 +121,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    public List<ResolvedVariantResult> getAllVariants() {
+    public List<ResolvedVariantResult> getAvailableVariants() {
         return allVariants;
     }
 
@@ -134,20 +143,35 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
     }
 
+    @Nullable
+    public ResolvedVariantResult getVariant(Long id) {
+        return selectedVariantsById.get(id);
+    }
+
     public void associateDependencyToVariant(DependencyResult dependencyResult, ResolvedVariantResult fromVariant) {
         variantDependencies.put(fromVariant, dependencyResult);
     }
 
+    /**
+     * A recursive function that traverses the dependency graph of a given module and acts on each node and edge encountered.
+     *
+     * @param start A ResolvedComponentResult node, which represents the entry point into the sub-section of the dependency
+     * graph to be traversed
+     * @param moduleAction an action to be performed on each node (module) in the graph
+     * @param dependencyAction an action to be performed on each edge (dependency) in the graph
+     * @param visited tracks the visited nodes during the recursive traversal
+     */
     public static void eachElement(
-        ResolvedComponentResult node,
-        Action<? super ResolvedComponentResult> moduleAction, Action<? super DependencyResult> dependencyAction,
+        ResolvedComponentResult start,
+        Action<? super ResolvedComponentResult> moduleAction,
+        Action<? super DependencyResult> dependencyAction,
         Set<ResolvedComponentResult> visited
     ) {
-        if (!visited.add(node)) {
+        if (!visited.add(start)) {
             return;
         }
-        moduleAction.execute(node);
-        for (DependencyResult d : node.getDependencies()) {
+        moduleAction.execute(start);
+        for (DependencyResult d : start.getDependencies()) {
             dependencyAction.execute(d);
             if (d instanceof ResolvedDependencyResult) {
                 eachElement(((ResolvedDependencyResult) d).getSelected(), moduleAction, dependencyAction, visited);

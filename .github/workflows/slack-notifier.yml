@@ -16,16 +16,16 @@ jobs:
         with:
           payload: |
             {
-              "text": "<https://github.com/gradle/gradle/${{ github.event.issue.number }}|[gradle/gradle#${{ github.event.issue.number }}]> `${{ github.event.issue.title }}` has label `${{ github.event.label.name }}`",
+              "text": "<https://github.com/gradle/gradle/issues/${{ github.event.issue.number }}|[gradle/gradle#${{ github.event.issue.number }}]> `${{ github.event.issue.title }}` has label `${{ github.event.label.name }}`",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "<https://github.com/gradle/gradle/${{ github.event.issue.number }}|[gradle/gradle#${{ github.event.issue.number }}]> `${{ github.event.issue.title }}` has label `${{ github.event.label.name }}`"
+                    "text": "<https://github.com/gradle/gradle/issues/${{ github.event.issue.number }}|[gradle/gradle#${{ github.event.issue.number }}]> `${{ github.event.issue.title }}` has label `${{ github.event.label.name }}`"
                   }
                 }
               ]
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDE_EXPERIENCE_SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.IDE_EXPERIENCE_TEAM_SLACK_WEBHOOK_URL }}

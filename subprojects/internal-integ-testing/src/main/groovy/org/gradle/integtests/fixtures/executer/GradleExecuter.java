@@ -73,7 +73,12 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withArgument(String arg);
 
     /**
-     * Sets the environment variables to use when executing the build. Defaults to the environment of this process.
+     * Sets the additional environment variables to use when executing the build.
+     * <p>
+     * The provided environment is added to the environment variables of this process, so it is only possible to add new variables or modify values of existing ones.
+     * Not propagating a variable of this process to the executed build at all is not supported.
+     * <p>
+     * Setting "JAVA_HOME" this way is not supported.
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
@@ -114,6 +119,11 @@ public interface GradleExecuter extends Stoppable {
      * it just modifies result of DefaultGradleVersion.current() for the Gradle that is run by the executer.
      */
     GradleExecuter withGradleVersionOverride(GradleVersion gradleVersion);
+
+    /**
+     * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
+     */
+    GradleExecuter withJavaHome(String userHomeDir);
 
     /**
      * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
@@ -197,6 +207,13 @@ public interface GradleExecuter extends Stoppable {
      * @return this executer
      */
     GradleExecuter withBuildCacheEnabled();
+
+    /**
+     * Activates the "Next Gen" build cache
+     *
+     * @return this executer
+     */
+    GradleExecuter withBuildCacheNgEnabled();
 
     /**
      * Don't set native services dir explicitly.
@@ -340,12 +357,20 @@ public interface GradleExecuter extends Stoppable {
      * also switch to the more specific {@link #expectDocumentedDeprecationWarning(String)} if the warning includes a documentation
      * link and you don't want to (ironically) see code testing deprecation appearing as if it itself were deprecated.
      */
-    GradleExecuter expectDeprecationWarning(String warning);
+    default GradleExecuter expectDeprecationWarning(String warning) {
+        return expectDeprecationWarning(new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
      * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
      */
-    GradleExecuter expectDocumentedDeprecationWarning(String warning);
+    default GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDocumentedDeprecationWarning(new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during

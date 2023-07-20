@@ -37,6 +37,6 @@ public class UserManualReference {
     }
 
     public String toDocumentationLink() {
-        return documentationRegistry.getDocumentationFor(id, section);
+        return documentationRegistry.getDocumentationRecommendationFor("information", id, section);
     }
 }

@@ -18,8 +18,9 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
-class DetachedConfigurationsProvider implements ConfigurationsProvider {
+public class DetachedConfigurationsProvider implements ConfigurationsProvider {
     private ConfigurationInternal theOnlyConfiguration;
 
     @Override
@@ -30,6 +31,19 @@ class DetachedConfigurationsProvider implements ConfigurationsProvider {
     @Override
     public Set<ConfigurationInternal> getAll() {
         return ImmutableSet.of(theOnlyConfiguration);
+    }
+
+    @Override
+    public void visitAll(Consumer<ConfigurationInternal> visitor) {
+        visitor.accept(theOnlyConfiguration);
+    }
+
+    @Override
+    public ConfigurationInternal findByName(String name) {
+        if (name.equals(theOnlyConfiguration.getName())) {
+            return theOnlyConfiguration;
+        }
+        return null;
     }
 
     public void setTheOnlyConfiguration(ConfigurationInternal theOnlyConfiguration) {

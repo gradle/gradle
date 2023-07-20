@@ -98,6 +98,10 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         return resolvedClasspath;
     }
 
+    public void dropResolvedClassPath() {
+        resolvedClasspath = null;
+    }
+
     @Override
     public DependencyHandler getDependencies() {
         defineConfiguration();
@@ -127,13 +131,13 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private void defineConfiguration() {
         // Defer creation and resolution of configuration until required. Short-circuit when script does not require classpath
         if (configContainer == null) {
-            configContainer = dependencyResolutionServices.getConfigurationContainer();
+            configContainer = (RoleBasedConfigurationContainerInternal) dependencyResolutionServices.getConfigurationContainer();
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
         }
         if (classpathConfiguration == null) {
-            classpathConfiguration = configContainer.createWithRole(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_INTENDED_RESOLVABLE_BUCKET);
+            classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
             scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler);
         }
     }

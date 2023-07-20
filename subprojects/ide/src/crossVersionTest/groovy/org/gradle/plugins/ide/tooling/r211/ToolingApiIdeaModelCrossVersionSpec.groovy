@@ -22,17 +22,22 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 
+import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
+import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
+
 @TargetGradleVersion(">=2.11")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
-    def setup(){
+    def setup() {
         settingsFile << "rootProject.name = 'root'"
     }
 
     @TargetGradleVersion(">=2.6 <2.11")
     def "older Gradle versions infer project source settings from default idea plugin language level"() {
         given:
-        if (projectAppliesJavaPlugin) { buildFile << "apply plugin: 'java'"}
+        if (projectAppliesJavaPlugin) {
+            buildFile << "apply plugin: 'java'"
+        }
 
         when:
         def ideaProject = loadIdeaProjectModel()
@@ -134,12 +139,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
             project(':child2') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.2'
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_2)}
             }
 
             project(':child3') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.5'
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
         """
@@ -173,12 +178,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
             project(':child2') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.2'
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_2)}
             }
 
             project(':child3') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.5'
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
         """
@@ -218,7 +223,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
             allprojects {
                 apply plugin:'java'
                 apply plugin:'idea'
-                targetCompatibility = "1.5"
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
         """
@@ -243,7 +248,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
             allprojects {
                 apply plugin:'java'
                 apply plugin:'idea'
-                targetCompatibility = "1.5"
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
         """
@@ -252,7 +257,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaLanguageSettings.targetBytecodeVersion== JavaVersion.VERSION_1_5
+        ideaProject.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
         ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.targetBytecodeVersion == null
         ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.targetBytecodeVersion == null
         ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.targetBytecodeVersion == null
@@ -264,21 +269,21 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         settingsFile << "\ninclude 'root', 'child1', ':child2:child3', 'child4'"
         buildFile << """
             apply plugin:'java'
-            targetCompatibility = "1.5"
+            ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
 
             project(':child1') {
                 apply plugin:'java'
-                targetCompatibility = "1.5"
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
             project(':child2') {
                 apply plugin:'java'
-                targetCompatibility = '1.6'
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
             }
 
             project(':child2:child3') {
                 apply plugin:'java'
-                targetCompatibility = '1.7'
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_7)}
             }
             project(':child4') {
             }

@@ -26,19 +26,18 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.internal.RedirectStdOutAndErr
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.precondition.TestPrecondition
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.RedirectStdOutAndErr
 
 class ToolingApiClassLoaderProvider {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
     private static final GradleDistribution CURRENT_GRADLE = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
 
     static ClassLoader getToolingApiClassLoader(ToolingApiDistribution toolingApi, Class<?> target) {
-        List<File> testClassPath = []
-        testClassPath << ClasspathUtil.getClasspathForClass(ToolingApiSpecification)
-        testClassPath << ClasspathUtil.getClasspathForClass(target)
+        def testClassPath = [ToolingApiSpecification, target]
+            .collect { ClasspathUtil.getClasspathForClass(it) }
 
         testClassPath.addAll(collectAdditionalClasspath(toolingApi, target))
 
@@ -55,7 +54,7 @@ class ToolingApiClassLoaderProvider {
     }
 
     private static ClassLoader getTestClassLoader(ToolingApiDistribution toolingApi, List<File> testClasspath) {
-        synchronized(ToolingApiClassLoaderProvider) {
+        synchronized (ToolingApiClassLoaderProvider) {
             def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version.version)
             if (!classLoader) {
                 classLoader = createTestClassLoader(toolingApi, testClasspath)
@@ -82,11 +81,13 @@ class ToolingApiClassLoaderProvider {
         sharedSpec.allowPackage('org.gradle.play.integtest.fixtures')
         sharedSpec.allowPackage('org.gradle.plugins.ide.fixtures')
         sharedSpec.allowPackage('org.gradle.test.fixtures')
+        sharedSpec.allowPackage('org.gradle.test.preconditions')
         sharedSpec.allowPackage('org.gradle.nativeplatform.fixtures')
         sharedSpec.allowPackage('org.gradle.language.fixtures')
         sharedSpec.allowPackage('org.gradle.workers.fixtures')
         sharedSpec.allowPackage('org.gradle.launcher.daemon.testing')
         sharedSpec.allowPackage('org.gradle.tooling')
+        sharedSpec.allowPackage('org.gradle.kotlin.dsl.tooling.builders')
         sharedSpec.allowClass(OperatingSystem)
         sharedSpec.allowClass(Requires)
         sharedSpec.allowClass(TestPrecondition)

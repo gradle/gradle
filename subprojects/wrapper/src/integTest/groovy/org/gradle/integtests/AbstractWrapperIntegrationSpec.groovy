@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.keystore.TestKeyStore
 
 class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
     void installationIn(TestFile userHomeDir) {
@@ -35,6 +36,19 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
         def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
         executer.beforeExecute(action)
         executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString()).run()
+    }
+
+    void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), TestKeyStore keyStore) {
+        def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
+        executer.withArguments(
+            "wrapper",
+            "--gradle-distribution-url",
+            distributionUri.toString(),
+        )
+        keyStore.trustStoreArguments.each {
+            executer.withArgument(it)
+        }
+        executer.run()
     }
 
     GradleExecuter getWrapperExecuter() {

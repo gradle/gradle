@@ -16,115 +16,55 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 
-public class ComponentResultSerializer implements Serializer<ResolvedGraphComponent> {
-
-    private final ModuleVersionIdentifierSerializer idSerializer;
+public class ComponentResultSerializer {
     private final ComponentSelectionReasonSerializer reasonSerializer;
-    private final ComponentIdentifierSerializer componentIdSerializer;
-    private final ResolvedVariantResultSerializer resolvedVariantResultSerializer;
+    private final ComponentDetailsSerializer componentDetailsSerializer;
+    private final SelectedVariantSerializer selectedVariantSerializer;
     private final boolean returnAllVariants;
 
-    public ComponentResultSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                     ResolvedVariantResultSerializer resolvedVariantResultSerializer,
-                                     ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                     ComponentIdentifierSerializer componentIdentifierSerializer,
-                                     boolean returnAllVariants) {
-        this.idSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
-        this.resolvedVariantResultSerializer = resolvedVariantResultSerializer;
+    public ComponentResultSerializer(
+        ComponentDetailsSerializer componentDetailsSerializer,
+        SelectedVariantSerializer selectedVariantSerializer,
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+        boolean returnAllVariants
+    ) {
+        this.componentDetailsSerializer = componentDetailsSerializer;
+        this.selectedVariantSerializer = selectedVariantSerializer;
         this.reasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
-        this.componentIdSerializer = componentIdentifierSerializer;
         this.returnAllVariants = returnAllVariants;
     }
 
-    void reset() {
-        resolvedVariantResultSerializer.reset();
-    }
-
-    @Override
-    public ResolvedGraphComponent read(Decoder decoder) throws IOException {
+    public void readInto(Decoder decoder, ResolvedComponentVisitor builder) throws Exception {
         long resultId = decoder.readSmallLong();
-        ModuleVersionIdentifier id = idSerializer.read(decoder);
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
-        ComponentIdentifier componentId = componentIdSerializer.read(decoder);
-        int allVariantsSize = decoder.readSmallInt();
-        ImmutableList.Builder<ResolvedVariantResult> allVariants = ImmutableList.builderWithExpectedSize(allVariantsSize);
-        int resolvedVariantsSize = decoder.readSmallInt();
-        ImmutableList.Builder<ResolvedVariantResult> resolvedVariants = ImmutableList.builderWithExpectedSize(resolvedVariantsSize);
-        readVariants(decoder, allVariantsSize, resolvedVariantsSize, allVariants, resolvedVariants);
-        String repositoryName = decoder.readNullableString();
-        return new DetachedComponentResult(resultId, id, reason, componentId, resolvedVariants.build(), allVariants.build(), repositoryName);
-    }
-
-    private void readVariants(
-        Decoder decoder,
-        int allVariantsSize,
-        int resolvedVariantsSize,
-        ImmutableList.Builder<ResolvedVariantResult> allVariants,
-        ImmutableList.Builder<ResolvedVariantResult> resolvedVariants
-    ) throws IOException {
-        boolean returnAllVariants = allVariantsSize != resolvedVariantsSize;
-        for (int i = 0; i < allVariantsSize; i++) {
-            ResolvedVariantResult variant = resolvedVariantResultSerializer.read(decoder);
-            boolean isResolved;
-            if (returnAllVariants) {
-                isResolved = decoder.readBoolean();
-            } else {
-                isResolved = true;
-            }
-            if (isResolved) {
-                resolvedVariants.add(variant);
-            }
-            allVariants.add(variant);
+        String repo = decoder.readNullableString();
+        builder.startVisitComponent(resultId, reason, repo);
+        componentDetailsSerializer.readComponentDetails(decoder, builder);
+        int variantCount = decoder.readSmallInt();
+        for (int i = 0; i < variantCount; i++) {
+            selectedVariantSerializer.readSelectedVariant(decoder, builder);
         }
+        builder.endVisitComponent();
     }
 
-    @Override
     public void write(Encoder encoder, ResolvedGraphComponent value) throws IOException {
         encoder.writeSmallLong(value.getResultId());
-        idSerializer.write(encoder, value.getModuleVersion());
         reasonSerializer.write(encoder, value.getSelectionReason());
-        componentIdSerializer.write(encoder, value.getComponentId());
-        Collection<ResolvedVariantResult> allVariants;
-        Collection<ResolvedVariantResult> resolvedVariants;
-        if (returnAllVariants) {
-            allVariants = value.getAllVariants();
-            resolvedVariants = value.getResolvedVariants();
-        } else {
-            allVariants = value.getResolvedVariants();
-            resolvedVariants = allVariants;
-        }
-        writeSelectedVariantDetails(encoder, resolvedVariants, allVariants);
         encoder.writeNullableString(value.getRepositoryName());
-    }
-
-    private void writeSelectedVariantDetails(
-        Encoder encoder, Collection<ResolvedVariantResult> resolvedVariants, Collection<ResolvedVariantResult> variants
-    ) throws IOException {
-        encoder.writeSmallInt(variants.size());
-        encoder.writeSmallInt(resolvedVariants.size());
-        boolean returnAllVariants = variants.size() != resolvedVariants.size();
-        for (ResolvedVariantResult variant : variants) {
-            resolvedVariantResultSerializer.write(encoder, variant);
-            // Optimization for when not writing all variants -- we don't need to mark which ones are resolved
-            if (returnAllVariants) {
-                encoder.writeBoolean(resolvedVariants.contains(variant));
-            }
+        componentDetailsSerializer.writeComponentDetails(value.getResolveState(), returnAllVariants, encoder);
+        List<ResolvedGraphVariant> selectedVariants = value.getSelectedVariants();
+        encoder.writeSmallInt(selectedVariants.size());
+        for (ResolvedGraphVariant variant : selectedVariants) {
+            selectedVariantSerializer.writeVariantResult(variant, encoder);
         }
     }
-
 }

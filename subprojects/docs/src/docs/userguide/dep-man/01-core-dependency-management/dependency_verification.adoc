@@ -234,7 +234,7 @@ Using this dependency will trigger the download of 2 different files:
 - `pdfbox-2.0.17.jar` which is the main artifact
 - `pdfbox-2.0.17.pom` which is the metadata file associated with this artifact
 
-As as consequence, you need to declare the checksums for both of them (unless you <<sec:disabling-metadata-verification,disabled metadata verification>>):
+As a consequence, you need to declare the checksums for both of them (unless you <<sec:disabling-metadata-verification,disabled metadata verification>>):
 
 [source,xml]
 ----
@@ -520,11 +520,13 @@ However, if the signature cannot be verified with at least one other key, Gradle
 
 Gradle automatically downloads the required keys but this operation can be quite slow and requires everyone to download the keys.
 To avoid this, Gradle offers the ability to use a local keyring file containing the required public keys.
+Note that only public key packets and a single userId per key are stored and used.
+All other information (user attributes, signatures, etc.) is stripped from downloaded or exported keys.
 
 Gradle supports 2 different file formats for keyrings: a binary format (`.gpg` file) and a plain text format (`.keys`).
 
 There are pros and cons for each of the formats: the binary format is more compact and can be updated directly via GPG commands, but is completely opaque (binary).
-On the opposite, the plain text format is human readable, can be easily updated by hand and makes it easier to do code reviews thanks to readable diffs.
+On the opposite, the plain text format is human-readable, can be easily updated by hand and makes it easier to do code reviews thanks to readable diffs.
 
 If the `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` file is present, Gradle will search for keys there in priority.
 
@@ -597,7 +599,7 @@ You can also ask Gradle to export all trusted keys without updating the verifica
 
 [NOTE]
 ====
-This command disables signature verification, similar to `--write-verification-metadata`.
+This command will not report verification errors, only export keys.
 ====
 
 [[sec:bootstrapping-signature-verification]]

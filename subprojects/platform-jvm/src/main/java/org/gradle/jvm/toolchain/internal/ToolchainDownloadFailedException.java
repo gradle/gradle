@@ -17,10 +17,22 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.ResolutionProvider;
 
-public class ToolchainDownloadFailedException extends GradleException {
+import java.util.Arrays;
+import java.util.List;
 
-    public ToolchainDownloadFailedException(String message) {
+public class ToolchainDownloadFailedException extends GradleException implements ResolutionProvider {
+
+    private final List<String> resolutions;
+
+    public ToolchainDownloadFailedException(String message, String... resolutions) {
         super(message);
+        this.resolutions = Arrays.asList(resolutions);
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return resolutions;
     }
 }

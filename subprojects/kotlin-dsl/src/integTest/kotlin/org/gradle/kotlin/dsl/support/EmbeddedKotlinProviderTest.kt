@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers.containsString
@@ -56,6 +57,15 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
             }
             """
         )
+
+        if (GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning(
+                "The Provider.forUseAtConfigurationTime method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Simply remove the call. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
+        }
 
         val result = build("buildEnvironment")
         listOf("stdlib", "reflect").forEach { module ->

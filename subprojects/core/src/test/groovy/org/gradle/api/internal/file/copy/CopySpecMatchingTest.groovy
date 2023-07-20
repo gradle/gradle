@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class CopySpecMatchingTest extends Specification {
 
-    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.fileCollectionFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory)
+    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.fileCollectionFactory(), TestUtil.objectFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory)
 
     def canMatchFiles() {
         given:
@@ -84,8 +84,8 @@ class CopySpecMatchingTest extends Specification {
 
     def canNotMatchFiles() {
         given:
-        FileCopyDetails details1 = details('path/abc.txt');
-        FileCopyDetails details2 = details('path/bcd.txt');
+        FileCopyDetails details1 = details('path/abc.txt')
+        FileCopyDetails details2 = details('path/bcd.txt')
 
         Action matchingAction = Mock()
 
@@ -103,9 +103,9 @@ class CopySpecMatchingTest extends Specification {
 
     def canNotMatchFilesWithMultiplePatterns() {
         given:
-        FileCopyDetails details1 = details('path/abc.txt');
-        FileCopyDetails details2 = details('path/bcd.txt');
-        FileCopyDetails details3 = details('path/cde.txt');
+        FileCopyDetails details1 = details('path/abc.txt')
+        FileCopyDetails details2 = details('path/bcd.txt')
+        FileCopyDetails details3 = details('path/cde.txt')
 
         Action matchingAction = Mock()
 
@@ -137,7 +137,7 @@ class CopySpecMatchingTest extends Specification {
 
     def matchingSpecInherited() {
         given:
-        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.fileCollectionFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory)
+        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.fileCollectionFactory(), TestUtil.objectFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory)
         CopySpecResolver childResolver = childSpec.buildResolverRelativeToParent(copySpec.buildRootResolver())
 
         when:

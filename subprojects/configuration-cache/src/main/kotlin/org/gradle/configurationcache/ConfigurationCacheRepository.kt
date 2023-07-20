@@ -30,6 +30,7 @@ import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
+import org.gradle.configurationcache.ConfigurationCacheStateStore.StateFile
 import org.gradle.configurationcache.extensions.toDefaultLowerCase
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.internal.Factory
@@ -69,9 +70,9 @@ class ConfigurationCacheRepository(
         private val cacheDir: File,
         private val onFileAccess: (File) -> Unit
     ) : Layout() {
-        override fun fileForRead(stateType: StateType) = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
+        override fun fileForRead(stateType: StateType) = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType)
 
-        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), onFileAccess)
+        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType, onFileAccess)
     }
 
     private
@@ -80,7 +81,7 @@ class ConfigurationCacheRepository(
     ) : Layout() {
         override fun fileForRead(stateType: StateType) = fileFor(stateType)
 
-        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
+        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType)
     }
 
     override fun stop() {
@@ -89,10 +90,14 @@ class ConfigurationCacheRepository(
 
     private
     inner class ReadableConfigurationCacheStateFile(
-        private val file: File
+        private val file: File,
+        override val stateType: StateType
     ) : ConfigurationCacheStateFile {
         override val exists: Boolean
             get() = file.isFile
+
+        override val stateFile: StateFile
+            get() = StateFile(stateType, file)
 
         override fun outputStream(): OutputStream =
             throw UnsupportedOperationException()
@@ -110,17 +115,22 @@ class ConfigurationCacheRepository(
 
         override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =
             ReadableConfigurationCacheStateFile(
-                includedBuildFileFor(file, build)
+                includedBuildFileFor(file, build),
+                stateType
             )
     }
 
     private
     inner class WriteableConfigurationCacheStateFile(
         private val file: File,
+        override val stateType: StateType,
         private val onFileAccess: (File) -> Unit
     ) : ConfigurationCacheStateFile {
         override val exists: Boolean
             get() = false
+
+        override val stateFile: StateFile
+            get() = StateFile(stateType, file)
 
         override fun outputStream(): OutputStream =
             file.also(onFileAccess).outputStream()
@@ -141,6 +151,7 @@ class ConfigurationCacheRepository(
         override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =
             WriteableConfigurationCacheStateFile(
                 includedBuildFileFor(file, build),
+                stateType,
                 onFileAccess
             )
     }
@@ -149,9 +160,10 @@ class ConfigurationCacheRepository(
     inner class StoreImpl(
         private val baseDir: File
     ) : ConfigurationCacheStateStore {
-        override fun assignSpoolFile(stateType: StateType): File {
+        override fun assignSpoolFile(stateType: StateType): StateFile {
             Files.createDirectories(baseDir.toPath())
-            return Files.createTempFile(baseDir.toPath(), stateType.fileBaseName, ".tmp").toFile()
+            val tempFile = Files.createTempFile(baseDir.toPath(), stateType.fileBaseName, ".tmp")
+            return StateFile(stateType, tempFile.toFile())
         }
 
         override fun <T> createValueStore(stateType: StateType, writer: ValueStore.Writer<T>, reader: ValueStore.Reader<T>): ValueStore<T> {

@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
@@ -30,7 +31,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -114,13 +114,13 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  * }
  *
  * test {
- *   // Discover and execute JUnit4-based tests
+ *   // discover and execute JUnit4-based tests
  *   useJUnit()
  *
- *   // Discover and execute TestNG-based tests
+ *   // discover and execute TestNG-based tests
  *   useTestNG()
  *
- *   // Discover and execute JUnit Platform-based tests
+ *   // discover and execute JUnit Platform-based tests
  *   useJUnitPlatform()
  *
  *   // set a system property for the test JVM(s)
@@ -145,8 +145,11 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *      logger.lifecycle("Running test: " + descriptor)
  *   }
  *
- *   // Fail the 'test' task on the first test failure
+ *   // fail the 'test' task on the first test failure
  *   failFast = true
+ *
+ *   // skip an actual test execution
+ *   dryRun = true
  *
  *   // listen to standard out and standard error of the test JVM(s)
  *   onOutput { descriptor, event -&gt;
@@ -196,8 +199,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
+        getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
-        testFramework.finalizeValueOnRead();
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -527,6 +530,26 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public boolean getFailFast() {
         return super.getFailFast();
     }
+
+    /**
+     * Indicates if this task will skip individual test execution.
+     *
+     * <p>
+     *     For JUnit 4 and 5, this will report tests that would have executed as skipped.
+     *     For TestNG, this will report tests that would have executed as passed.
+     * </p>
+     *
+     * <p>
+     *     Only versions of TestNG which support native dry-running are supported, i.e. TestNG 6.14 or later.
+     * </p>
+     *
+     * @return property for whether this task will skip individual test execution
+     * @since 8.3
+     */
+    @Incubating
+    @Input
+    @Option(option = "test-dry-run", description = "Simulate test execution.")
+    public abstract Property<Boolean> getDryRun();
 
     /**
      * {@inheritDoc}
@@ -1001,7 +1024,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.6
      */
     public void useJUnitPlatform() {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true));
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true, getDryRun()));
     }
 
     /**
@@ -1057,16 +1080,20 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         applyOptions(TestNGOptions.class, testFrameworkConfigure);
     }
 
+    /**
+     * Set the framework, only if it is being changed to a new value.
+     *
+     * If we are setting a framework to its existing value, no-op so as not to overwrite existing options here.
+     * We need to allow this especially for the default test task, so that existing builds that configure options and
+     * then call useJunit() don't clear out their options.
+     *
+     * @param testFramework
+     */
     void useTestFramework(TestFramework testFramework) {
-        if (((DefaultProperty<?>) this.testFramework).isFinalized()) {
-            Class<?> currentFramework = this.testFramework.get().getClass();
-            Class<?> newFramework = testFramework.getClass();
-            if (currentFramework == newFramework) {
-                // We are setting a finalized framework to its existing value, no-op so as not to trigger a failure here.
-                // We need to allow this especially for the default test task, so that existing builds that configure options and
-                // then call useJunit() afterwards don't fail
-                return;
-            }
+        Class<?> currentFramework = this.testFramework.get().getClass();
+        Class<?> newFramework = testFramework.getClass();
+        if (currentFramework == newFramework) {
+            return;
         }
 
         this.testFramework.set(testFramework);

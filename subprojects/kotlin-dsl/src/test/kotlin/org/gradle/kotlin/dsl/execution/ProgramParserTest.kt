@@ -242,19 +242,22 @@ class ProgramParserTest {
     fun assertEmptyProgram(contents: String, programTarget: ProgramTarget = ProgramTarget.Project) {
         assertProgramOf(programSourceWith(contents), Program.Empty, programTarget = programTarget)
     }
-
-    private
-    fun assertProgramOf(
-        source: ProgramSource,
-        expected: Program,
-        programKind: ProgramKind = ProgramKind.TopLevel,
-        programTarget: ProgramTarget = ProgramTarget.Project
-    ) {
-        val program = ProgramParser.parse(source, programKind, programTarget)
-        assertThat(program.document, equalTo(expected))
-    }
-
-    private
-    fun programSourceWith(contents: String) =
-        ProgramSource("/src/build.gradle.kts", contents)
 }
+
+
+internal
+fun assertProgramOf(
+    source: ProgramSource,
+    expected: Program,
+    programKind: ProgramKind = ProgramKind.TopLevel,
+    programTarget: ProgramTarget = ProgramTarget.Project
+) {
+    val program = ProgramParser.parse(source, programKind, programTarget)
+    val actual = program.document
+    assertThat(actual, equalTo(expected))
+}
+
+
+internal
+fun programSourceWith(contents: String) =
+    ProgramSource("/src/build.gradle.kts", contents)

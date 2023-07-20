@@ -18,13 +18,12 @@
 package org.gradle.java.compile
 
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.classanalysis.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -48,7 +47,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         javaClassFile("compile/test/Person.class").exists()
     }
 
-    def compileBadCodeBreaksTheBuild() {
+    def "compile bad code breaks the build and compilation error doesn't show link to help.gradle.org"() {
         given:
         badCode()
 
@@ -56,6 +55,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         fails("compileJava")
         output.contains(logStatement())
         failure.assertHasErrorOutput("';' expected")
+        failure.assertNotOutput("https://help.gradle.org")
         javaClassFile("").assertHasDescendants()
     }
 
@@ -133,7 +133,10 @@ compileJava.options.debug = false
 
     // JavaFx was removed in JDK 10
     // We don't have Oracle Java 8 on Windows any more
-    @Requires([TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_WINDOWS])
+    @Requires([
+        UnitTestPreconditions.Jdk9OrEarlier,
+        UnitTestPreconditions.NotWindows
+    ])
     def "compileJavaFx8Code"() {
         given:
         file("src/main/java/compile/test/FxApp.java") << '''
@@ -150,7 +153,7 @@ public class FxApp extends Application {
         succeeds("compileJava")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def 'ignores project level compatibility when using toolchain'() {
         given:
         goodCode()
@@ -172,7 +175,7 @@ compileJava {
 """
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def 'honors task level compatibility when using toolchain'() {
         given:
         goodCode()
@@ -195,7 +198,7 @@ compileJava {
 """
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_14) != null })
+    @Requires(IntegTestPreconditions.Java14HomeAvailable)
     def 'computes target jvm version when using toolchain'() {
         given:
         goodCode()
@@ -215,7 +218,7 @@ compileJava {
 """
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compile with release flag using #notation notation"() {
         given:
         goodCode()
@@ -251,7 +254,7 @@ compileJava {
         ]
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compile with release property set"() {
         given:
         goodCode()
@@ -281,7 +284,7 @@ compileJava {
         bytecodeVersion() == 52
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "fails to compile with release property and flag set"() {
         given:
         goodCode()
@@ -295,7 +298,7 @@ compileJava.options.release.set(8)
         failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.')
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compile with release property and autoTargetJvmDisabled"() {
         given:
         goodCode()
@@ -312,8 +315,8 @@ compileJava {
     doFirst {
         assert apiElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
         assert runtimeElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert !compileClasspathAttributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
-        assert !runtimeClasspathAttributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+        assert compileClasspathAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
+        assert runtimeClasspathAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
     }
 }
 """
@@ -382,7 +385,7 @@ compileJava {
         bytecodeVersion() == 52
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compile fails when using newer API with release option"() {
         given:
         file("src/main/java/compile/test/FailsOnJava8.java") << '''
@@ -409,7 +412,7 @@ compileJava.options.compilerArgs.addAll(['--release', '8'])
         failure.assertHasErrorOutput("method takeWhile")
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compile fails when using newer API with release property"() {
         given:
         file("src/main/java/compile/test/FailsOnJava8.java") << '''

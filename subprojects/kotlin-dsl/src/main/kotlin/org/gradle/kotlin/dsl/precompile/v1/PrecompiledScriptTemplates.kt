@@ -99,9 +99,9 @@ open class PrecompiledSettingsScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(block: PluginDependenciesSpecScope.() -> Unit) {
+    fun plugins(block: PluginDependenciesSpec.() -> Unit) {
         block(
-            PluginDependenciesSpecScope(object : PluginDependenciesSpec {
+            object : PluginDependenciesSpec {
                 override fun id(id: String): PluginDependencySpec {
                     pluginManager.apply(id)
                     return NullPluginDependencySpec
@@ -115,7 +115,7 @@ open class PrecompiledSettingsScript(
                 override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
                     return alias(notation.asProvider())
                 }
-            })
+            }
         )
     }
 }
@@ -168,9 +168,9 @@ open class PrecompiledProjectScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(block: PluginDependenciesSpecScope.() -> Unit) {
+    fun plugins(block: PluginDependenciesSpec.() -> Unit) {
         block(
-            PluginDependenciesSpecScope(object : PluginDependenciesSpec {
+            object : PluginDependenciesSpec {
                 override fun id(id: String): PluginDependencySpec {
                     pluginManager.apply(id)
                     return NullPluginDependencySpec
@@ -184,7 +184,7 @@ open class PrecompiledProjectScript(
                 override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
                     return alias(notation.asProvider())
                 }
-            })
+            }
         )
     }
 }

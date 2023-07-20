@@ -2,6 +2,15 @@ package common
 
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 
+fun isSecurityFork(): Boolean {
+    return DslContext.settingsRoot.id.toString().lowercase().contains("security")
+}
+
+// GradleMaster -> Master
+// GradleSecurityAdvisory84mwRelease -> SecurityAdvisory84mwRelease
+val DslContext.uuidPrefix: String
+    get() = settingsRoot.id.toString().substringAfter("Gradle")
+
 data class VersionedSettingsBranch(val branchName: String) {
     /**
      * 0~23.
@@ -38,9 +47,6 @@ data class VersionedSettingsBranch(val branchName: String) {
         private
         val OLD_RELEASE_PATTERN = "release(\\d+)x".toRegex()
 
-        private
-        val mainBranches = setOf(MASTER_BRANCH, RELEASE_BRANCH)
-
         fun fromDslContext(): VersionedSettingsBranch {
             val branch = DslContext.getParameter("Branch")
             // TeamCity uses a dummy name when first running the DSL
@@ -75,7 +81,7 @@ data class VersionedSettingsBranch(val branchName: String) {
     val isExperimental: Boolean
         get() = branchName == EXPERIMENTAL_BRANCH
 
-    fun vcsRootId() = "Gradle${branchName.toCapitalized()}"
+    fun vcsRootId() = DslContext.settingsRoot.id.toString()
 
     fun promoteNightlyTaskName() = nightlyTaskName("promote")
     fun prepNightlyTaskName() = nightlyTaskName("prep")

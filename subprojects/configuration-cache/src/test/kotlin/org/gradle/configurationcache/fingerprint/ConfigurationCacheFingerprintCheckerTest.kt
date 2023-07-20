@@ -313,6 +313,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun push(codec: Codec<Any?>): Unit =
             undefined()
 
+        override fun push(owner: IsolateOwner): Unit =
+            undefined()
+
         override fun push(owner: IsolateOwner, codec: Codec<Any?>): Unit =
             undefined()
 
@@ -417,6 +420,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
 
         override fun push(codec: Codec<Any?>): Unit =
+            undefined()
+
+        override fun push(owner: IsolateOwner): Unit =
             undefined()
 
         override fun push(owner: IsolateOwner, codec: Codec<Any?>): Unit =

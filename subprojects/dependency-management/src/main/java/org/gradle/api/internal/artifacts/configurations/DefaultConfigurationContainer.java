@@ -15,47 +15,40 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
+import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.vcs.internal.VcsMappingsStore;
+import org.gradle.util.GradleVersion;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
+import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Pattern;
 
+// TODO: We should eventually consider making the DefaultConfigurationContainer extend DefaultPolymorphicDomainObjectContainer
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
-
-    @SuppressWarnings("deprecation")
-    private static final ConfigurationRole DEFAULT_ROLE_TO_CREATE = ConfigurationRoles.LEGACY;
-    private static final boolean DEFAULT_LOCK_USAGE_AT_CREATION = false;
+    private static final Pattern RESERVED_NAMES_FOR_DETACHED_CONFS = Pattern.compile(DETACHED_CONFIGURATION_DEFAULT_NAME + "\\d*");
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
@@ -64,39 +57,44 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     public DefaultConfigurationContainer(
         Instantiator instantiator,
-        DependencySubstitutionRules globalDependencySubstitutionRules,
-        VcsMappingsStore vcsMappingsStore,
-        ComponentIdentifierFactory componentIdentifierFactory,
-        ImmutableAttributesFactory attributesFactory,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        ComponentSelectorConverter componentSelectorConverter,
-        DependencyLockingProvider dependencyLockingProvider,
         CollectionCallbackActionDecorator callbackDecorator,
-        NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-        ObjectFactory objectFactory,
         DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
-        DefaultConfigurationFactory defaultConfigurationFactory
+        DefaultConfigurationFactory defaultConfigurationFactory,
+        ResolutionStrategyFactory resolutionStrategyFactory
     ) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
-        NotationParser<Object, Capability> dependencyCapabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        resolutionStrategyFactory = () -> {
-            CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(DefaultCapabilitiesResolution.class, new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create());
-            return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolutionInternal, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, dependencyCapabilityNotationParser);
-        };
+
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
-        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.discardAll());
-        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.discardAll());
+        this.resolutionStrategyFactory = resolutionStrategyFactory;
+        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
+        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     protected Configuration doCreate(String name) {
-        return doCreate(name, DEFAULT_ROLE_TO_CREATE, DEFAULT_LOCK_USAGE_AT_CREATION);
+        // TODO: Deprecate legacy configurations for consumption
+        validateNameIsAllowed(name);
+        return defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.LEGACY);
     }
 
     @Override
     public Set<? extends ConfigurationInternal> getAll() {
-        return stream().map(ConfigurationInternal.class::cast).collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<? extends ConfigurationInternal> set = Cast.uncheckedCast(this);
+        return ImmutableSet.copyOf(set);
+    }
+
+    @Override
+    public void visitAll(Consumer<ConfigurationInternal> visitor) {
+        for (Configuration configuration : this) {
+            visitor.accept((ConfigurationInternal) configuration);
+        }
+    }
+
+    @Override
+    public ConfigurationInternal findByName(String name) {
+        return (ConfigurationInternal) super.findByName(name);
     }
 
     @Override
@@ -118,8 +116,17 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
+        RootComponentMetadataBuilder componentMetadataBuilder = rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider);
+
         @SuppressWarnings("deprecation")
-        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRolesForMigration.LEGACY_TO_INTENDED_RESOLVABLE_BUCKET, false);
+        DefaultUnlockedConfiguration detachedConfiguration = defaultConfigurationFactory.create(
+            name,
+            detachedConfigurationsProvider,
+            resolutionStrategyFactory,
+            componentMetadataBuilder,
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
+        );
+
         copyAllTo(detachedConfiguration, dependencies);
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
@@ -136,42 +143,241 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         }
     }
 
-    private DefaultConfiguration newConfiguration(String name,
-                                                  ConfigurationsProvider detachedConfigurationsProvider,
-                                                  RootComponentMetadataBuilder componentMetadataBuilder,
-                                                  ConfigurationRole role,
-                                                  boolean lockUsage) {
-        return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder, role, lockUsage);
-    }
-
-    /**
-     * Build a formatted representation of all Configurations in this ConfigurationContainer. Configuration(s) being toStringed are likely derivations of DefaultConfiguration.
-     */
-    public String dump() {
-        StringBuilder reply = new StringBuilder();
-
-        reply.append("Configuration of type: ").append(getTypeDisplayName());
-        Collection<? extends Configuration> configs = getAll();
-        for (Configuration c : configs) {
-            reply.append("\n  ").append(c.toString());
-        }
-
-        return reply.toString();
+    @Override
+    public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name) {
+        assertMutable("resolvable(String)");
+        return registerResolvableConfiguration(name, Actions.doNothing());
     }
 
     @Override
-    public Configuration createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super Configuration> configureAction) {
-        assertMutable("createWithRole(String, ConfigurationRole, boolean, Action)");
-        assertCanAdd(name);
-        ConfigurationInternal object = doCreate(name, role, lockUsage);
-        add(object);
-        configureAction.execute(object);
-        return object;
+    public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action) {
+        assertMutable("resolvableUnlocked(String, Action)");
+        return registerResolvableConfiguration(name, action);
     }
 
-    private ConfigurationInternal doCreate(String name, ConfigurationRole role, boolean lockUsage) {
-        DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, role, lockUsage);
-        configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
+    @Override
+    public Configuration resolvableUnlocked(String name) {
+        assertMutable("resolvableUnlocked(String)");
+        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
+    }
+
+    @Override
+    public Configuration resolvableUnlocked(String name, Action<? super Configuration> action) {
+        assertMutable("resolvableUnlocked(String, Action)");
+        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
+    }
+
+    @Override
+    public NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name) {
+        assertMutable("consumable(String)");
+        return registerConsumableConfiguration(name, Actions.doNothing());
+    }
+
+    @Override
+    public NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action) {
+        assertMutable("consumable(String, Action)");
+        return registerConsumableConfiguration(name, action);
+    }
+
+    @Override
+    public Configuration consumableUnlocked(String name) {
+        assertMutable("consumableUnlocked(String)");
+        return createUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
+    }
+
+    @Override
+    public Configuration consumableUnlocked(String name, Action<? super Configuration> action) {
+        assertMutable("consumableUnlocked(String, Action)");
+        return createUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
+    }
+
+    @Override
+    public NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name) {
+        assertMutable("dependencyScope(String)");
+        return registerDependencyScopeConfiguration(name, Actions.doNothing());
+    }
+
+    @Override
+    public NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name, Action<? super DependencyScopeConfiguration> action) {
+        assertMutable("dependencyScope(String, Action)");
+        return registerDependencyScopeConfiguration(name, action);
+    }
+
+    @Override
+    public Configuration dependencyScopeUnlocked(String name) {
+        assertMutable("dependencyScopeUnlocked(String)");
+        return createUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
+    }
+
+    @Override
+    public Configuration dependencyScopeUnlocked(String name, Action<? super Configuration> action) {
+        assertMutable("dependencyScopeUnlocked(String, Action)");
+        return createUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
+    }
+
+    @Override
+    @Deprecated
+    public Configuration resolvableDependencyScopeUnlocked(String name) {
+        assertMutable("resolvableDependencyScopeUnlocked(String)");
+        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
+    }
+
+    @Override
+    @Deprecated
+    public Configuration resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
+        assertMutable("resolvableDependencyScopeUnlocked(String, Action)");
+        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
+    }
+
+    @Override
+    public Configuration migratingUnlocked(String name, ConfigurationRole role) {
+        assertMutable("migratingUnlocked(String, ConfigurationRole)");
+        return migratingUnlocked(name, role, Actions.doNothing());
+    }
+
+    @Override
+    public Configuration migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
+        assertMutable("migratingUnlocked(String, ConfigurationRole, Action)");
+
+        if (!ConfigurationRolesForMigration.ALL.contains(role)) {
+            throw new InvalidUserDataException("Unknown migration role: " + role);
+        }
+
+        return createUnlockedConfiguration(name, role, action);
+    }
+
+    @Override
+    public Configuration maybeCreateResolvableUnlocked(String name) {
+        if (!hasWithName(name)) {
+            return resolvableUnlocked(name);
+        }
+
+        emitConfigurationExistsDeprecation(name);
+        return getByName(name);
+    }
+
+    @Override
+    public Configuration maybeCreateConsumableUnlocked(String name) {
+        if (!hasWithName(name)) {
+            return consumableUnlocked(name);
+        }
+
+        emitConfigurationExistsDeprecation(name);
+        return getByName(name);
+    }
+
+    @Override
+    public Configuration maybeCreateDependencyScopeUnlocked(String name) {
+        return maybeCreateDependencyScopeUnlocked(name, true);
+    }
+
+    @Override
+    public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean warnOnDuplicate) {
+        if (!hasWithName(name)) {
+            return dependencyScopeUnlocked(name);
+        }
+
+        if (warnOnDuplicate) {
+            emitConfigurationExistsDeprecation(name);
+        }
+        return getByName(name);
+    }
+
+    @Override
+    public Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
+        if (!hasWithName(name)) {
+            return migratingUnlocked(name, role);
+        }
+
+        emitConfigurationExistsDeprecation(name);
+        return getByName(name);
+    }
+
+    @Override
+    @Deprecated
+    public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
+        if (!hasWithName(name)) {
+            return resolvableDependencyScopeUnlocked(name);
+        }
+
+        emitConfigurationExistsDeprecation(name);
+        return getByName(name);
+    }
+
+    private NamedDomainObjectProvider<ConsumableConfiguration> registerConsumableConfiguration(String name, Action<? super ConsumableConfiguration> configureAction) {
+        return registerConfiguration(name, configureAction, ConsumableConfiguration.class, n ->
+            defaultConfigurationFactory.createConsumable(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+        );
+    }
+
+    private NamedDomainObjectProvider<ResolvableConfiguration> registerResolvableConfiguration(String name, Action<? super ResolvableConfiguration> configureAction) {
+        return registerConfiguration(name, configureAction, ResolvableConfiguration.class, n ->
+            defaultConfigurationFactory.createResolvable(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+        );
+    }
+
+    private NamedDomainObjectProvider<DependencyScopeConfiguration> registerDependencyScopeConfiguration(String name, Action<? super DependencyScopeConfiguration> configureAction) {
+        return registerConfiguration(name, configureAction, DependencyScopeConfiguration.class, n ->
+            defaultConfigurationFactory.createDependencyScope(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+        );
+    }
+
+    @SuppressWarnings("deprecation")
+    private Configuration createUnlockedConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
+        // Sanity check to make sure we are locking all non-legacy configurations by 9.0
+        assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.LEGACY;
+
+        // TODO: Deprecate changing roles of unlocked non-legacy configurations.
+
+        assertCanAdd(name);
+        validateNameIsAllowed(name);
+        Configuration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
+        add(configuration);
+        configureAction.execute(configuration);
         return configuration;
+    }
+
+    private <T extends Configuration> NamedDomainObjectProvider<T> registerConfiguration(String name, Action<? super T> configureAction, Class<T> publicType, Function<String, T> factory) {
+        assertCanAdd(name);
+        validateNameIsAllowed(name);
+
+        NamedDomainObjectProvider<T> configuration = Cast.uncheckedCast(
+            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, this, name, publicType, configureAction, factory));
+        addLater(configuration);
+        return configuration;
+    }
+
+    // Cannot be private due to reflective instantiation
+    public class NamedDomainObjectCreatingProvider<I extends Configuration> extends AbstractDomainObjectCreatingProvider<I> {
+
+        private final Function<String, I> factory;
+
+        public NamedDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction, Function<String, I> factory) {
+            super(name, type, configureAction);
+            this.factory = factory;
+        }
+
+        @Override
+        protected I createDomainObject() {
+            return factory.apply(getName());
+        }
+    }
+
+    private static void emitConfigurationExistsDeprecation(String configurationName) {
+        DeprecationLogger.deprecateBehaviour("The configuration " + configurationName + " was created explicitly. This configuration name is reserved for creation by Gradle.")
+            .withAdvice("Do not create a configuration with this name.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "configurations_allowed_usage")
+            .nagUser();
+    }
+
+    private static void validateNameIsAllowed(String name) {
+        if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
+            DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
+                    .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "reserved_configuration_names")
+                    .nagUser();
+        }
     }
 }

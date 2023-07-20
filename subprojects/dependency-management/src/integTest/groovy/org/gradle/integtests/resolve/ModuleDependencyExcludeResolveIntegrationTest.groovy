@@ -439,6 +439,7 @@ task check(type: Sync) {
                     edge("b:b:1.0", "b:b:2.0")
                     module("c:c:1.0") {
                         module("b:b:2.0") {
+                            byConflictResolution("between versions 2.0 and 1.0")
                             // 'd' is NOT excluded, because the exclude in 'a:a:1.0 --depends-on--> b:b:1.0' only excludes 'e'
                             module("d:d:1.0")
                         }
@@ -527,7 +528,9 @@ task check(type: Sync) {
                 module('org.test:depD:1.0') {
                     module('org.test:depC:1.0') {
                         module('org.test:depB:1.0') {
-                            module('org.test:depA:1.0')
+                            module('org.test:depA:1.0') {
+                                byConstraint()
+                            }
                         }
                     }
                 }

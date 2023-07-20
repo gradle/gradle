@@ -79,10 +79,10 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     @Override
     public BuildInitDsl getDefaultDsl() {
-        if (descriptor.getLanguage().equals(Language.KOTLIN)) {
-            return BuildInitDsl.KOTLIN;
+        if (descriptor.getLanguage().equals(Language.GROOVY)) {
+            return BuildInitDsl.GROOVY;
         }
-        return BuildInitDsl.GROOVY;
+        return BuildInitDsl.KOTLIN;
     }
 
     @Override

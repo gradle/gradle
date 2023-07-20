@@ -55,7 +55,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.configurationcache.flow.RequestedTasksResultProvider
+import org.gradle.configurationcache.flow.BuildWorkResultProvider
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.IsolateContext
@@ -166,12 +166,12 @@ object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProvi
 
 
 internal
-object UnsupportedFingerprintFlowProviders : Codec<RequestedTasksResultProvider> {
-    override suspend fun WriteContext.encode(value: RequestedTasksResultProvider) {
+object UnsupportedFingerprintFlowProviders : Codec<BuildWorkResultProvider> {
+    override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
         logUnsupported("serialize")
     }
 
-    override suspend fun ReadContext.decode(): RequestedTasksResultProvider? {
+    override suspend fun ReadContext.decode(): BuildWorkResultProvider? {
         logUnsupported("deserialize")
         return null
     }
@@ -180,7 +180,7 @@ object UnsupportedFingerprintFlowProviders : Codec<RequestedTasksResultProvider>
     fun IsolateContext.logUnsupported(action: String) {
         logUnsupported(action) {
             text(" ")
-            reference(RequestedTasksResultProvider::class)
+            reference(BuildWorkResultProvider::class)
             text(" used at configuration time")
         }
     }

@@ -188,8 +188,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                     _compileFreeRelease project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo2.jar']
+                       assert files.collect { it.name } == ['b-foo2.jar']
                     }
                 }
             }
@@ -263,8 +264,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                     _compileFreeRelease project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo2.jar']
+                       assert files.collect { it.name } == ['b-foo2.jar']
                     }
                 }
             }
@@ -458,8 +460,9 @@ The following variants were also considered but didn't match the requested attri
                     _compileFreeRelease project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo2.jar']
+                       assert files.collect { it.name } == ['b-foo2.jar']
                     }
                 }
             }
@@ -548,13 +551,15 @@ The following variants were also considered but didn't match the requested attri
                     _compileDebug project(':b')
                 }
                 task checkFreeDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo2.jar']
+                       assert files.collect { it.name } == ['b-foo2.jar']
                     }
                 }
                 task checkDebug(dependsOn: configurations._compileDebug) {
+                    def files = configurations._compileDebug
                     doLast {
-                       assert configurations._compileDebug.collect { it.name } == ['b-foo.jar']
+                       assert files.collect { it.name } == ['b-foo.jar']
                     }
                 }
             }
@@ -628,8 +633,9 @@ The following variants were also considered but didn't match the requested attri
                     _compileFreeRelease project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                       assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -701,8 +707,9 @@ The following variants were also considered but didn't match the requested attri
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                       assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -762,8 +769,9 @@ The following variants were also considered but didn't match the requested attri
                     compile project(':b')
                 }
                 task check(dependsOn: configurations.compile) {
+                    def files = configurations.compile
                     doLast {
-                       assert configurations.compile.collect { it.name } == ['b-bar.jar']
+                       assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -821,8 +829,9 @@ The following variants were also considered but didn't match the requested attri
                     compile project(':b')
                 }
                 task check(dependsOn: configurations.compile) {
+                    def files = configurations.compile
                     doLast {
-                       assert configurations.compile.collect { it.name } == ['b-bar.jar']
+                       assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -878,8 +887,9 @@ The following variants were also considered but didn't match the requested attri
                     compile project(':b')
                 }
                 task check(dependsOn: configurations.compile) {
+                    def files = configurations.compile
                     doLast {
-                       assert configurations.compile.collect { it.name } == ['b-bar.jar']
+                       assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -956,8 +966,9 @@ The following variants were also considered but didn't match the requested attri
                     compile project(':c')
                 }
                 task check(dependsOn: configurations.compile) {
+                    def files = configurations.compile
                     doLast {
-                       assert configurations.compile.collect { it.name } == ['b-bar.jar', 'c-bar.jar']
+                       assert files.collect { it.name } == ['b-bar.jar', 'c-bar.jar']
                     }
                 }
             }
@@ -1057,9 +1068,10 @@ The following variants were also considered but didn't match the requested attri
                     compile project(':b')
                 }
                 task checkDebug(dependsOn: configurations.compile) {
+                    def files = configurations.compile
                     doLast {
                         // Compatibility rules select paid flavors, disambiguation rules select debug
-                        assert configurations.compile.collect { it.name } == ['b-foo2.jar']
+                        assert files.collect { it.name } == ['b-foo2.jar']
                     }
                 }
             }

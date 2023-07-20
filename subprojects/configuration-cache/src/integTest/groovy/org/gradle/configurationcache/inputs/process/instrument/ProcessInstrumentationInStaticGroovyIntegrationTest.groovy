@@ -20,13 +20,15 @@ class ProcessInstrumentationInStaticGroovyIntegrationTest extends AbstractProces
      def "#title is intercepted in static groovy build script"(VarInitializer varInitializer) {
         given:
         def cwd = testDirectory.file(expectedPwdSuffix)
+        def command = varInitializer.getGroovy(baseScript.getRelativeCommandLine(cwd)).trim()
+
         buildFile("""
         import org.codehaus.groovy.runtime.ProcessGroovyMethods
         import static org.codehaus.groovy.runtime.ProcessGroovyMethods.execute
 
         @groovy.transform.CompileStatic
         void runStuff() {
-            ${varInitializer.getGroovy(baseScript.getRelativeCommandLine(cwd))}
+            $command
             def process = $processCreator
             process.waitForProcessOutput(System.out, System.err)
         }
@@ -40,7 +42,8 @@ class ProcessInstrumentationInStaticGroovyIntegrationTest extends AbstractProces
         then:
         failure.assertOutputContains("FOOBAR=$expectedEnvVar\nCWD=${cwd.path}")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': external process started")
+            def line = 7 + command.readLines().size()
+            withProblem("Build file 'build.gradle': line $line: external process started")
         }
 
         where:

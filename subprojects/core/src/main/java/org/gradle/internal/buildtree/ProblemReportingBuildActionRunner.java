@@ -87,7 +87,7 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
-            rootProjectBuildDir = gradle.getRootProject().getBuildDir();
+            rootProjectBuildDir = gradle.getRootProject().getLayout().getBuildDirectory().getAsFile().get();
         }
     }
 }

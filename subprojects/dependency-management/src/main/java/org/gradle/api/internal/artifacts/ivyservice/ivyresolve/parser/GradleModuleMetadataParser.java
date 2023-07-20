@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
@@ -53,7 +54,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.gson.stream.JsonToken.BOOLEAN;
 import static com.google.gson.stream.JsonToken.END_ARRAY;
@@ -291,8 +294,17 @@ public class GradleModuleMetadataParser {
         return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.of(), null, ImmutableAttributes.EMPTY, Collections.emptyList(), false, null));
     }
 
+    /**
+     * Consume the dependencies of a given variant.
+     * <p>
+     * This method needs to remove any duplicates from said dependencies.
+     *
+     * @param reader The Json to read from
+     * @return a list of dependencies
+     * @throws IOException when the reader fails
+     */
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
-        List<ModuleDependency> dependencies = new ArrayList<>();
+        Set<ModuleDependency> dependencies = new LinkedHashSet<>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             String group = null;
@@ -357,7 +369,7 @@ public class GradleModuleMetadataParser {
             dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes, requestedCapabilities, endorseStrictVersions, artifactSelector));
         }
         reader.endArray();
-        return dependencies;
+        return new ArrayList<>(dependencies);
     }
 
     private IvyArtifactName consumeArtifactSelector(JsonReader reader) throws IOException {
@@ -432,8 +444,17 @@ public class GradleModuleMetadataParser {
         return capabilities.build();
     }
 
+    /**
+     * Consume the dependency constraints of a given variant.
+     * <p>
+     * This method needs to remove any duplicates from said constraints.
+     *
+     * @param reader The Json to read from
+     * @return a list of constraints
+     * @throws IOException when the reader fails
+     */
     private List<ModuleDependencyConstraint> consumeDependencyConstraints(JsonReader reader) throws IOException {
-        List<ModuleDependencyConstraint> dependencies = new ArrayList<>();
+        Set<ModuleDependencyConstraint> dependencies = new LinkedHashSet<>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             String group = null;
@@ -473,7 +494,7 @@ public class GradleModuleMetadataParser {
             dependencies.add(new ModuleDependencyConstraint(group, module, version, reason, attributes));
         }
         reader.endArray();
-        return dependencies;
+        return new ArrayList<>(dependencies);
     }
 
     private ImmutableVersionConstraint consumeVersion(JsonReader reader) throws IOException {
@@ -641,6 +662,33 @@ public class GradleModuleMetadataParser {
             this.endorsing = endorsing;
             this.artifact = artifact;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ModuleDependency that = (ModuleDependency) o;
+            return Objects.equal(group, that.group)
+                && Objects.equal(module, that.module)
+                && Objects.equal(versionConstraint, that.versionConstraint)
+                && Objects.equal(excludes, that.excludes)
+                && Objects.equal(reason, that.reason)
+                && Objects.equal(attributes, that.attributes)
+                && Objects.equal(requestedCapabilities, that.requestedCapabilities)
+                && Objects.equal(endorsing, that.endorsing)
+                && Objects.equal(artifact, that.artifact);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes, endorsing, artifact);
+        }
+
     }
 
     private static class ModuleDependencyConstraint {
@@ -656,6 +704,27 @@ public class GradleModuleMetadataParser {
             this.versionConstraint = versionConstraint;
             this.reason = reason;
             this.attributes = attributes;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ModuleDependencyConstraint that = (ModuleDependencyConstraint) o;
+            return Objects.equal(group, that.group)
+                && Objects.equal(module, that.module)
+                && Objects.equal(versionConstraint, that.versionConstraint)
+                && Objects.equal(reason, that.reason)
+                && Objects.equal(attributes, that.attributes);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(group, module, versionConstraint, reason, attributes);
         }
     }
 

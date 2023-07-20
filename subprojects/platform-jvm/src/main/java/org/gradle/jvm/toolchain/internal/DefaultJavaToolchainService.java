@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -32,11 +33,23 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     private final JavaToolchainQueryService queryService;
     private final ObjectFactory objectFactory;
+    private final JavaCompilerFactory compilerFactory;
+    private final ToolchainToolFactory toolFactory;
+    private final BuildOperationProgressEventEmitter eventEmitter;
 
     @Inject
-    public DefaultJavaToolchainService(JavaToolchainQueryService queryService, ObjectFactory objectFactory) {
+    public DefaultJavaToolchainService(
+        JavaToolchainQueryService queryService,
+        ObjectFactory objectFactory,
+        JavaCompilerFactory compilerFactory,
+        ToolchainToolFactory toolFactory,
+        BuildOperationProgressEventEmitter eventEmitter
+    ) {
         this.queryService = queryService;
         this.objectFactory = objectFactory;
+        this.compilerFactory = compilerFactory;
+        this.toolFactory = toolFactory;
+        this.eventEmitter = eventEmitter;
     }
 
     @Override
@@ -46,7 +59,9 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavaCompiler> compilerFor(JavaToolchainSpec spec) {
-        return queryService.toolFor(spec, JavaToolchain::getJavaCompiler, JavaTool.COMPILER);
+        return queryService.findMatchingToolchain(spec)
+            .withSideEffect(toolchain -> emitEvent(toolchain, JavaTool.COMPILER))
+            .map(javaToolchain -> new DefaultToolchainJavaCompiler(javaToolchain, compilerFactory));
     }
 
     @Override
@@ -56,7 +71,9 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavaLauncher> launcherFor(JavaToolchainSpec spec) {
-        return queryService.toolFor(spec, JavaToolchain::getJavaLauncher, JavaTool.LAUNCHER);
+        return queryService.findMatchingToolchain(spec)
+            .withSideEffect(toolchain -> emitEvent(toolchain, JavaTool.LAUNCHER))
+            .map(DefaultToolchainJavaLauncher::new);
     }
 
     @Override
@@ -66,7 +83,9 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavadocTool> javadocToolFor(JavaToolchainSpec spec) {
-        return queryService.toolFor(spec, JavaToolchain::getJavadocTool, JavaTool.JAVADOC);
+        return queryService.findMatchingToolchain(spec)
+            .withSideEffect(toolchain -> emitEvent(toolchain, JavaTool.JAVADOC))
+            .map(javaToolchain -> toolFactory.create(JavadocTool.class, javaToolchain));
     }
 
     private DefaultToolchainSpec configureToolchainSpec(Action<? super JavaToolchainSpec> config) {
@@ -74,4 +93,9 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
         config.execute(toolchainSpec);
         return toolchainSpec;
     }
+
+    private void emitEvent(JavaToolchain toolchain, JavaTool toolName) {
+        eventEmitter.emitNowForCurrent(new DefaultJavaToolchainUsageProgressDetails(toolName, toolchain.getMetadata()));
+    }
+
 }

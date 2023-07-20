@@ -35,7 +35,6 @@ class TestLauncherCancellationCrossVersionSpec extends CancellationSpec {
             def build = connection.newTestLauncher()
             build.withJvmTestClasses("Broken")
             build.withCancellationToken(cancel.token())
-            collectOutputs(build)
             build.run(resultHandler)
             sync.waitForAllPendingCalls(resultHandler)
             cancel.cancel()

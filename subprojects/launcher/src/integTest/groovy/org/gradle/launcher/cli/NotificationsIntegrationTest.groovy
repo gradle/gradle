@@ -71,7 +71,7 @@ ${getReleaseNotesDetailsMessage(distribution.version)}
 
     def "show reasonable error message for invalid configuration property"() {
         when:
-        file("gradle.properties") << "org.gradle.welcome=foo"
+        propertiesFile << "org.gradle.welcome=foo"
         fails()
 
         then:
@@ -80,7 +80,7 @@ ${getReleaseNotesDetailsMessage(distribution.version)}
 
     def "abort rendering welcome message using configuration property"() {
         when:
-        file("gradle.properties") << "org.gradle.welcome=never"
+        propertiesFile << "org.gradle.welcome=never"
         succeeds()
 
         then:
@@ -95,7 +95,7 @@ ${getReleaseNotesDetailsMessage(distribution.version)}
 
    Debug level logging will leak security sensitive information!
 
-   ${DOCUMENTATION_REGISTRY.getDocumentationFor("logging", "sec:debug_security")}
+   ${new DocumentationRegistry().getDocumentationRecommendationFor("details", "logging", "sec:debug_security")}
 #############################################################################
 """
         withDebugLogging()

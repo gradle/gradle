@@ -68,7 +68,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes root ProjectComponentIdentifier"() {
         given:
-        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("build"), Path.ROOT, Path.ROOT, "someProject")
+        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.ROOT, Path.ROOT, "someProject")
 
         when:
         def result = serialize(identifier, serializer)
@@ -76,13 +76,14 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
+        result.buildTreePath == identifier.buildTreePath
         result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
     }
 
     def "serializes root build ProjectComponentIdentifier"() {
         given:
-        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("build"), Path.path(":a:b"), Path.path(":a:b"), "b")
+        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.path(":a:b"), Path.path(":a:b"), "b")
 
         when:
         def result = serialize(identifier, serializer)
@@ -90,13 +91,14 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
+        result.buildTreePath == identifier.buildTreePath
         result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
     }
 
     def "serializes other build root ProjectComponentIdentifier"() {
         given:
-        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("build"), Path.path(":prefix:someProject"), Path.ROOT, "someProject")
+        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.path(":prefix:someProject"), Path.ROOT, "someProject")
 
         when:
         def result = serialize(identifier, serializer)
@@ -104,13 +106,14 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
+        result.buildTreePath == identifier.buildTreePath
         result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
     }
 
     def "serializes other build ProjectComponentIdentifier"() {
         given:
-        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("build"), Path.path(":prefix:a:b"), Path.path(":a:b"), "b")
+        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.path(":prefix:a:b"), Path.path(":a:b"), "b")
 
         when:
         def result = serialize(identifier, serializer)
@@ -118,6 +121,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
+        result.buildTreePath == identifier.buildTreePath
         result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
     }

@@ -138,9 +138,11 @@ project(":b") {
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", 'test:a:') {
+                    notRequested()
                     byReason('can provide a dependency reason for project dependencies too')
                     variant('runtime')
                     module('org.other:externalA:1.2') {
+                        notRequested()
                         byReason('also check dependency reasons')
                         variant('runtime', ['org.gradle.status': 'release', 'org.gradle.category': 'library', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'])
                     }
@@ -673,5 +675,74 @@ project(':b') {
                 project(":a", "test:a:")
             }
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25579")
+    def "can lazily compute dependencies from results of another resolution which resolves current project"() {
+        buildFile << """
+            configurations {
+                a
+                b
+                create("default")
+            }
+
+            dependencies {
+                a project
+            }
+
+            configurations.b.dependencies.addAllLater provider(() -> {
+                configurations.a.files
+                []
+            })
+
+            configurations.a.files
+        """
+
+        expect:
+        succeeds(":help")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25579")
+    def "can lazily compute dependencies from results of another resolution which circularly depends on current project"() {
+        buildFile << """
+            configurations {
+                a
+                b
+                create("default")
+            }
+
+            dependencies {
+                a project(":other")
+            }
+
+            configurations.b.dependencies.addAllLater provider(() -> {
+                configurations.a.files
+                []
+            })
+
+        """
+
+        settingsFile << "include 'other'"
+        file("other/build.gradle") << """
+            configurations {
+                a
+                b
+                create("default")
+            }
+
+            dependencies {
+                a project(":")
+            }
+
+            configurations.b.dependencies.addAllLater provider(() -> {
+                configurations.a.files
+                []
+            })
+
+            configurations.a.files
+        """
+
+        expect:
+        succeeds(":help")
     }
 }

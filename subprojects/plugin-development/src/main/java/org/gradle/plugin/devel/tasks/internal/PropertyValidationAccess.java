@@ -37,8 +37,10 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
+import org.gradle.internal.properties.annotations.NestedValidationUtil;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 /**
@@ -100,6 +102,10 @@ public class PropertyValidationAccess {
             @Override
             public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
+                // Inspecting annotations of static types is only conclusive if type is final
+                if (Modifier.isFinal(value.getRawType().getModifiers())) {
+                    NestedValidationUtil.validateBeanType(validationContext, propertyMetadata.getPropertyName(), typeMetadata.getType());
+                }
             }
         });
     }

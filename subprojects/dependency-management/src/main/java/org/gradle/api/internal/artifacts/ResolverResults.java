@@ -13,17 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
+/**
+ * Immutable representation of the state of dependency resolution. Can represent intermediate resolution states after
+ * build dependency resolution, graph resolution, and artifact resolution. Results can have attached failures
+ * in cases of partial resolution successes.
+ *
+ * <p>This should eventually be merged with {@link org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ResolveState}</p>
+ */
+@SuppressWarnings("JavadocReference")
 public interface ResolverResults {
+
+    /**
+     * Returns true if there was a failure attached to this result.
+     */
     boolean hasError();
 
     /**
@@ -32,56 +47,50 @@ public interface ResolverResults {
     ResolvedConfiguration getResolvedConfiguration();
 
     /**
-     * Returns details of the artifacts visited during dependency graph resolution. This set is later refined during artifact resolution and replaced with a new instance.
+     * Returns details of the artifacts visited during dependency graph resolution. This set is later refined during artifact resolution.
      */
     VisitedArtifactSet getVisitedArtifacts();
 
     /**
      * Returns the dependency graph resolve result.
      */
+    @Nullable
     ResolutionResult getResolutionResult();
 
     /**
      * Returns details of the local components in the resolved dependency graph.
      */
+    @Nullable
     ResolvedLocalComponentsResult getResolvedLocalComponents();
 
     /**
-     * Marks the dependency graph resolution as successful, with the given result.
-     */
-    void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactSet visitedArtifacts);
-
-    void failed(ResolveException failure);
-
-    /**
-     * Attaches some opaque state calculated during dependency graph resolution that will later be required to resolve the artifacts.
-     */
-    void retainState(Object artifactResolveState);
-
-    /**
-     * Returns the opaque state required to resolve the artifacts.
-     */
-    Object getArtifactResolveState();
-
-    /**
-     * Marks artifact resolution as successful, clearing state provided by {@link #retainState(Object)}.
-     */
-    void artifactsResolved(ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts);
-
-    /**
-     * Consumes the failure, allowing to either throw or do something else with it. Consuming effectively
-     * removes the exception from the underlying resolver results, meaning that subsequent calls to consume
-     * will return null.
+     * Returns intermediate state saved between dependency graph resolution and artifact resolution.
      */
     @Nullable
-    ResolveException consumeNonFatalFailure();
+    ArtifactResolveState getArtifactResolveState();
 
     /**
-     * Returns the failure, fatal or non fatal, or null if there's no failure. Used internally to
-     * set the failure on the resolution build operation result. In opposite to {@link #consumeNonFatalFailure()},
-     * this doesn't consume the error, so subsequent calls will return the same instance, unless the error was
-     * consumed in between.
+     * Returns the non-fatal failure, if present.
      */
     @Nullable
-    Throwable getFailure();
+    Throwable getNonFatalFailure();
+
+    /**
+     * Returns the failure, fatal or non-fatal, or null if there's no failure. Used internally to
+     * set the failure on the resolution build operation result.
+     */
+    @Nullable
+    ResolveException getFailure();
+
+    /**
+     * Return a new result with the provided {@code resolveException} attached.
+     */
+    ResolverResults withFailure(ResolveException failure);
+
+    /**
+     * Returns a new result with a resolution result equal to the value returned by the provided updater.
+     *
+     * @param updater a function that takes the current resolution result and returns a new resolution result
+     */
+    ResolverResults updateResolutionResult(Function<ResolutionResult, ResolutionResult> updater);
 }

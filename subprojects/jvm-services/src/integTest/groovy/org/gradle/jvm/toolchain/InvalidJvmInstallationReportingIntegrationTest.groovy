@@ -71,7 +71,7 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
         results.size() == 2
         results.every { result ->
             def expectedErrorMessages = [invalidJdkHome1, invalidJdkHome2].collect {
-                "Invalid Java installation found at '${it.canonicalPath}' (system property 'org.gradle.java.installations.paths'). " +
+                "Invalid Java installation found at '${it.canonicalPath}' (Gradle property 'org.gradle.java.installations.paths'). " +
                     "It will be re-checked in the next build. This might have performance impact if it keeps failing. " +
                     "Run the 'javaToolchains' task for more details."
             }

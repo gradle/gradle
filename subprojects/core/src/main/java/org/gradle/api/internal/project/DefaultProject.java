@@ -74,7 +74,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -90,6 +89,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -344,8 +344,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
         registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
-        // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
-        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, this::getBuildDir);
+        // TODO:LPTR This ignores changes to Project.layout.buildDirectory after model node has been created
+        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, () -> getLayout().getBuildDirectory().getAsFile().get());
         registerInstanceOn(modelRegistry, "projectIdentifier", PROJECT_IDENTIFIER_MODEL_TYPE, this);
         registerInstanceOn(modelRegistry, "extensionContainer", EXTENSION_CONTAINER_MODEL_TYPE, getExtensions());
         modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
@@ -586,14 +586,23 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Deprecated
     @Override
-    public Convention getConvention() {
-        // TODO (donat) deprecate after all internal usages have been eliminated
+    public org.gradle.api.plugins.Convention getConvention() {
+        DeprecationLogger.deprecateMethod(Project.class, "getConvention()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
+            .nagUser();
         return extensibleDynamicObject.getConvention();
     }
 
     @Override
     public String getPath() {
         return owner.getProjectPath().toString();
+    }
+
+
+    @Override
+    public String getBuildTreePath() {
+        return getIdentityPath().getPath();
     }
 
     @Override
@@ -815,16 +824,19 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Deprecated
     public File getBuildDir() {
         return getLayout().getBuildDirectory().getAsFile().get();
     }
 
     @Override
+    @Deprecated
     public void setBuildDir(File path) {
         setBuildDir((Object) path);
     }
 
     @Override
+    @Deprecated
     public void setBuildDir(Object path) {
         getLayout().setBuildDirectory(path);
     }
@@ -1405,7 +1417,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ExtensionContainerInternal getExtensions() {
-        return (ExtensionContainerInternal) getConvention();
+        return (ExtensionContainerInternal) DeprecationLogger.whileDisabled(this::getConvention);
     }
 
     // Not part of the public API

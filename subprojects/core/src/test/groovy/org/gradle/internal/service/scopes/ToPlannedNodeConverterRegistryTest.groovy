@@ -20,6 +20,7 @@ import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.TaskNode
 import org.gradle.execution.plan.ToPlannedNodeConverter
+import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.execution.plan.ToPlannedTaskConverter
 import spock.lang.Specification
 

@@ -28,7 +28,6 @@ configurations {
     functionalTestClasspath {
         extendsFrom(functionalTest)
         canBeConsumed = false
-        canBeResolved = true
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
         }

@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Map;
 
 /**
- * This caching substitutor is not intended to be called from places where it can be executed concurrently.
+ * This caching applicator is not intended to be called from places where it can be executed concurrently.
  */
 @NotThreadSafe
 public class CachingDependencySubstitutionApplicator implements DependencySubstitutionApplicator {

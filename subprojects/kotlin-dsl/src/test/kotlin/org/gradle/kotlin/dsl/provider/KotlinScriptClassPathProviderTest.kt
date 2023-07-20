@@ -47,7 +47,7 @@ class KotlinScriptClassPathProviderTest : TestWithClassPath() {
             gradleApiJarsProvider = { gradleApiJar },
             jarCache = { id, generator -> file("$id.jar").apply(generator) },
             progressMonitorProvider = progressMonitorProvider,
-            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tempFolder.root)
+            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tempFolder.createDir("tmp"))
         )
 
         assertThat(

@@ -15,32 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -49,20 +39,14 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
-import java.util.Set;
 
-@ServiceScope(Scopes.Project.class)
-public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
+@ServiceScope(Scopes.Build.class)
+public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
-    private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ProjectArtifactResolver artifactResolver;
 
-    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry,
-                                     ComponentIdentifierFactory componentIdentifierFactory,
-                                     ProjectArtifactResolver artifactResolver
-    ) {
+    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactResolver artifactResolver) {
         this.localComponentRegistry = localComponentRegistry;
-        this.componentIdentifierFactory = componentIdentifierFactory;
         this.artifactResolver = artifactResolver;
     }
 
@@ -82,15 +66,10 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     @Override
-    public OriginArtifactSelector getArtifactSelector() {
-        return this;
-    }
-
-    @Override
     public void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
-        if (dependency.getSelector() instanceof ProjectComponentSelector) {
-            ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
-            ProjectComponentIdentifier projectId = componentIdentifierFactory.createProjectComponentIdentifier(selector);
+        if (dependency.getSelector() instanceof DefaultProjectComponentSelector) {
+            DefaultProjectComponentSelector selector = (DefaultProjectComponentSelector) dependency.getSelector();
+            ProjectComponentIdentifier projectId = selector.toIdentifier();
             LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
             if (component == null) {
                 result.failed(new ModuleVersionResolveException(selector, () -> projectId + " not found."));
@@ -98,7 +77,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
                 if (rejector != null && rejector.accept(component.getModuleVersionId().getVersion())) {
                     result.rejected(projectId, component.getModuleVersionId());
                 } else {
-                    result.resolved(component);
+                    result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
                 }
             }
         }
@@ -112,7 +91,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             if (component == null) {
                 result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), () -> projectId + " not found."));
             } else {
-                result.resolved(component);
+                result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
             }
         }
     }
@@ -123,30 +102,20 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(component.getId())) {
             throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
         }
     }
 
-    @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
-        if (isProjectModule(component.getId())) {
-            return ArtifactSetFactory.createFromVariantMetadata(component.getId(), allVariants, legacyVariants, component.getAttributesSchema(), overriddenAttributes);
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources moduleSources, final BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
         if (isProjectModule(artifact.getComponentId())) {
-            artifactResolver.resolveArtifact(ownerId, artifact, moduleSources, result);
+            artifactResolver.resolveArtifact(component, artifact, result);
         }
     }
 
-    private boolean isProjectModule(ComponentIdentifier componentId) {
+    private static boolean isProjectModule(ComponentIdentifier componentId) {
         return componentId instanceof ProjectComponentIdentifier;
     }
 }

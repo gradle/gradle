@@ -17,39 +17,30 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.internal.FeaturePreviews
-import org.gradle.configurationcache.fixtures.ExternalProcessFixture
-
-import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.exec
+import org.gradle.internal.buildoption.FeatureFlags
 
 class ConfigurationCacheFeatureFlagsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "toggling feature flag with system property invalidates cache"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        ExternalProcessFixture execFixture = new ExternalProcessFixture(testDirectory)
 
-        def snippets = exec().groovy.newSnippets(execFixture)
-
-        buildFile("""
-            ${snippets.imports}
-
-            ${snippets.body}
-
+        and: 'feature flag access at configuration time'
+        buildFile """
+            gradle.services.get($FeatureFlags.name).isEnabled(${FeaturePreviews.name}.Feature.STABLE_CONFIGURATION_CACHE)
             task check {}
-        """)
+        """
 
         when:
-        configurationCacheRun("check")
+        configurationCacheRunLenient "check"
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheFails("-D${FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE.systemPropertyName}=true", "check")
+        configurationCacheRunLenient "-D${FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE.systemPropertyName}=true", "check"
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': external process started")
-        }
+        configurationCache.assertStateStored()
     }
 
     def "feature flag state is restored when running from cache"() {

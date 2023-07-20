@@ -17,8 +17,12 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.TempDir
 
 class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
+
+    @TempDir
+    File targetDir
 
     def "can build Gradle distribution"() {
         def runner = runner(':distributions-full:binDistributionZip', ':distributions-full:binInstallation', '--stacktrace')
@@ -40,5 +44,19 @@ class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
         then:
         result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.SUCCESS
         result.task(":distributions-full:binInstallation").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "can install Gradle distribution over itself"() {
+        def runner = runner('install', "-Pgradle_installPath=$targetDir", '--stacktrace')
+            .ignoreDeprecationWarnings("https://github.com/gradle/gradle-private/issues/3405")
+
+        when:
+        result = runner.build()
+        result = runner.build()
+
+        then:
+        result.task(":distributions-full:install").outcome == TaskOutcome.SUCCESS
+        new File(targetDir, "bin/gradle").exists()
+        new File(targetDir, "LICENSE").exists()
     }
 }

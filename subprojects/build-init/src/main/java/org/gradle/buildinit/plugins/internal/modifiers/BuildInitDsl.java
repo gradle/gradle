@@ -25,8 +25,8 @@ import java.util.List;
 
 public enum BuildInitDsl implements WithIdentifier {
 
-    GROOVY(".gradle"),
-    KOTLIN(".gradle.kts");
+    KOTLIN(".gradle.kts"),
+    GROOVY(".gradle");
 
     private final String fileExtension;
 
@@ -36,7 +36,7 @@ public enum BuildInitDsl implements WithIdentifier {
 
     public static BuildInitDsl fromName(@Nullable String name) {
         if (name == null) {
-            return GROOVY;
+            return KOTLIN;
         }
         for (BuildInitDsl language : values()) {
             if (language.getId().equals(name)) {

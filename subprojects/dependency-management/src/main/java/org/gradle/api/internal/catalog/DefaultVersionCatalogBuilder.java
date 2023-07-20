@@ -31,6 +31,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.catalog.parser.DependenciesModelHelper;
@@ -228,11 +229,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         cnf.getDependencies().add(dependency);
     }
 
+    @SuppressWarnings("deprecation")
     private Configuration createResolvableConfiguration(DependencyResolutionServices drs) {
         // The zero at the end of the configuration comes from the previous implementation;
         // Multiple files could be imported, and all members of the list were given their own configuration, postfixed by the index in the array.
         // After moving this into a single-file import, we didn't want to break the lock files generated for the configuration, so we simply kept the zero.
-        Configuration cnf = drs.getConfigurationContainer().resolvableBucket("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
+        Configuration cnf = ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableDependencyScopeUnlocked("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
         cnf.getResolutionStrategy().activateDependencyLocking();
         cnf.attributes(attrs -> {
             attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));

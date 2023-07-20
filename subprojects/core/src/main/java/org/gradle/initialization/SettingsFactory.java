@@ -34,8 +34,6 @@ import org.gradle.internal.service.scopes.SettingsScopeServices;
 import java.io.File;
 import java.util.Map;
 
-import static java.util.Collections.emptyMap;
-
 public class SettingsFactory {
     private final Instantiator instantiator;
     private final ServiceRegistry buildScopeServices;
@@ -68,7 +66,7 @@ public class SettingsFactory {
             settingsScript,
             startParameter
         );
-        Map<String, Object> properties = gradleProperties.mergeProperties(emptyMap());
+        Map<String, Object> properties = gradleProperties.getProperties();
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
         ((ExtensibleDynamicObject) dynamicObject).addProperties(properties);
         return new SettingsState(settings, serviceRegistryFactory.services);

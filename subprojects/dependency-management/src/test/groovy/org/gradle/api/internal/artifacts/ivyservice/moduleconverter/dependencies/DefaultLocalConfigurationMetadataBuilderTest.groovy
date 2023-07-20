@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.ConfigurationPublications
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
@@ -24,90 +25,108 @@ import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.DetachedConfigurationsProvider
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.model.Exclude
+import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+/**
+ * Tests {@link DefaultLocalConfigurationMetadataBuilder}
+ */
 class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
-    def dependencyDescriptorFactory = Mock(DependencyDescriptorFactory)
+    def dependencyMetadataFactory = Mock(DependencyMetadataFactory)
     def excludeRuleConverter = Mock(ExcludeRuleConverter)
-    def converter = new DefaultLocalConfigurationMetadataBuilder(dependencyDescriptorFactory, excludeRuleConverter)
+    def converter = new DefaultLocalConfigurationMetadataBuilder(dependencyMetadataFactory, excludeRuleConverter)
 
-    def descriptor = Mock(DefaultModuleDescriptor)
-    def metaData = Mock(BuildableLocalConfigurationMetadata)
     def configuration = Mock(ConfigurationInternal)
     def dependencySet = Mock(DependencySet)
     def dependencyConstraintSet = Mock(DependencyConstraintSet)
 
-    def "ignores configuration with no dependencies or exclude rules"() {
+    def cache = new LocalConfigurationMetadataBuilder.DependencyCache();
+    def component = Mock(LocalComponentMetadata)
+    def configurationsProvider = new DetachedConfigurationsProvider()
+    def componentId = Mock(ComponentIdentifier)
+
+    def setup() {
+        ConfigurationPublications outgoing = Mock(ConfigurationPublications)
+        outgoing.getCapabilities() >> Collections.emptySet()
+
+        component.getId() >> componentId
+        component.getConfigurationNames() >> ["config"]
+        configuration.isCanBeDeclared() >> true
+        configuration.name >> "config"
+        configuration.extendsFrom >> []
+        configuration.hierarchy >> [configuration]
+        configuration.outgoing >> outgoing
+        configuration.dependencies >> dependencySet
+        configuration.dependencyConstraints >> dependencyConstraintSet
+        configuration.attributes >> Stub(AttributeContainerInternal)
+        configuration.excludeRules >> ([] as Set)
+        dependencySet.iterator() >> [].iterator()
+        dependencyConstraintSet.iterator() >> [].iterator()
+
+        configurationsProvider.setTheOnlyConfiguration(configuration)
+    }
+
+    def "builds configuration with no dependencies or exclude rules"() {
         when:
-        converter.addDependenciesAndExcludes(metaData, configuration)
+        def metaData = create()
 
         then:
         1 * configuration.runDependencyActions()
-        1 * configuration.dependencies >> dependencySet
-        1 * configuration.dependencyConstraints >> dependencyConstraintSet
-        1 * dependencySet.iterator() >> [].iterator()
-        1 * dependencyConstraintSet.iterator() >> [].iterator()
-        1 * configuration.excludeRules >> ([] as Set)
-        2 * configuration.attributes >> Stub(AttributeContainerInternal)
-        0 * _
+
+        metaData.dependencies.size() == 0
+        metaData.files.size() == 0
+        metaData.excludes.size() == 0
     }
 
     def "adds ModuleDependency instances from configuration"() {
-        def componentId = Mock(ComponentIdentifier)
         def dependencyDescriptor1 = Mock(LocalOriginDependencyMetadata)
         def dependencyDescriptor2 = Mock(LocalOriginDependencyMetadata)
         def dependency1 = Mock(ModuleDependency)
         def dependency2 = Mock(ModuleDependency)
 
         when:
-        converter.addDependenciesAndExcludes(metaData, configuration)
+        def metaData = create()
 
         then:
-        _ * metaData.getComponentId() >> componentId
         1 * configuration.runDependencyActions()
-        1 * configuration.dependencies >> dependencySet
-        1 * configuration.dependencyConstraints >> dependencyConstraintSet
+
+        when:
+        def dependencies = metaData.dependencies
+
+        then:
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
-        1 * dependencyConstraintSet.iterator() >> [].iterator()
-        _ * configuration.name >> "config"
-        _ * configuration.attributes >> Stub(AttributeContainerInternal)
-        1 * dependencyDescriptorFactory.createDependencyDescriptor(componentId, "config", _, dependency1) >> dependencyDescriptor1
-        1 * dependencyDescriptorFactory.createDependencyDescriptor(componentId, "config", _, dependency2) >> dependencyDescriptor2
-        1 * metaData.addDependency(dependencyDescriptor1)
-        1 * metaData.addDependency(dependencyDescriptor2)
-        1 * configuration.excludeRules >> ([] as Set)
-        0 * _
+        1 * dependencyMetadataFactory.createDependencyMetadata(componentId, "config", _, dependency1) >> dependencyDescriptor1
+        1 * dependencyMetadataFactory.createDependencyMetadata(componentId, "config", _, dependency2) >> dependencyDescriptor2
+        dependencies == [dependencyDescriptor1, dependencyDescriptor2]
     }
 
     def "adds DependencyConstraint instances from configuration"() {
-        def componentId = Mock(ComponentIdentifier)
         def dependencyDescriptor1 = Mock(LocalOriginDependencyMetadata)
         def dependencyDescriptor2 = Mock(LocalOriginDependencyMetadata)
         def dependencyConstraint1 = Mock(DependencyConstraint)
         def dependencyConstraint2 = Mock(DependencyConstraint)
 
         when:
-        converter.addDependenciesAndExcludes(metaData, configuration)
+        def metaData = create()
 
         then:
-        _ * metaData.getComponentId() >> componentId
         1 * configuration.runDependencyActions()
-        1 * configuration.dependencies >> dependencySet
-        1 * configuration.dependencyConstraints >> dependencyConstraintSet
-        1 * dependencySet.iterator() >> [].iterator()
+
+        when:
+        def dependencies = metaData.dependencies
+
+        then:
         1 * dependencyConstraintSet.iterator() >> [dependencyConstraint1, dependencyConstraint2].iterator()
-        _ * configuration.name >> "config"
-        _ * configuration.attributes >> Stub(AttributeContainerInternal)
-        1 * dependencyDescriptorFactory.createDependencyConstraintDescriptor(componentId, "config", _, dependencyConstraint1) >> dependencyDescriptor1
-        1 * dependencyDescriptorFactory.createDependencyConstraintDescriptor(componentId, "config", _, dependencyConstraint2) >> dependencyDescriptor2
-        1 * metaData.addDependency(dependencyDescriptor1)
-        1 * metaData.addDependency(dependencyDescriptor2)
-        1 * configuration.excludeRules >> ([] as Set)
-        0 * _
+        1 * dependencyMetadataFactory.createDependencyConstraintMetadata(componentId, "config", _, dependencyConstraint1) >> dependencyDescriptor1
+        1 * dependencyMetadataFactory.createDependencyConstraintMetadata(componentId, "config", _, dependencyConstraint2) >> dependencyDescriptor2
+        dependencies == [dependencyDescriptor1, dependencyDescriptor2]
     }
 
     def "adds FileCollectionDependency instances from configuration"() {
@@ -115,41 +134,39 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         def dependency2 = Mock(FileCollectionDependency)
 
         when:
-        converter.addDependenciesAndExcludes(metaData, configuration)
+        def metaData = create()
 
         then:
         1 * configuration.runDependencyActions()
-        1 * configuration.dependencies >> dependencySet
-        1 * configuration.dependencyConstraints >> dependencyConstraintSet
+
+        when:
+        def files = metaData.files
+
+        then:
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
-        1 * dependencyConstraintSet.iterator() >> [].iterator()
-        _ * configuration.name >> "config"
-        _ * configuration.attributes >> Stub(AttributeContainerInternal)
-        1 * metaData.addFiles({it.source == dependency1})
-        1 * metaData.addFiles({it.source == dependency2})
-        1 * configuration.excludeRules >> ([] as Set)
-        0 * _
+        files*.source == [dependency1, dependency2]
     }
 
     def "adds exclude rule from configuration"() {
         def excludeRule = Mock(ExcludeRule)
-        def ivyExcludeRule = Mock(Exclude)
+        ExcludeMetadata ivyExcludeRule = Mock(Exclude)
 
         when:
-        converter.addDependenciesAndExcludes(metaData, configuration)
+        def metaData = create()
 
         then:
         1 * configuration.runDependencyActions()
-        1 * configuration.dependencies >> dependencySet
-        1 * configuration.dependencyConstraints >> dependencyConstraintSet
-        1 * dependencySet.iterator() >> [].iterator()
-        1 * dependencyConstraintSet.iterator() >> [].iterator()
 
+        when:
+        def excludes = metaData.excludes
+
+        then:
         1 * configuration.excludeRules >> ([excludeRule] as Set)
-        _ * configuration.getName() >> "config"
-        _ * configuration.attributes >> Stub(AttributeContainerInternal)
         1 * excludeRuleConverter.convertExcludeRule(excludeRule) >> ivyExcludeRule
-        1 * metaData.addExclude(ivyExcludeRule)
-        0 * _
+        excludes == ImmutableList.of(ivyExcludeRule)
+    }
+
+    def create() {
+        return converter.create(configuration, configurationsProvider, component, cache, RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
     }
 }

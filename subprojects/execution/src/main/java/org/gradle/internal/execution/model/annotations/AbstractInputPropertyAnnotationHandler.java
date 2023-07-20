@@ -74,7 +74,7 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
         }
     }
 
-    private static List<Class<?>> unpackValueTypesOf(PropertyMetadata propertyMetadata) {
+    protected static List<Class<?>> unpackValueTypesOf(PropertyMetadata propertyMetadata) {
         List<Class<?>> unpackedValueTypes = new ArrayList<>();
         Class<?> returnType = propertyMetadata.getDeclaredType().getRawType();
         if (Provider.class.isAssignableFrom(returnType)) {

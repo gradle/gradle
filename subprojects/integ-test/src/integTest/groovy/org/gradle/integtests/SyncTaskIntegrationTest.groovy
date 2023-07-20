@@ -18,8 +18,8 @@ package org.gradle.integtests
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -406,7 +406,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/extra.txt').exists()
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "sync fails when unable to clean-up files"() {
         given:
@@ -437,7 +437,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         ins.close()
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "sync fails when the output contains unreadable files"() {
         given:
         def input = file("readableFile.txt").createFile()
@@ -463,7 +463,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDocumentedCause("Cannot access a file in the destination directory. " +
             "Syncing to a directory which contains unreadable content is not supported. " +
             "Use a Copy task with Task.doNotTrackState() instead. " +
-            "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details.")
+            documentationRegistry.getDocumentationRecommendationFor("information", "incremental_build", "disable-state-tracking"))
         failureHasCause("Failed to create MD5 hash for file '${unreadableOutput}' as it does not exist.")
 
         cleanup:

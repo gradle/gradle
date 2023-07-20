@@ -84,7 +84,8 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * Should the build be split into multiple subprojects?
      *
-     * This property can be set via command-line option '--split-project'.
+     * This property can be set via the command-line options '--split-project'
+     * and '--no-split-project'.
      *
      * @since 6.7
      */
@@ -96,7 +97,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     /**
-     * The desired DSL of build scripts to create, defaults to 'groovy'.
+     * The desired DSL of build scripts to create, defaults to 'kotlin'.
      *
      * This property can be set via command-line option '--dsl'.
      *
@@ -105,7 +106,7 @@ public abstract class InitBuild extends DefaultTask {
     @Optional
     @Input
     public String getDsl() {
-        return isNullOrEmpty(dsl) ? BuildInitDsl.GROOVY.getId() : dsl;
+        return isNullOrEmpty(dsl) ? BuildInitDsl.KOTLIN.getId() : dsl;
     }
 
     /**
@@ -121,7 +122,7 @@ public abstract class InitBuild extends DefaultTask {
      */
     @Input
     @Optional
-    @Option(option = "incubating", description = "Allow the generated build to use new features and APIs")
+    @Option(option = "incubating", description = "Allow the generated build to use new features and APIs.")
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
     }
@@ -220,7 +221,8 @@ public abstract class InitBuild extends DefaultTask {
             toolChainVersion);
         initDescriptor.generate(settings);
 
-        initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
+        initDescriptor.getFurtherReading(settings)
+            .ifPresent(link -> getLogger().lifecycle(link));
     }
 
     private static void validatePackageName(String packageName) {

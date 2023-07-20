@@ -16,13 +16,20 @@
 
 package org.gradle.jvm.toolchain
 
+import net.rubygrapefruit.platform.internal.DefaultSystemInfo
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.DocumentationUtils
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.platform.internal.DefaultBuildPlatform
 import org.gradle.test.fixtures.file.TestFile
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "fails for missing combination"() {
         setFoojayDiscoToolchainProvider()
 
@@ -49,15 +56,19 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-            .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
-            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=ADOPTIUM, implementation=J9}.")
-            .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
-                    "and the configured toolchain download repositories aren't able to provide a match either (see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories).")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+               .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=ADOPTIUM, implementation=J9} ${getFailureMessageBuildPlatform()}.")
+               .assertHasCause("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.")
+               .assertHasResolutions(
+                   DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                   DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
+                   STACKTRACE_MESSAGE,
+                   INFO_DEBUG,
+                   SCAN,
+                   GET_HELP)
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def 'toolchain selection that requires downloading fails when it is disabled'() {
         setFoojayDiscoToolchainProvider()
 
@@ -84,15 +95,18 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-            .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
-            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=vendor-specific}.")
-            .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
-                    "and toolchain auto-provisioning is not enabled (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection).")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+               .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=vendor-specific} ${getFailureMessageBuildPlatform()}.")
+               .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+               .assertHasResolutions(
+                   DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                   STACKTRACE_MESSAGE,
+                   INFO_DEBUG,
+                   SCAN,
+                   GET_HELP)
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def 'toolchain download on http fails'() {
         setUnsecuredToolchainProvider()
 
@@ -117,10 +131,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-99'.")
-            .assertHasCause("Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-99'.")
+               .assertHasCause("Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.")
     }
 
     private TestFile setFoojayDiscoToolchainProvider() {
@@ -136,16 +150,16 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             public abstract class CustomToolchainResolverPlugin implements Plugin<Settings> {
                 @Inject
                 protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-            
+
                 void apply(Settings settings) {
                     settings.getPlugins().apply("jvm-toolchain-management");
-                
+
                     JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
                     registry.register(CustomToolchainResolver.class);
                 }
             }
-            
-            
+
+
             import java.util.Optional;
             import org.gradle.platform.BuildPlatform;
 
@@ -156,10 +170,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                     return Optional.of(JavaToolchainDownload.fromUri(uri));
                 }
             }
-            
+
 
             apply plugin: CustomToolchainResolverPlugin
-                       
+
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -170,6 +184,11 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+    }
+
+    private def getFailureMessageBuildPlatform() {
+        def buildPlatform = new DefaultBuildPlatform(new DefaultSystemInfo(), OperatingSystem.current())
+        return "for ${buildPlatform.operatingSystem} on ${buildPlatform.architecture.toString().toLowerCase()}"
     }
 
 }

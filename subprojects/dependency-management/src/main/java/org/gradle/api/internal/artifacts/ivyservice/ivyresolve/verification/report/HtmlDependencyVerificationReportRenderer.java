@@ -113,8 +113,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     public void renderSections() {
-        contents.append("<div class=\"uk-container uk-container-expand\">\n");
-        contents.append("        <ul uk-accordion>\n");
+        contents.append("<div class=\"uk-container uk-container-expand\">\n")
+            .append("        <ul uk-accordion>\n");
         boolean first = true;
         for (Section section : sections.values()) {
             if (first) {
@@ -127,8 +127,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             contents.append("            </li>\n");
             first = false;
         }
-        contents.append("         </ul>\n");
-        contents.append("        </div>\n");
+        contents.append("         </ul>\n")
+            .append("        </div>\n");
     }
 
     File writeReport() {
@@ -182,19 +182,19 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private void registerStickyTip() {
-        contents.append("    <div class=\"uk-container uk-padding\">\n");
-        contents.append("        <div class=\"uk-card uk-card-default uk-card-body\" style=\"z-index: 980;\" uk-sticky=\"bottom: true\">\n");
-        contents.append("            <h2 class=\"uk-modal-title\">Troubleshooting</h2>\n");
-        contents.append("            <p>Please review the errors reported above carefully.");
-        contents.append("            Click on the icons near to the error descriptions for information about how to fix a particular problem.");
-        contents.append("            It is recommended that you edit the ").append(verificationFileLink()).append(" manually. ");
-        contents.append("            However, if you are confident that those are false positives, Gradle can help you by generating the missing verification metadata.");
-        contents.append("            In this case, you can run with the following command-line:</p>");
-        contents.append("            <pre>gradle --write-verification-metadata ").append(verificationOptions()).append(" help</pre>");
-        contents.append("            <p>In any case you <b>must review the result</b> of this operation.");
-        contents.append("            <p>Please refer to the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification")).append("\" target=\"_blank\">documentation</a> for more information.</p>\n");
-        contents.append("        </div>\n");
-        contents.append("    </div>\n");
+        contents.append("    <div class=\"uk-container uk-padding\">\n")
+            .append("        <div class=\"uk-card uk-card-default uk-card-body\" style=\"z-index: 980;\" uk-sticky=\"bottom: true\">\n")
+            .append("            <h2 class=\"uk-modal-title\">Troubleshooting</h2>\n")
+            .append("            <p>Please review the errors reported above carefully.")
+            .append("            Click on the icons near to the error descriptions for information about how to fix a particular problem.")
+            .append("            It is recommended that you edit the ").append(verificationFileLink()).append(" manually. ")
+            .append("            However, if you are confident that those are false positives, Gradle can help you by generating the missing verification metadata.")
+            .append("            In this case, you can run with the following command-line:</p>")
+            .append("            <pre>gradle --write-verification-metadata ").append(verificationOptions()).append(" help</pre>")
+            .append("            <p>In any case you <b>must review the result</b> of this operation.")
+            .append("            <p>Please refer to the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification")).append("\" target=\"_blank\">documentation</a> for more information.</p>\n")
+            .append("        </div>\n")
+            .append("    </div>\n");
     }
 
     private String verificationOptions() {
@@ -214,7 +214,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         for (String line : lines) {
             contents.append(line).append("\n");
         }
-        contents.append("        <p>See the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification", "sec:signature-verification")).append("\" target=\"_blank\">documentation</a> to get more information.</p>\n")
+        contents.append("        <p>See the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification", "sec:^")).append("\" target=\"_blank\">documentation</a> to get more information.</p>\n")
             .append("        <button class=\"uk-button uk-button-primary uk-modal-close\" type=\"button\">Ok</button>\n")
             .append("    </div>\n")
             .append("</div>\n");
@@ -286,7 +286,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             .append("    <tbody>\n");
         section.errors.forEach(this::formatErrors);
         contents.append("    </tbody>\n" +
-            "</table>")
+                "</table>")
             .append("</div>");
     }
 
@@ -297,8 +297,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         reportItem(createFileLink(currentArtifact.key, firstFailure.getFailure(), firstFailure.getRepositoryName()));
         contents.append("            <td>\n");
         currentArtifact.failures.forEach(this::formatError);
-        contents.append("            </td>\n");
-        contents.append("        </tr>\n");
+        contents.append("            </td>\n")
+            .append("        </tr>\n");
     }
 
     private void formatError(RepositoryAwareVerificationFailure failure) {
@@ -401,8 +401,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private void reportItem(String item) {
-        contents.append("            <td class=\"uk-text-nowrap\"");
-        contents.append(">").append(item).append("</td>\n");
+        contents.append("            <td class=\"uk-text-nowrap\"")
+            .append(">").append(item).append("</td>\n");
     }
 
     private void reportItem(String item, String tipTarget, String tipIcon) {

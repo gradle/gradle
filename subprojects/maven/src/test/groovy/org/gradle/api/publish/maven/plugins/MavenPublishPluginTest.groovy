@@ -141,7 +141,7 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         return allTasks
     }
 
-    def "publication identity is live"() {
+    def "publication coordinates are live"() {
         when:
         project.group = "group"
         project.version = "version"
@@ -150,7 +150,7 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         publishing.publications.create("test", MavenPublication)
 
         then:
-        with(publishing.publications.test.mavenProjectIdentity) {
+        with(publishing.publications.test.pom.coordinates) {
             groupId.get() == "group"
             version.get() == "version"
         }
@@ -160,7 +160,7 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         project.version = "changed-version"
 
         then:
-        with(publishing.publications.test.mavenProjectIdentity) {
+        with(publishing.publications.test.pom.coordinates) {
             groupId.get() == "changed-group"
             version.get() == "changed-version"
         }

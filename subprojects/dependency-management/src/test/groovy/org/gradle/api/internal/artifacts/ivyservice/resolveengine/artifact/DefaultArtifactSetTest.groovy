@@ -26,10 +26,10 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
@@ -45,16 +45,12 @@ class DefaultArtifactSetTest extends Specification {
     def "returns empty set when component id does not match spec"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
-        def ownerId = Stub(ModuleVersionIdentifier)
+        def variant3 = Stub(ResolvedVariant)
 
         given:
-        def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1] as Set), [variant1] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, schema, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
-
-        ownerId.group >> "group"
-        ownerId.name >> "name"
-        ownerId.version >> "1.0"
+        def artifacts1 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set)
+        def artifacts2 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1] as Set), [variant1] as Set)
+        def artifacts3 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant3] as Set), [variant3] as Set)
 
         expect:
         artifacts1.select({ false }, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
@@ -69,7 +65,7 @@ class DefaultArtifactSetTest extends Specification {
         def variant2 = makeVariantNamed("variant2", ownerId)
 
         when:
-        def artifactSet = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
+        def artifactSet = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set)
         artifactSet.select({ true }, new VariantSelector() {
             @Override
             ResolvedArtifactSet select(ResolvedVariantSet candidates, VariantSelector.Factory factory) {
@@ -94,25 +90,22 @@ class DefaultArtifactSetTest extends Specification {
         def ivyArtifactName = new DefaultIvyArtifactName(name, "jar", "jar")
         def artifact = new DefaultResolvableArtifact(ownerId, ivyArtifactName, new DefaultModuleComponentArtifactIdentifier(id, ivyArtifactName), null, null, null)
         def artifacts = ImmutableList.of(artifact)
-        return ArtifactBackedResolvedVariant.create(null, Describables.of(name), ImmutableAttributes.EMPTY, capabilities, () -> artifacts)
+        return new ArtifactBackedResolvedVariant(null, Describables.of(name), ImmutableAttributes.EMPTY, capabilities, [], { artifacts })
     }
 
     def "selects artifacts when component id matches spec"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
+        def variant3 = Stub(ResolvedVariant)
         def resolvedVariant1 = Stub(ResolvedArtifactSet)
         def selector = Stub(VariantSelector)
-        def ownerId = Stub(ModuleVersionIdentifier)
 
         given:
-        def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1] as Set), [variant1] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, schema, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
+        def artifacts1 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set)
+        def artifacts2 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant1] as Set), [variant1] as Set)
+        def artifacts3 = new DefaultArtifactSet(componentId, schema, ImmutableAttributes.EMPTY, () -> ([variant3] as Set), [variant3] as Set)
 
         selector.select(_, _) >> resolvedVariant1
-        ownerId.group >> "group"
-        ownerId.name >> "name"
-        ownerId.version >> "1.0"
 
         expect:
         artifacts1.select({ true }, selector) == resolvedVariant1

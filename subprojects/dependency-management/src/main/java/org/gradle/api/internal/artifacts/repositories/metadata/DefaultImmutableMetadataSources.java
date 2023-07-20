@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.hash.Hasher;
 
 public class DefaultImmutableMetadataSources implements ImmutableMetadataSources {
     private final ImmutableList<MetadataSource<?>> sources;
@@ -30,11 +29,4 @@ public class DefaultImmutableMetadataSources implements ImmutableMetadataSources
         return sources;
     }
 
-    @Override
-    public void appendId(Hasher hasher) {
-        hasher.putInt(sources.size());
-        for (MetadataSource<?> source : sources) {
-            source.appendId(hasher);
-        }
-    }
 }

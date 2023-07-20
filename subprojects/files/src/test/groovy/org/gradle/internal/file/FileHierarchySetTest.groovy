@@ -17,8 +17,8 @@
 package org.gradle.internal.file
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -97,14 +97,14 @@ class FileHierarchySetTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11508")
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "creates from file system root files"() {
         expect:
         def set = from(File.listRoots())
         set.contains(tmpDir.file("any"))
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def 'can handle more root dirs'() {
         expect:
         from(pathList.collect { new File(it) }).contains(target) == result
@@ -125,7 +125,7 @@ class FileHierarchySetTest extends Specification {
         ['C:\\any1', 'D:\\any2'] | 'D:\\any2\\thing' | true
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def 'can handle complicated roots'() {
         expect:
         rootsOf(from([
@@ -139,7 +139,7 @@ class FileHierarchySetTest extends Specification {
         ]
     }
 
-    @Requires(TestPrecondition.UNIX)
+    @Requires(UnitTestPreconditions.Unix)
     def 'can handle more dirs on Unix'() {
         expect:
         from(pathList.collect { new File(it) }).contains(target) == result

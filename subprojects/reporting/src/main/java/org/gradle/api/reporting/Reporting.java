@@ -45,8 +45,8 @@ import org.gradle.api.Action;
  * <pre>
  * task my(type: MyTask) {
  *     reports {
- *         html.enabled = true
- *         csv.enabled = false
+ *         html.required = true
+ *         csv.required = false
  *     }
  * }
  * </pre>
@@ -74,9 +74,9 @@ public interface Reporting<T extends ReportContainer> {
      * <pre>
      * reports {
      *   html {
-     *     enabled false
+     *     required false
      *   }
-     *   xml.destination "build/reports/myReport.xml"
+     *   xml.outputLocation = "build/reports/myReport.xml"
      * }
      * </pre>
      *
@@ -91,9 +91,9 @@ public interface Reporting<T extends ReportContainer> {
      * <pre>
      * reports {
      *   html {
-     *     enabled false
+     *     required false
      *   }
-     *   xml.destination "build/reports/myReport.xml"
+     *   xml.outputLocation = "build/reports/myReport.xml"
      * }
      * </pre>
      * @param configureAction The configuration

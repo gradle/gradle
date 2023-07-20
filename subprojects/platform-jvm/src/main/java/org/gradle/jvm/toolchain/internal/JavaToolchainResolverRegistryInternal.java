@@ -25,4 +25,6 @@ public interface JavaToolchainResolverRegistryInternal extends JavaToolchainReso
     JavaToolchainRepositoryHandlerInternal getRepositories();
 
     List<? extends RealizedJavaToolchainRepository> requestedRepositories();
+
+    void preventFromFurtherMutation();
 }

@@ -192,8 +192,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         if (writeLocks) {
             List<String> modulesOrdered = getModulesOrdered(resolvedModules);
             if (!changingResolvedModules.isEmpty()) {
-                LOGGER.warn("Dependency lock state for configuration '{}' contains changing modules: {}. This means that dependencies content may still change over time. See {} for details.",
-                    context.identityPath(configurationName), getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationFor("dependency_locking"));
+                LOGGER.warn("Dependency lock state for configuration '{}' contains changing modules: {}. This means that dependencies content may still change over time. {}",
+                    context.identityPath(configurationName), getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationRecommendationFor("details", "dependency_locking"));
             }
             allLockState.put(configurationName, modulesOrdered);
         }

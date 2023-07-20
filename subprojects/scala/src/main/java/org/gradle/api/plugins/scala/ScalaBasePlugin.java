@@ -53,6 +53,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -118,14 +119,15 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         configureScaladoc(project, scalaRuntime);
     }
 
+    @SuppressWarnings("deprecation")
     private void configureConfigurations(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
         DependencyHandler dependencyHandler = project.getDependencies();
 
-        Configuration plugins = project.getConfigurations().resolvableBucket(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
+        Configuration plugins = project.getConfigurations().resolvableDependencyScopeUnlocked(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
         plugins.setTransitive(false);
         jvmEcosystemUtilities.configureAsRuntimeClasspath(plugins);
 
-        Configuration zinc = project.getConfigurations().resolvableBucket(ZINC_CONFIGURATION_NAME);
+        Configuration zinc = project.getConfigurations().resolvableDependencyScopeUnlocked(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false);
         zinc.setDescription("The Zinc incremental compiler to be used for this Scala project.");
 
@@ -156,7 +158,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
         })));
 
-        @SuppressWarnings("deprecation") final Configuration incrementalAnalysisElements = project.getConfigurations().createWithRole("incrementalScalaAnalysisElements", ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
+        @SuppressWarnings("deprecation") final Configuration incrementalAnalysisElements = project.getConfigurations().migratingUnlocked("incrementalScalaAnalysisElements", ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         incrementalAnalysisElements.setVisible(false);
         incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
         incrementalAnalysisElements.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
@@ -198,13 +200,15 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private ScalaSourceDirectorySet getScalaSourceDirectorySet(SourceSet sourceSet) {
         org.gradle.api.internal.tasks.DefaultScalaSourceSet scalaSourceSet = objectFactory.newInstance(org.gradle.api.internal.tasks.DefaultScalaSourceSet.class, ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
-        new DslObject(sourceSet).getConvention().getPlugins().put("scala", scalaSourceSet);
+        DeprecationLogger.whileDisabled(() ->
+            new DslObject(sourceSet).getConvention().getPlugins().put("scala", scalaSourceSet)
+        );
         return scalaSourceSet.getScala();
     }
 
     private static Configuration createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
         Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        @SuppressWarnings("deprecation") Configuration incrementalAnalysis = configurations.createWithRole("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE);
+        @SuppressWarnings("deprecation") Configuration incrementalAnalysis = configurations.migratingUnlocked("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
         incrementalAnalysis.setVisible(false);
         incrementalAnalysis.setDescription("Incremental compilation analysis files for " + ((DefaultSourceSet) sourceSet).getDisplayName());
         incrementalAnalysis.extendsFrom(classpath);

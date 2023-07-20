@@ -36,7 +36,7 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
            project(':web') {
                apply plugin: 'war'
 
-               sourceCompatibility = 1.6
+               java.sourceCompatibility = 1.6
 
                dependencies {
                    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
@@ -48,7 +48,7 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
             project(':java') {
                 apply plugin: 'java'
 
-                sourceCompatibility = 1.6
+                java.sourceCompatibility = 1.6
 
                 dependencies {
                     implementation 'com.google.guava:guava:18.0'

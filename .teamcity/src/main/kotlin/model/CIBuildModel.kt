@@ -13,6 +13,7 @@ import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAll
+import configurations.CompileAllBuildCacheNG
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
 import configurations.DocsTestType.CONFIG_CACHE_ENABLED
@@ -58,7 +59,7 @@ data class CIBuildModel(
         Stage(
             StageName.QUICK_FEEDBACK_LINUX_ONLY,
             specificBuilds = listOf(
-                SpecificBuild.CompileAll, SpecificBuild.SanityCheck
+                SpecificBuild.CompileAll, SpecificBuild.SanityCheck, SpecificBuild.CompileAllBuildCacheNG, SpecificBuild.CompileAllWithNGRemote
             ),
             functionalTests = listOf(
                 TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
@@ -195,9 +196,8 @@ interface BuildTypeBucket {
     fun getDescription(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
 }
 
-data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
+data class GradleSubproject(val name: String, val path: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
     fun hasTestsOf(testType: TestType) = (unitTests && testType.unitTests) || (functionalTests && testType.functionalTests) || (crossVersionTests && testType.crossVersionTests)
-    fun asDirectoryName() = name.replace(Regex("([A-Z])")) { "-" + it.groups[1]!!.value.lowercase() }
 }
 
 data class Stage(
@@ -272,7 +272,7 @@ data class TestCoverage(
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180, val maxParallelForks: Int = 4) {
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
-    quick(true, true, true, 120, 2),
+    quick(true, true, true, 120, 4),
 
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
     platform(true, true, true),
@@ -324,7 +324,7 @@ enum class PerformanceTestType(
     ),
     historical(
         displayName = "Historical Performance Test",
-        timeout = 2280,
+        timeout = 600,
         defaultBaselines = "last",
         channel = "historical",
         extraParameters = "--checks none --cross-version-only"
@@ -347,6 +347,16 @@ enum class SpecificBuild {
     CompileAll {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return CompileAll(model, stage)
+        }
+    },
+    CompileAllBuildCacheNG {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return CompileAllBuildCacheNG(model, stage)
+        }
+    },
+    CompileAllWithNGRemote {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return CompileAllBuildCacheNG(model, stage, oldCacheWithNgRemote = true)
         }
     },
     SanityCheck {

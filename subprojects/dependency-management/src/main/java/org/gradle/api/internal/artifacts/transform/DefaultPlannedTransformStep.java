@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.execution.plan.PlannedNodeInternal;
 import org.gradle.internal.taskgraph.NodeIdentity;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 
 import java.util.List;
 
 /**
- * A {@link CalculateTaskGraphBuildOperationType.PlannedNode} for a {@link TransformationNode}.
+ * A planned node for a {@link TransformStepNode}.
  */
-public class DefaultPlannedTransformStep implements CalculateTaskGraphBuildOperationType.PlannedNode {
+public class DefaultPlannedTransformStep implements PlannedNodeInternal {
 
     private final PlannedTransformStepIdentity identity;
     private final List<? extends NodeIdentity> dependencies;
@@ -51,5 +51,10 @@ public class DefaultPlannedTransformStep implements CalculateTaskGraphBuildOpera
     @Override
     public String toString() {
         return identity.toString();
+    }
+
+    @Override
+    public DefaultPlannedTransformStep withNodeDependencies(List<? extends NodeIdentity> nodeDependencies) {
+        return new DefaultPlannedTransformStep(identity, nodeDependencies);
     }
 }

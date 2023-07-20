@@ -19,11 +19,16 @@ package org.gradle.kotlin.dsl.normalization
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.AbiExtractingClasspathResourceHasher
 import org.gradle.api.internal.changedetection.state.CachingResourceHasher
+import org.gradle.api.internal.changedetection.state.PropertiesFileFilter
+import org.gradle.api.internal.changedetection.state.ResourceEntryFilter
+import org.gradle.api.internal.changedetection.state.ResourceFilter
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
+import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher
 import org.gradle.api.internal.changedetection.state.ZipHasher
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.FileNormalizer
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter
 import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter
@@ -37,8 +42,18 @@ class KotlinCompileClasspathFingerprinter(
     fileCollectionSnapshotter: FileCollectionSnapshotter,
     stringInterner: StringInterner
 ) : AbstractFileCollectionFingerprinter(
-    ClasspathFingerprintingStrategy.compileClasspath(
-        CachingResourceHasher(AbiExtractingClasspathResourceHasher.withoutFallback(KotlinApiClassExtractor()), cacheService),
+    ClasspathFingerprintingStrategy.compileClasspathFallbackToRuntimeClasspath(
+        CachingResourceHasher(
+            AbiExtractingClasspathResourceHasher.withoutFallback(KotlinApiClassExtractor()),
+            cacheService
+        ),
+        ClasspathFingerprintingStrategy.runtimeClasspathResourceHasher(
+            RuntimeClasspathResourceHasher(),
+            LineEndingSensitivity.DEFAULT,
+            PropertiesFileFilter.FILTER_NOTHING,
+            ResourceEntryFilter.FILTER_NOTHING,
+            ResourceFilter.FILTER_NOTHING
+        ),
         cacheService,
         stringInterner,
         CompileAvoidanceExceptionReporter()

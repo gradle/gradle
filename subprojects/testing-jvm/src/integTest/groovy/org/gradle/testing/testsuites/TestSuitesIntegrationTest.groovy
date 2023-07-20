@@ -384,6 +384,17 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "task configuration overrules test suite configuration"() {
+        file('src/integTest/java/FooTest.java') << """
+            import org.junit.Test;
+
+            public class FooTest {
+                @Test
+                public void test() {
+                    System.out.println("Hello from FooTest");
+                }
+            }
+        """.stripIndent()
+
         buildFile << """
             plugins {
                 id 'java'
@@ -394,28 +405,44 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        // uses junit jupiter by default
+                        // uses junit jupiter by default, but we'll change it to junit4 on the task
+                        dependencies {
+                            implementation 'junit:junit:4.13.2'
+                        }
                         targets {
                             all {
                                 testTask.configure {
                                     useJUnit()
+                                    doFirst {
+                                        assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-
-            // force integTest to be configured
-            tasks.named("integTest").get()
         """
 
         expect:
-        fails("help")
-        failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' cannot be changed any further.")
+        succeeds("integTest")
+
+        and:
+        result.assertTaskExecuted(":integTest")
     }
 
     def "task configuration overrules test suite configuration with test suite set test framework"() {
+        file("src/integTest/java/FooTest.java") << """
+            import org.junit.jupiter.api.Test;
+
+            public class FooTest {
+                @Test
+                public void test() {
+                    System.out.println("Hello from FooTest");
+                }
+            }
+        """.stripIndent()
+
         buildFile << """
             plugins {
                 id 'java'
@@ -426,25 +453,32 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integTest(JvmTestSuite) {
+                        // set it to junit in the suite, but then we'll change it to junit platform on the task
                         useJUnit()
+                        dependencies {
+                            implementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+                            runtimeOnly 'org.junit.platform:junit-platform-launcher'
+                        }
                         targets {
                             all {
                                 testTask.configure {
                                     useJUnitPlatform()
+                                    doFirst {
+                                        assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-
-            // force integTest to be configured
-            tasks.named("integTest").get()
         """
 
         expect:
-        fails("help")
-        failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' cannot be changed any further.")
+        succeeds("integTest")
+
+        and:
+        result.assertTaskExecuted(":integTest")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
@@ -537,35 +571,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assertSameFrameworkInstance")
     }
 
-    def "multiple getTestingFramework() calls on a test suite return same instance even when calling useJUnit"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            def first = testing.suites.test.getTestSuiteTestingFramework()
-
-            testing {
-                suites {
-                    test {
-                        useJUnit()
-                    }
-                }
-            }
-
-            def second = testing.suites.test.getTestSuiteTestingFramework()
-
-            tasks.register('assertSameFrameworkInstance') {
-                doLast {
-                    assert first.get() === second.get()
-                }
-            }""".stripIndent()
-
-        expect:
-        succeeds("assertSameFrameworkInstance")
-    }
-
     def "the default test suite does NOT use JUnit 4 by default"() {
         given: "a build which uses the default test suite and doesn't specify a testing framework"
         file("build.gradle") << """
@@ -605,7 +610,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
 
-    def "eagerly iterating over dependency bucket does not break automatic dependencies for test suite"() {
+    def "eagerly iterating over dependency scope does not break automatic dependencies for test suite"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -995,5 +1000,42 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':app:assemble', ':app:integrationTest'
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/integrationTest')
         unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25604")
+    def "test suite configurations can be copied"() {
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                        dependencies {
+                            implementation 'org.assertj:assertj-core:3.24.2'
+                        }
+                    }
+                }
+            }
+
+            // alphabetical ordering seems to interfere here, if we used `s` instead of `t`, the check passes just fine
+            def testImplHolder = configurations.create("uasdf")
+            def testCopy = configurations.testImplementation.copy()
+            configurations.add(testCopy)
+            testImplHolder.extendsFrom(testCopy)
+
+            task assertCopyCanBeResolved {
+                def resolved = testImplHolder
+                doLast {
+                    assert resolved.files.size() == 9
+                }
+            }
+        """
+        expect:
+        executer.noDeprecationChecks() // deprecated copy() on dependency scope
+        succeeds("assertCopyCanBeResolved")
     }
 }

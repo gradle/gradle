@@ -27,7 +27,7 @@ import java.util.zip.ZipEntry
 class ClasspathBuilderTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(ClasspathBuilderTest)
-    ClasspathBuilder builder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.root))
+    ClasspathBuilder builder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
 
     def "creates an empty jar"() {
         def file = tmpDir.file("thing.zip")

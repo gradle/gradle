@@ -18,15 +18,17 @@ package org.gradle.smoketests
 
 import groovy.json.JsonSlurper
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.VersionNumber
 
 /**
  * JDK11 or later since AGP 7.x requires Java11
  */
-@Requires(TestPrecondition.JDK11_OR_LATER)
+@Requires(UnitTestPreconditions.Jdk11OrLater)
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
     @Override
@@ -49,7 +51,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         given:
         BuildResult result
         useSample("gmm-example")
-        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.7.10")
+        def kotlinVersion = "1.7.10"
         def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("7.3")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
@@ -145,8 +147,18 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     }
 
     private static SmokeTestGradleRunner expectingDeprecations(SmokeTestGradleRunner runner, String kotlinVersion, String agpVersion) {
-        return runner.deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
-            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+        VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        return runner.deprecations(KotlinAndroidDeprecations) {
+            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
+            expectProjectConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
+            expectConventionTypeDeprecation(kotlinVersionNumber, agpVersionNumber)
+            expectJavaPluginConventionDeprecation(kotlinVersionNumber)
+            expectBasePluginConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+            if (GradleContextualExecuter.isConfigCache()) {
+                expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
+            }
         }
     }
 

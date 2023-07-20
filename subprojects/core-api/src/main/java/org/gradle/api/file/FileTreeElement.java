@@ -15,6 +15,8 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -97,10 +99,14 @@ public interface FileTreeElement {
      */
     RelativePath getRelativePath();
 
-    /**
-     * Returns the Unix permissions of this file, e.g. {@code 0644}.
-     *
-     * @return The Unix file permissions.
-     */
     int getMode();
+
+    /**
+     * Provides a read-only view of access permissions of this file.
+     * For details see {@link FilePermissions}.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    FilePermissions getPermissions();
 }

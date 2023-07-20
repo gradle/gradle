@@ -49,9 +49,9 @@ class DefaultSwiftBinaryTest extends Specification {
     DefaultSwiftBinary binary
 
     def setup() {
-        _ * configurations.resolvableBucket("swiftCompileDebug") >> compile
-        _ * configurations.resolvableBucket("nativeLinkDebug") >> link
-        _ * configurations.createWithRole('nativeRuntimeDebug', ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE) >> runtime
+        _ * configurations.resolvableDependencyScopeUnlocked("swiftCompileDebug") >> compile
+        _ * configurations.resolvableDependencyScopeUnlocked("nativeLinkDebug") >> link
+        _ * configurations.migratingUnlocked('nativeRuntimeDebug', ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE) >> runtime
 
         binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection), configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }

@@ -103,6 +103,6 @@ class KotlinPrecompiledScriptPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':help').outcome == SUCCESS
 
         where:
-        pluginPublishGradleVersion << ['7.0', '6.0', '5.6.4']
+        pluginPublishGradleVersion << ['8.0', '7.0', '6.0', '5.6.4']
     }
 }

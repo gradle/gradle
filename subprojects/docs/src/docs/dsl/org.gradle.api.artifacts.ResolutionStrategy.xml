@@ -16,6 +16,9 @@
             <tr>
                 <td>dependencySubstitution</td>
             </tr>
+            <tr>
+                <td>capabilitiesResolution</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -28,6 +31,15 @@
             </thead>
             <tr>
                 <td>failOnVersionConflict</td>
+            </tr>
+            <tr>
+                <td>failOnDynamicVersions</td>
+            </tr>
+            <tr>
+                <td>failOnChangingVersions</td>
+            </tr>
+            <tr>
+                <td>failOnNonReproducibleResolution</td>
             </tr>
             <tr>
                 <td>preferProjectModules</td>
@@ -55,6 +67,18 @@
             </tr>
             <tr>
                 <td>activateDependencyLocking</td>
+            </tr>
+            <tr>
+                <td>deactivateDependencyLocking</td>
+            </tr>
+            <tr>
+                <td>sortArtifacts</td>
+            </tr>
+            <tr>
+                <td>enableDependencyVerification</td>
+            </tr>
+            <tr>
+                <td>disableDependencyVerification</td>
             </tr>
         </table>
     </section>

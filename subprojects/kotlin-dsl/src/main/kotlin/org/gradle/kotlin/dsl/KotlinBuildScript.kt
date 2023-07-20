@@ -18,12 +18,11 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
-import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
+import org.gradle.plugin.use.PluginDependenciesSpec
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
@@ -44,10 +43,13 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-api-version", "1.8",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
+        "-Xskip-metadata-version-check",
+        "-Xskip-prerelease-check",
+        "-Xallow-unstable-dependencies",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
         "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-    ],
-    provider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider::class
+        "-P=plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading",
+    ]
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl

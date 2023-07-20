@@ -102,7 +102,7 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
                 output,
                 containsMultiLineString(
                     """
-                api - API dependencies for source set 'main'. (n)
+                api - API dependencies for the 'main' feature. (n)
                 +--- in-block:accessor (n)
                 +--- in-block:accessor-with-action (n)
                 +--- in-block:string-invoke (n)

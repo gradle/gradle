@@ -21,19 +21,19 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 
-public class DummyBinaryStore implements BinaryStore {
+class DummyBinaryStore implements BinaryStore {
 
     private final ByteArrayOutputStream bytes = new ByteArrayOutputStream()
     private Encoder output = new OutputStreamBackedEncoder(bytes)
 
-    void write(BinaryStore.WriteAction write) {
+    void write(WriteAction write) {
         write.write(output)
     }
 
-    BinaryStore.BinaryData done() {
-        new BinaryStore.BinaryData() {
+    BinaryData done() {
+        new BinaryData() {
             Decoder decoder
-            def <T> T read(BinaryStore.ReadAction<T> readAction) {
+            def <T> T read(ReadAction<T> readAction) {
                 if (decoder == null) {
                     decoder = new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray()))
                 }

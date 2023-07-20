@@ -72,6 +72,7 @@ include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/Downl
 ----
 ====
 
+[[sec:service_references]]
 === Annotating a shared build service property with `@ServiceReference`
 
 NOTE: The `@ServiceReference` annotation is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> API and is subject to changing in a future release.
@@ -135,10 +136,21 @@ them at configuration time. However, sometimes it can make sense to use the serv
 
 == Other ways of using a build service
 
-In addition to using a build service from a task, you can use a build service from a worker API action, an artifact transform or another build service.
+In addition to using a build service from a task, you can use a build service from a <<worker_api.adoc#converting_to_worker_api,worker API action>>, an <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transform>> or another build service.
 To do this, pass the build service `Provider` as a parameter of the consuming action or service, in the same way you pass other parameters to the action or service.
+
 For example, to pass a `MyServiceType` service to worker API action, you might add a property of type `Property<MyServiceType>` to the action's parameters object and
 then connect the `Provider<MyServiceType>` that you receive when registering the service to this property.
+
+.Build service usage from worker action
+====
+[source.multi-language-sample,java]
+.Download.java
+----
+include::{snippetsPath}/plugins/buildServiceFromWorkAction/groovy/buildSrc/src/main/java/Download.java[]
+----
+====
+
 
 Currently, it is not possible to use a build service with a worker API action that uses ClassLoader or process isolation modes.
 

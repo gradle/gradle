@@ -15,11 +15,18 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -46,13 +53,13 @@ Directory '$testDirectory' does not contain a Gradle build.
 
 To create a new build in this directory, run gradle init
 
-For more detail on the 'init' task, see https://docs.gradle.org/$version/userguide/build_init_plugin.html
+For more detail on the 'init' task, see $BASE_URL/userguide/build_init_plugin.html
 
-For more detail on creating a Gradle build, see https://docs.gradle.org/$version/userguide/tutorial_using_tasks.html
+For more detail on creating a Gradle build, see $BASE_URL/userguide/tutorial_using_tasks.html
 
 To see a list of command-line options, run gradle --help
 
-For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
+For more detail on using Gradle, see $BASE_URL/userguide/command_line_interface.html
 
 For troubleshooting, visit https://help.gradle.org
 
@@ -205,7 +212,7 @@ To see more detail about a task, run gradle help --task <task>
 
 To see a list of command-line options, run gradle --help
 
-For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
+For more detail on using Gradle, see $BASE_URL/userguide/command_line_interface.html
 
 For troubleshooting, visit https://help.gradle.org
 
@@ -371,7 +378,7 @@ Options
 ${builtInOptions}
 
 Description
-     Assembles a jar archive containing the main classes.
+     Assembles a jar archive containing the classes of the 'main' feature.
 
 Group
      build
@@ -394,7 +401,7 @@ Options
 ${builtInOptions}
 
 Description
-     Assembles a jar archive containing the main classes.
+     Assembles a jar archive containing the classes of the 'main' feature.
 
 Group
      build
@@ -524,9 +531,10 @@ BUILD SUCCESSFUL"""
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
         failure.assertHasResolutions(
             "Run gradle help --task :help to get task usage details.",
-            "Run with --stacktrace option to get the stack trace.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP,
         )
     }
 
@@ -546,6 +554,8 @@ Type
 
 Options
      --booleanValue     Configures a boolean flag in CustomTask.
+
+     --no-booleanValue     Disables option --booleanValue.
 
      --enumValue     Configures an enum value in CustomTask.
                      Available values are:
@@ -604,8 +614,14 @@ BUILD SUCCESSFUL"""
 Options
      --valueA     descA
 
+     --no-valueA     Disables option --valueA.
+
      --valueB     descB
 
-     --valueC     descC"""
+     --no-valueB     Disables option --valueB.
+
+     --valueC     descC
+
+     --no-valueC     Disables option --valueC."""
     }
 }

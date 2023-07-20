@@ -118,14 +118,6 @@ The following example demonstrates the use of `Action` in an extension definitio
 include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[]
 ----
 
-=== Extensions vs. Conventions
-
-Some of the Gradle core plugins expose configurability with the help of a so-called link:{javadocPath}/org/gradle/api/plugins/Convention.html[Convention].
-`Convention` is the preceding concept of an extension and serves a similar purpose.
-The main difference between both concepts is that `Convention` does not allow for defining a namespace to model a DSL-like API making it hard to distinguish from the Gradle core DSL.
-Please avoid using the `Convention` concept when writing new plugins.
-The long term plan is to migrate all Gradle core plugins to use extensions and remove the `Convention` concept altogether.
-
 [[capturing_user_input_to_configure_plugin_runtime_behavior]]
 == Capturing user input to configure plugin runtime behavior
 

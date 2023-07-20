@@ -134,7 +134,7 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
             shortDescription,
             longDescription,
             reason,
-            () -> docLink == null ? null : DOCUMENTATION_REGISTRY.getDocumentationFor(docLink.page, docLink.section),
+            () -> docLink == null ? null : DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", docLink.page, docLink.section),
             solutions.stream().map(this::toSolution).collect(toList())
         );
     }

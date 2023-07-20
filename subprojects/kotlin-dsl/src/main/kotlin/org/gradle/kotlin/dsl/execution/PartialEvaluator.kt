@@ -98,20 +98,11 @@ class PartialEvaluator(
 
         when (programTarget) {
 
-            ProgramTarget.Project -> when (programKind) {
-
-                ProgramKind.TopLevel -> Static(
-                    SetupEmbeddedKotlin,
-                    CollectProjectScriptDependencies(fragmentHolderSourceFor(program)),
-                    defaultStageTransition()
-                )
-
-                ProgramKind.ScriptPlugin -> Static(
-                    SetupEmbeddedKotlin,
-                    Eval(fragmentHolderSourceFor(program)),
-                    defaultStageTransition()
-                )
-            }
+            ProgramTarget.Project -> Static(
+                SetupEmbeddedKotlin,
+                CollectProjectScriptDependencies(fragmentHolderSourceFor(program)),
+                defaultStageTransition()
+            )
 
             else -> Static(
                 SetupEmbeddedKotlin,
@@ -187,23 +178,12 @@ class PartialEvaluator(
 
             when (programTarget) {
 
-                ProgramTarget.Project ->
-
-                    when (programKind) {
-                        ProgramKind.TopLevel -> Static(
-                            SetupEmbeddedKotlin,
-                            CollectProjectScriptDependencies(fragmentHolderSourceFor(stage1)),
-                            ApplyDefaultPluginRequests,
-                            ApplyBasePlugins
-                        )
-
-                        ProgramKind.ScriptPlugin -> Static(
-                            SetupEmbeddedKotlin,
-                            Eval(fragmentHolderSourceFor(stage1)),
-                            ApplyDefaultPluginRequests,
-                            ApplyBasePlugins
-                        )
-                    }
+                ProgramTarget.Project -> Static(
+                    SetupEmbeddedKotlin,
+                    CollectProjectScriptDependencies(fragmentHolderSourceFor(stage1)),
+                    ApplyDefaultPluginRequests,
+                    ApplyBasePlugins
+                )
 
                 else -> reduceBuildscriptProgram(stage1)
             }

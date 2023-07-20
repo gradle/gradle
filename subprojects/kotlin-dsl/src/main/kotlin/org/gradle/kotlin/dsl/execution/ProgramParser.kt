@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.kotlin.dsl.support.compilerMessageFor
+import org.jetbrains.kotlin.utils.addIfNotNull
 
 
 object ProgramParser {
@@ -32,7 +33,7 @@ object ProgramParser {
 
         val topLevelBlockIds = TopLevelBlockId.topLevelBlockIdFor(target)
 
-        return lex(source.text, *topLevelBlockIds).map { (comments, topLevelBlocks) ->
+        return lex(source.text, *topLevelBlockIds).map { (comments, annotations, topLevelBlocks) ->
 
             checkForSingleBlocksOf(topLevelBlockIds, topLevelBlocks)
 
@@ -78,11 +79,7 @@ object ProgramParser {
             val remainingSource =
                 sourceWithoutComments.map {
                     it.erase(
-                        listOfNotNull(
-                            buildscriptFragment?.range,
-                            pluginManagementFragment?.range,
-                            pluginsFragment?.range
-                        )
+                        rangesToErase(buildscriptFragment, pluginManagementFragment, pluginsFragment, annotations)
                     )
                 }
 
@@ -98,6 +95,40 @@ object ProgramParser {
                 ?: stage2
                 ?: Program.Empty
         }
+    }
+
+    private
+    fun rangesToErase(
+        buildscriptFragment: ProgramSourceFragment?,
+        pluginManagementFragment: ProgramSourceFragment?,
+        pluginsFragment: ProgramSourceFragment?,
+        annotations: List<IntRange>
+    ): List<IntRange> {
+        val eraseRanges = mutableListOf<IntRange>()
+
+        eraseRanges.addIfNotNull(buildscriptFragment?.range)
+        eraseRanges.addAll(blockAnnotations(buildscriptFragment, annotations))
+
+        eraseRanges.addIfNotNull(pluginManagementFragment?.range)
+        eraseRanges.addAll(blockAnnotations(pluginManagementFragment, annotations))
+
+        eraseRanges.addIfNotNull(pluginsFragment?.range)
+        eraseRanges.addAll(blockAnnotations(pluginsFragment, annotations))
+
+        return eraseRanges
+    }
+
+    private
+    fun blockAnnotations(fragment: ProgramSourceFragment?, allAnnotations: List<IntRange>): List<IntRange> {
+        val start = fragment?.let { it.section.firstAnnotationStart }
+        val end = fragment?.let { it.section.wholeRange.first }
+        if (start != null && end != null) {
+            val annotationRangeForBlock = start until end - 1
+            return allAnnotations.filter {
+                it.first in annotationRangeForBlock && it.last in annotationRangeForBlock
+            }
+        }
+        return listOf()
     }
 
     private

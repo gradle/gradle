@@ -4,15 +4,15 @@ import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.CoreMatchers.containsString
@@ -64,6 +64,11 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
             """.trimIndent()
         )
+
+        // From ktlint
+        executer.beforeExecute {
+            it.expectDocumentedDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+        }
 
         build("generateScriptPluginAdapters")
 
@@ -750,12 +755,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        val error = buildAndFail("help")
-
-        error.assertHasCause(
-            "The precompiled plugin (${"src/main/kotlin/java.gradle.kts".replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.\n\n"
-                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
-        )
+        buildAndFail("help")
+            .assertHasCauseWorkingAroundIssue25636("The precompiled plugin (${"src/main/kotlin/java.gradle.kts".replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.")
+            .assertHasResolution(getPrecompiledPluginsLink())
     }
 
     @Test
@@ -769,12 +771,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         )
         withDefaultSettings()
 
-        val error = buildAndFail("help")
-
-        error.assertHasCause(
-            "The precompiled plugin (${"src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
-                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
-        )
+        buildAndFail("help")
+            .assertHasCauseWorkingAroundIssue25636("The precompiled plugin (${"src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
+            .assertHasResolution(getPrecompiledPluginsLink())
     }
 
     @Test
@@ -790,13 +789,13 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         )
         withDefaultSettings()
 
-        val error = buildAndFail("help")
-
-        error.assertHasCause(
-            "The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
-                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
-        )
+        buildAndFail("help")
+            .assertHasCauseWorkingAroundIssue25636("The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
+            .assertHasResolution(getPrecompiledPluginsLink())
     }
+
+    private
+    fun getPrecompiledPluginsLink(): String = DocumentationRegistry().getDocumentationRecommendationFor("information", "custom_plugins", "sec:precompiled_plugins")
 
     @Test
     fun `should compile correctly with Kotlin explicit api mode`() {
@@ -825,23 +824,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Issue("https://github.com/gradle/gradle/issues/22091")
-    fun `does not add extra task actions to kotlin compilation task`() {
-        assumeNonEmbeddedGradleExecuter()
-        withKotlinDslPlugin().appendText("""
-            gradle.taskGraph.whenReady {
-                val compileKotlinActions = allTasks.single { it.path == ":compileKotlin" }.actions.size
-                require(compileKotlinActions == 1) {
-                    ":compileKotlin has ${'$'}compileKotlinActions actions, expected 1"
-                }
-            }
-        """)
-        withPrecompiledKotlinScript("my-plugin.gradle.kts", "")
-
-        compileKotlin()
-    }
-
-    @Test
     @Issue("https://github.com/gradle/gradle/issues/23576")
     @ToBeImplemented
     fun `can compile precompiled scripts with compileOnly dependency`() {
@@ -858,6 +840,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val pluginJarV1 = withPluginJar("my-plugin-1.0.jar", "1.0")
         val pluginJarV2 = withPluginJar("my-plugin-2.0.jar", "2.0")
 
+        withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """
             plugins {
                 `kotlin-dsl`
@@ -902,7 +885,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Issue("https://github.com/gradle/gradle/issues/23564")
     fun `respects offline start parameter on synthetic builds for accessors generation`() {
 
-        withSettings("""include("producer", "consumer")""")
+        file("settings.gradle.kts").appendText("""include("producer", "consumer")""")
 
         withKotlinDslPluginIn("producer")
         withFile("producer/src/main/kotlin/offline.gradle.kts", """
@@ -942,7 +925,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withKotlinDslPlugin()
         val init = withPrecompiledKotlinScript("init.gradle.kts", "")
         buildAndFail(":compileKotlin").apply {
-            assertHasCause("Precompiled script '${normaliseFileSeparators(init.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.init.gradle.kts'.")
+            assertHasCauseWorkingAroundIssue25636("Precompiled script '${normaliseFileSeparators(init.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.init.gradle.kts'.")
         }
     }
 
@@ -952,13 +935,12 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withKotlinDslPlugin()
         val settings = withPrecompiledKotlinScript("settings.gradle.kts", "")
         buildAndFail(":compileKotlin").apply {
-            assertHasCause("Precompiled script '${normaliseFileSeparators(settings.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.settings.gradle.kts'.")
+            assertHasCauseWorkingAroundIssue25636("Precompiled script '${normaliseFileSeparators(settings.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.settings.gradle.kts'.")
         }
     }
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/12955")
-    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
     fun `captures output of schema collection and displays it on errors`() {
 
         fun outputFrom(origin: String, logger: Boolean = true) = buildString {
@@ -1039,7 +1021,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/12955")
-    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
     fun `captures output of schema collection but not of concurrent tasks`() {
 
         val repeatOutput = 50
@@ -1111,6 +1092,87 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             server.stop()
         }
     }
+
+    @Test
+    fun `no warnings on absent directories in compilation classpath`() {
+        withDefaultSettings().appendText("""include("producer", "consumer")""")
+        withFile("producer/build.gradle.kts", """plugins { java }""")
+        withKotlinDslPluginIn("consumer").appendText("""dependencies { implementation(project(":producer")) }""")
+        withFile("consumer/src/main/kotlin/some.gradle.kts", "")
+        build(":consumer:classes").apply {
+            assertTaskExecuted(":consumer:compilePluginsBlocks")
+            assertNotOutput("w: Classpath entry points to a non-existent location")
+        }
+        assertFalse(file("producer/build/classes/java/main").exists())
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24788")
+    @Test
+    fun `fail with a reasonable message when kotlin-dsl plugin compiler arguments have been tempered with`() {
+        assumeNonEmbeddedGradleExecuter()
+
+        withKotlinDslPlugin().appendText(
+            """
+            tasks.compileKotlin {
+                compilerOptions {
+                    freeCompilerArgs.set(listOf("some"))
+                }
+            }
+            """
+        )
+        withPrecompiledKotlinScript("some.gradle.kts", "")
+
+        buildAndFail("compileKotlin").apply {
+            assertHasFailure("Execution failed for task ':compileKotlin'.") {
+                assertHasCause(
+                    "Kotlin compiler arguments of task ':compileKotlin' do not work for the `kotlin-dsl` plugin. " +
+                        "The 'freeCompilerArgs' property has been reassigned. " +
+                        "It must instead be appended to. " +
+                        "Please use 'freeCompilerArgs.addAll(\"your\", \"args\")' to fix this."
+                )
+            }
+        }
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/16154")
+    @Test
+    fun `file annotations and package statement in precompiled script plugin handled correctly`() {
+        withKotlinBuildSrc()
+
+        val pluginId = "my-plugin"
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            """
+                @file:Suppress("UnstableApiUsage")
+
+                package bar
+
+                println("foo")
+            """
+        )
+
+        withBuildScript(
+            """
+                plugins {
+                    id("bar.$pluginId")
+                }
+            """
+        )
+
+        build(":help").apply {
+            assertTaskExecuted(":help")
+            assertOutputContains("foo")
+        }
+    }
+}
+
+
+// TODO remove once https://github.com/gradle/gradle/issues/25636 is fixed
+private
+fun ExecutionFailure.assertHasCauseWorkingAroundIssue25636(cause: String) = run {
+    assertHasFailures(error.split(cause).dropLastWhile(String::isEmpty).size - 1)
+    assertHasCause(cause)
 }
 
 

@@ -28,7 +28,6 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
@@ -274,11 +273,11 @@ project.description = text
         concurrent.finished()
     }
 
-    static void distributionProgressMessage(GradleConnector connector, String message) {
+    static void distributionProgressMessage(connector, String message) {
         connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message} )
     }
 
-    static void distributionOperation(GradleConnector connector, Closure operation) {
+    static void distributionOperation(connector, Closure operation) {
         connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation )
     }
 
@@ -374,7 +373,7 @@ logger.lifecycle 'this is lifecycle: $idx'
     }
 
     def withConnectionInDir(String dir, Closure cl) {
-        GradleConnector connector = toolingApi.connector(file(dir))
+        def connector = toolingApi.connector(file(dir))
         toolingApi.withConnection(connector, cl)
     }
 }

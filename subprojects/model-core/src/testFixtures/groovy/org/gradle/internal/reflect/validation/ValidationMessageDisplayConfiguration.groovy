@@ -16,6 +16,9 @@
 
 package org.gradle.internal.reflect.validation
 
+
+import static org.gradle.util.internal.TextUtil.endLineWithDot
+
 class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayConfiguration<T>> {
     private final ValidationMessageChecker checker
     String pluginId
@@ -95,35 +98,28 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     }
 
     private String getIntro() {
-        if (hasIntro) {
-            String intro = typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
-            if (pluginId) {
-                return "In plugin '${pluginId}' ${intro.uncapitalize()}"
-            } else {
-                return intro
-            }
-        } else {
-            ''
+        if (!hasIntro) {
+            return ''
         }
+        String intro = typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
+        if (pluginId) {
+            return "In plugin '${pluginId}' ${intro.uncapitalize()}"
+        }
+        return intro
     }
 
     private String getOutro() {
-        includeLink ? "${checker.learnAt(documentationId, section)}." : ""
+        checker.learnAt(documentationId, section)
     }
 
     static String formatEntry(String entry) {
-        if (entry.endsWith(".")) {
-            entry.capitalize()
-        } else {
-            "${entry.capitalize()}."
-        }
+        endLineWithDot(entry.capitalize())
     }
 
     String render(boolean renderSolutions = true) {
         def newLine = "\n${checker.messageIndent}"
         StringBuilder sb = new StringBuilder(intro)
-        sb.append(description)
-            .append(description.endsWith(".") ? '' : '.')
+        sb.append(endLineWithDot(description))
             .append(newLine)
             .append(newLine)
         if (reason) {
@@ -140,7 +136,7 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
             }
             sb.append(newLine)
         }
-        if (outro) {
+        if (includeLink) {
             sb.append(outro)
         }
         sb.toString().trim()

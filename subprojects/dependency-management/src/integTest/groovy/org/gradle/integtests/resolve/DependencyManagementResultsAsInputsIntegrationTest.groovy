@@ -25,12 +25,11 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.internal.Describables
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -198,7 +197,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         failureDescriptionContains("2. Extract artifact files and annotate with @InputFiles.")
 
         // Documentation
-        failureDescriptionContains("Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unsupported_value_type for more details about this problem.")
+        failureDescriptionContains(documentationRegistry.getDocumentationRecommendationFor("information", "validation_problems", "unsupported_value_type"))
 
         where:
         annotation    | _
@@ -649,7 +648,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             if (Boolean.getBoolean("externalDependency")) {
                 dependencies { implementation 'org.external:external-tool:1.0' }
             }
-            configurations.runtimeClasspath.returnAllVariants = true
+            configurations.runtimeClasspath.resolutionStrategy.returnAllVariants = true
         """
 
         when: "Task without changes is executed & not skipped"

@@ -21,10 +21,10 @@ import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class AbstractDelegatingExecutorService extends AbstractExecutorService {
-    private final ExecutorService delegate;
+public class AbstractDelegatingExecutorService<S extends ExecutorService> extends AbstractExecutorService {
+    protected final S delegate;
 
-    public AbstractDelegatingExecutorService(ExecutorService delegate) {
+    public AbstractDelegatingExecutorService(S delegate) {
         this.delegate = delegate;
     }
 

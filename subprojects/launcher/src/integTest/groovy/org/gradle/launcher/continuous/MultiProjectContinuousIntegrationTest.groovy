@@ -17,10 +17,9 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
-
-import static org.gradle.util.TestPrecondition.MAC_OS_X
-import static org.gradle.util.TestPrecondition.NOT_MAC_OS_X_M1
 
 class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
@@ -48,7 +47,7 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
         // MacOS builds with Intel machines can be too fast on CI and
         // changes generated during build are picked up only after the build which retriggers the build
         // Fix for issue: https://github.com/gradle/gradle-private/issues/3728
-        if (MAC_OS_X.fulfilled && NOT_MAC_OS_X_M1.fulfilled) {
+        if (TestPrecondition.satisfied(UnitTestPreconditions.MacOs) && TestPrecondition.notSatisfied(UnitTestPreconditions.MacOsM1)) {
             def quietPeriod = 250
             waitAtEndOfBuildForQuietPeriod(quietPeriod)
         }

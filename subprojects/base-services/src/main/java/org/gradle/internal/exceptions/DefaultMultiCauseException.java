@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class DefaultMultiCauseException extends GradleException implements MultiCauseException {
+public class DefaultMultiCauseException extends GradleException implements MultiCauseException, NonGradleCauseExceptionsHolder {
     private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
     private transient ThreadLocal<Boolean> hideCause = threadLocal();
     private transient Factory<String> messageFactory;
@@ -161,5 +161,20 @@ public class DefaultMultiCauseException extends GradleException implements Multi
             return message;
         }
         return message;
+    }
+
+    @Override
+    public boolean hasCause(Class<?> type) {
+        for (Throwable cause : getCauses()) {
+            if (cause instanceof NonGradleCauseExceptionsHolder) {
+                boolean hasCauseOfType = ((NonGradleCauseExceptionsHolder) cause).hasCause(type);
+                if (hasCauseOfType) {
+                    return true;
+                }
+            } else if (type.isInstance(cause)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

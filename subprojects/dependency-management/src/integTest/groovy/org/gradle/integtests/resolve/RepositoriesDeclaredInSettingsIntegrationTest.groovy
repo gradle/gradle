@@ -18,13 +18,19 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
-import org.gradle.util.GradleVersion
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.IgnoreIf
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
@@ -209,6 +215,45 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 
         then:
         failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
+    }
+
+    def "can fail the build if repositories are declared in a subproject block"() {
+        settingsFile << """
+
+            dependencyResolutionManagement {
+                repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            }
+
+            include 'lib1', 'lib2'
+
+        """
+
+        buildFile << """
+            gradle.beforeProject {
+                println "Before project \$it"
+            }
+            subprojects {
+                configurations {
+                    conf
+                }
+
+                dependencies {
+                    conf 'org:module:1.0'
+                }
+
+                repositories {
+                    maven { url 'dummy' }
+                }
+                println "Repository registered in \$it"
+            }
+        """
+
+        when:
+        fails ':lib1:checkDeps'
+
+        then:
+        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
+
     }
 
     def "can detect a repository added by a plugin"() {
@@ -515,6 +560,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses dependency resolution API")
     def "mutation of settings repositories after settings have been evaluated is disallowed"() {
 
         buildFile << """
@@ -565,7 +611,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     // fails to delete directory under Windows otherwise
-    @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled })
+    @Requires(UnitTestPreconditions.NotWindows)
     def "can use a published settings plugin which will apply to both the main build and buildSrc"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()
@@ -703,7 +749,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     // fails to delete directory under Windows otherwise
-    @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled })
+    @Requires(UnitTestPreconditions.NotWindows)
     void "repositories declared in settings shouldn't be used to resolve plugins"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()
@@ -757,10 +803,15 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Could not resolve all dependencies for configuration ':conf'.
-The project declares repositories, effectively ignoring the repositories you have declared in the settings.
-You can figure out how project repositories are declared by configuring your build to fail on project repositories.
-See https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_repositories.html#sub:fail_build_on_project_repositories for details.""")
+        failure.assertHasCause("""Could not resolve all dependencies for configuration ':conf'.""")
+            .assertHasResolutions("""The project declares repositories, effectively ignoring the repositories you have declared in the settings.
+   You can figure out how project repositories are declared by configuring your build to fail on project repositories.
+   ${documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories")}""",
+                repositoryHint("Maven POM"),
+                STACKTRACE_MESSAGE,
+                INFO_DEBUG,
+                SCAN,
+                GET_HELP)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15772")

@@ -143,7 +143,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.GROOVY;
+        return BuildInitDsl.KOTLIN;
     }
 
     @Override
@@ -163,6 +163,6 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getDocumentationFor("migrating_from_maven"));
+        return Optional.of(documentationRegistry.getDocumentationRecommendationFor("information", "migrating_from_maven"));
     }
 }

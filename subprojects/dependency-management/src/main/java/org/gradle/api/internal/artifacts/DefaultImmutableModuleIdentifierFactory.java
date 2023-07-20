@@ -58,9 +58,4 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
         }
         return identifier;
     }
-
-    @Override
-    public ModuleVersionIdentifier moduleWithVersion(Module module) {
-        return moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-    }
 }

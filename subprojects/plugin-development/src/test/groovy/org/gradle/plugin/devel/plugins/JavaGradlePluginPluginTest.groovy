@@ -51,8 +51,8 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
 
     def "PluginDescriptorCollectorAction correctly identifies plugin descriptor file"(String contents, String expectedPluginImpl, boolean expectedEmpty) {
         setup:
-        List<PluginDescriptor> descriptors = new ArrayList<PluginDescriptor>()
-        Action<FileCopyDetails> findPluginDescriptor = new JavaGradlePluginPlugin.PluginDescriptorCollectorAction(descriptors)
+        def actionsState = new JavaGradlePluginPlugin.PluginValidationActionsState()
+        Action<FileCopyDetails> findPluginDescriptor = new JavaGradlePluginPlugin.PluginDescriptorCollectorAction(actionsState)
         File descriptorFile = project.file('test-plugin.properties')
         descriptorFile << contents
         FileCopyDetails stubDetails = Stub(FileCopyDetails) {
@@ -61,8 +61,8 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         findPluginDescriptor.execute(stubDetails)
-        descriptors.isEmpty() == expectedEmpty
-        descriptors.isEmpty() || descriptors.get(0).implementationClassName == expectedPluginImpl
+        actionsState.collectedDescriptors.isEmpty() == expectedEmpty
+        actionsState.collectedDescriptors.isEmpty() || actionsState.collectedDescriptors.get(0).implementationClassName == expectedPluginImpl
 
         where:
         contents                             | expectedPluginImpl | expectedEmpty
@@ -73,8 +73,8 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
 
     def "ClassManifestCollector captures class name"() {
         setup:
-        Set<String> classList = new HashSet<String>()
-        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction(classList)
+        def actionsState = new JavaGradlePluginPlugin.PluginValidationActionsState()
+        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction(actionsState)
         FileCopyDetails stubDetails = Stub(FileCopyDetails) {
             getRelativePath() >> { new RelativePath(true, 'com', 'xxx', 'TestPlugin.class') }
         }
@@ -83,12 +83,12 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         classManifestCollector.execute(stubDetails)
 
         then:
-        classList.contains('com/xxx/TestPlugin.class')
+        actionsState.collectedClasses.contains('com/xxx/TestPlugin.class')
     }
 
     def "PluginValidationAction finds fully qualified class"() {
         setup:
-        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(null, [], classList as Set<String>)
+        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(null, new JavaGradlePluginPlugin.PluginValidationActionsState([], classList as Set<String>))
 
         expect:
         pluginValidationAction.hasFullyQualifiedClass(fqClass) == expectedValue
@@ -118,7 +118,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         if (implFile) {
             classes.add(implFile)
         }
-        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(declarations, descriptors, classes)
+        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(declarations, new JavaGradlePluginPlugin.PluginValidationActionsState(descriptors, classes))
         outputEventListener.reset()
 
         expect:
@@ -153,7 +153,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         Provider<Collection<PluginDeclaration>> declarationsProvider = Mock(Provider) {
             get() >> declarations
         }
-        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(declarationsProvider, descriptors, [] as Set)
+        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(declarationsProvider, new JavaGradlePluginPlugin.PluginValidationActionsState(descriptors, [] as Set))
         outputEventListener.reset()
 
         expect:

@@ -18,7 +18,6 @@ package org.gradle.api.file
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.escapeString
@@ -74,7 +73,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "collection closure called on cache store")
     def "task @InputFiles file collection closure is called once only when task executes"() {
         taskTypeWithInputFileCollection()
         buildFile """
@@ -95,7 +93,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         output.count("calculating value") == 2 // once for task dependency calculation, once for task execution
     }
 
-    @ToBeFixedForConfigurationCache(because = "collection provider called on cache store")
     def "task @InputFiles file collection provider is called once only when task executes"() {
         taskTypeWithInputFileCollection()
         buildFile """
@@ -352,7 +349,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         file("output").assertHasDescendants("file1.txt", "file3.txt")
     }
 
-    @ToBeFixedForConfigurationCache(because = "provider assumed to be of fixed value but hits the filesystem")
     def "can filter the elements of a file collection using a closure hitting the filesystem"() {
         given:
         file("files/file0.txt") << ""

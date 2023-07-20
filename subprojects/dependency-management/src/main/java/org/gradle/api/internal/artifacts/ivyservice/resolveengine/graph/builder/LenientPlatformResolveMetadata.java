@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -37,6 +36,7 @@ import org.gradle.internal.component.external.model.RealisedConfigurationMetadat
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
+import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
@@ -44,6 +44,7 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
@@ -74,7 +75,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
 
     @Override
     public ModuleSources getSources() {
-        return null;
+        return ImmutableModuleSources.of();
     }
 
     @Override
@@ -113,12 +114,12 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
                 ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, dependencies.build(), false, false
             );
         }
-        throw new IllegalArgumentException("Undefined configuration '" + name + "'");
+        return null;
     }
 
     @Override
     public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
-        return Optional.absent();
+        return Optional.empty();
     }
 
     @Override

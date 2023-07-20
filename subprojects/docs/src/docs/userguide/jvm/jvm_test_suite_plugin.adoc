@@ -236,7 +236,7 @@ include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/
 
 Gradle 7.6 changed the API of the test suite's `dependencies` block to be more strongly-typed.
 
-Each dependency bucket returns a link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyAdder.html[`DependencyAdder`] that provides strongly-typed methods to add and configure dependencies.
+Each dependency scope returns a link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyAdder.html[`DependencyAdder`] that provides strongly-typed methods to add and configure dependencies.
 
 There is also a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] with factory methods to create new dependencies from different notations.
 Dependencies can be created lazily using these factory methods, as shown below.

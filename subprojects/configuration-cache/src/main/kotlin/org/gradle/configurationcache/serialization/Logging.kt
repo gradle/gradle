@@ -77,18 +77,13 @@ fun IsolateContext.logUnsupported(
 ) {
     logPropertyProblem(
         action,
-        PropertyProblem(
-            trace,
-            build {
-                text("cannot ")
-                text(action)
-                unsupportedThings()
-                text(" as these are not supported with the configuration cache.")
-            },
-            null,
-            documentationSection
-        )
-    )
+        documentationSection = documentationSection,
+    ) {
+        text("cannot ")
+        text(action)
+        unsupportedThings()
+        text(" as these are not supported with the configuration cache.")
+    }
 }
 
 

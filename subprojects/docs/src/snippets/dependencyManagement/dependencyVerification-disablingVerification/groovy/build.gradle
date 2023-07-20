@@ -10,7 +10,6 @@ configurations {
     myPluginClasspath {
         extendsFrom(myPlugin)
         canBeConsumed = false
-        canBeResolved = true
     }
 }
 

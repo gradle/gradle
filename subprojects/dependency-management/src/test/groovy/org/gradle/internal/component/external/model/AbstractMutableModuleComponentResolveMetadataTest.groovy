@@ -282,7 +282,8 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         expect:
         def immutable = metadata.asImmutable()
-        def variantsForTraversal = immutable.getVariantsForGraphTraversal().orNull()
+        def variantsForTraversal = immutable.getVariantsForGraphTraversal().orElse(null)
+        variantsForTraversal != null
         variantsForTraversal.size() == 2
         variantsForTraversal[0].name == 'api'
         variantsForTraversal[0].dependencies.size() == 1

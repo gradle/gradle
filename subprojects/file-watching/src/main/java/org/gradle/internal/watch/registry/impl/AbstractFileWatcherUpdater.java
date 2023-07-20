@@ -18,6 +18,7 @@ package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.Combiners;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;

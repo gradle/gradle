@@ -180,7 +180,7 @@ class MavenProjectsCreatorSpec extends Specification {
 </project>
 """
         def mavenProjects = creator.create(settings.buildSettings(), parentPom)
-        def converter = new Maven2Gradle(mavenProjects, target, BuildInitDsl.GROOVY, false, InsecureProtocolOption.ALLOW)
+        def converter = new Maven2Gradle(mavenProjects, target, BuildInitDsl.KOTLIN, false, InsecureProtocolOption.ALLOW)
 
         expect:
         converter.convert()

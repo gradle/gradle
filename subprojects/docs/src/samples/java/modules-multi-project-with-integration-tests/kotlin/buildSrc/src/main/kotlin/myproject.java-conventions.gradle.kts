@@ -19,7 +19,7 @@ tasks.test {
 }
 
 val integrationTestJarTask = tasks.register<Jar>(integrationTest.jarTaskName) {
-    archiveClassifier.set("integration-tests")
+    archiveClassifier = "integration-tests"
     from(integrationTest.output)
 }
 
@@ -41,6 +41,7 @@ tasks.check {
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     "integrationTestImplementation"(project)
 }

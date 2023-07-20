@@ -1,8 +1,6 @@
 [[publishing_maven:signing]]
 = Signing artifacts
 
-WARNING: The Signing Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module descriptors. In order to use it:
 
 1. Apply the Signing Plugin

@@ -46,7 +46,8 @@ import org.gradle.process.ExecOperations;
  * class FFPlay implements FlowAction&lt;FFPlay.Parameters&gt; {
  *
  *     interface Parameters extends FlowParameters {
- *         RegularFileProperty getMediaFile();
+ *         {@literal @}Input
+ *         Property&lt;File&gt; getMediaFile();
  *     }
  *
  *     private final ExecOperations execOperations;
@@ -61,7 +62,7 @@ import org.gradle.process.ExecOperations;
  *         execOperations.exec(spec -&gt; {
  *             spec.commandLine(
  *                 "ffplay", "-nodisp", "-autoexit", "-hide_banner", "-loglevel", "quiet",
- *                 parameters.getMediaFile().get().getAsFile().getAbsolutePath()
+ *                 parameters.getMediaFile().get().getAbsolutePath()
  *             );
  *             spec.setIgnoreExitValue(true);
  *         });

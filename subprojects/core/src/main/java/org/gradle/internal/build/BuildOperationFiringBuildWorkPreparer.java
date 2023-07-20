@@ -16,42 +16,36 @@
 
 package org.gradle.internal.build;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
-import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
-import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
-import org.gradle.internal.service.scopes.ToPlannedNodeConverterRegistry;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
+import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static java.util.Collections.newSetFromMap;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Details;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Result;
 
+@NonNullApi
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildWorkPreparer delegate;
@@ -84,7 +78,6 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         private final ExecutionPlan plan;
         private final Consumer<? super ExecutionPlan> action;
         private final ToPlannedNodeConverterRegistry converterRegistry;
-        private final NodeDependencyLookup dependencyLookup;
 
         public PopulateWorkGraph(BuildWorkPreparer delegate, GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action, ToPlannedNodeConverterRegistry converterRegistry) {
             this.delegate = delegate;
@@ -92,7 +85,6 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             this.plan = plan;
             this.action = action;
             this.converterRegistry = converterRegistry;
-            this.dependencyLookup = new NodeDependencyLookup(converterRegistry);
         }
 
         @Override
@@ -105,9 +97,9 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             Set<Task> filteredTasks = contents.getFilteredTasks();
             QueryableExecutionPlan.ScheduledNodes scheduledWork = contents.getScheduledNodes();
 
-            List<PlannedNode> plannedNodes = toPlannedNodes(scheduledWork);
+            PlannedNodeGraph plannedNodeGraph = computePlannedNodeGraph(scheduledWork);
 
-            buildOperationContext.setResult(new CalculateTaskGraphResult(requestedTasks, filteredTasks, plannedNodes));
+            buildOperationContext.setResult(new CalculateTaskGraphResult(requestedTasks, filteredTasks, plannedNodeGraph));
         }
 
         void populateTaskGraph() {
@@ -127,59 +119,50 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 });
         }
 
-        private List<PlannedNode> toPlannedNodes(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
-            List<PlannedNode> plannedNodes = new ArrayList<>();
-            scheduledWork.visitNodes(nodes -> {
-                for (Node node : nodes) {
-                    ToPlannedNodeConverter converter = converterRegistry.getConverter(node);
-                    if (converter != null && converter.isInSamePlan(node)) {
-                        PlannedNode plannedNode = converter.convert(node, dependencyLookup);
-                        plannedNodes.add(plannedNode);
-                    }
-                }
-            });
-            return plannedNodes;
+        private PlannedNodeGraph computePlannedNodeGraph(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
+            PlannedNodeGraph.Collector collector = new PlannedNodeGraph.Collector(converterRegistry);
+            scheduledWork.visitNodes(collector::collectNodes);
+            return collector.getGraph();
         }
-
 
         private static class CalculateTaskGraphResult implements Result, CustomOperationTraceSerialization {
 
             private final Set<Task> requestedTasks;
             private final Set<Task> filteredTasks;
-            private final List<PlannedNode> plannedNodes;
+            private final PlannedNodeGraph plannedNodeGraph;
 
-            public CalculateTaskGraphResult(Set<Task> requestedTasks, Set<Task> filteredTasks, List<PlannedNode> plannedNodes) {
+            public CalculateTaskGraphResult(Set<Task> requestedTasks, Set<Task> filteredTasks, PlannedNodeGraph plannedNodeGraph) {
                 this.requestedTasks = requestedTasks;
                 this.filteredTasks = filteredTasks;
-                this.plannedNodes = plannedNodes;
+                this.plannedNodeGraph = plannedNodeGraph;
             }
 
             @Override
             public List<String> getRequestedTaskPaths() {
-                return toSortedTaskPaths(requestedTasks);
+                return toUniqueSortedTaskPaths(requestedTasks);
             }
 
             @Override
             public List<String> getExcludedTaskPaths() {
-                return toSortedTaskPaths(filteredTasks);
+                return toUniqueSortedTaskPaths(filteredTasks);
             }
 
             @Override
             public List<PlannedTask> getTaskPlan() {
-                return plannedNodes.stream()
-                    .filter(PlannedTask.class::isInstance)
-                    .map(PlannedTask.class::cast)
-                    .collect(Collectors.toList());
+                @SuppressWarnings("unchecked")
+                List<? extends PlannedTask> taskPlan = (List<? extends PlannedTask>) plannedNodeGraph.getNodes(PlannedNodeGraph.DetailLevel.LEVEL1_TASKS);
+                return ImmutableList.copyOf(taskPlan);
             }
 
             @Override
             public List<PlannedNode> getExecutionPlan(Set<NodeIdentity.NodeType> types) {
-                if (EnumSet.allOf(NodeIdentity.NodeType.class).equals(types)) {
-                    return plannedNodes;
+                if (types.isEmpty()) {
+                    return Collections.emptyList();
                 }
-                return plannedNodes.stream()
-                    .filter(node -> types.contains(node.getNodeIdentity().getNodeType()))
-                    .collect(Collectors.toList());
+
+                @SuppressWarnings("unchecked")
+                List<PlannedNode> plan = (List<PlannedNode>) plannedNodeGraph.getNodes(PlannedNodeGraph.DetailLevel.from(types));
+                return plan;
             }
 
             @Override
@@ -191,69 +174,11 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 builder.put("executionPlan", getExecutionPlan(EnumSet.allOf(NodeIdentity.NodeType.class)));
                 return builder.build();
             }
-        }
-    }
 
-    private static List<String> toSortedTaskPaths(Set<Task> tasks) {
-        return tasks.stream().map(Task::getPath).distinct().sorted().collect(Collectors.toList());
-    }
-
-    private static class NodeDependencyLookup implements ToPlannedNodeConverter.DependencyLookup {
-
-        private final ToPlannedNodeConverterRegistry converterRegistry;
-
-        private NodeDependencyLookup(ToPlannedNodeConverterRegistry converterRegistry) {
-            this.converterRegistry = converterRegistry;
-        }
-
-        @Override
-        public List<? extends NodeIdentity> findNodeDependencies(Node node) {
-            return findDependencies(node, Node::getDependencySuccessors, it -> true).collect(Collectors.toList());
-        }
-
-        @Override
-        public List<? extends TaskIdentity> findTaskDependencies(Node node) {
-            return findDependencies(node, Node::getDependencySuccessors, it -> it instanceof TaskIdentity)
-                .map(TaskIdentity.class::cast)
-                .collect(Collectors.toList());
-        }
-
-        private Stream<? extends NodeIdentity> findDependencies(
-            Node node,
-            Function<? super Node, ? extends Collection<Node>> traverser,
-            Predicate<NodeIdentity> isDependencyNode
-        ) {
-            return findIdentifiedNodes(node, traverser, isDependencyNode, newSetFromMap(new IdentityHashMap<>()));
-        }
-
-        private Stream<NodeIdentity> findIdentifiedNodes(
-            Node curNode,
-            Function<? super Node, ? extends Collection<Node>> traverser,
-            Predicate<NodeIdentity> isDependencyNode,
-            Set<Node> seen
-        ) {
-            Collection<Node> nodes = traverser.apply(curNode);
-            if (nodes.isEmpty()) {
-                return Stream.empty();
+            private static List<String> toUniqueSortedTaskPaths(Set<Task> tasks) {
+                return tasks.stream().map(Task::getPath).distinct().sorted().collect(Collectors.toList());
             }
-
-            return nodes.stream()
-                .filter(seen::add)
-                .flatMap(node -> {
-                    NodeIdentity nodeIdentity = identifyAsDependencyNode(node, isDependencyNode);
-                    return nodeIdentity != null
-                        ? Stream.of(nodeIdentity)
-                        : findIdentifiedNodes(node, traverser, isDependencyNode, seen);
-                });
-        }
-
-        private NodeIdentity identifyAsDependencyNode(Node node, Predicate<NodeIdentity> isDependencyNode) {
-            ToPlannedNodeConverter converter = converterRegistry.getConverter(node);
-            if (converter == null) {
-                return null;
-            }
-            NodeIdentity nodeIdentity = converter.getNodeIdentity(node);
-            return isDependencyNode.test(nodeIdentity) ? nodeIdentity : null;
         }
     }
+
 }
