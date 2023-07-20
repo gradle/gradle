@@ -104,15 +104,4 @@ public interface JvmEcosystemUtilities {
      * @param compileTask the compile task which serves as reference for inference
      */
     <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask);
-
-    /**
-     * Registers a new source directory for a source set, assuming that it will be compiled by
-     * a language or compiler for the JVM (aka, it produces .class files).
-     * @param sourceSet the source set for which to add a directory
-     * @param name the name of the directory
-     * @param configuration the configuration of the source directory
-     */
-    void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration);
-
-    void registerJvmLanguageGeneratedSourceDirectory(SourceSet sourceSet, Action<? super JvmLanguageGeneratedSourceDirectoryBuilder> configuration);
 }

@@ -20,7 +20,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.attributes.HasConfigurableAttributes;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -80,13 +79,4 @@ public interface JvmPluginServices extends JvmEcosystemUtilities {
      * @param providers the artifacts or providers of artifacts (e.g tasks providers) which should be associated with this configuration
      */
     void replaceArtifacts(Configuration outgoingConfiguration, Object... providers);
-
-    /**
-     * Registers a configuration which will be used to declare dependencies, that is to say which is
-     * neither resolvable, nor consumable.
-     * @param name the name of the configuration
-     * @param description the description of the bucket
-     * @return a handle on the registered dependency bucket
-     */
-    Provider<Configuration> registerDependencyBucket(String name, String description);
 }

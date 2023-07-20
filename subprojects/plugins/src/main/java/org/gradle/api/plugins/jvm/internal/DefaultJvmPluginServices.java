@@ -66,15 +66,12 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     @Inject
     public DefaultJvmPluginServices(ObjectFactory objectFactory,
                                     ProviderFactory providerFactory,
-                                    InstanceGenerator instanceGenerator) {
+                                    InstanceGenerator instanceGenerator,
+                                    ProjectInternal project) {
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
         this.instanceGenerator = instanceGenerator;
         configurationToCompileTasks = new HashMap<>(5);
-    }
-
-    @Override
-    public void inject(ProjectInternal project) {
         this.project = project;
     }
 
@@ -132,25 +129,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         for (Object provider : providers) {
             outgoing.artifact(provider);
         }
-    }
-
-    @Override
-    public void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration) {
-        DefaultJvmLanguageSourceDirectoryBuilder builder = instanceGenerator.newInstance(DefaultJvmLanguageSourceDirectoryBuilder.class,
-            name,
-            project,
-            sourceSet);
-        configuration.execute(builder);
-        builder.build();
-    }
-
-    @Override
-    public void registerJvmLanguageGeneratedSourceDirectory(SourceSet sourceSet, Action<? super JvmLanguageGeneratedSourceDirectoryBuilder> configuration) {
-        DefaultJvmLanguageGeneratedSourceDirectoryBuilder builder = instanceGenerator.newInstance(DefaultJvmLanguageGeneratedSourceDirectoryBuilder.class,
-            project,
-            sourceSet);
-        configuration.execute(builder);
-        builder.build();
     }
 
     private void clearArtifacts(Configuration outgoingConfiguration) {

@@ -15,9 +15,6 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.tasks.TaskProvider;
-
 /**
  * Allows configuration of attributes used for JVM related components.
  * This can be used both on the producer side, to explain what it provides,
@@ -83,7 +80,7 @@ public interface JvmEcosystemAttributesDetails {
     /**
      * Configures the target JVM version. For producers of a library, it's in general
      * a better idea to rely on inference which will calculate the target JVM version
-     * lazily, for example calling {@link JvmPluginServices#useDefaultTargetPlatformInference(Configuration, TaskProvider)}.
+     * lazily, for example calling {@code JvmLanguageUtilities#useDefaultTargetPlatformInference(Configuration, TaskProvider)}.
      * For consumers, it makes sense to specify a specific version of JVM they target.
      *
      * @param version the Java version
@@ -94,4 +91,11 @@ public interface JvmEcosystemAttributesDetails {
      * Expresses that variants which are optimized for standard JVMs should be preferred.
      */
     JvmEcosystemAttributesDetails preferStandardJVM();
+
+    /**
+     * Provides or requires the source files of a component.
+     *
+     * @return {@code this}
+     */
+    JvmEcosystemAttributesDetails asSources();
 }
