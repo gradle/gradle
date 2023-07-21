@@ -40,8 +40,8 @@ class ZipHasherTest extends Specification {
 
     ResourceEntryFilter manifestResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
     ResourceEntryFilter propertyResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by", "पशुपतिरपि"))
-    ZipHasher zipHasher = new ZipHasher(resourceHasher(ResourceEntryFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING))
-    ZipHasher ignoringZipHasher = new ZipHasher(resourceHasher(manifestResourceFilter, propertyResourceFilter))
+    ZipHasher zipHasher = ZipHasher.withResourceHasher(resourceHasher(ResourceEntryFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING))
+    ZipHasher ignoringZipHasher = ZipHasher.withResourceHasher(resourceHasher(manifestResourceFilter, propertyResourceFilter))
 
     static ResourceHasher resourceHasher(ResourceEntryFilter manifestResourceFilter, ResourceEntryFilter propertyResourceFilter) {
         ResourceHasher hasher = new RuntimeClasspathResourceHasher()

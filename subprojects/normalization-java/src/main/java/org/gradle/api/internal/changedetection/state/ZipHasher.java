@@ -46,6 +46,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+/**
+ * Computes the fingerprint of a ZIP archive.
+ */
 public class ZipHasher implements RegularFileSnapshotContextHasher, ConfigurableNormalizer {
 
     private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar", "klib");
@@ -60,18 +63,38 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     private final ZipHasher fallbackZipHasher;
     private final HashingExceptionReporter hashingExceptionReporter;
 
-    public ZipHasher(ResourceHasher resourceHasher) {
-        this(
+    private ZipHasher(ResourceHasher resourceHasher, @Nullable ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
+        this.resourceHasher = resourceHasher;
+        this.fallbackZipHasher = fallbackZipHasher;
+        this.hashingExceptionReporter = hashingExceptionReporter;
+    }
+
+    /**
+     * Creates a ZipHasher that hashes archive entries with the given {@code resourceHasher}. Nested archives are unpacked.
+     *
+     * @param resourceHasher the hasher to hash archive entries
+     * @return the ZipHasher
+     */
+    public static ZipHasher withResourceHasher(ResourceHasher resourceHasher) {
+        return new ZipHasher(
             resourceHasher,
             null,
             (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e)
         );
     }
 
-    public ZipHasher(ResourceHasher resourceHasher, @Nullable ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
-        this.resourceHasher = resourceHasher;
-        this.fallbackZipHasher = fallbackZipHasher;
-        this.hashingExceptionReporter = hashingExceptionReporter;
+    /**
+     * Creates a ZipHasher that hashes archive entries with the given {@code resourceHasher}.
+     * If the archive cannot be hashed with this hasher because of exception, retries fingerprinting with {@code fallbackZipHasher}.
+     * The {@code hashingExceptionReporter} is notified if the {@code fallbackZipHasher} is used.
+     *
+     * @param resourceHasher the hasher to hash archive entries
+     * @param fallbackZipHasher the ZipHasher to use if hashing with the created one fails
+     * @param hashingExceptionReporter the reporter to be notified about hashing exception
+     * @return the ZipHasher
+     */
+    public static ZipHasher withResourceHasherAndFallback(ResourceHasher resourceHasher, ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
+        return new ZipHasher(resourceHasher, fallbackZipHasher, hashingExceptionReporter);
     }
 
     @Nullable
