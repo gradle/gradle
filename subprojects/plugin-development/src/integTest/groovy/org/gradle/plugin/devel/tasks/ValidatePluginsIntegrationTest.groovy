@@ -313,7 +313,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         def n = DefaultProblem.class.name
 
-        def problems = operations.problems()
+        def problems = buildOperations.problems()
         assert problems.size() == 1
     }
 

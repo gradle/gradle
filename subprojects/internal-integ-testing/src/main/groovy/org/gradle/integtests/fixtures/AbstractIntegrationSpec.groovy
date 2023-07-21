@@ -78,7 +78,8 @@ abstract class AbstractIntegrationSpec extends Specification {
     private GradleExecuter executor
     private boolean ignoreCleanupAssertions
 
-    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    def buildOperations
 
     GradleExecuter getExecuter() {
         if (executor == null) {
@@ -119,6 +120,12 @@ abstract class AbstractIntegrationSpec extends Specification {
                 withArgument("-Dorg.gradle.internal.network.retry.max.attempts=$maxUploadAttempts")
             }
         }
+
+        setupBuildOperationFixture()
+    }
+
+    def setupBuildOperationFixture() {
+        buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
     }
 
     def cleanup() {

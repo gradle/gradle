@@ -25,6 +25,10 @@ class StacktraceIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'rootProject.name = "stacktrace-integration-test-sample"'
     }
 
+    def setupBuildOperationFixture(){
+        //disable build operation tracing for this test suite
+    }
+
     def "no stacktrace is present in the output by default"() {
         when:
         fails()
