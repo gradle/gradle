@@ -16,28 +16,29 @@
 
 package org.gradle.api.internal.provider.proxies;
 
-import com.google.common.collect.ForwardingSet;
-import org.gradle.api.provider.SetProperty;
+import com.google.common.collect.ForwardingList;
+import org.gradle.api.provider.ListProperty;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
- * Implementation of Set, that is used for Property upgrades
+ * Implementation of List, that is used for Property upgrades
  */
-public class SetPropertyBackedSet<E> extends ForwardingSet<E> {
+public class ListPropertyBackedList<E> extends ForwardingList<E> {
 
-    private final SetProperty<E> delegate;
+    private final ListProperty<E> delegate;
 
-    public SetPropertyBackedSet(SetProperty<E> delegate) {
+    public ListPropertyBackedList(ListProperty<E> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    protected @NotNull Set<E> delegate() {
-        return new Set<E>() {
+    protected @NotNull List<E> delegate() {
+        return new List<E>() {
             @Override
             public int size() {
                 return delegate.get().size();
@@ -74,15 +75,13 @@ public class SetPropertyBackedSet<E> extends ForwardingSet<E> {
 
             @Override
             public boolean add(E e) {
-                Set<E> set = delegate.get();
-                boolean added = set.add(e);
                 delegate.add(e);
-                return added;
+                return true;
             }
 
             @Override
             public boolean remove(Object o) {
-                Set<? extends E> set = delegate.get();
+                List<E> set = delegate.get();
                 boolean removed = set.remove(o);
                 delegate.set(set);
                 return removed;
@@ -95,15 +94,20 @@ public class SetPropertyBackedSet<E> extends ForwardingSet<E> {
 
             @Override
             public boolean addAll(@NotNull Collection<? extends E> c) {
-                Set<E> set = delegate.get();
+                List<E> set = delegate.get();
                 boolean added = set.addAll(c);
                 delegate.addAll(c);
                 return added;
             }
 
             @Override
+            public boolean addAll(int index, @NotNull Collection<? extends E> c) {
+                return false;
+            }
+
+            @Override
             public boolean retainAll(@NotNull Collection<?> c) {
-                Set<? extends E> set = delegate.get();
+                List<E> set = delegate.get();
                 boolean removed = set.retainAll(c);
                 delegate.set(set);
                 return removed;
@@ -111,7 +115,7 @@ public class SetPropertyBackedSet<E> extends ForwardingSet<E> {
 
             @Override
             public boolean removeAll(@NotNull Collection<?> c) {
-                Set<? extends E> set = delegate.get();
+                List<E> set = delegate.get();
                 boolean removed = set.removeAll(c);
                 delegate.set(set);
                 return removed;
@@ -120,6 +124,64 @@ public class SetPropertyBackedSet<E> extends ForwardingSet<E> {
             @Override
             public void clear() {
                 delegate.empty();
+            }
+
+            @Override
+            public E get(int index) {
+                return delegate.get().get(index);
+            }
+
+            @Override
+            public E set(int index, E element) {
+                List<E> set = delegate.get();
+                E replaced = set.set(index, element);
+                delegate.set(set);
+                return replaced;
+            }
+
+            @Override
+            public void add(int index, E element) {
+                List<E> set = delegate.get();
+                set.add(index, element);
+                delegate.set(set);
+            }
+
+            @Override
+            public E remove(int index) {
+                List<E> set = delegate.get();
+                E removed = set.remove(index);
+                delegate.set(set);
+                return removed;
+            }
+
+            @Override
+            public int indexOf(Object o) {
+                return delegate.get().indexOf(o);
+            }
+
+            @Override
+            public int lastIndexOf(Object o) {
+                return delegate.get().lastIndexOf(o);
+            }
+
+            @NotNull
+            @Override
+            public ListIterator<E> listIterator() {
+                // TODO: Should we support ListIterator.remove(), add(), set()?
+                return delegate.get().listIterator();
+            }
+
+            @NotNull
+            @Override
+            public ListIterator<E> listIterator(int index) {
+                // TODO: Should we support ListIterator.remove(), add(), set()?
+                return delegate.get().listIterator(index);
+            }
+
+            @NotNull
+            @Override
+            public List<E> subList(int fromIndex, int toIndex) {
+                return delegate.get().subList(fromIndex, toIndex);
             }
         };
     }
