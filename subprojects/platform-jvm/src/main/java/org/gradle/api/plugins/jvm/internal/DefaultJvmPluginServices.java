@@ -76,6 +76,14 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
+    public void configureAsSources(HasConfigurableAttributes<?> configuration) {
+        configureAttributes(
+            configuration,
+            details -> details.withExternalDependencies().asSources()
+        );
+    }
+
+    @Override
     public void configureAsApiElements(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,

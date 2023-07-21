@@ -68,6 +68,13 @@ public interface JvmPluginServices extends JvmEcosystemUtilities {
      */
     void configureAsRuntimeElements(HasConfigurableAttributes<?> configuration);
 
+    /**
+     * Configures a configuration with reasonable defaults to be resolved as a project's main sources variant.
+     *
+     * @param configuration the configuration to be configured
+     */
+    void configureAsSources(HasConfigurableAttributes<?> configuration);
+
     <T> void configureAttributes(HasConfigurableAttributes<T> configurableAttributes, Action<? super JvmEcosystemAttributesDetails> details);
 
     /**
