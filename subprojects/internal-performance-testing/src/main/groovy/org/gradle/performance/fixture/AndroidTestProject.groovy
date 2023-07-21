@@ -41,6 +41,7 @@ class AndroidTestProject implements TestProject {
         LARGE_ANDROID_BUILD,
         LARGE_ANDROID_BUILD_2,
         IncrementalAndroidTestProject.SANTA_TRACKER,
+        IncrementalAndroidTestProject.NOW_IN_ANDROID,
         IncrementalAndroidTestProject.UBER_MOBILE_APP
     ]
 
