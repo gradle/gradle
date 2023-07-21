@@ -32,6 +32,11 @@ import static org.gradle.internal.instrumentation.processor.codegen.groovy.Param
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.VARARG;
 
+/**
+ * Based on the {@link SignatureTree}, generates a method body that checks the
+ * {@code Class[] argumentClasses} parameter of the method for representing one of the
+ * signatures in the signature tree.
+ */
 class MatchesSignatureGeneratingSignatureTreeVisitor {
     private final CodeBlock.Builder result;
 
@@ -140,6 +145,4 @@ class MatchesSignatureGeneratingSignatureTreeVisitor {
             .map(it -> CodeBlock.of("$T.class", TypeUtils.typeName(it.getParameterType())))
             .collect(CodeBlock.joining(", ", "new Class<?>[] {", "}"));
     }
-
-
 }
