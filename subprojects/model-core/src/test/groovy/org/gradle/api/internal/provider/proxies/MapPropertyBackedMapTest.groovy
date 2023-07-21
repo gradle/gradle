@@ -67,10 +67,6 @@ class MapPropertyBackedMapTest extends Specification {
     def "map modification operations works with Groovy methods"() {
         given:
         Map<String, String> map = new MapPropertyBackedMap<>(mapProperty)
-        map.put("first", "value1")
-        map.put("second", "value2")
-        map.put("third", "value3")
-        map.putAll(["forth": "value4", "fifth": "value5"])
 
         when:
         map.putAll(["first": "value1", "second": "value2", "third": "value3", "forth": "value4", "fifth": "value5"])

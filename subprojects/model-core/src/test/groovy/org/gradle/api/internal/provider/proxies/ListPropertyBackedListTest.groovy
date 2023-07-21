@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.proxies
 
+
 import org.gradle.api.provider.ListProperty
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -82,6 +83,30 @@ class ListPropertyBackedListTest extends Specification {
         then:
         listProperty.get() == ["first", "third", "forth"]
         list.size() == 3
+    }
+
+    def "list modification operations works with Groovy methods"() {
+        given:
+        List<String> list = new ListPropertyBackedList<>(listProperty)
+
+        when:
+        list.addAll(["first", "second", "third", "forth", "fifth"])
+
+        then:
+        listProperty.get() == ["first", "second", "third", "forth", "fifth"]
+
+        when:
+        list.removeAll { it in ["first", "third", "forth"] }
+
+        then:
+        listProperty.get() == ["second", "fifth"]
+
+        when:
+        list.addAll(["first", "third", "forth"])
+        list.retainAll { it in ["first", "third", "forth"] }
+
+        then:
+        listProperty.get() == ["first", "third", "forth"]
     }
 
     def "contains operations work"() {

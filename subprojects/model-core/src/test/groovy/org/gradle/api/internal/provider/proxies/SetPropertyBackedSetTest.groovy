@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider.proxies
 
-
+import groovy.test.NotYetImplemented
 import org.gradle.api.provider.SetProperty
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -76,6 +76,32 @@ class SetPropertyBackedSetTest extends Specification {
         then:
         setProperty.get() == ["first", "third", "forth"] as Set<String>
         set.size() == 3
+    }
+
+    @NotYetImplemented
+    def "set modification operations works with Groovy methods"() {
+        given:
+        Set<String> set = new SetPropertyBackedSet<>(setProperty)
+        set.addAll(["first", "second", "third", "forth", "fifth"])
+
+        when:
+        set.addAll(["first", "second", "third", "forth", "fifth"])
+
+        then:
+        setProperty.get() == ["first", "second", "third", "forth", "fifth"] as Set<String>
+
+        when:
+        set.removeAll { it in ["first", "third", "forth"] }
+
+        then:
+        setProperty.get() == ["second", "fifth"] as Set<String>
+
+        when:
+        set.addAll(["first", "third", "forth"])
+        set.retainAll { it in ["first", "third", "forth"] }
+
+        then:
+        setProperty.get() == ["first", "third", "forth"] as Set<String>
     }
 
     def "contains operations work"() {
