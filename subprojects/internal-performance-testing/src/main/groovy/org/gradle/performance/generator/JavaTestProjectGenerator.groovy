@@ -42,7 +42,7 @@ enum JavaTestProjectGenerator {
     LARGE_JAVA_MULTI_PROJECT(new TestProjectGeneratorConfigurationBuilder("compilationAvoidanceExperiment")
         .withDsl(KOTLIN)
         .withSourceFiles(10)
-        .withSubProjects(10)
+        .withSubProjects(1000)
         .withDaemonMemory('2g')
         .withCompilerMemory('512m')
         .assembleChangeFile()
