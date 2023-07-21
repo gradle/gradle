@@ -34,6 +34,7 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -61,6 +62,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final FileAccessTracker fileAccessTracker;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
+    private final ClasspathFingerprinter classpathFingerprinter;
     private final FileSystemAccess fileSystemAccess;
     private final GlobalCacheLocations globalCacheLocations;
     private final FileLockManager fileLockManager;
@@ -76,6 +78,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         FileAccessTimeJournal fileAccessTimeJournal,
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
+        ClasspathFingerprinter classpathFingerprinter,
         FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
         GlobalCacheLocations globalCacheLocations,
@@ -85,6 +88,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
+        this.classpathFingerprinter = classpathFingerprinter;
         this.fileSystemAccess = fileSystemAccess;
         this.globalCacheLocations = globalCacheLocations;
         this.fileLockManager = fileLockManager;
@@ -211,7 +215,14 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private InstrumentingClasspathFileTransformer instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.Policy policy, Transform transform) {
-        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, FileSystemLocationSnapshot::getHash, policy, transform, gradleCoreInstrumentingRegistry);
+        return new InstrumentingClasspathFileTransformer(
+            fileLockManager,
+            classpathWalker,
+            classpathBuilder,
+            locationSnapshot -> classpathFingerprinter.fingerprint(locationSnapshot, null).getHash(),
+            policy,
+            transform,
+            gradleCoreInstrumentingRegistry);
     }
 
     private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, InstrumentingTypeRegistry typeRegistry) {
