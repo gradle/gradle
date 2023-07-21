@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider.proxies;
 import org.gradle.api.provider.ListProperty;
 
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,7 +40,7 @@ public class ListPropertyBackedList<E> extends AbstractList<E> {
 
     @Override
     public E set(int index, E element) {
-        List<E> list = delegate.get();
+        List<E> list = new ArrayList<>(delegate.get());
         E replaced = list.set(index, element);
         delegate.set(list);
         return replaced;
@@ -53,14 +54,14 @@ public class ListPropertyBackedList<E> extends AbstractList<E> {
 
     @Override
     public void add(int index, E element) {
-        List<E> list = delegate.get();
+        List<E> list = new ArrayList<>(delegate.get());
         list.add(index, element);
         delegate.set(list);
     }
 
     @Override
     public E remove(int index) {
-        List<E> list = delegate.get();
+        List<E> list = new ArrayList<>(delegate.get());
         E removed = list.remove(index);
         delegate.set(list);
         return removed;
