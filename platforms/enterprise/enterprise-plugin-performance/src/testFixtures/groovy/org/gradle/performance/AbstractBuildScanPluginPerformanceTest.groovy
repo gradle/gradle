@@ -37,7 +37,7 @@ import static org.gradle.performance.fixture.BaselineVersionResolver.toBaselineV
 
 class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
 
-    static String incomingDir = "../../incoming"
+    static String incomingDir = "../../../incoming"
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
