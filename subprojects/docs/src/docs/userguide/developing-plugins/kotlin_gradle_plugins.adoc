@@ -249,14 +249,14 @@ In order to configure all the above options and more, Gradle offers several plug
 
 * `"java-gradle-plugin"`
 * `"org.jetbrains.kotlin.jvm"` (also used as `kotlin("jvm")`)
-* `"org.gradle.kotlin.embedded-kotlin"` (also used as `embedded-kotlin` ))
-* `"org.gradle.kotlin.kotlin-dsl"` (also used as `kotlin-dsl`)
+* `"org.gradle.kotlin.embedded-kotlin"` (also used as `&#96;embedded-kotlin&#96;`))
+* `"org.gradle.kotlin.kotlin-dsl"` (also used as `&#96;kotlin-dsl&#96;`)
 
 Usually you would choose one of those combinations:
 
 * `"java-gradle-plugin"` and `"org.jetbrains.kotlin.jvm"`
-* `"java-gradle-plugin"` and `embedded-kotlin`
-* `kotlin-dsl`
+* `"java-gradle-plugin"` and `&#96;embedded-kotlin&#96;`
+* `&#96;kotlin-dsl&#96;`
 
 Let's see what each plugin is doing.
 
@@ -283,9 +283,16 @@ You usually always want this plugin to develop custom Gradle plugins (although o
 Refer to the full https://kotlinlang.org/docs/gradle.html[documentation] for more information.
 
 [[sec:embedded-kotlin]]
-=== The `embedded-kotlin` plugin
+=== The `&#96;embedded-kotlin&#96;` plugin
 
-`embedded-kotlin` is built on top of `"org.jetbrains.kotlin.jvm"` and does the following:
+[source,kotlin]
+----
+plugins {
+  `embedded-kotlin`
+}
+----
+
+`&#96;embedded-kotlin&#96;` is built on top of `"org.jetbrains.kotlin.jvm"` and does the following:
 
 * applies the `"org.jetbrains.kotlin.jvm"` plugin using the same version as the Gradle embedded version
 * adds `kotlin-stdlib` and `kotlin-reflect` to the `compileOnly` dependency
@@ -294,13 +301,20 @@ Use this plugin if you want to use the same Kotlin version to develop your plugi
 This is especially useful if you do not intend to distribute your plugins (i.e. convention plugins).
 
 [[sec:kotlin-dsl]]
-=== The `kotlin-dsl` plugin
+=== The `&#96;kotlin-dsl&#96;` plugin
 
-`kotlin-dsl` is built on top of `kotlin-embedded` and does the following:
+[source,kotlin]
+----
+plugins {
+  `kotlin-dsl`
+}
+----
+
+`&#96;kotlin-dsl&#96;` is built on top of `&#96;embedded-kotlin&#96;` and does the following:
 
 * applies `"java-gradle-plugin"`
 * applies `kotlin-embedded`
-* applies the `kotlin-dsl-precompiled-script-plugins` allowing to use `build.gradle.kts` files
+* applies the `&#96;kotlin-dsl-precompiled-script-plugins&#96;` allowing to use `build.gradle.kts` files
 * adds `gradleKotlinDsl()` to the `compileOnly` configuration
 * configures the `sam-with-receiver` Kotlin compiler plugin
 * configures the `kotlin-assignment` Kotlin compiler plugin
@@ -312,10 +326,10 @@ This is especially useful if you do not intend to distribute your plugins (i.e. 
 ** `-Xjsr305=strict` for https://kotlinlang.org/docs/java-interop.html#compiler-configuration[increased null safety]
 
 
-The `kotlin-dsl` plugin is an all-in-one plugin.
-By applying the `kotlin-dsl-precompiled-script-plugins` and the same options as Gradle when compiling scripts, it allows you to write plugins using the `.gradle.kts` file.
+The `&#96;kotlin-dsl&#96;` plugin is an all-in-one plugin.
+By applying the `&#96;kotlin-dsl-precompiled-script-plugins&#96;` and the same options as Gradle when compiling scripts, it allows you to write plugins using the `.gradle.kts` file.
 
-Like the `embedded-kotlin` plugin, it uses the same Kotlin version as your Gradle build.
+Like the `&#96;embedded-kotlin&#96;` plugin, it uses the same Kotlin version as your Gradle build.
 This is useful if you do not intend to distribute your plugins (i.e. convention plugins).
 If you need to distribute your plugin, make sure to use a Kotlin version that is compatible with the Gradle version you are targeting.
 
