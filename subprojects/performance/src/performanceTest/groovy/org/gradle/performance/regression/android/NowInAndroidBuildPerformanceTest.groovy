@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.api.JavaVersion
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
@@ -31,6 +32,10 @@ class NowInAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTe
     //TODO: is PER_COMMIT what we want?
 
     //TODO: is it ok to run on all major operating systems?
+
+    def setup() {
+        AndroidTestProject.useJavaVersion(runner, JavaVersion.VERSION_17)
+    }
 
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = [MAC_OS, LINUX, WINDOWS], testProjects = "nowInAndroidBuild"),
