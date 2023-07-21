@@ -266,6 +266,46 @@ Options
         'SetProperty'    | 'TestEnum' | []                                   | '[]'                | 'not provided'
     }
 
+    def "set value of property of type #propertyType when #description for Java task"() {
+        given:
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithUnparameterizedPropertyOption(propertyType, methodName)
+        buildFile << sampleTask()
+
+        when:
+        run(['sample'] + options as String[])
+
+        then:
+        def value = optionValue == 'null' ? optionValue : "$testDirectory/$optionValue"
+        outputContains("Value of myProp: $value")
+
+        where:
+        propertyType          | options               | optionValue | methodName          | description
+        'RegularFileProperty' | ['--myProp=test.txt'] | 'test.txt'  | 'fileProperty'      | 'provided'
+        'RegularFileProperty' | []                    | 'null'      | 'fileProperty'      | 'not provided'
+        'DirectoryProperty'   | ['--myProp=testDir']  | 'testDir'   | 'directoryProperty' | 'provided'
+        'DirectoryProperty'   | []                    | 'null'      | 'directoryProperty' | 'not provided'
+    }
+
+    def "set value of property of type #propertyType when #description for Groovy task"() {
+        given:
+        buildFile << groovyTaskWithUnparameterizedPropertyOption(propertyType, methodName)
+        buildFile << sampleTask()
+
+        when:
+        run(['sample'] + options as String[])
+
+        then:
+        def value = optionValue == 'null' ? optionValue : "$testDirectory/$optionValue"
+        outputContains("Value of myProp: $value")
+
+        where:
+        propertyType          | options               | optionValue | methodName          | description
+        'RegularFileProperty' | ['--myProp=test.txt'] | 'test.txt'  | 'fileProperty'      | 'provided'
+        'RegularFileProperty' | []                    | 'null'      | 'fileProperty'      | 'not provided'
+        'DirectoryProperty'   | ['--myProp=testDir']  | 'testDir'   | 'directoryProperty' | 'provided'
+        'DirectoryProperty'   | []                    | 'null'      | 'directoryProperty' | 'not provided'
+    }
+
     static String sampleTask() {
         """
             task sample(type: SampleTask)

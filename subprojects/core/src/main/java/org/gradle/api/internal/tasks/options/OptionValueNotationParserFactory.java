@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
@@ -26,7 +27,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 public class OptionValueNotationParserFactory {
     public <T> NotationParser<CharSequence, T> toComposite(Class<T> targetType) throws OptionValidationException {
-        if (targetType.isAssignableFrom(String.class)) {
+        if (targetType.isAssignableFrom(String.class) || targetType.isAssignableFrom(FileSystemLocation.class)) {
             return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
         } else if (targetType.isEnum()) {
             @SuppressWarnings({"rawtypes", "unchecked"})
