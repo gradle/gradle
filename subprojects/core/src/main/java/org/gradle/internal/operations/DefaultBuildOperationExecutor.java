@@ -70,12 +70,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
-        runner.run(BuildOperationProxyFactory.createRunnableProxy(buildOperation, problems));
+        runner.run(buildOperation);
     }
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
-        return runner.call(BuildOperationProxyFactory.createCallableProxy(buildOperation, problems));
+        return runner.call(buildOperation);
     }
 
     @Override
