@@ -63,10 +63,10 @@ maven_install(
         subProjectNumbers?.addAll(transitiveSubProjectNumbers)
         Set<String> subProjectDependencies = [] as HashSet
         if (subProjectNumbers?.size() > 0) {
-            subProjectDependencies.addAll(subProjectNumbers.collect { "      \"//project$it:project$it\"".toString() })
+            subProjectDependencies.addAll(subProjectNumbers.collect { "      \"//subprojects/project$it:project$it\"".toString() })
         }
         if (subProjectNumber != null && subProjectNumber % 4 == 0 && subProjectNumber != 0) {
-            subProjectDependencies.add("      \"//project0:project0\"")
+            subProjectDependencies.add("      \"//subprojects/project0:project0\"")
         }
         if (!isRoot) {
             """

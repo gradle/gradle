@@ -101,14 +101,14 @@ abstract class FileContentGenerator {
             return (0..config.subProjects - 1).collect {
                 if (config.compositeBuild.usePredefinedPublications()) {
                     """
-                    includeBuild("project$it") {
+                    includeBuild("subprojects:project$it") {
                         dependencySubstitution {
                             substitute(module("org.gradle.test.performance:project${it}")).using(project(":"))
                         }
                     }
                     """
                 } else {
-                    "includeBuild(\"project$it\")"
+                    "includeBuild(\"subprojects:project$it\")"
                 }
             }.join("\n")
         } else {
@@ -119,7 +119,7 @@ abstract class FileContentGenerator {
             String includedProjects = ""
             if (config.subProjects != 0) {
                 includedProjects = """
-                    ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
+                    ${(0..config.subProjects - 1).collect { "include(\"subprojects:project$it\")" }.join("\n")}
                 """
             }
 
@@ -504,6 +504,6 @@ abstract class FileContentGenerator {
         if (config.compositeBuild) {
             return "\"org.gradle.test.performance:project${projectNumber}:1.0\""
         }
-        return "project(\":project${projectNumber}\")"
+        return "project(\":subprojects:project${projectNumber}\")"
     }
 }

@@ -57,7 +57,7 @@ class TestProjectGenerator {
         rootProjectDir.mkdirs()
         generateProject(rootProjectDir, dependencyTree, null)
         for (int subProjectNumber = 0; subProjectNumber < config.subProjects; subProjectNumber++) {
-            def subProjectDir = new File(rootProjectDir, "project$subProjectNumber")
+            def subProjectDir = new File(rootProjectDir, "subprojects/project$subProjectNumber")
             generateProject(subProjectDir, dependencyTree, subProjectNumber)
         }
     }
@@ -68,7 +68,7 @@ class TestProjectGenerator {
         file projectDir, config.dsl.fileNameFor('build'), fileContentGenerator.generateBuildGradle(config.language, subProjectNumber, dependencyTree)
         file projectDir, config.dsl.fileNameFor('settings'), fileContentGenerator.generateSettingsGradle(isRoot)
         file projectDir, "gradle.properties", fileContentGenerator.generateGradleProperties(isRoot)
-        file projectDir, "pom.xml", fileContentGenerator.generatePomXML(subProjectNumber, dependencyTree)
+        //file projectDir, "pom.xml", fileContentGenerator.generatePomXML(subProjectNumber, dependencyTree) // no maven
         file projectDir, "BUILD.bazel", bazelContentGenerator.generateBuildFile(subProjectNumber, dependencyTree)
         if (isRoot) {
             file projectDir, "WORKSPACE", bazelContentGenerator.generateWorkspace()
