@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -37,7 +38,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
 
     @Override
     public boolean add(E e) {
-        Set<E> set = delegate.get();
+        Set<E> set = new LinkedHashSet<>(delegate.get());
         boolean added = set.add(e);
         delegate.add(e);
         return added;
@@ -45,7 +46,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
 
     @Override
     public boolean addAll(@NotNull Collection<? extends E> c) {
-        Set<E> set = delegate.get();
+        Set<E> set = new LinkedHashSet<>(delegate.get());
         boolean added = set.addAll(c);
         delegate.addAll(set);
         return added;
@@ -63,7 +64,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
 
     @Override
     public boolean remove(Object o) {
-        Set<? extends E> set = delegate.get();
+        Set<? extends E> set = new LinkedHashSet<>(delegate.get());
         boolean removed = set.remove(o);
         delegate.set(set);
         return removed;
@@ -71,7 +72,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
 
     @Override
     public boolean removeAll(@NotNull Collection<?> c) {
-        Set<? extends E> set = delegate.get();
+        Set<? extends E> set = new LinkedHashSet<>(delegate.get());
         boolean removed = set.removeAll(c);
         delegate.set(set);
         return removed;
@@ -79,7 +80,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
 
     @Override
     public boolean retainAll(@NotNull Collection<?> c) {
-        Set<? extends E> set = delegate.get();
+        Set<? extends E> set = new LinkedHashSet<>(delegate.get());
         boolean removed = set.retainAll(c);
         delegate.set(set);
         return removed;
