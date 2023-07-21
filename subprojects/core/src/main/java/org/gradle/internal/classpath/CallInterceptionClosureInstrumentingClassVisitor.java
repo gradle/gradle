@@ -24,6 +24,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -230,11 +231,17 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         boolean isClosureImplementation = CLOSURE_INTERNAL_NAME.equals(superName);
         enterClass(name, isClosureImplementation);
+        String[] modifiedInterfaces = interfacesWithInstrumentableClosure(interfaces, isClosureImplementation);
+        super.visit(version, access, name, signature, superName, modifiedInterfaces);
+    }
+
+    @Nonnull
+    private static String[] interfacesWithInstrumentableClosure(String[] interfaces, boolean isClosureImplementation) {
         String[] modifiedInterfaces = isClosureImplementation ? Arrays.copyOf(interfaces, interfaces.length + 1) : interfaces;
         if (isClosureImplementation) {
             modifiedInterfaces[modifiedInterfaces.length - 1] = Type.getInternalName(InstrumentableClosure.class);
         }
-        super.visit(version, access, name, signature, superName, modifiedInterfaces);
+        return modifiedInterfaces;
     }
 
     @Override
