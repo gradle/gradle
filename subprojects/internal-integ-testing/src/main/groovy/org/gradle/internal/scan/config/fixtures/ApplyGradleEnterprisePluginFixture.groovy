@@ -24,7 +24,7 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterpri
 class ApplyGradleEnterprisePluginFixture {
     private static final String APPLY_ENTERPRISE_PLUGIN = """
         plugins {
-            id('${AutoAppliedGradleEnterprisePlugin.ID}') version('${AutoAppliedGradleEnterprisePlugin.VERSION}')
+            id("${AutoAppliedGradleEnterprisePlugin.ID}") version("${AutoAppliedGradleEnterprisePlugin.VERSION}")
         }
     """
 
@@ -34,11 +34,11 @@ class ApplyGradleEnterprisePluginFixture {
         if (matcher.find()) {
             settingsFile.text = settingsText.substring(0, matcher.start(1)) + AutoAppliedGradleEnterprisePlugin.VERSION + settingsText.substring(matcher.end(1))
         } else {
-            prefixFile(settingsFile, APPLY_ENTERPRISE_PLUGIN)
+            suffixFile(settingsFile, APPLY_ENTERPRISE_PLUGIN)
         }
     }
 
-    private static void prefixFile(File settingsFile, String... prefixes) {
-        settingsFile.text = prefixes*.stripIndent()*.trim().join("\n\n") + "\n\n" + settingsFile.text
+    private static void suffixFile(File settingsFile, String... prefixes) {
+        settingsFile.text = settingsFile.text + "\n\n" + prefixes*.stripIndent()*.trim().join("\n\n")
     }
 }
