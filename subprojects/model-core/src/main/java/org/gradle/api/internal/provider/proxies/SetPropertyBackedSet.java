@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.provider.proxies;
 
-import com.google.common.collect.ForwardingSet;
 import org.gradle.api.provider.SetProperty;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Implementation of Set, that is used for Property upgrades
  */
-public class SetPropertyBackedSet<E> extends ForwardingSet<E> {
+public class SetPropertyBackedSet<E> extends AbstractSet<E> {
 
     private final SetProperty<E> delegate;
 
@@ -36,91 +36,68 @@ public class SetPropertyBackedSet<E> extends ForwardingSet<E> {
     }
 
     @Override
-    protected @NotNull Set<E> delegate() {
-        return new Set<E>() {
-            @Override
-            public int size() {
-                return delegate.get().size();
-            }
+    public boolean add(E e) {
+        Set<E> set = delegate.get();
+        boolean added = set.add(e);
+        delegate.add(e);
+        return added;
+    }
 
-            @Override
-            public boolean isEmpty() {
-                return delegate.get().isEmpty();
-            }
+    @Override
+    public boolean addAll(@NotNull Collection<? extends E> c) {
+        Set<E> set = delegate.get();
+        boolean added = set.addAll(c);
+        delegate.addAll(set);
+        return added;
+    }
 
-            @Override
-            public boolean contains(Object o) {
-                return delegate.get().contains(o);
-            }
+    @Override
+    public boolean contains(Object o) {
+        return delegate.get().contains(o);
+    }
 
-            @NotNull
-            @Override
-            public Iterator<E> iterator() {
-                // TODO: Should we support Iterator.remove()?
-                return delegate.get().iterator();
-            }
+    @Override
+    public boolean containsAll(@NotNull Collection<?> c) {
+        return delegate.get().containsAll(c);
+    }
 
-            @NotNull
-            @Override
-            public Object[] toArray() {
-                return delegate.get().toArray();
-            }
+    @Override
+    public boolean remove(Object o) {
+        Set<? extends E> set = delegate.get();
+        boolean removed = set.remove(o);
+        delegate.set(set);
+        return removed;
+    }
 
-            @NotNull
-            @Override
-            public <T> T[] toArray(@NotNull T[] a) {
-                return delegate.get().toArray(a);
-            }
+    @Override
+    public boolean removeAll(@NotNull Collection<?> c) {
+        Set<? extends E> set = delegate.get();
+        boolean removed = set.removeAll(c);
+        delegate.set(set);
+        return removed;
+    }
 
-            @Override
-            public boolean add(E e) {
-                Set<E> set = delegate.get();
-                boolean added = set.add(e);
-                delegate.add(e);
-                return added;
-            }
+    @Override
+    public boolean retainAll(@NotNull Collection<?> c) {
+        Set<? extends E> set = delegate.get();
+        boolean removed = set.retainAll(c);
+        delegate.set(set);
+        return removed;
+    }
 
-            @Override
-            public boolean remove(Object o) {
-                Set<? extends E> set = delegate.get();
-                boolean removed = set.remove(o);
-                delegate.set(set);
-                return removed;
-            }
+    @Override
+    public void clear() {
+        delegate.empty();
+    }
 
-            @Override
-            public boolean containsAll(@NotNull Collection<?> c) {
-                return delegate.get().containsAll(c);
-            }
+    @Override
+    public Iterator<E> iterator() {
+        // TODO: Should we handle remove?
+        return delegate.get().iterator();
+    }
 
-            @Override
-            public boolean addAll(@NotNull Collection<? extends E> c) {
-                Set<E> set = delegate.get();
-                boolean added = set.addAll(c);
-                delegate.addAll(c);
-                return added;
-            }
-
-            @Override
-            public boolean retainAll(@NotNull Collection<?> c) {
-                Set<? extends E> set = delegate.get();
-                boolean removed = set.retainAll(c);
-                delegate.set(set);
-                return removed;
-            }
-
-            @Override
-            public boolean removeAll(@NotNull Collection<?> c) {
-                Set<? extends E> set = delegate.get();
-                boolean removed = set.removeAll(c);
-                delegate.set(set);
-                return removed;
-            }
-
-            @Override
-            public void clear() {
-                delegate.empty();
-            }
-        };
+    @Override
+    public int size() {
+        return delegate.get().size();
     }
 }
