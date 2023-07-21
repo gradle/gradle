@@ -27,14 +27,15 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,12 +45,44 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * Computes the fingerprint of a ZIP archive.
  */
 public class ZipHasher implements RegularFileSnapshotContextHasher, ConfigurableNormalizer {
+
+    /**
+     * A visitor that is called when ZipHasher hashes an archive.
+     */
+    public interface ArchiveVisitor extends ConfigurableNormalizer {
+        /**
+         * Called when ZipHasher needs to hash an archive.
+         * The provided {@code visitAction} walks the archive computing its hash. It must be provided with an EntryVisitor to hash archive entries.
+         * The {@code visitAction} returns a {@link Hasher} with intermediate hashing results or {@code null} if the archive contains no hashable entries.
+         *
+         * @return the hash of the archive
+         * @implNote The Hasher returned by the {@code visitAction} can be updated by this method prior to computing the hash of the archive.
+         */
+        @Nullable
+        HashCode visitArchive(IoFunction<EntryVisitor, Hasher> visitAction) throws IOException;
+    }
+
+    /**
+     * A visitor that is called for each entry of the archive. The order of visited entries is undefined.
+     */
+    public interface EntryVisitor {
+        /**
+         * Called to compute the hash of the given zipEntryContext if it should contribute to the archive hash.
+         * Returned {@code null} means that this entry should not be included in the calculation of the final hash.
+         *
+         * @param zipEntryContext the zip entry to process
+         * @return the computed hash of the entry or {@code null} if the entry doesn't affect the archive hash code
+         */
+        @Nullable
+        HashCode visitEntry(ZipEntryContext zipEntryContext) throws IOException;
+    }
 
     private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar", "klib");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
@@ -59,28 +92,41 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
         return KNOWN_ZIP_EXTENSIONS.contains(FilenameUtils.getExtension(name).toLowerCase(Locale.ROOT));
     }
 
-    private final ResourceHasher resourceHasher;
+    private final ArchiveVisitor archiveVisitor;
     private final ZipHasher fallbackZipHasher;
     private final HashingExceptionReporter hashingExceptionReporter;
 
-    private ZipHasher(ResourceHasher resourceHasher, @Nullable ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
-        this.resourceHasher = resourceHasher;
+    private ZipHasher(ArchiveVisitor archiveVisitor, @Nullable ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
+        this.archiveVisitor = archiveVisitor;
         this.fallbackZipHasher = fallbackZipHasher;
         this.hashingExceptionReporter = hashingExceptionReporter;
     }
 
-    /**
-     * Creates a ZipHasher that hashes archive entries with the given {@code resourceHasher}. Nested archives are unpacked.
-     *
-     * @param resourceHasher the hasher to hash archive entries
-     * @return the ZipHasher
-     */
-    public static ZipHasher withResourceHasher(ResourceHasher resourceHasher) {
-        return new ZipHasher(
-            resourceHasher,
+    private ZipHasher(ArchiveVisitor archiveVisitor) {
+        this(
+            archiveVisitor,
             null,
             (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e)
         );
+    }
+
+    /**
+     * Creates a ZipHasher that hashes archives with the given {@code visitor}. Nested archives are unpacked.
+     *
+     * @param visitor the visitor to process archives
+     * @return the ZipHasher
+     */
+    public static ZipHasher withArchiveVisitor(ArchiveVisitor visitor) {
+        return new ZipHasher(visitor);
+    }
+
+    /**
+     * Creates an ArchiveVisitor that uses the given {@code resourceHasher} to hash archive entries.
+     * @param resourceHasher the hasher
+     * @return the archive visitor
+     */
+    public static ArchiveVisitor visitorFromResourceHasher(ResourceHasher resourceHasher) {
+        return new ResourceHasherArchiveVisitor(resourceHasher);
     }
 
     /**
@@ -88,13 +134,13 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
      * If the archive cannot be hashed with this hasher because of exception, retries fingerprinting with {@code fallbackZipHasher}.
      * The {@code hashingExceptionReporter} is notified if the {@code fallbackZipHasher} is used.
      *
-     * @param resourceHasher the hasher to hash archive entries
+     * @param visitor the visitor to process archives
      * @param fallbackZipHasher the ZipHasher to use if hashing with the created one fails
      * @param hashingExceptionReporter the reporter to be notified about hashing exception
      * @return the ZipHasher
      */
-    public static ZipHasher withResourceHasherAndFallback(ResourceHasher resourceHasher, ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
-        return new ZipHasher(resourceHasher, fallbackZipHasher, hashingExceptionReporter);
+    public static ZipHasher withFallback(ArchiveVisitor visitor, ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
+        return new ZipHasher(visitor, fallbackZipHasher, hashingExceptionReporter);
     }
 
     @Nullable
@@ -106,19 +152,21 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
-        resourceHasher.appendConfigurationToHasher(hasher);
+        archiveVisitor.appendConfigurationToHasher(hasher);
     }
 
     @Nullable
     private HashCode hashZipContents(RegularFileSnapshot zipFileSnapshot) {
         try {
-            List<FileSystemLocationFingerprint> fingerprints = fingerprintZipEntries(zipFileSnapshot.getAbsolutePath());
-            if (fingerprints.isEmpty()) {
-                return null;
-            }
-            Hasher hasher = Hashing.newHasher();
-            FingerprintHashingStrategy.SORT.appendToHasher(hasher, fingerprints);
-            return hasher.hash();
+            return archiveVisitor.visitArchive(entryVisitor -> {
+                List<FileSystemLocationFingerprint> fingerprints = fingerprintZipEntries(Objects.requireNonNull(entryVisitor), zipFileSnapshot.getAbsolutePath());
+                if (fingerprints.isEmpty()) {
+                    return null;
+                }
+                Hasher hasher = Hashing.newHasher();
+                FingerprintHashingStrategy.SORT.appendToHasher(hasher, fingerprints);
+                return hasher;
+            });
         } catch (Exception e) {
             hashingExceptionReporter.report(zipFileSnapshot, e);
             if (fallbackZipHasher != null) {
@@ -128,15 +176,21 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
         }
     }
 
-    private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
+    private static List<FileSystemLocationFingerprint> fingerprintZipEntries(EntryVisitor entryVisitor, String zipFile) throws IOException {
         try (ZipInput input = FileZipInput.create(new File(zipFile))) {
             List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
-            fingerprintZipEntries("", zipFile, fingerprints, input);
+            fingerprintZipEntries(entryVisitor, "", zipFile, fingerprints, input);
             return fingerprints;
         }
     }
 
-    private void fingerprintZipEntries(String parentName, String rootParentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input) throws IOException {
+    private static void fingerprintZipEntries(
+        EntryVisitor entryVisitor,
+        String parentName,
+        String rootParentName,
+        List<FileSystemLocationFingerprint> fingerprints,
+        ZipInput input
+    ) throws IOException {
         fingerprints.add(newZipMarker(parentName));
         for (ZipEntry zipEntry : input) {
             if (zipEntry.isDirectory()) {
@@ -146,27 +200,53 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             ZipEntryContext zipEntryContext = new DefaultZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
                 zipEntryContext.getEntry().withInputStream(inputStream -> {
-                    fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
+                    fingerprintZipEntries(entryVisitor, fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
                     return null;
                 });
             } else {
-                fingerprintZipEntry(zipEntryContext, fingerprints);
+                fingerprintZipEntry(entryVisitor, zipEntryContext, fingerprints);
             }
         }
     }
 
-    private void fingerprintZipEntry(ZipEntryContext zipEntryContext, List<FileSystemLocationFingerprint> fingerprints) throws IOException {
-        HashCode hash = resourceHasher.hash(zipEntryContext);
+    private static void fingerprintZipEntry(EntryVisitor entryVisitor, ZipEntryContext zipEntryContext, List<FileSystemLocationFingerprint> fingerprints) throws IOException {
+        HashCode hash = entryVisitor.visitEntry(zipEntryContext);
         if (hash != null) {
             fingerprints.add(new DefaultFileSystemLocationFingerprint(zipEntryContext.getFullName(), FileType.RegularFile, hash));
         }
     }
 
-    private DefaultFileSystemLocationFingerprint newZipMarker(String relativePath) {
+    private static DefaultFileSystemLocationFingerprint newZipMarker(String relativePath) {
         return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, EMPTY_HASH_MARKER);
     }
 
     public interface HashingExceptionReporter {
         void report(RegularFileSnapshot zipFileSnapshot, Exception e);
+    }
+
+    private static class ResourceHasherArchiveVisitor implements ArchiveVisitor, EntryVisitor {
+        private final ResourceHasher resourceHasher;
+
+        public ResourceHasherArchiveVisitor(ResourceHasher resourceHasher) {
+            this.resourceHasher = resourceHasher;
+        }
+
+        @Override
+        @Nullable
+        public HashCode visitArchive(IoFunction<EntryVisitor, Hasher> visitAction) throws IOException {
+            @Nullable Hasher hasher = visitAction.apply(this);
+            return hasher != null ? hasher.hash() : null;
+        }
+
+        @Override
+        @Nullable
+        public HashCode visitEntry(ZipEntryContext zipEntryContext) throws IOException {
+            return resourceHasher.hash(zipEntryContext);
+        }
+
+        @Override
+        public void appendConfigurationToHasher(Hasher hasher) {
+            resourceHasher.appendConfigurationToHasher(hasher);
+        }
     }
 }

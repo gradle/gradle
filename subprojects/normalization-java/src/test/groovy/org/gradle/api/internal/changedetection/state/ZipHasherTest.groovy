@@ -40,13 +40,13 @@ class ZipHasherTest extends Specification {
 
     ResourceEntryFilter manifestResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
     ResourceEntryFilter propertyResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by", "पशुपतिरपि"))
-    ZipHasher zipHasher = ZipHasher.withResourceHasher(resourceHasher(ResourceEntryFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING))
-    ZipHasher ignoringZipHasher = ZipHasher.withResourceHasher(resourceHasher(manifestResourceFilter, propertyResourceFilter))
+    ZipHasher zipHasher = ZipHasher.withArchiveVisitor(resourceHasher(ResourceEntryFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING))
+    ZipHasher ignoringZipHasher = ZipHasher.withArchiveVisitor(resourceHasher(manifestResourceFilter, propertyResourceFilter))
 
-    static ResourceHasher resourceHasher(ResourceEntryFilter manifestResourceFilter, ResourceEntryFilter propertyResourceFilter) {
+    static ZipHasher.ArchiveVisitor resourceHasher(ResourceEntryFilter manifestResourceFilter, ResourceEntryFilter propertyResourceFilter) {
         ResourceHasher hasher = new RuntimeClasspathResourceHasher()
         ResourceHasher propertiesFileHasher = new PropertiesFileAwareClasspathResourceHasher(hasher, ['**/*.properties': propertyResourceFilter])
-        return new MetaInfAwareClasspathResourceHasher(propertiesFileHasher, manifestResourceFilter)
+        return ZipHasher.visitorFromResourceHasher(new MetaInfAwareClasspathResourceHasher(propertiesFileHasher, manifestResourceFilter))
     }
 
     def "adding an empty jar inside another jar changes the hashcode"() {
@@ -176,6 +176,6 @@ class ZipHasherTest extends Specification {
     }
 
     private static RegularFileSnapshotContext snapshotContext(TestFile file) {
-        return new DefaultRegularFileSnapshotContext({ }, new RegularFileSnapshot(file.path, file.name, TestHashCodes.hashCodeFrom(0), DefaultFileMetadata.file(0, 0, AccessType.DIRECT)))
+        return new DefaultRegularFileSnapshotContext({}, new RegularFileSnapshot(file.path, file.name, TestHashCodes.hashCodeFrom(0), DefaultFileMetadata.file(0, 0, AccessType.DIRECT)))
     }
 }

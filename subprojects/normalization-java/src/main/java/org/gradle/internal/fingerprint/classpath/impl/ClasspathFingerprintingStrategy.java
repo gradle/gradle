@@ -110,12 +110,12 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         LineEndingSensitivity lineEndingSensitivity
     ) {
         ResourceHasher resourceHasher = runtimeClasspathResourceHasher(runtimeClasspathResourceHasher, lineEndingSensitivity, propertiesFileFilters, manifestAttributeResourceEntryFilter, classpathResourceFilter);
-        ZipHasher zipHasher = ZipHasher.withResourceHasher(resourceHasher);
+        ZipHasher zipHasher = ZipHasher.withArchiveVisitor(ZipHasher.visitorFromResourceHasher(resourceHasher));
         return new ClasspathFingerprintingStrategy(CLASSPATH_IDENTIFIER, USE_FILE_HASH, resourceHasher, zipHasher, cacheService, stringInterner);
     }
 
     public static ClasspathFingerprintingStrategy compileClasspath(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner) {
-        ZipHasher zipHasher = ZipHasher.withResourceHasher(classpathResourceHasher);
+        ZipHasher zipHasher = ZipHasher.withArchiveVisitor(ZipHasher.visitorFromResourceHasher(classpathResourceHasher));
         return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner);
     }
 
@@ -126,8 +126,8 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         Interner<String> stringInterner,
         ZipHasher.HashingExceptionReporter hashingExceptionReporter
     ) {
-        ZipHasher fallbackZipHasher = ZipHasher.withResourceHasher(runtimeClasspathResourceHasher);
-        ZipHasher zipHasher = ZipHasher.withResourceHasherAndFallback(classpathResourceHasher, fallbackZipHasher, hashingExceptionReporter);
+        ZipHasher fallbackZipHasher = ZipHasher.withArchiveVisitor(ZipHasher.visitorFromResourceHasher(runtimeClasspathResourceHasher));
+        ZipHasher zipHasher = ZipHasher.withFallback(ZipHasher.visitorFromResourceHasher(classpathResourceHasher), fallbackZipHasher, hashingExceptionReporter);
         return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner);
     }
 
