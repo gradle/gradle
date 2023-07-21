@@ -26,6 +26,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
     private static final String GENERATED_CLASSES_PACKAGE_NAME = GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
         .split("\\.").dropRight(1).join(".")
+    private static final Set<String> PRIMITIVE_TYPES = ["byte", "short", "int", "long", "float", "double", "char", "boolean"] as Set<String>
 
     def "should auto generate adapter for upgraded property with originalType"() {
         given:
@@ -53,7 +54,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             public class Task_Adapter {
                 public static int access_get_maxErrors(Task self) {
-                    return self.getMaxErrors().get();
+                    return self.getMaxErrors().getOrElse(0);
                 }
 
                 public static void access_set_maxErrors(Task self, int arg0) {
@@ -115,7 +116,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             public class Task_Adapter {
                 public static boolean access_get_incremental(Task self) {
-                    return self.getIncremental().get();
+                    return self.getIncremental().getOrElse(false);
                 }
 
                 public static Task access_set_incremental(Task self, boolean arg0) {
@@ -145,7 +146,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty(originalType = ${originalType}.class)
+                @UpgradedProperty${PRIMITIVE_TYPES.contains(originalType) ? "(originalType = ${originalType}.class)" : ""}
                 public abstract $upgradedType getProperty();
             }
         """
@@ -156,7 +157,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            import $fullImport;
+            ${fullImport ? "import $fullImport;" : ""}
             import org.gradle.test.Task;
 
             public class Task_Adapter {
@@ -176,8 +177,9 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
         where:
         upgradedType                  | originalType     | getCall                    | setCall            | fullImport
-        "Property<Integer>"           | "int"            | ".getOrElse(0)"            | ".set(arg0)"       | "java.lang.Integer"
-        "Property<Boolean>"           | "boolean"        | ".getOrElse(false)"        | ".set(arg0)"       | "java.lang.Boolean"
+        "Property<Integer>"           | "int"            | ".getOrElse(0)"            | ".set(arg0)"       | ""
+        "Property<Boolean>"           | "boolean"        | ".getOrElse(false)"        | ".set(arg0)"       | ""
+        "Property<Long>"              | "long"           | ".getOrElse(0L)"           | ".set(arg0)"       | ""
         "Property<Integer>"           | "Integer"        | ".getOrElse(null)"         | ".set(arg0)"       | "java.lang.Integer"
         "Property<String>"            | "String"         | ".getOrElse(null)"         | ".set(arg0)"       | "java.lang.String"
         "ListProperty<String>"        | "List"           | ".getOrElse(null)"         | ".set(arg0)"       | "java.util.List"
