@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException
+import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -32,7 +33,98 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.AbstractWindow
 class WindowsKitWindowsSdkLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
-    final WindowsComponentLocator<WindowsKitSdkInstall> windowsSdkLocator = new WindowsKitWindowsSdkLocator(windowsRegistry)
+    final SystemInfo systemInfo = Stub(SystemInfo) {
+        getArchitecture() >> SystemInfo.Architecture.amd64
+    }
+    final WindowsComponentLocator<WindowsKitSdkInstall> windowsSdkLocator = new WindowsKitWindowsSdkLocator(windowsRegistry, systemInfo)
+
+    def "cross compile uses host kit for resources"() {
+        def dir1 = kitDirWithVersionedBinDir("sdk1", ["10.0.10150.0", "10.0.10500.0"] as String[])
+
+        given:
+        WindowsRegistry windowsRegistryLocal = Stub(WindowsRegistry)
+        SystemInfo systemInfoLocal = Stub(SystemInfo) {
+            getArchitecture() >> SystemInfo.Architecture.amd64
+        }
+        WindowsComponentLocator<WindowsKitSdkInstall> windowsSdkLocatorLocal = new WindowsKitWindowsSdkLocator(windowsRegistryLocal, systemInfoLocal)
+
+        windowsRegistryLocal.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
+
+        when:
+        def result = windowsSdkLocatorLocal.locateComponent(null)
+
+        then:
+        result.available
+        def platformSdk = result.component.forPlatform(arm64())
+        platformSdk.path == [dir1.file("bin/10.0.10500.0/arm64")]
+        platformSdk.resourceCompiler == dir1.file("bin/10.0.10500.0/x64/rc.exe")
+    }
+
+    def "host x64 compile uses host kit for resources"() {
+        def dir1 = kitDirWithVersionedBinDir("sdk1", ["10.0.10150.0", "10.0.10500.0"] as String[])
+
+        given:
+        WindowsRegistry windowsRegistryLocal = Stub(WindowsRegistry)
+        SystemInfo systemInfoLocal = Stub(SystemInfo) {
+            getArchitecture() >> SystemInfo.Architecture.amd64
+        }
+        WindowsComponentLocator<WindowsKitSdkInstall> windowsSdkLocatorLocal = new WindowsKitWindowsSdkLocator(windowsRegistryLocal, systemInfoLocal)
+
+        windowsRegistryLocal.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
+
+        when:
+        def result = windowsSdkLocatorLocal.locateComponent(null)
+
+        then:
+        result.available
+        def platformSdk = result.component.forPlatform(x64())
+        platformSdk.path == [dir1.file("bin/10.0.10500.0/x64")]
+        platformSdk.resourceCompiler == dir1.file("bin/10.0.10500.0/x64/rc.exe")
+    }
+
+    def "host arm64 compile uses host kit for resources"() {
+        def dir1 = kitDirWithVersionedBinDir("sdk1", ["10.0.10150.0", "10.0.10500.0"] as String[])
+
+        given:
+        WindowsRegistry windowsRegistryLocal = Stub(WindowsRegistry)
+        SystemInfo systemInfoLocal = Stub(SystemInfo) {
+            getArchitecture() >> SystemInfo.Architecture.aarch64
+        }
+        WindowsComponentLocator<WindowsKitSdkInstall> windowsSdkLocatorLocal = new WindowsKitWindowsSdkLocator(windowsRegistryLocal, systemInfoLocal)
+
+        windowsRegistryLocal.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
+
+        when:
+        def result = windowsSdkLocatorLocal.locateComponent(null)
+
+        then:
+        result.available
+        def platformSdk = result.component.forPlatform(arm64())
+        platformSdk.path == [dir1.file("bin/10.0.10500.0/arm64")]
+        platformSdk.resourceCompiler == dir1.file("bin/10.0.10500.0/arm64/rc.exe")
+    }
+
+    def "host x86 compile uses host kit for resources"() {
+        def dir1 = kitDirWithVersionedBinDir("sdk1", ["10.0.10150.0", "10.0.10500.0"] as String[])
+
+        given:
+        WindowsRegistry windowsRegistryLocal = Stub(WindowsRegistry)
+        SystemInfo systemInfoLocal = Stub(SystemInfo) {
+            getArchitecture() >> SystemInfo.Architecture.i386
+        }
+        WindowsComponentLocator<WindowsKitSdkInstall> windowsSdkLocatorLocal = new WindowsKitWindowsSdkLocator(windowsRegistryLocal, systemInfoLocal)
+
+        windowsRegistryLocal.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
+
+        when:
+        def result = windowsSdkLocatorLocal.locateComponent(null)
+
+        then:
+        result.available
+        def platformSdk = result.component.forPlatform(x86())
+        platformSdk.path == [dir1.file("bin/10.0.10500.0/x86")]
+        platformSdk.resourceCompiler == dir1.file("bin/10.0.10500.0/x86/rc.exe")
+    }
 
     def "uses highest Windows Kit version found"() {
         def dir1 = kitDir("sdk1", versions as String[])
@@ -246,11 +338,27 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         visitor.toString() == "The specified installation directory '$dir2' does not appear to contain a Windows SDK installation."
     }
 
+    def arm64() {
+        def platform = Stub(NativePlatformInternal)
+        def architecture = Stub(ArchitectureInternal)
+        platform.architecture >> architecture
+        architecture.isArm64() >> true
+        platform
+    }
+
     def x64() {
         def platform = Stub(NativePlatformInternal)
         def architecture = Stub(ArchitectureInternal)
         platform.architecture >> architecture
         architecture.isAmd64() >> true
+        platform
+    }
+
+    def x86() {
+        def platform = Stub(NativePlatformInternal)
+        def architecture = Stub(ArchitectureInternal)
+        platform.architecture >> architecture
+        architecture.isI386() >> true
         platform
     }
 
