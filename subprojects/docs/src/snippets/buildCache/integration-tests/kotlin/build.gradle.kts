@@ -41,7 +41,7 @@ abstract class DistributionLocationProvider : CommandLineArgumentProvider {  // 
 tasks.integTest {
     jvmArgumentProviders.add(
         objects.newInstance<DistributionLocationProvider>().apply {  // <4>
-            distribution.set(layout.buildDirectory.dir("dist"))
+            distribution = layout.buildDirectory.dir("dist")
         }
     )
 }
@@ -59,7 +59,7 @@ abstract class CiEnvironmentProvider : CommandLineArgumentProvider {
 tasks.integTest {
     jvmArgumentProviders.add(
         objects.newInstance<CiEnvironmentProvider>().apply {  // <3>
-            agentNumber.set(providers.environmentVariable("AGENT_NUMBER").orElse("1"))
+            agentNumber = providers.environmentVariable("AGENT_NUMBER").orElse("1")
         }
     )
 }
