@@ -17,8 +17,8 @@
 package org.gradle.api.internal.provider.proxies;
 
 import org.gradle.api.provider.MapProperty;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -40,6 +40,7 @@ public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
     }
 
     @Override
+    @Nullable
     public V get(Object key) {
         return delegate.get().get(key);
     }
@@ -54,13 +55,13 @@ public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
         return delegate.get().containsValue(value);
     }
 
-    @NotNull
     @Override
     public Set<Entry<K, V>> entrySet() {
         return new EntrySet();
     }
 
     @Override
+    @Nullable
     public V put(K key, V value) {
         Map<K, V> map = new LinkedHashMap<>(delegate.get());
         V oldValue = map.put(key, value);
@@ -74,6 +75,7 @@ public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
     }
 
     @Override
+    @Nullable
     public V remove(Object key) {
         Map<K, V> map = new LinkedHashMap<>(delegate.get());
         V oldValue = map.remove(key);

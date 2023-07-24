@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider.proxies;
 
 import org.gradle.api.provider.SetProperty;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractSet;
@@ -47,7 +46,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
     }
 
     @Override
-    public boolean addAll(@NotNull Collection<? extends E> c) {
+    public boolean addAll(Collection<? extends E> c) {
         Set<E> set = new LinkedHashSet<>(delegate.get());
         boolean added = set.addAll(c);
         delegate.addAll(set);
@@ -60,7 +59,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
     }
 
     @Override
-    public boolean containsAll(@NotNull Collection<?> c) {
+    public boolean containsAll(Collection<?> c) {
         return delegate.get().containsAll(c);
     }
 
@@ -73,7 +72,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
     }
 
     @Override
-    public boolean removeAll(@NotNull Collection<?> c) {
+    public boolean removeAll(Collection<?> c) {
         Set<? extends E> set = new LinkedHashSet<>(delegate.get());
         boolean removed = set.removeAll(c);
         delegate.set(set);
@@ -81,7 +80,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
     }
 
     @Override
-    public boolean retainAll(@NotNull Collection<?> c) {
+    public boolean retainAll(Collection<?> c) {
         Set<? extends E> set = new LinkedHashSet<>(delegate.get());
         boolean removed = set.retainAll(c);
         delegate.set(set);
