@@ -19,6 +19,7 @@ package org.gradle.api.tasks.bundling
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -579,6 +580,87 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         then: "the build dir is relocated, and the decompression cache is also relocated under it"
         file('new-location/tmp/.cache/expanded').exists()
         !file('build').exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25752")
+    def "can transform a zip archive to a directory"() {
+        given: "a library dependency"
+        settingsKotlinFile << """
+            include(":lib")
+            rootProject.name = "root"
+        """
+
+        file("lib/build.gradle.kts") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
+        file("lib/src/main/java/MyLib.java") << """
+            public class MyLib {
+                public void util(String arg) {
+                    System.out.println("Hello " + arg);
+                }
+            }
+        """
+
+        and: "a build that transforms it to a directory via an artifact transform"
+        buildKotlinFile << """
+            plugins {
+                id("java-library")
+            }
+
+            @DisableCachingByDefault(because = "Not worth caching")
+            abstract class UnzipTransform : TransformAction<TransformParameters.None> {
+
+                @get:[InputArtifact PathSensitive(PathSensitivity.NAME_ONLY)]
+                abstract val zipFile: Provider<FileSystemLocation>
+
+                @get:Inject
+                abstract val archiveOperations: ArchiveOperations
+
+                @get:Inject
+                abstract val fs: FileSystemOperations
+
+                override fun transform(outputs: TransformOutputs) {
+                    val zip = zipFile.get().asFile
+
+                    fs.sync {
+                        from(archiveOperations.zipTree(zipFile))
+                        into(outputs.dir(zip.nameWithoutExtension))
+                    }
+                }
+            }
+
+            val artifactType = Attribute.of("artifactType", String::class.java)
+
+            dependencies {
+                implementation(project(":lib"))
+
+                registerTransform(UnzipTransform::class) {
+                    from.attribute(artifactType, "jar")
+                    to.attribute(artifactType, "unzipped")
+                }
+            }
+
+            configurations {
+                compileClasspath {
+                    attributes {
+                        attribute(artifactType, "unzipped")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'build'
+
+        then:
+        file("lib/build/.transforms").exists()
+        file("lib/build/.transforms").listFiles().size() == 1
+        file("lib/build/.transforms").listFiles()[0].listFiles()[1].name == "transformed"
+        file("lib/build/.transforms").listFiles()[0].listFiles()[1].listFiles().size() == 1
+        file("lib/build/.transforms").listFiles()[0].listFiles()[1].listFiles()[0].name == "lib"
     }
 
     private def createTar(String name, Closure cl) {
