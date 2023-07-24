@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider.proxies;
 import org.gradle.api.provider.MapProperty;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Set;
 /**
  * Implementation of Map, that is used for Property upgrades
  */
+@NotThreadSafe
 public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
 
     private final MapProperty<K, V> delegate;

@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider.proxies;
 
 import org.gradle.api.provider.ListProperty;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
 /**
  * Implementation of List, that is used for Property upgrades
  */
+@NotThreadSafe
 public class ListPropertyBackedList<E> extends AbstractList<E> {
 
     private final ListProperty<E> delegate;

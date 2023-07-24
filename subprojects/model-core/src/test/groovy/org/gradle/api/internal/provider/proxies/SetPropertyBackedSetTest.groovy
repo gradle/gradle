@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider.proxies
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.api.provider.SetProperty
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -78,11 +78,9 @@ class SetPropertyBackedSetTest extends Specification {
         set.size() == 3
     }
 
-    @NotYetImplemented
     def "set modification operations works with Groovy methods"() {
         given:
         Set<String> set = new SetPropertyBackedSet<>(setProperty)
-        set.addAll(["first", "second", "third", "forth", "fifth"])
 
         when:
         set.addAll(["first", "second", "third", "forth", "fifth"])

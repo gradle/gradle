@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider.proxies;
 import org.gradle.api.provider.SetProperty;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
@@ -28,6 +29,7 @@ import java.util.Set;
 /**
  * Implementation of Set, that is used for Property upgrades
  */
+@NotThreadSafe
 public class SetPropertyBackedSet<E> extends AbstractSet<E> {
 
     private final SetProperty<E> delegate;
@@ -93,8 +95,27 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
 
     @Override
     public Iterator<E> iterator() {
-        // TODO: Should we handle remove?
-        return delegate.get().iterator();
+        Set<E> set = new LinkedHashSet<>(delegate.get());
+        Iterator<E> it = set.iterator();
+        return new Iterator<E>() {
+            E previousValue = null;
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public E next() {
+                previousValue = it.next();
+                return previousValue;
+            }
+
+            @Override
+            public void remove() {
+                it.remove();
+                SetPropertyBackedSet.this.remove(previousValue);
+            }
+        };
     }
 
     @Override
