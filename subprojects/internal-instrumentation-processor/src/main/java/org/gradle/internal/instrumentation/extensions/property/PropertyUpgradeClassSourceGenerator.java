@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -34,6 +35,7 @@ import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -81,7 +83,17 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             .addParameters(parameters)
             .addCode(generateMethodBody(implementation, callable.getReturnType(), implementationExtra))
             .returns(typeName(callable.getReturnType().getType()))
+            .addAnnotations(getAnnotations(implementationExtra))
             .build();
+    }
+
+    private static List<AnnotationSpec> getAnnotations(PropertyUpgradeRequestExtra implementationExtra) {
+        if (!implementationExtra.getUpgradedPropertyType().isMultiValueProperty()) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList(AnnotationSpec.builder(SuppressWarnings.class)
+            .addMember("value", "$L", "{\"unchecked\", \"rawtypes\"}")
+            .build());
     }
 
     private static CodeBlock generateMethodBody(ImplementationInfo implementation, CallableReturnTypeInfo returnType, PropertyUpgradeRequestExtra implementationExtra) {

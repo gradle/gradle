@@ -159,16 +159,19 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         Compilation compilation = compile(givenSource)
 
         then:
+        boolean hasSuppressWarnings = originalType in ["List", "Map", "Set"]
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
             ${imports.collect { "import $it.name;" }.join("\n")}
             import org.gradle.test.Task;
 
             public class Task_Adapter {
+                ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_property(Task self) {
                     return $getCall;
                 }
 
+                ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static void access_set_property(Task self, $originalType arg0) {
                     self.getProperty()$setCall;
                 }
@@ -186,9 +189,9 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         "Property<Long>"              | "long"           | "self.getProperty().getOrElse(0L)"                 | ".set(arg0)"       | []
         "Property<Integer>"           | "Integer"        | "self.getProperty().getOrElse(null)"               | ".set(arg0)"       | [Integer]
         "Property<String>"            | "String"         | "self.getProperty().getOrElse(null)"               | ".set(arg0)"       | [String]
-        "ListProperty<String>"        | "List"           | "new ListPropertyBackedList<>(self.getProperty())" | ".set(arg0)"       | [List, ListPropertyBackedList]
-        "MapProperty<String, String>" | "Map"            | "new MapPropertyBackedMap<>(self.getProperty())"   | ".set(arg0)"       | [Map, MapPropertyBackedMap]
-        "SetProperty<String>"         | "Set"            | "new SetPropertyBackedSet<>(self.getProperty())"   | ".set(arg0)"       | [Set, SetPropertyBackedSet]
+        "ListProperty<String>"        | "List"           | "new ListPropertyBackedList<>(self.getProperty())" | ".set(arg0)"       | [SuppressWarnings, List, ListPropertyBackedList]
+        "MapProperty<String, String>" | "Map"            | "new MapPropertyBackedMap<>(self.getProperty())"   | ".set(arg0)"       | [SuppressWarnings, Map, MapPropertyBackedMap]
+        "SetProperty<String>"         | "Set"            | "new SetPropertyBackedSet<>(self.getProperty())"   | ".set(arg0)"       | [SuppressWarnings, Set, SetPropertyBackedSet]
         "RegularFileProperty"         | "File"           | "self.getProperty().getAsFile().getOrNull()"       | ".fileValue(arg0)" | [File]
         "DirectoryProperty"           | "File"           | "self.getProperty().getAsFile().getOrNull()"       | ".fileValue(arg0)" | [File]
         "ConfigurableFileCollection"  | "FileCollection" | "self.getProperty()"                               | ".setFrom(arg0)"   | [FileCollection]
