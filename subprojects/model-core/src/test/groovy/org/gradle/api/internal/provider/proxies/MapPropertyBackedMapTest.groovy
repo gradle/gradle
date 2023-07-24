@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider.proxies
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.api.provider.MapProperty
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -63,7 +63,6 @@ class MapPropertyBackedMapTest extends Specification {
         mapProperty.get() == ["first": "value1", "second": "value22", "third": "value33", "forth": "value4", "fifth": "value5"]
     }
 
-    @NotYetImplemented
     def "map modification operations works with Groovy methods"() {
         given:
         Map<String, String> map = new MapPropertyBackedMap<>(mapProperty)

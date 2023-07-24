@@ -21,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
+import java.util.AbstractSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -55,8 +57,7 @@ public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
     @NotNull
     @Override
     public Set<Entry<K, V>> entrySet() {
-        // TODO: Should we return a live view of the map?
-        return delegate.get().entrySet();
+        return new EntrySet();
     }
 
     @Override
@@ -83,5 +84,47 @@ public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
     @Override
     public void clear() {
         delegate.empty();
+    }
+
+    @Override
+    public int size() {
+        return delegate.get().size();
+    }
+
+    private class EntrySet extends AbstractSet<Entry<K, V>> {
+
+        @Override
+        public boolean remove(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Iterator<Entry<K, V>> iterator() {
+            Iterator<Entry<K, V>> it = new LinkedHashMap<>(MapPropertyBackedMap.this.delegate.get()).entrySet().iterator();
+            return new Iterator<Entry<K, V>>() {
+                Entry<K, V> previousValue = null;
+                @Override
+                public boolean hasNext() {
+                    return it.hasNext();
+                }
+
+                @Override
+                public Entry<K, V> next() {
+                    previousValue = it.next();
+                    return previousValue;
+                }
+
+                @Override
+                public void remove() {
+                    it.remove();
+                    MapPropertyBackedMap.this.remove(previousValue.getKey());
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            return MapPropertyBackedMap.this.size();
+        }
     }
 }
