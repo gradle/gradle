@@ -44,7 +44,7 @@ class CompileOptionsTest extends Specification {
         !compileOptions.verbose.get()
         !compileOptions.fork.get()
 
-        compileOptions.compilerArgs.empty
+        compileOptions.compilerArgs.get().isEmpty()
         compileOptions.encoding.getOrNull() == null
         compileOptions.bootstrapClasspath == null
         compileOptions.extensionDirs.getOrNull() == null
