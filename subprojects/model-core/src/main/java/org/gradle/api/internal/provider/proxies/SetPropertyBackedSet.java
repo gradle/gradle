@@ -39,17 +39,17 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
 
     @Override
     public boolean add(E e) {
-        Set<E> set = new LinkedHashSet<>(delegate.get());
-        boolean added = set.add(e);
+        boolean added = !contains(e);
         delegate.add(e);
         return added;
     }
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
-        Set<E> set = new LinkedHashSet<>(delegate.get());
-        boolean added = set.addAll(c);
-        delegate.addAll(set);
+        boolean added = false;
+        for (E e : c) {
+            added |= add(e);
+        }
         return added;
     }
 

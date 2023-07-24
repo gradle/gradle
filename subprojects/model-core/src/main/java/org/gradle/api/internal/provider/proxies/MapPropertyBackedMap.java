@@ -63,9 +63,8 @@ public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
     @Override
     @Nullable
     public V put(K key, V value) {
-        Map<K, V> map = new LinkedHashMap<>(delegate.get());
-        V oldValue = map.put(key, value);
-        delegate.set(map);
+        V oldValue = get(key);
+        delegate.put(key, value);
         return oldValue;
     }
 
