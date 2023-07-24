@@ -26,6 +26,7 @@ import spock.lang.Specification
 import javax.tools.JavaFileObject
 
 import static com.google.testing.compile.Compiler.javac
+import static org.junit.Assume.assumeTrue
 
 abstract class InstrumentationCodeGenTest extends Specification {
 
@@ -49,6 +50,7 @@ abstract class InstrumentationCodeGenTest extends Specification {
     }
 
     private static com.google.testing.compile.Compiler getCompiler() {
+        assumeTrue("Java 20+ do not support --release=8", Jvm.current().javaVersion < JavaVersion.VERSION_20)
         if (Jvm.current().javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
             return javac().withOptions("--release=8")
         }
