@@ -19,8 +19,6 @@ Gradle provides a powerful mechanism for customizing the build based on the curr
 
 This mechanism also supports tools that wish to integrate with Gradle.
 
-NOTE: This is entirely different from the `init` task provided by the <<build_init_plugin.adoc#build_init_plugin,Build Init Plugin>>.
-
 [[sec:basic_usage]]
 == Basic usage
 

@@ -39,12 +39,12 @@ When configuring Gradle behavior, you can use these methods, listed in order of 
 |3
 |<<#sec:gradle_configuration_properties, Gradle properties>>
 |`org.gradle.caching=true`
-|Typically stored in a `gradle.properties` file in a project directory or in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`
+|Typically stored in a `gradle.properties` file in a project directory or in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
 
 |4
 |<<#sec:gradle_environment_variables, Environment variables>>
 |`GRADLE_OPTS`
-|Sourced by the environment that executes Gradle
+|Sourced by the environment that executes Gradle.
 |===
 
 == Configuring your build environment
@@ -54,6 +54,7 @@ You can also read information about the environment in the build logic.
 
 [[sec:gradle_command_line_flags]]
 == 1. Command-line flags
+
 The command line interface, along with the available flags, is described in <<command_line_interface#command_line_interface,its own section>>.
 
 
@@ -82,7 +83,7 @@ Specify the `GRADLE_USER_HOME` directory.
 `https.protocols`::
 Specify the supported TLS versions in a comma-separated format. For example: `TLSv1.2,TLSv1.3`.
 
-In a multi-project build, `systemProp` properties set in any project except the root will be ignored.
+In a multi-project build, `systemProp` properties set in any project except the root will be *ignored*.
 Only the root project's `gradle.properties` file will be checked for properties that begin with `systemProp`.
 
 The following examples demonstrate how to use System properties.
