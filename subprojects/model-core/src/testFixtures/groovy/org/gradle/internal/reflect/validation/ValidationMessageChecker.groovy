@@ -59,6 +59,7 @@ trait ValidationMessageChecker {
         def config = display(SimpleMessage, 'value_not_set', spec)
         config.description("doesn't have a configured value")
             .reason("this property isn't marked as optional and no value has been configured")
+            .solution("The value of '${config.property}' is calculated, make sure a valid value can be calculated")
             .solution("Mark property '${config.property}' as optional")
             .render()
     }

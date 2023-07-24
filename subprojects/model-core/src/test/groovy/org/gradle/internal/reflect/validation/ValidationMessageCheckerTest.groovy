@@ -66,7 +66,9 @@ Type 'SomeType' property 'someProperty' doesn't have a configured value.
 
 Reason: This property isn't marked as optional and no value has been configured.
 
-Possible solution: Mark property 'someProperty' as optional.
+Possible solutions:
+  1. The value of 'someProperty' is calculated, make sure a valid value can be calculated.
+  2. Mark property 'someProperty' as optional.
 """
 
         when:

@@ -57,7 +57,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
                 .details("This property isn't marked as optional and no value has been configured")
                 .solution("Mark property '" + propertyName + "' as optional");
             if (hasConfigurableValue) {
-                problemBuilder.solution("Assign a value to '" + propertyName + "'");
+                problemBuilder.solution("The value of '" + propertyName + "' is calculated, make sure a valid value can be calculated");
             }
             problemBuilder.solution("Mark property '" + propertyName + "' as optional");
         });
