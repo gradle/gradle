@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.failure.mappers;
 
-import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.ThrowableToTestFailureMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 
 import java.util.ArrayList;
@@ -25,28 +25,29 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Maps {@code org.opentest4j.MultipleFailuresError} to {@link TestFailure}.
+ * Maps {@code org.assertj.core.error.MultipleAssertionsError} to {@link TestFailure}.
  * <p>
- * See {@link FailureMapper} for more details about failure mapping.
+ * See {@link TestFailureMapper} for more details about failure mapping.
  */
-public class OpenTestMultipleFailuresErrorMapper extends FailureMapper {
+public class AssertjMultipleAssertionsErrorMapperTest extends TestFailureMapper {
 
     @Override
     protected List<String> getSupportedClassNames() {
-        return Collections.singletonList("org.opentest4j.MultipleFailuresError");
+        return Collections.singletonList(
+            "org.assertj.core.error.MultipleAssertionsError"
+        );
     }
 
-    public TestFailure map(Throwable throwable, RootAssertionToFailureMapper rootMapper) throws Exception {
-        List<TestFailure> innerFailures = mapInnerFailures(throwable, rootMapper);
-        // As there is no expected or actual value, we pass null as their value
-        return TestFailure.fromTestAssertionFailure(throwable, null, null, innerFailures);
+    @Override
+    public TestFailure map(Throwable throwable, ThrowableToTestFailureMapper rootMapper) throws Exception {
+        return TestFailure.fromTestAssertionFailure(throwable, null, null, mapInnerFailures(throwable, rootMapper));
     }
 
     @SuppressWarnings("unchecked")
-    protected static List<TestFailure> mapInnerFailures(Throwable throwable, RootAssertionToFailureMapper mapper) throws Exception {
+    protected static List<TestFailure> mapInnerFailures(Throwable throwable, ThrowableToTestFailureMapper mapper) throws Exception {
         List<TestFailure> failures = new ArrayList<TestFailure>();
 
-        List<Throwable> innerExceptions = invokeMethod(throwable, "getFailures", List.class);
+        List<Throwable> innerExceptions = invokeMethod(throwable, "getErrors", List.class);
         for (Throwable innerException : innerExceptions) {
             failures.add(mapper.createFailure(innerException));
         }

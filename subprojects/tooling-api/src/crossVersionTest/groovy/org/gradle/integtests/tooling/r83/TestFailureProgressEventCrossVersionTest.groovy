@@ -28,17 +28,16 @@ import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure
 @TargetGradleVersion(">=8.3")
 class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification {
 
-    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 5 tests"() {
+    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 5"() {
+        setupJUnit5()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
 
             import org.junit.jupiter.api.Test;
             import org.opentest4j.MultipleFailuresError;
-
             import java.util.Arrays;
 
             public class JUnitJupiterTest {
-
                 @Test
                 void testingFileComparisonFailure() {
                     throw new MultipleFailuresError("Multiple errors detected", Arrays.asList(
@@ -49,23 +48,62 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
                 }
             }
         '''
+        def collector = new TestFailureEventCollector()
 
         when:
-        runTestTaskWithFailureCollection()
+        runTestTaskWithFailureCollection(collector)
 
         then:
         thrown(BuildException)
-        failures.size() == 1
-        failures[0] instanceof DefaultTestAssertionFailure
+        collector.failures.size() == 1
+        collector.failures[0] instanceof DefaultTestAssertionFailure
 
-        DefaultTestAssertionFailure f = failures[0]
-        f.causes.size() == 3
-        f.causes.eachWithIndex { Failure entry, int i ->
+        DefaultTestAssertionFailure failure = collector.failures[0] as DefaultTestAssertionFailure
+        failure.causes.size() == 3
+        failure.causes.eachWithIndex { Failure entry, int i ->
             assert entry.message == "Exception ${i + 1}"
         }
     }
 
-    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 5 tests"() {
+    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 4"() {
+        setupJUnit4()
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.Test;
+            import org.opentest4j.MultipleFailuresError;
+            import java.util.Arrays;
+
+            public class JUnitJupiterTest {
+                @Test
+                public void testingFileComparisonFailure() {
+                    throw new MultipleFailuresError("Multiple errors detected", Arrays.asList(
+                            new Exception("Exception 1"),
+                            new Exception("Exception 2"),
+                            new Exception("Exception 3")
+                    ));
+                }
+            }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+        collector.failures.size() == 1
+        collector.failures[0] instanceof DefaultTestAssertionFailure
+
+        DefaultTestAssertionFailure failure = collector.failures[0] as DefaultTestAssertionFailure
+        failure.causes.size() == 3
+        failure.causes.eachWithIndex { Failure entry, int i ->
+            assert entry.message == "Exception ${i + 1}"
+        }
+    }
+
+    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 5"() {
+        setupJUnit5()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
 
@@ -74,7 +112,6 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
             import org.opentest4j.FileInfo;
 
             public class JUnitJupiterTest {
-
                  @Test
                  void testingFileComparisonFailure() {
                     FileInfo from = new FileInfo("/path/from", new byte[]{ 0x0 });
@@ -83,18 +120,55 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
                 }
             }
         '''
+        def collector = new TestFailureEventCollector()
 
         when:
-        runTestTaskWithFailureCollection()
+        runTestTaskWithFailureCollection(collector)
 
         then:
         thrown(BuildException)
-        failures.size() == 1
-        failures[0] instanceof FileComparisonTestAssertionFailure
-        FileComparisonTestAssertionFailure f = failures[0]
-        f.expected == '/path/from'
-        f.actual == '/path/to'
-        f.expectedContent == new byte[]{0x0}
-        f.actualContent == new byte[]{0x1}
+        collector.failures.size() == 1
+        collector.failures[0] instanceof FileComparisonTestAssertionFailure
+
+        FileComparisonTestAssertionFailure failure = collector.failures[0] as FileComparisonTestAssertionFailure
+        failure.expected == '/path/from'
+        failure.actual == '/path/to'
+        failure.expectedContent == new byte[]{0x0}
+        failure.actualContent == new byte[]{0x1}
+    }
+
+    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 4"() {
+        setupJUnit4()
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.Test;
+            import org.opentest4j.AssertionFailedError;
+            import org.opentest4j.FileInfo;
+
+            public class JUnitJupiterTest {
+                 @Test
+                 public void testingFileComparisonFailure() {
+                    FileInfo from = new FileInfo("/path/from", new byte[]{ 0x0 });
+                    FileInfo to = new FileInfo("/path/to", new byte[]{ 0x1 });
+                    throw new AssertionFailedError("Different files detected",  from, to);
+                }
+            }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+        collector.failures.size() == 1
+        collector.failures[0] instanceof FileComparisonTestAssertionFailure
+
+        FileComparisonTestAssertionFailure failure = collector.failures[0] as FileComparisonTestAssertionFailure
+        failure.expected == '/path/from'
+        failure.actual == '/path/to'
+        failure.expectedContent == new byte[]{0x0}
+        failure.actualContent == new byte[]{0x1}
     }
 }

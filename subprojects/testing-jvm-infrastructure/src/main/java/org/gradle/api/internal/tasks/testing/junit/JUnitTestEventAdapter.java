@@ -22,13 +22,13 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
+import org.gradle.api.internal.tasks.testing.failure.DefaultThrowableToTestFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapperTest;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapperTest;
+import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapperTest;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapperTest;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
@@ -51,15 +51,17 @@ import java.util.regex.Pattern;
  * A {@link RunListener} that maps JUnit4 events to Gradle test events.
  */
 @NonNullApi
-public class JUnitTestEventAdapter extends RunListener implements RootAssertionToFailureMapper {
+public class JUnitTestEventAdapter extends RunListener {
 
-    public static final List<FailureMapper> MAPPERS = Arrays.asList(
-        new JUnitComparisonFailureMapper(),
-        new OpenTestAssertionFailedMapper(),
-        new OpenTestMultipleFailuresErrorMapper(),
-        new AssertjMultipleAssertionsErrorMapper(),
-        new AssertErrorMapper()
+    private static final List<TestFailureMapper> MAPPERS = Arrays.asList(
+        new JUnitComparisonTestFailureMapper(),
+        new OpenTestAssertionFailedMapperTest(),
+        new OpenTestMultipleFailuresErrorMapperTest(),
+        new AssertjMultipleAssertionsErrorMapperTest(),
+        new AssertErrorMapperTest()
     );
+
+    private static final DefaultThrowableToTestFailureMapper FAILURE_MAPPER = new DefaultThrowableToTestFailureMapper(MAPPERS);
 
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)(\\[\\d+])?", Pattern.DOTALL);
     private final IdGenerator<?> idGenerator;
@@ -107,23 +109,9 @@ public class JUnitTestEventAdapter extends RunListener implements RootAssertionT
         }
     }
 
-    @Override
-    public TestFailure createFailure(Throwable failure) {
-        for (FailureMapper mapper : MAPPERS) {
-            if (mapper.supports(failure.getClass())) {
-                try {
-                    return mapper.map(failure, this);
-                } catch (Exception ignored) {
-                    // ignore
-                }
-            }
-        }
-
-        return TestFailure.fromTestFrameworkFailure(failure);
-    }
-
-    private void reportFailure(Object descriptorId, Throwable failure) {
-        resultProcessor.failure(descriptorId, createFailure(failure));
+    private void reportFailure(Object descriptorId, Throwable throwable) {
+        TestFailure failure = FAILURE_MAPPER.createFailure(throwable);
+        resultProcessor.failure(descriptorId, failure);
     }
 
     @Override

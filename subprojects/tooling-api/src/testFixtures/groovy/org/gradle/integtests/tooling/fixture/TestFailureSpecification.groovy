@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.tooling.Failure
+import org.gradle.tooling.TestAssertionFailure
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.test.TestFailureResult
@@ -41,14 +41,7 @@ class TestFailureSpecification extends ToolingApiSpecification {
      */
     Boolean enableStdoutProxying = false
 
-    ProgressEventCollector progressEventCollector
-
-    protected List<Failure> getFailures() {
-        progressEventCollector.failures
-    }
-
     def setup() {
-        progressEventCollector = new ProgressEventCollector()
         buildFile << """
             plugins {
                 id 'java-library'
@@ -56,25 +49,55 @@ class TestFailureSpecification extends ToolingApiSpecification {
 
             ${mavenCentralRepository()}
 
-            dependencies {
+            test {
+                useJUnitPlatform()
+            }
+        """
+    }
+
+    void setupJUnit4() {
+        buildFile << """
+             dependencies {
+                testImplementation 'junit:junit:4.13.2'
+                testImplementation 'org.opentest4j:opentest4j:1.3.0'
+            }
+
+            test {
+                useJUnit()
+                ${debuggingSettings()}
+            }
+            """
+    }
+
+    void setupJUnit5() {
+        buildFile << """
+             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
                 testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
-                testImplementation 'org.opentest4j:opentest4j:1.3.0-RC2'
+                testImplementation 'org.opentest4j:opentest4j:1.3.0'
             }
 
             test {
                 useJUnitPlatform()
-                ${ enableTestJvmDebugging ? '''
+                ${debuggingSettings()}
+            }
+            """
+    }
+
+    private String debuggingSettings() {
+        if (enableTestJvmDebugging) {
+            return '''
                 debugOptions {
                     enabled = true
-                    host = 'localhost\'
+                    host = 'localhost\\\'
                     port = 5006
                     server = false
                     suspend = true
                 }
-                ''' : null }
-            }
-        """
+            '''
+        } else {
+            return ''
+        }
     }
 
     /**
@@ -82,23 +105,20 @@ class TestFailureSpecification extends ToolingApiSpecification {
      *
      * @param enableOutput if true, the stdout/stderr of the test task is piped to the console. Handy for debugging task failures. Defaults to false.
      */
-    protected def runTestTaskWithFailureCollection() {
+    protected List<TestAssertionFailure> runTestTaskWithFailureCollection(TestFailureEventCollector progressEventCollector) {
         withConnection { connection ->
             def build = connection.newBuild()
                 .addProgressListener(progressEventCollector)
                 .forTasks('test')
-
             if (enableStdoutProxying) {
                 build.setStandardOutput(System.out).setStandardError(System.err)
             }
-
             build.run()
         }
     }
 
-    private static class ProgressEventCollector implements ProgressListener {
-
-        public List<Failure> failures = []
+    protected static class TestFailureEventCollector implements ProgressListener {
+        public List<TestAssertionFailure> failures = new ArrayList<>()
 
         @Override
         void statusChanged(ProgressEvent event) {

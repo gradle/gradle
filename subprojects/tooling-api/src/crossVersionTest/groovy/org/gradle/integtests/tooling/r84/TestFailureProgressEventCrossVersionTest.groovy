@@ -26,9 +26,44 @@ import org.gradle.tooling.TestAssertionFailure
 @TargetGradleVersion(">=8.4")
 class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification {
 
-    def "Wrapped assertion errors are emitted as test failure events"() {
+
+    def "Wrapped assertion errors are emitted as test failure events using JUnit 4"() {
         given:
+        setupJUnit4()
         enableTestJvmDebugging = true
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.Test;
+
+            public class JUnitJupiterTest {
+
+                @Test
+                public void testingFileComparisonFailure() {
+                    throw new RuntimeException(
+                        "This exception wraps an assertion error",
+                        new AssertionError("This is a wrapped assertion error")
+                    );
+                }
+            }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        def failures = runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+        collector.failures.size() == 1
+        collector.failures[0] instanceof TestAssertionFailure
+
+        TestAssertionFailure failure = collector.failures[0]
+        failure.message == "This is a wrapped assertion error"
+    }
+
+    def "Wrapped assertion errors are emitted as test failure events using JUnit 5"() {
+        given:
+        setupJUnit5()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
 
@@ -45,16 +80,18 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
                 }
             }
         '''
+        def collector = new TestFailureEventCollector()
 
         when:
-        runTestTaskWithFailureCollection()
+        runTestTaskWithFailureCollection(collector)
 
         then:
         thrown(BuildException)
-        failures.size() == 1
-        failures[0] instanceof TestAssertionFailure
-        TestAssertionFailure f = failures[0]
-        f.message == "This is a wrapped assertion error"
+        collector.failures.size() == 1
+        collector.failures[0] instanceof TestAssertionFailure
+
+        TestAssertionFailure failure = collector.failures[0]
+        failure.message == "This is a wrapped assertion error"
     }
 
 }

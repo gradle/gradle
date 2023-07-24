@@ -18,12 +18,12 @@ package org.gradle.api.internal.tasks.testing.failure.mappers
 
 import spock.lang.Specification
 
-class JUnitComparisonFailureMapperTest extends Specification {
+class JUnitComparisonTestFailureMapperTest extends Specification {
 
     def "can correctly map custom comparison exceptions"() {
         given:
         def comparisonFailure = new CustomComparisonFailure("message", "expected", "actual")
-        def mapper = new JUnitComparisonFailureMapper()
+        def mapper = new JUnitComparisonTestFailureMapper()
 
         when:
         def supports = mapper.supports(comparisonFailure.class)

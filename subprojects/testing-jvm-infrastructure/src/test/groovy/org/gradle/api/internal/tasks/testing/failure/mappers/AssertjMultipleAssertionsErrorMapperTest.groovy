@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.testing.failure.mappers
 
 import org.assertj.core.error.MultipleAssertionsError
-import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper
+import org.gradle.api.internal.tasks.testing.failure.ThrowableToTestFailureMapper
 import org.gradle.api.tasks.testing.TestFailure
 import spock.lang.Specification
 
 class AssertjMultipleAssertionsErrorMapperTest extends Specification {
     // SUT
-    def mapper = new AssertjMultipleAssertionsErrorMapper()
+    def mapper = new AssertjMultipleAssertionsErrorMapperTest()
 
     // Our error being mapped
     def error = new MultipleAssertionsError(
@@ -35,7 +35,7 @@ class AssertjMultipleAssertionsErrorMapperTest extends Specification {
     )
 
     // Simple root mapper that just wraps the assertion failure
-    def rootMapper = new RootAssertionToFailureMapper() {
+    def rootMapper = new ThrowableToTestFailureMapper() {
         @Override
         TestFailure createFailure(Throwable throwable) {
             TestFailure.fromTestAssertionFailure(throwable, null, null, null)
