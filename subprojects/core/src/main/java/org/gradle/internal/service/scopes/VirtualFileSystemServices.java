@@ -48,6 +48,7 @@ import org.gradle.internal.buildoption.IntegerInternalOption;
 import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.classloader.ClasspathHasher;
+import org.gradle.internal.classpath.fingerprint.InstrumentedClasspathFingerprinter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
@@ -293,6 +294,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         FileChangeListeners createFileChangeListeners(ListenerManager listenerManager) {
             return new DefaultFileChangeListeners(listenerManager);
+        }
+
+        InstrumentedClasspathFingerprinter createInstrumentedClassPathFingerprinter(
+            ResourceSnapshotterCacheService resourceSnapshotterCacheService,
+            FileCollectionSnapshotter fileCollectionSnapshotter,
+            StringInterner stringInterner
+        ) {
+            return new InstrumentedClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
         }
 
     }

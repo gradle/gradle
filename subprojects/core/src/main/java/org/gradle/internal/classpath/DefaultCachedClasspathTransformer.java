@@ -24,6 +24,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.classpath.fingerprint.InstrumentedClasspathFingerprinter;
 import org.gradle.internal.classpath.types.DefaultInstrumentingTypeRegistryFactory;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
@@ -34,7 +35,6 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -62,7 +62,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final FileAccessTracker fileAccessTracker;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
-    private final ClasspathFingerprinter classpathFingerprinter;
+    private final InstrumentedClasspathFingerprinter classpathFingerprinter;
     private final FileSystemAccess fileSystemAccess;
     private final GlobalCacheLocations globalCacheLocations;
     private final FileLockManager fileLockManager;
@@ -78,7 +78,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         FileAccessTimeJournal fileAccessTimeJournal,
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
-        ClasspathFingerprinter classpathFingerprinter,
+        InstrumentedClasspathFingerprinter classpathFingerprinter,
         FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
         GlobalCacheLocations globalCacheLocations,

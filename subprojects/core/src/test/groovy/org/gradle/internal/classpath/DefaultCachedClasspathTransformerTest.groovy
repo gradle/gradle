@@ -28,11 +28,11 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Pair
 import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.internal.classpath.fingerprint.InstrumentedClasspathFingerprinter
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.io.ClassLoaderObjectInputStream
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -84,7 +84,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def gradleCoreInstrumenting = Stub(GradleCoreInstrumentingTypeRegistry) {
         getInstrumentedFileHash() >> Optional.empty()
     }
-    def classpathFingerprinter = Stub(ClasspathFingerprinter) {
+    def classpathFingerprinter = Stub(InstrumentedClasspathFingerprinter) {
         fingerprint(_, _) >> { FileSystemSnapshot snapshot, FileCollectionFingerprint previous ->
             Stub(CurrentFileCollectionFingerprint) {
                 getHash() >> (snapshot as FileSystemLocationSnapshot).hash

@@ -109,9 +109,9 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         Interner<String> stringInterner,
         LineEndingSensitivity lineEndingSensitivity
     ) {
-        ResourceHasher resourceHasher = runtimeClasspathResourceHasher(runtimeClasspathResourceHasher, lineEndingSensitivity, propertiesFileFilters, manifestAttributeResourceEntryFilter, classpathResourceFilter);
-        ZipHasher zipHasher = ZipHasher.withArchiveVisitor(ZipHasher.visitorFromResourceHasher(resourceHasher));
-        return new ClasspathFingerprintingStrategy(CLASSPATH_IDENTIFIER, USE_FILE_HASH, resourceHasher, zipHasher, cacheService, stringInterner);
+        ResourceHasher resourceHasher = runtimeClasspathResourceHasher(
+            runtimeClasspathResourceHasher, lineEndingSensitivity, propertiesFileFilters, manifestAttributeResourceEntryFilter, classpathResourceFilter);
+        return runtimeClasspathWithVisitor(ZipHasher.visitorFromResourceHasher(resourceHasher), resourceHasher, cacheService, stringInterner);
     }
 
     public static ClasspathFingerprintingStrategy compileClasspath(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner) {
@@ -129,6 +129,34 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         ZipHasher fallbackZipHasher = ZipHasher.withArchiveVisitor(ZipHasher.visitorFromResourceHasher(runtimeClasspathResourceHasher));
         ZipHasher zipHasher = ZipHasher.withFallback(ZipHasher.visitorFromResourceHasher(classpathResourceHasher), fallbackZipHasher, hashingExceptionReporter);
         return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner);
+    }
+
+    /**
+     * A version of {@link #runtimeClasspath(ResourceFilter, ResourceEntryFilter, Map, RuntimeClasspathResourceHasher, ResourceSnapshotterCacheService, Interner, LineEndingSensitivity)}
+     * but with customized JAR handling.
+     * @param jarVisitor the custom JAR visitor
+     * @param runtimeClasspathResourceHasher the hasher to use for non-JAR classpath resources
+     * @param cacheService the resource snapshotter cache service
+     * @param stringInterner the string interner
+     * @return the strategy instance
+     */
+    public static ClasspathFingerprintingStrategy runtimeClassPathWithSpecialJarHandling(
+        ZipHasher.ArchiveVisitor jarVisitor,
+        ResourceHasher runtimeClasspathResourceHasher,
+        ResourceSnapshotterCacheService cacheService,
+        Interner<String> stringInterner
+    ) {
+        return runtimeClasspathWithVisitor(jarVisitor, runtimeClasspathResourceHasher, cacheService, stringInterner);
+    }
+
+    private static ClasspathFingerprintingStrategy runtimeClasspathWithVisitor(
+        ZipHasher.ArchiveVisitor jarVisitor,
+        ResourceHasher runtimeClasspathResourceHasher,
+        ResourceSnapshotterCacheService cacheService,
+        Interner<String> stringInterner
+    ) {
+        ZipHasher zipHasher = ZipHasher.withArchiveVisitor(jarVisitor);
+        return new ClasspathFingerprintingStrategy(CLASSPATH_IDENTIFIER, USE_FILE_HASH, runtimeClasspathResourceHasher, zipHasher, cacheService, stringInterner);
     }
 
     public static ResourceHasher runtimeClasspathResourceHasher(
