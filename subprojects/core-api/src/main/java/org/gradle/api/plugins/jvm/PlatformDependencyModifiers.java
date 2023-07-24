@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Nested;
 
@@ -117,7 +116,7 @@ public interface PlatformDependencyModifiers {
         @Override
         public <D extends ModuleDependency> D modify(D dependency) {
             if (dependency instanceof ExternalDependency) {
-                ((AbstractExternalModuleDependency) dependency).version(constraint -> {
+                ((ExternalDependency) dependency).version(constraint -> {
                     constraint.strictly(dependency.getVersion());
                 });
             }
