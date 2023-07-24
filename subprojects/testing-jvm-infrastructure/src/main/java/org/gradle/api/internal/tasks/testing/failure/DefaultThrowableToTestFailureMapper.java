@@ -30,7 +30,9 @@ public class DefaultThrowableToTestFailureMapper implements ThrowableToTestFailu
 
     private final List<TestFailureMapper> mappers;
 
-    public DefaultThrowableToTestFailureMapper(List<TestFailureMapper> mappers) {this.mappers = mappers;}
+    public DefaultThrowableToTestFailureMapper(List<TestFailureMapper> mappers) {
+        this.mappers = mappers;
+    }
 
     @Override
     public TestFailure createFailure(Throwable throwable) {
