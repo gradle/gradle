@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
@@ -149,14 +149,20 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     public TestFailure createFailure(Throwable failure) {
-        for (FailureMapper mapper : MAPPERS) {
-            if (mapper.supports(failure.getClass())) {
-                try {
-                    return mapper.map(failure, this);
-                } catch (Exception ex) {
-                    LOGGER.error("Failed to map supported failure '{}' with mapper '{}': {}", failure, mapper, ex.getMessage());
+        Throwable currentThrowable = failure;
+
+        // We recursively dig down through the chain of causes, trying to find a Throwable which we can map to a proper test failure
+        while (currentThrowable != null) {
+            for (FailureMapper mapper : MAPPERS) {
+                if (mapper.supports(currentThrowable.getClass())) {
+                    try {
+                        return mapper.map(currentThrowable, this);
+                    } catch (Exception ex) {
+                        LOGGER.error("Failed to map supported failure '{}' with mapper '{}': {}", failure, mapper, ex.getMessage());
+                    }
                 }
             }
+            currentThrowable = currentThrowable.getCause();
         }
 
         return TestFailure.fromTestFrameworkFailure(failure);

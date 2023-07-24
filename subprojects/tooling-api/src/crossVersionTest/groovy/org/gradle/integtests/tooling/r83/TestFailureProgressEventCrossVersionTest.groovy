@@ -17,47 +17,16 @@
 package org.gradle.integtests.tooling.r83
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TestFailureSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.FileComparisonTestAssertionFailure
-import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.test.TestFailureResult
-import org.gradle.tooling.events.test.TestFinishEvent
-import org.gradle.tooling.events.test.TestOperationResult
 import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure
 
 @ToolingApiVersion(">=8.3")
 @TargetGradleVersion(">=8.3")
-class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
-
-    ProgressEventCollector progressEventCollector
-
-    def setup() {
-        // Avoid mixing JUnit dependencies with the ones from the JVM running this test
-        // For example, when using PTS/TD for running this test, the JUnit Platform Launcher classes from the GE plugin take precedence
-        toolingApi.requireDaemons()
-        progressEventCollector = new ProgressEventCollector()
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
-                testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
-                testImplementation 'org.opentest4j:opentest4j:1.3.0-RC2'
-            }
-
-            test {
-                useJUnitPlatform()
-            }
-        """
-    }
+class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification {
 
     def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 5 tests"() {
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
@@ -127,33 +96,5 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         f.actual == '/path/to'
         f.expectedContent == new byte[]{0x0}
         f.actualContent == new byte[]{0x1}
-    }
-
-    List<Failure> getFailures() {
-        progressEventCollector.failures
-    }
-
-    private def runTestTaskWithFailureCollection() {
-        withConnection { connection ->
-            connection.newBuild()
-                .addProgressListener(progressEventCollector)
-                .forTasks('test')
-                .run()
-        }
-    }
-
-    private static class ProgressEventCollector implements ProgressListener {
-
-        public List<Failure> failures = []
-
-        @Override
-        void statusChanged(ProgressEvent event) {
-            if (event instanceof TestFinishEvent) {
-                TestOperationResult result = ((TestFinishEvent) event).getResult();
-                if (result instanceof TestFailureResult) {
-                    failures += ((TestFailureResult) result).failures
-                }
-            }
-        }
     }
 }
