@@ -56,10 +56,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private GradleException error;
 
     public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
-        this.problemStream = isTraceLoggingEnabled()
+        this.warningMode = warningMode;
+        this.problemStream = warningMode.shouldDisplayMessages()
             ? problemDiagnosticsFactory.newUnlimitedStream()
             : problemDiagnosticsFactory.newStream();
-        this.warningMode = warningMode;
         this.progressEventEmitter = progressEventEmitter;
     }
 
