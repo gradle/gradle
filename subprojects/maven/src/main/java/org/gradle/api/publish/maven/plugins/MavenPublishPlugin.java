@@ -24,7 +24,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -127,7 +126,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
 
         mavenPublications.all(publication -> {
             createGenerateMetadataTask(tasks, publication, mavenPublications, buildDirectory);
-            createGeneratePomTask(tasks, publication, buildDirectory, project);
+            createGeneratePomTask(tasks, publication, buildDirectory);
             createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
             createPublishTasksForEachMavenRepo(project, tasks, publishLifecycleTask, publication, repositories);
         });
@@ -204,7 +203,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         publishLocalLifecycleTask.configure(task -> task.dependsOn(installTaskName));
     }
 
-    private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir, final Project project) {
+    private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generatePomFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateMavenPom> generatorTask = tasks.register(descriptorTaskName, GenerateMavenPom.class, generatePomTask -> {
@@ -214,13 +213,6 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             if (generatePomTask.getDestination() == null) {
                 generatePomTask.setDestination(buildDir.file("publications/" + publication.getName() + "/pom-default.xml"));
             }
-            project.getPluginManager().withPlugin("org.gradle.java", plugin -> {
-                // If the Java plugin is applied, we want to express that the "compile" and "runtime" variants
-                // are mapped to some attributes, which can be used in the version mapping strategy.
-                // This is only required for POM publication, because the variants have _implicit_ attributes that we want explicit for matching
-                generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API)))
-                        .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME)));
-            });
         });
         publication.setPomGenerator(generatorTask);
     }

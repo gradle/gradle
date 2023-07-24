@@ -22,10 +22,26 @@ public interface MavenPublishingAwareVariant extends SoftwareComponentVariant {
 
     // Order is important!
     enum ScopeMapping {
-        compile,
-        runtime,
-        compile_optional,
-        runtime_optional;
+        compile("compile", false),
+        runtime("runtime", false),
+        compile_optional("compile", true),
+        runtime_optional("runtime", true);
+
+        private final String scope;
+        private final boolean optional;
+
+        ScopeMapping(String scope, boolean optional) {
+            this.scope = scope;
+            this.optional = optional;
+        }
+
+        public String getScope() {
+            return scope;
+        }
+
+        public boolean isOptional() {
+            return optional;
+        }
 
         public static ScopeMapping of(String scope, boolean optional) {
             if (optional) {
@@ -33,5 +49,17 @@ public interface MavenPublishingAwareVariant extends SoftwareComponentVariant {
             }
             return ScopeMapping.valueOf(scope);
         }
+    }
+
+    static ScopeMapping scopeForVariant(SoftwareComponentVariant variant) {
+        if (variant instanceof MavenPublishingAwareVariant) {
+            return ((MavenPublishingAwareVariant) variant).getScopeMapping();
+        }
+        // TODO: Update native plugins to use maven-aware variants so we can remove this.
+        String name = variant.getName();
+        if ("api".equals(name) || "apiElements".equals(name)) {
+            return ScopeMapping.compile;
+        }
+        return ScopeMapping.runtime;
     }
 }

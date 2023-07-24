@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publish.internal.versionmapping;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.publish.VariantVersionMappingStrategy;
-import org.gradle.util.Path;
+package org.gradle.api.publish.maven.internal.dependencies;
 
-import javax.annotation.Nullable;
+import java.util.List;
 
-public interface VariantVersionMappingStrategyInternal extends VariantVersionMappingStrategy {
-    ModuleVersionIdentifier maybeResolveVersion(String group, String module, @Nullable Path identityPath);
+/**
+ * Represents the {@code <dependencies>} and {@code <dependencyManagement>} elements of a Maven POM.
+ */
+public interface MavenPomDependencies {
+
+    List<MavenDependency> getDependencies();
+
+    List<MavenDependency> getDependencyManagement();
+
 }

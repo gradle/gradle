@@ -89,7 +89,7 @@ project(":project1") {
 
     def "reports failure when project dependency references a project with multiple conflicting publications"() {
         createBuildScripts("""
-project(":project3") {
+project(":project2") {
     publishing {
         publications {
             extraComp(MavenPublication) {
@@ -113,8 +113,8 @@ project(":project3") {
 
         then:
         failure.assertHasCause """Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.
-Found the following publications in project ':project3':
-  - Maven publication 'maven' with coordinates org.gradle.test:project3:3.0
+Found the following publications in project ':project2':
+  - Maven publication 'maven' with coordinates org.gradle.test:project2:2.0
   - Maven publication 'extraComp' with coordinates extra.group:extra-comp:extra
   - Maven publication 'extra' with coordinates extra.group:extra:extra"""
     }

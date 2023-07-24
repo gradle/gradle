@@ -33,11 +33,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyPublication;
-import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
@@ -185,12 +184,12 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
 
             // Set up the default configurations used when mapping to resolved versions
             publishing.getPublications().withType(IvyPublication.class, publication -> {
-                VersionMappingStrategyInternal strategy = ((IvyPublicationInternal) publication).getVersionMappingStrategy();
+                VersionMappingStrategyInternal strategy = ((PublicationInternal<?>) publication).getVersionMappingStrategy();
                 strategy.defaultResolutionConfiguration(Usage.JAVA_API, CLASSPATH_CONFIGURATION_NAME);
                 strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, CLASSPATH_CONFIGURATION_NAME);
             });
             publishing.getPublications().withType(MavenPublication.class, publication -> {
-                VersionMappingStrategyInternal strategy = ((MavenPublicationInternal) publication).getVersionMappingStrategy();
+                VersionMappingStrategyInternal strategy = ((PublicationInternal<?>) publication).getVersionMappingStrategy();
                 strategy.defaultResolutionConfiguration(Usage.JAVA_API, CLASSPATH_CONFIGURATION_NAME);
                 strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, CLASSPATH_CONFIGURATION_NAME);
             });

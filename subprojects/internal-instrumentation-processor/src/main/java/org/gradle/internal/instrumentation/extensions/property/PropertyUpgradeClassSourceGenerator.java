@@ -23,9 +23,11 @@ import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.UpgradedPropertyType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
+import org.gradle.internal.instrumentation.model.CallableReturnTypeInfo;
 import org.gradle.internal.instrumentation.model.ImplementationInfo;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
@@ -74,12 +76,12 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addParameter(typeName(callable.getOwner().getType()), SELF_PARAMETER_NAME)
             .addParameters(parameters)
-            .addCode(generateMethodBody(implementation, implementationExtra))
+            .addCode(generateMethodBody(implementation, callable.getReturnType(), implementationExtra))
             .returns(typeName(callable.getReturnType().getType()))
             .build();
     }
 
-    private static CodeBlock generateMethodBody(ImplementationInfo implementation, PropertyUpgradeRequestExtra implementationExtra) {
+    private static CodeBlock generateMethodBody(ImplementationInfo implementation, CallableReturnTypeInfo returnType, PropertyUpgradeRequestExtra implementationExtra) {
         String propertyGetterName = implementationExtra.getInterceptedPropertyAccessorName();
         boolean isSetter = implementation.getName().startsWith("access_set_");
         UpgradedPropertyType upgradedPropertyType = implementationExtra.getUpgradedPropertyType();
@@ -91,19 +93,19 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 return CodeBlock.of("$N.$N()$N;", SELF_PARAMETER_NAME, propertyGetterName, setCall);
             }
         } else {
-            String getCall = getGetCall(upgradedPropertyType);
+            String getCall = getGetCall(returnType, upgradedPropertyType);
             return CodeBlock.of("return $N.$N()$N;", SELF_PARAMETER_NAME, propertyGetterName, getCall);
         }
     }
 
-    private static String getGetCall(UpgradedPropertyType upgradedPropertyType) {
+    private static String getGetCall(CallableReturnTypeInfo returnType, UpgradedPropertyType upgradedPropertyType) {
         switch (upgradedPropertyType) {
             case FILE_SYSTEM_LOCATION_PROPERTY:
-                return ".getAsFile().get()";
+                return ".getAsFile().getOrNull()";
             case CONFIGURABLE_FILE_COLLECTION:
                 return "";
             default:
-                return ".get()";
+                return ".getOrElse(" + TypeUtils.getDefaultValue(returnType.getType()) + ")";
         }
     }
 
