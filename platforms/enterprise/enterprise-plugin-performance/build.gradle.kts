@@ -59,11 +59,16 @@ subprojects {
 }
 
 tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
-    systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
-
     environment("GRADLE_INTERNAL_REPO_URL", System.getenv("GRADLE_INTERNAL_REPO_URL"))
     environment("GRADLE_INTERNAL_REPO_USERNAME", System.getenv("GRADLE_INTERNAL_REPO_USERNAME"))
     environment("GRADLE_INTERNAL_REPO_PASSWORD", System.getenv("GRADLE_INTERNAL_REPO_PASSWORD"))
 
     reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
+
+    // Property required by `AbstractBuildScanPluginPerformanceTest`
+    val pluginInfoDirProperty = "org.gradle.performance.enterprise.plugin.infoDir"
+    val pluginInfoDir = System.getProperty(pluginInfoDirProperty) ?: rootDir.resolve("incoming").path
+    jvmArgumentProviders += CommandLineArgumentProvider {
+        listOf("-D$pluginInfoDirProperty=$pluginInfoDir")
+    }
 }

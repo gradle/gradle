@@ -37,7 +37,22 @@ import static org.gradle.performance.fixture.BaselineVersionResolver.toBaselineV
 
 class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
 
-    static String incomingDir = "../../../incoming"
+    /**
+     * System property that points to a directory with GE plugin information
+     * such files containing build commit ID and plugin version.
+     */
+    private static infoDirSystemProp = "org.gradle.performance.enterprise.plugin.infoDir"
+
+    private static File resolvePluginInfoDir() {
+        def path = System.getProperty(infoDirSystemProp)
+        if (path == null || path.isEmpty()) {
+            throw new IllegalStateException("Expected system property `$infoDirSystemProp` to be set")
+        }
+
+        new File(path)
+    }
+
+    private static File pluginInfoDir = resolvePluginInfoDir()
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
@@ -59,7 +74,7 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
         }
 
         def distribution = buildContext.distribution(baselineVersions.first())
-        def buildStampJsonFile = new File(incomingDir, "buildStamp.json")
+        def buildStampJsonFile = new File(pluginInfoDir, "buildStamp.json")
         assert buildStampJsonFile.exists()
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert buildStampJsonData.commitId
@@ -78,7 +93,7 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
     }
 
     private static resolvePluginVersion() {
-        def pluginVersionJsonFile = new File(incomingDir, "plugin.json")
+        def pluginVersionJsonFile = new File(pluginInfoDir, "plugin.json")
         assert pluginVersionJsonFile.exists()
         def pluginVersionJsonData = new JsonSlurper().parse(pluginVersionJsonFile) as Map<String, ?>
         pluginVersionJsonData.versionNumber
