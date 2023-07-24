@@ -88,7 +88,9 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
 
     private static KeepAliveMode getDefaultKeepAliveMode() {
         if (OperatingSystem.current().isWindows()) {
-            // We don't track commit properly on Windows, so keeping extra workers alive is not safe
+            // Our physical memory monitoring on Windows is not quite accurate, which causes Gradle to think memory 
+            // is available, even when virtual memory is 100% committed, so worker daemon expiration does not occur 
+            // when it needs to. Keeping extra workers alive on Windows is not safe until we can improve this.
             return KeepAliveMode.SESSION;
         }
         // By default, we keep Java compiler daemons alive across builds until the daemon is shut down
