@@ -34,7 +34,7 @@ abstract class DistributionLocationProvider implements CommandLineArgumentProvid
 
     @Override
     Iterable<String> asArguments() {
-        ["-Ddistribution.location=${distribution.get().asFile.absolutePath}".toString()]  // <3>
+        ["-Ddistribution.location=${distribution.get().asFile.absolutePath}"]  // <3>
     }
 }
 
@@ -54,7 +54,7 @@ abstract class CiEnvironmentProvider implements CommandLineArgumentProvider {
 
     @Override
     Iterable<String> asArguments() {
-        ["-DagentNumber=${agentNumber.get()}".toString()]  // <2>
+        ["-DagentNumber=${agentNumber.get()}"]  // <2>
     }
 }
 
