@@ -17,7 +17,7 @@ jobs:
         distribution: temurin
         java-version: 11
     - name: Setup Gradle
-      uses: gradle/gradle-build-action@dependency-graph
+      uses: gradle/gradle-build-action@v2
       with:
         dependency-graph: generate-and-submit
     - name: Run 'compileAll' to generate dependency graph

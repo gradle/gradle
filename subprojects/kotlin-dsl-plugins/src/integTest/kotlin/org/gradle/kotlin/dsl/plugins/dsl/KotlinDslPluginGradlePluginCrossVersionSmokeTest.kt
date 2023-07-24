@@ -136,6 +136,14 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                     "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
             )
         }
+        if (VersionNumber.parse(kotlinVersion) < VersionNumber.parse("1.8.0") && GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning(
+                "The Provider.forUseAtConfigurationTime method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Simply remove the call. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
+        }
 
         build("classes").apply {
             assertThat(

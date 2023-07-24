@@ -18,14 +18,15 @@ package org.gradle.api.publish.ivy.internal.dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.util.Path;
 
 public class DefaultIvyProjectDependency implements IvyDependencyInternal {
     private final IvyDependencyInternal delegate;
-    private final String projectPath;
+    private final Path identityPath;
 
-    public DefaultIvyProjectDependency(IvyDependencyInternal delegate, String projectPath) {
+    public DefaultIvyProjectDependency(IvyDependencyInternal delegate, Path identityPath) {
         this.delegate = delegate;
-        this.projectPath = projectPath;
+        this.identityPath = identityPath;
     }
 
     @Override
@@ -69,7 +70,7 @@ public class DefaultIvyProjectDependency implements IvyDependencyInternal {
     }
 
     @Override
-    public String getProjectPath() {
-        return projectPath;
+    public Path getProjectIdentityPath() {
+        return identityPath;
     }
 }

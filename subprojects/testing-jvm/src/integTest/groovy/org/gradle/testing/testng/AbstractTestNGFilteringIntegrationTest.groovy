@@ -18,6 +18,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
@@ -65,6 +66,7 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
     }
 
     @Issue("GRADLE-3112")
+    @ToBeFixedForConfigurationCache(because = "No tests found for given includes: [*AwesomeSuite*](--tests filter)")
     def "suites can be filtered from the command-line"() {
         given:
         theUsualFiles()
@@ -83,6 +85,7 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
     }
 
     @Issue("GRADLE-3112")
+    @ToBeFixedForConfigurationCache(because = "No tests found for given includes: [*AwesomeSuite*](filter.includeTestsMatching)")
     def "suites can be filtered from the build file"() {
         given:
         theUsualFiles()

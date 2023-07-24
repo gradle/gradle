@@ -6,7 +6,7 @@ tasks.create("greeting") {
 
 // tag::typed-container-api[]
 tasks.create<Zip>("docZip") {
-    archiveFileName.set("doc.zip")
+    archiveFileName = "doc.zip"
     from("doc")
 }
 // end::typed-container-api[]

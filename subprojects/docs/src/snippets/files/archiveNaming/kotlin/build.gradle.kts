@@ -18,7 +18,7 @@ tasks.register<Zip>("myZip") {
 
 // tag::zip-task-with-custom-base-name[]
 tasks.register<Zip>("myCustomZip") {
-    archiveBaseName.set("customName")
+    archiveBaseName = "customName"
     from("somedir")
 
     doLast {

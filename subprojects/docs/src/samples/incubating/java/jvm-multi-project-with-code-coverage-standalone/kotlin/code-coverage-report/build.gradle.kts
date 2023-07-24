@@ -15,7 +15,7 @@ dependencies {
 reporting {
     reports {
         val testCodeCoverageReport by creating(JacocoCoverageReport::class) { // <.>
-            testType.set(TestSuiteType.UNIT_TEST)
+            testType = TestSuiteType.UNIT_TEST
         }
     }
 }

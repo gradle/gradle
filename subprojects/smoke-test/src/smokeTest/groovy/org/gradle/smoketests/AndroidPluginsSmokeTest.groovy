@@ -207,11 +207,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    static class AndroidDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
-        AndroidDeprecations(SmokeTestGradleRunner runner) {
-            super(runner)
-        }
-    }
 
     /**
      * @return ABI change runnable

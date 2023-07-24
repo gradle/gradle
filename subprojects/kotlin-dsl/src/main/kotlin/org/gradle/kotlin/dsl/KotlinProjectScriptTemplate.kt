@@ -25,13 +25,11 @@ import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
-import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
 import org.gradle.plugin.use.PluginDependenciesSpec
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
@@ -54,9 +52,6 @@ class KotlinProjectScriptTemplateCompilationConfiguration : KotlinDslStandaloneS
 )
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
-)
-@ScriptTemplateAdditionalCompilerArguments(
-    provider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider::class
 )
 @GradleDsl
 abstract class KotlinProjectScriptTemplate(

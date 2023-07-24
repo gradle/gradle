@@ -3,5 +3,5 @@ plugins {
 }
 
 verification {
-    url.set("https://www.google.com/")  // <2>
+    url = "https://www.google.com/"  // <2>
 }

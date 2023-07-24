@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publish.maven.internal.dependencies;
 
-import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.publish.maven.MavenDependency;
+package org.gradle.api.internal.artifacts;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.util.Path;
 
-public interface MavenDependencyInternal extends MavenDependency {
-    Collection<DependencyArtifact> getArtifacts();
-    Collection<ExcludeRule> getExcludeRules();
-    String getProjectPath();
-
-    @Override
-    @Nullable
-    String getVersion();
+/**
+ * Internal counterpart to {@link ProjectComponentIdentifier}
+ */
+public interface ProjectComponentIdentifierInternal extends ProjectComponentIdentifier {
+    /**
+     * Returns a unique path for the target project within the current build tree.
+     */
+    Path getIdentityPath();
 }

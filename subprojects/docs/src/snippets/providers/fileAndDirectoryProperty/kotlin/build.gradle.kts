@@ -23,10 +23,10 @@ abstract class GenerateSource : DefaultTask() {
 // Create the source generation task
 tasks.register<GenerateSource>("generate") {
     // Configure the locations, relative to the project and build directories
-    configFile.set(layout.projectDirectory.file("src/config.txt"))
-    outputDir.set(layout.buildDirectory.dir("generated-source"))
+    configFile = layout.projectDirectory.file("src/config.txt")
+    outputDir = layout.buildDirectory.dir("generated-source")
 }
 
 // Change the build directory
 // Don't need to reconfigure the task properties. These are automatically updated as the build directory changes
-layout.buildDirectory.set(layout.projectDirectory.dir("output"))
+layout.buildDirectory = layout.projectDirectory.dir("output")
