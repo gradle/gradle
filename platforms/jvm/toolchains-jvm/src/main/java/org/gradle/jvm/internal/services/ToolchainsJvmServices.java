@@ -75,13 +75,10 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
 
     }
 
-    private void registerJavaInstallationSuppliers(ServiceRegistration registration) {
-        registration.add(AutoInstalledInstallationSupplier.class);
-    }
-
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildServices());
+        registration.add(AutoInstalledInstallationSupplier.class);
     }
 
     @Override
