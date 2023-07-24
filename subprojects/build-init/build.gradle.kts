@@ -57,8 +57,8 @@ dependencies {
     integTestImplementation(project(":native"))
     integTestImplementation(libs.jetty)
 
-    testRuntimeOnly(project(":distributions-core")) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
+    testRuntimeOnly(project(":distributions-jvm")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
