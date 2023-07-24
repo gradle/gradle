@@ -18,6 +18,7 @@ UnitTestPreconditions$HighPerformance
 UnitTestPreconditions$Jdk10OrEarlier
 UnitTestPreconditions$Jdk11OrEarlier
 UnitTestPreconditions$Jdk11OrLater
+UnitTestPreconditions$Jdk12OrLater
 UnitTestPreconditions$Jdk14OrLater
 UnitTestPreconditions$Jdk14OrLater,IntegTestPreconditions$NotEmbeddedExecutor
 UnitTestPreconditions$Jdk15OrEarlier

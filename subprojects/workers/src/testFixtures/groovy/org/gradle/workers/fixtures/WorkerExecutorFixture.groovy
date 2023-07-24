@@ -201,6 +201,7 @@ class WorkerExecutorFixture {
 
     void withJava7CompatibleClasses() {
         file('buildSrc/build.gradle') << """
+            java.toolchain.languageVersion = JavaLanguageVersion.of(11)
             tasks.withType(JavaCompile) {
                 sourceCompatibility = "1.7"
                 targetCompatibility = "1.7"
