@@ -17,14 +17,12 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -227,13 +225,13 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     private static class DefaultLocalConfigurationArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final String name;
-        private final ComponentArtifactResolveMetadata component;
+        private final LocalComponentMetadata component;
         private final LocalConfigurationGraphResolveMetadata graphSelectedConfiguration;
         private final Set<? extends VariantResolveMetadata> variants;
 
         public DefaultLocalConfigurationArtifactResolveState(String name, LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Set<? extends VariantResolveMetadata> variants) {
             this.name = name;
-            this.component = new LocalComponentArtifactResolveMetadata(component);
+            this.component = component;
             this.graphSelectedConfiguration = graphSelectedConfiguration;
             this.variants = variants;
         }
@@ -254,16 +252,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             for (IvyArtifactName dependencyArtifact : dependencyArtifacts) {
                 artifacts.add(graphSelectedConfiguration.prepareToResolveArtifacts().artifact(dependencyArtifact));
             }
-            return variantResolver.resolveAdhocVariant(component, artifacts.build());
+            return variantResolver.resolveAdhocVariant(new LocalComponentArtifactResolveMetadata(component), artifacts.build());
         }
 
-        @Override
-        public ImmutableSet<ResolvedVariant> resolveArtifacts(VariantArtifactResolver variantResolver, ExcludeSpec exclusions) {
-            ImmutableSet.Builder<ResolvedVariant> builder = ImmutableSet.builderWithExpectedSize(variants.size());
-            for (VariantResolveMetadata variant : variants) {
-                builder.add(variantResolver.resolveVariant(component, variant, exclusions));
-            }
-            return builder.build();
+        public Set<? extends VariantResolveMetadata> getArtifactVariants() {
+            return variants;
         }
     }
 

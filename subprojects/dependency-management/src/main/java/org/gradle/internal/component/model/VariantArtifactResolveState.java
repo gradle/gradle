@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * State that is used for artifact resolution based on a variant that is selected during graph resolution.
@@ -44,9 +43,7 @@ public interface VariantArtifactResolveState {
     ResolvedVariant resolveAdhocArtifacts(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts);
 
     /**
-     * Resolve the artifacts of this variant, minus those artifacts that are excluded.
-     *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
+     * Get all artifact variants, or "sub-variants" of this variant.
      */
-    ImmutableSet<ResolvedVariant> resolveArtifacts(VariantArtifactResolver variantResolver, ExcludeSpec exclusions);
+    Set<? extends VariantResolveMetadata> getArtifactVariants();
 }

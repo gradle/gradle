@@ -68,6 +68,11 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     }
 
     @Override
+    public ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata variant) {
+        return toResolvedVariant(component, variant, variant.getIdentifier(), variant.getArtifacts());
+    }
+
+    @Override
     public ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata variant, ExcludeSpec exclusions) {
         ImmutableList<? extends ComponentArtifactMetadata> sourceArtifacts = variant.getArtifacts();
         ImmutableList<ComponentArtifactMetadata> overrideArtifacts = maybeExcludeArtifacts(component, sourceArtifacts, exclusions);
@@ -81,10 +86,6 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
 
     @Nullable
     private static ImmutableList<ComponentArtifactMetadata> maybeExcludeArtifacts(ComponentArtifactResolveMetadata component, ImmutableList<? extends ComponentArtifactMetadata> artifacts, ExcludeSpec exclusions) {
-        if (!exclusions.mayExcludeArtifacts()) {
-            return null;
-        }
-
         ModuleIdentifier module = component.getModuleVersionId().getModule();
 
         // artifactsToResolve are those not excluded by their owning module

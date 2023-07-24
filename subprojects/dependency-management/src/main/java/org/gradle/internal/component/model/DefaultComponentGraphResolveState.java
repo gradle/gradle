@@ -17,13 +17,11 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -189,13 +187,13 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
 
     private static class DefaultConfigurationArtifactResolveState implements VariantArtifactResolveState {
         private final String name;
-        private final ComponentArtifactResolveMetadata artifactMetadata;
+        private final ExternalComponentResolveMetadata artifactMetadata;
         private final ConfigurationMetadata graphSelectedConfiguration;
         private final Set<? extends VariantResolveMetadata> variants;
 
         public DefaultConfigurationArtifactResolveState(String name, ExternalComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedConfiguration) {
             this.name = name;
-            this.artifactMetadata = new ExternalArtifactResolveMetadata(artifactMetadata);
+            this.artifactMetadata = artifactMetadata;
             this.graphSelectedConfiguration = graphSelectedConfiguration;
             this.variants = graphSelectedConfiguration.getVariants();
         }
@@ -211,16 +209,11 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
             for (IvyArtifactName dependencyArtifact : dependencyArtifacts) {
                 artifacts.add(graphSelectedConfiguration.artifact(dependencyArtifact));
             }
-            return variantResolver.resolveAdhocVariant(artifactMetadata, artifacts.build());
+            return variantResolver.resolveAdhocVariant(new ExternalArtifactResolveMetadata(artifactMetadata), artifacts.build());
         }
 
-        @Override
-        public ImmutableSet<ResolvedVariant> resolveArtifacts(VariantArtifactResolver variantResolver, ExcludeSpec exclusions) {
-            ImmutableSet.Builder<ResolvedVariant> builder = ImmutableSet.builderWithExpectedSize(variants.size());
-            for (VariantResolveMetadata variant : variants) {
-                builder.add(variantResolver.resolveVariant(artifactMetadata, variant, exclusions));
-            }
-            return builder.build();
+        public Set<? extends VariantResolveMetadata> getArtifactVariants() {
+            return variants;
         }
     }
 
