@@ -55,7 +55,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
     public static final String TEST_REPORT_AGGREGATION_CONFIGURATION_NAME = "testReportAggregation";
 
     @Inject
-    protected abstract JvmPluginServices getEcosystemUtilities();
+    protected abstract JvmPluginServices getJvmPluginServices();
 
     @Override
     public void apply(Project project) {
@@ -105,7 +105,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
 
         project.getPlugins().withType(JavaBasePlugin.class, plugin -> {
             // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
-            getEcosystemUtilities().configureAsRuntimeClasspath(testAggregation);
+            getJvmPluginServices().configureAsRuntimeClasspath(testAggregation);
         });
 
         // convention for synthesizing reports based on existing test suites in "this" project
