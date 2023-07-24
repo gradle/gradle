@@ -22,7 +22,7 @@ val jacksonVersion = "2.15.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val junit5Version = "5.8.2"
-val mavenVersion = "3.6.3"
+val mavenVersion = "3.9.6"
 val nativePlatformVersion = "0.22-milestone-25"
 val slf4jVersion = "1.7.30"
 val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
@@ -128,10 +128,10 @@ dependencies {
         api(libs.nativePlatform)        { version { strictly(nativePlatformVersion) }}
         api(libs.nativePlatformFileEvents) { version { strictly(nativePlatformVersion) }}
         api(libs.objenesis)             { version { strictly("2.6") }}
-        api(libs.plexusCipher)          { version { strictly("1.7"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusCipher)          { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusSecDispatcher)   { version { strictly("1.4"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusUtils)           { version { strictly("3.3.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusSecDispatcher)   { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusUtils)           { version { strictly("3.5.1"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plist)                 { version { strictly("1.21") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
