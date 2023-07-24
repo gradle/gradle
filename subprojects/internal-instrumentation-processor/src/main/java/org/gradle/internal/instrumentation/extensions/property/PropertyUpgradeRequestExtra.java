@@ -19,12 +19,18 @@ package org.gradle.internal.instrumentation.extensions.property;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.objectweb.asm.Type;
 
 class PropertyUpgradeRequestExtra implements RequestExtra {
 
     enum UpgradedPropertyType {
+        LIST_PROPERTY,
+        SET_PROPERTY,
+        MAP_PROPERTY,
         PROPERTY,
         FILE_SYSTEM_LOCATION_PROPERTY,
         CONFIGURABLE_FILE_COLLECTION;
@@ -34,6 +40,12 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
                 return FILE_SYSTEM_LOCATION_PROPERTY;
             } else if (type.getClassName().equals(ConfigurableFileCollection.class.getName())) {
                 return CONFIGURABLE_FILE_COLLECTION;
+            } else if (type.getClassName().equals(MapProperty.class.getName())) {
+                return MAP_PROPERTY;
+            } else if (type.getClassName().equals(SetProperty.class.getName())) {
+                return SET_PROPERTY;
+            } else if (type.getClassName().equals(ListProperty.class.getName())) {
+                return LIST_PROPERTY;
             } else {
                 return PROPERTY;
             }

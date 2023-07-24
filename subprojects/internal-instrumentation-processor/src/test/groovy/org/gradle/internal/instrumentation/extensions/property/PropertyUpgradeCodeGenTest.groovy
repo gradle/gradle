@@ -17,6 +17,10 @@
 package org.gradle.internal.instrumentation.extensions.property
 
 import com.google.testing.compile.Compilation
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.provider.proxies.ListPropertyBackedList
+import org.gradle.api.internal.provider.proxies.MapPropertyBackedMap
+import org.gradle.api.internal.provider.proxies.SetPropertyBackedSet
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
 
 import static com.google.testing.compile.CompilationSubject.assertThat
@@ -157,12 +161,12 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            ${fullImport ? "import $fullImport;" : ""}
+            ${imports.collect { "import $it.name;" }.join("\n")}
             import org.gradle.test.Task;
 
             public class Task_Adapter {
                 public static $originalType access_get_property(Task self) {
-                    return self.getProperty()$getCall;
+                    return $getCall;
                 }
 
                 public static void access_set_property(Task self, $originalType arg0) {
@@ -176,17 +180,18 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .hasSourceEquivalentTo(generatedClass)
 
         where:
-        upgradedType                  | originalType     | getCall                    | setCall            | fullImport
-        "Property<Integer>"           | "int"            | ".getOrElse(0)"            | ".set(arg0)"       | ""
-        "Property<Boolean>"           | "boolean"        | ".getOrElse(false)"        | ".set(arg0)"       | ""
-        "Property<Long>"              | "long"           | ".getOrElse(0L)"           | ".set(arg0)"       | ""
-        "Property<Integer>"           | "Integer"        | ".getOrElse(null)"         | ".set(arg0)"       | "java.lang.Integer"
-        "Property<String>"            | "String"         | ".getOrElse(null)"         | ".set(arg0)"       | "java.lang.String"
-        "ListProperty<String>"        | "List"           | ".getOrElse(null)"         | ".set(arg0)"       | "java.util.List"
-        "MapProperty<String, String>" | "Map"            | ".getOrElse(null)"         | ".set(arg0)"       | "java.util.Map"
-        "RegularFileProperty"         | "File"           | ".getAsFile().getOrNull()" | ".fileValue(arg0)" | "java.io.File"
-        "DirectoryProperty"           | "File"           | ".getAsFile().getOrNull()" | ".fileValue(arg0)" | "java.io.File"
-        "ConfigurableFileCollection"  | "FileCollection" | ""                         | ".setFrom(arg0)"   | "org.gradle.api.file.FileCollection"
+        upgradedType                  | originalType     | getCall                                            | setCall            | imports
+        "Property<Integer>"           | "int"            | "self.getProperty().getOrElse(0)"                  | ".set(arg0)"       | []
+        "Property<Boolean>"           | "boolean"        | "self.getProperty().getOrElse(false)"              | ".set(arg0)"       | []
+        "Property<Long>"              | "long"           | "self.getProperty().getOrElse(0L)"                 | ".set(arg0)"       | []
+        "Property<Integer>"           | "Integer"        | "self.getProperty().getOrElse(null)"               | ".set(arg0)"       | [Integer]
+        "Property<String>"            | "String"         | "self.getProperty().getOrElse(null)"               | ".set(arg0)"       | [String]
+        "ListProperty<String>"        | "List"           | "new ListPropertyBackedList<>(self.getProperty())" | ".set(arg0)"       | [List, ListPropertyBackedList]
+        "MapProperty<String, String>" | "Map"            | "new MapPropertyBackedMap<>(self.getProperty())"   | ".set(arg0)"       | [Map, MapPropertyBackedMap]
+        "SetProperty<String>"         | "Set"            | "new SetPropertyBackedSet<>(self.getProperty())"   | ".set(arg0)"       | [Set, SetPropertyBackedSet]
+        "RegularFileProperty"         | "File"           | "self.getProperty().getAsFile().getOrNull()"       | ".fileValue(arg0)" | [File]
+        "DirectoryProperty"           | "File"           | "self.getProperty().getAsFile().getOrNull()"       | ".fileValue(arg0)" | [File]
+        "ConfigurableFileCollection"  | "FileCollection" | "self.getProperty()"                               | ".setFrom(arg0)"   | [FileCollection]
     }
 
     def "should correctly generate interceptor when property name contains get"() {
