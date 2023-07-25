@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.testing.failure;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapperTest;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 
 /**
  * Interface implemented by root-level classes which transform between {@link Throwable} and {@link TestFailure}.
  * <p>
- * As sometimes failure processing needs to be recursive (e.g. {@link OpenTestMultipleFailuresErrorMapperTest}),
+ * As sometimes failure processing needs to be recursive (e.g. {@link OpenTestMultipleFailuresErrorMapper}),
  * they receive an instance implementing this interface to transform inner failures.
  *
  * @see org.gradle.api.internal.tasks.testing.junit.JUnitTestEventAdapter

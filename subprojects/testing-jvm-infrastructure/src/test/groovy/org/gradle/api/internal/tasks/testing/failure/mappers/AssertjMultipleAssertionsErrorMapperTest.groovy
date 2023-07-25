@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class AssertjMultipleAssertionsErrorMapperTest extends Specification {
     // SUT
-    def mapper = new AssertjMultipleAssertionsErrorMapperTest()
+    def mapper = new AssertjMultipleAssertionsErrorMapper()
 
     // Our error being mapped
     def error = new MultipleAssertionsError(

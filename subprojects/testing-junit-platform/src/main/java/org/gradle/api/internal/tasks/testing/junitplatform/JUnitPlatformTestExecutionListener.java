@@ -26,11 +26,11 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.failure.DefaultThrowableToTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapperTest;
-import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapperTest;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapperTest;
-import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapperTest;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
@@ -70,11 +70,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
 
     private final static List<TestFailureMapper> MAPPERS = Arrays.asList(
-        new OpenTestAssertionFailedMapperTest(),
-        new OpenTestMultipleFailuresErrorMapperTest(),
+        new OpenTestAssertionFailedMapper(),
+        new OpenTestMultipleFailuresErrorMapper(),
         new JUnitComparisonTestFailureMapper(),
-        new AssertjMultipleAssertionsErrorMapperTest(),
-        new AssertErrorMapperTest()
+        new AssertjMultipleAssertionsErrorMapper(),
+        new AssertErrorMapper()
     );
 
     private static final DefaultThrowableToTestFailureMapper FAILURE_MAPPER = new DefaultThrowableToTestFailureMapper(MAPPERS);
