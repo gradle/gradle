@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import org.gradle.util.internal.ToBeImplemented
 
 class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements TasksWithInputsAndOutputs {
     def "task input property can consume the mapped output of another task"() {
@@ -289,5 +290,37 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         then:
         configurationCache.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
+    }
+
+    @ToBeImplemented('https://github.com/gradle/gradle/issues/25558')
+    def "provider of value for finalizeValueOnRead property is evaluated once and only once"() {
+        given:
+        buildKotlinFile '''
+            val ok by tasks.registering {
+                val input = objects
+                    .property<String>()
+                    .value(
+                        provider {
+                            println("Costly calculation")
+                            "result"
+                        }
+                    )
+                    .apply {
+                        disallowChanges()
+                        finalizeValueOnRead()
+                    } as Provider<String>
+                inputs.property("input", input)
+                doLast {
+                    println(input.get())
+                    println(input.get())
+                }
+            }
+        '''
+
+        when:
+        configurationCacheRun 'ok'
+
+        then:
+        output.count('Costly calculation') == 2 // TODO: should be `1`
     }
 }
