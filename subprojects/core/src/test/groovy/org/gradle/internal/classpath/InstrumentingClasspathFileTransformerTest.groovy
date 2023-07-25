@@ -32,13 +32,11 @@ import org.junit.Rule
 import org.objectweb.asm.ClassVisitor
 import spock.lang.Specification
 
-import java.nio.charset.StandardCharsets
-import java.util.jar.Attributes
 import java.util.jar.JarFile
-import java.util.jar.Manifest
 
 import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent
 import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader
+import static org.gradle.util.JarUtils.jar
 
 class InstrumentingClasspathFileTransformerTest extends Specification {
     @Rule
@@ -240,59 +238,5 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
 
     private JarTestFixture jarFixture(File transformedJar, boolean expectManifest = true) {
         return new JarTestFixture(transformedJar, 'UTF-8', null, expectManifest)
-    }
-
-    private File jar(File jarFile, @DelegatesTo(JarBuilder) Closure<?> closure) {
-        classpathBuilder.jar(jarFile) {
-            closure.setDelegate(new JarBuilder(it))
-            closure.setResolveStrategy(Closure.DELEGATE_FIRST)
-            closure()
-        }
-
-        jarFile
-    }
-
-    static class JarBuilder {
-        private final ClasspathBuilder.EntryBuilder builder
-        private boolean hasManifest
-
-        JarBuilder(ClasspathBuilder.EntryBuilder builder) {
-            this.builder = builder
-        }
-
-        def manifest(@DelegatesTo(value = Manifest, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-            def man = new Manifest()
-            man.mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
-
-            closure.setDelegate(man)
-            closure()
-
-            def baos = new ByteArrayOutputStream()
-            man.write(baos)
-            builder.put(JarFile.MANIFEST_NAME, baos.toByteArray())
-            hasManifest = true
-            this
-        }
-
-        def versionedEntry(int version, String path, byte[] bytes) {
-            entry(JarTestFixture.toVersionedPath(version, path), bytes)
-        }
-
-        def versionedEntry(int version, String path, String body) {
-            entry(JarTestFixture.toVersionedPath(version, path), body)
-        }
-
-        def entry(String path, byte[] bytes) {
-            checkManifestWritten()
-            builder.put(path, bytes)
-        }
-
-        def entry(String path, String body) {
-            entry(path, body.getBytes(StandardCharsets.UTF_8))
-        }
-
-        private def checkManifestWritten() {
-            assert hasManifest : "Must have manifest before entries"
-        }
     }
 }
