@@ -53,6 +53,8 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
         assumeNonEmbeddedGradleExecuter() // newer Kotlin version always leaks on the classpath when running embedded
 
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
+
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn(
             "buildSrc",
