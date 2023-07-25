@@ -8,7 +8,7 @@ description = "Provides common code used to create a Gradle plugin with Groovy o
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(17)
         vendor = JvmVendorSpec.ADOPTIUM
     }
 }
