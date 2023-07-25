@@ -57,6 +57,8 @@ dependencies {
     integTestRuntimeOnly(project(":distributions-jvm")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
+
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 packageCycles {
