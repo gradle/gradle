@@ -82,20 +82,20 @@ class DefaultClasspathFingerprinterTest extends Specification {
 
         then:
         fileCollectionFingerprint == [
-            ['root1.txt', '', '006240e2be8cab1da7ef856d241a35e0'],
-            ['file1.txt', 'file1.txt', '747a88be8259e66d39362bcc204e3276'],
-            ['file2.txt', 'file2.txt', '7e9123cc118f9c4f436614b9f9402e13'],
-            ['root2.txt', '', '2b86399532976c2fb33f09bc7bdee422'],
+            ['root1.txt', '', 'fcca0029426f3d48a5480380d5786537'],
+            ['file1.txt', 'file1.txt', '47f36380633d6eaf93f023efd9bd4396'],
+            ['file2.txt', 'file2.txt', '5cea7e826c0955cf6048c5660e1fff9c'],
+            ['root2.txt', '', '881aecde47cd07bff3edfc3c6fc170bd'],
         ]
 
         when:
         fileCollectionFingerprint = fingerprint(rootFile2, rootFile1, rootDir)
         then:
         fileCollectionFingerprint == [
-            ['root2.txt', '', '2b86399532976c2fb33f09bc7bdee422'],
-            ['root1.txt', '', '006240e2be8cab1da7ef856d241a35e0'],
-            ['file1.txt', 'file1.txt', '747a88be8259e66d39362bcc204e3276'],
-            ['file2.txt', 'file2.txt', '7e9123cc118f9c4f436614b9f9402e13'],
+            ['root2.txt', '', '881aecde47cd07bff3edfc3c6fc170bd'],
+            ['root1.txt', '', 'fcca0029426f3d48a5480380d5786537'],
+            ['file1.txt', 'file1.txt', '47f36380633d6eaf93f023efd9bd4396'],
+            ['file2.txt', 'file2.txt', '5cea7e826c0955cf6048c5660e1fff9c'],
         ]
     }
 
@@ -122,9 +122,9 @@ class DefaultClasspathFingerprinterTest extends Specification {
 
         fileCollectionFingerprint == [
             ['library.jar', '', 'e3f8c5a79d138a40570261fa7de40642'],
-            ['fourthFile.txt', 'fourthFile.txt', '37b040e234b12a70145edbdb79683ee9'],
-            ['build.log', 'subdir/build.log', '224c45bdc38a7e3c52cdcc6126d78946'],
-            ['thirdFile.txt', 'thirdFile.txt', '138f1960a77eecec5f03362421bf967a'],
+            ['fourthFile.txt', 'fourthFile.txt', '65c57b38d9bb9c00c84120501ead0587'],
+            ['build.log', 'subdir/build.log', '3168fe07c2c9f9426d5b8446764907a5'],
+            ['thirdFile.txt', 'thirdFile.txt', '158a87a1eb861cf18cdd64da711b37c2'],
         ]
 
         resourceHashesCache.keySet().size() == 1
@@ -148,7 +148,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
         then:
         fileCollectionFingerprint == [
             ['library.jar', '', 'eaafc4a09214a09ffe2de2d02d5abd3c'],
-            ['thirdFile.txt', 'thirdFile.txt', '138f1960a77eecec5f03362421bf967a'],
+            ['thirdFile.txt', 'thirdFile.txt', '158a87a1eb861cf18cdd64da711b37c2'],
         ]
 
         when:
@@ -161,7 +161,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
         then:
         fileCollectionFingerprint == [
             ['library.jar', '', 'c23694a1b7e494fab2aa21f5d644d0bc'],
-            ['thirdFile.txt', 'subdir/thirdFile.txt', '138f1960a77eecec5f03362421bf967a'],
+            ['thirdFile.txt', 'subdir/thirdFile.txt', '158a87a1eb861cf18cdd64da711b37c2'],
         ]
     }
 

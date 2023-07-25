@@ -55,7 +55,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         )
 
         when:
-        succeeds(mainTask, "-s")
+        succeeds(mainTask)
         def outputDirectory = getResultDir()
 
         then:
@@ -363,9 +363,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         null                 | true
     }
 
-
-    //TODO: tests for up-to-date checks
-    //TODO: symlink change between builds
     //TODO: add permissions checks
 
     @SuppressWarnings('unused')

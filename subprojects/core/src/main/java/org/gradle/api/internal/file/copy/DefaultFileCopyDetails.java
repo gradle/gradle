@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFilePermissions;
@@ -46,6 +47,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 
@@ -171,7 +173,11 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     private void copySymlinkTo(File target) {
         try {
-            Files.copy(getFile().toPath(), target.toPath(), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING, LinkOption.NOFOLLOW_LINKS);
+            Path path = target.toPath();
+            if (target.exists() && Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+                FileUtils.deleteDirectory(target);
+            }
+            Files.copy(getFile().toPath(), path, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING, LinkOption.NOFOLLOW_LINKS);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -24,6 +24,8 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hasher
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
@@ -156,7 +158,12 @@ abstract class AbstractFileSystemAccessTest extends Specification {
     }
 
     HashCode hashFile(File file) {
-        TestFiles.fileHasher().hash(file)
+        def hash = TestFiles.fileHasher().hash(file)
+        Hasher combinedHasher = Hashing.newHasher()
+        combinedHasher.putHash(hash)
+        combinedHasher.putNull()
+
+        combinedHasher.hash()
     }
 
     static class FileNameFilter implements SnapshottingFilter {

@@ -27,6 +27,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -369,10 +371,10 @@ public class DirectorySnapshotter {
                             }
                         }
                     } else {
-                        visitResolvedFile(file, targetAttributes, AccessType.VIA_SYMLINK);
+                        visitResolvedFile(file, attrs, targetAttributes, AccessType.VIA_SYMLINK);
                     }
                 } else {
-                    visitResolvedFile(file, attrs, AccessType.DIRECT);
+                    visitResolvedFile(file, attrs, attrs, AccessType.DIRECT);
                 }
                 return FileVisitResult.CONTINUE;
             } finally {
@@ -410,10 +412,10 @@ public class DirectorySnapshotter {
             return parentDirectories.contains(targetDirString);
         }
 
-        private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes, AccessType accessType) {
+        private void visitResolvedFile(Path file, BasicFileAttributes sourceAttributes, BasicFileAttributes targetAttributes, AccessType accessType) {
             String internedName = intern(file.getFileName().toString());
             if (shouldVisitFile(file, internedName)) {
-                builder.visitLeafElement(snapshotFile(file, internedName, targetAttributes, accessType));
+                builder.visitLeafElement(snapshotFile(file, internedName, sourceAttributes, targetAttributes, accessType));
             }
         }
 
@@ -435,7 +437,7 @@ public class DirectorySnapshotter {
             }
         }
 
-        private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
+        private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes sourceAttrs, BasicFileAttributes targetAttrs, AccessType accessType) {
             String internedRemappedAbsoluteFilePath = intern(symbolicLinkMapping.remapAbsolutePath(absoluteFilePath));
             FileSystemLocationSnapshot previouslyKnownSnapshot = previouslyKnownSnapshots.get(internedRemappedAbsoluteFilePath);
             if (previouslyKnownSnapshot != null) {
@@ -444,16 +446,34 @@ public class DirectorySnapshotter {
                 }
                 return (FileSystemLeafSnapshot) previouslyKnownSnapshot;
             }
-            if (attrs.isSymbolicLink()) {
+            if (targetAttrs.isSymbolicLink()) {
                 return new MissingFileSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType);
-            } else if (!attrs.isRegularFile()) {
+            } else if (!targetAttrs.isRegularFile()) {
                 throw new UncheckedIOException(new IOException(String.format("Cannot snapshot %s: not a regular file", internedRemappedAbsoluteFilePath)));
             }
-            long lastModified = attrs.lastModifiedTime().toMillis();
-            long fileLength = attrs.size();
+            long lastModified = targetAttrs.lastModifiedTime().toMillis();
+            long fileLength = targetAttrs.size();
+            Path linkTarget = null;
+            if (sourceAttrs.isSymbolicLink()) {
+                try {
+                    linkTarget = Files.readSymbolicLink(absoluteFilePath);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                lastModified = sourceAttrs.lastModifiedTime().toMillis();
+            }
+
             FileMetadata metadata = DefaultFileMetadata.file(lastModified, fileLength, accessType);
             HashCode hash = hasher.hash(absoluteFilePath.toFile(), fileLength, lastModified);
-            return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, hash, metadata);
+
+            Hasher combinedHasher = Hashing.newHasher();
+            combinedHasher.putHash(hash);
+            if (linkTarget == null) {
+                combinedHasher.putNull();
+            } else {
+                combinedHasher.putString(linkTarget.toString());
+            }
+            return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, combinedHasher.hash(), metadata);
         }
 
         /**
