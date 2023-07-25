@@ -209,8 +209,8 @@ gradle.settingsEvaluated {
         return@settingsEvaluated
     }
 
-    if (!JavaVersion.current().isJava11) {
-        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
+    if (JavaVersion.current() != JavaVersion.VERSION_17) {
+        throw GradleException("This build requires JDK 17. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
     }
 }
 
