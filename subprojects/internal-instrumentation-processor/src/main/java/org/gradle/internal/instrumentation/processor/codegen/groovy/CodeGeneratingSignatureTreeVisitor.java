@@ -124,7 +124,7 @@ class CodeGeneratingSignatureTreeVisitor {
 
         CodeBlock nextArg = CodeBlock.of("nextArg");
         result.addStatement("Object $L = invocation.getArgument(argIndex)", nextArg);
-        result.beginControlFlow("if ($L instanceof $T)", nextArg, entryParamType);
+        result.beginControlFlow("if ($1L == null || $1L instanceof $2T)", nextArg, entryParamType);
         if (entryParamType.equals(TypeName.OBJECT)) {
             result.addStatement("$1L[argIndex - $2L] = $3L", varargVariable, paramIndex, nextArg);
         } else {
@@ -154,7 +154,7 @@ class CodeGeneratingSignatureTreeVisitor {
         CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS ?
             CodeBlock.of("$L.equals($T.class)", argExpr, entryChildType) :
             // Vararg fits here, too:
-            CodeBlock.of("$L instanceof $T", argExpr, entryChildType.box());
+            CodeBlock.of("$1L == null || $1L instanceof $2T", argExpr, entryChildType.box());
         result.beginControlFlow("if ($L)", matchExpr);
         boolean shouldPopParameter = false;
         if (entry.kind != RECEIVER_AS_CLASS) {

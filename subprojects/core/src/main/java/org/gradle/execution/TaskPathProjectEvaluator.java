@@ -19,6 +19,7 @@ package org.gradle.execution;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
 
 public class TaskPathProjectEvaluator implements ProjectConfigurer {
@@ -34,12 +35,12 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     }
 
     @Override
-    public void configureFully(ProjectInternal project) {
-        configure(project);
+    public void configureFully(ProjectState projectState) {
+        projectState.ensureConfigured();
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException();
         }
-        project.getOwner().ensureTasksDiscovered();
+        projectState.ensureTasksDiscovered();
     }
 
     @Override
