@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[build_environment]]
-= Build Environment
+= Configuring Gradle and the Build Environment
 
 Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects.
 The following is a reference for using these mechanisms.
