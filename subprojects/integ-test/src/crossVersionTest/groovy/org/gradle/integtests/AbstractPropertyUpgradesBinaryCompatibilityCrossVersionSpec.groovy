@@ -37,23 +37,11 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
     ]
 
     /**
-     * We won't upgrade these, so we don't need dependency on these packages.
+     * These packages are not available with the version we are building a plugin with and will cause plugin compilation to fail.
      */
     private static final List<String> BLACKLISTED_PACKAGES = [
-        "org.gradle.language.assembler",
-        "org.gradle.language.c",
-        "org.gradle.language.cpp",
-        "org.gradle.language.nativeplatform",
-        "org.gradle.language.objectivec",
-        "org.gradle.language.objectivecpp",
-        "org.gradle.language.rc",
-        "org.gradle.language.swift",
-        "org.gradle.nativeplatform",
-        "org.gradle.plugins.ide",
         "org.gradle.testkit",
         "org.gradle.api.flow",
-        "org.gradle.ide",
-        "org.gradle.swiftpm"
     ]
 
     private static final Supplier<List<String>> DEFAULT_GRADLE_IMPORTS = Lazy.unsafe().of {
