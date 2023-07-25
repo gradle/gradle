@@ -40,7 +40,9 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
      * These packages are not available with the version we are building a plugin with and will cause plugin compilation to fail.
      */
     private static final List<String> BLACKLISTED_PACKAGES = [
+        // Testkit is not available on compile classpath for plugin
         "org.gradle.testkit",
+        // Flow API is not available in Gradle 8.0.2 that we use to produce a plugin
         "org.gradle.api.flow",
     ]
 
