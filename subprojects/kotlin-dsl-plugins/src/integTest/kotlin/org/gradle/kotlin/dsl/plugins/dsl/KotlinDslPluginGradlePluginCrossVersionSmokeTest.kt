@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -43,11 +44,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
         @Parameterized.Parameters(name = "{0}")
         @JvmStatic
-        fun testedKotlinVersions() = listOf(
-            embeddedKotlinVersion,
-            "1.7.0", "1.7.10", "1.7.22",
-            "1.6.21", "1.6.10",
-        )
+        fun testedKotlinVersions() = KotlinGradlePluginVersions().latestsStableOrRC
     }
 
     @Test
@@ -55,6 +52,8 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
         assumeNonEmbeddedGradleExecuter() // newer Kotlin version always leaks on the classpath when running embedded
+
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn(
