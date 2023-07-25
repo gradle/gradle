@@ -22,12 +22,12 @@ Explore our guides and examples to use Gradle.
 
 The Gradle User Manual is broken down into the following sections:
 
-<<introduction#introduction,Quick Start>> :: Get up and running by installing Gradle and learn the basics with our getting started tutorial.
+<<introduction#introduction,Getting Started>> :: Installing Gradle and learn the basics with our getting started tutorial.
 <<command_line_interface.adoc#command_line_interface,Running Gradle Builds>> :: Learn how to use Gradle to build your project.
 <<build_lifecycle.adoc#build_lifecycle,Authoring Gradle Builds>> :: Develop tasks and plugins to customize your build.
 <<building_java_projects.adoc#building_java_projects,Authoring JVM Builds>> :: Use Gradle with your Java project.
 <<dependency_management_terminology.adoc#dependency_management_terminology,Working with Dependencies>> :: Add dependencies to your build.
-<<performance.adoc#performance_gradle,Optimizing Build Times>> :: Use a cache to optimize your build.
+<<performance.adoc#performance_gradle,Optimizing Builds>> :: Use caches to optimize your build and understand the Gradle daemon, incremental builds and file system watching.
 <<jenkins.adoc#build_jenkins,Gradle on CI>> :: Gradle integration with popular continuous integration (CI) servers.
 
 [[reference]]
