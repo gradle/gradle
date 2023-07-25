@@ -39,7 +39,6 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.Facet;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
-import org.gradle.plugins.ide.eclipse.model.WtpFacet;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.internal.RelativePathUtil;
@@ -61,7 +60,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
 
     public static final String ECLIPSE_WTP_COMPONENT_TASK_NAME = "eclipseWtpComponent";
     public static final String ECLIPSE_WTP_FACET_TASK_NAME = "eclipseWtpFacet";
-    public static final String WEB_LIBS_CONTAINER = WtpFacet.WEB_LIBS_CONTAINER;
+    public static final String WEB_LIBS_CONTAINER = "org.eclipse.jst.j2ee.internal.web.container";
 
     public final Instantiator instantiator;
 
