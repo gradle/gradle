@@ -814,7 +814,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `accessor to extension of jvm type is inaccessible and typed Any`() {
+    fun `accessor to extension of jvm type is accessible and typed`() {
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             import java.security.MessageDigest
