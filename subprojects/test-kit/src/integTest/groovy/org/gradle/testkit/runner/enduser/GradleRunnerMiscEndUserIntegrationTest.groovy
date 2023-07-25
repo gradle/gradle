@@ -41,6 +41,9 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                 suites {
                     test {
                         useSpock()
+                        dependencies {
+                            implementation localGroovy()
+                        }
                     }
                 }
             }
