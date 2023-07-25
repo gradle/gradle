@@ -304,8 +304,11 @@ data class ApiTypeUsage internal constructor(
     val typeArguments: List<ApiTypeUsage> = emptyList(),
     val bounds: List<ApiTypeUsage> = emptyList()
 ) {
+    /**
+     * Type usage is raw if type has no type parameters or if usage has no type arguments.
+     */
     val isRaw: Boolean
-        get() = typeArguments.isEmpty() && type?.typeParameters?.isEmpty() != false
+        get() = type?.typeParameters?.isEmpty() != false || typeArguments.isEmpty()
 }
 
 
