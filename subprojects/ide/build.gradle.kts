@@ -45,7 +45,9 @@ dependencies {
     }
     testFixturesImplementation(project(":dependency-management"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(libs.groovyXml)
+    testFixturesImplementation(libs.xmlunit)
 
     testImplementation(project(":dependency-management"))
     testImplementation(libs.xmlunit)
