@@ -63,7 +63,6 @@ import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
@@ -101,7 +100,6 @@ class Codecs(
     objectFactory: ObjectFactory,
     instantiator: Instantiator,
     fileSystemOperations: FileSystemOperations,
-    listenerManager: ListenerManager,
     val taskNodeFactory: TaskNodeFactory,
     val ordinalGroupFactory: OrdinalGroupFactory,
     inputFingerprinter: InputFingerprinter,
@@ -140,7 +138,7 @@ class Codecs(
 
             providersBlock()
 
-            bind(ListenerBroadcastCodec(listenerManager))
+            bind(ListenerBroadcastCodec)
             bind(LoggerCodec)
 
             fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)

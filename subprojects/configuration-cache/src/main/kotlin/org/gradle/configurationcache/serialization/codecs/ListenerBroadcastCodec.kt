@@ -20,6 +20,7 @@ import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.ownerService
 import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.event.AnonymousListenerBroadcast
@@ -28,7 +29,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch
 
 
 internal
-class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Codec<AnonymousListenerBroadcast<*>> {
+object ListenerBroadcastCodec : Codec<AnonymousListenerBroadcast<*>> {
     override suspend fun WriteContext.encode(value: AnonymousListenerBroadcast<*>) {
         val broadcast: AnonymousListenerBroadcast<Any> = value.uncheckedCast()
         val listenerType = value.type
@@ -48,6 +49,7 @@ class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Cod
 
     override suspend fun ReadContext.decode(): AnonymousListenerBroadcast<*> {
         val type: Class<Any> = readClass().uncheckedCast()
+        val listenerManager = ownerService<ListenerManager>()
         val broadcast = listenerManager.createAnonymousBroadcaster(type)
         readCollection {
             when (val listener = read()) {
