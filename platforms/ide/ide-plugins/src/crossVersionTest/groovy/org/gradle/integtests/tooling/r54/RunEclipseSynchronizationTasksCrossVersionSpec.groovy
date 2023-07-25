@@ -169,7 +169,7 @@ class RunEclipseSynchronizationTasksCrossVersionSpec extends ToolingApiSpecifica
         buildFile << """
             task nothing {
             }
-            
+
             task nothing_ {
             }
         """

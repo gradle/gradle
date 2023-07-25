@@ -354,7 +354,7 @@
     "path": "subprojects/ide",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": true
+    "crossVersionTests": false
   },
   {
     "name": "ide-native",
@@ -368,7 +368,7 @@
     "path": "platforms/ide/ide-plugins",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "installation-beacon",
