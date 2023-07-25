@@ -56,6 +56,7 @@ This caused every build to incur the cost of starting the compiler daemon and wa
 These start-up costs contributed to a large portion of overall build time when incrementally compiling a few source files.
 
 Starting with this release, Gradle attempts to keep Java compiler daemons alive after the end of the build, so that subsequent builds are faster.
+This is supported on Linux and MacOS, and support on Windows will follow in a subsequent release.
 Gradle will stop compiler daemons only when Gradle needs to free up resources.
 
 The performance benefit these persistent compiler daemons introduce can vary depending on a wide range of factors.
@@ -173,7 +174,7 @@ The [configuration cache](userguide/configuration_cache.html) improves build tim
 #### Temporarily opting out of stricter configuration inputs detection
 
 To ensure correctness, the configuration cache detects undeclared inputs when plugins or build logic perform file system checks such as `File.exists()` or `File.isFile()`.
-However, not all plugins might be updated yet to properly declare all the inputs, leading to cache misses and suboptimal performance.
+However, not all plugins are updated to properly declare all inputs, leading to cache misses and suboptimal performance.
 
 Configuration cache now has an opt-out option for temporarily ignoring such undeclared inputs.
 
