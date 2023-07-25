@@ -65,10 +65,16 @@ tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
 
     reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
 
-    // Property required by `AbstractBuildScanPluginPerformanceTest`
-    val pluginInfoDirProperty = "org.gradle.performance.enterprise.plugin.infoDir"
-    val pluginInfoDir = System.getProperty(pluginInfoDirProperty) ?: rootDir.resolve("incoming").path
-    jvmArgumentProviders += CommandLineArgumentProvider {
-        listOf("-D$pluginInfoDirProperty=$pluginInfoDir")
+    val projectRootDir = project.rootDir
+    val pluginInfoDir = project.providers.gradleProperty("enterprisePluginInfoDir")
+        .orElse(projectRootDir.resolve("incoming").path)
+        .map { projectRootDir.resolve(it) }
+
+    // System property required by `AbstractBuildScanPluginPerformanceTest`
+    jvmArgumentProviders += object : CommandLineArgumentProvider {
+        @get:[InputFiles PathSensitive(PathSensitivity.RELATIVE)]
+        val pluginInfoDir = pluginInfoDir
+
+        override fun asArguments() = listOf("-Dorg.gradle.performance.enterprise.plugin.infoDir=${pluginInfoDir.get().path}")
     }
 }

@@ -41,15 +41,17 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
      * System property that points to a directory with GE plugin information
      * such files containing build commit ID and plugin version.
      */
-    private static infoDirSystemProp = "org.gradle.performance.enterprise.plugin.infoDir"
+    private static final INFO_DIR_SYSTEM_PROP = "org.gradle.performance.enterprise.plugin.infoDir"
 
     private static File resolvePluginInfoDir() {
-        def path = System.getProperty(infoDirSystemProp)
+        def path = System.getProperty(INFO_DIR_SYSTEM_PROP)
         if (path == null || path.isEmpty()) {
-            throw new IllegalStateException("Expected system property `$infoDirSystemProp` to be set")
+            throw new IllegalStateException("Expected system property `$INFO_DIR_SYSTEM_PROP` to be set")
         }
 
-        new File(path)
+        def dir = new File(path)
+        assert dir.exists() && dir.isDirectory()
+        return dir
     }
 
     private static File pluginInfoDir = resolvePluginInfoDir()
