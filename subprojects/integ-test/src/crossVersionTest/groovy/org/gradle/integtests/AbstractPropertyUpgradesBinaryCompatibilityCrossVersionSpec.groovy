@@ -15,16 +15,63 @@
  */
 package org.gradle.integtests
 
-
+import org.gradle.configuration.DefaultImportsReader
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.internal.lazy.Lazy
+import java.util.function.Supplier
 
 /**
  * Tests that task classes with property upgrades are compiled against one version of Gradle are compatible with another version.
  */
 abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
 
-    protected List<Class<?>> importClasses() {
+    private static final List<String> DEFAULT_JAVA_IMPORTS = [
+        "java.lang.*",
+        "java.util.*",
+        "java.util.concurrent.*",
+        "java.util.regex.*",
+        "java.util.function.*",
+        "java.lang.reflect.*",
+        "java.io.*",
+        "javax.inject.Inject"
+    ]
+
+    /**
+     * We won't upgrade these, so we don't need dependency on these packages.
+     */
+    private static final List<String> BLACKLISTED_PACKAGES = [
+        "org.gradle.language.assembler",
+        "org.gradle.language.c",
+        "org.gradle.language.cpp",
+        "org.gradle.language.nativeplatform",
+        "org.gradle.language.objectivec",
+        "org.gradle.language.objectivecpp",
+        "org.gradle.language.rc",
+        "org.gradle.language.swift",
+        "org.gradle.nativeplatform",
+        "org.gradle.plugins.ide",
+        "org.gradle.testkit",
+        "org.gradle.api.flow",
+        "org.gradle.ide",
+        "org.gradle.swiftpm"
+    ]
+
+    private static final Supplier<List<String>> DEFAULT_GRADLE_IMPORTS = Lazy.unsafe().of {
+        return new DefaultImportsReader().importPackages.findAll {
+            !BLACKLISTED_PACKAGES.any { packageName -> it.startsWith(packageName) }
+        }.collect { it + ".*" }
+    }
+
+    protected List<Class<?>> additionalImportedClasses() {
         return []
+    }
+
+    protected List<String> additionalImports() {
+        return []
+    }
+
+    protected List<String> getDefaultImports() {
+        return DEFAULT_GRADLE_IMPORTS.get() + DEFAULT_JAVA_IMPORTS
     }
 
     protected void prepareGroovyPluginTest(String pluginApplyBody) {
@@ -36,9 +83,9 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         """
 
         file("producer/src/main/groovy/SomePlugin.groovy") << """
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-            ${importClasses().collect { "import " + it.name }.join("\n")}
+            ${getDefaultImports().collect { "import " + it }.join("\n")}
+            ${additionalImportedClasses().collect { "import " + it.name }.join("\n")}
+            ${additionalImports().collect { "import " + it }.join("\n")}
 
             class SomePlugin implements Plugin<Project> {
                 void apply(Project project) {
@@ -65,9 +112,9 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         """
 
         file("producer/src/main/java/SomePlugin.java") << """
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            ${importClasses().collect { "import " + it.name + ";" }.join("\\n")}
+            ${getDefaultImports().collect { "import " + it + ";" }.join("\n")}
+            ${additionalImportedClasses().collect { "import " + it.name + ";" }.join("\n")}
+            ${additionalImports().collect { "import " + it }.join("\n")}
 
             class SomePlugin implements Plugin<Project> {
                 public void apply(Project project) {
@@ -96,9 +143,9 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         """
 
         file("producer/src/main/kotlin/SomePlugin.kt") << """
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-            ${importClasses().collect { "import " + it.name }.join("\\n")}
+            ${getDefaultImports().collect { "import " + it }.join("\n")}
+            ${additionalImportedClasses().collect { "import " + it.name }.join("\n")}
+            ${additionalImports().collect { "import " + it }.join("\n")}
 
             class SomePlugin: Plugin<Project> {
                 override fun apply(project: Project) {
