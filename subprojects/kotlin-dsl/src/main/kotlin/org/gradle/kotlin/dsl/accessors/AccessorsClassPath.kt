@@ -352,7 +352,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
     private
     fun loadClassBytes(className: String): ByteArray? {
-        return classBytesRepository.classBytesFor(className) ?: ClassBytesRepository.classBytesViaBootstrapClassloaderFor(className)
+        return classBytesRepository.classBytesFor(className)
     }
 
     private
