@@ -163,7 +163,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private void checkNoDependencies(Project project) {
-        checkNoDependencies(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME), Sets.<Configuration>newHashSet());
+        checkNoDependencies(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME), Sets.newHashSet());
     }
 
     private void checkNoDependencies(Configuration configuration, Set<Configuration> visited) {
@@ -196,5 +196,4 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
 
         });
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.internal.project.ProjectInternal;
-
-public interface JvmPluginServices extends JvmEcosystemUtilities {
-    void inject(ProjectInternal project);
-}
+/**
+ * Dependency modifiers that can access platform and enforced platforms in {@code dependencies} blocks.
+ */
+package org.gradle.api.plugins.jvm;

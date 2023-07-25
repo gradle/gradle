@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,65 +16,46 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DefaultJvmPluginServices implements JvmPluginServices {
     private final ObjectFactory objectFactory;
     private final ProviderFactory providerFactory;
     private final InstanceGenerator instanceGenerator;
-    private final Map<ConfigurationInternal, Set<TaskProvider<?>>> configurationToCompileTasks; // ? is really AbstractCompile & HasCompileOptions
-
-    private ProjectInternal project; // would be great to avoid this but for lazy capabilities it's hard to avoid!
+    private final ProjectInternal project;
 
     @Inject
     public DefaultJvmPluginServices(ObjectFactory objectFactory,
                                     ProviderFactory providerFactory,
-                                    InstanceGenerator instanceGenerator) {
+                                    InstanceGenerator instanceGenerator,
+                                    ProjectInternal project) {
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
         this.instanceGenerator = instanceGenerator;
-        configurationToCompileTasks = new HashMap<>(5);
-    }
-
-    @Override
-    public void inject(ProjectInternal project) {
         this.project = project;
     }
 
@@ -95,6 +76,14 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
+    public void configureAsSources(HasConfigurableAttributes<?> configuration) {
+        configureAttributes(
+            configuration,
+            details -> details.withExternalDependencies().asSources()
+        );
+    }
+
+    @Override
     public void configureAsApiElements(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,
@@ -107,14 +96,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         configureAttributes(
             configuration,
             details -> details.library().runtimeUsage().asJar().withExternalDependencies()
-        );
-    }
-
-    @Override
-    public void configureAsSources(HasConfigurableAttributes<?> configuration) {
-        configureAttributes(
-            configuration,
-            details -> details.withExternalDependencies().asSources()
         );
     }
 
@@ -132,25 +113,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         for (Object provider : providers) {
             outgoing.artifact(provider);
         }
-    }
-
-    @Override
-    public void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration) {
-        DefaultJvmLanguageSourceDirectoryBuilder builder = instanceGenerator.newInstance(DefaultJvmLanguageSourceDirectoryBuilder.class,
-            name,
-            project,
-            sourceSet);
-        configuration.execute(builder);
-        builder.build();
-    }
-
-    @Override
-    public void registerJvmLanguageGeneratedSourceDirectory(SourceSet sourceSet, Action<? super JvmLanguageGeneratedSourceDirectoryBuilder> configuration) {
-        DefaultJvmLanguageGeneratedSourceDirectoryBuilder builder = instanceGenerator.newInstance(DefaultJvmLanguageGeneratedSourceDirectoryBuilder.class,
-            project,
-            sourceSet);
-        configuration.execute(builder);
-        builder.build();
     }
 
     private void clearArtifacts(Configuration outgoingConfiguration) {
@@ -187,43 +149,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                 .collect(Collectors.toList());
         });
         return variant;
-    }
-
-    @Override
-    public <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask) {
-        ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
-        Set<TaskProvider<COMPILE>> compileTasks = Cast.uncheckedCast(configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> new HashSet<>()));
-        compileTasks.add(compileTask);
-
-        JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-        configurationInternal.getAttributes().attributeProvider(
-            TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-            providerFactory.provider(() -> getDefaultTargetPlatform(configuration, java, compileTasks))
-        );
-    }
-
-    private static <COMPILE extends AbstractCompile & HasCompileOptions> int getDefaultTargetPlatform(Configuration configuration, JavaPluginExtension java, Set<TaskProvider<COMPILE>> compileTasks) {
-        assert !compileTasks.isEmpty();
-
-        if (!configuration.isCanBeConsumed() && java.getAutoTargetJvmDisabled()) {
-            return Integer.MAX_VALUE;
-        }
-
-        return compileTasks.stream().map(provider -> {
-            COMPILE compileTask = provider.get();
-            if (compileTask.getOptions().getRelease().isPresent()) {
-                return compileTask.getOptions().getRelease().get();
-            }
-
-            List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
-            int flagIndex = compilerArgs.indexOf("--release");
-
-            if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
-                return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
-            } else {
-                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
-            }
-        }).max(Comparator.naturalOrder()).get();
     }
 
     /**
