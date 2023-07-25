@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
+import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
@@ -31,33 +32,103 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
 
     @InterceptCalls
     @CallableKind.InstanceMethod
-    public static void intercept_call(
+    public static void intercept_test(
         @ParameterKind.Receiver InterceptorTestReceiver self,
         @ParameterKind.CallerClassName String consumer
     ) {
-        self.intercepted = "call()";
-        self.call();
+        self.intercepted = "test()";
+        self.test();
     }
 
     @InterceptCalls
     @CallableKind.InstanceMethod
-    public static void intercept_call(
+    public static void intercept_test(
         @ParameterKind.Receiver InterceptorTestReceiver self,
         InterceptorTestReceiver arg0,
         @ParameterKind.CallerClassName String consumer
     ) {
-        self.intercepted = "call(InterceptorTestReceiver)";
-        self.call(arg0);
+        self.intercepted = "test(InterceptorTestReceiver)";
+        self.test(arg0);
     }
 
     @InterceptCalls
     @CallableKind.InstanceMethod
-    public static void intercept_callVararg(
+    public static void intercept_testVararg(
         @ParameterKind.Receiver InterceptorTestReceiver self,
         @ParameterKind.VarargParameter Object[] arg,
         @ParameterKind.CallerClassName String consumer
     ) {
-        self.intercepted = "callVararg(Object...)";
-        self.callVararg(arg);
+        self.intercepted = "testVararg(Object...)";
+        self.testVararg(arg);
+    }
+
+    @InterceptCalls
+    @CallableKind.InstanceMethod
+    public static void intercept_nonExistent(
+        @ParameterKind.Receiver InterceptorTestReceiver self,
+        String parameter,
+        @ParameterKind.CallerClassName String consumer
+    ) {
+        self.intercepted = "nonExistent(String)-non-existent";
+    }
+
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertyGetter
+    public static String intercept_testString(
+        @ParameterKind.Receiver InterceptorTestReceiver self,
+        @ParameterKind.CallerClassName String consumer
+    ) {
+        self.intercepted = "getTestString()";
+        return self.getTestString() + "-intercepted";
+    }
+
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertySetter
+    public static void intercept_testString(
+        @ParameterKind.Receiver InterceptorTestReceiver self,
+        String newValue,
+        @ParameterKind.CallerClassName String consumer
+    ) {
+        self.intercepted = "setTestString(String)";
+        self.setTestString(newValue);
+    }
+
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertyGetter
+    public static boolean intercept_testFlag(
+        @ParameterKind.Receiver InterceptorTestReceiver self,
+        @ParameterKind.CallerClassName String consumer
+    ) {
+        self.intercepted = "isTestFlag()";
+        return self.isTestFlag();
+    }
+
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertySetter
+    public static void intercept_testFlag(
+        @ParameterKind.Receiver InterceptorTestReceiver self,
+        boolean newValue,
+        @ParameterKind.CallerClassName String consumer
+    ) {
+        self.intercepted = "setTestFlag(boolean)";
+        self.setTestFlag(newValue);
+    }
+
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertyGetter
+    public static String intercept_nonExistentProperty(
+        @ParameterKind.Receiver InterceptorTestReceiver self
+    ) {
+        self.intercepted = "getNonExistentProperty()-non-existent";
+        return "nonExistent";
+    }
+
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertySetter
+    public static void intercept_nonExistentProperty(
+        @ParameterKind.Receiver InterceptorTestReceiver self,
+        String value
+    ) {
+        self.intercepted = "setNonExistentProperty(String)-non-existent";
     }
 }

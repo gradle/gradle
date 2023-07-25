@@ -20,7 +20,7 @@ import groovy.io.FileType;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind.GroovyProperty;
+import org.gradle.internal.instrumentation.api.annotations.CallableKind.GroovyPropertyGetter;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
 import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
 @SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class GroovyFileInterceptors {
     @InterceptGroovyCalls
-    @GroovyProperty
+    @GroovyPropertyGetter
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static String intercept_text(
         @Receiver File self,
@@ -231,7 +231,7 @@ public class GroovyFileInterceptors {
     }
 
     @InterceptGroovyCalls
-    @GroovyProperty
+    @GroovyPropertyGetter
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static byte[] intercept_bytes(
         @Receiver File self,
@@ -344,7 +344,7 @@ public class GroovyFileInterceptors {
     }
 
     @InterceptGroovyCalls
-    @GroovyProperty
+    @GroovyPropertyGetter
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static long intercept_size(
         @Receiver File self,
