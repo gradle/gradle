@@ -1152,7 +1152,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * listenerBroadcaster.getSource() >> listener
         1 * listener.beforeResolve(_) >> { ResolvableDependencies dependencies -> assert dependencies == config.incoming }
         1 * listener.afterResolve(_) >> { ResolvableDependencies dependencies -> assert dependencies == config.incoming }
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1216,11 +1216,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.getResolutionResult().root
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
         0 * resolver._
     }
 
@@ -1246,12 +1245,11 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.getResolutionResult().root
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
         1 * resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
-        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
         1 * resolver.getRepositories() >> []
         0 * resolver._
     }
@@ -1267,12 +1265,11 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.getResolutionResult().root
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
         1 * resolver.resolveGraph(config) >> graphResults
-        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
         1 * resolver.getRepositories() >> []
         0 * resolver._
 
@@ -1280,7 +1277,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies()
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
@@ -1372,13 +1369,13 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         conf.dependencies.add(Mock(Dependency))
         then:
         def exDependency = thrown(InvalidUserDataException)
-        exDependency.message == "Cannot change dependencies of dependency configuration ':conf' after it has been resolved."
+        exDependency.message == "Cannot change dependencies of dependency configuration ':conf' after task dependencies have been resolved"
 
         when:
         conf.artifacts.add(Mock(PublishArtifact))
         then:
         def exArtifact = thrown(InvalidUserDataException)
-        exArtifact.message == "Cannot change artifacts of dependency configuration ':conf' after it has been resolved."
+        exArtifact.message == "Cannot change artifacts of dependency configuration ':conf' after task dependencies have been resolved"
     }
 
     def "defaultDependencies action does not trigger when config has dependencies"() {

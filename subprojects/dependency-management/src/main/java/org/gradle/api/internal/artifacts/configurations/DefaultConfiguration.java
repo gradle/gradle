@@ -2233,7 +2233,7 @@ since users cannot create non-legacy configurations and there is no current publ
                 if (delegate == null) {
                     synchronized (this) {
                         if (delegate == null) {
-                            ResolveState currentState = resolveToStateOrLater(ARTIFACTS_RESOLVED);
+                            ResolveState currentState = resolveToStateOrLater(GRAPH_RESOLVED);
                             delegate = currentState.getCachedResolverResults().getResolutionResult();
                             this.nonFatalFailure = currentState.getCachedResolverResults().getNonFatalFailure();
                             if (nonFatalFailure != null && !lenient) {
