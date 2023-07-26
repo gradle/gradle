@@ -16,9 +16,11 @@
 
 package gradlebuild.jvm.extension
 
+import gradle.kotlin.dsl.accessors._7758f57c6dd35933dbd9dc8c103ba8e9.javaToolchains
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.*
 
 
@@ -51,6 +53,9 @@ abstract class UnitTestAndCompileExtension(
     private
     fun enforceCompatibility(majorVersion: Int) {
         tasks.withType<JavaCompile>().configureEach {
+            javaCompiler.set(project.javaToolchains.compilerFor {
+                languageVersion.set(JavaLanguageVersion.of(majorVersion))
+            })
             options.release = null
             options.compilerArgs.remove("-parameters")
             sourceCompatibility = "$majorVersion"
