@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.options
 
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.tasks.TaskOptionsGenerator
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -94,52 +96,50 @@ class OptionReaderTest extends Specification {
         options[1].argumentType == Void.TYPE
         options[1].availableValues == [] as Set
 
-        options[2].name == "enumValue"
-        options[2].description == "enum value"
+        options[2].name == "directoryValue"
+        options[2].description == "Directory value"
         options[2].argumentType == String
-        options[2].availableValues == ["ABC", "DEF"] as Set
 
-        options[3].name == "objectValue"
-        options[3].description == "object value"
+        options[3].name == "enumValue"
+        options[3].description == "enum value"
         options[3].argumentType == String
-        options[3].availableValues == [] as Set
+        options[3].availableValues == ["ABC", "DEF"] as Set
 
-        options[4].name == "stringValue"
-        options[4].description == "string value"
-        options[4].argumentType == String
-        options[4].availableValues == ["dynValue1", "dynValue2"] as Set
-    }
+        options[4].name == "listEnumValue"
+        options[4].description == "list enum value"
+        options[4].argumentType == List
 
-    def "can read options linked to property getter methods of type ListProperty of a task"() {
-        when:
-        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithListProperties(), reader).getAll()
-        then:
-        options[0].name == "enumValue"
-        options[0].description == "enum value"
-        options[0].argumentType == List
+        options[5].name == "listStringValue"
+        options[5].description == "list string value"
+        options[5].argumentType == List
 
-        options[1].name == "stringValue"
-        options[1].description == "string value"
-        options[1].argumentType == List
-    }
+        options[6].name == "objectValue"
+        options[6].description == "object value"
+        options[6].argumentType == String
+        options[6].availableValues == [] as Set
 
-    def "can read options linked to property getter methods of type SetProperty of a task"() {
-        when:
-        List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithSetProperties(), reader).getAll()
-        then:
-        options[0].name == "enumValue"
-        options[0].description == "enum value"
-        options[0].argumentType == List
+        options[7].name == "regularFileValue"
+        options[7].description == "RegularFile value"
+        options[7].argumentType == String
 
-        options[1].name == "stringValue"
-        options[1].description == "string value"
-        options[1].argumentType == List
+        options[8].name == "setEnumValue"
+        options[8].description == "set enum value"
+        options[8].argumentType == List
+
+        options[9].name == "setStringValue"
+        options[9].description == "set string value"
+        options[9].argumentType == List
+
+        options[10].name == "stringValue"
+        options[10].description == "string value"
+        options[10].argumentType == String
+        options[10].availableValues == ["dynValue1", "dynValue2"] as Set
     }
 
     def "built-in options appear last"() {
         when:
         List<OptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithProperties(), reader).getAll()
-        int ownOptions = 5
+        int ownOptions = 11
         then:
         options.forEach {it -> System.out.println(it.name + " " + it.description)}
 
@@ -281,46 +281,57 @@ class OptionReaderTest extends Specification {
     def "handles property field options"() {
         when:
         List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithPropertyField(), reader).getAll()
+
+        options.forEach {it -> System.out.println(it.name + " " + it.description)}
+
         then:
         options[0].name == "customOptionName"
         options[0].description == "custom description"
         options[0].argumentType == String
 
-        options[1].name == "field2"
-        options[1].description == "Descr Field2"
+        options[1].name == "fieldB"
+        options[1].description == "Descr FieldB"
         options[1].argumentType == String
         options[1].availableValues == ["dynValue1", "dynValue2"] as Set
 
-        options[2].name == "field3"
-        options[2].description == "Descr Field3"
+        options[2].name == "fieldC"
+        options[2].description == "Descr FieldC"
         options[2].argumentType == String
         options[2].availableValues as Set == ["ABC", "DEF"] as Set
 
-        options[3].name == "field4"
-        options[3].description == "Descr Field4"
+        options[3].name == "fieldD"
+        options[3].description == "Descr FieldD"
         options[3].argumentType == Void.TYPE
         options[3].availableValues.isEmpty()
 
-        options[4].name == "no-field4"
-        options[4].description == "Disables option --field4."
+        options[4].name == "no-fieldD"
+        options[4].description == "Disables option --fieldD."
         options[4].argumentType == Void.TYPE
         options[4].availableValues.isEmpty()
 
-        options[5].name == "field5"
-        options[5].description == "Descr Field5"
+        options[5].name == "fieldE"
+        options[5].description == "Descr FieldE"
         options[5].argumentType == List
 
-        options[6].name == "field6"
-        options[6].description == "Descr Field6"
+        options[6].name == "fieldF"
+        options[6].description == "Descr FieldF"
         options[6].argumentType == List
 
-        options[7].name == "field7"
-        options[7].description == "Descr Field7"
+        options[7].name == "fieldG"
+        options[7].description == "Descr FieldG"
         options[7].argumentType == List
 
-        options[8].name == "field8"
-        options[8].description == "Descr Field8"
+        options[8].name == "fieldH"
+        options[8].description == "Descr FieldH"
         options[8].argumentType == List
+
+        options[9].name == "fieldI"
+        options[9].description == "Descr FieldI"
+        options[9].argumentType == String
+
+        options[10].name == "fieldJ"
+        options[10].description == "Descr FieldJ"
+        options[10].argumentType == String
     }
 
     def "throws decent error when description not set"() {
@@ -549,6 +560,46 @@ class OptionReaderTest extends Specification {
     }
 
     public static class TestClassWithProperties {
+        @Option(option = "booleanValue", description = "boolean value")
+        public Property<Boolean> getBooleanValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "directoryValue", description = "Directory value")
+        public DirectoryProperty getDirectoryValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "enumValue", description = "enum value")
+        public Property<TestEnum> getEnumValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "listEnumValue", description = "list enum value")
+        public ListProperty<TestEnum> getListEnumValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "listStringValue", description = "list string value")
+        public ListProperty<String> getListStringValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "regularFileValue", description = "RegularFile value")
+        public RegularFileProperty getRegularFileValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "setEnumValue", description = "set enum value")
+        public SetProperty<TestEnum> getSetEnumValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "setStringValue", description = "set string value")
+        public SetProperty<String> getSetStringValue() {
+            throw new UnsupportedOperationException()
+        }
+
         @Option(option = "stringValue", description = "string value")
         public Property<String> getStringValue() {
             throw new UnsupportedOperationException()
@@ -559,43 +610,9 @@ class OptionReaderTest extends Specification {
             throw new UnsupportedOperationException()
         }
 
-        @Option(option = "booleanValue", description = "boolean value")
-        public Property<Boolean> getBooleanValue() {
-            throw new UnsupportedOperationException()
-        }
-
-        @Option(option = "enumValue", description = "enum value")
-        public Property<TestEnum> getEnumValue() {
-            throw new UnsupportedOperationException()
-        }
-
         @OptionValues("stringValue")
         public Collection<CustomClass> getAvailableValues() {
             return Arrays.asList(new CustomClass(value: "dynValue1"), new CustomClass(value: "dynValue2"))
-        }
-    }
-
-    public static class TestClassWithListProperties {
-        @Option(option = "stringValue", description = "string value")
-        public ListProperty<String> getStringValue() {
-            throw new UnsupportedOperationException()
-        }
-
-        @Option(option = "enumValue", description = "enum value")
-        public ListProperty<TestEnum> getEnumValue() {
-            throw new UnsupportedOperationException()
-        }
-    }
-
-    public static class TestClassWithSetProperties {
-        @Option(option = "stringValue", description = "string value")
-        public SetProperty<String> getStringValue() {
-            throw new UnsupportedOperationException()
-        }
-
-        @Option(option = "enumValue", description = "enum value")
-        public SetProperty<TestEnum> getEnumValue() {
-            throw new UnsupportedOperationException()
         }
     }
 
@@ -686,30 +703,36 @@ class OptionReaderTest extends Specification {
 
     public static class TestClassWithPropertyField {
         @Option(option = 'customOptionName', description = "custom description")
-        final Property<String> field1
+        final Property<String> fieldA
 
-        @Option(description = "Descr Field2")
-        final Property<String> field2
+        @Option(description = "Descr FieldB")
+        final Property<String> fieldB
 
-        @Option(description = "Descr Field3")
-        final Property<TestEnum> field3
+        @Option(description = "Descr FieldC")
+        final Property<TestEnum> fieldC
 
-        @Option(description = "Descr Field4")
-        final Property<Boolean> field4
+        @Option(description = "Descr FieldD")
+        final Property<Boolean> fieldD
 
-        @Option(description = "Descr Field5")
-        final ListProperty<String> field5
+        @Option(description = "Descr FieldE")
+        final ListProperty<String> fieldE
 
-        @Option(description = "Descr Field6")
-        final ListProperty<TestEnum> field6
+        @Option(description = "Descr FieldF")
+        final ListProperty<TestEnum> fieldF
 
-        @Option(description = "Descr Field7")
-        final SetProperty<String> field7
+        @Option(description = "Descr FieldG")
+        final SetProperty<String> fieldG
 
-        @Option(description = "Descr Field8")
-        final SetProperty<TestEnum> field8
+        @Option(description = "Descr FieldH")
+        final SetProperty<TestEnum> fieldH
 
-        @OptionValues("field2")
+        @Option(description = "Descr FieldI")
+        final DirectoryProperty fieldI
+
+        @Option(description = "Descr FieldJ")
+        final RegularFileProperty fieldJ
+
+        @OptionValues("fieldB")
         List<String> getField2Options() {
             return Arrays.asList("dynValue1", "dynValue2")
         }
