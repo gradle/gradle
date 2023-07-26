@@ -32,6 +32,11 @@ public interface ProblemDiagnosticsFactory {
     ProblemStream newStream();
 
     /**
+     * Creates a new stream of problems without any limits.
+     */
+    ProblemStream newUnlimitedStream();
+
+    /**
      * Returns diagnostics based on given exception. Does not use any state from the calling thread.
      *
      * <p>This method is intended to be used for inspecting exceptions that may have been thrown in some other context, such as in a different thread or process.</p>

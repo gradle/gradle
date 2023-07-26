@@ -1,9 +1,9 @@
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
-import gradlebuild.basics.buildCommitId
 
 plugins {
     id("gradlebuild.internal.java")
@@ -162,6 +162,7 @@ tasks {
     register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
         description = "Runs Santa Tracker Smoke tests with the configuration cache"
         configureForSmokeTest(santaTracker)
+        jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
         useJUnitPlatform {
             filter {

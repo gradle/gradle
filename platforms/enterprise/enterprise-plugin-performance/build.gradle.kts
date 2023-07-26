@@ -59,11 +59,22 @@ subprojects {
 }
 
 tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
-    systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
-
     environment("GRADLE_INTERNAL_REPO_URL", System.getenv("GRADLE_INTERNAL_REPO_URL"))
     environment("GRADLE_INTERNAL_REPO_USERNAME", System.getenv("GRADLE_INTERNAL_REPO_USERNAME"))
     environment("GRADLE_INTERNAL_REPO_PASSWORD", System.getenv("GRADLE_INTERNAL_REPO_PASSWORD"))
 
     reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
+
+    val projectRootDir = project.rootDir
+    val pluginInfoDir = project.providers.gradleProperty("enterprisePluginInfoDir")
+        .orElse(projectRootDir.resolve("incoming").path)
+        .map { projectRootDir.resolve(it) }
+
+    // Provides a system property required by `AbstractBuildScanPluginPerformanceTest`
+    jvmArgumentProviders += GradleEnterprisePluginInfoDirPropertyProvider(pluginInfoDir)
+}
+
+internal
+class GradleEnterprisePluginInfoDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val pluginInfoDir: Provider<File>) : CommandLineArgumentProvider {
+    override fun asArguments() = listOf("-Dorg.gradle.performance.enterprise.plugin.infoDir=${pluginInfoDir.get().path}")
 }

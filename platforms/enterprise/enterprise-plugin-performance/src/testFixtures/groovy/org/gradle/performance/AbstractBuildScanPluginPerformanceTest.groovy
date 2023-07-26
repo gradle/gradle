@@ -37,7 +37,24 @@ import static org.gradle.performance.fixture.BaselineVersionResolver.toBaselineV
 
 class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
 
-    static String incomingDir = "../../incoming"
+    /**
+     * System property that points to a directory with GE plugin information
+     * such files containing build commit ID and plugin version.
+     */
+    private static final INFO_DIR_SYSTEM_PROP = "org.gradle.performance.enterprise.plugin.infoDir"
+
+    private static File resolvePluginInfoDir() {
+        def path = System.getProperty(INFO_DIR_SYSTEM_PROP)
+        if (path == null || path.isEmpty()) {
+            throw new IllegalStateException("Expected system property `$INFO_DIR_SYSTEM_PROP` to be set")
+        }
+
+        def dir = new File(path)
+        assert dir.exists() && dir.isDirectory()
+        return dir
+    }
+
+    private static File pluginInfoDir = resolvePluginInfoDir()
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
@@ -59,7 +76,7 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
         }
 
         def distribution = buildContext.distribution(baselineVersions.first())
-        def buildStampJsonFile = new File(incomingDir, "buildStamp.json")
+        def buildStampJsonFile = new File(pluginInfoDir, "buildStamp.json")
         assert buildStampJsonFile.exists()
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert buildStampJsonData.commitId
@@ -78,7 +95,7 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
     }
 
     private static resolvePluginVersion() {
-        def pluginVersionJsonFile = new File(incomingDir, "plugin.json")
+        def pluginVersionJsonFile = new File(pluginInfoDir, "plugin.json")
         assert pluginVersionJsonFile.exists()
         def pluginVersionJsonData = new JsonSlurper().parse(pluginVersionJsonFile) as Map<String, ?>
         pluginVersionJsonData.versionNumber
