@@ -16,12 +16,15 @@
 
 package org.gradle.internal.classpath.fingerprint;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.internal.JavaVersionParser;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.PropertiesFileFilter;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -44,7 +47,12 @@ import javax.annotation.Nullable;
 @ServiceScope(Scopes.UserHome.class)
 public class InstrumentedClasspathFingerprinter extends AbstractFileCollectionFingerprinter {
     public InstrumentedClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
-        super(fingerprintingStrategy(cacheService, stringInterner), fileCollectionSnapshotter);
+        this(JavaVersionParser.getMajorFromVersionString(SystemProperties.getInstance().getJavaVersion()), cacheService, fileCollectionSnapshotter, stringInterner);
+    }
+
+    @VisibleForTesting
+    InstrumentedClasspathFingerprinter(int currentJvmMajor, ResourceSnapshotterCacheService cacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
+        super(fingerprintingStrategy(currentJvmMajor, cacheService, stringInterner), fileCollectionSnapshotter);
     }
 
     @Override
@@ -57,7 +65,7 @@ public class InstrumentedClasspathFingerprinter extends AbstractFileCollectionFi
         return InputNormalizer.RUNTIME_CLASSPATH;
     }
 
-    private static ClasspathFingerprintingStrategy fingerprintingStrategy(ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+    private static ClasspathFingerprintingStrategy fingerprintingStrategy(int currentJvmMajor, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
         ResourceHasher resourceHasher = ClasspathFingerprintingStrategy.runtimeClasspathResourceHasher(
             new RuntimeClasspathResourceHasher(),
             LineEndingSensitivity.DEFAULT,
@@ -66,6 +74,6 @@ public class InstrumentedClasspathFingerprinter extends AbstractFileCollectionFi
             ResourceFilter.FILTER_NOTHING
         );
 
-        return ClasspathFingerprintingStrategy.runtimeClassPathWithSpecialJarHandling(new JarVisitor(resourceHasher), resourceHasher, cacheService, stringInterner);
+        return ClasspathFingerprintingStrategy.runtimeClassPathWithSpecialJarHandling(new JarVisitor(currentJvmMajor, resourceHasher), resourceHasher, cacheService, stringInterner);
     }
 }

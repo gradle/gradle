@@ -16,7 +16,7 @@
 
 package org.gradle.util
 
-
+import com.google.common.primitives.UnsignedBytes
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 import java.nio.charset.StandardCharsets
@@ -79,6 +79,8 @@ class JarUtils {
      */
     static class JarBuilder {
         /**
+         * Midnight, Feb 1st, 1980 in the current time zone.
+         *
          * @see org.gradle.api.internal.file.archive.ZipCopyAction#CONSTANT_TIME_FOR_ZIP_ENTRIES
          */
         private static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = LocalDateTime.parse("1980-02-01T00:00:00.00").atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -162,6 +164,47 @@ class JarUtils {
          */
         void entry(String path, String body) {
             entry(path, body.getBytes(StandardCharsets.UTF_8))
+        }
+
+        /**
+         * Writes a JAR entry for the class, with class bytes as the content. Uses {@code cls.classLoader} to obtain the class bytes.
+         * @param cls the class to put into the jar
+         */
+        void classEntry(Class<?> cls) {
+            entry(toPath(cls), classBytes(cls))
+        }
+
+        /**
+         * Writes a versioned JAR entry for the class, with class bytes as the content. Uses {@code cls.classLoader} to obtain the class bytes.
+         *
+         * @param version the Java version (9, 10, etc.), must be &gt;8
+         * @param cls the class to put into the jar
+         */
+        void versionedClassEntry(int version, Class<?> cls) {
+
+            def classBytes = classBytes(cls)
+            // Per JAR specification, class files must be of version less than or equal to the version corresponding to the Java version
+            // specified in the directory name. The code below patches the class bytes to set up the correct version.
+
+            // See https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html for the format description.
+
+            // Reset minor to 0.
+            classBytes[4] = 0  // hi
+            classBytes[5] = 0  // lo
+
+            int classMajorVersion = version + 44
+            assert (classMajorVersion & ~0xFFFF) == 0
+            classBytes[6] = UnsignedBytes.checkedCast((classMajorVersion >> 8) & 0xFF) // hi
+            classBytes[7] = UnsignedBytes.checkedCast(classMajorVersion & 0xFF) // lo
+            versionedEntry(version, toPath(cls), classBytes)
+        }
+
+        private static byte[] classBytes(Class<?> cls) {
+            return cls.classLoader.getResource(toPath(cls)).bytes
+        }
+
+        private static String toPath(Class<?> cls) {
+            return cls.name.replace('.', '/') + ".class"
         }
 
         private void checkManifestWritten() {
