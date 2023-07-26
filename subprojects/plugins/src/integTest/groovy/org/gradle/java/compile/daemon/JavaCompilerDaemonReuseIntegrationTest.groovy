@@ -96,6 +96,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         """
 
         when:
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("compileAll", "--info")
 
         then:
@@ -108,6 +109,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("clean", "compileAll", "--info")
 
         then:
@@ -132,6 +134,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         """
 
         when:
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("compileAll")
 
         then:
@@ -142,6 +145,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("clean", "compileAll")
 
         then:
@@ -170,6 +174,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         file('src/main2/java/ClassWithWarning2.java') << classWithWarning
 
         when:
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("compileAll")
 
         then:
@@ -180,6 +185,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("clean", "compileAll")
 
         then:

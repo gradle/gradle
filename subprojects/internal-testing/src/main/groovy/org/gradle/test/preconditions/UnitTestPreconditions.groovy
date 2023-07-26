@@ -523,4 +523,11 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class OnRemoteTestDistributionExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return System.getenv("RUNNING_ON_REMOTE_AGENT") != null
+        }
+    }
+
 }

@@ -14,7 +14,7 @@ dependencies {
 }
 
 tasks.register<Jar>("uberJar") {
-    archiveClassifier.set("uber")
+    archiveClassifier = "uber"
 
     from(sourceSets.main.get().output)
 

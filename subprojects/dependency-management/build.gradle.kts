@@ -111,7 +111,9 @@ dependencies {
     integTestImplementation(project(":launcher")) {
         because("Daemon fixtures need DaemonRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("Need access to java platforms")
+    }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestImplementation(libs.jettyWebApp)
 }

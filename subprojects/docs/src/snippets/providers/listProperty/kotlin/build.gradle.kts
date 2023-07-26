@@ -36,9 +36,9 @@ tasks.register<Consumer>("consumer") {
 
 // Set values for the producer tasks lazily
 // Don't need to update the consumer.inputFiles property. This is automatically updated as producer.outputFile changes
-producerOne { outputFile.set(layout.buildDirectory.file("one.txt")) }
-producerTwo { outputFile.set(layout.buildDirectory.file("two.txt")) }
+producerOne { outputFile = layout.buildDirectory.file("one.txt") }
+producerTwo { outputFile = layout.buildDirectory.file("two.txt") }
 
 // Change the build directory.
 // Don't need to update the task properties. These are automatically updated as the build directory changes
-layout.buildDirectory.set(layout.projectDirectory.dir("output"))
+layout.buildDirectory = layout.projectDirectory.dir("output")

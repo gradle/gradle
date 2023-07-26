@@ -16,11 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.Providers
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.internal.Describables
@@ -28,15 +29,23 @@ import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
+import java.util.function.Function
+
 class DefaultProjectDependencyPublicationResolverTest extends Specification {
-    def projectDependency = Mock(ProjectDependency)
-    def project = Mock(ProjectInternal)
+    def projectState = Mock(ProjectState) {
+        fromMutableState(_) >> { Function factory -> factory.apply(project) }
+    }
+    def project = Mock(ProjectInternal) {
+        getOwner() >> projectState
+        getIdentityPath() >> Path.path(":path")
+    }
     def publicationRegistry = Mock(ProjectPublicationRegistry)
     def projectConfigurer = Mock(ProjectConfigurer)
+    def projects = Mock(ProjectStateRegistry)
 
     def setup() {
-        project.identityPath >> Path.path(":path")
         project.displayName >> "<project>"
+        projects.stateFor(project.identityPath) >> project.owner
     }
 
     def "uses project coordinates when dependent project has no publications"() {
@@ -208,14 +217,13 @@ Found the following publications in <project>:
     }
 
     private ModuleVersionIdentifier resolve(Class type) {
-        def resolver = new DefaultProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer)
-        return resolver.resolve(type, projectDependency)
+        def resolver = new DefaultProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer, projects)
+        return resolver.resolve(type, project.identityPath)
     }
 
     private void dependentProjectHasPublications(ProjectComponentPublication... added) {
-        projectDependency.dependencyProject >> project
-        projectConfigurer.configureFully(project)
-        publicationRegistry.getPublications(ProjectComponentPublication, Path.path(":path")) >> (added as LinkedHashSet)
+        1 * projectConfigurer.configureFully(project.owner)
+        publicationRegistry.getPublications(ProjectComponentPublication, project.identityPath) >> (added as LinkedHashSet)
     }
 
     private ProjectComponentPublication pub(def name, def group, def module, def version, def component = null) {

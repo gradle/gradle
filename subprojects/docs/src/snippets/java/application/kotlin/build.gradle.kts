@@ -12,14 +12,14 @@ application.applicationName = "my-app"
 
 // tag::mainClass-conf[]
 application {
-    mainClass.set("org.gradle.sample.Main")
+    mainClass = "org.gradle.sample.Main"
 }
 // end::mainClass-conf[]
 
 // tag::mainModule-conf[]
 application {
-    mainModule.set("org.gradle.sample.app") // name defined in module-info.java
-    mainClass.set("org.gradle.sample.Main")
+    mainModule = "org.gradle.sample.app" // name defined in module-info.java
+    mainClass = "org.gradle.sample.Main"
 }
 // end::mainModule-conf[]
 

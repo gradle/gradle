@@ -92,7 +92,7 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
             "The TestReport.reportOn(Object...) method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Please use the testResults method instead. " +
-                String.format(RECOMMENDATION,"information",  DOCUMENTATION_REGISTRY.getDslRefForProperty("org.gradle.api.tasks.testing.TestReport", "testResults"))
+                String.format(RECOMMENDATION, "information", DOCUMENTATION_REGISTRY.getDslRefForProperty("org.gradle.api.tasks.testing.TestReport", "testResults"))
         )
     }
 
@@ -143,9 +143,20 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
 
     void expectConventionTypeDeprecation(VersionNumber versionNumber) {
         runner.expectLegacyDeprecationWarningIf(
-            versionNumber < VersionNumber.parse("1.7.22"),
+            shouldExpectConventionTypeDeprecation(versionNumber),
             CONVENTION_TYPE_DEPRECATION
         )
+    }
+
+    void maybeExpectConventionTypeDeprecation(VersionNumber versionNumber) {
+        runner.maybeExpectLegacyDeprecationWarningIf(
+            shouldExpectConventionTypeDeprecation(versionNumber),
+            CONVENTION_TYPE_DEPRECATION
+        )
+    }
+
+    private boolean shouldExpectConventionTypeDeprecation(VersionNumber versionNumber) {
+        versionNumber < VersionNumber.parse("1.7.22")
     }
 
     void expectConventionTypeDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber) {

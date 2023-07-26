@@ -32,8 +32,8 @@ testing {
 // The organization requires additional documentation in the README for this project
 // tag::use-java-class[]
 val readmeCheck by tasks.registering(com.example.ReadmeVerificationTask::class) {
-    readme.set(layout.projectDirectory.file("README.md"))
-    readmePatterns.set(listOf("^## Service API$"))
+    readme = layout.projectDirectory.file("README.md")
+    readmePatterns = listOf("^## Service API$")
 }
 // end::use-java-class[]
 

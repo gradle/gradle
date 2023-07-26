@@ -7,7 +7,7 @@ repositories {
 
 // tag::disableGlobalDependencySubstitutionRules[]
 configurations.create("publishedRuntimeClasspath") {
-    resolutionStrategy.useGlobalDependencySubstitutionRules.set(false)
+    resolutionStrategy.useGlobalDependencySubstitutionRules = false
 
     extendsFrom(configurations.runtimeClasspath.get())
     isCanBeConsumed = false

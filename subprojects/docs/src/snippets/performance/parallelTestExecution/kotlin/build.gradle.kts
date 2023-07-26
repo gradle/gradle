@@ -25,8 +25,8 @@ tasks.withType<Test>().configureEach {
 // end::fork-every[]
 
 // tag::disable-reports[]
-    reports.html.required.set(false)
-    reports.junitXml.required.set(false)
+    reports.html.required = false
+    reports.junitXml.required = false
 // end::disable-reports[]
 
 // tag::parallel-4[]

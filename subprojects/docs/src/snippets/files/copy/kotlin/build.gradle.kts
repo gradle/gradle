@@ -23,7 +23,7 @@ abstract class MyReportTask : DefaultTask() {
 }
 
 val myReportTask by tasks.registering(MyReportTask::class) {
-    outputFile.set(layout.buildDirectory.file("reports/my-report.pdf"))
+    outputFile = layout.buildDirectory.file("reports/my-report.pdf")
 }
 
 abstract class MyArchiveTask : DefaultTask() {
@@ -32,7 +32,7 @@ abstract class MyArchiveTask : DefaultTask() {
 }
 
 val archiveReportsTask by tasks.registering(MyArchiveTask::class) {
-    dirToArchive.set(layout.buildDirectory.dir("toArchive"))
+    dirToArchive = layout.buildDirectory.dir("toArchive")
 }
 
 // tag::copy-single-file-example-with-task-properties[]
@@ -84,8 +84,8 @@ tasks.register<Copy>("copyReportsDirForArchiving2") {
 
 // tag::create-archive-example[]
 tasks.register<Zip>("packageDistribution") {
-    archiveFileName.set("my-distribution.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dist"))
+    archiveFileName = "my-distribution.zip"
+    destinationDirectory = layout.buildDirectory.dir("dist")
 
     from(layout.buildDirectory.dir("toArchive"))
 }
@@ -268,8 +268,8 @@ tasks.register<Copy>("copyAssets") {
 }
 
 tasks.register<Zip>("distApp") {
-    archiveFileName.set("my-app-dist.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dists"))
+    archiveFileName = "my-app-dist.zip"
+    destinationDirectory = layout.buildDirectory.dir("dists")
 
     from(appClasses)
     with(webAssetsSpec)
@@ -287,8 +287,8 @@ tasks.register<Copy>("copyAppAssets") {
 }
 
 tasks.register<Zip>("archiveDistAssets") {
-    archiveFileName.set("distribution-assets.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dists"))
+    archiveFileName = "distribution-assets.zip"
+    destinationDirectory = layout.buildDirectory.dir("dists")
 
     from("distResources", webAssetPatterns)
 }

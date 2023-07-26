@@ -455,6 +455,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-platform",
+    "path": "platforms/jvm/java-platform",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "jvm-services",
     "path": "subprojects/jvm-services",
     "unitTests": true,

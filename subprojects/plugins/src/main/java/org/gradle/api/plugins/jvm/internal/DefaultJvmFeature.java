@@ -47,7 +47,7 @@ import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 
 /**
- * Represents a generic "Java feature", using the specified source set and it's corresponding
+ * Represents a generic "Java feature", using the specified source set and its corresponding
  * configurations, compile task, and jar task. This feature creates a jar task and javadoc task, and
  * can optionally also create consumable javadoc and sources jar variants.
  *
@@ -82,6 +82,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     // Services
     private final ProjectInternal project;
     private final JvmPluginServices jvmPluginServices;
+    private final JvmLanguageUtilities jvmLanguageUtilities;
 
     // Tasks
     private final TaskProvider<Jar> jar;
@@ -131,6 +132,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         }
 
         this.jvmPluginServices = project.getServices().get(JvmPluginServices.class);
+        this.jvmLanguageUtilities = project.getServices().get(JvmLanguageUtilities.class);
+
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 
@@ -222,7 +225,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         Configuration apiElements = maybeCreateElementsConfiguration(configName, configurations, useMigrationRoleForElementsConfigurations);
 
         apiElements.setVisible(false);
-        jvmPluginServices.useDefaultTargetPlatformInference(apiElements, compileJava);
+        jvmLanguageUtilities.useDefaultTargetPlatformInference(apiElements, compileJava);
         jvmPluginServices.configureAsApiElements(apiElements);
         capabilities.forEach(apiElements.getOutgoing()::capability);
         apiElements.setDescription("API elements for the '" + name + "' feature.");
@@ -243,7 +246,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         Configuration runtimeElements = maybeCreateElementsConfiguration(configName, configurations, useMigrationRoleForElementsConfigurations);
 
         runtimeElements.setVisible(false);
-        jvmPluginServices.useDefaultTargetPlatformInference(runtimeElements, compileJava);
+        jvmLanguageUtilities.useDefaultTargetPlatformInference(runtimeElements, compileJava);
         jvmPluginServices.configureAsRuntimeElements(runtimeElements);
         capabilities.forEach(runtimeElements.getOutgoing()::capability);
         runtimeElements.setDescription("Runtime elements for the '" + name + "' feature.");

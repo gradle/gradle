@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -107,7 +108,7 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     }
 
     @Override
-    public String getProjectPath() {
+    public Path getProjectIdentityPath() {
         return null;
     }
 }
