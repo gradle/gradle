@@ -17,26 +17,68 @@
 package org.gradle.process.internal.health.memory;
 
 public class OsMemoryStatusSnapshot implements OsMemoryStatus {
-    private final long totalMemory;
-    private final long freeMemory;
+    private final OsMemoryCategory.Limited physicalMemory;
+    private final OsMemoryCategory virtualMemory;
 
-    public OsMemoryStatusSnapshot(long totalMemory, long freeMemory) {
-        this.totalMemory = totalMemory;
-        this.freeMemory = freeMemory;
+    /**
+     * Create a new snapshot with unknown virtual memory.
+     *
+     * @param totalPhysicalMemory total physical memory in bytes
+     * @param freePhysicalMemory free physical memory in bytes
+     */
+    public OsMemoryStatusSnapshot(long totalPhysicalMemory, long freePhysicalMemory) {
+        this(
+            new DefaultLimitedOsMemoryCategory("physical", totalPhysicalMemory, freePhysicalMemory),
+            new DefaultUnknownOsMemoryCategory("virtual")
+        );
+    }
+
+    /**
+     * Create a new snapshot with limited virtual memory.
+     *
+     * @param totalPhysicalMemory total physical memory in bytes
+     * @param freePhysicalMemory free physical memory in bytes
+     * @param totalVirtualMemory total virtual memory in bytes
+     * @param freeVirtualMemory free virtual memory in bytes
+     */
+    public OsMemoryStatusSnapshot(
+        long totalPhysicalMemory, long freePhysicalMemory, long totalVirtualMemory, long freeVirtualMemory
+    ) {
+        this(
+            new DefaultLimitedOsMemoryCategory("physical", totalPhysicalMemory, freePhysicalMemory),
+            new DefaultLimitedOsMemoryCategory("virtual", totalVirtualMemory, freeVirtualMemory)
+        );
+    }
+
+    private OsMemoryStatusSnapshot(OsMemoryCategory.Limited physicalMemory, OsMemoryCategory virtualMemory) {
+        this.physicalMemory = physicalMemory;
+        this.virtualMemory = virtualMemory;
     }
 
     @Override
+    @Deprecated
     public long getTotalPhysicalMemory() {
-        return totalMemory;
+        return getPhysicalMemory().getTotal();
     }
 
     @Override
+    @Deprecated
     public long getFreePhysicalMemory() {
-        return freeMemory;
+        return getPhysicalMemory().getFree();
+    }
+
+    @Override
+    public OsMemoryCategory.Limited getPhysicalMemory() {
+        return physicalMemory;
+    }
+
+    @Override
+    public OsMemoryCategory getVirtualMemory() {
+        return virtualMemory;
     }
 
     @Override
     public String toString() {
-        return "OS memory {Total: " + totalMemory + ", Free: " + freeMemory + '}';
+        return "OS memory {" + physicalMemory + ", " + virtualMemory + '}';
     }
 }

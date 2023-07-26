@@ -98,12 +98,10 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     public void requestFreeMemory(long memoryAmountBytes) {
         synchronized (memoryLock) {
             if (currentOsMemoryStatus != null) {
-                long totalPhysicalMemory = currentOsMemoryStatus.getTotalPhysicalMemory();
-                long requestedFreeMemory = getMemoryThresholdInBytes(totalPhysicalMemory) + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
-                long freeMemory = currentOsMemoryStatus.getFreePhysicalMemory();
-                long newFreeMemory = doRequestFreeMemory(requestedFreeMemory, freeMemory);
+                boolean freedPhysical = freeSpecificMemory(currentOsMemoryStatus.getPhysicalMemory(), memoryAmountBytes);
+                boolean freedVirtual = freeSpecificMemory(currentOsMemoryStatus.getVirtualMemory(), memoryAmountBytes);
                 // If we've freed memory, invalidate the current OS memory snapshot
-                if (newFreeMemory > freeMemory) {
+                if (freedPhysical || freedVirtual) {
                     currentOsMemoryStatus = null;
                 }
             } else {
@@ -112,10 +110,22 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
         }
     }
 
-    private long doRequestFreeMemory(long requestedFreeMemory, long freeMemory) {
+    private boolean freeSpecificMemory(OsMemoryCategory status, long memoryAmountBytes) {
+        if (status instanceof OsMemoryCategory.Unknown) {
+            // no need to free
+            return false;
+        }
+        long totalMemory = ((OsMemoryCategory.Limited) status).getTotal();
+        long freeMemory = ((OsMemoryCategory.Limited) status).getFree();
+        long requestedFreeMemory = getMemoryThresholdInBytes(totalMemory) + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
+        long newFreeMemory = doRequestFreeMemory(status.getName(), requestedFreeMemory, freeMemory);
+        return newFreeMemory > freeMemory;
+    }
+
+    private long doRequestFreeMemory(String name, long requestedFreeMemory, long freeMemory) {
         long toReleaseMemory = requestedFreeMemory;
         if (freeMemory < requestedFreeMemory) {
-            LOGGER.debug("{} memory requested, {} free", requestedFreeMemory, freeMemory);
+            LOGGER.debug("{} {} memory requested, {} free", requestedFreeMemory, name, freeMemory);
             List<MemoryHolder> memoryHolders;
             synchronized (holdersLock) {
                 memoryHolders = new ArrayList<MemoryHolder>(holders);
@@ -129,13 +139,13 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
                 }
             }
 
-            LOGGER.debug("{} memory requested, {} released, {} free", requestedFreeMemory, requestedFreeMemory - toReleaseMemory, freeMemory);
+            LOGGER.debug("{} {} memory requested, {} released, {} free", requestedFreeMemory, name, requestedFreeMemory - toReleaseMemory, freeMemory);
         }
         return freeMemory;
     }
 
-    private long getMemoryThresholdInBytes(long totalPhysicalMemory) {
-        return Math.max(MIN_THRESHOLD_BYTES, (long) (totalPhysicalMemory * minFreeMemoryPercentage));
+    private long getMemoryThresholdInBytes(long totalMemory) {
+        return Math.max(MIN_THRESHOLD_BYTES, (long) (totalMemory * minFreeMemoryPercentage));
     }
 
     private class MemoryCheck implements Runnable {

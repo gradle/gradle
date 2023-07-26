@@ -133,7 +133,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
 
     private long getTotalPhysicalMemory() {
         try {
-            return memoryInfo.getOsSnapshot().getTotalPhysicalMemory();
+            return memoryInfo.getOsSnapshot().getPhysicalMemory().getTotal();
         } catch (UnsupportedOperationException e) {
             return -1;
         }

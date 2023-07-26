@@ -19,6 +19,8 @@ package org.gradle.launcher.daemon.server.health
 
 import com.google.common.base.Strings
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
+import org.gradle.process.internal.health.memory.DefaultLimitedOsMemoryCategory
+import org.gradle.process.internal.health.memory.DefaultUnknownOsMemoryCategory
 import org.gradle.process.internal.health.memory.OsMemoryStatus
 import spock.lang.Specification
 
@@ -27,11 +29,8 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GR
 
 class LowMemoryDaemonExpirationStrategyTest extends Specification {
     private static final long ONE_GIG = 1024 * 1024 * 1024
+    private static final long MAX_MEMORY = 16 * ONE_GIG
     private final OsMemoryStatus mockMemoryStatus = Mock(OsMemoryStatus)
-
-    def setup() {
-        _ * mockMemoryStatus.totalPhysicalMemory >> { 16 * ONE_GIG }
-    }
 
     def "minimum threshold is enforced"() {
         given:
@@ -41,7 +40,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
-        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES
+        expirationStrategy.physicalMemoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES
     }
 
     def "maximum threshold is enforced"() {
@@ -52,21 +51,37 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
-        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
+        expirationStrategy.physicalMemoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
     }
 
-    def "daemon should expire when memory falls below threshold"() {
+    def "daemon should expire when physical memory falls below threshold"() {
         given:
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
         when:
-        1 * mockMemoryStatus.freePhysicalMemory >> { 0 }
+        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, 0L) }
+        1 * mockMemoryStatus.virtualMemory >> { new DefaultUnknownOsMemoryCategory("virtual") }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
         result.status == GRACEFUL_EXPIRE
-        result.reason == LowMemoryDaemonExpirationStrategy.EXPIRATION_REASON
+        result.reason == "to reclaim physical system memory"
+    }
+
+    def "daemon should expire when virtual memory falls below threshold"() {
+        given:
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
+
+        when:
+        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
+        1 * mockMemoryStatus.virtualMemory >> { new DefaultLimitedOsMemoryCategory("virtual", MAX_MEMORY, 0L) }
+        expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
+
+        then:
+        DaemonExpirationResult result = expirationStrategy.checkExpiration()
+        result.status == GRACEFUL_EXPIRE
+        result.reason == "to reclaim virtual system memory"
     }
 
     def "daemon should not expire when memory is above threshold"() {
@@ -74,7 +89,8 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(0)
 
         when:
-        1 * mockMemoryStatus.getFreePhysicalMemory() >> { ONE_GIG }
+        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
+        1 * mockMemoryStatus.virtualMemory >> { new DefaultUnknownOsMemoryCategory("virtual") }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
@@ -110,7 +126,8 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
     def "does not expire when no memory status notification is received" () {
         given:
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
-        _ * mockMemoryStatus.freePhysicalMemory >> { 0 }
+        _ * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, 0L) }
+        _ * mockMemoryStatus.virtualMemory >> { new DefaultUnknownOsMemoryCategory("virtual") }
 
         expect:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
