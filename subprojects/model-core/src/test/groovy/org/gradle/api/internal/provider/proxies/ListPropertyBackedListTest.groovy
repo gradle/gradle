@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.provider.proxies
 
-
+import org.gradle.api.provider.HasMultipleValues
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Provider
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class ListPropertyBackedListTest extends Specification {
+class ListPropertyBackedListTest extends AbstractCollectionPropertyBackedCollectionTest {
 
     ListProperty<String> listProperty
 
@@ -29,129 +29,73 @@ class ListPropertyBackedListTest extends Specification {
         listProperty = TestUtil.propertyFactory().listProperty(String)
     }
 
-    def "list modification operations should be visible on backed provider"() {
+    @Override
+    protected <T extends HasMultipleValues<String> & Provider<Collection<String>>> T multiValueProperty() {
+        return listProperty
+    }
+
+    @Override
+    protected <T extends Collection<String>> T cast(Collection<String> collection) {
+        return collection as List<String>
+    }
+
+    @Override
+    protected <T extends Collection<String>> T newCollection(HasMultipleValues<String> multipleValueProperty) {
+        return new ListPropertyBackedList<>(multipleValueProperty as ListProperty<String>)
+    }
+
+    def "list specific modification operations work"() {
         given:
-        listProperty.add("first")
-        List<String> list = new ListPropertyBackedList<>(listProperty)
+        def property = multiValueProperty()
+        List<String> list = newCollection(property)
 
         when:
+        property.add("first")
         list.add("second")
         list.add("third")
         list.addAll(["forth", "fifth"])
 
         then:
-        listProperty.get() == ["first", "second", "third", "forth", "fifth"]
+        property.get() == ["first", "second", "third", "forth", "fifth"]
 
         when:
-        list.remove("third")
+        list.remove(2)
 
         then:
-        listProperty.get() == ["first", "second", "forth", "fifth"]
+        property.get() == ["first", "second", "forth", "fifth"]
         list.size() == 4
 
         when:
-        list.add(2, "third")
+        list.add(1, "third")
 
         then:
-        listProperty.get() == ["first", "second", "third", "forth", "fifth"]
+        property.get() == ["first", "third", "second", "forth", "fifth"]
         list.size() == 5
 
         when:
-        list.remove(3)
+        list.removeAll(["first", "third", "forth"])
 
         then:
-        listProperty.get() == ["first", "second", "third", "fifth"]
-        list.size() == 4
-
-        when:
-        list.removeAll(["first", "third"])
-
-        then:
-        listProperty.get() == ["second", "fifth"]
+        property.get() == ["second", "fifth"]
         list.size() == 2
 
         when:
-        list.addAll(["first", "third", "forth"])
+        list.addAll(0, ["first", "third", "forth"])
 
         then:
-        listProperty.get() == ["second", "fifth", "first", "third", "forth"]
+        property.get() == ["first", "third", "forth", "second", "fifth"]
         list.size() == 5
 
         when:
-        list.retainAll(["first", "third", "forth"])
+        def thirdElement = list.get(2)
 
         then:
-        listProperty.get() == ["first", "third", "forth"]
-        list.size() == 3
-    }
-
-    def "list modification operations works with Groovy methods"() {
-        given:
-        List<String> list = new ListPropertyBackedList<>(listProperty)
+        thirdElement == "forth"
 
         when:
-        list.addAll(["first", "second", "third", "forth", "fifth"])
+        def indexOfSecond = list.indexOf("second")
 
         then:
-        listProperty.get() == ["first", "second", "third", "forth", "fifth"]
-
-        when:
-        list.removeAll { it in ["first", "third", "forth"] }
-
-        then:
-        listProperty.get() == ["second", "fifth"]
-
-        when:
-        list.addAll(["first", "third", "forth"])
-        list.retainAll { it in ["first", "third", "forth"] }
-
-        then:
-        listProperty.get() == ["first", "third", "forth"]
-    }
-
-    def "contains operations work"() {
-        given:
-        listProperty.add("first")
-        List<String> list = new ListPropertyBackedList<>(listProperty)
-
-        when:
-        list.add("second")
-        list.add("third")
-        list.addAll(["forth", "fifth"])
-
-        then:
-        list.containsAll(["first", "second", "third", "forth", "fifth"])
-
-        when:
-        list.remove("third")
-
-        then:
-        list.containsAll(["first", "second", "forth", "fifth"])
-        !list.contains("third")
-    }
-
-    def "provider modifications should be visible on the list"() {
-        given:
-        listProperty.add("first")
-        List<String> list = new ListPropertyBackedList<>(listProperty)
-
-        when:
-        listProperty.add("second")
-        listProperty.add("third")
-        listProperty.addAll(["forth", "fifth"])
-
-        then:
-        list == ["first", "second", "third", "forth", "fifth"]
-        list.containsAll(["first", "second", "third", "forth", "fifth"])
-
-        when:
-        listProperty.set(["third", "fifth"])
-
-        then:
-        list == ["third","fifth"]
-        list.containsAll(["third","fifth"])
-        !list.contains("first")
-        !list.contains("second")
-        !list.contains("forth")
+        indexOfSecond == 3
     }
 }
