@@ -24,6 +24,15 @@ import org.gradle.internal.deprecation.DeprecationLogger
  */
 @Suppress("unused")
 object KotlinDslAssignment {
+
+    init {
+        DeprecationLogger.deprecate("Internal class ${KotlinDslAssignment::class.java.name}")
+            .withAdvice("The class was most likely loaded from `kotlin-dsl` plugin version 4.1.0 or earlier version used in the build: avoid specifying a version for `kotlin-dsl` plugin.")
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser()
+    }
+
     fun isAssignmentOverloadEnabled(): Boolean {
         DeprecationLogger.deprecateMethod(this::class.java, "isAssignmentOverloadEnabled()")
             .withAdvice("The method was most likely called from `kotlin-dsl` plugin version 4.1.0 or earlier version used in the build: avoid specifying a version for `kotlin-dsl` plugin.")

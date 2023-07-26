@@ -96,6 +96,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings()
         withBuildScript("""plugins { id("some") }""")
 
+        executer.expectDocumentedDeprecationWarning("Internal class org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment has been deprecated. This is scheduled to be removed in Gradle 9.0. The class was most likely loaded from `kotlin-dsl` plugin version 4.1.0 or earlier version used in the build: avoid specifying a version for `kotlin-dsl` plugin.")
         executer.expectDocumentedDeprecationWarning("The KotlinDslAssignment.isAssignmentOverloadEnabled() method has been deprecated. This is scheduled to be removed in Gradle 9.0. The method was most likely called from `kotlin-dsl` plugin version 4.1.0 or earlier version used in the build: avoid specifying a version for `kotlin-dsl` plugin.")
         executer.expectDocumentedDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
         executer.expectDocumentedDeprecationWarning(
