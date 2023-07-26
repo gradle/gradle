@@ -186,7 +186,7 @@ abstract class AbstractSmokeTest extends Specification {
         static palantirConsistentVersions = "2.12.0"
 
         // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
-        static teamCityGradlePluginRef = "v0.33"
+        static teamCityGradlePluginRef = "v0.35"
 
         // https://github.com/jenkinsci/gradle-plugin/releases
         static jenkinsGradlePluginRef = "gradle-2.8.1"
