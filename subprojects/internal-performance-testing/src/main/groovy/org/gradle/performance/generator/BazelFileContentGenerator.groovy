@@ -201,4 +201,11 @@ def junit_tests(name, srcs, **kwargs):
     )
     '''
     }
+
+    String generateBazelRc() {
+        return """# Use local JDK for compilation https://bazel.build/docs/bazel-and-java#compile-using-jdk
+build --extra_toolchains=@local_jdk//:all
+test --extra_toolchains=@local_jdk//:all
+"""
+    }
 }

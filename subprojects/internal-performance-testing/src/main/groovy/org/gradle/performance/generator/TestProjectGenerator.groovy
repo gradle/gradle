@@ -69,10 +69,16 @@ class TestProjectGenerator {
         file projectDir, config.dsl.fileNameFor('settings'), fileContentGenerator.generateSettingsGradle(isRoot)
         file projectDir, "gradle.properties", fileContentGenerator.generateGradleProperties(isRoot)
         //file projectDir, "pom.xml", fileContentGenerator.generatePomXML(subProjectNumber, dependencyTree) // no maven
-        file projectDir, "BUILD.bazel", bazelContentGenerator.generateBuildFile(subProjectNumber, dependencyTree)
+        // empty BUILD.bazel file in the project root
+        if (!isRoot) {
+            file projectDir, "BUILD.bazel", bazelContentGenerator.generateBuildFile(subProjectNumber, dependencyTree)
+        } else {
+            file projectDir, "BUILD.bazel", ""
+        }
         if (isRoot) {
             file projectDir, "WORKSPACE", bazelContentGenerator.generateWorkspace()
             file projectDir, "junit.bzl", bazelContentGenerator.generateJunitHelper()
+            file projectDir, ".bazelrc", bazelContentGenerator.generateBazelRc()
         }
         if (isRoot || config.compositeBuild) {
             file projectDir, "gradle/libs.versions.toml", fileContentGenerator.generateVersionCatalog()
