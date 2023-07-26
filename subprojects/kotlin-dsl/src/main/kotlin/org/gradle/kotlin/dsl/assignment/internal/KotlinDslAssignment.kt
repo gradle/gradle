@@ -34,11 +34,6 @@ object KotlinDslAssignment {
     }
 
     fun isAssignmentOverloadEnabled(): Boolean {
-        DeprecationLogger.deprecateMethod(this::class.java, "isAssignmentOverloadEnabled()")
-            .withAdvice("The method was most likely called from `kotlin-dsl` plugin version 4.1.0 or earlier version used in the build: avoid specifying a version for `kotlin-dsl` plugin.")
-            .willBeRemovedInGradle9()
-            .undocumented()
-            .nagUser()
         return true
     }
 }
