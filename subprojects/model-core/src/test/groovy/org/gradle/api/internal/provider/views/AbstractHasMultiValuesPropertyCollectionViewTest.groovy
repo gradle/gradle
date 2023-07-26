@@ -20,7 +20,7 @@ import org.gradle.api.provider.HasMultipleValues
 import org.gradle.api.provider.Provider
 import spock.lang.Specification
 
-abstract class AbstractCollectionPropertyBackedCollectionTest extends Specification {
+abstract class AbstractHasMultiValuesPropertyCollectionViewTest extends Specification {
 
     protected abstract <T extends Collection<String>> T cast(Collection<String> collection)
     protected abstract <T extends HasMultipleValues<String> & Provider<Collection<String>>> T multiValueProperty()

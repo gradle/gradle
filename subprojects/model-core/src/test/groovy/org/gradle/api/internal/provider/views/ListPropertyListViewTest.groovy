@@ -21,7 +21,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.util.TestUtil
 
-class ListPropertyListViewTest extends AbstractCollectionPropertyBackedCollectionTest {
+class ListPropertyListViewTest extends AbstractHasMultiValuesPropertyCollectionViewTest {
 
     ListProperty<String> listProperty
 

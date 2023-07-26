@@ -21,7 +21,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.util.TestUtil
 
-class SetPropertySetViewTest extends AbstractCollectionPropertyBackedCollectionTest {
+class SetPropertySetViewTest extends AbstractHasMultiValuesPropertyCollectionViewTest {
 
     SetProperty<String> setProperty
 
