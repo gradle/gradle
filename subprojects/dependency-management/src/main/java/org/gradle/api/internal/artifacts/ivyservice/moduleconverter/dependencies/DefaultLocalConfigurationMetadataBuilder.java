@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -118,7 +117,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencies =
             calculatedValueContainerFactory.create(Describables.of("Dependency state for", configuration.getDescription()), context -> {
                 // TODO: Do we need to acquire project lock from `model`? getState calls user code.
-                DependencyState state = getState(configurationsProvider, hierarchy, componentId, dependencyCache);
+                DependencyState state = getState(configurationsProvider, hierarchy, dependencyCache);
                 return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
                     maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
                 );
@@ -175,7 +174,6 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     private DependencyState getState(
         ConfigurationsProvider configurations,
         ImmutableSet<String> hierarchy,
-        ComponentIdentifier componentId,
         DependencyCache cache
     ) {
         ImmutableList.Builder<LocalOriginDependencyMetadata> dependencies = ImmutableList.builder();
@@ -184,7 +182,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
 
         configurations.visitAll(config -> {
             if (hierarchy.contains(config.getName())) {
-                DependencyState defined = getDefinedState(config, componentId, cache);
+                DependencyState defined = getDefinedState(config, cache);
                 dependencies.addAll(defined.dependencies);
                 files.addAll(defined.files);
                 excludes.addAll(defined.excludes);
@@ -197,8 +195,8 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     /**
      * Get the defined dependencies and excludes for {@code configuration}, while also caching the result.
      */
-    private DependencyState getDefinedState(ConfigurationInternal configuration, ComponentIdentifier componentId, DependencyCache cache) {
-        return cache.computeIfAbsent(configuration, componentId, this::doGetDefinedState);
+    private DependencyState getDefinedState(ConfigurationInternal configuration, DependencyCache cache) {
+        return cache.computeIfAbsent(configuration, this::doGetDefinedState);
     }
 
     /**
@@ -206,9 +204,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
      * DSL representation to the internal representation.
      */
     @SuppressWarnings("deprecation")
-    private DependencyState doGetDefinedState(ConfigurationInternal configuration, ComponentIdentifier componentId) {
-
-        AttributeContainer attributes = configuration.getAttributes();
+    private DependencyState doGetDefinedState(ConfigurationInternal configuration) {
 
         ImmutableList.Builder<LocalOriginDependencyMetadata> dependencyBuilder = ImmutableList.builder();
         ImmutableSet.Builder<LocalFileDependencyMetadata> fileBuilder = ImmutableSet.builder();
@@ -224,9 +220,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         for (Dependency dependency : configuration.getDependencies()) {
             if (dependency instanceof ModuleDependency) {
                 ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
-                        componentId, configuration.getName(), attributes, moduleDependency
-                ));
+                dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(moduleDependency));
             } else if (dependency instanceof FileCollectionDependency) {
                 final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
                 fileBuilder.add(new DefaultLocalFileDependencyMetadata(fileDependency));
@@ -240,9 +234,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         // if we find any - but we'll avoid doing so for now to avoid breaking any existing builds and to
         // remain consistent with the behavior for dependencies.
         for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
-            dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
-                    componentId, configuration.getName(), attributes, dependencyConstraint)
-            );
+            dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(dependencyConstraint));
         }
 
         for (ExcludeRule excludeRule : configuration.getExcludeRules()) {

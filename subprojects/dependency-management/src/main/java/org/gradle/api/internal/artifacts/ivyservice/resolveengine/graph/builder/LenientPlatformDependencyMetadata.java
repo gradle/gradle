@@ -84,7 +84,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
             return new VariantSelectionResult(Collections.singletonList(variant), false);
         }
         // the target component exists, so we need to fallback to the traditional selection process
-        return new LocalComponentDependencyMetadata(componentId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
+        return new LocalComponentDependencyMetadata(cs, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
     }
 
     @Override

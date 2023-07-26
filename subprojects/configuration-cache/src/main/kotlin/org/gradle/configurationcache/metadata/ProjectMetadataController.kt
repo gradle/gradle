@@ -147,7 +147,7 @@ class ProjectMetadataController(
     suspend fun ReadContext.readConfiguration(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): LocalConfigurationMetadata {
         val configurationName = readString()
         val configurationAttributes = readNonNull<ImmutableAttributes>()
-        val dependencies = readDependencies(componentId)
+        val dependencies = readDependencies()
         val variants = readVariants(factory).toSet()
 
         return DefaultLocalConfigurationMetadata(
@@ -158,15 +158,12 @@ class ProjectMetadataController(
     }
 
     private
-    suspend fun ReadContext.readDependencies(componentId: ComponentIdentifier): List<LocalComponentDependencyMetadata> {
+    suspend fun ReadContext.readDependencies(): List<LocalComponentDependencyMetadata> {
         return readList {
             val selector = readNonNull<ComponentSelector>()
             val constraint = readBoolean()
             LocalComponentDependencyMetadata(
-                componentId,
                 selector,
-                null,
-                null,
                 ImmutableAttributes.EMPTY,
                 null,
                 emptyList(),
