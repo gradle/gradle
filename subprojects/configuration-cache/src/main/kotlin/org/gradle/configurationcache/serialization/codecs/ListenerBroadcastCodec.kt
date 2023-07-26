@@ -40,6 +40,8 @@ object ListenerBroadcastCodec : Codec<AnonymousListenerBroadcast<*>> {
             if (isSupportedListener(listener, listenerType)) {
                 // TODO:configuration-cache consider emitting problems for unsupported listeners
                 listeners.add(this)
+            } else {
+                logger.warn("Ignoring $listener")
             }
         }
         writeCollection(listeners) {

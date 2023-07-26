@@ -12,14 +12,15 @@ dependency for any projects working directly with Test tasks.
 
 dependencies {
     implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":file-temp"))
-    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":reporting"))
+    implementation(project(":file-temp"))
+    implementation(project(":functional"))
+    implementation(project(":logging"))
+    implementation(project(":messaging"))
+    implementation(project(":model-core"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
+    implementation(project(":reporting"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm-infrastructure"))
 

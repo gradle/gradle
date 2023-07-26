@@ -99,7 +99,7 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         """
 
         when:
-        run("test")
+        run("test", '--configuration-cache')
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)

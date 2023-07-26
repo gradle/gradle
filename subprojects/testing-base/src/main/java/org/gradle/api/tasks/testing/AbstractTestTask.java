@@ -76,6 +76,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
@@ -86,6 +87,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * Abstract class for all test tasks.
@@ -112,6 +114,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
+
+    private final Cached<TestExecutionSpec> cachedSpec = Cached.of(
+        new Callable<TestExecutionSpec>() {
+            @Override
+            public TestExecutionSpec call() {
+                return createTestExecutionSpec();
+            }
+        });
 
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
@@ -191,8 +201,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     @Internal
-    @VisibleForTesting
-    ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
+    private ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
         return testListenerInternalBroadcaster;
     }
 
@@ -421,7 +430,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
 
-        TestExecutionSpec executionSpec = createTestExecutionSpec();
+        TestExecutionSpec executionSpec = cachedSpec.get();
 
         final File binaryResultsDir = getBinaryResultsDirectory().getAsFile().get();
         FileSystemOperations fs = getFileSystemOperations();

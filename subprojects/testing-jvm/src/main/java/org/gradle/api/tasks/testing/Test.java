@@ -535,12 +535,12 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Indicates if this task will skip individual test execution.
      *
      * <p>
-     *     For JUnit 4 and 5, this will report tests that would have executed as skipped.
-     *     For TestNG, this will report tests that would have executed as passed.
+     * For JUnit 4 and 5, this will report tests that would have executed as skipped.
+     * For TestNG, this will report tests that would have executed as passed.
      * </p>
      *
      * <p>
-     *     Only versions of TestNG which support native dry-running are supported, i.e. TestNG 6.14 or later.
+     * Only versions of TestNG which support native dry-running are supported, i.e. TestNG 6.14 or later.
      * </p>
      *
      * @return property for whether this task will skip individual test execution
@@ -659,15 +659,29 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        return new JvmTestExecutionSpec(
+            getTestFramework(),
+            classpath,
+            modulePath,
+            getCandidateClassFiles(),
+            isScanForTestClasses(),
+            getTestClassesDirs(),
+            getPath(),
+            getIdentityPath(),
+            getForkEvery(),
+            javaForkOptions,
+            getMaxParallelForks(),
+            getPreviousFailedTestClasses(),
+            testIsModule
+        );
     }
 
     private void validateExecutableMatchesToolchain() {
         File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
-                customExecutable, "Toolchain from `executable` property",
-                toolchainExecutable, "toolchain from `javaLauncher` property");
+            customExecutable, "Toolchain from `executable` property",
+            toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
     private Set<String> getPreviousFailedTestClasses() {
@@ -1086,8 +1100,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * If we are setting a framework to its existing value, no-op so as not to overwrite existing options here.
      * We need to allow this especially for the default test task, so that existing builds that configure options and
      * then call useJunit() don't clear out their options.
-     *
-     * @param testFramework
      */
     void useTestFramework(TestFramework testFramework) {
         Class<?> currentFramework = this.testFramework.get().getClass();

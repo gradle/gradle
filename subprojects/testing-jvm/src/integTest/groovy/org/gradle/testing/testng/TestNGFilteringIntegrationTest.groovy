@@ -75,7 +75,7 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
         theUsualFiles()
 
         when:
-        run("test", "--tests", "*AwesomeSuite*")
+        run("test", "--tests", "*AwesomeSuite*", '--configuration-cache')
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)

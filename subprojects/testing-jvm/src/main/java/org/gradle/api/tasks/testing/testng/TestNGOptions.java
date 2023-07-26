@@ -31,6 +31,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.serialization.Cached;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -43,6 +44,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * The TestNG specific test options.
@@ -82,6 +84,13 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
     private transient MarkupBuilder suiteXmlBuilder;
 
+    private final Cached<String> cachedXml = Cached.of(new Callable<String>() {
+        @Override
+        public String call() throws Exception {
+            return suiteXmlWriter != null ? suiteXmlWriter.toString() : null;
+        }
+    });
+
     private final File projectDir;
 
     @Inject
@@ -91,6 +100,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
     /**
      * Copies the options from the source options into the current one.
+     *
      * @since 8.0
      */
     public void copyFrom(TestNGOptions other) {
@@ -148,7 +158,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
         suites.addAll(suiteXmlFiles);
 
-        if (suiteXmlBuilder != null) {
+        String xml = cachedXml.get();
+        if (xml != null) {
             File buildSuiteXml = new File(testSuitesDir.getAbsolutePath(), "build-suite.xml");
 
             if (buildSuiteXml.exists()) {
@@ -162,7 +173,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
                 protected void doExecute(BufferedWriter writer) throws Exception {
                     writer.write("<!DOCTYPE suite SYSTEM \"http://testng.org/testng-1.0.dtd\">");
                     writer.newLine();
-                    writer.write(getSuiteXml());
+                    writer.write(xml);
                 }
             });
 
@@ -444,7 +455,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @Input
     @Optional
     protected String getSuiteXml() {
-        return suiteXmlWriter == null ? null : suiteXmlWriter.toString();
+        return cachedXml.get();
     }
 
     @Internal

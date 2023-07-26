@@ -24,6 +24,58 @@ import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "broadcaster"() {
+        given:
+        buildFile '''
+            import org.gradle.internal.event.*
+            import org.gradle.internal.service.scopes.*
+
+            @EventScope(Scopes.Build)
+            interface Listener {
+                void listen(String message)
+            }
+
+            abstract class ListenerTask extends DefaultTask {
+
+                @Inject abstract ListenerManager getListenerManager()
+
+                @TaskAction
+                def addListener() {
+                    listenerManager.addListener(new Listener() {
+                        @Override void listen(String message) {
+                            println "$message Sure."
+                        }
+                    })
+                }
+            }
+
+            abstract class EmitterTask extends DefaultTask {
+
+                private final ListenerBroadcast<Listener> listener
+
+                EmitterTask() {
+                    listener = services.get(ListenerManager).createAnonymousBroadcaster(Listener)
+                }
+
+                @TaskAction
+                def emitEvent() {
+                    listener.source.listen('Are you listening?')
+                }
+            }
+
+            tasks.register('listen', ListenerTask) {}
+            tasks.register('emit', EmitterTask) {
+                dependsOn 'listen'
+            }
+        '''
+
+        when:
+        configurationCacheRun 'emit'
+
+        then:
+        outputContains 'Are you listening? Sure.'
+    }
+
     def "configuration cache is out of incubation"() {
         given:
         settingsFile << ""
