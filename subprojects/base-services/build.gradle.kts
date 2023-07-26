@@ -52,6 +52,8 @@ dependencies {
 packageCycles {
     // Needed for the factory methods in the base class
     excludePatterns.add("org/gradle/util/GradleVersion**")
+    // JavaVersion provides public API to the internal version parser implementation
+    excludePatterns.add("org/gradle/api/JavaVersion*")
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")

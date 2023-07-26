@@ -16,9 +16,7 @@
 package org.gradle.api;
 
 import com.google.common.annotations.VisibleForTesting;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.gradle.api.internal.JavaVersionParser;
 
 /**
  * An enumeration of Java versions.
@@ -167,19 +165,7 @@ public enum JavaVersion {
             return getVersionForMajor((Integer) value);
         }
 
-        String name = value.toString();
-
-        int firstNonVersionCharIndex = findFirstNonVersionCharIndex(name);
-
-        String[] versionStrings = name.substring(0, firstNonVersionCharIndex).split("\\.");
-        List<Integer> versions = convertToNumber(name, versionStrings);
-
-        if (isLegacyVersion(versions)) {
-            assertTrue(name, versions.get(1) > 0);
-            return getVersionForMajor(versions.get(1));
-        } else {
-            return getVersionForMajor(versions.get(0));
-        }
+        return getVersionForMajor(JavaVersionParser.getMajorFromVersionString(value.toString()));
     }
 
     /**
@@ -319,50 +305,5 @@ public enum JavaVersion {
 
     private static JavaVersion getVersionForMajor(int major) {
         return major >= values().length ? JavaVersion.VERSION_HIGHER : values()[major - 1];
-    }
-
-    private static void assertTrue(String value, boolean condition) {
-        if (!condition) {
-            throw new IllegalArgumentException("Could not determine java version from '" + value + "'.");
-        }
-    }
-
-    private static boolean isLegacyVersion(List<Integer> versions) {
-        return 1 == versions.get(0) && versions.size() > 1;
-    }
-
-    private static List<Integer> convertToNumber(String value, String[] versionStrs) {
-        List<Integer> result = new ArrayList<Integer>();
-        for (String s : versionStrs) {
-            assertTrue(value, !isNumberStartingWithZero(s));
-            try {
-                result.add(Integer.parseInt(s));
-            } catch (NumberFormatException e) {
-                assertTrue(value, false);
-            }
-        }
-        assertTrue(value, !result.isEmpty() && result.get(0) > 0);
-        return result;
-    }
-
-    private static boolean isNumberStartingWithZero(String number) {
-        return number.length() > 1 && number.startsWith("0");
-    }
-
-    private static int findFirstNonVersionCharIndex(String s) {
-        assertTrue(s, s.length() != 0);
-
-        for (int i = 0; i < s.length(); ++i) {
-            if (!isDigitOrPeriod(s.charAt(i))) {
-                assertTrue(s, i != 0);
-                return i;
-            }
-        }
-
-        return s.length();
-    }
-
-    private static boolean isDigitOrPeriod(char c) {
-        return (c >= '0' && c <= '9') || c == '.';
     }
 }
