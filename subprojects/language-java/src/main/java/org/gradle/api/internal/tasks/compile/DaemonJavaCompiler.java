@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -70,8 +71,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
         FlatClassLoaderStructure classLoaderStructure = new FlatClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
 
-        // By default, we keep Java compiler daemons alive across builds until the daemon is shut down
-        String keepAliveModeStr = System.getProperty(KEEP_DAEMON_ALIVE_PROPERTY, KeepAliveMode.DAEMON.name());
+        String keepAliveModeStr = System.getProperty(KEEP_DAEMON_ALIVE_PROPERTY, getDefaultKeepAliveMode().name());
         KeepAliveMode keepAliveMode;
         try {
             keepAliveMode = KeepAliveMode.valueOf(keepAliveModeStr);
@@ -84,6 +84,17 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             .withClassLoaderStructure(classLoaderStructure)
             .keepAliveMode(keepAliveMode)
             .build();
+    }
+
+    private static KeepAliveMode getDefaultKeepAliveMode() {
+        if (OperatingSystem.current().isWindows()) {
+            // Our physical memory monitoring on Windows is not quite accurate, which causes Gradle to think memory 
+            // is available, even when virtual memory is 100% committed, so worker daemon expiration does not occur 
+            // when it needs to. Keeping extra workers alive on Windows is not safe until we can improve this.
+            return KeepAliveMode.SESSION;
+        }
+        // By default, we keep Java compiler daemons alive across builds until the daemon is shut down
+        return KeepAliveMode.DAEMON;
     }
 
     public static class JavaCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {

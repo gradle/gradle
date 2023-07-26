@@ -50,7 +50,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler) {
-        // should ideally reuse the `JvmEcosystemUtilities` but this code is too low level
+        // should ideally reuse the `JvmPluginServices` but this code is too low level
         // and this service is therefore not available!
         AttributeContainer attributes = configuration.getAttributes();
         attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));

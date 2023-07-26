@@ -17,8 +17,11 @@
 package org.gradle.internal.classpath
 
 import org.codehaus.groovy.runtime.callsite.CallSite
+import org.gradle.internal.classpath.intercept.CallInterceptor
+import org.gradle.internal.classpath.intercept.CallInterceptorResolver
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet
 import org.gradle.internal.classpath.intercept.CallSiteDecorator
+import org.gradle.internal.classpath.intercept.InterceptScope
 
 import javax.annotation.Nullable
 import java.lang.invoke.MethodHandles
@@ -89,7 +92,7 @@ class GroovyInterceptorsSubstitution {
         }
     }
 
-    private static class ThreadLocalCallSiteDecoratorSubstitution implements CallSiteDecorator {
+    private static class ThreadLocalCallSiteDecoratorSubstitution implements CallSiteDecorator, CallInterceptorResolver {
 
         public final CallSiteDecorator original
 
@@ -128,6 +131,24 @@ class GroovyInterceptorsSubstitution {
         @Override
         java.lang.invoke.CallSite maybeDecorateIndyCallSite(java.lang.invoke.CallSite originalCallSite, MethodHandles.Lookup caller, String callType, String name, int flags) {
             threadLocalDecorators.get().maybeDecorateIndyCallSite(originalCallSite, caller, callType, name, flags)
+        }
+
+        @Override
+        CallInterceptor resolveCallInterceptor(InterceptScope scope) {
+            def decorator = threadLocalDecorators.get()
+            if (decorator instanceof CallInterceptorResolver) {
+                return decorator.resolveCallInterceptor(scope)
+            }
+            return null
+        }
+
+        @Override
+        boolean isAwareOfCallSiteName(String name) {
+            def decorator = threadLocalDecorators.get()
+            if (decorator instanceof CallInterceptorResolver) {
+                return decorator.isAwareOfCallSiteName(name);
+            }
+            return false;
         }
     }
 }

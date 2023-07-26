@@ -33,7 +33,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.internal.jacoco.DefaultJacocoCoverageReport;
 import org.gradle.testing.base.TestSuite;
@@ -55,7 +55,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
     public static final String JACOCO_AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
 
     @Inject
-    protected abstract JvmEcosystemUtilities getEcosystemUtilities();
+    protected abstract JvmPluginServices getEcosystemUtilities();
 
     @Override
     public void apply(Project project) {
