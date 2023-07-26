@@ -47,15 +47,8 @@ dependencies {
     testImplementation(libs.jsoup)
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":resources-http")))
-    testImplementation(testFixtures(project(":platform-native")))
     testImplementation(testFixtures(project(":jvm-services")))
-    testImplementation(testFixtures(project(":language-jvm")))
-    testImplementation(testFixtures(project(":language-java")))
     testImplementation(testFixtures(project(":language-groovy")))
-    testImplementation(testFixtures(project(":model-core")))
-    testImplementation(testFixtures(project(":diagnostics")))
 
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":base-services-groovy"))
@@ -68,8 +61,10 @@ dependencies {
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(libs.guava)
 
-    integTestImplementation(testFixtures(project(":model-core")))
     integTestImplementation(testFixtures(project(":enterprise-operations")))
+    integTestImplementation(testFixtures(project(":language-java")))
+    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures(project(":resources-http")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
