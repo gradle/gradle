@@ -1,3 +1,0 @@
- - Faster Java compilation
- - Reduced memory usage
- - Support for running on Java 20
