@@ -53,6 +53,13 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     }
 
     @Override
+    public ProblemStream newUnlimitedStream() {
+        DefaultProblemStream defaultProblemStream = new DefaultProblemStream();
+        defaultProblemStream.remainingStackTraces.set(Integer.MAX_VALUE);
+        return defaultProblemStream;
+    }
+
+    @Override
     public ProblemDiagnostics forException(Throwable exception) {
         return locationFromStackTrace(exception, true, true, NO_OP);
     }

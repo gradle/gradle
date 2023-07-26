@@ -16,6 +16,7 @@
 
 package org.gradle
 
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
@@ -223,7 +224,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         includedBuildTaskDeprecations.details.stackTrace[0].lineNumber == 6
     }
 
-    def "collects stack traces for deprecation usages at certain limit, regardless of whether the deprecation has been encountered before"() {
+    def "collects stack traces for deprecation usages at certain limit, regardless of whether the deprecation has been encountered before for warning mode #mode"() {
         file('settings.gradle') << "rootProject.name = 'root'"
 
         51.times {
@@ -233,7 +234,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         }
 
         when:
-        executer.noDeprecationChecks()
+        executer.noDeprecationChecks().withWarningMode(mode)
         run()
 
         then:
@@ -241,5 +242,33 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         events.size() == 51
         events[0].details.stackTrace.size > 0
         events[50].details.stackTrace.size == 0
+        where:
+        mode << [WarningMode.None, WarningMode.Summary]
+    }
+
+    def "collects stack traces for deprecation usages without limit for warning mode #mode"() {
+        file('settings.gradle') << "rootProject.name = 'root'"
+
+        100.times {
+            buildFile << """
+                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it').willBeRemovedInGradle9().undocumented().nagUser();
+            """
+        }
+
+        when:
+        executer.noDeprecationChecks().withWarningMode(mode)
+        if (mode == WarningMode.Fail) {
+            runAndFail()
+        } else {
+            run()
+        }
+
+        then:
+        def events = operations.only("Apply build file 'build.gradle' to root project 'root'").progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
+        events.size() == 100
+        events.every { it.details.stackTrace.size > 0 }
+
+        where:
+        mode << [WarningMode.All, WarningMode.Fail]
     }
 }

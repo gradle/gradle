@@ -813,13 +813,13 @@ The following table shows what APIs or injected service should be used as a repl
 | A task input or output property or a script variable to capture the result of using `project.version` to calculate the actual parameter.
 
 | `project.properties`, `project.property(name)`, `project.hasProperty(name)`, `project.getProperty(name)` or `project.findProperty(name)`
-| link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#gradleProperty-java.lang.String-[Value providers for Gradle properties].
+| link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:gradleProperty(java.lang.String)[Value providers for Gradle properties].
 
 | `project.logger`
 | link:{javadocPath}/org/gradle/api/Task.html#getLogger--[Task.logger]
 
 | `project.provider {}`
-| link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider {}]
+| link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:provider(java.util.concurrent.Callable)[ProviderFactory.provider {}]
 
 | `project.file(path)`
 | A task input or output property or a script variable to capture the result of using `project.file(file)` to calculate the actual parameter.
@@ -943,8 +943,8 @@ In general, it is preferred to run external processes in tasks with properly dec
 If necessary, only configuration-cache-compatible APIs should be used instead of Java and Groovy standard APIs or existing `ExecOperations`,
 `Project.exec`, `Project.javaexec`, and their likes in settings and init scripts.
 For simpler cases, when grabbing the output of the process is enough,
-link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec-org.gradle.api.Action-[providers.exec()] and
-link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec-org.gradle.api.Action-[providers.javaexec()] can be used:
+link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:exec(org.gradle.api.Action)[providers.exec()] and
+link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:javaexec(org.gradle.api.Action)[providers.javaexec()] can be used:
 
 ====
 include::sample[dir="snippets/valueProviders/externalProcessProvider/kotlin",files="build.gradle.kts[]"]
@@ -959,7 +959,7 @@ include::sample[dir="snippets/valueProviders/externalProcessValueSource/kotlin",
 include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=value-source]"]
 ====
 
-The `ValueSource` implementation can then be used to create a provider with link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#of-java.lang.Class-org.gradle.api.Action-[providers.of]:
+The `ValueSource` implementation can then be used to create a provider with link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:of(java.lang.Class,%20org.gradle.api.Action)[providers.of]:
 
 ====
 include::sample[dir="snippets/valueProviders/externalProcessValueSource/kotlin",files="build.gradle.kts[tags=create-provider]"]
@@ -978,8 +978,8 @@ Doing so makes such variable or property a build configuration input, so changin
 The configuration cache report includes a list of these build configuration inputs to help track them.
 
 In general, you should avoid reading the value of system properties and environment variables at configuration time, to avoid cache misses when value changes.
-Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[providers.systemProperty()] or
-link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[providers.environmentVariable()] to task properties.
+Instead, you can connect the `Provider` returned by link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[providers.systemProperty()] or
+link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[providers.environmentVariable()] to task properties.
 
 Some access patterns that potentially enumerate all environment variables or system properties (for example, calling `System.getenv().forEach()` or using the iterator of its `keySet()`) are
 discouraged.
@@ -1003,8 +1003,8 @@ include::sample[dir="snippets/valueProviders/envVarsSysPropsDo/groovy",files="bu
 
 The fixed code above, however, is not exactly equivalent to the original as only an explicit list of variables is supported.
 Prefix-based filtering is a common scenario, so there are provider-based APIs to access
-link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemPropertiesPrefixedBy-java.lang.String-[system properties] and
-link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariablesPrefixedBy-java.lang.String-[environment variables]:
+link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemPropertiesPrefixedBy(java.lang.String)[system properties] and
+link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariablesPrefixedBy(java.lang.String)[environment variables]:
 
 ====
 include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/kotlin",files="build.gradle.kts[]"]
@@ -1036,7 +1036,7 @@ include::sample[dir="snippets/valueProviders/fileContentsDont/kotlin",files="bui
 include::sample[dir="snippets/valueProviders/fileContentsDont/groovy",files="build.gradle[]"]
 ====
 
-To fix this problem, read files using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] instead:
+To fix this problem, read files using link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:fileContents(org.gradle.api.file.RegularFile)[providers.fileContents()] instead:
 
 ====
 include::sample[dir="snippets/valueProviders/fileContentsDo/kotlin",files="build.gradle.kts[]"]
@@ -1044,7 +1044,7 @@ include::sample[dir="snippets/valueProviders/fileContentsDo/groovy",files="build
 ====
 
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
-Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
+Instead, you can connect the `Provider` returned by link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:fileContents(org.gradle.api.file.RegularFile)[providers.fileContents()] to task properties.
 
 [[config_cache:requirements:bytecode_modifications_and_isolation]]
 === Bytecode modifications and Java agent
