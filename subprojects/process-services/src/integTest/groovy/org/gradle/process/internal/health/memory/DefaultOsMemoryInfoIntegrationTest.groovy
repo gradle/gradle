@@ -27,7 +27,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(UnitTestPreconditions.Windows)
     def "gets OS total memory on a Windows system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getTotal()
 
         then:
         notThrown UnsupportedOperationException
@@ -36,16 +36,27 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(UnitTestPreconditions.Windows)
     def "gets OS free memory on a Windows system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getFree()
 
         then:
         notThrown UnsupportedOperationException
     }
 
+    @Requires(UnitTestPreconditions.Windows)
+    def "gets OS virtual memory on a Windows system"() {
+        when:
+        def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
+
+        then:
+        virtualMemory instanceof OsMemoryCategory.Limited
+        virtualMemory.getFree() > 0
+        virtualMemory.getTotal() > 0
+    }
+
     @Requires(UnitTestPreconditions.Linux)
     def "gets OS total memory on a Linux system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getTotal()
 
         then:
         notThrown UnsupportedOperationException
@@ -54,16 +65,25 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(UnitTestPreconditions.Linux)
     def "gets OS free memory on a Linux system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getFree()
 
         then:
         notThrown UnsupportedOperationException
     }
 
+    @Requires(UnitTestPreconditions.Linux)
+    def "reports unknown OS virtual memory on a Linux system"() {
+        when:
+        def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
+
+        then:
+        virtualMemory instanceof OsMemoryCategory.Unknown
+    }
+
     @Requires(UnitTestPreconditions.MacOs)
     def "gets OS total memory on a MacOS system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getTotal()
 
         then:
         notThrown UnsupportedOperationException
@@ -72,9 +92,18 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(UnitTestPreconditions.MacOs)
     def "gets OS free memory on a MacOS system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getFree()
 
         then:
         notThrown UnsupportedOperationException
+    }
+
+    @Requires(UnitTestPreconditions.MacOs)
+    def "reports unknown OS virtual memory on a MacOs system"() {
+        when:
+        def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
+
+        then:
+        virtualMemory instanceof OsMemoryCategory.Unknown
     }
 }
