@@ -54,7 +54,7 @@ dependencies {
 
     testImplementation(libs.xmlunit)
 
-    integTestRuntimeOnly(project(":distributions-jvm")) {
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
