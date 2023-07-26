@@ -16,8 +16,11 @@
 
 package org.gradle.integtests.fixtures.versions
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.Factory
 import org.gradle.util.internal.VersionNumber
+
+import static org.junit.Assume.assumeTrue
 
 /**
  * Kotlin Gradle Plugin Versions.
@@ -84,5 +87,33 @@ class KotlinGradlePluginVersions {
 
     String getLatestStableOrRC() {
         return latestsStableOrRC.last()
+    }
+
+    private static final VersionNumber KOTLIN_1_8_0 = VersionNumber.parse('1.8.0')
+    private static final VersionNumber KOTLIN_1_9_0 = VersionNumber.parse('1.9.0')
+
+    static void assumeCurrentJavaVersionIsSupportedBy(String kotlinVersion) {
+        VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+        JavaVersion current = JavaVersion.current()
+        JavaVersion mini = getMinimumJavaVersionFor(kotlinVersionNumber)
+        assumeTrue("KGP $kotlinVersion minimum supported Java version is $mini, current is $current", current >= mini)
+        JavaVersion maxi = getMaximumJavaVersionFor(kotlinVersionNumber)
+        if (maxi != null) {
+            assumeTrue("KGP $kotlinVersion maximum supported Java version is $maxi, current is $current", current <= maxi)
+        }
+    }
+
+    static JavaVersion getMinimumJavaVersionFor(VersionNumber kotlinVersion) {
+        return JavaVersion.VERSION_1_8
+    }
+
+    private static JavaVersion getMaximumJavaVersionFor(VersionNumber kotlinVersion) {
+        if (kotlinVersion.baseVersion < KOTLIN_1_8_0) {
+            return JavaVersion.VERSION_18
+        }
+        if (kotlinVersion.baseVersion < KOTLIN_1_9_0) {
+            return JavaVersion.VERSION_19
+        }
+        return null
     }
 }

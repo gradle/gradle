@@ -15,41 +15,42 @@
  */
 package org.gradle.api.publish.maven.internal.dependencies;
 
-import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
-public class DefaultMavenDependency implements MavenDependencyInternal {
+/**
+ * Default implementation of {@link MavenDependency}.
+ */
+public class DefaultMavenDependency implements MavenDependency {
     private final String groupId;
     private final String artifactId;
     private final String version;
     private final String type;
-    private final List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
-    private final List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>(); //exclude rules for a dependency specified in gradle DSL
+    private final String classifier;
+    private final String scope;
+    private final Set<ExcludeRule> excludeRules;
+    private final boolean optional;
 
-    public DefaultMavenDependency(String groupId, String artifactId, String version) {
-        this(groupId, artifactId, version, (String) null);
-    }
-
-    public DefaultMavenDependency(String groupId, String artifactId, String version, Collection<DependencyArtifact> artifacts) {
-        this(groupId, artifactId, version);
-        this.artifacts.addAll(artifacts);
-    }
-
-    public DefaultMavenDependency(String groupId, String artifactId, String version, Collection<DependencyArtifact> artifacts, Collection<ExcludeRule> excludeRules) {
-        this(groupId, artifactId, version, artifacts);
-        this.excludeRules.addAll(excludeRules);
-    }
-
-    public DefaultMavenDependency(String groupId, String artifactId, String version, String type) {
+    public DefaultMavenDependency(
+        String groupId,
+        String artifactId,
+        @Nullable String version,
+        @Nullable String type,
+        @Nullable String classifier,
+        @Nullable String scope,
+        Set<ExcludeRule> excludeRules,
+        boolean optional
+    ) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;
         this.type = type;
+        this.classifier = classifier;
+        this.scope = scope;
+        this.excludeRules = excludeRules;
+        this.optional = optional;
     }
 
     @Override
@@ -62,6 +63,7 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
         return artifactId;
     }
 
+    @Nullable
     @Override
     public String getVersion() {
         return version;
@@ -73,18 +75,25 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
         return type;
     }
 
+    @Nullable
     @Override
-    public Collection<DependencyArtifact> getArtifacts() {
-        return artifacts;
+    public String getClassifier() {
+        return classifier;
+    }
+
+    @Nullable
+    @Override
+    public String getScope() {
+        return scope;
     }
 
     @Override
-    public Collection<ExcludeRule> getExcludeRules() {
+    public Set<ExcludeRule> getExcludeRules() {
         return excludeRules;
     }
 
     @Override
-    public String getProjectPath() {
-        return null;
+    public boolean isOptional() {
+        return optional;
     }
 }

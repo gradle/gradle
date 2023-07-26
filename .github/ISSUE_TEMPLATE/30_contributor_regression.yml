@@ -60,6 +60,8 @@ body:
     id: build-scan-url
     attributes:
       label: Build scan URL (optional)
+      description: |
+        You can run your build command with `--scan` to publish a Build Scan to [scans.gradle.com](https://scans.gradle.com/).
     validations:
       required: false
   - type: textarea

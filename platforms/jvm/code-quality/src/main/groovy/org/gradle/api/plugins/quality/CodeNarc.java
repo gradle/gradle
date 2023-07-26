@@ -17,15 +17,11 @@ package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CodeNarcAction;
 import org.gradle.api.plugins.quality.internal.CodeNarcActionParameters;
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -35,27 +31,18 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.VerificationTask;
-import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
-import org.gradle.workers.WorkerExecutor;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.stream.Collectors;
-
-import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs;
 
 /**
  * Runs CodeNarc against some source files.
  */
 @CacheableTask
-public abstract class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
+public abstract class CodeNarc extends AbstractCodeQualityTask implements Reporting<CodeNarcReports> {
 
     private FileCollection codenarcClasspath;
 
@@ -71,21 +58,12 @@ public abstract class CodeNarc extends SourceTask implements VerificationTask, R
 
     private final CodeNarcReports reports;
 
-    private boolean ignoreFailures;
-
-    private final Property<JavaLauncher> javaLauncher;
-
     public CodeNarc() {
+        super();
         reports = getObjectFactory().newInstance(CodeNarcReportsImpl.class, this);
         compilationClasspath = getProject().files();
         // Set default JavaLauncher to current JVM in case
         // CodeNarcPlugin that sets Java launcher convention is not applied
-        this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
-    }
-
-    private static Property<JavaLauncher> configureFromCurrentJvmLauncher(JavaToolchainService toolchainService, ObjectFactory objectFactory) {
-        Provider<JavaLauncher> currentJvmLauncherProvider = toolchainService.launcherFor(new CurrentJvmToolchainSpec(objectFactory));
-        return objectFactory.property(JavaLauncher.class).convention(currentJvmLauncherProvider);
     }
 
     /**
@@ -112,31 +90,9 @@ public abstract class CodeNarc extends SourceTask implements VerificationTask, R
         setConfig(getProject().getResources().getText().fromFile(configFile));
     }
 
-    @Inject
-    abstract protected ObjectFactory getObjectFactory();
-
-    @Inject
-    abstract protected JavaToolchainService getToolchainService();
-
-    @Inject
-    abstract protected WorkerExecutor getWorkerExecutor();
-
-    /**
-     * JavaLauncher for toolchain support
-     * @since 8.1
-     */
-    @Incubating
-    @Nested
-    public Property<JavaLauncher> getJavaLauncher() {
-        return javaLauncher;
-    }
-
     @TaskAction
     public void run() {
-        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
-            spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            maybeAddOpensJvmArgs(javaLauncher.get(), spec);
-        });
+        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> configureForkOptions(spec.getForkOptions()));
         workQueue.submit(CodeNarcAction.class, this::setupParameters);
     }
 
@@ -281,19 +237,4 @@ public abstract class CodeNarc extends SourceTask implements VerificationTask, R
         return reports;
     }
 
-    /**
-     * Whether the build should break when the verifications performed by this task fail.
-     */
-    @Override
-    public boolean getIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    /**
-     * Whether the build should break when the verifications performed by this task fail.
-     */
-    @Override
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
-    }
 }

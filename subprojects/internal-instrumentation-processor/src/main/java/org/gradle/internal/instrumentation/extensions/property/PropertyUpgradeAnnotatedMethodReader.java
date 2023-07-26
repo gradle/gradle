@@ -60,7 +60,7 @@ import java.util.Optional;
 
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
-import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY;
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_GETTER;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANCE_METHOD;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
@@ -126,7 +126,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
         return new CallInterceptionRequestImpl(
-            extractCallableInfo(GROOVY_PROPERTY, method, originalType, propertyName, parameters),
+            extractCallableInfo(GROOVY_PROPERTY_GETTER, method, originalType, propertyName, parameters),
             extractImplementationInfo(method, originalType, "get", Collections.emptyList()),
             extras
         );

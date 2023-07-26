@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-  
+
 permissions: write-all
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
       uses: gradle/gradle-build-action@v2
       with:
         dependency-graph: generate-and-submit
-    - name: Run 'compileAll' to generate dependency graph
-      run: ./gradlew compileAll --no-configuration-cache -DdisableLocalCache=true -DcacheNode=us
+    - name: Run 'binDist' to generate dependency graph
+      run: ./gradlew binDist --no-configuration-cache -DdisableLocalCache=true -DcacheNode=us
       env:
         GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}

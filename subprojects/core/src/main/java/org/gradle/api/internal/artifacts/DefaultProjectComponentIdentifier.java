@@ -16,10 +16,9 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.util.Path;
 
-public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
+public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifierInternal {
     private final BuildIdentifier buildIdentifier;
     private final Path projectPath;
     private final Path identityPath;
@@ -50,6 +49,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return buildIdentifier;
     }
 
+    @Override
     public Path getIdentityPath() {
         return identityPath;
     }

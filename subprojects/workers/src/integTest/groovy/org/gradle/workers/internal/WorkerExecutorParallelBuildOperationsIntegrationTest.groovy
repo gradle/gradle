@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
@@ -102,6 +103,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         assert endTime(":workTask").isBefore(endTime(":slowTask"))
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3911")
     def "worker-based task with further actions does not complete when work items finish (while another task is executing in parallel)"() {
         when:
         buildFile << """
