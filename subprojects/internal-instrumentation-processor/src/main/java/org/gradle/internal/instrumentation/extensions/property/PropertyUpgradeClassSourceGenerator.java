@@ -21,9 +21,9 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
-import org.gradle.api.internal.provider.proxies.ListPropertyBackedList;
-import org.gradle.api.internal.provider.proxies.MapPropertyBackedMap;
-import org.gradle.api.internal.provider.proxies.SetPropertyBackedSet;
+import org.gradle.api.internal.provider.views.ListPropertyListView;
+import org.gradle.api.internal.provider.views.MapPropertyMapView;
+import org.gradle.api.internal.provider.views.SetPropertySetView;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.UpgradedPropertyType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -119,11 +119,11 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             case CONFIGURABLE_FILE_COLLECTION:
                 return CodeBlock.of("return $N.$N();", SELF_PARAMETER_NAME, propertyGetterName);
             case LIST_PROPERTY:
-                return CodeBlock.of("return new $T<>($N.$N());", ListPropertyBackedList.class, SELF_PARAMETER_NAME, propertyGetterName);
+                return CodeBlock.of("return new $T<>($N.$N());", ListPropertyListView.class, SELF_PARAMETER_NAME, propertyGetterName);
             case SET_PROPERTY:
-                return CodeBlock.of("return new $T<>($N.$N());", SetPropertyBackedSet.class, SELF_PARAMETER_NAME, propertyGetterName);
+                return CodeBlock.of("return new $T<>($N.$N());", SetPropertySetView.class, SELF_PARAMETER_NAME, propertyGetterName);
             case MAP_PROPERTY:
-                return CodeBlock.of("return new $T<>($N.$N());", MapPropertyBackedMap.class, SELF_PARAMETER_NAME, propertyGetterName);
+                return CodeBlock.of("return new $T<>($N.$N());", MapPropertyMapView.class, SELF_PARAMETER_NAME, propertyGetterName);
             default:
                 return CodeBlock.of("return $N.$N().getOrElse($L);", SELF_PARAMETER_NAME, propertyGetterName, TypeUtils.getDefaultValue(returnType.getType()));
         }

@@ -15,7 +15,7 @@
  */
 
 /**
- * A package for collection proxies for Property upgrades.
+ * A package for implementation of Property views, used for property upgrades.
  */
 @org.gradle.api.NonNullApi
-package org.gradle.api.internal.provider.proxies;
+package org.gradle.api.internal.provider.views;

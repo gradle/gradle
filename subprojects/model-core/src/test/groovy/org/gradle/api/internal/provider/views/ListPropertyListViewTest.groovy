@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.proxies
+package org.gradle.api.internal.provider.views
 
 import org.gradle.api.provider.HasMultipleValues
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.util.TestUtil
 
-class ListPropertyBackedListTest extends AbstractCollectionPropertyBackedCollectionTest {
+class ListPropertyListViewTest extends AbstractCollectionPropertyBackedCollectionTest {
 
     ListProperty<String> listProperty
 
@@ -41,7 +41,7 @@ class ListPropertyBackedListTest extends AbstractCollectionPropertyBackedCollect
 
     @Override
     protected <T extends Collection<String>> T newCollection(HasMultipleValues<String> multipleValueProperty) {
-        return new ListPropertyBackedList<>(multipleValueProperty as ListProperty<String>)
+        return new ListPropertyListView<>(multipleValueProperty as ListProperty<String>)
     }
 
     def "list specific modification operations work"() {

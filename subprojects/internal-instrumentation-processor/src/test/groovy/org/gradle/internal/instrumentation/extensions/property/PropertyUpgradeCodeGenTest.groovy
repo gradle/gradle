@@ -18,9 +18,9 @@ package org.gradle.internal.instrumentation.extensions.property
 
 import com.google.testing.compile.Compilation
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.provider.proxies.ListPropertyBackedList
-import org.gradle.api.internal.provider.proxies.MapPropertyBackedMap
-import org.gradle.api.internal.provider.proxies.SetPropertyBackedSet
+import org.gradle.api.internal.provider.views.ListPropertyListView
+import org.gradle.api.internal.provider.views.MapPropertyMapView
+import org.gradle.api.internal.provider.views.SetPropertySetView
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
 
 import static com.google.testing.compile.CompilationSubject.assertThat
@@ -183,18 +183,18 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .hasSourceEquivalentTo(generatedClass)
 
         where:
-        upgradedType                  | originalType     | getCall                                            | setCall            | imports
-        "Property<Integer>"           | "int"            | "self.getProperty().getOrElse(0)"                  | ".set(arg0)"       | []
-        "Property<Boolean>"           | "boolean"        | "self.getProperty().getOrElse(false)"              | ".set(arg0)"       | []
-        "Property<Long>"              | "long"           | "self.getProperty().getOrElse(0L)"                 | ".set(arg0)"       | []
-        "Property<Integer>"           | "Integer"        | "self.getProperty().getOrElse(null)"               | ".set(arg0)"       | [Integer]
-        "Property<String>"            | "String"         | "self.getProperty().getOrElse(null)"               | ".set(arg0)"       | [String]
-        "ListProperty<String>"        | "List"           | "new ListPropertyBackedList<>(self.getProperty())" | ".set(arg0)"       | [SuppressWarnings, List, ListPropertyBackedList]
-        "MapProperty<String, String>" | "Map"            | "new MapPropertyBackedMap<>(self.getProperty())"   | ".set(arg0)"       | [SuppressWarnings, Map, MapPropertyBackedMap]
-        "SetProperty<String>"         | "Set"            | "new SetPropertyBackedSet<>(self.getProperty())"   | ".set(arg0)"       | [SuppressWarnings, Set, SetPropertyBackedSet]
-        "RegularFileProperty"         | "File"           | "self.getProperty().getAsFile().getOrNull()"       | ".fileValue(arg0)" | [File]
-        "DirectoryProperty"           | "File"           | "self.getProperty().getAsFile().getOrNull()"       | ".fileValue(arg0)" | [File]
-        "ConfigurableFileCollection"  | "FileCollection" | "self.getProperty()"                               | ".setFrom(arg0)"   | [FileCollection]
+        upgradedType                  | originalType     | getCall                                          | setCall            | imports
+        "Property<Integer>"           | "int"            | "self.getProperty().getOrElse(0)"                | ".set(arg0)"       | []
+        "Property<Boolean>"           | "boolean"        | "self.getProperty().getOrElse(false)"            | ".set(arg0)"       | []
+        "Property<Long>"              | "long"           | "self.getProperty().getOrElse(0L)"               | ".set(arg0)"       | []
+        "Property<Integer>"           | "Integer"        | "self.getProperty().getOrElse(null)"             | ".set(arg0)"       | [Integer]
+        "Property<String>"            | "String"         | "self.getProperty().getOrElse(null)"             | ".set(arg0)"       | [String]
+        "ListProperty<String>"        | "List"           | "new ListPropertyListView<>(self.getProperty())" | ".set(arg0)"       | [SuppressWarnings, List, ListPropertyListView]
+        "MapProperty<String, String>" | "Map"            | "new MapPropertyMapView<>(self.getProperty())"   | ".set(arg0)"       | [SuppressWarnings, Map, MapPropertyMapView]
+        "SetProperty<String>"         | "Set"            | "new SetPropertySetView<>(self.getProperty())"   | ".set(arg0)"       | [SuppressWarnings, Set, SetPropertySetView]
+        "RegularFileProperty"         | "File"           | "self.getProperty().getAsFile().getOrNull()"     | ".fileValue(arg0)" | [File]
+        "DirectoryProperty"           | "File"           | "self.getProperty().getAsFile().getOrNull()"     | ".fileValue(arg0)" | [File]
+        "ConfigurableFileCollection"  | "FileCollection" | "self.getProperty()"                             | ".setFrom(arg0)"   | [FileCollection]
     }
 
     def "should correctly generate interceptor when property name contains get"() {

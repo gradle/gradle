@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.proxies;
+package org.gradle.api.internal.provider.views;
 
 import org.gradle.api.provider.MapProperty;
 
@@ -31,11 +31,11 @@ import java.util.Set;
  * Implementation of Map, that is used for Property upgrades
  */
 @NotThreadSafe
-public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
+public class MapPropertyMapView<K, V> extends AbstractMap<K, V> {
 
     private final MapProperty<K, V> delegate;
 
-    public MapPropertyBackedMap(MapProperty<K, V> delegate) {
+    public MapPropertyMapView(MapProperty<K, V> delegate) {
         this.delegate = delegate;
     }
 
@@ -101,7 +101,7 @@ public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
 
         @Override
         public Iterator<Entry<K, V>> iterator() {
-            Iterator<Entry<K, V>> it = new LinkedHashMap<>(MapPropertyBackedMap.this.delegate.get()).entrySet().iterator();
+            Iterator<Entry<K, V>> it = new LinkedHashMap<>(MapPropertyMapView.this.delegate.get()).entrySet().iterator();
             return new Iterator<Entry<K, V>>() {
                 Entry<K, V> previousValue = null;
                 @Override
@@ -118,14 +118,14 @@ public class MapPropertyBackedMap<K, V> extends AbstractMap<K, V> {
                 @Override
                 public void remove() {
                     it.remove();
-                    MapPropertyBackedMap.this.remove(previousValue.getKey());
+                    MapPropertyMapView.this.remove(previousValue.getKey());
                 }
             };
         }
 
         @Override
         public int size() {
-            return MapPropertyBackedMap.this.size();
+            return MapPropertyMapView.this.size();
         }
     }
 }

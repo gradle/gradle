@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.proxies;
+package org.gradle.api.internal.provider.views;
 
 import org.gradle.api.provider.SetProperty;
 
@@ -29,11 +29,11 @@ import java.util.Set;
  * Implementation of Set, that is used for Property upgrades
  */
 @NotThreadSafe
-public class SetPropertyBackedSet<E> extends AbstractSet<E> {
+public class SetPropertySetView<E> extends AbstractSet<E> {
 
     private final SetProperty<E> delegate;
 
-    public SetPropertyBackedSet(SetProperty<E> delegate) {
+    public SetPropertySetView(SetProperty<E> delegate) {
         this.delegate = delegate;
     }
 
@@ -112,7 +112,7 @@ public class SetPropertyBackedSet<E> extends AbstractSet<E> {
             @Override
             public void remove() {
                 it.remove();
-                SetPropertyBackedSet.this.remove(previousValue);
+                SetPropertySetView.this.remove(previousValue);
             }
         };
     }

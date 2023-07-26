@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.proxies
+package org.gradle.api.internal.provider.views
 
 
 import org.gradle.api.provider.MapProperty
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class MapPropertyBackedMapTest extends Specification {
+class MapPropertyMapViewTest extends Specification {
     MapProperty<String, String> mapProperty
 
     def setup() {
@@ -31,7 +31,7 @@ class MapPropertyBackedMapTest extends Specification {
     def "map modification operations should be visible on backed provider"() {
         given:
         mapProperty.put("first", "value1")
-        Map<String, String> map = new MapPropertyBackedMap<>(mapProperty)
+        Map<String, String> map = new MapPropertyMapView<>(mapProperty)
 
         when:
         map.put("second", "value2")
@@ -65,7 +65,7 @@ class MapPropertyBackedMapTest extends Specification {
 
     def "map modification operations works with Groovy methods"() {
         given:
-        Map<String, String> map = new MapPropertyBackedMap<>(mapProperty)
+        Map<String, String> map = new MapPropertyMapView<>(mapProperty)
 
         when:
         map.putAll(["first": "value1", "second": "value2", "third": "value3", "forth": "value4", "fifth": "value5"])
@@ -90,7 +90,7 @@ class MapPropertyBackedMapTest extends Specification {
     def "contains operations work"() {
         given:
         mapProperty.put("first", "value1")
-        Map<String, String> map = new MapPropertyBackedMap<>(mapProperty)
+        Map<String, String> map = new MapPropertyMapView<>(mapProperty)
 
         when:
         map.put("second", "value2")
@@ -117,7 +117,7 @@ class MapPropertyBackedMapTest extends Specification {
     def "provider modifications should be visible on the map"() {
         given:
         mapProperty.put("first", "value1")
-        Map<String, String> map = new MapPropertyBackedMap<>(mapProperty)
+        Map<String, String> map = new MapPropertyMapView<>(mapProperty)
 
         when:
         mapProperty.put("second", "value2")

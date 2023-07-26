@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.proxies
+package org.gradle.api.internal.provider.views
 
 import org.gradle.api.provider.HasMultipleValues
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.util.TestUtil
 
-class SetPropertyBackedSetTest extends AbstractCollectionPropertyBackedCollectionTest {
+class SetPropertySetViewTest extends AbstractCollectionPropertyBackedCollectionTest {
 
     SetProperty<String> setProperty
 
@@ -41,6 +41,6 @@ class SetPropertyBackedSetTest extends AbstractCollectionPropertyBackedCollectio
 
     @Override
     protected <T extends Collection<String>> T newCollection(HasMultipleValues<String> multipleValueProperty) {
-        return new SetPropertyBackedSet<>(multipleValueProperty as SetProperty<String>)
+        return new SetPropertySetView<>(multipleValueProperty as SetProperty<String>)
     }
 }

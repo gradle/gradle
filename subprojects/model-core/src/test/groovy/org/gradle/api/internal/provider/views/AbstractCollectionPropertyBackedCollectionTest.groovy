@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.proxies
+package org.gradle.api.internal.provider.views
 
 import org.gradle.api.provider.HasMultipleValues
 import org.gradle.api.provider.Provider

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.proxies;
+package org.gradle.api.internal.provider.views;
 
 import org.gradle.api.provider.ListProperty;
 
@@ -27,11 +27,11 @@ import java.util.List;
  * Implementation of List, that is used for Property upgrades
  */
 @NotThreadSafe
-public class ListPropertyBackedList<E> extends AbstractList<E> {
+public class ListPropertyListView<E> extends AbstractList<E> {
 
     private final ListProperty<E> delegate;
 
-    public ListPropertyBackedList(ListProperty<E> delegate) {
+    public ListPropertyListView(ListProperty<E> delegate) {
         this.delegate = delegate;
     }
 
