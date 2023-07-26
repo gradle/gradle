@@ -98,8 +98,8 @@ object Config {
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
-    // Android Studio Giraffe (2022.3.1) Canary 8
-    const val androidStudioVersion = "2022.3.1.8"
+    // Android Studio Hedgehog | 2023.1.1 Canary
+    const val androidStudioVersion = "2023.1.1.6"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
