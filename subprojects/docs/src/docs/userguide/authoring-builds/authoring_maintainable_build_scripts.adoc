@@ -233,7 +233,7 @@ Under no circumstance should you add the password to the build script in plain t
 Those files usually live in a version control repository and can be viewed by anyone that has access to it.
 
 Passwords together with any other sensitive data should be kept external from the version controlled project files.
-Gradle exposes an API for providing credentials in link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#credentials-java.lang.Class-java.lang.String-[ProviderFactory]
+Gradle exposes an API for providing credentials in link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:credentials(java.lang.Class,%20java.lang.String)[ProviderFactory]
 as well as <<declaring_repositories.adoc#sec:handling_credentials,Artifact Repositories>>
 that allows to supply credential values using <<build_environment#sec:gradle_configuration_properties,Gradle properties>>
 when they are needed by the build. This way the credentials can be stored in the `gradle.properties` file that
