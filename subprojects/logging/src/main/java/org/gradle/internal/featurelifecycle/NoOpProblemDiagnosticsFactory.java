@@ -74,6 +74,11 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
     }
 
     @Override
+    public ProblemStream newUnlimitedStream() {
+        return EMPTY_STREAM;
+    }
+
+    @Override
     public ProblemDiagnostics forException(Throwable exception) {
         return EMPTY_DIAGNOSTICS;
     }
