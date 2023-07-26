@@ -29,15 +29,14 @@ import java.lang.annotation.Target;
  *
  * <p>An option may have one of the following types:</p>
  * <ul>
- * <li>{@code boolean}</li>
- * <li>{@code Boolean}</li>
- * <li>{@code Property<Boolean>}</li>
- * <li>an {@code enum} type</li>
- * <li>{@code Property<T>} of an enum type</li>
- * <li>{@code String}</li>
- * <li>{@code Property<String>}</li>
- * <li>{@code List<T>} of an {@code enum} type</li>
- * <li>{@code List<String>}</li>
+ * <li>{@code boolean}, {@code Boolean}, or {@code Property<Boolean>}</li>
+ * <li>{@code Integer} or {@code Property<Integer>}</li>
+ * <li>{@code String} or {@code Property<String>}</li>
+ * <li>an {@code enum} type or {@code Property<T>} of an enum type</li>
+ * <li>{@code List<Integer>}, {@code List<String>}, or {@code List<T>} of an {@code enum} type</li>
+ * <li>{@code ListProperty<Integer>}, {@code ListProperty<String>}, or {@code ListProperty<T>} of an {@code enum} type</li>
+ * <li>{@code SetProperty<Integer>}, {@code SetProperty<String>}, or {@code SetProperty<T>} of an {@code enum} type</li>
+ * <li>an {@code DirectoryProperty} or {@code RegularFileProperty}</li>
  * </ul>
  *
  * <p>
