@@ -39,6 +39,9 @@ dependencies {
     testFixturesApi(testFixtures(project(":language-jvm")))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(testFixtures(project(":model-core")))
+    testFixturesImplementation(libs.guava)
 
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.javaParser) {

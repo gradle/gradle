@@ -56,7 +56,7 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(project(":model-core")))
-    integTestImplementation(testFixtures(project(":plugins")))
+    integTestImplementation(testFixtures(project(":language-groovy")))
 
     integTestImplementation(libs.slf4jApi)
 
