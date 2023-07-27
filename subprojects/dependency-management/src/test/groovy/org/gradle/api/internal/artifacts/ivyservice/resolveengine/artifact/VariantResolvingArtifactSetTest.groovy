@@ -114,7 +114,6 @@ class VariantResolvingArtifactSetTest extends Specification {
         def subvariant2 = Mock(VariantResolveMetadata)
 
         variant.prepareForArtifactResolution() >> Mock(VariantArtifactResolveState) {
-            getName() >> "foo"
             getArtifactVariants() >> ([subvariant1, subvariant2] as Set)
         }
 

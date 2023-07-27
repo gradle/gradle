@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -79,6 +80,16 @@ public class VariantResolvingArtifactSet implements ArtifactSet, VariantSelector
         if (!componentFilter.isSatisfiedBy(componentId)) {
             return ResolvedArtifactSet.EMPTY;
         } else {
+
+            if (selectFromAllVariants && !artifacts.isEmpty()) {
+                // Variants with overridden artifacts cannot be reselected since
+                // we do not know the "true" attributes of the requested artifact.
+                return new BrokenResolvedArtifactSet(new GradleException(
+                    String.format("Cannot reselect artifacts for variant %s of %s since it has an explicitly requested artifact. " +
+                        "Use a lenient ArtifactView to silence this error.", variant.getName(), componentId)
+                ));
+            }
+
             ResolvedVariantSet variants;
             try {
                 variants = getVariants(selectFromAllVariants);
@@ -145,17 +156,12 @@ public class VariantResolvingArtifactSet implements ArtifactSet, VariantSelector
             return ownArtifacts.get();
         }
 
-        String variantName = variant.getName();
         boolean applyExclusions = exclusions.mayExcludeArtifacts();
         ImmutableSet.Builder<ResolvedVariant> builder = ImmutableSet.builder();
         ComponentArtifactResolveMetadata componentMetadata = componentState.getResolveMetadata();
 
         for (VariantArtifactResolveState componentVariant : componentVariants) {
-            if (componentVariant.getName().equals(variantName)) {
-                builder.addAll(ownArtifacts.get());
-            } else {
-                visitResolvedArtifacts(componentMetadata, componentVariant, builder::add, applyExclusions);
-            }
+            visitResolvedArtifacts(componentMetadata, componentVariant, builder::add, applyExclusions);
         }
 
         return builder.build();

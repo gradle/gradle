@@ -29,11 +29,6 @@ import java.util.Set;
  */
 public interface VariantArtifactResolveState {
     /**
-     * Return the name of this variant.
-     */
-    String getName();
-
-    /**
      * Resolve the artifacts specified by the given {@link IvyArtifactName}s.
      *
      * This is used to resolve artifacts declared as part of a dependency.

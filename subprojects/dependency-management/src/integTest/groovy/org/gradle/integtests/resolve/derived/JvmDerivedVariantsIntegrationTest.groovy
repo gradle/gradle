@@ -180,14 +180,13 @@ task resolve {
         noExceptionThrown()
     }
 
-    def "can re-select artifacts if dependency has explicit artifact"() {
+    def "exception thrown when re-selecting artifacts if dependency has explicit artifact"() {
         file("consumer/build.gradle") << """
 dependencies {
     implementation 'com.example:test:1.0:foo'
 }
 
 task resolve {
-    def normal = configurations.runtimeClasspath.incoming.files
     def reselected = configurations.runtimeClasspath.incoming.artifactView {
         withVariantReselection()
         attributes {
@@ -198,9 +197,44 @@ task resolve {
         }
     }.files
     doLast {
-        assert normal*.name == ["test-1.0-foo.jar"]
-        // We select the production sources here instead of the foo feature's sources since
-        // the user uses a classifier. The foo capability was never defined.
+        println reselected.files
+    }
+}
+"""
+        when:
+        fails(":consumer:resolve")
+        then:
+        failure.assertHasCause("Cannot reselect artifacts for variant runtimeElements of com.example:test:1.0 since it has an explicitly requested artifact. Use a lenient ArtifactView to silence this error.")
+
+        when:
+        removeGMM()
+        and:
+        fails(":consumer:resolve")
+        then:
+        failure.assertHasCause("Cannot reselect artifacts for variant runtime of com.example:test:1.0 since it has an explicitly requested artifact. Use a lenient ArtifactView to silence this error.")
+    }
+
+    def "can re-select artifacts if dependency has explicit artifact when lenient=true"() {
+        file("consumer/build.gradle") << """
+dependencies {
+    implementation 'com.example:test'
+    implementation 'com.example:test:1.0:foo'
+}
+
+task resolve {
+    def normal = configurations.runtimeClasspath.incoming.files
+    def reselected = configurations.runtimeClasspath.incoming.artifactView {
+        withVariantReselection()
+        lenient = true
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+        }
+    }.files
+    doLast {
+        assert normal*.name == ["test-1.0.jar", "test-1.0-foo.jar"]
         assert reselected*.name == ["test-1.0-sources.jar"]
     }
 }

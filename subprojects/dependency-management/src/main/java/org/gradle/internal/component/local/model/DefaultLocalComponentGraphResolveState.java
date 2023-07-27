@@ -178,7 +178,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             // See https://github.com/gradle/gradle/issues/25416
             this.artifactResolveState = Lazy.atomic().of(() -> {
                 Set<? extends VariantResolveMetadata> legacyVariants = configuration.prepareToResolveArtifacts().getVariants();
-                return new DefaultLocalConfigurationArtifactResolveState(configuration.getName(), component, configuration, legacyVariants);
+                return new DefaultLocalConfigurationArtifactResolveState(component, configuration, legacyVariants);
             });
         }
 
@@ -224,21 +224,14 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private static class DefaultLocalConfigurationArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
-        private final String name;
         private final LocalComponentMetadata component;
         private final LocalConfigurationGraphResolveMetadata graphSelectedConfiguration;
         private final Set<? extends VariantResolveMetadata> variants;
 
-        public DefaultLocalConfigurationArtifactResolveState(String name, LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Set<? extends VariantResolveMetadata> variants) {
-            this.name = name;
+        public DefaultLocalConfigurationArtifactResolveState(LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Set<? extends VariantResolveMetadata> variants) {
             this.component = component;
             this.graphSelectedConfiguration = graphSelectedConfiguration;
             this.variants = variants;
-        }
-
-        @Override
-        public String getName() {
-            return name;
         }
 
         @Override

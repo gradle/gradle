@@ -141,7 +141,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         public DefaultConfigurationGraphResolveState(long instanceId, ExternalComponentResolveMetadata component, ModuleConfigurationMetadata configuration) {
             this.instanceId = instanceId;
             this.configuration = configuration;
-            this.artifactResolveState = Lazy.locking().of(() -> new DefaultConfigurationArtifactResolveState(configuration.getName(), component, configuration));
+            this.artifactResolveState = Lazy.locking().of(() -> new DefaultConfigurationArtifactResolveState(component, configuration));
         }
 
         @Override
@@ -186,21 +186,14 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     private static class DefaultConfigurationArtifactResolveState implements VariantArtifactResolveState {
-        private final String name;
         private final ExternalComponentResolveMetadata artifactMetadata;
         private final ConfigurationMetadata graphSelectedConfiguration;
         private final Set<? extends VariantResolveMetadata> variants;
 
-        public DefaultConfigurationArtifactResolveState(String name, ExternalComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedConfiguration) {
-            this.name = name;
+        public DefaultConfigurationArtifactResolveState(ExternalComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedConfiguration) {
             this.artifactMetadata = artifactMetadata;
             this.graphSelectedConfiguration = graphSelectedConfiguration;
             this.variants = graphSelectedConfiguration.getVariants();
-        }
-
-        @Override
-        public String getName() {
-            return name;
         }
 
         @Override
