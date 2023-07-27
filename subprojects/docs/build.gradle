@@ -620,20 +620,6 @@ tasks.named("docsTest") { task ->
         // disable sanityCheck of 'structuring-software-projects' in any case due to deprecation warning in Android project
         excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*_sanityCheck.sample"
 
-        /*
-         * Do not execute tests which include additional compiler warnings that cause output comparisons to fail on JDK 20:
-         *
-         * warning: [options] source value 8 is obsolete and will be removed in a future release
-         * warning: [options] target value 8 is obsolete and will be removed in a future release
-         * warning: [options] To suppress warnings about obsolete options, use -Xlint:-options.
-         */
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
-            excludeTestsMatching "org.gradle.docs.samples.*.incubating-publishing-convention-plugins*.sample"
-            excludeTestsMatching "org.gradle.docs.samples.*.publishing-groovy-libraries*.sample"
-            excludeTestsMatching "org.gradle.docs.samples.*.publishing-convention-plugins*.sample"
-            excludeTestsMatching "org.gradle.docs.samples.*.building-spring-boot-web-applications*.sample"
-        }
-
         if (OperatingSystem.current().windows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model.sample"
