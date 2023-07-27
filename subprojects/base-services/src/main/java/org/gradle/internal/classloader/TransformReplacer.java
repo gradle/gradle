@@ -157,7 +157,7 @@ public class TransformReplacer implements Closeable {
 
     private class JarLoader extends Loader {
         private final File jarFilePath;
-        private @Nullable JarFile jarFile;
+        private @Nullable JarCompat jarFile;
 
         public JarLoader(File transformedJarFile) {
             jarFilePath = transformedJarFile;
@@ -185,22 +185,16 @@ public class TransformReplacer implements Closeable {
 
         @Override
         public synchronized void close() {
+            // Not calling getJarFileLocked intentionally, to avoid opening the JAR if it isn't opened yet.
             IoActions.closeQuietly(jarFile);
         }
 
-        @SuppressWarnings("Since15")
         private JarFile getJarFileLocked() throws IOException {
             ensureOpened();
             if (jarFile == null) {
-                try {
-                    // Set up the MR-JAR properly when running on Java 9+.
-                    jarFile = new JarFile(jarFilePath, true, JarFile.OPEN_READ, JarFile.runtimeVersion());
-                } catch (NoSuchMethodError e) {
-                    // Running on Java 8, fall back to the old ways.
-                    jarFile = new JarFile(jarFilePath);
-                }
+                jarFile = JarCompat.open(jarFilePath);
             }
-            return jarFile;
+            return jarFile.getJarFile();
         }
 
         private String classNameToPath(String className) {
