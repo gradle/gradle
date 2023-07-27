@@ -35,22 +35,19 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.JarUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.OptionalInt;
 import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -60,13 +57,6 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
     private static final int CACHE_FORMAT = 6;
     private static final int AGENT_INSTRUMENTATION_VERSION = 2;
-
-    // We cannot use Attributes.Name.MULTI_RELEASE as it is only available since Java 9;
-    private static final String MULTI_RELEASE_ATTRIBUTE = "Multi-Release";
-
-    // Pattern for JAR entries in the versioned directories.
-    // See https://docs.oracle.com/en/java/javase/20/docs/specs/jar/jar.html#multi-release-jar-files
-    private static final Pattern VERSIONED_JAR_ENTRY_PATH = Pattern.compile("^META-INF/versions/(\\d+)/.+$");
 
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
@@ -308,7 +298,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         }
 
         private boolean isManifest(ClasspathEntryVisitor.Entry entry) {
-            return isManifestName(entry.getName());
+            return JarUtil.isManifestName(entry.getName());
         }
     }
 
@@ -334,8 +324,8 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
                                 // This policy doesn't transform signed JARs so no further checks are necessary.
                                 return new SkipTransformation(source);
                             }
-                            if (isMultiReleaseJar == null && isManifestName(entryName)) {
-                                isMultiReleaseJar = isMultiReleaseJarManifest(readManifest(entry.getContent()));
+                            if (isMultiReleaseJar == null && JarUtil.isManifestName(entryName)) {
+                                isMultiReleaseJar = JarUtil.isMultiReleaseJarManifest(JarUtil.readManifest(entry.getContent()));
                             }
                         }
                     } catch (FileException e) {
@@ -433,8 +423,8 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         @Override
         protected void processManifest(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry manifestEntry) throws IOException {
             try {
-                Manifest parsedManifest = readManifest(manifestEntry.getContent());
-                if (!isMultiReleaseJarManifest(parsedManifest)) {
+                Manifest parsedManifest = JarUtil.readManifest(manifestEntry.getContent());
+                if (!JarUtil.isMultiReleaseJarManifest(parsedManifest)) {
                     // If the original JAR is not multi-release, we don't need the manifest in the transformed JAR at all.
                     return;
                 }
@@ -445,7 +435,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
                 // For everything else (classpath, sealed, etc.) classloader will check the original JAR, so no need to copy it.
                 Manifest processedManifest = new Manifest();
                 copyManifestMainAttribute(parsedManifest, processedManifest, Attributes.Name.MANIFEST_VERSION);
-                setManifestMainAttribute(processedManifest, MULTI_RELEASE_ATTRIBUTE, "true");
+                setManifestMainAttribute(processedManifest, JarUtil.MULTI_RELEASE_ATTRIBUTE, "true");
 
                 builder.put(manifestEntry.getName(), toByteArray(processedManifest), manifestEntry.getCompressionMethod());
             } catch (IOException e) {
@@ -474,23 +464,6 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         }
     }
 
-    private static boolean isManifestName(String name) {
-        return name.equals(JarFile.MANIFEST_NAME);
-    }
-
-    private static Manifest readManifest(byte[] content) throws IOException {
-        return new Manifest(new ByteArrayInputStream(content));
-    }
-
-    private static boolean isMultiReleaseJarManifest(Manifest manifest) {
-        return Boolean.parseBoolean(getManifestMainAttribute(manifest, MULTI_RELEASE_ATTRIBUTE));
-    }
-
-    @Nullable
-    private static String getManifestMainAttribute(Manifest manifest, String name) {
-        return manifest.getMainAttributes().getValue(name);
-    }
-
     @NonNullApi
     public static class MrJarUtils {
         /**
@@ -502,18 +475,10 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
          * @see <a href="https://docs.oracle.com/en/java/javase/20/docs/specs/jar/jar.html#multi-release-jar-files">MR JAR specification</a>
          */
         public static boolean isInUnsupportedMrJarVersionedDirectory(ClasspathEntryVisitor.Entry entry) {
-            Matcher match = VERSIONED_JAR_ENTRY_PATH.matcher(entry.getName());
-            if (match.matches()) {
-                try {
-                    int version = Integer.parseInt(match.group(1));
-                    return version > AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
-                } catch (NumberFormatException ignored) {
-                    // Even though the pattern ensures that the version name is all digits, it fails to parse, probably because it is too big.
-                    // Technically it may be a valid MR JAR for Java >Integer.MAX_VALUE, but we are too far away from this.
-                    // We assume that JAR author didn't intend it to be a versioned directory and keep it.
-                }
+            OptionalInt version = JarUtil.getVersionedDirectoryMajorVersion(entry.getName());
+            if (version.isPresent()) {
+                return version.getAsInt() > AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
             }
-
             // The entry is not in the versioned directory at all.
             return false;
         }
