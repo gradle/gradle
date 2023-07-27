@@ -11,6 +11,7 @@ dependency for any projects working directly with Test tasks.
 """
 
 dependencies {
+    implementation(project(":functional"))
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
