@@ -34,12 +34,10 @@ import java.util.List;
  */
 public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTasksBuildTaskScheduler.class);
-    private final ProjectConfigurer projectConfigurer;
     private final List<BuiltInCommand> builtInCommands;
     private final BuildTaskScheduler delegate;
 
-    public DefaultTasksBuildTaskScheduler(ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands, BuildTaskScheduler delegate) {
-        this.projectConfigurer = projectConfigurer;
+    public DefaultTasksBuildTaskScheduler(List<BuiltInCommand> builtInCommands, BuildTaskScheduler delegate) {
         this.builtInCommands = builtInCommands;
         this.delegate = delegate;
     }
@@ -53,7 +51,7 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
             ProjectInternal project = gradle.getDefaultProject();
 
             //so that we don't miss out default tasks
-            projectConfigurer.configure(project);
+            project.getOwner().ensureConfigured();
 
             List<String> defaultTasks = project.getDefaultTasks();
             if (defaultTasks.size() == 0) {

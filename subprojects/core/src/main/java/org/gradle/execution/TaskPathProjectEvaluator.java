@@ -17,21 +17,17 @@
 package org.gradle.execution;
 
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
+
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 public class TaskPathProjectEvaluator implements ProjectConfigurer {
     private final BuildCancellationToken cancellationToken;
 
     public TaskPathProjectEvaluator(BuildCancellationToken cancellationToken) {
         this.cancellationToken = cancellationToken;
-    }
-
-    @Override
-    public void configure(ProjectInternal project) {
-        project.getOwner().ensureConfigured();
     }
 
     @Override
@@ -44,10 +40,14 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     }
 
     @Override
-    public void configureHierarchy(ProjectInternal project) {
-        configure(project);
-        for (Project sub : project.getSubprojects()) {
-            configure((ProjectInternal) sub);
+    public void configureHierarchy(ProjectState projectState) {
+        Queue<ProjectState> queue = new ArrayDeque<>();
+        queue.add(projectState);
+
+        while (!queue.isEmpty()) {
+            ProjectState current = queue.remove();
+            current.ensureConfigured();
+            queue.addAll(current.getChildProjects());
         }
     }
 }
