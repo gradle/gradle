@@ -48,7 +48,9 @@ dependencies {
     implementation(libs.futureKotlin("stdlib-jdk8"))
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":language-groovy")))
+    testImplementation(testFixtures(project(":language-groovy"))) {
+        because("These tests use the Groovy compiler, so even though this is the inverse dependency of the main sourceSets in these projects, it best keeps testing types located in the same project as the corresponding prod types")
+    }
     testImplementation(testFixtures(project(":logging")))
 
     testRuntimeOnly(project(":distributions-core")) {
