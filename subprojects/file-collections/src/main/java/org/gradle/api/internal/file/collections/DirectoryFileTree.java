@@ -23,7 +23,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.ReproducibleFileVisitor;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.AttributeBasedFileVisitDetailsFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -108,7 +108,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     @Override
     public void visit(FileVisitor visitor) {
-        visitFrom(visitor, dir, RelativePath.EMPTY_ROOT);
+        visitFrom(visitor, dir, RelativePath.EMPTY_ROOT, new AtomicBoolean());
     }
 
     /**
@@ -116,8 +116,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
      * (but not the directory itself) will be checked with {@link #isAllowed(FileTreeElement, Spec)} and notified to
      * the listener.  If it is a file, the file will be checked and notified.
      */
-    public void visitFrom(FileVisitor visitor, File fileOrDirectory, RelativePath path) {
-        AtomicBoolean stopFlag = new AtomicBoolean();
+    public void visitFrom(FileVisitor visitor, File fileOrDirectory, RelativePath path, AtomicBoolean stopFlag) {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         if (fileOrDirectory.exists()) {
             if (fileOrDirectory.isFile()) {
@@ -132,7 +131,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     private void processSingleFile(File file, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         RelativePath path = new RelativePath(true, file.getName());
-        FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
+        FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem);
         if (isAllowed(details, spec)) {
             visitor.visitFile(details);
         }
@@ -145,7 +144,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         } else {
             directoryWalker = DEFAULT_DIRECTORY_WALKER;
         }
-        directoryWalker.walkDir(file, path, visitor, spec, stopFlag, postfix);
+        directoryWalker.walkDir(file.toPath(), path, visitor, spec, stopFlag, postfix);
     }
 
     static boolean isAllowed(FileTreeElement element, Spec<? super FileTreeElement> spec) {
