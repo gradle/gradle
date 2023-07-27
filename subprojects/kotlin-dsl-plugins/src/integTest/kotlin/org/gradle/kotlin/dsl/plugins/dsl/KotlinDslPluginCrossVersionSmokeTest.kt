@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -153,10 +154,24 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
         assumeNonEmbeddedGradleExecuter()
         val testedVersion = "4.0.2"
-        val blessedVersion = org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 
         withDefaultSettingsIn("buildSrc")
-        withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(testedVersion))
+        val buildScript = withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(testedVersion))
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_20)) {
+            // Kotlin 1.8.20 that is a dependency of kotlin-dsl plugin 4.0.2 doesn't work
+            // with Java20+ without setting jvmTarget that is lower than JvmTarget.JVM_20
+            buildScript.appendText(
+                """
+                    tasks.named<JavaCompile>("compileJava") {
+                        options.release = 8
+                    }
+                    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                        compilerOptions {
+                            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+                        }
+                    }"""
+            )
+        }
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", """println("some!")""")
 
         withDefaultSettings()
@@ -174,7 +189,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         build("help").apply {
             assertThat(
                 output,
-                containsString("This version of Gradle expects version '$blessedVersion' of the `kotlin-dsl` plugin but version '$testedVersion' has been applied to project ':buildSrc'. Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
+                containsString("This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$testedVersion' has been applied to project ':buildSrc'. Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
             )
 
             assertThat(
