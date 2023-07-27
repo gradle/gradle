@@ -34,6 +34,7 @@ import spock.lang.Specification
 
 import java.util.jar.JarFile
 
+import static org.gradle.internal.classloader.TransformReplacer.MARKER_RESOURCE_NAME
 import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent
 import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader
 import static org.gradle.util.JarUtils.jar
@@ -210,6 +211,82 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         expect:
         with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithClassLoader())))) {
             assertContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "Foo.class")
+        }
+    }
+
+    def "agent instrumentation puts no marker into non-multi-release jar"() {
+        given:
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                // No Multi-Release attribute in the manifest.
+            }
+
+            entry("Foo.class", classOne())
+        }
+
+        expect:
+        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())), false)) {
+            assertNotContainsFile(MARKER_RESOURCE_NAME)
+        }
+    }
+
+    def "agent instrumentation puts support marker to the root of multi-release jar"() {
+        given:
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                mainAttributes.putValue("Multi-Release", "true")
+            }
+
+            entry("Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION, "Foo.class", classOne())
+        }
+
+        expect:
+        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
+            assertFileContent(MARKER_RESOURCE_NAME, "true")
+
+            9..AsmConstants.MAX_SUPPORTED_JAVA_VERSION.each {
+                assertNotContainsVersioned(it, MARKER_RESOURCE_NAME)
+            }
+        }
+    }
+
+    def "agent instrumentation puts support marker to unsupported versioned directory"() {
+        given:
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                mainAttributes.putValue("Multi-Release", "true")
+            }
+
+            entry("Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2, "Foo.class", classOne())
+        }
+
+        expect:
+        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
+            assertFileContent(MARKER_RESOURCE_NAME, "true")
+            assertVersionedContent(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MARKER_RESOURCE_NAME, "false")
+
+            assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2, MARKER_RESOURCE_NAME)
+        }
+    }
+
+    def "agent instrumentation puts no marker into unsupported versioned directories with resources only"() {
+        given:
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                mainAttributes.putValue("Multi-Release", "true")
+            }
+
+            entry("Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "resource.txt", "resource")
+        }
+
+        expect:
+        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
+            assertFileContent(MARKER_RESOURCE_NAME, "true")
+            assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MARKER_RESOURCE_NAME)
         }
     }
 

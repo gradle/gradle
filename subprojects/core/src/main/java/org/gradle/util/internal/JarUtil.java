@@ -132,4 +132,8 @@ public class JarUtil {
         // The entry is not in the versioned directory.
         return OptionalInt.empty();
     }
+
+    public static String toVersionedPath(int version, String basePath) {
+        return String.format("META-INF/versions/%d/%s", version, basePath);
+    }
 }

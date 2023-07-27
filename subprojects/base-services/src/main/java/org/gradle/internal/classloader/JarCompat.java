@@ -29,7 +29,7 @@ import java.util.jar.JarFile;
 abstract class JarCompat implements Closeable {
     public static final boolean JAVA_9_COMPATIBLE = JavaVersion.current().isJava9Compatible();
 
-    private final JarFile jarFile;
+    protected final JarFile jarFile;
 
     private JarCompat(JarFile jarFile) {
         this.jarFile = jarFile;
@@ -38,6 +38,8 @@ abstract class JarCompat implements Closeable {
     public final JarFile getJarFile() {
         return jarFile;
     }
+
+    public abstract boolean isMultiRelease();
 
     @Override
     public final void close() throws IOException {
@@ -57,6 +59,12 @@ abstract class JarCompat implements Closeable {
         public LegacyJar(File jarFile) throws IOException {
             super(new JarFile(jarFile));
         }
+
+        @Override
+        public boolean isMultiRelease() {
+            // Pre-Java 9 platforms do not support multi-release JARs.
+            return false;
+        }
     }
 
     @SuppressWarnings("Since15")
@@ -64,6 +72,11 @@ abstract class JarCompat implements Closeable {
         MultiReleaseSupportingJar(File jarFile) throws IOException {
             // Set up the MR-JAR properly when running on Java 9+.
             super(new JarFile(jarFile, true, JarFile.OPEN_READ, JarFile.runtimeVersion()));
+        }
+
+        @Override
+        public boolean isMultiRelease() {
+            return jarFile.isMultiRelease();
         }
     }
 }

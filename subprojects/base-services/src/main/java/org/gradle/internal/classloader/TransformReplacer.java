@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classloader;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.agents.InstrumentingClassLoader;
@@ -42,6 +43,8 @@ import java.util.jar.JarFile;
  * This class is thread-safe.
  */
 public class TransformReplacer implements Closeable {
+    public static final String MARKER_RESOURCE_NAME = TransformReplacer.class.getName() + ".transformed";
+
     private static final Loader SKIP_INSTRUMENTATION = new Loader();
     private final ConcurrentMap<ProtectionDomain, Loader> loaders;
     private final TransformedClassPath classPath;
@@ -97,8 +100,9 @@ public class TransformReplacer implements Closeable {
     }
 
     private Loader createLoaderForDomain(ProtectionDomain domain) {
-        File transformedJarPath = findTransformedFile(domain);
-        return transformedJarPath != null ? new JarLoader(transformedJarPath) : SKIP_INSTRUMENTATION;
+        File originalJarPath = getOriginalFile(domain);
+        File transformedJarPath = originalJarPath != null ? classPath.findTransformedJarFor(originalJarPath) : null;
+        return transformedJarPath != null ? new JarLoader(originalJarPath, transformedJarPath) : SKIP_INSTRUMENTATION;
     }
 
     private Loader storeIfAbsent(ProtectionDomain domain, Loader newLoader) {
@@ -130,7 +134,7 @@ public class TransformReplacer implements Closeable {
     }
 
     @Nullable
-    private File findTransformedFile(ProtectionDomain protectionDomain) {
+    private static File getOriginalFile(ProtectionDomain protectionDomain) {
         // CodeSource is null for dynamically defined classes, or if the ClassLoader doesn't set them properly.
         CodeSource cs = protectionDomain.getCodeSource();
         URL originalUrl = cs != null ? cs.getLocation() : null;
@@ -139,7 +143,7 @@ public class TransformReplacer implements Closeable {
             return null;
         }
         try {
-            return classPath.findTransformedJarFor(new File(originalUrl.toURI()));
+            return new File(originalUrl.toURI());
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Cannot parse file URL " + originalUrl, e);
         }
@@ -156,11 +160,13 @@ public class TransformReplacer implements Closeable {
     }
 
     private class JarLoader extends Loader {
+        private final File originalJarFilePath;
         private final File jarFilePath;
         private @Nullable JarCompat jarFile;
 
-        public JarLoader(File transformedJarFile) {
-            jarFilePath = transformedJarFile;
+        public JarLoader(File originalJarFilePath, File transformedJarFile) {
+            this.originalJarFilePath = originalJarFilePath;
+            this.jarFilePath = transformedJarFile;
         }
 
         @Override
@@ -193,6 +199,12 @@ public class TransformReplacer implements Closeable {
             ensureOpened();
             if (jarFile == null) {
                 jarFile = JarCompat.open(jarFilePath);
+                if (jarFile.isMultiRelease() && !isTransformed(jarFile.getJarFile())) {
+                    throw new GradleException(
+                        "Cannot load multi-release JAR '"
+                            + originalJarFilePath.getAbsolutePath()
+                            + "' because it cannot be fully instrumented by this version of Gradle.");
+                }
             }
             return jarFile.getJarFile();
         }
@@ -200,5 +212,18 @@ public class TransformReplacer implements Closeable {
         private String classNameToPath(String className) {
             return className + ".class";
         }
+    }
+
+    private static boolean isTransformed(JarFile jarFile) throws IOException {
+        JarEntry entry = jarFile.getJarEntry(MARKER_RESOURCE_NAME);
+        if (entry != null) {
+            InputStream in = jarFile.getInputStream(entry);
+            try {
+                return "true".equals(StreamByteBuffer.of(in).readAsString("UTF-8"));
+            } finally {
+                in.close();
+            }
+        }
+        return false;
     }
 }

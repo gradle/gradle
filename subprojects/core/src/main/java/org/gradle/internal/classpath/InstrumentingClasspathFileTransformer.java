@@ -26,6 +26,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.classloader.TransformReplacer;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
@@ -45,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.OptionalInt;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -56,7 +58,7 @@ import static org.gradle.internal.classpath.InstrumentingClasspathFileTransforme
 public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
     private static final int CACHE_FORMAT = 6;
-    private static final int AGENT_INSTRUMENTATION_VERSION = 2;
+    private static final int AGENT_INSTRUMENTATION_VERSION = 3;
 
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
@@ -238,6 +240,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
             classpathWalker.visit(source, entry -> {
                 visitEntry(builder, entry);
             });
+            finishProcessing(builder);
         }
 
         private void visitEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
@@ -292,6 +295,8 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) throws IOException {
             builder.put(resourceEntry.getName(), resourceEntry.getContent(), resourceEntry.getCompressionMethod());
         }
+
+        protected void finishProcessing(ClasspathBuilder.EntryBuilder builder) throws IOException {}
 
         private boolean isClassFile(ClasspathEntryVisitor.Entry entry) {
             return entry.getName().endsWith(".class");
@@ -401,11 +406,13 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         };
     }
 
-
     /**
      * Transformation for agent-based instrumentation.
      */
     private class TransformationForAgent extends BaseTransformation {
+        private int lowestUnsupportedVersionInJar = Integer.MAX_VALUE;
+        private boolean isMultiReleaseJar;
+
         public TransformationForAgent(File source, InstrumentingTypeRegistry typeRegistry) {
             super(source, typeRegistry);
         }
@@ -414,9 +421,16 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
             // We can filter out "unsupported" classes without checking the manifest beforehand.
             // Even if this JAR isn't multi-release per manifest, classes in META-INF/ cannot be loaded, so they are just weird resources.
-            // The agent-based instrumentation doesn't load resources from the instrumented JAR.
-            if (!isInUnsupportedMrJarVersionedDirectory(classEntry)) {
+            // The agent-based instrumentation doesn't load resources from the instrumented JAR, but from the original.
+            // TODO(https://github.com/gradle/gradle/issues/18024) we really shouldn't instrument these "resource-looks-like-class" things.
+
+            // We don't know the actual minimal supported version of the non-versioned class entries.
+            // We fall back to some supported default to make checks below simpler.
+            int version = JarUtil.getVersionedDirectoryMajorVersion(classEntry.getName()).orElse(AsmConstants.MIN_SUPPORTED_JAVA_VERSION);
+            if (isSupportedVersion(version)) {
                 super.processClassFile(builder, classEntry);
+            } else if (lowestUnsupportedVersionInJar > version) {
+                lowestUnsupportedVersionInJar = version;
             }
         }
 
@@ -428,6 +442,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
                     // If the original JAR is not multi-release, we don't need the manifest in the transformed JAR at all.
                     return;
                 }
+                isMultiReleaseJar = true;
 
                 // We want the transformed JAR to also be a proper multi-release JAR.
                 // To do so it must have the "Multi-Release: true" attribute.
@@ -447,6 +462,24 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         @Override
         protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) {
             // Class loader loads resources from the original JAR, so there's no need to put them into the transformed JAR.
+            // Only classes affect the class-loading
+        }
+
+        @Override
+        protected void finishProcessing(ClasspathBuilder.EntryBuilder builder) throws IOException {
+            if (isMultiReleaseJar) {
+                // Put marker resource into a multi-release JAR so the classloader can recognize that it tries to load non-instrumented classes.
+                // Root directory is always supported. Every Java version before lowestUnsupportedVersion should also load from root.
+                builder.put(TransformReplacer.MARKER_RESOURCE_NAME, "true".getBytes(StandardCharsets.UTF_8));
+                if (hasUnsupportedVersionInJar()) {
+                    // Every Java version starting from lowestUnsupportedVersion should see this jar as unsupported.
+                    builder.put(JarUtil.toVersionedPath(lowestUnsupportedVersionInJar, TransformReplacer.MARKER_RESOURCE_NAME), "false".getBytes(StandardCharsets.UTF_8));
+                }
+            }
+        }
+
+        private boolean hasUnsupportedVersionInJar() {
+            return lowestUnsupportedVersionInJar < Integer.MAX_VALUE;
         }
 
         private void copyManifestMainAttribute(Manifest source, Manifest destination, Attributes.Name name) {
@@ -464,6 +497,10 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         }
     }
 
+    private static boolean isSupportedVersion(int javaMajorVersion) {
+        return javaMajorVersion <= AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
+    }
+
     @NonNullApi
     public static class MrJarUtils {
         /**
@@ -477,7 +514,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         public static boolean isInUnsupportedMrJarVersionedDirectory(ClasspathEntryVisitor.Entry entry) {
             OptionalInt version = JarUtil.getVersionedDirectoryMajorVersion(entry.getName());
             if (version.isPresent()) {
-                return version.getAsInt() > AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
+                return !isSupportedVersion(version.getAsInt());
             }
             // The entry is not in the versioned directory at all.
             return false;

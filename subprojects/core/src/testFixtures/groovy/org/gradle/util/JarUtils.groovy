@@ -18,6 +18,7 @@ package org.gradle.util
 
 
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.internal.JarUtil
 
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
@@ -101,10 +102,10 @@ class JarUtils {
         /**
          * Configures the JAR manifest.
          */
-        void manifest(@DelegatesTo(value = Manifest, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+        void manifest(@DelegatesTo(value = ManifestWithDsl, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
             assert !hasConfiguredManifest: "Already written the manifest"
 
-            def man = new Manifest()
+            def man = new ManifestWithDsl()
             man.mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
 
             closure.setDelegate(man)
@@ -166,6 +167,18 @@ class JarUtils {
 
         private void checkManifestWritten() {
             assert hasConfiguredManifest: "Must have manifest before entries. Use withoutManifest() to skip it explicitly."
+        }
+    }
+
+    /**
+     * A Manifest with additional goodies to make its configuration more pleasant.
+     */
+    static class ManifestWithDsl extends Manifest {
+        /**
+         * Configures this Manifest to be Multi-Release.
+         */
+        void multiRelease() {
+            mainAttributes.putValue(JarUtil.MULTI_RELEASE_ATTRIBUTE, "true")
         }
     }
 }
