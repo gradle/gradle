@@ -21,6 +21,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Either;
+import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathFileHasher;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
@@ -29,6 +31,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.util.internal.JarUtil;
 import org.objectweb.asm.ClassReader;
 
 import javax.annotation.Nullable;
@@ -45,12 +48,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
  * Collects the direct super types of all classes for given files and also caches values in cache.
@@ -69,6 +71,23 @@ class DefaultInstrumentingDirectSuperTypesCollector implements InstrumentingDire
         this.parallelExecutor = parallelExecutor;
         this.classpathWalker = classpathWalker;
         this.fileSystemAccess = fileSystemAccess;
+    }
+
+    /**
+     * Checks that the given entry is in the versioned directory of the multi-release JAR and this Java version is not yet supported by the instrumentation.
+     * The function doesn't check if the entry is actually in the multi-release JAR.
+     *
+     * @param entry the entry to check
+     * @return {@code true} if the entry is in the versioned directory and the Java version isn't supported
+     * @see <a href="https://docs.oracle.com/en/java/javase/20/docs/specs/jar/jar.html#multi-release-jar-files">MR JAR specification</a>
+     */
+    public static boolean isInUnsupportedMrJarVersionedDirectory(ClasspathEntryVisitor.Entry entry) {
+        OptionalInt version = JarUtil.getVersionedDirectoryMajorVersion(entry.getName());
+        if (version.isPresent()) {
+            return version.getAsInt() > AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
+        }
+        // The entry is not in the versioned directory at all.
+        return false;
     }
 
     @Override

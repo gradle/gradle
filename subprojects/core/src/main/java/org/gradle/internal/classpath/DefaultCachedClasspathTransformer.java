@@ -71,6 +71,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ParallelTransformExecutor parallelTransformExecutor;
     private final InstrumentingTypeRegistryFactory typeRegistryFactory;
     private final GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingRegistry;
+    private final CurrentJavaVersionProvider currentJavaVersionProvider;
 
     public DefaultCachedClasspathTransformer(
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
@@ -99,6 +100,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.parallelTransformExecutor = new ParallelTransformExecutor(cache, executor);
         this.gradleCoreInstrumentingRegistry = gradleCoreInstrumentingRegistry;
         this.typeRegistryFactory = new DefaultInstrumentingTypeRegistryFactory(gradleCoreInstrumentingRegistry, cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
+        this.currentJavaVersionProvider = new CachingJavaVersionProvider();
     }
 
     @Override
@@ -222,7 +224,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             locationSnapshot -> classpathFingerprinter.fingerprint(locationSnapshot, null).getHash(),
             policy,
             transform,
-            gradleCoreInstrumentingRegistry);
+            gradleCoreInstrumentingRegistry,
+            currentJavaVersionProvider);
     }
 
     private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, InstrumentingTypeRegistry typeRegistry) {

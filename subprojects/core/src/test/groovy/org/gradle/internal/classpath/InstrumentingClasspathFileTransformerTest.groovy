@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.api.GradleException
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.FileLockManager
@@ -48,6 +49,9 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
     def classpathBuilder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.createDir("tmp")))
     def fileLockManager = Stub(FileLockManager)
     def fileSystemAccess = TestFiles.fileSystemAccess()
+    def currentJavaVersionProvider = Stub(CurrentJavaVersionProvider) {
+        getJavaVersion() >> AsmConstants.MAX_SUPPORTED_JAVA_VERSION
+    }
     def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentingTypeRegistry) {
         getInstrumentedFileHash() >> Optional.empty()
     }
@@ -177,7 +181,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
     }
 
-    def "legacy instrumentation removes unsupported versioned resources from transformed jar"() {
+    def "legacy instrumentation copies unsupported versioned resources into transformed jar"() {
         given:
         def testFile = jar(testDir.file("thing.jar")) {
             manifest {
@@ -193,7 +197,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         expect:
         with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithClassLoader())))) {
             assertContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION, "resource.txt")
-            assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "resource.txt")
+            assertContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "resource.txt")
         }
     }
 
@@ -214,12 +218,87 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
     }
 
+    def "multi-release jar with unsupported versioned directories fails processing when running on jvm that can load them"(Policy policy, int unsupportedJvmVersion) {
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                mainAttributes.putValue("Multi-Release", "true")
+            }
+
+            entry("Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "Foo.class", classOne())
+        }
+
+        when:
+        transform(testFile, transformerWithPolicy(policy, { unsupportedJvmVersion }))
+
+        then:
+        thrown(GradleException)
+
+        where:
+        [policy, unsupportedJvmVersion] << [
+            [instrumentForLoadingWithAgent(), instrumentForLoadingWithClassLoader()],
+            [AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2]
+        ].combinations()
+    }
+
+    def "multi-release jar with unsupported versioned directories can be processed when running on jvm that does not load them"() {
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                mainAttributes.putValue("Multi-Release", "true")
+            }
+
+            entry("Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2, "Foo.class", classOne())
+        }
+
+        when:
+        transform(testFile, transformerWithPolicy(policy, { AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1 }))
+
+        then:
+        noExceptionThrown()
+
+        where:
+        policy << [instrumentForLoadingWithAgent(), instrumentForLoadingWithClassLoader()]
+    }
+
+    def "multi-release jar with resource-only unsupported versioned directories can be processed and loaded"(Policy policy, int jvmVersion) {
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                mainAttributes.putValue("Multi-Release", "true")
+            }
+
+            entry("Foo.class", classOne())
+            entry("resource.txt", "root")
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2, "resource.txt", "root")
+        }
+
+        when:
+        transform(testFile, transformerWithPolicy(policy, { jvmVersion }))
+
+        then:
+        noExceptionThrown()
+
+        where:
+        [policy, jvmVersion] << [
+            [instrumentForLoadingWithAgent(), instrumentForLoadingWithClassLoader()],
+            [AsmConstants.MAX_SUPPORTED_JAVA_VERSION, AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2]
+        ].combinations()
+    }
+
     private File transform(File file, InstrumentingClasspathFileTransformer transformer) {
         return transformer.transform(file, fileSystemAccess.read(file.path), cacheDir, typeRegistry)
     }
 
-    private InstrumentingClasspathFileTransformer transformerWithPolicy(Policy policy) {
-        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, FileSystemLocationSnapshot::getHash, policy, new NoOpTransformer(), gradleCoreInstrumentingRegistry)
+    private InstrumentingClasspathFileTransformer transformerWithPolicy(Policy policy, CurrentJavaVersionProvider javaVersionProvider = currentJavaVersionProvider) {
+        return new InstrumentingClasspathFileTransformer(
+            fileLockManager,
+            classpathWalker,
+            classpathBuilder,
+            FileSystemLocationSnapshot::getHash,
+            policy,
+            new NoOpTransformer(),
+            gradleCoreInstrumentingRegistry,
+            javaVersionProvider)
     }
 
     private static class NoOpTransformer implements CachedClasspathTransformer.Transform {

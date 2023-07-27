@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
@@ -51,7 +50,6 @@ import java.util.jar.Manifest;
 
 import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
@@ -61,6 +59,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
+    private final CurrentJavaVersionProvider javaVersionProvider;
     private final ClasspathFileHasher fileHasher;
     private final Policy policy;
     private final CachedClasspathTransformer.Transform transform;
@@ -105,11 +104,13 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         ClasspathFileHasher classpathFileHasher,
         Policy policy,
         CachedClasspathTransformer.Transform transform,
-        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
+        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry,
+        CurrentJavaVersionProvider javaVersionProvider
     ) {
         this.fileLockManager = fileLockManager;
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
+        this.javaVersionProvider = javaVersionProvider;
 
         HashCode configHash = configHashFor(policy, transform, gradleCoreInstrumentingTypeRegistry);
         this.fileHasher = sourceSnapshot -> {
@@ -234,6 +235,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
             classpathWalker.visit(source, entry -> {
                 visitEntry(builder, entry);
             });
+            finishProcessing();
         }
 
         private void visitEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
@@ -288,6 +290,47 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) throws IOException {
             builder.put(resourceEntry.getName(), resourceEntry.getContent(), resourceEntry.getCompressionMethod());
         }
+
+        /**
+         * Processing is complete.
+         * @throws IOException if finishing touches encountered I/O problem
+         */
+        protected void finishProcessing() throws IOException {}
+
+        /**
+         * Checks if the entry is supported for instrumentation and loading.
+         * Method returns {@code true} if the entry is eligible for instrumentation and {@code false} otherwise.
+         * If the entry is loadable on the current JVM, but not eligible for instrumentation, {@link #processLoadableUnsupportedVersionedEntry(int)} method is called.
+         * If that method throws, exception is propagated.
+         * <p>
+         * This method only relies on entry name to extract the target version, i.e. it assumes that the current JAR is a multi-release JAR.
+         *
+         * @param entry the entry to check
+         * @return {@code true} if the entry is eligible for instrumentation and {@code false} otherwise
+         * @throws UnsupportedBytecodeVersionException (optional) to abort JAR transformation if the entry is not instrumentable, but loadable on the current JVM
+         */
+        protected final boolean checkEntryInstrumentable(ClasspathEntryVisitor.Entry entry) {
+            OptionalInt version = JarUtil.getVersionedDirectoryMajorVersion(entry.getName());
+            if (!version.isPresent() || version.getAsInt() <= AsmConstants.MAX_SUPPORTED_JAVA_VERSION) {
+                // Non-versioned entry or for version that can be processed.
+                return true;
+            }
+            if (version.getAsInt() <= javaVersionProvider.getJavaVersion()) {
+                // Unsupported entry for the current JVM, this JAR should not be loaded.
+                processLoadableUnsupportedVersionedEntry(version.getAsInt());
+            }
+            // Unsupported entry for a newer JVM, should not be included.
+            return false;
+        }
+
+        /**
+         * Processes the entry in the versioned directory.
+         * Implementation may throw UnsupportedBytecodeVersionException to abort the transformation.
+         * This method is only called by {@link #checkEntryInstrumentable(ClasspathEntryVisitor.Entry)}.
+         *
+         * @param entryVersion the version of the entry.
+         */
+        protected void processLoadableUnsupportedVersionedEntry(int entryVersion) {}
 
         private boolean isClassFile(ClasspathEntryVisitor.Entry entry) {
             return entry.getName().endsWith(".class");
@@ -360,21 +403,21 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
 
         @Override
         protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
-            if (!isInUnsupportedMrJarVersionedDirectory(classEntry)) {
+            if (checkEntryInstrumentable(classEntry)) {
                 super.processClassFile(builder, classEntry);
             }
         }
 
         @Override
         protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) throws IOException {
-            // The entries should only be filtered out if we're transforming the proper multi-release JAR.
-            // Otherwise, even if the entry path looks like it is inside the versioned directory, it may still be accessed as a
-            // resource.
-            // Of course, user code can try to access resources inside versioned directories with full paths anyway, but that's
-            // a tradeoff we're making.
-            if (!isInUnsupportedMrJarVersionedDirectory(resourceEntry)) {
-                super.processResource(builder, resourceEntry);
-            }
+            // Even versioned resources for unsupported versions should not fail the transformation.
+            // The processClassFile will abort if there's also classes, but without classes the JAR is fine.
+            super.processResource(builder, resourceEntry);
+        }
+
+        @Override
+        protected void processLoadableUnsupportedVersionedEntry(int entryVersion) {
+            throw unsupportedJar(source);
         }
     }
 
@@ -397,11 +440,13 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         };
     }
 
-
     /**
      * Transformation for agent-based instrumentation.
      */
     private class TransformationForAgent extends BaseTransformation {
+        private boolean isMultiReleaseJar;
+        private boolean hasUnsupportedLoadableClasses;
+
         public TransformationForAgent(File source, InstrumentingTypeRegistry typeRegistry) {
             super(source, typeRegistry);
         }
@@ -411,7 +456,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
             // We can filter out "unsupported" classes without checking the manifest beforehand.
             // Even if this JAR isn't multi-release per manifest, classes in META-INF/ cannot be loaded, so they are just weird resources.
             // The agent-based instrumentation doesn't load resources from the instrumented JAR.
-            if (!isInUnsupportedMrJarVersionedDirectory(classEntry)) {
+            if (checkEntryInstrumentable(classEntry)) {
                 super.processClassFile(builder, classEntry);
             }
         }
@@ -424,6 +469,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
                     // If the original JAR is not multi-release, we don't need the manifest in the transformed JAR at all.
                     return;
                 }
+                isMultiReleaseJar = true;
 
                 // We want the transformed JAR to also be a proper multi-release JAR.
                 // To do so it must have the "Multi-Release: true" attribute.
@@ -443,6 +489,20 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         @Override
         protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) {
             // Class loader loads resources from the original JAR, so there's no need to put them into the transformed JAR.
+            // Even versioned resources for unsupported versions should not fail the transformation.
+            // The processClassFile will abort if there's also classes, but without classes the JAR is fine.
+        }
+
+        @Override
+        protected void processLoadableUnsupportedVersionedEntry(int entryVersion) {
+            hasUnsupportedLoadableClasses = true;
+        }
+
+        @Override
+        protected void finishProcessing() {
+            if (isMultiReleaseJar && hasUnsupportedLoadableClasses) {
+                throw unsupportedJar(source);
+            }
         }
 
         private void copyManifestMainAttribute(Manifest source, Manifest destination, Attributes.Name name) {
@@ -460,23 +520,8 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         }
     }
 
-    @NonNullApi
-    public static class MrJarUtils {
-        /**
-         * Checks that the given entry is in the versioned directory of the multi-release JAR and this Java version is not yet supported by the instrumentation.
-         * The function doesn't check if the entry is actually in the multi-release JAR.
-         *
-         * @param entry the entry to check
-         * @return {@code true} if the entry is in the versioned directory and the Java version isn't supported
-         * @see <a href="https://docs.oracle.com/en/java/javase/20/docs/specs/jar/jar.html#multi-release-jar-files">MR JAR specification</a>
-         */
-        public static boolean isInUnsupportedMrJarVersionedDirectory(ClasspathEntryVisitor.Entry entry) {
-            OptionalInt version = JarUtil.getVersionedDirectoryMajorVersion(entry.getName());
-            if (version.isPresent()) {
-                return version.getAsInt() > AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
-            }
-            // The entry is not in the versioned directory at all.
-            return false;
-        }
+    private static UnsupportedBytecodeVersionException unsupportedJar(File jar) {
+        throw new UnsupportedBytecodeVersionException(
+            String.format("Multi-release JAR %s contains versioned directory with class files that this version of Gradle cannot instrument", jar.getAbsolutePath()));
     }
 }
