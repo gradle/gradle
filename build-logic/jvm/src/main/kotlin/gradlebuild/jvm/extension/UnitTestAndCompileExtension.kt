@@ -53,7 +53,7 @@ abstract class UnitTestAndCompileExtension(
     private
     fun enforceCompatibility(majorVersion: Int) {
         tasks.withType<JavaCompile>().configureEach {
-            javaCompiler.set(project.javaToolchains.compilerFor {
+            javaCompiler.set(project.the<JavaToolchainService>().compilerFor {
                 languageVersion.set(JavaLanguageVersion.of(majorVersion))
             })
             options.release = null
