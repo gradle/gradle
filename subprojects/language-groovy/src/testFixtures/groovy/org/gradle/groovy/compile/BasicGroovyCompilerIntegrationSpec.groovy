@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.GroovyCoverage
-import org.gradle.util.internal.GroovyDependencyUtil
 import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Ignore
@@ -46,22 +45,22 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     String groovyDependency
 
     String getGroovyVersionNumber() {
-        org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.version.split(":", 2)[0]
+        version.split(":", 2)[0]
     }
 
     def setup() {
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
         executer.withRepositoryMirrors()
-        groovyDependency = GroovyDependencyUtil.groovyModuleDependency("groovy", org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.versionNumber)
+        groovyDependency = groovyModuleDependency("groovy", versionNumber)
     }
 
     def "compileGoodCode"() {
         if (module == "groovy-all") {
             // No groovy-all for indy variant
-            Assume.assumeTrue(org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.versionClassifier != "indy")
+            Assume.assumeTrue(versionClassifier != "indy")
         }
-        groovyDependency = GroovyDependencyUtil.groovyModuleDependency(module, org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.versionNumber)
+        groovyDependency = groovyModuleDependency(module, versionNumber)
 
         expect:
         succeeds("compileGroovy")
@@ -367,7 +366,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasErrorOutput('unable to resolve class groovy.ant.AntBuilder')
 
         when:
-        buildFile << "dependencies { implementation '${GroovyDependencyUtil.groovyModuleDependency("groovy-ant", org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.versionNumber)}' }"
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-ant", versionNumber)}' }"
 
         then:
         succeeds("compileGroovy")
@@ -392,7 +391,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
         Assume.assumeFalse(versionLowerThan("3.0"))
 
-        buildFile << "dependencies { implementation '${GroovyDependencyUtil.groovyModuleDependency("groovy-test", org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.versionNumber)}' }"
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-test", versionNumber)}' }"
         expect:
         succeeds("test")
     }
@@ -463,7 +462,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         def gradleBaseServicesClass = Action
         buildScript """
             apply plugin: 'groovy'
-            ${org.gradle.integtests.fixtures.AbstractIntegrationSpec.mavenCentralRepository()}
+            ${mavenCentralRepository()}
         """
 
         when:
@@ -484,7 +483,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         def gradleBaseServicesClass = Action
         buildScript """
             apply plugin: 'groovy'
-            ${org.gradle.integtests.fixtures.AbstractIntegrationSpec.mavenCentralRepository()}
+            ${mavenCentralRepository()}
             dependencies {
                 implementation 'org.codehaus.groovy:groovy:2.4.3:grooid'
             }
@@ -504,7 +503,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         given:
         buildFile << """
             apply plugin: "groovy"
-            ${org.gradle.integtests.fixtures.AbstractIntegrationSpec.mavenCentralRepository()}
+            ${mavenCentralRepository()}
             compileGroovy.options.failOnError = false
         """.stripIndent()
 
@@ -519,7 +518,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         given:
         buildFile << """
             apply plugin: "groovy"
-            ${org.gradle.integtests.fixtures.AbstractIntegrationSpec.mavenCentralRepository()}
+            ${mavenCentralRepository()}
             compileGroovy.groovyOptions.failOnError = false
         """.stripIndent()
 
@@ -534,7 +533,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         given:
         buildFile << """
             apply plugin: "groovy"
-            ${org.gradle.integtests.fixtures.AbstractIntegrationSpec.mavenCentralRepository()}
+            ${mavenCentralRepository()}
             compileGroovy.options.failOnError = false
         """.stripIndent()
 
@@ -550,7 +549,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         given:
         buildFile << """
             apply plugin: "groovy"
-            ${org.gradle.integtests.fixtures.AbstractIntegrationSpec.mavenCentralRepository()}
+            ${mavenCentralRepository()}
             compileGroovy.groovyOptions.failOnError = false
         """.stripIndent()
 
@@ -751,7 +750,7 @@ ${annotationProcessorExtraSetup()}
     def writeAnnotationProcessingBuild(String java, String groovy) {
         buildFile << """
             apply plugin: "groovy"
-            ${org.gradle.integtests.fixtures.AbstractIntegrationSpec.mavenCentralRepository()}
+            ${mavenCentralRepository()}
             compileGroovy {
                 groovyOptions.with {
                     stubDir = file("\$buildDir/classes/stub")
