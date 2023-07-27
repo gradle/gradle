@@ -37,7 +37,7 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
     }
 
     @Override
-    public void execute(Configuration classpath) {
+    public void initialize(Configuration classpath) {
         List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
         Set<? extends Task> dependencies = TaskDependencyUtil.getDependenciesForInternalUse(classpath.getBuildDependencies(), null);
         for (Task task : dependencies) {
