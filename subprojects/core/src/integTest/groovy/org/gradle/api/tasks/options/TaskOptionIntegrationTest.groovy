@@ -295,7 +295,7 @@ Options
         run(['sample'] + options as String[])
 
         then:
-        def value = optionValue == 'null' ? optionValue : "$testDirectory/$optionValue"
+        def value = optionValue == 'null' ? optionValue : "${testDirectory.file(optionValue)}"
         outputContains("Value of myProp: $value")
 
         where:
@@ -315,7 +315,7 @@ Options
         run(['sample'] + options as String[])
 
         then:
-        def value = optionValue == 'null' ? optionValue : "$testDirectory/$optionValue"
+        def value = optionValue == 'null' ? optionValue : "${testDirectory.file(optionValue)}"
         outputContains("Value of myProp: $value")
 
         where:
