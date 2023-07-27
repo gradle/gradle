@@ -47,6 +47,7 @@ public class LockFileReaderWriter {
 
     private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
     private static final String LIMITATIONS_DOC_LINK = " " + new DocumentationRegistry().getDocumentationRecommendationFor("information on limitations", "dependency_locking", "locking_limitations");
+    private static final String FORMATTING_DOC_LINK = " " + new DocumentationRegistry().getDocumentationRecommendationFor("information on formatting", "dependency_locking", "lock_state_location_and_format");
 
     static final String UNIQUE_LOCKFILE_NAME = "gradle.lockfile";
     static final String FILE_SUFFIX = ".lockfile";
@@ -178,7 +179,8 @@ public class LockFileReaderWriter {
     private void parseLine(String line, Map<String, List<String>> result) {
         String[] split = line.split("=");
         if (split.length != 2) {
-            throw new InvalidLockFileException("project '" + context.getProjectPath().getPath() + "'. Line: " + line, null);
+            throw new InvalidLockFileException("lock file specified in '" + getUniqueLockfilePath().toString() + "'. Line: " + line +
+                FORMATTING_DOC_LINK, null);
         }
         String[] configurations = split[1].split(",");
         for (String configuration : configurations) {
