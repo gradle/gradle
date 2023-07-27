@@ -37,6 +37,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(0)
 
         when:
+        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
@@ -48,6 +49,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
         when:
+        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
@@ -59,14 +61,14 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
         when:
-        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, 0L) }
+        2 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, 0L) }
         1 * mockMemoryStatus.virtualMemory >> { new DefaultUnknownOsMemoryCategory("virtual") }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
         result.status == GRACEFUL_EXPIRE
-        result.reason == "to reclaim physical system memory"
+        result.reason == "to reclaim system physical memory"
     }
 
     def "daemon should expire when virtual memory falls below threshold"() {
@@ -74,14 +76,14 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
         when:
-        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
-        1 * mockMemoryStatus.virtualMemory >> { new DefaultLimitedOsMemoryCategory("virtual", MAX_MEMORY, 0L) }
+        2 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
+        2 * mockMemoryStatus.virtualMemory >> { new DefaultLimitedOsMemoryCategory("virtual", MAX_MEMORY, 0L) }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
         result.status == GRACEFUL_EXPIRE
-        result.reason == "to reclaim virtual system memory"
+        result.reason == "to reclaim system virtual memory"
     }
 
     def "daemon should not expire when memory is above threshold"() {
@@ -89,8 +91,8 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(0)
 
         when:
-        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
-        1 * mockMemoryStatus.virtualMemory >> { new DefaultUnknownOsMemoryCategory("virtual") }
+        2 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
+        2 * mockMemoryStatus.virtualMemory >> { new DefaultUnknownOsMemoryCategory("virtual") }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
