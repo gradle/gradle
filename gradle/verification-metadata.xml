@@ -629,18 +629,8 @@
             <pgp value="31bae2e51d95e0f8ad9b7bcc40a3c4432bd7308c"/>
          </artifact>
       </component>
-      <component group="com.h2database" name="h2" version="1.4.192">
-         <artifact name="h2-1.4.192.jar">
-            <pgp value="0cfa413799e2464c7d7e26220a4b343f2a55fdae"/>
-         </artifact>
-      </component>
-      <component group="com.h2database" name="h2" version="1.4.196">
-         <artifact name="h2-1.4.196.jar">
-            <pgp value="0cfa413799e2464c7d7e26220a4b343f2a55fdae"/>
-         </artifact>
-      </component>
-      <component group="com.h2database" name="h2" version="2.1.214">
-         <artifact name="h2-2.1.214.jar">
+      <component group="com.h2database" name="h2" version="2.2.220">
+         <artifact name="h2-2.2.220.jar">
             <pgp value="0cfa413799e2464c7d7e26220a4b343f2a55fdae"/>
          </artifact>
       </component>
