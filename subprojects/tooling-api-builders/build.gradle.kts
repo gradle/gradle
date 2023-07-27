@@ -25,13 +25,15 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":tooling-api"))
-    testCompileOnly(project(":toolchains-jvm"))
     implementation(project(":workers"))
 
     implementation(libs.groovy) // for 'Closure'
     implementation(libs.guava)
     implementation(libs.commonsIo)
 
+    testCompileOnly(project(":toolchains-jvm")) {
+        because("JavaLauncher is required for mocking Test.")
+    }
     testImplementation(project(":file-collections"))
     testImplementation(project(":platform-jvm"))
     testImplementation(testFixtures(project(":core")))
