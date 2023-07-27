@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
@@ -32,7 +31,7 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
         """subprojects {
                apply plugin: 'eclipse-wtp'
 
-               ${AbstractIntegrationSpec.mavenCentralRepository()}
+               ${mavenCentralRepository()}
            }
            project(':web') {
                apply plugin: 'war'

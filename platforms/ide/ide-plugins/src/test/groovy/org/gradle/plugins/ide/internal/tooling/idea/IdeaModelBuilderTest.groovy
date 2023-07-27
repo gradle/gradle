@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.gradle.plugins.ide.internal.tooling.IdeaModelBuilder
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
 
 class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     Project child1
@@ -92,8 +91,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         given:
         project.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
-        project.sourceCompatibility = '19'
-        child1.sourceCompatibility = sourceCompatibility
+        project.java.sourceCompatibility = '19'
+        child1.java.sourceCompatibility = sourceCompatibility
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -109,8 +108,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         given:
         project.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
-        project.sourceCompatibility = '1.2'
-        child1.sourceCompatibility = '1.3'
+        project.java.sourceCompatibility = '1.2'
+        child1.java.sourceCompatibility = '1.3'
         when:
         def ideaProject = buildIdeaProjectModel()
 
@@ -125,9 +124,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         child1.plugins.apply(JavaPlugin)
         child2.plugins.apply(JavaPlugin)
         project.idea.project.languageLevel = '1.2'
-        project.sourceCompatibility = '1.3'
-        child1.sourceCompatibility = '1.4'
-        child2.sourceCompatibility = '1.5'
+        project.java.sourceCompatibility = '1.3'
+        child1.java.sourceCompatibility = '1.4'
+        child2.java.sourceCompatibility = '1.5'
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -173,9 +172,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     def "can handle multi project builds with different source language levels"() {
         given:
         [project, child1, child2].each { it.plugins.apply(JavaPlugin) }
-        project.sourceCompatibility = '1.3'
-        child1.sourceCompatibility = '1.2'
-        child2.sourceCompatibility = '1.3'
+        project.java.sourceCompatibility = '1.3'
+        child1.java.sourceCompatibility = '1.2'
+        child2.java.sourceCompatibility = '1.3'
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -190,9 +189,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     def "can handle multi project builds where only some projects are java projects"() {
         given:
         project.plugins.apply(JavaPlugin)
-        project.sourceCompatibility = '1.4'
+        project.java.sourceCompatibility = '1.4'
         child1.plugins.apply(JavaPlugin)
-        child1.sourceCompatibility = '1.3'
+        child1.java.sourceCompatibility = '1.3'
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -289,7 +288,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     private IdeaModelBuilder createIdeaModelBuilder() {
         def gradleProjectBuilder = Mock(GradleProjectBuilder)
-        gradleProjectBuilder.buildAll(Specification._) >> Mock(DefaultGradleProject)
+        gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)
         new IdeaModelBuilder(gradleProjectBuilder)
     }
 

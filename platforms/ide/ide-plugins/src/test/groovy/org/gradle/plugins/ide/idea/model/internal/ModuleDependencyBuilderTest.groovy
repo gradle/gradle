@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,11 @@ import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import spock.lang.Specification
 
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
+
 class ModuleDependencyBuilderTest extends Specification {
 
-    def projectId = org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId(":nested:project-name")
+    def projectId = newProjectId(":nested:project-name")
     def artifactRegistry = Mock(IdeArtifactRegistry)
     def builder = new ModuleDependencyBuilder(artifactRegistry)
 
@@ -40,7 +42,7 @@ class ModuleDependencyBuilderTest extends Specification {
 
     def "builds dependency for nonIdea root project"() {
         when:
-        def dependency = builder.create(org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId(":build-1",":a"), 'compile')
+        def dependency = builder.create(newProjectId(":build-1",":a"), 'compile')
 
         then:
         dependency.scope == 'compile'
