@@ -190,7 +190,7 @@ abstract class AbstractSmokeTest extends Specification {
         static teamCityGradlePluginRef = "v0.35"
 
         // https://github.com/jenkinsci/gradle-plugin/releases
-        static jenkinsGradlePluginRef = "gradle-2.8.1"
+        static jenkinsGradlePluginRef = "gradle-2.8.2"
 
         // https://github.com/gradle/gradle-enterprise-bamboo-plugin/releases
         static bambooGradlePluginRef = "gradle-enterprise-bamboo-plugin-1.1.2"
