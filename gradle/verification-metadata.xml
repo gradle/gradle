@@ -194,6 +194,7 @@
          </trusted-key>
          <trusted-key id="8756C4F765C9AC3CB6B85D62379CE192D401AB61">
             <trusting group="com.diffplug.durian"/>
+            <trusting group="com.github.docker-java"/>
             <trusting group="com.github.javaparser"/>
             <trusting group="info.picocli"/>
             <trusting group="io.github.http-builder-ng"/>
@@ -274,7 +275,10 @@
          <trusted-key id="d5fc4d8e6ff704c573819555bf7cc7defe9389d7" group="com.github.docker-java"/>
          <trusted-key id="D9AA7402BA75F78720D975211D185615D0A84648" group="net.sf.saxon" name="Saxon-HE"/>
          <trusted-key id="DB467D22A2666D061FDD120DB5BD4591883D638C" group="com.tngtech.archunit"/>
-         <trusted-key id="DC98224C6421A7A5BB87F346ED2378CD09A08CDE" group="org.jline"/>
+         <trusted-key id="DC98224C6421A7A5BB87F346ED2378CD09A08CDE">
+            <trusting group="org.apache.sshd"/>
+            <trusting group="org.jline"/>
+         </trusted-key>
          <trusted-key id="DDDEE87612E9FB95F5C8D91E411063A3A0FFD119">
             <trusting group="commons-beanutils"/>
             <trusting group="org.apache-extras.beanshell"/>
@@ -1497,6 +1501,11 @@
       <component group="org.spire-math" name="jawn-parser_2.12" version="0.10.4">
          <artifact name="jawn-parser_2.12-0.10.4.jar">
             <pgp value="8B16E798477BE6DC10127D11AA6917FA45E67F20"/>
+         </artifact>
+      </component>
+      <component group="org.testcontainers" name="testcontainers" version="1.16.1">
+         <artifact name="testcontainers-1.16.1.jar">
+            <pgp value="d022218dcc08aad6ef3af876b3de72e647d35161"/>
          </artifact>
       </component>
       <component group="org.testcontainers" name="testcontainers" version="1.16.2">
