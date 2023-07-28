@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
@@ -41,16 +42,17 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 class ComponentResultSerializerTest extends Specification {
 
     private ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer()
+    private ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(
+        componentIdentifierSerializer,
+        new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
+    )
     def serializer = new ComponentResultSerializer(
         new DefaultComponentDetailsSerializer(
             componentIdentifierSerializer,
             new ModuleVersionIdentifierSerializer(new DefaultImmutableModuleIdentifierFactory())
         ),
-        new ThisBuildOnlySelectedVariantSerializer(),
-        new ResolvedVariantResultSerializer(
-            componentIdentifierSerializer,
-            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
-        ),
+        new DefaultSelectedVariantSerializer(resolvedVariantResultSerializer),
+        resolvedVariantResultSerializer,
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false
     )
@@ -61,7 +63,13 @@ class ComponentResultSerializerTest extends Specification {
         def attributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
-        def v1Result = Mock(ResolvedVariantResult)
+        def v1Result = Mock(ResolvedVariantResult){
+            getOwner() >> componentIdentifier
+            getDisplayName() >> "v1"
+            getAttributes() >> ImmutableAttributes.EMPTY
+            getCapabilities() >> [capability('foo')]
+            getExternalVariant() >> Optional.empty()
+        }
         def v1State = Mock(VariantGraphResolveState) {
             getInstanceId() >> 1
             getVariantResult(null) >> v1Result
@@ -72,7 +80,13 @@ class ComponentResultSerializerTest extends Specification {
             getResolveState() >> v1State
             getExternalVariant() >> null
         }
-        def v3Result = Mock(ResolvedVariantResult)
+        def v3Result = Mock(ResolvedVariantResult) {
+            getOwner() >> componentIdentifier
+            getDisplayName() >> 'v3'
+            getAttributes() >> attributes
+            getCapabilities() >> [capability('bar'), capability('baz')]
+            getExternalVariant() >> Optional.empty()
+        }
         def v3State = Mock(VariantGraphResolveState) {
             getInstanceId() >> 3
             getVariantResult(null) >> v3Result
@@ -83,7 +97,13 @@ class ComponentResultSerializerTest extends Specification {
             getResolveState() >> v3State
             getExternalVariant() >> null
         }
-        def v2Result = Mock(ResolvedVariantResult)
+        def v2Result = Mock(ResolvedVariantResult) {
+            getOwner() >> componentIdentifier
+            getDisplayName() >> "v2"
+            getAttributes() >> attributes
+            getCapabilities() >> [capability('bar'), capability('baz')]
+            getExternalVariant() >> Optional.of(v3Result)
+        }
         def v2State = Mock(VariantGraphResolveState) {
             getInstanceId() >> 2
             getVariantResult(v3Result) >> v2Result

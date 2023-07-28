@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -30,11 +32,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.VariantGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -58,7 +62,6 @@ class StreamingResolutionResultBuilderTest extends Specification {
             componentIdentifierSerializer,
             new ModuleVersionIdentifierSerializer(new DefaultImmutableModuleIdentifierFactory())
         ),
-        new ThisBuildOnlySelectedVariantSerializer(),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false
@@ -242,20 +245,27 @@ class StreamingResolutionResultBuilderTest extends Specification {
         return edge
     }
 
-    private DependencyGraphNode node(Long componentId, String org, String name, String ver, ComponentSelectionReason reason = requested()) {
+    private DependencyGraphNode node(Long nodeId, String org, String name, String ver, ComponentSelectionReason reason = requested()) {
+        ComponentIdentifier componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+
         def componentMetadata = Stub(ComponentGraphResolveMetadata)
         _ * componentMetadata.moduleVersionId >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
 
         def componentState = Stub(ComponentGraphResolveState)
-        _ * componentState.instanceId >> componentId
-        _ * componentState.id >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * componentState.instanceId >> nodeId
+        _ * componentState.id >> componentId
         _ * componentState.metadata >> componentMetadata
 
+        def variantState = Stub(VariantGraphResolveState)
+        variantState.getVariantResult(null) >> resolvedVariantResult(componentId)
+
         def variant = Stub(ResolvedGraphVariant)
-        variant.nodeId >> componentId
+        variant.nodeId >> nodeId
+        variant.getResolveState() >> variantState
+        variant.getExternalVariant() >> null
 
         def component = Stub(DependencyGraphComponent)
-        _ * component.resultId >> componentId
+        _ * component.resultId >> nodeId
         _ * component.selectionReason >> reason
         _ * component.resolveState >> componentState
         _ * component.selectedVariants >> [variant]
@@ -265,19 +275,26 @@ class StreamingResolutionResultBuilderTest extends Specification {
         return node
     }
 
-    private RootGraphNode rootNode(Long componentId, String org, String name, String ver) {
+    private RootGraphNode rootNode(Long nodeId, String org, String name, String ver) {
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+
         def componentMetadata = Stub(ComponentGraphResolveMetadata)
         _ * componentMetadata.moduleVersionId >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
 
         def componentState = Stub(ComponentGraphResolveState)
-        _ * componentState.id >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * componentState.id >> componentId
         _ * componentState.metadata >> componentMetadata
 
+        def variantState = Stub(VariantGraphResolveState)
+        variantState.getVariantResult(null) >> resolvedVariantResult(componentId)
+
         def variant = Stub(ResolvedGraphVariant)
-        variant.nodeId >> componentId
+        variant.nodeId >> nodeId
+        variant.getResolveState() >> variantState
+        variant.getExternalVariant() >> null
 
         def component = Stub(DependencyGraphComponent)
-        _ * component.resultId >> componentId
+        _ * component.resultId >> nodeId
         _ * component.selectionReason >> root()
         _ * component.resolveState >> componentState
         _ * component.selectedVariants >> [variant]
@@ -289,6 +306,17 @@ class StreamingResolutionResultBuilderTest extends Specification {
         }
         return node
     }
+
+    private ResolvedVariantResult resolvedVariantResult(ComponentIdentifier componentId) {
+        ResolvedVariantResult resolvedVariantResult = Stub(ResolvedVariantResult)
+        resolvedVariantResult.owner >> componentId
+        resolvedVariantResult.displayName >> "foo"
+        resolvedVariantResult.attributes >> ImmutableAttributes.EMPTY
+        resolvedVariantResult.capabilities >> []
+        resolvedVariantResult.externalVariant >> Optional.empty()
+        resolvedVariantResult
+    }
+
 
     private DependencyGraphSelector selector(Long resultId, String org, String name, String ver) {
         def selector = Stub(DependencyGraphSelector)
