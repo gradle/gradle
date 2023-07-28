@@ -88,6 +88,9 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
         """
 
         when:
+        // Avoid mixing JUnit dependencies with the ones from the JVM running this test
+        // For example, when using PTS/TD for running this test, the JUnit Platform Launcher classes from the GE plugin take precedence
+        executer.requireIsolatedDaemons()
         executer.expectDocumentedDeprecationWarning("The automatic loading of test framework implementation dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Declare the desired test framework directly on the test suite or explicitly declare the test framework implementation dependencies on the test's runtime classpath. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_framework_implementation_dependencies")
         succeeds "test"
 
