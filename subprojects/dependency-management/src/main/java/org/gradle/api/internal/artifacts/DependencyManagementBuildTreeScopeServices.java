@@ -51,7 +51,9 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlyComponentDetailsSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentDetailsSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlySelectedVariantSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSourceCodec;
@@ -99,8 +101,7 @@ class DependencyManagementBuildTreeScopeServices {
         registration.add(ComponentIdGenerator.class);
         registration.add(LocalComponentGraphResolveStateFactory.class);
         registration.add(ModuleComponentGraphResolveStateFactory.class);
-        registration.add(ThisBuildOnlyComponentDetailsSerializer.class);
-        registration.add(ThisBuildOnlySelectedVariantSerializer .class);
+        registration.add(ThisBuildOnlySelectedVariantSerializer.class);
         registration.add(ConnectionFailureRepositoryDisabler.class);
     }
 
@@ -144,6 +145,12 @@ class DependencyManagementBuildTreeScopeServices {
         return new FileStoreAndIndexProvider(
             artifactCaches.withReadOnlyCache((md, manager) -> (CachedExternalResourceIndex<String>) new TwoStageByUrlCachedExternalResourceIndex(md.getCacheDir().toPath(), prepareArtifactUrlCachedResolutionIndex(timeProvider, manager, externalResourceFileStore, md), writableByUrlCachedExternalResourceIndex)).orElse(writableByUrlCachedExternalResourceIndex),
             externalResourceFileStore, artifactIdentifierFileStore);
+    }
+
+    ComponentDetailsSerializer createComponentDetailsSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
+        ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+        return new DefaultComponentDetailsSerializer(componentIdentifierSerializer, moduleVersionIdentifierSerializer);
     }
 
     ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileStoreAndIndexProvider fileStoreAndIndexProvider) {

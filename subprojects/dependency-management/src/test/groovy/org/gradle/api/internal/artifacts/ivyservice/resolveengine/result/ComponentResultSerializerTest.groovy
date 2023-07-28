@@ -20,8 +20,10 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -31,14 +33,24 @@ import org.gradle.internal.component.model.VariantGraphResolveState
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class ComponentResultSerializerTest extends Specification {
+
+    private ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer()
     def serializer = new ComponentResultSerializer(
-        new ThisBuildOnlyComponentDetailsSerializer(),
+        new DefaultComponentDetailsSerializer(
+            componentIdentifierSerializer,
+            new ModuleVersionIdentifierSerializer(new DefaultImmutableModuleIdentifierFactory())
+        ),
         new ThisBuildOnlySelectedVariantSerializer(),
+        new ResolvedVariantResultSerializer(
+            componentIdentifierSerializer,
+            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
+        ),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false
     )

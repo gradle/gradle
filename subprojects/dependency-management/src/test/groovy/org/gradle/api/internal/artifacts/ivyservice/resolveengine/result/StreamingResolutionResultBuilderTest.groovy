@@ -17,9 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
@@ -46,11 +48,16 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 
 class StreamingResolutionResultBuilderTest extends Specification {
+
+    private ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer()
     def builder = new StreamingResolutionResultBuilder(
         new DummyBinaryStore(),
         new DummyStore(),
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
-        new ThisBuildOnlyComponentDetailsSerializer(),
+        new DefaultComponentDetailsSerializer(
+            componentIdentifierSerializer,
+            new ModuleVersionIdentifierSerializer(new DefaultImmutableModuleIdentifierFactory())
+        ),
         new ThisBuildOnlySelectedVariantSerializer(),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),

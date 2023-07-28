@@ -23,7 +23,7 @@ import org.gradle.internal.serialize.Encoder;
 import java.io.IOException;
 
 public interface ComponentDetailsSerializer {
-    void writeComponentDetails(ComponentGraphResolveState component, boolean requireAllVariants, Encoder encoder) throws IOException;
+    void writeComponentDetails(ComponentGraphResolveState component, Encoder encoder) throws IOException;
 
     void readComponentDetails(Decoder decoder, ResolvedComponentVisitor visitor) throws IOException;
 }
