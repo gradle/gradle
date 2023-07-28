@@ -24,12 +24,13 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Collection;
+import java.util.List;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForIncompatibility;
 
 public class NoMatchingVariantSelectionException extends VariantSelectionException {
-    public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher, AttributeDescriber describer) {
-        super(format(producerDisplayName, consumer, candidates, matcher, describer));
+    public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> candidates, AttributeMatcher matcher, AttributeDescriber describer) {
+        super(format(producerDisplayName, consumer, candidates, matcher, describer), producerDisplayName, consumer, candidates);
     }
 
     private static String format(String producerDisplayName,

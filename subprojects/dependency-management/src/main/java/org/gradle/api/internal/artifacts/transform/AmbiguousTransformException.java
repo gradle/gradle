@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 
 public class AmbiguousTransformException extends VariantSelectionException {
     public AmbiguousTransformException(String producerDisplayName, AttributeContainerInternal requested, List<TransformedVariant> candidates) {
-        super(format(producerDisplayName, requested, candidates));
+        super(format(producerDisplayName, requested, candidates), producerDisplayName, requested, candidates);
     }
 
     private static String format(String producerDisplayName, AttributeContainerInternal requested, List<TransformedVariant> candidates) {

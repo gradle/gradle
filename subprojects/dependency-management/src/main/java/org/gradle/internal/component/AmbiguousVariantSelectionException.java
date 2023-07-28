@@ -32,7 +32,7 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
 public class AmbiguousVariantSelectionException extends VariantSelectionException {
 
     public AmbiguousVariantSelectionException(AttributeDescriber describer, String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
-        super(format(describer, producerDisplayName, requested, matches, matcher, discarded));
+        super(format(describer, producerDisplayName, requested, matches, matcher, discarded), producerDisplayName, requested, matches);
     }
 
     private static String format(AttributeDescriber describer, String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {

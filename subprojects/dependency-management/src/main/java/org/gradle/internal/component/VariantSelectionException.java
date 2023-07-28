@@ -16,14 +16,18 @@
 
 package org.gradle.internal.component;
 
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.StyledException;
 
+import java.util.List;
+
 @Contextual
 public class VariantSelectionException extends StyledException {
-    public VariantSelectionException(String message) {
-        super(message);
+    public VariantSelectionException(String message, String producerDisplayName, AttributeContainerInternal requested, List<? extends HasAttributes> candidates) {
+        super(processFailureMessage(message, producerDisplayName, requested, candidates));
     }
 
     public VariantSelectionException(String message, Throwable cause) {
@@ -32,5 +36,10 @@ public class VariantSelectionException extends StyledException {
 
     public static VariantSelectionException selectionFailed(ResolvedVariantSet producer, Throwable failure) {
         return new VariantSelectionException(String.format("Could not select a variant of %s that matches the consumer attributes.", producer.asDescribable().getDisplayName()), failure);
+    }
+
+    private static String processFailureMessage(String message, String producerDisplayName, AttributeContainerInternal requested, List<? extends HasAttributes> candidates) {
+        VariantSelectionFailureMessageProcessor processor = new VariantSelectionFailureMessageProcessor();
+        return processor.process(message);
     }
 }
