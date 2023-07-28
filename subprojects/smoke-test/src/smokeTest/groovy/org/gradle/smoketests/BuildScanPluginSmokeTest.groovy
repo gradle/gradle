@@ -134,6 +134,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.13.3",
         "3.13.4",
         "3.14",
+        "3.14.1",
         // TODO: once 3.15 is added here, drop @IgnoreIf from a isolated-projects test below
     ]
 
