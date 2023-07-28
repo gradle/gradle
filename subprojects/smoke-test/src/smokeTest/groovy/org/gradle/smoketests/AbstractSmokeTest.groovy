@@ -96,6 +96,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "34.0.0"
+
         // https://developer.android.com/studio/releases/gradle-plugin
         static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
 
@@ -192,7 +193,7 @@ abstract class AbstractSmokeTest extends Specification {
         static jenkinsGradlePluginRef = "gradle-2.8.1"
 
         // https://github.com/gradle/gradle-enterprise-bamboo-plugin/releases
-        static bambooGradlePluginRef = "gradle-enterprise-bamboo-plugin-1.1.0"
+        static bambooGradlePluginRef = "gradle-enterprise-bamboo-plugin-1.1.2"
     }
 
     static class Versions implements Iterable<String> {
