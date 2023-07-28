@@ -31,6 +31,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.serialization.Cached;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -43,6 +44,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * The TestNG specific test options.
@@ -81,6 +83,13 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     private transient StringWriter suiteXmlWriter;
 
     private transient MarkupBuilder suiteXmlBuilder;
+
+    private final Cached<String> cachedSuiteXml = Cached.of(new Callable<String>() {
+        @Override
+        public String call() {
+            return suiteXmlWriter != null ? suiteXmlWriter.toString() : null;
+        }
+    });
 
     private final File projectDir;
 
@@ -148,7 +157,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
         suites.addAll(suiteXmlFiles);
 
-        if (suiteXmlBuilder != null) {
+        String suiteXmlMarkup = getSuiteXml();
+        if (suiteXmlMarkup != null) {
             File buildSuiteXml = new File(testSuitesDir.getAbsolutePath(), "build-suite.xml");
 
             if (buildSuiteXml.exists()) {
@@ -162,7 +172,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
                 protected void doExecute(BufferedWriter writer) throws Exception {
                     writer.write("<!DOCTYPE suite SYSTEM \"http://testng.org/testng-1.0.dtd\">");
                     writer.newLine();
-                    writer.write(getSuiteXml());
+                    writer.write(suiteXmlMarkup);
                 }
             });
 
@@ -444,7 +454,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @Input
     @Optional
     protected String getSuiteXml() {
-        return suiteXmlWriter == null ? null : suiteXmlWriter.toString();
+        return cachedSuiteXml.get();
     }
 
     @Internal
