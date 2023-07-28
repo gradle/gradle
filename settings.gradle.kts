@@ -151,6 +151,7 @@ unassigned {
 platform("jvm") {
     subproject("code-quality")
     subproject("ear")
+    subproject("toolchains-jvm")
     subproject("java-platform")
     subproject("war")
 }

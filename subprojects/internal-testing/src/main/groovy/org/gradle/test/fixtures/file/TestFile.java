@@ -663,6 +663,10 @@ public class TestFile extends File {
         return new TestFile(this, path).createDir();
     }
 
+    public TestFile createDir(Object... pathSegments) {
+        return new TestFile(this, pathSegments).createDir();
+    }
+
     public TestFile deleteDir() {
         new TestFileHelper(this).delete(useNativeTools);
         return this;

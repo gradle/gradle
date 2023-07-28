@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":dependency-management"))
     implementation(project(":process-services"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.guava)

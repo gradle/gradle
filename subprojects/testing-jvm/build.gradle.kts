@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm-infrastructure"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
