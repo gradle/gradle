@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.cacheentry.EntryDetails
+import org.gradle.configurationcache.extensions.toDefaultLowerCase
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
@@ -419,14 +420,30 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun startCollectingCacheFingerprint() {
-        cacheFingerprintController.maybeStartCollectingFingerprint(store.assignSpoolFile(StateType.BuildFingerprint), store.assignSpoolFile(StateType.ProjectFingerprint)) {
-            cacheFingerprintWriterContextFor(encryptionService.outputStream(it.stateType, it.file::outputStream))
+        cacheFingerprintController.maybeStartCollectingFingerprint(
+            store.assignSpoolFile(StateType.BuildFingerprint),
+            store.assignSpoolFile(StateType.ProjectFingerprint)
+        ) { stateFile ->
+            cacheFingerprintWriterContextFor(
+                encryptionService.outputStream(
+                    stateFile.stateType,
+                    stateFile.file::outputStream
+                )
+            ) {
+                profileNameFor(stateFile)
+            }
         }
     }
 
     private
-    fun cacheFingerprintWriterContextFor(outputStream: OutputStream): DefaultWriteContext {
-        val (context, codecs) = cacheIO.writerContextFor(outputStream, "fingerprint")
+    fun profileNameFor(stateFile: ConfigurationCacheStateStore.StateFile) =
+        stateFile.stateType.name.replace(Regex("\\p{Upper}")) { match ->
+            " " + match.value.toDefaultLowerCase()
+        }.drop(1)
+
+    private
+    fun cacheFingerprintWriterContextFor(outputStream: OutputStream, profile: () -> String): DefaultWriteContext {
+        val (context, codecs) = cacheIO.writerContextFor(outputStream, profile)
         return context.apply {
             push(IsolateOwner.OwnerHost(host), codecs.fingerprintTypesCodec())
         }
