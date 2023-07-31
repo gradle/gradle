@@ -21,8 +21,8 @@ import org.gradle.api.JavaVersion
 class ScalaCoverage {
 
     private static final Map<String, JavaVersion> SCALA_2_VERSIONS = [
-        "2.11.12": JavaVersion.VERSION_1_9,
-        "2.12.18": JavaVersion.VERSION_20,
+        "2.11.12": JavaVersion.VERSION_1_8,
+        "2.12.18": JavaVersion.VERSION_1_8,
         "2.13.11": JavaVersion.VERSION_20,
     ]
     private static final Map<String, JavaVersion> SCALA_3_VERSIONS = [
