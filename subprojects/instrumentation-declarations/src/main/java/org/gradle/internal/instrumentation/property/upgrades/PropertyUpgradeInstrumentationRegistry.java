@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.property.upgrades;
 
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+import org.gradle.jvm.application.tasks.CreateStartScripts;
 
 /**
  * Add classes to visit to this registry to enable property upgrade instrumentation.
@@ -25,6 +26,6 @@ import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentati
  * Classes that should be visited should be added to the @VisitForInstrumentation annotation, e.g.
  * @VisitForInstrumentation(value = {Checkstyle.class}).
  */
-@VisitForInstrumentation(value = {JavaApplication.class})
+@VisitForInstrumentation(value = {JavaApplication.class, CreateStartScripts.class})
 public interface PropertyUpgradeInstrumentationRegistry {
 }

@@ -45,13 +45,33 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
                 assert currentMaxErrors == 1;
             });
 
-            JavaApplication application = project.getExtensions().getByType(JavaApplication.class);
-            application.setApplicationName("myapp");
-            String applicationName = application.getApplicationName();
-            assert "myapp".equals(applicationName);
-            application.setExecutableDir("mydir");
-            String executableDir = application.getExecutableDir();
-            assert "mydir".equals(executableDir);
+            {
+                JavaApplication application = project.getExtensions().getByType(JavaApplication.class);
+                application.setApplicationName("myapp");
+                String applicationName = application.getApplicationName();
+                assert "myapp".equals(applicationName);
+                application.setExecutableDir("mydir");
+                String executableDir = application.getExecutableDir();
+                assert "mydir".equals(executableDir);
+            }
+
+            project.getTasks().register("createStartScripts", org.gradle.jvm.application.tasks.CreateStartScripts.class, it -> {
+                it.setApplicationName("myapp");
+                String applicationName = it.getApplicationName();
+                assert "myapp".equals(applicationName);
+
+                it.setExecutableDir("mydir");
+                String executableDir = it.getExecutableDir();
+                assert "mydir".equals(executableDir);
+
+                it.setOptsEnvironmentVar("myops");
+                String optsEnvironmentVar = it.getOptsEnvironmentVar();
+                assert "myops".equals(optsEnvironmentVar);
+
+                it.setExitEnvironmentVar("myenvvar");
+                String exitEnvironmentVar = it.getExitEnvironmentVar();
+                assert "myenvvar".equals(exitEnvironmentVar);
+            });
         """
 
         expect:
