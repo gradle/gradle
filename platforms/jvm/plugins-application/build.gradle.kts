@@ -29,6 +29,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.logging)
     implementation(projects.baseServices)
     implementation(projects.fileOperations)
     implementation(projects.languageJava)
