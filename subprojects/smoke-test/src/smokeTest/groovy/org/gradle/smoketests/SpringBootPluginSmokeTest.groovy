@@ -83,7 +83,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """
 
         when:
-        def smokeTestRunner = runner('assembleBootDist', 'check')
+        def smokeTestRunner = runner('assembleBootDist', 'check', '--stacktrace')
         // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
         def buildResult = smokeTestRunner.build()
 

@@ -187,11 +187,11 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             startScripts.getMainModule().set(pluginExtension.getMainModule());
             startScripts.getMainClass().set(pluginExtension.getMainClass());
 
-            startScripts.getConventionMapping().map("applicationName", () -> pluginExtension.getApplicationName().get());
+            startScripts.getApplicationName().set(pluginExtension.getApplicationName());
 
             startScripts.getConventionMapping().map("outputDir", () -> new File(project.getBuildDir(), "scripts"));
 
-            startScripts.getConventionMapping().map("executableDir", () -> pluginExtension.getExecutableDir().get());
+            startScripts.getExecutableDir().set(pluginExtension.getExecutableDir());
 
             startScripts.getConventionMapping().map("defaultJvmOpts", pluginExtension::getApplicationDefaultJvmArgs);
 
