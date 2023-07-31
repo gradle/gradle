@@ -27,12 +27,12 @@ dependencies {
 
     api(libs.inject)
     api(libs.jsr305)
+    api(projects.internalInstrumentationApi)
 
     implementation(projects.baseServices)
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
     implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.platformJvm)
     implementation(projects.pluginsDistribution)
     implementation(projects.pluginsJava)
