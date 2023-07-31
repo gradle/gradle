@@ -180,22 +180,18 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
-    @SuppressWarnings("deprecation")
     private void addCreateScriptsTask(Project project, JvmFeatureInternal mainFeature, JavaApplication pluginExtension) {
         project.getTasks().register(TASK_START_SCRIPTS_NAME, CreateStartScripts.class, startScripts -> {
             startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
-            startScripts.setClasspath(jarsOnlyRuntimeClasspath(mainFeature));
+            startScripts.getClasspath().setFrom(jarsOnlyRuntimeClasspath(mainFeature));
 
             startScripts.getMainModule().set(pluginExtension.getMainModule());
             startScripts.getMainClass().set(pluginExtension.getMainClass());
 
-            startScripts.getConventionMapping().map("applicationName", pluginExtension::getApplicationName);
-
-            startScripts.getConventionMapping().map("outputDir", () -> new File(project.getBuildDir(), "scripts"));
-
-            startScripts.getConventionMapping().map("executableDir", pluginExtension::getExecutableDir);
-
-            startScripts.getConventionMapping().map("defaultJvmOpts", pluginExtension::getApplicationDefaultJvmArgs);
+            startScripts.getApplicationName().convention(project.provider(pluginExtension::getApplicationName));
+            startScripts.getOutputDir().convention(project.getLayout().getBuildDirectory().dir("scripts"));
+            startScripts.getExecutableDir().convention(project.provider(pluginExtension::getExecutableDir));
+            startScripts.getDefaultJvmOpts().convention(project.provider(pluginExtension::getApplicationDefaultJvmArgs));
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             startScripts.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
