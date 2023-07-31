@@ -172,7 +172,7 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
                         return new TestTemplateInvocationContext() {
                             @Override
                             public String getDisplayName(int invocationIndex) {
-                                return locale.getDisplayName();
+                                return locale.getDisplayName(Locale.US);
                             }
 
                             @Override
