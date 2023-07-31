@@ -18,13 +18,18 @@ package org.gradle.jvm.application.tasks;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -34,6 +39,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
@@ -42,10 +49,10 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 
 /**
  * Creates start scripts for launching JVM applications.
@@ -115,23 +122,26 @@ import java.util.stream.Collectors;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class CreateStartScripts extends ConventionTask {
 
-    private File outputDir;
-    private String executableDir = "bin";
     private final Property<String> mainModule;
     private final Property<String> mainClass;
-    private Iterable<String> defaultJvmOpts = new LinkedList<>();
-    private String applicationName;
-    private String optsEnvironmentVar;
-    private String exitEnvironmentVar;
-    private FileCollection classpath;
+    private final Property<String> optsEnvironmentVar;
+    private final Property<String> exitEnvironmentVar;
+    private final Property<String> executableDir;
     private final ModularitySpec modularity;
     private ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator();
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
+    private final DirectoryProperty outputDir;
+    private final Property<String> applicationName;
 
     public CreateStartScripts() {
         this.mainModule = getObjectFactory().property(String.class);
         this.mainClass = getObjectFactory().property(String.class);
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
+        this.applicationName = getObjectFactory().property(String.class);
+        this.outputDir = getObjectFactory().directoryProperty();
+        this.exitEnvironmentVar = getObjectFactory().property(String.class).convention(getApplicationName().map(appName -> GUtil.toConstant(appName) + "_EXIT_CONSOLE"));
+        this.optsEnvironmentVar = getObjectFactory().property(String.class).convention(getApplicationName().map(appName -> GUtil.toConstant(appName) + "_OPTS"));
+        this.executableDir = getObjectFactory().property(String.class).convention("bin");
     }
 
     @Inject
@@ -147,66 +157,54 @@ public abstract class CreateStartScripts extends ConventionTask {
     /**
      * The environment variable to use to provide additional options to the JVM.
      */
-    @Nullable
     @Optional
     @Input
-    public String getOptsEnvironmentVar() {
-        if (GUtil.isTrue(optsEnvironmentVar)) {
-            return optsEnvironmentVar;
-        }
-
-        if (!GUtil.isTrue(getApplicationName())) {
-            return null;
-        }
-
-        return GUtil.toConstant(getApplicationName()) + "_OPTS";
+    @ReplacesEagerProperty
+    public Property<String> getOptsEnvironmentVar() {
+        return optsEnvironmentVar;
     }
 
     /**
      * The environment variable to use to control exit value (Windows only).
      */
-    @Nullable
     @Optional
     @Input
-    public String getExitEnvironmentVar() {
-        if (GUtil.isTrue(exitEnvironmentVar)) {
-            return exitEnvironmentVar;
-        }
-
-        if (!GUtil.isTrue(getApplicationName())) {
-            return null;
-        }
-
-        return GUtil.toConstant(getApplicationName()) + "_EXIT_CONSOLE";
+    @ReplacesEagerProperty
+    public Property<String> getExitEnvironmentVar() {
+        return exitEnvironmentVar;
     }
 
     /**
      * Returns the full path to the Unix script. The target directory is represented by the output directory, the file name is the application name without a file extension.
+     * TODO: This should be Provider[RegularFile], but we don't support such upgrade with @ReplacesEagerProperty
      */
     @Internal
-    public File getUnixScript() {
-        return new File(getOutputDir(), getApplicationName());
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getUnixScript"))
+    public RegularFileProperty getUnixScript() {
+        return getObjectFactory().fileProperty().value(
+            getOutputDir().zip(getApplicationName(), Directory::file)
+        );
     }
 
     /**
      * Returns the full path to the Windows script. The target directory is represented by the output directory, the file name is the application name plus the file extension .bat.
+     * TODO: This should be Provider[RegularFile], but we don't support such upgrade with @ReplacesEagerProperty
      */
     @Internal
-    public File getWindowsScript() {
-        return new File(getOutputDir(), getApplicationName() + ".bat");
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getWindowsScript"))
+    public RegularFileProperty getWindowsScript() {
+        return getObjectFactory().fileProperty().value(
+            getOutputDir().zip(getApplicationName(), (outputDir, applicationName) -> outputDir.file(applicationName + ".bat"))
+        );
     }
 
     /**
      * The directory to write the scripts into.
      */
     @OutputDirectory
-    @Nullable
-    public File getOutputDir() {
+    @ReplacesEagerProperty
+    public DirectoryProperty getOutputDir() {
         return outputDir;
-    }
-
-    public void setOutputDir(@Nullable File outputDir) {
-        this.outputDir = outputDir;
     }
 
     /**
@@ -214,16 +212,9 @@ public abstract class CreateStartScripts extends ConventionTask {
      * @since 4.5
      */
     @Input
-    public String getExecutableDir() {
+    @ReplacesEagerProperty
+    public Property<String> getExecutableDir() {
         return executableDir;
-    }
-
-    /**
-     * The directory to write the scripts into in the distribution.
-     * @since 4.5
-     */
-    public void setExecutableDir(String executableDir) {
-        this.executableDir = executableDir;
     }
 
     /**
@@ -279,47 +270,28 @@ public abstract class CreateStartScripts extends ConventionTask {
     /**
      * The application's default JVM options. Defaults to an empty list.
      */
-    @Nullable
     @Optional
     @Input
-    public Iterable<String> getDefaultJvmOpts() {
-        return defaultJvmOpts;
-    }
-
-    public void setDefaultJvmOpts(@Nullable Iterable<String> defaultJvmOpts) {
-        this.defaultJvmOpts = defaultJvmOpts;
-    }
+    @ReplacesEagerProperty(originalType = Iterable.class)
+    public abstract ListProperty<String> getDefaultJvmOpts();
 
     /**
      * The application's name.
      */
-    @Nullable
     @Input
-    public String getApplicationName() {
+    @Optional
+    @ReplacesEagerProperty
+    public Property<String> getApplicationName() {
         return applicationName;
-    }
-
-    public void setApplicationName(@Nullable String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
-        this.optsEnvironmentVar = optsEnvironmentVar;
-    }
-
-    public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
-        this.exitEnvironmentVar = exitEnvironmentVar;
     }
 
     /**
      * The class path for the application.
      */
-    @Nullable
     @Classpath
     @Optional
-    public FileCollection getClasspath() {
-        return classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Returns the module path handling for executing the main class.
@@ -329,10 +301,6 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Nested
     public ModularitySpec getModularity() {
         return modularity;
-    }
-
-    public void setClasspath(@Nullable FileCollection classpath) {
-        this.classpath = classpath;
     }
 
     /**
@@ -367,20 +335,21 @@ public abstract class CreateStartScripts extends ConventionTask {
     public void generate() {
         StartScriptGenerator generator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        generator.setApplicationName(getApplicationName());
+        generator.setApplicationName(getApplicationName().getOrNull());
         generator.setMainClassName(fullMainArgument());
-        generator.setDefaultJvmOpts(getDefaultJvmOpts());
-        generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
-        generator.setExitEnvironmentVar(getExitEnvironmentVar());
+        generator.setDefaultJvmOpts(getDefaultJvmOpts().getOrElse(Collections.emptyList()));
+        generator.setOptsEnvironmentVar(getOptsEnvironmentVar().getOrNull());
+        generator.setExitEnvironmentVar(getExitEnvironmentVar().getOrNull());
         generator.setClasspath(getRelativePath(javaModuleDetector.inferClasspath(mainModule.isPresent(), getClasspath())));
         generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(mainModule.isPresent(), getClasspath())));
-        if (StringUtils.isEmpty(getExecutableDir())) {
-            generator.setScriptRelPath(getUnixScript().getName());
+        String executableDir = getExecutableDir().getOrNull();
+        if (StringUtils.isEmpty(executableDir)) {
+            generator.setScriptRelPath(getUnixScript().getAsFile().get().getName());
         } else {
-            generator.setScriptRelPath(getExecutableDir() + "/" + getUnixScript().getName());
+            generator.setScriptRelPath(executableDir + "/" + getUnixScript().getAsFile().get().getName());
         }
-        generator.generateUnixScript(getUnixScript());
-        generator.generateWindowsScript(getWindowsScript());
+        generator.generateUnixScript(getUnixScript().getAsFile().get());
+        generator.generateWindowsScript(getWindowsScript().getAsFile().get());
     }
 
     private String fullMainArgument() {
@@ -398,6 +367,9 @@ public abstract class CreateStartScripts extends ConventionTask {
         return main;
     }
 
+    /**
+     * TODO: Remove with Gradle 9, we anyway track classpath via {@link #getClasspath()}, this looks unnecessary
+     */
     @Input
     protected Iterable<String> getRelativeClasspath() {
         //a list instance is needed here, as org.gradle.internal.snapshot.ValueSnapshotter.processValue() does not support
