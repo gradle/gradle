@@ -36,6 +36,8 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.inject)
 
+    implementation(project(":internal-instrumentation-api"))
+
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":distributions-jvm")) {
