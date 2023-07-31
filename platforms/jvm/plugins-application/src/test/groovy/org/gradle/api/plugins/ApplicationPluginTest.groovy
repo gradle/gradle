@@ -63,9 +63,9 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         task instanceof CreateStartScripts
-        task.applicationName == project.application.applicationName
-        task.outputDir == project.file('build/scripts')
-        task.defaultJvmOpts == []
+        task.applicationName.get() == project.applicationName
+        task.outputDir.getAsFile().get() == project.file('build/scripts')
+        task.defaultJvmOpts.get() == []
         task.gitRef.get() == DefaultGradleVersion.current().getGitRevision()
     }
 
@@ -96,7 +96,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def startScriptsTask = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScriptsTask.applicationName == 'SuperApp'
+        startScriptsTask.applicationName.get() == 'SuperApp'
 
         def installTest = project.tasks[DistributionPlugin.TASK_INSTALL_NAME]
         installTest.destinationDir == project.file("build/install/SuperApp")
@@ -113,7 +113,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScripts.executableDir == "custom_bin"
+        startScripts.executableDir.get() == "custom_bin"
     }
 
     def "applicationDefaultJvmArgs in project delegates to jvmArgs in run task"() {
@@ -133,7 +133,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScripts.defaultJvmOpts == ['-Dfoo=bar', '-Xmx500m']
+        startScripts.defaultJvmOpts.get() == ['-Dfoo=bar', '-Xmx500m']
     }
 
     def "module path inference is turned on for all tasks by default"() {

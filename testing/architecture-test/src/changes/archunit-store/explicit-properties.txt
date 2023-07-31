@@ -88,9 +88,15 @@ Method <org.gradle.buildinit.tasks.InitBuild.getSplitProject()> is not abstract
 Method <org.gradle.buildinit.tasks.InitBuild.getUseIncubating()> is not abstract
 Method <org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask.getXcodeProjectLocations()> is not abstract
 Method <org.gradle.internal.deployment.RunApplication.getClasspath()> is not abstract
-Method <org.gradle.jvm.application.tasks.CreateStartScripts.getClasspath()> is not abstract
+Method <org.gradle.jvm.application.tasks.CreateStartScripts.getApplicationName()> is not abstract
+Method <org.gradle.jvm.application.tasks.CreateStartScripts.getExecutableDir()> is not abstract
+Method <org.gradle.jvm.application.tasks.CreateStartScripts.getExitEnvironmentVar()> is not abstract
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()> is not abstract
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()> is not abstract
+Method <org.gradle.jvm.application.tasks.CreateStartScripts.getOptsEnvironmentVar()> is not abstract
+Method <org.gradle.jvm.application.tasks.CreateStartScripts.getOutputDir()> is not abstract
+Method <org.gradle.jvm.application.tasks.CreateStartScripts.getUnixScript()> is not abstract
+Method <org.gradle.jvm.application.tasks.CreateStartScripts.getWindowsScript()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins.getScriptFiles$kotlin_dsl_provider_plugins()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternalPluginSpecBuilders.getPluginEntries()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors.getAccessorsGenerationClassPathFiles()> is not abstract
