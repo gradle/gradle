@@ -1112,6 +1112,8 @@ When running builds using <<test_kit#test_kit, TestKit>>, the configuration cach
 Currently, all external sources of Gradle properties (`gradle.properties` in project directories and in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`, environment variables and system properties that set properties, and properties specified with
 command-line flags) are considered build configuration inputs regardless of what properties are actually used at configuration time. These sources, however, are not included in the configuration cache report.
 
+See link:{gradle-issues}20969[gradle/gradle#20969].
+
 [[config_cache:not_yet_implemented:java_serialization]]
 === Java Object Serialization
 
