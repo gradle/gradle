@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -145,6 +146,56 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
         build("help").apply {
             assertThat(output, containsString("some!"))
+        }
+    }
+
+    @Test
+    fun `can run first version of kotlin-dsl plugin supporting lazy property assignment with deprecation warning`() {
+
+        assumeNonEmbeddedGradleExecuter()
+        val testedVersion = "4.0.2"
+
+        withDefaultSettingsIn("buildSrc")
+        val buildScript = withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(testedVersion))
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_20)) {
+            // Kotlin 1.8.20 that is a dependency of kotlin-dsl plugin 4.0.2 doesn't work
+            // with Java20+ without setting jvmTarget that is lower than JvmTarget.JVM_20
+            buildScript.appendText(
+                """
+                    tasks.named<JavaCompile>("compileJava") {
+                        options.release = 8
+                    }
+                    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                        compilerOptions {
+                            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+                        }
+                    }"""
+            )
+        }
+        withFile("buildSrc/src/main/kotlin/some.gradle.kts", """println("some!")""")
+
+        withDefaultSettings()
+        withBuildScript("""plugins { id("some") }""")
+
+        executer.expectDocumentedDeprecationWarning("Internal class org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment has been deprecated. This is scheduled to be removed in Gradle 9.0. The class was most likely loaded from `kotlin-dsl` plugin version 4.1.0 or earlier version used in the build: avoid specifying a version for `kotlin-dsl` plugin.")
+        executer.expectDocumentedDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
+
+        build("help").apply {
+            assertThat(
+                output,
+                containsString("This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$testedVersion' has been applied to project ':buildSrc'. Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
+            )
+
+            assertThat(
+                output,
+                containsString("some!")
+            )
         }
     }
 

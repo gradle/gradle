@@ -31,6 +31,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsIo)
 
+    testCompileOnly(project(":toolchains-jvm")) {
+        because("JavaLauncher is required for mocking Test.")
+    }
     testImplementation(project(":file-collections"))
     testImplementation(project(":platform-jvm"))
     testImplementation(testFixtures(project(":core")))

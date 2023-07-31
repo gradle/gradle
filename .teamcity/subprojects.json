@@ -626,7 +626,7 @@
     "name": "platform-jvm",
     "path": "subprojects/platform-jvm",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -814,6 +814,13 @@
   {
     "name": "testing-native",
     "path": "subprojects/testing-native",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "toolchains-jvm",
+    "path": "platforms/jvm/toolchains-jvm",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

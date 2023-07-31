@@ -17,7 +17,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
@@ -114,7 +113,6 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         'groupByInstances'    | '= true'
     }
 
-    @ToBeFixedForConfigurationCache(because = "load-after-store")
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def "re-executes test when #property is changed"() {
         given:
