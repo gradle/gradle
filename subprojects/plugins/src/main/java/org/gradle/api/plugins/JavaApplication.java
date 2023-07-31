@@ -72,12 +72,8 @@ public interface JavaApplication {
     /**
      * Directory to place executables in
      */
-    String getExecutableDir();
-
-    /**
-     * Directory to place executables in
-     */
-    void setExecutableDir(String executableDir);
+    @UpgradedProperty
+    Property<String> getExecutableDir();
 
     /**
      * <p>The specification of the contents of the distribution.</p>

@@ -49,6 +49,9 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
             application.setApplicationName("myapp");
             String applicationName = application.getApplicationName();
             assert "myapp".equals(applicationName);
+            application.setExecutableDir("mydir");
+            String executableDir = application.getExecutableDir();
+            assert "mydir".equals(executableDir);
         """
 
         expect:

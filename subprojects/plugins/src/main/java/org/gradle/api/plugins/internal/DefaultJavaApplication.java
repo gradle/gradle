@@ -29,12 +29,14 @@ public class DefaultJavaApplication implements JavaApplication {
     private final Property<String> applicationName;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
+    private final Property<String> executableDir;
 
     public DefaultJavaApplication(ApplicationPluginConvention convention, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.convention = convention;
         this.applicationName = objectFactory.property(String.class).convention(providerFactory.provider(() -> DeprecationLogger.whileDisabled(convention::getApplicationName)));
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class).convention(providerFactory.provider(() -> DeprecationLogger.whileDisabled(convention::getMainClassName)));
+        this.executableDir = objectFactory.property(String.class).convention(providerFactory.provider(() -> DeprecationLogger.whileDisabled(convention::getExecutableDir)));
     }
 
     @Override
@@ -63,13 +65,8 @@ public class DefaultJavaApplication implements JavaApplication {
     }
 
     @Override
-    public String getExecutableDir() {
-        return DeprecationLogger.whileDisabled(convention::getExecutableDir);
-    }
-
-    @Override
-    public void setExecutableDir(String executableDir) {
-        DeprecationLogger.whileDisabled(() -> convention.setExecutableDir(executableDir));
+    public Property<String> getExecutableDir() {
+        return executableDir;
     }
 
     @Override

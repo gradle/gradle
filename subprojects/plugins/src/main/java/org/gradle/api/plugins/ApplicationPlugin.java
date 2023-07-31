@@ -80,7 +80,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         addRunTask(project, mainFeature, extension);
         addCreateScriptsTask(project, mainFeature, extension);
         configureJavaCompileTask(mainFeature.getCompileJavaTask(), extension);
-        configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
+        configureInstallTask(tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
 
         DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
         Distribution mainDistribution = distributions.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
@@ -91,12 +91,12 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         javaCompile.configure(j -> j.getOptions().getJavaModuleMainClass().convention(pluginExtension.getMainClass()));
     }
 
-    private void configureInstallTask(ProviderFactory providers, TaskProvider<Sync> installTask, JavaApplication pluginExtension) {
+    private void configureInstallTask(TaskProvider<Sync> installTask, JavaApplication pluginExtension) {
         installTask.configure(task -> task.doFirst(
             "don't overwrite existing directories",
             new PreventDestinationOverwrite(
                 pluginExtension.getApplicationName(),
-                providers.provider(pluginExtension::getExecutableDir)
+                pluginExtension.getExecutableDir()
             )
         ));
     }
@@ -191,7 +191,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
             startScripts.getConventionMapping().map("outputDir", () -> new File(project.getBuildDir(), "scripts"));
 
-            startScripts.getConventionMapping().map("executableDir", pluginExtension::getExecutableDir);
+            startScripts.getConventionMapping().map("executableDir", () -> pluginExtension.getExecutableDir().get());
 
             startScripts.getConventionMapping().map("defaultJvmOpts", pluginExtension::getApplicationDefaultJvmArgs);
 
@@ -222,7 +222,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
         CopySpec binChildSpec = project.copySpec();
 
-        binChildSpec.into((Callable<Object>) pluginExtension::getExecutableDir);
+        binChildSpec.into(pluginExtension.getExecutableDir());
         binChildSpec.from(startScripts);
         binChildSpec.filePermissions(permissions -> permissions.unix("rwxr-xr-x"));
 
