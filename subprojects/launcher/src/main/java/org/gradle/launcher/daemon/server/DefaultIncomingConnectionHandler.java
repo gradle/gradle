@@ -167,11 +167,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
             }
 
             Object finished = daemonConnection.receive(60, TimeUnit.SECONDS);
-            if (finished != null) {
-                LOGGER.debug("Received finished message: {}", finished);
-            } else {
-                LOGGER.warn(String.format("Timed out waiting for finished message from client %s. Discarding connection.", connection));
-            }
+            LOGGER.debug("Received finished message: {}", finished);
         }
     }
 }

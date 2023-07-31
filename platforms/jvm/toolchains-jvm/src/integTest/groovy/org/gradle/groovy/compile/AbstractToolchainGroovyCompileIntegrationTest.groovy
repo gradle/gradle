@@ -22,7 +22,7 @@ import org.gradle.testing.fixture.GroovyCoverage
 import org.junit.Assume
 
 
-abstract class AbstractToolchainGroovyCompileIntegrationTest extends ApiGroovyCompilerIntegrationSpec implements JavaToolchainFixture {
+abstract class AbstractToolchainGroovyCompileIntegrationTest extends AbstractApiGroovyCompilerIntegrationSpec implements JavaToolchainFixture {
 
     Jvm jdk
 

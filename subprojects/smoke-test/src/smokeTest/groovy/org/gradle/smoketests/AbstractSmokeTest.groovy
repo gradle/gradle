@@ -96,7 +96,6 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "34.0.0"
-
         // https://developer.android.com/studio/releases/gradle-plugin
         static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
 
@@ -187,13 +186,13 @@ abstract class AbstractSmokeTest extends Specification {
         static palantirConsistentVersions = "2.12.0"
 
         // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
-        static teamCityGradlePluginRef = "v0.35"
+        static teamCityGradlePluginRef = "v0.33"
 
         // https://github.com/jenkinsci/gradle-plugin/releases
-        static jenkinsGradlePluginRef = "gradle-2.8.2"
+        static jenkinsGradlePluginRef = "gradle-2.8.1"
 
         // https://github.com/gradle/gradle-enterprise-bamboo-plugin/releases
-        static bambooGradlePluginRef = "gradle-enterprise-bamboo-plugin-1.1.2"
+        static bambooGradlePluginRef = "gradle-enterprise-bamboo-plugin-1.1.0"
     }
 
     static class Versions implements Iterable<String> {

@@ -18,7 +18,7 @@ package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegrationSpec {
+abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCompilerIntegrationSpec {
     def canEnableAndDisableIntegerOptimization() {
         if (versionLowerThan('1.8')) {
             return

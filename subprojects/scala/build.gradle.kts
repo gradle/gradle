@@ -30,7 +30,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
-    compileOnly("org.scala-sbt:zinc_2.13:1.9.3") {
+    compileOnly("org.scala-sbt:zinc_2.13:1.6.1") {
         // Because not needed and was vulnerable
         exclude(module="log4j-core")
         exclude(module="log4j-api")
