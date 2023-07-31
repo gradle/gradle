@@ -22,6 +22,8 @@ dependencies {
     compileOnly(libs.asmTree)
     annotationProcessor(project(":internal-instrumentation-processor"))
     annotationProcessor(platform(project(":distributions-dependencies")))
+
+    implementation(project(":jacoco"))
 }
 
 tasks.named<JavaCompile>("compileJava") {

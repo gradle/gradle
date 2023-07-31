@@ -95,7 +95,7 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
 
     protected void prepareJavaPluginTest(String pluginApplyBody) {
         file("producer/build.gradle") << """
-            apply plugin: 'groovy'
+            apply plugin: 'java'
             dependencies {
                 implementation gradleApi()
             }

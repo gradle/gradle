@@ -867,7 +867,6 @@ Method <org.gradle.process.ProcessForkOptions.getWorkingDir()> does not have raw
 Method <org.gradle.testing.base.TestSuiteBinarySpec.getTestSuite()> does not have raw return type assignable to org.gradle.api.provider.Provider in (TestSuiteBinarySpec.java:0)
 Method <org.gradle.testing.base.TestSuiteBinarySpec.getTestedBinary()> does not have raw return type assignable to org.gradle.api.provider.Provider in (TestSuiteBinarySpec.java:0)
 Method <org.gradle.testing.base.TestSuiteSpec.getTestedComponent()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestSuiteSpec.java:0)
-Method <org.gradle.testing.jacoco.plugins.JacocoPluginExtension.getToolVersion()> does not have raw return type assignable to org.gradle.api.provider.Property in (JacocoPluginExtension.java:0)
 Method <org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getAddress()> does not have raw return type assignable to org.gradle.api.provider.Property in (JacocoTaskExtension.java:0)
 Method <org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getAsJvmArg()> does not have raw return type assignable to org.gradle.api.provider.Provider in (JacocoTaskExtension.java:0)
 Method <org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getClassDumpDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (JacocoTaskExtension.java:0)

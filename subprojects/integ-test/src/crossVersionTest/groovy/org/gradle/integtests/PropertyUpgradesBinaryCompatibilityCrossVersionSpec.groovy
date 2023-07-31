@@ -62,6 +62,20 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         succeedsWithPluginCompiledWithPreviousVersion()
     }
 
+    def "can use upgraded Jacoco in a Java plugin compiled with a previous Gradle version"() {
+        given:
+        prepareJavaPluginTest """
+            project.getPlugins().apply(JacocoPlugin.class);
+            JacocoPluginExtension extension = project.getExtensions().getByType(JacocoPluginExtension.class);
+            extension.setToolVersion("myversion");
+            String toolVersion = extension.getToolVersion();
+            assert "myversion".equals(toolVersion);
+        """
+
+        expect:
+        succeedsWithPluginCompiledWithPreviousVersion()
+    }
+
     def succeedsWithPluginCompiledWithPreviousVersion() {
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
         version current withTasks 'tasks' withStacktraceEnabled() requireDaemon() requireIsolatedDaemons() run()

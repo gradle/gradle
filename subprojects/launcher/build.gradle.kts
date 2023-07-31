@@ -43,6 +43,7 @@ dependencies {
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
     runtimeOnly(project(":instrumentation-declarations"))
+    runtimeOnly(project(":test-kit"))
 
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":base-services"))

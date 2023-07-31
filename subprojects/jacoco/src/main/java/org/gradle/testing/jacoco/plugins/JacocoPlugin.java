@@ -91,7 +91,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
         addJacocoConfigurations();
         JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, this.project.getServices().get(FileOperations.class));
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
-        extension.setToolVersion(DEFAULT_JACOCO_VERSION);
+        extension.getToolVersion().set(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
         extension.getReportsDirectory().convention(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
 
@@ -160,7 +160,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, final JacocoPluginExtension extension) {
         final Configuration config = project.getConfigurations().getAt(AGENT_CONFIGURATION_NAME);
         jacocoAgentJar.setAgentConf(config);
-        config.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.agent:" + extension.getToolVersion())));
+        config.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.agent:" + extension.getToolVersion().get())));
     }
 
     /**
@@ -172,7 +172,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     private void configureTaskClasspathDefaults(final JacocoPluginExtension extension) {
         final Configuration config = this.project.getConfigurations().getAt(ANT_CONFIGURATION_NAME);
         project.getTasks().withType(JacocoBase.class).configureEach(task -> task.setJacocoClasspath(config));
-        config.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.ant:" + extension.getToolVersion())));
+        config.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.ant:" + extension.getToolVersion().get())));
     }
 
     /**
