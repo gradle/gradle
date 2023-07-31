@@ -151,7 +151,6 @@ Method <org.gradle.api.plugins.BasePluginExtension.getDistsDirName()> does not h
 Method <org.gradle.api.plugins.BasePluginExtension.getLibsDirName()> does not have raw return type assignable to org.gradle.api.provider.Property in (BasePluginExtension.java:0)
 Method <org.gradle.api.plugins.JavaApplication.getApplicationDefaultJvmArgs()> does not have raw return type assignable to org.gradle.api.provider.Property in (JavaApplication.java:0)
 Method <org.gradle.api.plugins.JavaApplication.getApplicationDistribution()> does not have raw return type assignable to org.gradle.api.provider.Property in (JavaApplication.java:0)
-Method <org.gradle.api.plugins.JavaApplication.getApplicationName()> does not have raw return type assignable to org.gradle.api.provider.Property in (JavaApplication.java:0)
 Method <org.gradle.api.plugins.JavaApplication.getExecutableDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (JavaApplication.java:0)
 Method <org.gradle.api.plugins.JavaPluginConvention.getAutoTargetJvmDisabled()> does not have raw return type assignable to org.gradle.api.provider.Provider in (JavaPluginConvention.java:0)
 Method <org.gradle.api.plugins.JavaPluginConvention.getDocsDir()> does not have raw return type assignable to org.gradle.api.provider.Provider in (JavaPluginConvention.java:0)
