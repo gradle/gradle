@@ -139,11 +139,6 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     private static CharSequence toMessageList(List<DefaultProblem> problems) {
         return ValidationProblemSerialization.toMessages(problems).collect(joining());
-//        StringBuilder builder = new StringBuilder();
-//        for (String problemMessage : problems) {
-//            builder.append(String.format("%n  - %s", problemMessage));
-//        }
-//        return builder;
     }
 
     /**
