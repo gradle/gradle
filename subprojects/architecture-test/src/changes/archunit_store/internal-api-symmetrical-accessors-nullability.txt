@@ -5,8 +5,6 @@ Accessors for org.gradle.api.internal.file.copy.DefaultCopySpec.dirMode don't us
 Accessors for org.gradle.api.internal.file.copy.DefaultCopySpec.fileMode don't use symmetrical @Nullable
 Accessors for org.gradle.api.internal.file.copy.DelegatingCopySpecInternal.dirMode don't use symmetrical @Nullable
 Accessors for org.gradle.api.internal.file.copy.DelegatingCopySpecInternal.fileMode don't use symmetrical @Nullable
-Accessors for org.gradle.api.internal.file.copy.SingleParentCopySpec.dirMode don't use symmetrical @Nullable
-Accessors for org.gradle.api.internal.file.copy.SingleParentCopySpec.fileMode don't use symmetrical @Nullable
 Accessors for org.gradle.api.internal.tasks.DefaultSourceSetOutput.resourcesDir don't use symmetrical @Nullable
 Accessors for org.gradle.api.internal.tasks.TaskStateInternal.outcome don't use symmetrical @Nullable
 Accessors for org.gradle.execution.plan.Node.executionFailure don't use symmetrical @Nullable
