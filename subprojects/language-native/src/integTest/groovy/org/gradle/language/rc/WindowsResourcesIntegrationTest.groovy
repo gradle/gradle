@@ -15,6 +15,7 @@
  */
 package org.gradle.language.rc
 
+import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
@@ -157,7 +158,7 @@ model {
     }
 
     static List<WindowsSdkInstall> getNonDefaultSdks() {
-        WindowsSdkLocator locator = new DefaultWindowsSdkLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class))
+        WindowsSdkLocator locator = new DefaultWindowsSdkLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), NativeServicesTestFixture.getInstance().get(SystemInfo.class))
         WindowsSdkInstall defaultSdk = locator.locateComponent(null).component
         return locator.locateAllComponents() - defaultSdk
     }

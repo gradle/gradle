@@ -43,7 +43,7 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.ScalaRuntime;
@@ -81,7 +81,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
      *
      * @since 6.0
      */
-    public static final String DEFAULT_ZINC_VERSION = "1.6.1";
+    public static final String DEFAULT_ZINC_VERSION = "1.9.3";
     private static final String DEFAULT_SCALA_ZINC_VERSION = "2.13";
 
     @VisibleForTesting
@@ -95,12 +95,12 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     public static final String SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME = "scalaCompilerPlugins";
 
     private final ObjectFactory objectFactory;
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public ScalaBasePlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices) {
         this.objectFactory = objectFactory;
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.jvmPluginServices = jvmPluginServices;
     }
 
     @Override
@@ -125,7 +125,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
         Configuration plugins = project.getConfigurations().resolvableDependencyScopeUnlocked(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
         plugins.setTransitive(false);
-        jvmEcosystemUtilities.configureAsRuntimeClasspath(plugins);
+        jvmPluginServices.configureAsRuntimeClasspath(plugins);
 
         Configuration zinc = project.getConfigurations().resolvableDependencyScopeUnlocked(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false);

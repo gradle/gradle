@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":snapshots"))
     implementation(project(":tooling-api"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false

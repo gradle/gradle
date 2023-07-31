@@ -92,7 +92,7 @@ dependencies {
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.8.9") }}
-        api(libs.h2Database)            { version { strictly("2.1.214") }}
+        api(libs.h2Database)            { version { strictly("2.2.220") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}

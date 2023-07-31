@@ -455,6 +455,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-platform",
+    "path": "platforms/jvm/java-platform",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "jvm-services",
     "path": "subprojects/jvm-services",
     "unitTests": true,
@@ -619,7 +626,7 @@
     "name": "platform-jvm",
     "path": "subprojects/platform-jvm",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -807,6 +814,13 @@
   {
     "name": "testing-native",
     "path": "subprojects/testing-native",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "toolchains-jvm",
+    "path": "platforms/jvm/toolchains-jvm",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

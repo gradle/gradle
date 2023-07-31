@@ -629,18 +629,8 @@
             <pgp value="31bae2e51d95e0f8ad9b7bcc40a3c4432bd7308c"/>
          </artifact>
       </component>
-      <component group="com.h2database" name="h2" version="1.4.192">
-         <artifact name="h2-1.4.192.jar">
-            <pgp value="0cfa413799e2464c7d7e26220a4b343f2a55fdae"/>
-         </artifact>
-      </component>
-      <component group="com.h2database" name="h2" version="1.4.196">
-         <artifact name="h2-1.4.196.jar">
-            <pgp value="0cfa413799e2464c7d7e26220a4b343f2a55fdae"/>
-         </artifact>
-      </component>
-      <component group="com.h2database" name="h2" version="2.1.214">
-         <artifact name="h2-2.1.214.jar">
+      <component group="com.h2database" name="h2" version="2.2.220">
+         <artifact name="h2-2.2.220.jar">
             <pgp value="0cfa413799e2464c7d7e26220a4b343f2a55fdae"/>
          </artifact>
       </component>
@@ -689,8 +679,8 @@
             <pgp value="6dd3b8c64ef75253beb2c53ad908a43fb7ec07ac"/>
          </artifact>
       </component>
-      <component group="com.swoval" name="file-tree-views" version="2.1.7">
-         <artifact name="file-tree-views-2.1.7.jar">
+      <component group="com.swoval" name="file-tree-views" version="2.1.10">
+         <artifact name="file-tree-views-2.1.10.jar">
             <pgp value="ee2cfeb6a2aecf44c781c5c3dcd5181297a43d24"/>
          </artifact>
       </component>
@@ -808,6 +798,11 @@
       <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.7.6">
          <artifact name="gradle-enterprise-conventions-plugin-0.7.6.jar">
             <sha256 value="b3ff4bba6c5ac6e50e7225c7d1f69c0a9bc2ae9f3ce2bfacdc3f1b3999c2e758" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">
+         <artifact name="java-diff-utils-4.12.jar">
+            <pgp value="d477d51812e692011db11e66a6ea2e2bf22e0543"/>
          </artifact>
       </component>
       <component group="io.github.microutils" name="kotlin-logging-jvm" version="2.1.21">
@@ -1372,6 +1367,11 @@
             <pgp value="8e3a02905a1ae67e7b0f9acd3967d4eda591b991"/>
          </artifact>
       </component>
+      <component group="org.jline" name="jline" version="3.22.0">
+         <artifact name="jline-3.22.0.jar">
+            <pgp value="073f7a9345756f3b40cdb99e6c70a3b7599c5736"/>
+         </artifact>
+      </component>
       <component group="org.jlleitschuh.gradle" name="ktlint-gradle" version="10.3.0">
          <artifact name="ktlint-gradle-10.3.0.jar">
             <sha256 value="6923398b3a77a1fb3722aacbcdde6ab0527cfcc98eb3fef6974074f96ae7fe76" origin="Verified" reason="Artifact is not signed"/>
@@ -1461,9 +1461,9 @@
             <pgp value="dbe61b6ba51dfcaeded256477090af43a5e10d0b"/>
          </artifact>
       </component>
-      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="1.2.0">
-         <artifact name="scala-xml_2.13-1.2.0.jar">
-            <pgp value="8d0c8fa7175f26274a6a9f87efec7ea866cc43ae"/>
+      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.1.0">
+         <artifact name="scala-xml_2.13-2.1.0.jar">
+            <pgp value="600d21219963f228200a72375365a8a69292af1a"/>
          </artifact>
       </component>
       <component group="org.scijava" name="native-lib-loader" version="2.0.2">

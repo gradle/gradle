@@ -166,8 +166,8 @@ The services are made available through _service injection_.
 The following services are available for injection:
 
 - link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created. See <<#nested_objects>> for more details.
-- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout] - Provides access to key project locations. See <<lazy_configuration.adoc#working_with_files_in_lazy_properties,lazy configuration>> for more details. This service is unavailable in Worker API actions.
-- link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> for more details.
+- link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout] - Provides access to key project locations. See <<lazy_configuration.adoc#working_with_files_in_lazy_properties,lazy configuration>> for more details. This service is unavailable in Worker API actions.
+- link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> for more details.
 - link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel. See <<custom_tasks.adoc#worker_api,the worker API>> for more details.
 - link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations] - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
 - link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations] - Allows a task to run operations on archive files such as ZIP or TAR files.

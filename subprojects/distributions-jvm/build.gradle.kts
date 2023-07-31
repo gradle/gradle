@@ -17,4 +17,8 @@ dependencies {
     pluginsRuntimeOnly(project(":jacoco"))
     pluginsRuntimeOnly(project(":ide"))
     pluginsRuntimeOnly(project(":war"))
+
+    pluginsRuntimeOnly(project(":java-platform")) {
+        because("Aspirationally, we likely need a platform-base plugin that would ship in the same distribution as dependency-management, and isn't java specific - unfortunately this plugin applies the JvmEcosystemPlugin.")
+    }
 }

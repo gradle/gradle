@@ -11,6 +11,7 @@ dependency for any projects working directly with Test tasks.
 """
 
 dependencies {
+    implementation(project(":functional"))
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -22,6 +23,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm-infrastructure"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)

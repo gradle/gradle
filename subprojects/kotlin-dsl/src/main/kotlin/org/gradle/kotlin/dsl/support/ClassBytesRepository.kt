@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
@@ -43,6 +44,8 @@ typealias ClassBytesIndex = (String) -> ClassBytesSupplier?
  *
  * Follows the one directory per package name segment convention.
  * Keeps JAR files open for fast lookup, must be closed.
+ *
+ * Always include the current JVM platform loader for which no JAR file can be held open.
  */
 internal
 class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPath = ClassPath.EMPTY) : Closeable {
@@ -54,7 +57,9 @@ class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPat
     val classPathFiles: List<File> = classPath.asFiles
 
     private
-    val classBytesIndex = (classPathFiles + classPathDependencies.asFiles).map { classBytesIndexFor(it) }
+    val classBytesIndex = (classPathFiles + classPathDependencies.asFiles + ClassLoaderUtils.getPlatformClassLoader()).map {
+        classBytesIndexFor(it)
+    }
 
     /**
      * Class file bytes for Kotlin source name, if found.
@@ -105,10 +110,16 @@ class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPat
             .map { kotlinSourceNameOf(normaliseFileSeparators(it.relativeTo(dir).path)) }
 
     private
-    fun classBytesIndexFor(entry: File): ClassBytesIndex =
-        when {
-            entry.isClassPathArchive -> jarClassBytesIndexFor(entry)
-            entry.isDirectory -> directoryClassBytesIndexFor(entry)
+    fun classBytesIndexFor(entry: Any): ClassBytesIndex =
+        when (entry) {
+            is File -> when {
+                entry.isClassPathArchive -> jarClassBytesIndexFor(entry)
+                entry.isDirectory -> directoryClassBytesIndexFor(entry)
+                else -> { _ -> null }
+            }
+
+            is ClassLoader -> loaderClassBytesIndexFor(entry)
+
             else -> { _ -> null }
         }
 
@@ -124,6 +135,13 @@ class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPat
     private
     fun directoryClassBytesIndexFor(dir: File): ClassBytesIndex = { classFilePath ->
         dir.resolve(classFilePath).takeIf { it.isFile }?.let { classFile -> { classFile.readBytes() } }
+    }
+
+    private
+    fun loaderClassBytesIndexFor(loader: ClassLoader): ClassBytesIndex = { classFilePath ->
+        loader.getResource(classFilePath)?.let {
+            { loader.getResourceAsStream(classFilePath).use { it!!.readBytes() } }
+        }
     }
 
     private

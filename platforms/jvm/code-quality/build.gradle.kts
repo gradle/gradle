@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":platform-jvm"))
     implementation(project(":file-collections"))
+    implementation(project(":toolchains-jvm"))
     compileOnly(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy)
