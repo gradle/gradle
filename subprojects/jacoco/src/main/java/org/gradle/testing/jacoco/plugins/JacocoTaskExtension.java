@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
@@ -74,8 +75,6 @@ public abstract class JacocoTaskExtension {
     private String sessionId;
     private boolean dumpOnExit = true;
     private Output output = Output.FILE;
-    private String address;
-    private int port;
     private File classDumpDir;
     private boolean jmx;
 
@@ -229,25 +228,15 @@ public abstract class JacocoTaskExtension {
     @Nullable
     @Optional
     @Input
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(@Nullable String address) {
-        this.address = address;
-    }
+    @UpgradedProperty
+    public abstract Property<String> getAddress();
 
     /**
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      */
     @Input
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
+    @UpgradedProperty(originalType = int.class)
+    public abstract Property<Integer> getPort();
 
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.

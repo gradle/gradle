@@ -66,10 +66,23 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         given:
         prepareJavaPluginTest """
             project.getPlugins().apply(JacocoPlugin.class);
-            JacocoPluginExtension extension = project.getExtensions().getByType(JacocoPluginExtension.class);
-            extension.setToolVersion("myversion");
-            String toolVersion = extension.getToolVersion();
+
+            JacocoPluginExtension pluginExtension = project.getExtensions().getByType(JacocoPluginExtension.class);
+            pluginExtension.setToolVersion("myversion");
+            String toolVersion = pluginExtension.getToolVersion();
             assert "myversion".equals(toolVersion);
+
+            project.getTasks().register("myTest", Test.class, task -> {
+                task.getExtensions().configure(JacocoTaskExtension.class, extension -> {
+                    extension.setAddress("myaddress");
+                    String address = extension.getAddress();
+                    assert "myaddress".equals(address);
+
+                    extension.setPort(8765);
+                    int port = extension.getPort();
+                    assert port == 8765;
+                });
+            });
         """
 
         expect:

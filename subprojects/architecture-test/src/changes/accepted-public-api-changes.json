@@ -31,6 +31,57 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPluginExtension.getToolVersion()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPluginExtension.setToolVersion(java.lang.String)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getAddress()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getPort()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.setAddress(java.lang.String)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.setPort(int)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
