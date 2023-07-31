@@ -37,11 +37,18 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
     def "can use upgraded Checkstyle in a Java plugin compiled with a previous Gradle version"() {
         given:
         prepareJavaPluginTest """
+            project.getPlugins().apply(ApplicationPlugin.class);
+
             project.getTasks().register("myCheckstyle", Checkstyle.class, it -> {
                 it.setMaxErrors(1);
                 int currentMaxErrors = it.getMaxErrors();
                 assert currentMaxErrors == 1;
             });
+
+            JavaApplication application = project.getExtensions().getByType(JavaApplication.class);
+            application.setApplicationName("myapp");
+            String applicationName = application.getApplicationName();
+            assert "myapp".equals(applicationName);
         """
 
         expect:

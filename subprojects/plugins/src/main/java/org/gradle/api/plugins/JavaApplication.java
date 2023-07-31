@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 
 /**
  * Configuration for a Java application, defining how to assemble the application.
@@ -41,12 +42,8 @@ public interface JavaApplication {
     /**
      * The name of the application.
      */
-    String getApplicationName();
-
-    /**
-     * The name of the application.
-     */
-    void setApplicationName(String applicationName);
+    @UpgradedProperty
+    Property<String> getApplicationName();
 
     /**
      * The name of the application's Java module if it should run as a module.

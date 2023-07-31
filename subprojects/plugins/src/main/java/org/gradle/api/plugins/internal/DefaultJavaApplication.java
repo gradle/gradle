@@ -26,23 +26,20 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class DefaultJavaApplication implements JavaApplication {
     private final ApplicationPluginConvention convention;
+    private final Property<String> applicationName;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
 
     public DefaultJavaApplication(ApplicationPluginConvention convention, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.convention = convention;
+        this.applicationName = objectFactory.property(String.class).convention(providerFactory.provider(() -> DeprecationLogger.whileDisabled(convention::getApplicationName)));
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class).convention(providerFactory.provider(() -> DeprecationLogger.whileDisabled(convention::getMainClassName)));
     }
 
     @Override
-    public String getApplicationName() {
-        return DeprecationLogger.whileDisabled(convention::getApplicationName);
-    }
-
-    @Override
-    public void setApplicationName(String applicationName) {
-        DeprecationLogger.whileDisabled(() -> convention.setApplicationName(applicationName));
+    public Property<String> getApplicationName() {
+        return applicationName;
     }
 
     @Override

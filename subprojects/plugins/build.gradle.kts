@@ -30,6 +30,7 @@ dependencies {
         because("We need it for BuildOutputCleanupRegistry")
     }
     implementation(project(":toolchains-jvm"))
+    implementation(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)

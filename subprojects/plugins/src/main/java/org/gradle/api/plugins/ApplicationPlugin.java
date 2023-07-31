@@ -95,7 +95,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         installTask.configure(task -> task.doFirst(
             "don't overwrite existing directories",
             new PreventDestinationOverwrite(
-                providers.provider(pluginExtension::getApplicationName),
+                pluginExtension.getApplicationName(),
                 providers.provider(pluginExtension::getExecutableDir)
             )
         ));
@@ -187,7 +187,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             startScripts.getMainModule().set(pluginExtension.getMainModule());
             startScripts.getMainClass().set(pluginExtension.getMainClass());
 
-            startScripts.getConventionMapping().map("applicationName", pluginExtension::getApplicationName);
+            startScripts.getConventionMapping().map("applicationName", () -> pluginExtension.getApplicationName().get());
 
             startScripts.getConventionMapping().map("outputDir", () -> new File(project.getBuildDir(), "scripts"));
 
@@ -209,7 +209,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     private CopySpec configureDistribution(Project project, JvmFeatureInternal mainFeature, Distribution mainDistribution, JavaApplication pluginExtension) {
-        mainDistribution.getDistributionBaseName().convention(project.provider(pluginExtension::getApplicationName));
+        mainDistribution.getDistributionBaseName().convention(pluginExtension.getApplicationName());
         CopySpec distSpec = mainDistribution.getContents();
 
         TaskProvider<Jar> jar = mainFeature.getJarTask();
