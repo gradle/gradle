@@ -18,8 +18,10 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -47,5 +49,21 @@ class NoOpProblems extends Problems {
     @Override
     public void collectErrors(Collection<Problem> problem) {
 
+    }
+
+    @Nullable
+    @Override
+    public ProblemGroup getProblemGroup(String groupId) {
+        return null;
+    }
+
+    @Override
+    public ProblemGroup registerProblemGroup(String typeId) {
+        return null;
+    }
+
+    @Override
+    public ProblemGroup registerProblemGroup(ProblemGroup typeId) {
+        return null;
     }
 }

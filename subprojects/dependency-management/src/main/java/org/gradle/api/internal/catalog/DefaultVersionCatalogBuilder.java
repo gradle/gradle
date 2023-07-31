@@ -79,7 +79,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.T
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT;
-import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG;
+import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG_ID;
 import static org.gradle.api.problems.interfaces.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
@@ -189,7 +189,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             .severity(ERROR)
             .message(message)
             .type(catalogProblemId.name())
-            .group(VERSION_CATALOG);
+            .group(VERSION_CATALOG_ID);
     }
 
     private DefaultVersionCatalog doBuild() {

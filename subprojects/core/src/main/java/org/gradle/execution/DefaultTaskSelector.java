@@ -105,7 +105,7 @@ public class DefaultTaskSelector implements TaskSelector {
             .severity(Severity.ERROR)
             .message(message)
             .type("task_selection")
-            .group(ProblemGroup.GENERIC)
+            .group(ProblemGroup.GENERIC_ID)
             .cause(new TaskSelectionException(message))
             .throwIt();
     }

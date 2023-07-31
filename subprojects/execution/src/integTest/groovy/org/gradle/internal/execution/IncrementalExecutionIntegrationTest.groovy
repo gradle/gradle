@@ -137,7 +137,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     ExecutionEngine getExecutor() {
         // @formatter:off
-        new DefaultExecutionEngine(documentationRegistry,
+        new DefaultExecutionEngine( Stub(Problems),
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(

@@ -39,7 +39,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static org.gradle.api.problems.interfaces.ProblemGroup.DEPRECATION;
+import static org.gradle.api.problems.interfaces.ProblemGroup.DEPRECATION_ID;
 import static org.gradle.api.problems.interfaces.Severity.WARNING;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
@@ -88,7 +88,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 .severity(WARNING)
                 .message(usage.formattedMessage())
                 .type("generic_deprecation")
-                .group(DEPRECATION)
+                .group(DEPRECATION_ID)
                 .report();
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);

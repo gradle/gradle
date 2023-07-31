@@ -17,7 +17,7 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
@@ -32,23 +32,23 @@ import java.util.function.Supplier;
 import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PLUGIN_ID;
 
 abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
-    private final DocumentationRegistry documentationRegistry;
+    private final Problems problems;
     private final Class<?> rootType;
     private final Supplier<Optional<PluginId>> pluginId;
 
     public ProblemRecordingTypeValidationContext(
-        DocumentationRegistry documentationRegistry,
+        Problems problems,
         @Nullable Class<?> rootType,
         Supplier<Optional<PluginId>> pluginId
     ) {
-        this.documentationRegistry = documentationRegistry;
+        this.problems = problems;
         this.rootType = rootType;
         this.pluginId = pluginId;
     }
 
     @Override
     public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(ProblemsProgressEventEmitterHolder.get());
+        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(ProblemsProgressEventEmitterHolder.get(), problems);
         problemSpec.execute(problemBuilder);
         recordProblem(problemBuilder.build());
     }
@@ -59,8 +59,8 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
 
 
     @Override
-    public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec){
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(ProblemsProgressEventEmitterHolder.get());
+    public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(ProblemsProgressEventEmitterHolder.get(), problems);
         problemSpec.execute(problemBuilder);
         problemBuilder.withAnnotationType(rootType);
         pluginId()

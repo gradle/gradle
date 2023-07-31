@@ -50,7 +50,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
                 .severity(org.gradle.api.problems.interfaces.Severity.ERROR)
                 .message("doesn't have a configured value")
                 .type(ValidationProblemId.VALUE_NOT_SET.name())
-                .group(ProblemGroup.TYPE_VALIDATION)
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .description("This property isn't marked as optional and no value has been configured")
                 .solution("Assign a value to '" + propertyName + "'")
                 .solution("Mark property '" + propertyName + "' as optional");

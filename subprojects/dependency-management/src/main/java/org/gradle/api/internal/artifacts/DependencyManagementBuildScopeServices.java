@@ -538,8 +538,8 @@ class DependencyManagementBuildScopeServices {
         // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
-        return new DefaultExecutionEngine(documentationRegistry,
-            new IdentifyStep<>(buildOperationExecutor,
+        return new DefaultExecutionEngine(
+            problems, new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(

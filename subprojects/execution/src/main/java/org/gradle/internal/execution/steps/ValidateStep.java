@@ -139,7 +139,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 configureImplementationValidationProblem(problem.forProperty(propertyName))
                     .message(unknownImplSnapshot.getProblemDescription())
                     .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description(unknownImplSnapshot.getReasonDescription())
                     .solution(unknownImplSnapshot.getSolutionDescription())
             );
@@ -153,7 +153,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 configureImplementationValidationProblem(problem)
                     .message(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                     .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description(unknownImplSnapshot.getReasonDescription())
                     .solution(unknownImplSnapshot.getSolutionDescription())
             );

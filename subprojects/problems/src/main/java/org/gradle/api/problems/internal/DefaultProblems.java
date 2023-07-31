@@ -18,34 +18,50 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import static org.gradle.api.problems.interfaces.ProblemGroup.GENERIC;
+import static org.gradle.api.problems.interfaces.ProblemGroup.DEPRECATION_ID;
+import static org.gradle.api.problems.interfaces.ProblemGroup.GENERIC_ID;
+import static org.gradle.api.problems.interfaces.ProblemGroup.TYPE_VALIDATION_ID;
+import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG_ID;
 import static org.gradle.api.problems.interfaces.Severity.ERROR;
 
 public class DefaultProblems extends Problems {
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
 
+    private final Map<String, ProblemGroup> problemGroups = new LinkedHashMap<>();
+
     public DefaultProblems(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
+        addPredfinedGroup(GENERIC_ID);
+        addPredfinedGroup(TYPE_VALIDATION_ID);
+        addPredfinedGroup(DEPRECATION_ID);
+        addPredfinedGroup(VERSION_CATALOG_ID);
+    }
+
+    private void addPredfinedGroup(String genericId) {
+        problemGroups.put(genericId, new PredefinedProblemGroup(genericId));
     }
 
     public UndocumentedProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder(buildOperationProgressEventEmitter);
+        return new DefaultProblemBuilder(this, buildOperationProgressEventEmitter);
     }
 
 
     public void collectError(Throwable failure) {
-        new DefaultProblemBuilder(buildOperationProgressEventEmitter)
+        new DefaultProblemBuilder(this, buildOperationProgressEventEmitter)
             .undocumented()
             .noLocation()
             .severity(ERROR)
             .message(failure.getMessage())
             .type("generic_exception")
-            .group(GENERIC)
+            .group(GENERIC_ID)
             .cause(failure)
             .report();
     }
@@ -59,5 +75,23 @@ public class DefaultProblems extends Problems {
     @Override
     public void collectErrors(Collection<Problem> problem) {
         problem.forEach(this::collectError);
+    }
+
+    @Override
+    public ProblemGroup getProblemGroup(String groupId) {
+        return problemGroups.get(groupId);
+    }
+
+    @Override
+    public ProblemGroup registerProblemGroup(String typeId) {
+        PredefinedProblemGroup value = new PredefinedProblemGroup(typeId);
+        problemGroups.put(typeId, value);
+        return value;
+    }
+
+    @Override
+    public ProblemGroup registerProblemGroup(ProblemGroup typeId) {
+        problemGroups.put(typeId.getId(), typeId);
+        return typeId;
     }
 }

@@ -174,7 +174,7 @@ public class MissingTaskDependencyDetector {
                 .severity(org.gradle.api.problems.interfaces.Severity.ERROR)
                 .message("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .type(ValidationProblemId.IMPLICIT_DEPENDENCY.name())
-                .group(ProblemGroup.TYPE_VALIDATION)
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .description(String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
                         + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
                     consumer,

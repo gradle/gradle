@@ -32,16 +32,16 @@ import java.util.Map;
 @NonNullApi
 public class DefaultProblem implements Problem {
 
-    private final ProblemGroup problemGroup;
-    private final String message;
-    private final Severity severity;
-    private final ProblemLocation where;
-    private final DocLink documentationLink;
-    private final String description;
-    private final List<String> solutions;
-    private final Throwable cause;
-    private final String problemType;
-    private final Map<String, String> additionalMetadata;
+    private ProblemGroup problemGroup;
+    private String message;
+    private Severity severity;
+    private ProblemLocation where;
+    private DocLink documentationLink;
+    private String description;
+    private List<String> solutions;
+    private Throwable cause;
+    private String problemType;
+    private Map<String, String> additionalMetadata;
 
     public DefaultProblem(ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl,
                           @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType, Map<String, String> additionalMetadata) {
@@ -57,6 +57,8 @@ public class DefaultProblem implements Problem {
         this.additionalMetadata = additionalMetadata;
     }
 
+    public DefaultProblem(){
+    }
     @Override
     public ProblemGroup getProblemGroup() {
         return problemGroup;

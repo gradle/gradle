@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
@@ -33,8 +34,8 @@ public class DefaultTypeAwareProblemBuilder extends DefaultProblemBuilder implem
     public static final String PROPERTY_NAME = "propertyName";
     public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
 
-    public DefaultTypeAwareProblemBuilder(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        super(buildOperationProgressEventEmitter);
+    public DefaultTypeAwareProblemBuilder(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, Problems problems) {
+        super(problems, buildOperationProgressEventEmitter);
     }
 
     @Override

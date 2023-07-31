@@ -18,13 +18,13 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.stream.Collectors;
 
+import static org.gradle.api.problems.interfaces.ProblemGroup.TYPE_VALIDATION_ID;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
@@ -62,7 +62,7 @@ public class NestedValidationUtil  {
                     .severity(Severity.WARNING)
                     .message("with nested type '" + beanType.getName() + "' is not supported")
                     .type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(TYPE_VALIDATION_ID)
                     .description("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input")
                     .solution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input")
             );
@@ -106,7 +106,7 @@ public class NestedValidationUtil  {
                     .severity(Severity.WARNING)
                     .message("where key of nested map is of type '" + keyType.getName() + "'")
                     .type(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(TYPE_VALIDATION_ID)
                     .description("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())
             );

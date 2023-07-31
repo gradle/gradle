@@ -32,6 +32,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)
+    implementation(libs.gson)
 
     testImplementation(project(":file-collections"))
     testImplementation(project(":enterprise-operations"))
@@ -55,6 +56,7 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 
     testFixturesImplementation(project(":model-core"))
+    testFixturesImplementation(project(":logging"))
 }
 
 integTest.usesJavadocCodeSnippets = true

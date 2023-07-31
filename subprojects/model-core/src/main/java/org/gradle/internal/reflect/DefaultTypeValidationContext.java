@@ -16,35 +16,35 @@
 
 package org.gradle.internal.reflect;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.gradle.internal.reflect.problems.ValidationProblemId.onlyAffectsCacheableWork;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     private final boolean reportCacheabilityProblems;
-    private final ImmutableMap.Builder<String, Severity> problems = ImmutableMap.builder();
+//    private final ImmutableMap.Builder<Problem, Severity> problems = ImmutableMap.builder();
+    private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
 
-    public static DefaultTypeValidationContext withRootType(DocumentationRegistry documentationRegistry, Class<?> rootType, boolean cacheable) {
-        return new DefaultTypeValidationContext(documentationRegistry, rootType, cacheable);
+    public static DefaultTypeValidationContext withRootType(Problems problems, Class<?> rootType, boolean cacheable) {
+        return new DefaultTypeValidationContext(problems, rootType, cacheable);
     }
 
-    public static DefaultTypeValidationContext withoutRootType(DocumentationRegistry documentationRegistry, boolean reportCacheabilityProblems) {
-        return new DefaultTypeValidationContext(documentationRegistry, null, reportCacheabilityProblems);
+    public static DefaultTypeValidationContext withoutRootType(Problems problems, boolean reportCacheabilityProblems) {
+        return new DefaultTypeValidationContext(problems, null, reportCacheabilityProblems);
     }
 
-    private DefaultTypeValidationContext(DocumentationRegistry documentationRegistry, @Nullable Class<?> rootType, boolean reportCacheabilityProblems) {
-        super(documentationRegistry, rootType, Optional::empty);
+    private DefaultTypeValidationContext(Problems problems, @Nullable Class<?> rootType, boolean reportCacheabilityProblems) {
+        super(problems, rootType, Optional::empty);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
@@ -53,24 +53,26 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         if (onlyAffectsCacheableWork(problem.getProblemType()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }
-        problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), problem.getSeverity());
+        problems.add(problem);
+//        problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), problem.getSeverity());
     }
 
-    public ImmutableMap<String, Severity> getProblems() {
+    public ImmutableList<Problem> getProblems() {
         return problems.build();
     }
 
-    public static void throwOnProblemsOf(Class<?> implementation, ImmutableMap<String, org.gradle.api.problems.interfaces.Severity> validationMessages) {
+    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<Problem> validationMessages) {
         if (!validationMessages.isEmpty()) {
             String formatString = validationMessages.size() == 1
                 ? "A problem was found with the configuration of %s."
                 : "Some problems were found with the configuration of %s.";
             throw new DefaultMultiCauseException(
                 String.format(formatString, ModelType.of(implementation).getDisplayName()),
-                validationMessages.keySet().stream()
+                validationMessages.stream()
+                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
                     .sorted()
                     .map(InvalidUserDataException::new)
-                    .collect(Collectors.toList())
+                    .collect(toList())
             );
         }
     }

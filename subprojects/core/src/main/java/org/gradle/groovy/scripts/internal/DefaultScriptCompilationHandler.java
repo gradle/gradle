@@ -220,7 +220,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             .severity(Severity.ERROR)
             .message(message)
             .type("script_compilation_failed")
-            .group(ProblemGroup.GENERIC)
+            .group(ProblemGroup.GENERIC_ID)
             .cause(new ScriptCompilationException(message, e, source, lineNumber))
             .throwIt();
     }

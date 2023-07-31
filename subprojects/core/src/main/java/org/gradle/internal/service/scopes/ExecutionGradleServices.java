@@ -138,7 +138,7 @@ public class ExecutionGradleServices {
     ) {
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
         // @formatter:off
-        return new DefaultExecutionEngine(documentationRegistry,
+        return new DefaultExecutionEngine(problems,
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(

@@ -51,7 +51,7 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
                 .severity(annotationValue(propertyMetadata))
                 .message("test problem")
                 .type(ValidationProblemId.TEST_PROBLEM.name())
-                .group(ProblemGroup.TYPE_VALIDATION)
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .description("this is a test")
         );
     }

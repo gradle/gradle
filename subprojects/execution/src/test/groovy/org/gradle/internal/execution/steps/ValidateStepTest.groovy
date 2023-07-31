@@ -86,7 +86,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .severity(Severity.ERROR)
                     .message("Validation error")
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description("Test")
             }
         }
@@ -118,7 +118,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .severity(Severity.ERROR)
                     .message("Validation error #1")
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description("Test")
             }
             validationContext.forType(SecondaryJobType, true).visitTypeProblem {
@@ -129,7 +129,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .severity(Severity.ERROR)
                     .message("Validation error #2")
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description("Test")
             }
         }
@@ -152,7 +152,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .severity(Severity.WARNING)
                     .message("Validation warning")
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description("Test")
             }
         }
@@ -191,7 +191,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .severity(Severity.ERROR)
                     .message("Validation error")
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description("Test")
             }
             typeContext.visitTypeProblem {
@@ -202,7 +202,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .severity(Severity.WARNING)
                     .message("Validation warning")
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description("Test")
             }
         }

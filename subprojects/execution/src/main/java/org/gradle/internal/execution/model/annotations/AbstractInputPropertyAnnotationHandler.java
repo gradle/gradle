@@ -70,7 +70,7 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
                     .severity(Severity.ERROR)
                     .message(String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
                     .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
-                    .group(ProblemGroup.TYPE_VALIDATION)
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
                     for (String possibleSolution : possibleSolutions) {
                         describedProblem.solution(possibleSolution);

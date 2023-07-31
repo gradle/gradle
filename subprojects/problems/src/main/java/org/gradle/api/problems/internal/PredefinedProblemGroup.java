@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 
-/**
- * Builder that is part of the {@link ProblemBuilder} concept.
- *
- * @since 8.4
- */
-@Incubating
-public interface UngroupedProblemBuilder {
-    ProblemBuilder group(ProblemGroup group);
-    ProblemBuilder group(String group);
+public class PredefinedProblemGroup extends ProblemGroup {
+    public PredefinedProblemGroup(String id) {
+        super(id);
+    }
 }

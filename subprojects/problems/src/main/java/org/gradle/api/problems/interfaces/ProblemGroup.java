@@ -24,16 +24,20 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public enum ProblemGroup {
+public abstract class ProblemGroup {
 
-    GENERIC("generic"),
-    DEPRECATION("deprecation"),
-    VERSION_CATALOG("version_catalog"),
-    TYPE_VALIDATION("type_validation");
+    public static final String GENERIC_ID = "generic";
+//    public static final ProblemGroup GENERIC = new PredefinedProblemGroup(GENERIC_ID);
+    public static final String DEPRECATION_ID = "deprecation";
+//    public static final ProblemGroup DEPRECATION = new PredefinedProblemGroup(DEPRECATION_ID);
+    public static final String VERSION_CATALOG_ID = "version_catalog";
+//    public static final ProblemGroup VERSION_CATALOG = new PredefinedProblemGroup(VERSION_CATALOG_ID);
+    public static final String TYPE_VALIDATION_ID = "type_validation";
+//    public static final ProblemGroup TYPE_VALIDATION = new PredefinedProblemGroup(TYPE_VALIDATION_ID);
 
     private final String id;
 
-    ProblemGroup(String id) {
+    public ProblemGroup(String id) {
         this.id = id;
     }
 

@@ -168,7 +168,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def outputsCleanerFactory = { new OutputsCleaner(deleter, buildOutputCleanupRegistry.&isOutputOwnedByBuild, buildOutputCleanupRegistry.&isOutputOwnedByBuild) } as Supplier<OutputsCleaner>
 
     // @formatter:off
-    def executionEngine = new DefaultExecutionEngine(documentationRegistry,
+    def executionEngine = new DefaultExecutionEngine(Stub(Problems),
         new IdentifyStep<>(buildOperationExecutor,
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(

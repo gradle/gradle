@@ -57,7 +57,7 @@ import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuil
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
-import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG;
+import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG_ID;
 import static org.gradle.api.problems.interfaces.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.problems.internal.RenderingUtils.oxfordJoin;
@@ -810,7 +810,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .severity(ERROR)
             .message(message)
             .type(catalogProblemId.name().toLowerCase())
-            .group(VERSION_CATALOG);
+            .group(VERSION_CATALOG_ID);
     }
 
 }

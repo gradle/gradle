@@ -16,7 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
@@ -53,6 +55,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     private ProblemGroup problemGroup;
     private String message;
     private String problemType;
+    private final Problems problemsService;
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
     private Severity severity;
     private String path;
@@ -66,21 +69,27 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     private Throwable cause;
     protected final Map<String, String> additionalMetadata = new HashMap<>();
 
-    public DefaultProblemBuilder(ProblemGroup problemGroup, String message, Severity severity, String type, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        this.problemGroup = problemGroup;
-        this.message = message;
-        this.severity = severity;
-        this.problemType = type;
-        this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
-    }
-
-    public DefaultProblemBuilder(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+    public DefaultProblemBuilder(Problems problemsService, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        this.problemsService = problemsService;
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
     }
 
     @Override
     public ProblemBuilder group(ProblemGroup group) {
         this.problemGroup = group;
+        return this;
+    }
+
+    @Override
+    public ProblemBuilder group(String group) {
+        if (problemsService != null) {
+
+            ProblemGroup existingGroup = problemsService.getProblemGroup(group);
+            if (existingGroup == null) {
+                throw new GradleException("Problem group " + group + " does not exist, either use existing group or register a new one");
+            }
+            group(existingGroup);
+        }
         return this;
     }
 
