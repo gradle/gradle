@@ -30,53 +30,53 @@ class CreateStartScriptsTest extends AbstractProjectBuilderSpec {
     }
 
     def scriptNameDefaultsToApplicationName() {
-        task.outputDir = new File('output')
+        task.outputDir.set(new File('output'))
 
         when:
-        task.applicationName = "myApp"
+        task.getApplicationName().set("myApp")
 
         then:
-        task.unixScript == new File(task.outputDir, 'myApp')
-        task.windowsScript == new File(task.outputDir, 'myApp.bat')
+        task.unixScript.asFile.get() == new File(task.outputDir.asFile.get(), 'myApp')
+        task.windowsScript.asFile.get() == new File(task.outputDir.asFile.get(), 'myApp.bat')
     }
 
     def optsEnvironmentVariableNameDefaultsToApplicationName() {
         when:
-        task.applicationName = null
+        task.getApplicationName().set(null)
 
         then:
-        task.optsEnvironmentVar == null
+        task.optsEnvironmentVar.getOrNull() == null
 
         when:
-        task.applicationName = "myApp"
+        task.getApplicationName().set("myApp")
 
         then:
-        task.optsEnvironmentVar == 'MY_APP_OPTS'
+        task.optsEnvironmentVar.get() == 'MY_APP_OPTS'
 
         when:
-        task.optsEnvironmentVar = 'APP_OPTS'
+        task.optsEnvironmentVar.set('APP_OPTS')
 
         then:
-        task.optsEnvironmentVar == 'APP_OPTS'
+        task.optsEnvironmentVar.get() == 'APP_OPTS'
     }
 
     def exitEnvironmentVariableNameDefaultsToApplicationName() {
         when:
-        task.applicationName = null
+        task.getApplicationName().set(null)
 
         then:
-        task.exitEnvironmentVar == null
+        task.exitEnvironmentVar.getOrNull() == null
 
         when:
-        task.applicationName = "myApp"
+        task.getApplicationName().set("myApp")
 
         then:
-        task.exitEnvironmentVar == 'MY_APP_EXIT_CONSOLE'
+        task.exitEnvironmentVar.get() == 'MY_APP_EXIT_CONSOLE'
 
         when:
-        task.exitEnvironmentVar = 'APP_EXIT'
+        task.exitEnvironmentVar.set('APP_EXIT')
 
         then:
-        task.exitEnvironmentVar == 'APP_EXIT'
+        task.exitEnvironmentVar.get() == 'APP_EXIT'
     }
 }
