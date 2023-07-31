@@ -19,19 +19,13 @@ package org.gradle.internal.component;
 import org.gradle.api.attributes.HasAttributes;
 
 import java.util.List;
-import java.util.Optional;
 
-public class VariantSelectionFailureMessageProcessor {
-    private List<IdentifiableSelectionFailure> identifiableSelectionFailures;
+public interface IdentifiableSelectionFailure {
+    IdentificationResult match(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates);
 
-    public Optional<String> process(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
-        for (IdentifiableSelectionFailure failure : identifiableSelectionFailures) {
-            IdentifiableSelectionFailure.IdentificationResult result = failure.match(producerDisplayName, requested, candidates);
-            if (result.isMatch()) {
-                return Optional.of(result.getMessage());
-            }
-        }
+    interface IdentificationResult {
+        boolean isMatch();
 
-        return Optional.empty();
+        String getMessage();
     }
 }

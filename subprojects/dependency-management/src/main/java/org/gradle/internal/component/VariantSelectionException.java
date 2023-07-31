@@ -38,8 +38,8 @@ public class VariantSelectionException extends StyledException {
         return new VariantSelectionException(String.format("Could not select a variant of %s that matches the consumer attributes.", producer.asDescribable().getDisplayName()), failure);
     }
 
-    private static String processFailureMessage(String message, String producerDisplayName, AttributeContainerInternal requested, List<? extends HasAttributes> candidates) {
+    private static String processFailureMessage(String message, String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
         VariantSelectionFailureMessageProcessor processor = new VariantSelectionFailureMessageProcessor();
-        return processor.process(message);
+        return processor.process(producerDisplayName, requested, candidates).orElse(message);
     }
 }
