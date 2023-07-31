@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.BuildResult
@@ -147,6 +148,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
+    private static final VersionNumber FIRST_VERSION_BUNDLING_TEST_RETRY_PLUGIN = VersionNumber.parse("3.12")
+    private static final VersionNumber FIRST_VERSION_SUPPORTING_SAFE_MODE = VersionNumber.parse("3.15")
 
     private static final List<String> SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE = SUPPORTED
         .findAll { FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE <= VersionNumber.parse(it) }
@@ -287,6 +290,16 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         """.stripIndent()
 
         setupJavaProject()
+        if (doesNotBundleTestRetryPluginOrSupportsSafeMode(versionNumber)) {
+            new TestFile(buildFile).with {
+                touch()
+                prepend("""
+                    plugins {
+                        id "org.gradle.test-retry" version "${TestedVersions.testRetryPlugin}"
+                    }
+                """)
+            }
+        }
 
         expect:
         scanRunner("--init-script", initScript)
@@ -306,6 +319,10 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         where:
         [ci, pluginVersion] << [CI.values(), SUPPORTED_BY_CI_INJECTION].combinations()
         ciScriptVersion = ci.gitRef
+    }
+
+    private boolean doesNotBundleTestRetryPluginOrSupportsSafeMode(VersionNumber pluginVersion) {
+        pluginVersion < FIRST_VERSION_BUNDLING_TEST_RETRY_PLUGIN || pluginVersion >= FIRST_VERSION_SUPPORTING_SAFE_MODE
     }
 
     BuildResult build(String... args) {

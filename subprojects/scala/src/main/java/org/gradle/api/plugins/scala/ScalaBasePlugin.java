@@ -81,7 +81,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
      *
      * @since 6.0
      */
-    public static final String DEFAULT_ZINC_VERSION = "1.6.1";
+    public static final String DEFAULT_ZINC_VERSION = "1.9.3";
     private static final String DEFAULT_SCALA_ZINC_VERSION = "2.13";
 
     @VisibleForTesting
