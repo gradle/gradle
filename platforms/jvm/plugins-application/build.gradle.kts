@@ -27,6 +27,7 @@ dependencies {
 
     api(libs.inject)
     api(libs.jsr305)
+    api(projects.internalInstrumentationApi)
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.pluginsJavaBase)
@@ -34,7 +35,6 @@ dependencies {
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
     implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.platformJvm)
     implementation(projects.pluginsDistribution)
     implementation(projects.pluginsJava)
