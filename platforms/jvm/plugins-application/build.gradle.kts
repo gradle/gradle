@@ -31,6 +31,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.logging)
     implementation(projects.ant)
     implementation(projects.fileOperations)
     implementation(projects.languageJava)
