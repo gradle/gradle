@@ -2,6 +2,14 @@
     "acceptedApiChanges": [
         {
             "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Class org.gradle.api.plugins.quality.Checkstyle",
+            "acceptation": "Checkstyle.maxErrors is upgraded to a Property type",
+            "changes": [
+                "Abstract method has been added to a superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
             "member": "Method org.gradle.api.plugins.quality.Checkstyle.getMaxErrors()",
             "acceptation": "Checkstyle.maxErrors is upgraded to a Property type",
             "changes": [
