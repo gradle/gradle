@@ -16,13 +16,14 @@
 
 package org.gradle.configurationcache.flow
 
-import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableList
 import org.gradle.api.Task
 import org.gradle.api.flow.FlowParameters
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.interfaces.Problem
+import org.gradle.api.problems.interfaces.ProblemGroup
 import org.gradle.api.problems.interfaces.Severity
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
@@ -32,7 +33,6 @@ import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -55,15 +55,12 @@ class FlowParametersInstantiator(
 
     private
     fun <P : FlowParameters> validate(type: Class<P>, parameters: P) {
-        val problems = ImmutableMap.builder<String, Severity>()
+        val problems = ImmutableList.builder<Problem>()
         inspection.propertyWalker.visitProperties(
             parameters,
-            object : ProblemRecordingTypeValidationContext(DocumentationRegistry(), type, { Optional.empty() }) {
+            object : ProblemRecordingTypeValidationContext(problemsService, type, { Optional.empty() }) {
                 override fun recordProblem(problem: Problem) {
-                    problems.put(
-                        TypeValidationProblemRenderer.renderMinimalInformationAbout(problem),
-                        problem.severity
-                    )
+                    problems.add(problem)
                 }
             },
             object : PropertyVisitor {
@@ -77,10 +74,18 @@ class FlowParametersInstantiator(
                     taskDependencies.visitDependencies(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
-                                problems.put(
-                                    "Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.",
-                                    Severity.ERROR
-                                )
+                                problems.add(problemsService.createProblemBuilder()
+                                    .undocumented()
+                                    .noLocation()
+                                    .severity(Severity.ERROR)
+                                    .message("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
+                                    .type("validation_type")
+                                    .group(ProblemGroup.TYPE_VALIDATION_ID)
+                                    .build())
+//                                problems.put(
+//                                    "Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.",
+//                                    Severity.ERROR
+//                                )
                             }
 
                             override fun getTask(): Task? = null
@@ -96,6 +101,9 @@ class FlowParametersInstantiator(
     val instantiator by lazy {
         instantiatorFactory.decorateScheme().withServices(services).instantiator()
     }
+
+    private
+    val problemsService = services.get(Problems::class.java)
 
     private
     val inspection by lazy {
