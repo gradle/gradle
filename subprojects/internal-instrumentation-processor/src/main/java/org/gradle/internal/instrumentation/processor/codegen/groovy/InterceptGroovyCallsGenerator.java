@@ -277,7 +277,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .orElseThrow(() -> new IllegalArgumentException("a property interception request must have a receiver parameter")).getParameterType();
     }
 
-    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor");
+    static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor");
     private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor");
     private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
         ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor.SignatureMatch");
