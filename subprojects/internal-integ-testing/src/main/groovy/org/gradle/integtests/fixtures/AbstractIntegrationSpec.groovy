@@ -704,14 +704,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         recreateExecuter()
     }
 
-    void assumeGroovy3() {
-        Assume.assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
-    }
-
-    void assumeGroovy4() {
-        Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
-    }
-
     /**
      * Generates a `repositories` block pointing to the standard maven repo fixture.
      *
