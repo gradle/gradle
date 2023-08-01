@@ -67,3 +67,16 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/idea/**")
 }
+
+/*
+ * This is needed to avoid CI failures like this:
+ *
+ * Failed to stop service 'testFilesCleanupBuildService'.
+   > Found non-empty test files dir:
+    /home/tcagent1/agent/work/f63322e10dd6b396/platforms/ide/ide-plugins/build/tmp/teŝt files/EclipseInte.Test:
+     canHandleCi.cies/xinjd/build/reports/configuration-cache/f5dmqyt5fw1qx1u5ylf7c1p2p/f1jute3awhw927kq95bbyi89k/configuration-cache-report.html
+     canHandleCi.cies/xinjd/.project
+     canHandleCi.cies/xinjd/settings.gradle
+     canHandleCi.cies/xinjd/.classpath
+ */
+testFilesCleanup.reportOnly = true
