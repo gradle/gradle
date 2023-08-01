@@ -330,6 +330,7 @@ image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies repo
 
 Learn more in <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Viewing and debugging dependencies>>.
 
+[[sec:listing_project_dependencies]]
 === Listing project dependencies
 
 Running `gradle dependencies` gives you a list of the dependencies of the selected project, broken down by configuration. For each configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below is an example of this report:
