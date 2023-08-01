@@ -46,7 +46,6 @@ import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
-import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 
