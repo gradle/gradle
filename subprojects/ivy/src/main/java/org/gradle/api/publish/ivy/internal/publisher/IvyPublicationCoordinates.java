@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import javax.annotation.Nullable;
+import org.gradle.api.provider.Property;
 
-public interface MutableIvyPublicationidentity extends IvyPublicationIdentity {
+public interface IvyPublicationCoordinates {
 
-    void setOrganisation(@Nullable String organisation);
+    Property<String> getOrganisation();
 
-    void setModule(@Nullable String module);
+    Property<String> getModule();
 
-    void setRevision(@Nullable String revision);
+    Property<String> getRevision();
+
 }

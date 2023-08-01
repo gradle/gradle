@@ -37,9 +37,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.publish.internal.PublicationInternal
+import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.ivy.IvyArtifact
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates
 import org.gradle.api.tasks.TaskOutputs
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.typeconversion.NotationParser
@@ -56,7 +57,7 @@ class DefaultIvyPublicationTest extends Specification {
 
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def objectFactory = TestUtil.objectFactory()
-    def projectIdentity = new DefaultIvyPublicationIdentity("organisation", "module", "revision")
+    def coordinates = objectFactory.newInstance(IvyPublicationCoordinates)
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     def attributesFactory = AttributeTestUtil.attributesFactory()
@@ -66,6 +67,9 @@ class DefaultIvyPublicationTest extends Specification {
     File artifactFile
 
     def "setup"() {
+        coordinates.organisation.set("organization")
+        coordinates.module.set("module")
+        coordinates.revision.set("revision")
         ivyDescriptorFile = new File(testDirectoryProvider.testDirectory, "ivy-file")
         moduleDescriptorFile = new File(testDirectoryProvider.testDirectory, "module-file")
         artifactFile = new File(testDirectoryProvider.testDirectory, "artifact-file")
@@ -95,7 +99,7 @@ class DefaultIvyPublicationTest extends Specification {
         then:
         publication.artifacts.empty
         publication.publishableArtifacts.files.files == [ivyDescriptorFile] as Set
-        publication.descriptor.dependencies.get().empty
+        !publication.descriptor.dependencies.isPresent()
     }
 
     def "adopts configurations, artifacts and publishableFiles from added component"() {
@@ -155,8 +159,8 @@ class DefaultIvyPublicationTest extends Specification {
             module == "name"
             revision == "version"
             confMapping == "runtime->dep-configuration"
-            artifacts == [artifact]
-            excludeRules == [exclude]
+            artifacts == [artifact] as Set
+            excludeRules == [exclude] as Set
         }
     }
 
@@ -191,8 +195,8 @@ class DefaultIvyPublicationTest extends Specification {
             module == "pub-module"
             revision == "pub-revision"
             confMapping == "runtime->dep-configuration"
-            artifacts == []
-            excludeRules == [exclude]
+            artifacts == [] as Set
+            excludeRules == [exclude] as Set
         }
     }
 
@@ -289,7 +293,7 @@ class DefaultIvyPublicationTest extends Specification {
             "pub-name",
             instantiator,
             objectFactory,
-            projectIdentity,
+            coordinates,
             notationParser,
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
@@ -322,9 +326,9 @@ class DefaultIvyPublicationTest extends Specification {
         publication.revision = "revision2"
 
         then:
-        projectIdentity.organisation == "organisation2"
-        projectIdentity.module == "module2"
-        projectIdentity.revision == "revision2"
+        coordinates.organisation.get() == "organisation2"
+        coordinates.module.get() == "module2"
+        coordinates.revision.get() == "revision2"
 
         and:
         publication.organisation== "organisation2"
@@ -332,9 +336,9 @@ class DefaultIvyPublicationTest extends Specification {
         publication.revision == "revision2"
 
         and:
-        publication.identity.organisation == "organisation2"
-        publication.identity.module == "module2"
-        publication.identity.revision == "revision2"
+        publication.coordinates.group == "organisation2"
+        publication.coordinates.name == "module2"
+        publication.coordinates.version == "revision2"
     }
 
 
@@ -365,17 +369,20 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createPublication() {
+        def versionMappingStrategy = Mock(VersionMappingStrategyInternal) {
+            findStrategyForVariant(_) >> Mock(VariantVersionMappingStrategyInternal)
+        }
         def publication = objectFactory.newInstance(DefaultIvyPublication,
             "pub-name",
             instantiator,
             objectFactory,
-            projectIdentity,
+            coordinates,
             notationParser,
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
             attributesFactory,
             CollectionCallbackActionDecorator.NOOP,
-            Mock(VersionMappingStrategyInternal),
+            versionMappingStrategy,
             Mock(PlatformSupport),
             Mock(DocumentationRegistry),
             TestFiles.taskDependencyFactory()
@@ -426,12 +433,5 @@ class DefaultIvyPublicationTest extends Specification {
             getUsages() >> [variant]
         }
         return component
-    }
-
-    def otherPublication(String name, String org, String module, String revision) {
-        def pub = Mock(PublicationInternal)
-        pub.name >> name
-        pub.coordinates >> new DefaultModuleVersionIdentifier(org, module, revision)
-        return pub
     }
 }

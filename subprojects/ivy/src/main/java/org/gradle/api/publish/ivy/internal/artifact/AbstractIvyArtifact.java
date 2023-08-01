@@ -19,7 +19,6 @@ package org.gradle.api.publish.ivy.internal.artifact;
 import com.google.common.base.Strings;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.publish.ivy.internal.publisher.IvyArtifactInternal;
 import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
