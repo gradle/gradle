@@ -484,42 +484,42 @@
   },
   {
     "name": "kotlin-dsl",
-    "path": "subprojects/kotlin-dsl",
+    "path": "platforms/core-configuration/kotlin-dsl",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-integ-tests",
-    "path": "subprojects/kotlin-dsl-integ-tests",
+    "path": "platforms/core-configuration/kotlin-dsl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "kotlin-dsl-plugins",
-    "path": "subprojects/kotlin-dsl-plugins",
+    "path": "platforms/core-configuration/kotlin-dsl-plugins",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-provider-plugins",
-    "path": "subprojects/kotlin-dsl-provider-plugins",
+    "path": "platforms/core-configuration/kotlin-dsl-provider-plugins",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-tooling-builders",
-    "path": "subprojects/kotlin-dsl-tooling-builders",
+    "path": "platforms/core-configuration/kotlin-dsl-tooling-builders",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "kotlin-dsl-tooling-models",
-    "path": "subprojects/kotlin-dsl-tooling-models",
+    "path": "platforms/core-configuration/kotlin-dsl-tooling-models",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
