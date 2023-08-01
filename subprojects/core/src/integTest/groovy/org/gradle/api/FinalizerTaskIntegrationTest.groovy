@@ -40,6 +40,11 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         '''
     }
 
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/21542")
     def "finalizer can depend on a task that it finalizes"() {
         given:

@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.TaskProperties
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
@@ -124,7 +125,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
         getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
     }
-    def validationContext = new DefaultWorkValidationContext(documentationRegistry, WorkValidationContext.TypeOriginInspector.NO_OP)
+    def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, Mock(Problems))
     def executionContext = Mock(TaskExecutionContext)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)

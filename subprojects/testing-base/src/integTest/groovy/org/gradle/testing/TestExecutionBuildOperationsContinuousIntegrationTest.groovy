@@ -31,6 +31,11 @@ class TestExecutionBuildOperationsContinuousIntegrationTest extends AbstractCont
 
     final List<Action<GradleExecuter>> afterExecute = []
 
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     final GradleExecuter delegatingExecuter = new GradleExecuter() {
         @Delegate
         GradleExecuter delegate = executer
