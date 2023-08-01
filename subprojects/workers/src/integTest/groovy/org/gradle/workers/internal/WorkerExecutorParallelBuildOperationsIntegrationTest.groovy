@@ -20,8 +20,9 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -103,7 +104,12 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         assert endTime(":workTask").isBefore(endTime(":slowTask"))
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3911")
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = """Assumptions about project locking do not hold.
+With CC enabled, the project is immutable so tasks run in parallel.
+This means workTask and slowTask would be expected to run concurrently in this case."""
+    )
     def "worker-based task with further actions does not complete when work items finish (while another task is executing in parallel)"() {
         when:
         buildFile << """
