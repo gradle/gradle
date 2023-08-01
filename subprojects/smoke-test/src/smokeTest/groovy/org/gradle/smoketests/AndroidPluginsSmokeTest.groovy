@@ -65,11 +65,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         and:
         def runner = useAgpVersion(agpVersion, runner('sourceSets'))
         runner.deprecations(AndroidDeprecations) {
-            expectProjectConventionDeprecationWarning(agpVersion)
-            expectAndroidConventionTypeDeprecationWarning(agpVersion)
-            if (GradleContextualExecuter.isNotConfigCache()) {
-                expectBasePluginConventionDeprecation(agpVersion)
-            }
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+            maybeExpectProjectConventionDeprecationWarning(agpVersion)
+            maybeExpectAndroidConventionTypeDeprecationWarning(agpVersion)
+            maybeExpectBasePluginConventionDeprecation(agpVersion)
         }
 
         when:
