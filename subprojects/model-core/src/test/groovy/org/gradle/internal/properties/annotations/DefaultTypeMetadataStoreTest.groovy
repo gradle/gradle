@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.problems.interfaces.Severity
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
@@ -48,6 +49,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -66,6 +68,7 @@ import java.lang.annotation.Annotation
 
 import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeMetadataStoreTest extends Specification implements ValidationMessageChecker {
@@ -459,10 +462,10 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         }
     }
 
-    private static List<String> collectProblems(TypeMetadata metadata) {
-        def validationContext = DefaultTypeValidationContext.withoutRootType(DOCUMENTATION_REGISTRY, false)
+    private List<String> collectProblems(TypeMetadata metadata) {
+        def validationContext = DefaultTypeValidationContext.withoutRootType(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)), false)
         metadata.visitValidationFailures(null, validationContext)
-        return validationContext.problems.keySet().collect { normaliseLineSeparators(it) }
+        return validationContext.problems.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {
