@@ -27,17 +27,19 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
             delegate = new NativeOsMemoryInfo();
         } else if (operatingSystem.isLinux()) {
             delegate = getLinuxDelegate();
+        } else if (operatingSystem.isWindows()) {
+            delegate = new WindowsOsMemoryInfo();
         } else {
             delegate = new MBeanOsMemoryInfo();
         }
     }
 
-    private OsMemoryInfo getLinuxDelegate() {
-        OsMemoryInfo cGroupDelegate = new CGroupMemoryInfo();
-        OsMemoryInfo memInfoDelegate = new MemInfoOsMemoryInfo();
+    private static OsMemoryInfo getLinuxDelegate() {
+        CGroupMemoryInfo cGroupDelegate = new CGroupMemoryInfo();
+        MemInfoOsMemoryInfo memInfoDelegate = new MemInfoOsMemoryInfo();
 
-        OsMemoryStatus cGroupSnapshot;
-        OsMemoryStatus memInfoSnapshot;
+        OsMemoryStatusSnapshot cGroupSnapshot;
+        OsMemoryStatusSnapshot memInfoSnapshot;
 
         try {
             cGroupSnapshot = cGroupDelegate.getOsSnapshot();

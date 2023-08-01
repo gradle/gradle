@@ -16,17 +16,28 @@
 
 package org.gradle.process.internal.health.memory;
 
+import com.google.common.base.Function;
+
 /**
- * OS memory status.
+ * OS memory status. This is not a live view, so it may be stored and used later.
  */
 public interface OsMemoryStatus {
     /**
-     * @return OS total memory in bytes
+     * Get the total physical memory on the system, in bytes.
+     *
+     * @return the total physical memory on the system
      */
     long getTotalPhysicalMemory();
 
     /**
-     * @return OS free memory in bytes
+     * Given a function to compute the intended free memory, compute the amount of memory that should be reclaimed.
+     *
+     * <p>
+     * The function is given the total amount of memory on the system and should return the amount of memory that
+     * should be free. It may be called multiple times.
+     * </p>
+     *
+     * @param computeIntendedFreeMemory a function to compute the intended free memory
      */
-    long getFreePhysicalMemory();
+    MemoryReclaim computeMemoryReclaimAmount(Function<Long, Long> computeIntendedFreeMemory);
 }

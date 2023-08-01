@@ -17,6 +17,7 @@
 package org.gradle.process.internal.health.memory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -95,15 +96,21 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     }
 
     @Override
-    public void requestFreeMemory(long memoryAmountBytes) {
+    public void requestFreeMemory(final long memoryAmountBytes) {
         synchronized (memoryLock) {
             if (currentOsMemoryStatus != null) {
-                long totalPhysicalMemory = currentOsMemoryStatus.getTotalPhysicalMemory();
-                long requestedFreeMemory = getMemoryThresholdInBytes(totalPhysicalMemory) + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
-                long freeMemory = currentOsMemoryStatus.getFreePhysicalMemory();
-                long newFreeMemory = doRequestFreeMemory(requestedFreeMemory, freeMemory);
-                // If we've freed memory, invalidate the current OS memory snapshot
-                if (newFreeMemory > freeMemory) {
+                MemoryReclaim reclaim = currentOsMemoryStatus.computeMemoryReclaimAmount(new Function<Long, Long>() {
+                    @Override
+                    public Long apply(Long totalMemory) {
+                        return getMemoryThresholdInBytes(totalMemory) + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
+                    }
+                });
+                if (reclaim instanceof MemoryReclaim.None) {
+                    return;
+                }
+                boolean reclaimedMemory = tryReclaimMemory((MemoryReclaim.Some) reclaim);
+                // If we've reclaimed memory, invalidate the current OS memory snapshot
+                if (reclaimedMemory) {
                     currentOsMemoryStatus = null;
                 }
             } else {
@@ -112,30 +119,31 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
         }
     }
 
-    private long doRequestFreeMemory(long requestedFreeMemory, long freeMemory) {
-        long toReleaseMemory = requestedFreeMemory;
-        if (freeMemory < requestedFreeMemory) {
-            LOGGER.debug("{} memory requested, {} free", requestedFreeMemory, freeMemory);
-            List<MemoryHolder> memoryHolders;
-            synchronized (holdersLock) {
-                memoryHolders = new ArrayList<MemoryHolder>(holders);
-            }
-            for (MemoryHolder holder : memoryHolders) {
-                long released = holder.attemptToRelease(toReleaseMemory);
-                toReleaseMemory -= released;
-                freeMemory += released;
-                if (freeMemory >= requestedFreeMemory) {
-                    break;
-                }
-            }
+    private boolean tryReclaimMemory(MemoryReclaim.Some reclaim) {
+        long toReleaseMemory = reclaim.getAmount();
+        LOGGER.debug("{} bytes of {} memory requested, {} free", toReleaseMemory, reclaim.getType(), reclaim.getCurrentFree());
 
-            LOGGER.debug("{} memory requested, {} released, {} free", requestedFreeMemory, requestedFreeMemory - toReleaseMemory, freeMemory);
+        List<MemoryHolder> memoryHolders;
+        synchronized (holdersLock) {
+            memoryHolders = new ArrayList<MemoryHolder>(holders);
         }
-        return freeMemory;
+
+        long releasedMemory = 0;
+        for (MemoryHolder holder : memoryHolders) {
+            long released = holder.attemptToRelease(toReleaseMemory);
+            toReleaseMemory -= released;
+            releasedMemory += released;
+            if (toReleaseMemory <= 0) {
+                break;
+            }
+        }
+
+        LOGGER.debug("{} bytes of {} memory requested, {} released", reclaim.getAmount(), reclaim.getType(), releasedMemory);
+        return releasedMemory > 0;
     }
 
-    private long getMemoryThresholdInBytes(long totalPhysicalMemory) {
-        return Math.max(MIN_THRESHOLD_BYTES, (long) (totalPhysicalMemory * minFreeMemoryPercentage));
+    private long getMemoryThresholdInBytes(long totalMemory) {
+        return Math.max(MIN_THRESHOLD_BYTES, (long) (totalMemory * minFreeMemoryPercentage));
     }
 
     private class MemoryCheck implements Runnable {

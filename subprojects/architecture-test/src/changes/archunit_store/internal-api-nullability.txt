@@ -5382,6 +5382,7 @@ Class <org.gradle.process.internal.health.memory.MemInfoOsMemoryInfo> is not ann
 Class <org.gradle.process.internal.health.memory.MemoryAmount> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MemoryAmount.java:0)
 Class <org.gradle.process.internal.health.memory.MemoryHolder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MemoryHolder.java:0)
 Class <org.gradle.process.internal.health.memory.MemoryManager> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MemoryManager.java:0)
+Class <org.gradle.process.internal.health.memory.MemoryReclaim$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MemoryReclaim.java:0)
 Class <org.gradle.process.internal.health.memory.NativeOsMemoryInfo> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (NativeOsMemoryInfo.java:0)
 Class <org.gradle.process.internal.health.memory.OsMemoryInfo> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OsMemoryInfo.java:0)
 Class <org.gradle.process.internal.health.memory.OsMemoryStatus> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OsMemoryStatus.java:0)

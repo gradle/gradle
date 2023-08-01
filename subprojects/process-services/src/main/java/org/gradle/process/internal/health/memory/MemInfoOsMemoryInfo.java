@@ -39,7 +39,7 @@ public class MemInfoOsMemoryInfo implements OsMemoryInfo {
     }
 
     @Override
-    public synchronized OsMemoryStatus getOsSnapshot() {
+    public synchronized OsMemoryStatusSnapshot getOsSnapshot() {
         // NOTE: meminfoMatcher is _not_ thread safe and access needs to be limited to a single thread.
         List<String> meminfoOutputLines;
         try {

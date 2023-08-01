@@ -40,6 +40,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         when:
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
+
         then:
         expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES
     }

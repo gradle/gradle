@@ -28,7 +28,7 @@ public class CGroupMemoryInfo implements OsMemoryInfo {
     private static final String CGROUP_MEM_TOTAL_FILE = "/sys/fs/cgroup/memory/memory.limit_in_bytes";
 
     @Override
-    public OsMemoryStatus getOsSnapshot() {
+    public OsMemoryStatusSnapshot getOsSnapshot() {
         String memUsageString = readStringFromFile(new File(CGROUP_MEM_USAGE_FILE));
         String memTotalString = readStringFromFile(new File(CGROUP_MEM_TOTAL_FILE));
 

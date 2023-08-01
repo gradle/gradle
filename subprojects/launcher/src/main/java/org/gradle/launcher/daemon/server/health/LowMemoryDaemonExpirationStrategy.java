@@ -22,10 +22,9 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
+import org.gradle.process.internal.health.memory.MemoryReclaim;
 import org.gradle.process.internal.health.memory.OsMemoryStatus;
 import org.gradle.process.internal.health.memory.OsMemoryStatusListener;
-
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
@@ -33,13 +32,9 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GR
  * An expiry strategy which only triggers when system memory falls below a threshold.
  */
 public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy, OsMemoryStatusListener {
-    private ReentrantLock lock = new ReentrantLock();
-    private OsMemoryStatus memoryStatus;
+    private volatile OsMemoryStatus memoryStatus;
     private final double minFreeMemoryPercentage;
-    private long memoryThresholdInBytes;
     private static final Logger LOGGER = Logging.getLogger(LowMemoryDaemonExpirationStrategy.class);
-
-    public static final String EXPIRATION_REASON = "to reclaim system memory";
 
     // Reasonable default threshold bounds: between 384M and 1G
     public static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024;
@@ -51,38 +46,38 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
         this.minFreeMemoryPercentage = minFreeMemoryPercentage;
     }
 
-    private long normalizeThreshold(final long thresholdIn, final long minValue, final long maxValue) {
-        return Math.min(maxValue, Math.max(minValue, thresholdIn));
-    }
-
     @Override
     public DaemonExpirationResult checkExpiration() {
-        lock.lock();
-        try {
-            if (memoryStatus != null) {
-                long freeMem = memoryStatus.getFreePhysicalMemory();
-                if (freeMem < memoryThresholdInBytes) {
-                    LOGGER.info("after free system memory ({}) fell below threshold of {}", NumberUtil.formatBytes(freeMem), NumberUtil.formatBytes(memoryThresholdInBytes));
-                    return new DaemonExpirationResult(GRACEFUL_EXPIRE, EXPIRATION_REASON);
-                } else if (freeMem < memoryThresholdInBytes * 2) {
-                    LOGGER.debug("Nearing low memory threshold - {}", memoryStatus);
+        OsMemoryStatus localStatus = this.memoryStatus;
+        if (localStatus != null) {
+            MemoryReclaim reclaim = localStatus.computeMemoryReclaimAmount(this::computeRequiredFreeMemory);
+            if (reclaim instanceof MemoryReclaim.Some) {
+                MemoryReclaim.Some some = (MemoryReclaim.Some) reclaim;
+                LOGGER.info(
+                    "after free system {} memory ({}) fell below threshold of {}",
+                    some.getType(), NumberUtil.formatBytes(some.getCurrentFree()), NumberUtil.formatBytes(some.getRequiredFree())
+                );
+                return new DaemonExpirationResult(GRACEFUL_EXPIRE, "to reclaim system " + some.getType() + " memory");
+            } else {
+                reclaim = localStatus.computeMemoryReclaimAmount(totalMemory ->
+                    2 * computeRequiredFreeMemory(totalMemory)
+                );
+                if (reclaim instanceof MemoryReclaim.Some) {
+                    MemoryReclaim.Some some = (MemoryReclaim.Some) reclaim;
+                    LOGGER.debug("Nearing low {} memory threshold, free = {}", some.getType(), NumberUtil.formatBytes(some.getCurrentFree()));
                 }
             }
-        } finally {
-            lock.unlock();
         }
         return DaemonExpirationResult.NOT_TRIGGERED;
 
     }
 
+    private long computeRequiredFreeMemory(Long totalMemory) {
+        return Math.min(MAX_THRESHOLD_BYTES, Math.max(MIN_THRESHOLD_BYTES, (long) (totalMemory * minFreeMemoryPercentage)));
+    }
+
     @Override
     public void onOsMemoryStatus(OsMemoryStatus newStatus) {
-        lock.lock();
-        try {
-            this.memoryStatus = newStatus;
-            this.memoryThresholdInBytes = normalizeThreshold((long) (memoryStatus.getTotalPhysicalMemory() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
-        } finally {
-            lock.unlock();
-        }
+        this.memoryStatus = newStatus;
     }
 }
