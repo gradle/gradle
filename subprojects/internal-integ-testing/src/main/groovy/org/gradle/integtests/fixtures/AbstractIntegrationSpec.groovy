@@ -727,7 +727,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     /**
-     * When called, the Problem API event checking in {@link #fails(java.lang.String[])} will be <b>disabled</b>.
+     * When called, the Problem API event checking in {@link #fails(java.lang.String [ ])} will be <b>disabled</b>.
      * <p>
      * @see #enableProblemsCheck()
      */
@@ -736,7 +736,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     /**
-     * When called, the Problem API event checking in  {@link #fails(java.lang.String[])} will be <b>enabled</b>.
+     * When called, the Problem API event checking in  {@link #fails(java.lang.String [ ])} will be <b>enabled</b>.
      * <p>
      * The check makes sure that for each failed execution, a Problem event was emitted.
      *
@@ -745,7 +745,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     void enableProblemsCheck() {
         this.enableProblemsAssertions = true
     }
-}
 
     /**
      * Generates a `repositories` block pointing to the standard maven repo fixture.
