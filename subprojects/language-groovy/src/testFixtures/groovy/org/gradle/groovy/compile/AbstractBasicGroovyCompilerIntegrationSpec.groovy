@@ -38,7 +38,7 @@ import spock.lang.Issue
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
 @TargetCoverage({ GroovyCoverage.SUPPORTED_BY_JDK })
-abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
+abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
 

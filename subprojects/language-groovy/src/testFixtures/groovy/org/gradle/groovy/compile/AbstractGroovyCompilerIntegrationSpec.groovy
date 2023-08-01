@@ -21,9 +21,9 @@ import spock.lang.Issue
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
 /**
- * Tests in this class use on disk build files - see resources/org/gradle/groovy/compile/GroovyCompilerIntegrationSpec/**
+ * Tests in this class use on disk build files - see resources/org/gradle/groovy/compile/AbstractGroovyCompilerIntegrationSpec/**
  */
-abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrationSpec {
+abstract class AbstractGroovyCompilerIntegrationSpec extends AbstractBasicGroovyCompilerIntegrationSpec {
     def "canUseBuiltInAstTransform"() {
         if (versionLowerThan('1.6')) {
             return
