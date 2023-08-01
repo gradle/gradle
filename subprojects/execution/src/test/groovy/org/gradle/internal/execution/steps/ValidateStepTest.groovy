@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.interfaces.Problem
 import org.gradle.api.problems.interfaces.ProblemGroup
