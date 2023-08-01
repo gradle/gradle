@@ -15,6 +15,6 @@ abstract class PrintValue : DefaultTask() {
 // tag::execution[]
 tasks.register<PrintValue>("printValue") {
     // Using the Gradle API, provides a lazy Provider<String> wired to a task input
-    inputValue.set(providers.environmentVariable("ENVIRONMENTAL"))
+    inputValue = providers.environmentVariable("ENVIRONMENTAL")
 }
 // end::execution[]

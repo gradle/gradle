@@ -20,13 +20,9 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
-import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
-import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDependencies
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
 import org.gradle.test.fixtures.file.TestFile
@@ -252,11 +248,8 @@ class ValidatingMavenPublisherTest extends Specification {
     private def createPomFile(MavenPublicationCoordinates coordinates, Action<XmlProvider> withXmlAction = null, boolean marker = false) {
         MavenPomInternal pom = TestUtil.objectFactory().newInstance(
             DefaultMavenPom.class,
-            TestUtil.objectFactory(),
-            Stub(VersionMappingStrategyInternal)
+            TestUtil.objectFactory()
         )
-
-        pom.dependencies.set(DefaultMavenPomDependencies.EMPTY)
 
         pom.coordinates.artifactId.set(coordinates.getArtifactId())
         pom.coordinates.groupId.set(coordinates.getGroupId())
@@ -267,7 +260,7 @@ class ValidatingMavenPublisherTest extends Specification {
         }
 
         def pomFile = testDir.file("pom")
-        new MavenPomFileGenerator(Stub(VersionRangeMapper), ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY).generateSpec(pom).writeTo(pomFile)
+        MavenPomFileGenerator.generateSpec(pom).writeTo(pomFile)
         return createArtifact(pomFile, "pom")
     }
 

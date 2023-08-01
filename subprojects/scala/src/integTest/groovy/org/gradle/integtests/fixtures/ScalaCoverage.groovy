@@ -20,13 +20,32 @@ import org.gradle.api.JavaVersion
 
 class ScalaCoverage {
 
-    static final String[] SCALA_2 = ["2.11.12", "2.12.17", "2.13.10"]
-    static final String[] SCALA_3 = ["3.1.3", "3.2.1"]
+    private static final Map<String, JavaVersion> SCALA_2_VERSIONS = [
+        "2.11.12": JavaVersion.VERSION_1_8,
+        "2.12.18": JavaVersion.VERSION_1_8,
+        "2.13.11": JavaVersion.VERSION_20,
+    ]
+    private static final Map<String, JavaVersion> SCALA_3_VERSIONS = [
+        "3.1.3": JavaVersion.VERSION_18,
+        "3.2.2": JavaVersion.VERSION_19,
+        "3.3.0": JavaVersion.VERSION_20,
+    ]
+    static final String[] SCALA_2 = SCALA_2_VERSIONS.keySet().toArray(new String[0])
+    static final String[] SCALA_3 = SCALA_3_VERSIONS.keySet().toArray(new String[0])
 
     static final String[] DEFAULT = SCALA_2 + SCALA_3
     static final String[] LATEST_IN_MAJOR = [SCALA_2.last(), SCALA_3.last()]
 
-    //to be used with getOrDefault(version, JavaVersion.VERSION_1_8)
-    static final Map<String, JavaVersion> SCALA_VERSION_TO_MAX_JAVA_VERSION = ["2.13.6" : JavaVersion.VERSION_17, "2.13.1": JavaVersion.VERSION_12]
+    static JavaVersion getMaximumJavaVersionForScalaVersion(Object scalaVersion) {
+        def v2 = SCALA_2_VERSIONS.get(scalaVersion)
+        if (v2 != null) {
+            return v2
+        }
+        def v3 = SCALA_3_VERSIONS.get(scalaVersion)
+        if (v3 != null) {
+            return v3
+        }
+        throw new IllegalArgumentException("Unknown Scala version: " + scalaVersion)
+    }
 
 }

@@ -330,6 +330,7 @@ image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies repo
 
 Learn more in <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Viewing and debugging dependencies>>.
 
+[[sec:listing_project_dependencies]]
 === Listing project dependencies
 
 Running `gradle dependencies` gives you a list of the dependencies of the selected project, broken down by configuration. For each configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below is an example of this report:
@@ -455,7 +456,7 @@ Build projects in parallel. For limitations of this option, see <<multi_project_
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
 
 `--profile`::
-Generates a high-level performance report in the `$buildDir/reports/profile` directory. `--scan` is preferred.
+Generates a high-level performance report in the `layout.buildDirectory.dir("reports/profile")` directory. `--scan` is preferred.
 
 `--scan`::
 Generate a build scan with detailed performance diagnostics.

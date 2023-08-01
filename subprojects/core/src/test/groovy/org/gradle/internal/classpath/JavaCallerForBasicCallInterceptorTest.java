@@ -30,15 +30,28 @@ public class JavaCallerForBasicCallInterceptorTest {
         return receiver.sayHello();
     }
 
-    public static void doCallNoArg(InterceptorTestReceiver receiver) {
-        receiver.call();
+    public static void doTestNoArg(InterceptorTestReceiver receiver) {
+        receiver.test();
     }
 
-    public static void doCallSingleArg(InterceptorTestReceiver receiver) {
-        receiver.call(receiver);
+    public static void doTestSingleArg(InterceptorTestReceiver receiver) {
+        receiver.test(receiver);
     }
 
-    public static void doCallVararg(InterceptorTestReceiver receiver) {
-        receiver.callVararg(receiver, receiver, receiver);
+    public static void doTestSingleArgNull(InterceptorTestReceiver receiver) {
+        receiver.test(null);
+    }
+
+    public static void doTestVararg(InterceptorTestReceiver receiver) {
+        receiver.testVararg(receiver, receiver, receiver);
+    }
+
+    public static void doTestVarargWithArray(InterceptorTestReceiver receiver) {
+        //noinspection RedundantArrayCreation
+        receiver.testVararg(new Object[]{receiver, receiver, receiver});
+    }
+
+    public static void doTestVarargWithNullItem(InterceptorTestReceiver receiver) {
+        receiver.testVararg((Object) null);
     }
 }

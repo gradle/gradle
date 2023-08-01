@@ -91,7 +91,7 @@ the link:{javadocPath}/org/gradle/api/plugins/JavaBasePlugin.html[Java Base plug
   It also establishes a lifecycle between those tasks that make sense for the domain.
 
 The bottom line is that we _separated capabilities from conventions_.
-If a user decides that he doesn’t like the tasks created or doesn’t want to reconfigure a lot of the conventions because that’s not how the project structure looks like, then he can just fall back to applying the Java Base plugin and take matters into his own hands.
+If a user decides that they doesn’t like the tasks created or doesn’t want to reconfigure a lot of the conventions because that’s not how the project structure looks like, then they can just fall back to applying the Java Base plugin and take matters into their own hands.
 
 You should consider using the same technique when designing your own plugins.
 You can develop both plugins within the same project and ship their compiled classes and identifiers with the same binary artifact.

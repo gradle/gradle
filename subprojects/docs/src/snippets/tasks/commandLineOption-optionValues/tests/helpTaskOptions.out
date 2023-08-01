@@ -9,7 +9,7 @@ Type
 Options
      --http     Configures the http protocol to be allowed.
 
-     --no-http     Disables option --http
+     --no-http     Disables option --http.
 
      --output-type     Configures the output type.
                        Available values are:

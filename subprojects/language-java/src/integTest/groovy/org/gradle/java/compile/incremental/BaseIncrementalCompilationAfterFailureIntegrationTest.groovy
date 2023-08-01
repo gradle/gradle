@@ -444,7 +444,7 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
             }
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'org.codehaus.groovy:groovy:3.0.13'
+                testImplementation 'org.codehaus.groovy:groovy:3.0.18'
                 testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
             }
             tasks.withType(GroovyCompile) {

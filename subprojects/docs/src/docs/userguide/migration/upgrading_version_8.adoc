@@ -35,10 +35,31 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.4]]
+== Upgrading from 8.3 and earlier
+
+=== Deprecations
+
+[[generate_maven_pom_method_deprecations]]
+==== Deprecated `GenerateMavenPom` methods
+
+The following methods on `link:{javadocPath}/org/gradle/api/publish/maven/tasks/GenerateMavenPom.html[GenerateMavenPom]` are deprecated and will be removed in Gradle 9.0.
+They were never intended to be public API.
+
+- `getVersionRangeMapper`
+- `withCompileScopeAttributes`
+- `withRuntimeScopeAttributes`
+
 [[changes_8.3]]
 == Upgrading from 8.2 and earlier
 
 === Potential breaking changes
+
+==== Deprecated `Project.buildDir` can cause script compilation failure
+
+With the deprecation of `Project.buildDir`, buildscripts that are compiled with warnings as errors could fail if the deprecated field is used.
+
+See <<#project_builddir, the deprecation entry>> for details.
 
 [[legacy_attribute_snapshotting]]
 ==== Fixed variant selection behavior with `ArtifactView` and `ArtifactCollection`
@@ -87,8 +108,144 @@ The embedded Kotlin has been updated from 1.8.20 to link:https://github.com/JetB
 The Kotlin language and API levels for the Kotlin DSL are still set to 1.8 for backwards compatibility.
 See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.22[Kotlin 1.8.22] and link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
 
+Kotlin 1.9 dropped support for Kotlin language and API level 1.3.
+If you build Gradle plugins written in Kotlin with this version of Gradle and need to support Gradle <7.0 you need to stick to using the Kotlin Gradle Plugin <1.9.0 and configure the Kotlin language and API levels to 1.3.
+See the <<compatibility.adoc#compatibility, Compatibility Matrix>> for details about other versions.
 
 === Deprecations
+
+[[project_builddir]]
+==== Deprecated `Project.buildDir` is to be replaced by `Project.layout.buildDirectory`
+
+The `Project.buildDir` property is deprecated.
+It uses eager APIs and has ordering issues if the value is read in build logic and then later modified.
+It could result in outputs ending up in different locations.
+
+It is replaced by a `link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]` found at `Project.layout.buildDirectory`.
+See the `link:{dslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout]` interface for details.
+
+Note that, at this stage, Gradle will not print deprecation warnings if you still use `Project.buildDir`.
+We know this is a big change and want to give time for authors of major plugins to move away from its usage first.
+
+The switch from a `File` to a `DirectoryProperty` requires adaptations in build logic.
+The main impact is that you cannot use the property inside a `String` to expand it.
+Instead, you should leverage the `dir` and `file` methods to compute the location you want.
+
+Here is an example for creating a file, where the following:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+// Returns a java.io.File
+file("$buildDir/myOutput.txt")
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+// Returns a java.io.File
+file("$buildDir/myOutput.txt")
+----
+======
+=====
+
+should be replaced by:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+// Compatible with a number of Gradle lazy APIs that accept also java.io.File
+val output: Provider<RegularFile> = layout.buildDirectory.file("myOutput.txt")
+
+// If you really need the java.io.File for a non lazy API
+output.get().asFile
+
+// Or a path for a lazy String based API
+output.map { it.asFile.path }
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+// Compatible with a number of Gradle lazy APIs that accept also java.io.File
+Provider<RegularFile> output = layout.buildDirectory.file("myOutput.txt")
+
+// If you really need the java.io.File for a non lazy API
+output.get().asFile
+
+// Or a path for a lazy String based API
+output.map { it.asFile.path }
+----
+======
+=====
+
+Here is another example for creating a directory, where the following:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+// Returns a java.io.File
+file("$buildDir/outputLocation")
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+// Returns a java.io.File
+file("$buildDir/outputLocation")
+----
+======
+=====
+
+should be replaced by:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+// Compatible with a number of Gradle APIs that accept a java.io.File
+val output: Provider<Directory> = layout.buildDirectory.dir("outputLocation")
+
+// If you really need the java.io.File for a non lazy API
+output.get().asFile
+
+// Or a path for a lazy String based API
+output.map { it.asFile.path }
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+// Compatible with a number of Gradle APIs that accept a java.io.File
+Provider<Directory> output = layout.buildDirectory.dir("outputLocation")
+
+// If you really need the java.io.File for a non lazy API
+output.get().asFile
+
+// Or a path for a lazy String based API
+output.map { it.asFile.path }
+----
+======
+=====
 
 ==== Deprecated `ClientModule` dependencies
 

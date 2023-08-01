@@ -93,7 +93,7 @@ val TaskContainer.yetAnotherSampleTask
 // tag::java-executable[]
 // tag::java-home[]
 val launcher = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(11))
+    languageVersion = JavaLanguageVersion.of(11)
 }
 // end::java-executable[]
 // end::java-home[]
@@ -101,7 +101,7 @@ val launcher = javaToolchains.launcherFor {
 // tag::java-executable[]
 
 tasks.sampleTask {
-    javaExecutable.set(launcher.map { it.executablePath })
+    javaExecutable = launcher.map { it.executablePath }
 }
 // end::java-executable[]
 
@@ -109,17 +109,17 @@ tasks.sampleTask {
 // tag::java-home[]
 
 tasks.anotherSampleTask {
-    javaHome.set(launcher.map { it.metadata.installationPath })
+    javaHome = launcher.map { it.metadata.installationPath }
 }
 // end::java-home[]
 
 
 // tag::java-compiler[]
 val compiler = javaToolchains.compilerFor {
-    languageVersion.set(JavaLanguageVersion.of(11))
+    languageVersion = JavaLanguageVersion.of(11)
 }
 
 tasks.yetAnotherSampleTask {
-    javaCompilerExecutable.set(compiler.map { it.executablePath })
+    javaCompilerExecutable = compiler.map { it.executablePath }
 }
 // end::java-compiler[]

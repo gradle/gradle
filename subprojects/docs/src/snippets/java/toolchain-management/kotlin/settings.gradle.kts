@@ -17,10 +17,10 @@ toolchainManagement {
     jvm { // <1>
         javaRepositories {
             repository("foojay") { // <2>
-                resolverClass.set(org.gradle.toolchains.foojay.FoojayToolchainResolver::class.java)
+                resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver::class.java
             }
             repository("made_up") { // <3>
-                resolverClass.set(MadeUpResolver::class.java)
+                resolverClass = MadeUpResolver::class.java
                 credentials {
                     username = "user"
                     password = "password"

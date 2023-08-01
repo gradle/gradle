@@ -54,6 +54,8 @@ internal
 class KotlinGrammar : Combinator(true, true) {
 
     // basic building blocks
+    val annotationMarker = token(AT) * notWhiteSpace()
+
     val simpleIdentifier by debug {
         symbol()
     }
@@ -217,11 +219,11 @@ class KotlinGrammar : Combinator(true, true) {
     }
 
     val singleAnnotation by debug {
-        token(AT) * optional(annotationUseSiteTarget) * unescapedAnnotation
+        annotationMarker * optional(annotationUseSiteTarget) * unescapedAnnotation
     }
 
     val multiAnnotation by debug {
-        token(AT) * optional(annotationUseSiteTarget) * listOfUnescapedAnnotations
+        annotationMarker * optional(annotationUseSiteTarget) * listOfUnescapedAnnotations
     }
 
     val parameter by debug {
@@ -260,7 +262,7 @@ class KotlinGrammar : Combinator(true, true) {
     init {
         type = functionType + parenthesizedType + nullableType + typeReference + definitelyNonNullableType
         annotation = singleAnnotation + multiAnnotation
-        fileAnnotation = token(AT) * symbol("file") * token(COLON) * (unescapedAnnotation + listOfUnescapedAnnotations)
+        fileAnnotation = annotationMarker * symbol("file") * token(COLON) * (unescapedAnnotation + listOfUnescapedAnnotations)
         parenthesizedUserType = paren(userType + parenthesizedUserType)
 
         expression = debugReference {
@@ -278,5 +280,11 @@ class KotlinGrammar : Combinator(true, true) {
         assignableExpression = debugReference {
             prefixUnaryExpression + paren(assignableExpression)
         }
+    }
+
+    private
+    fun <T> debugReference(parserBuilder: () -> Parser<T>): Parser<T> {
+        val a by debug(parserBuilder)
+        return a
     }
 }

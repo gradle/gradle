@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
+import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
@@ -75,6 +76,11 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Override
     public String getVersion() {
         return dependencyProject.getVersion().toString();
+    }
+
+    @Override
+    public Path getIdentityPath() {
+        return dependencyProject.getIdentityPath();
     }
 
     @Override

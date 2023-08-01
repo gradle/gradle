@@ -137,9 +137,14 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
                 KtTokens.AT -> {
                     when (state) {
                         State.SearchingTopLevelBlock -> {
-                            parseAnnotation()?.also {
-                                annotationStart = annotationStart ?: it.start
-                                annotations.add(it)
+                            if (depth == 0) {
+                                parseAnnotation()?.also {
+                                    annotationStart = annotationStart ?: it.start
+                                    annotations.add(it)
+                                }
+                            } else {
+                                // ignore annotations inside blocks
+                                advance()
                             }
                         }
                         else -> {

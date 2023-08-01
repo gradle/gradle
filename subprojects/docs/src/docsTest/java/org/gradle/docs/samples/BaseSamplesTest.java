@@ -30,6 +30,7 @@ import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.SpringBootWebAppTestOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ToolchainDownloadOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ZincScalaCompilerOutputNormalizer;
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
@@ -47,7 +48,8 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
     ConfigurationCacheOutputNormalizer.class,
     EmbeddedKotlinOutputNormalizer.class,
     ZincScalaCompilerOutputNormalizer.class,
-    ToolchainDownloadOutputNormalizer.class
+    ToolchainDownloadOutputNormalizer.class,
+    SpringBootWebAppTestOutputNormalizer.class,
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,

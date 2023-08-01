@@ -31,7 +31,7 @@ include::sample[dir="snippets/base/basePlugin/groovy",files="build.gradle[tags=a
 == Task
 
 `clean` — `Delete`::
-Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:buildDir[Project.getBuildDir()] project property.
+Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html#org.gradle.api.file.ProjectLayout:buildDirectory[layout.buildDirectory] project property.
 
 `check` — _lifecycle task_::
 Plugins and build authors should attach their verification tasks, such as ones that run tests, to this lifecycle task using `check.dependsOn(__task__)`.
@@ -85,10 +85,10 @@ include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build
 `archivesName` — default: `$project.name`::
 Provides the default link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveBaseName[AbstractArchiveTask.getArchiveBaseName()] for archive tasks.
 
-`distsDirectory` — default: `$buildDir/distributions`::
+`distsDirectory` — default: `layout.buildDirectory.dir("distributions")`::
 Default name of the directory in which distribution archives, i.e. non-JARs, are created.
 
-`libsDirectory` — default: `$buildDir/libs`::
+`libsDirectory` — default: `layout.buildDirectory.dir("libs")`::
 Default name of the directory in which library archives, i.e. JARs, are created.
 
 The plugin also provides default values for the following properties on any task that extends link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]:

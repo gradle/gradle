@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.collections.FailingFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 
@@ -61,11 +61,11 @@ import java.io.File;
 public abstract class ScalaRuntime {
 
     private final Project project;
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final JvmPluginServices jvmPluginServices;
 
     public ScalaRuntime(Project project) {
         this.project = project;
-        this.jvmEcosystemUtilities = ((ProjectInternal) project).getServices().get(JvmEcosystemUtilities.class);
+        this.jvmPluginServices = ((ProjectInternal) project).getServices().get(JvmPluginServices.class);
     }
 
     /**
@@ -132,7 +132,7 @@ public abstract class ScalaRuntime {
                 Configuration scalaRuntimeClasspath = isScala3 ?
                   project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar, getScaladocDependency(scalaVersion)) :
                   project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar);
-                jvmEcosystemUtilities.configureAsRuntimeClasspath(scalaRuntimeClasspath);
+                jvmPluginServices.configureAsRuntimeClasspath(scalaRuntimeClasspath);
                 return scalaRuntimeClasspath;
             }
 

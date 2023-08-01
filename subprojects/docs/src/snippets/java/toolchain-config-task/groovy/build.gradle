@@ -84,7 +84,7 @@ tasks.register("yetAnotherSampleTask", TaskThatRequiresJavaCompiler)
 // tag::java-executable[]
 // tag::java-home[]
 def launcher = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(11))
+    languageVersion = JavaLanguageVersion.of(11)
 }
 // end::java-executable[]
 // end::java-home[]
@@ -108,7 +108,7 @@ tasks.named('anotherSampleTask') {
 
 // tag::java-compiler[]
 def compiler = javaToolchains.compilerFor {
-    languageVersion.set(JavaLanguageVersion.of(11))
+    languageVersion = JavaLanguageVersion.of(11)
 }
 
 tasks.named('yetAnotherSampleTask') {

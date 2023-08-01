@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.junit.Assert
 import org.junit.Test
 import spock.lang.Issue
 
@@ -234,7 +233,6 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
     @Issue("https://github.com/gradle/gradle/issues/10771")
     fun `accessors to __typed__ java lambda extensions are typed`() {
 
-
         withDefaultSettings()
         withFile(
             "buildSrc/build.gradle",
@@ -289,14 +287,9 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             """
         )
 
-
-        // TODO:kotlin-dsl Remove once above issue is fixed
-        val exception = Assert.assertThrows(AssertionError::class.java) {
-            build("help").apply {
-                assertOutputContains("lambdaExtension: java.util.function.Function<java.lang.String, java.lang.String>")
-                assertOutputContains("SOME")
-            }
+        build("help").apply {
+            assertOutputContains("lambdaExtension: java.util.function.Function<java.lang.String, java.lang.String>")
+            assertOutputContains("SOME")
         }
-        Assert.assertTrue(exception.message!!.contains("lambdaExtension: java.lang.Object"))
     }
 }

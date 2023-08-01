@@ -7,13 +7,6 @@ tasks.register('copyReport', Copy) {
 }
 // end::copy-single-file-example[]
 
-// tag::copy-single-file-example-without-file-method[]
-tasks.register('copyReport2', Copy) {
-    from "$buildDir/reports/my-report.pdf"
-    into "$buildDir/toArchive"
-}
-// end::copy-single-file-example-without-file-method[]
-
 abstract class MyReportTask extends DefaultTask {
     @OutputFile
     abstract RegularFileProperty getOutputFile()
@@ -25,16 +18,16 @@ abstract class MyReportTask extends DefaultTask {
 }
 
 tasks.register('myReportTask', MyReportTask) {
-    outputFile = file("$buildDir/reports/my-report.pdf")
+    outputFile = layout.buildDirectory.file("reports/my-report.pdf")
 }
 
 tasks.register('archiveReportsTask') {
-    ext.dirToArchive = file("$buildDir/toArchive")
+    ext.dirToArchive = layout.buildDirectory.dir("toArchive")
     inputs.dir dirToArchive
 }
 
 // tag::copy-single-file-example-with-task-properties[]
-tasks.register('copyReport3', Copy) {
+tasks.register('copyReport2', Copy) {
     from myReportTask.outputFile
     into archiveReportsTask.dirToArchive
 }

@@ -112,13 +112,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "build-scan-performance",
-    "path": "subprojects/build-scan-performance",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "cli",
     "path": "subprojects/cli",
     "unitTests": true,
@@ -267,14 +260,14 @@
   },
   {
     "name": "enterprise",
-    "path": "subprojects/enterprise",
+    "path": "platforms/enterprise/enterprise",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "enterprise-logging",
-    "path": "subprojects/enterprise-logging",
+    "path": "platforms/enterprise/enterprise-logging",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -287,8 +280,15 @@
     "crossVersionTests": false
   },
   {
+    "name": "enterprise-plugin-performance",
+    "path": "platforms/enterprise/enterprise-plugin-performance",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "enterprise-workers",
-    "path": "subprojects/enterprise-workers",
+    "path": "platforms/enterprise/enterprise-workers",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -452,6 +452,13 @@
     "path": "subprojects/java-compiler-plugin",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "java-platform",
+    "path": "platforms/jvm/java-platform",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -619,7 +626,7 @@
     "name": "platform-jvm",
     "path": "subprojects/platform-jvm",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -807,6 +814,13 @@
   {
     "name": "testing-native",
     "path": "subprojects/testing-native",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "toolchains-jvm",
+    "path": "platforms/jvm/toolchains-jvm",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

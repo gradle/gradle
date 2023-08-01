@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.options;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Cast;
@@ -37,6 +39,11 @@ public class FieldOptionElement {
             PropertySetter setter = mutateUsingGetter(field);
             return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
         }
+        if (HasMultipleValues.class.isAssignableFrom(fieldType)) {
+            PropertySetter setter = mutateUsingGetter(field);
+            Class<?> elementType = setter.getRawType();
+            return new MultipleValueOptionElement(optionName, option, elementType, setter, optionValueNotationParserFactory);
+        }
 
         PropertySetter setter = mutateUsingSetter(field);
         return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
@@ -47,6 +54,9 @@ public class FieldOptionElement {
     }
 
     private static PropertySetter mutateUsingGetter(final Field field) {
+        if (HasMultipleValues.class.isAssignableFrom(field.getType())) {
+            return new MultipleValuePropertyFieldSetter(getGetter(field), field);
+        }
         return new PropertyFieldSetter(getGetter(field), field);
     }
 
@@ -138,6 +148,23 @@ public class FieldOptionElement {
         public void setValue(Object target, Object value) {
             Property<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getter).invoke(target));
             property.set(value);
+        }
+
+        protected Method getGetter() {
+            return getter;
+        }
+    }
+
+    @NonNullApi
+    private static class MultipleValuePropertyFieldSetter extends PropertyFieldSetter {
+        public MultipleValuePropertyFieldSetter(Method getter, Field field) {
+            super(getter, field);
+        }
+
+        @Override
+        public void setValue(Object target, Object value) {
+            HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getGetter()).invoke(target));
+            property.set((Iterable<?>) value);
         }
     }
 }

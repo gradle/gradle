@@ -35,7 +35,7 @@ public class PluginVersionTracker {
     final Map<ClassLoaderScope, Map<String, String>> pluginVersionsPerScope = new ConcurrentHashMap<>();
 
     public void setPluginVersionAt(ClassLoaderScope scope, String pluginId, String pluginVersion) {
-        Map<String, String> pluginVersions = pluginVersionsPerScope.computeIfAbsent(scope, ignored -> new ConcurrentHashMap<>());
+        Map<String, String> pluginVersions = pluginVersionsPerScope.computeIfAbsent(scope.getOriginalScope(), ignored -> new ConcurrentHashMap<>());
         if (pluginVersions.containsKey(pluginId)) {
             throw new IllegalStateException("Plugin version already set for " + pluginId);
         }
@@ -45,7 +45,7 @@ public class PluginVersionTracker {
     @Nullable
     public String findPluginVersionAt(ClassLoaderScope scope, String pluginId) {
         while (scope != null) {
-            String pluginVersion = pluginVersionsPerScope.getOrDefault(scope, emptyMap()).get(pluginId);
+            String pluginVersion = pluginVersionsPerScope.getOrDefault(scope.getOriginalScope(), emptyMap()).get(pluginId);
             if (pluginVersion != null) {
                 return pluginVersion;
             }

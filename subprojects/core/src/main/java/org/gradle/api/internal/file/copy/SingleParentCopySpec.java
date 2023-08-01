@@ -32,6 +32,8 @@ public class SingleParentCopySpec extends DefaultCopySpec {
         super(fileCollectionFactory, objectFactory, instantiator, patternSetFactory);
         this.parentResolver = parentResolver;
         this.objectFactory = objectFactory;
+        getFilePermissions().convention(parentResolver.getFilePermissions());
+        getDirPermissions().convention(parentResolver.getDirPermissions());
     }
 
     @Override
@@ -61,16 +63,6 @@ public class SingleParentCopySpec extends DefaultCopySpec {
     @Override
     public DuplicatesStrategy getDuplicatesStrategy() {
         return buildResolverRelativeToParent(parentResolver).getDuplicatesStrategy();
-    }
-
-    @Override
-    public Integer getDirMode() {
-        return buildResolverRelativeToParent(parentResolver).getDirMode();
-    }
-
-    @Override
-    public Integer getFileMode() {
-        return buildResolverRelativeToParent(parentResolver).getFileMode();
     }
 
     @Override

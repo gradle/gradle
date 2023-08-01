@@ -32,10 +32,6 @@ public class DefaultFileVisitDetails extends DefaultFileTreeElement implements F
         this.stop = stop;
     }
 
-    public DefaultFileVisitDetails(File file, Chmod chmod, Stat stat) {
-        this(file, new RelativePath(!file.isDirectory(), file.getName()), new AtomicBoolean(), chmod, stat);
-    }
-
     @Override
     public void stopVisiting() {
         stop.set(true);

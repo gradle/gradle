@@ -48,12 +48,28 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION)
     }
 
+    void maybeExpectProjectConventionDeprecationWarning(String agpVersion) {
+        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION)
+    }
+
     void expectAndroidConventionTypeDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION)
     }
 
+    void maybeExpectAndroidConventionTypeDeprecationWarning(String agpVersion) {
+        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION)
+    }
+
+    void maybeExpectBasePluginConventionDeprecation(String agpVersion) {
+        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION)
+    }
+
     void expectBasePluginConventionDeprecation(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION)
+    }
+
+    void maybeExpectGUtilDeprecation() {
+        runner.maybeExpectLegacyDeprecationWarning(GUTIL_DEPRECATION)
     }
 
     void expectConfigUtilDeprecationWarning(String agpVersion) {
@@ -66,23 +82,32 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         )
     }
 
+    private static getBuildIdentifierIsCurrentBuildDeprecationMessage() {
+        return "The BuildIdentifier.isCurrentBuild() method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Use getBuildPath() to get a unique identifier for the build. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+    }
+
+    void maybeExpectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion) {
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        runner.maybeExpectLegacyDeprecationWarningIf(
+            agpVersionNumber < VersionNumber.parse("8.0.0-rc01"),
+            getBuildIdentifierIsCurrentBuildDeprecationMessage()
+        )
+    }
+
     void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         runner.expectLegacyDeprecationWarningIf(
             agpVersionNumber < VersionNumber.parse("8.0.0-rc01"),
-            "The BuildIdentifier.isCurrentBuild() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Use getBuildPath() to get a unique identifier for the build. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+            getBuildIdentifierIsCurrentBuildDeprecationMessage()
         )
     }
 
     void expectBuildIdentifierIsCurrentBuildDeprecation() {
         runner.expectDeprecationWarning(
-            "The BuildIdentifier.isCurrentBuild() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Use getBuildPath() to get a unique identifier for the build. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
+            getBuildIdentifierIsCurrentBuildDeprecationMessage(),
             "https://issuetracker.google.com/issues/279306626"
         )
     }

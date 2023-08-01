@@ -29,7 +29,7 @@ val tmpDistDir = layout.buildDirectory.dir("dist")
 
 tasks.register<Jar>("javadocJarArchive") {
     from(tasks.javadoc)  // <1>
-    archiveClassifier.set("javadoc")
+    archiveClassifier = "javadoc"
 }
 
 tasks.register<Copy>("unpackJavadocs") {

@@ -21,7 +21,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.AttributeBasedFileVisitDetailsFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternStep;
 import org.gradle.api.internal.file.pattern.PatternStepFactory;
@@ -32,8 +32,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
+import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -81,10 +82,10 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
 
     @Override
     public void visit(FileVisitor visitor) {
-        doVisit(visitor, baseDir, new LinkedList<>(), 0, new AtomicBoolean());
+        doVisit(visitor, baseDir, new ArrayDeque<>(), 0, new AtomicBoolean());
     }
 
-    private void doVisit(FileVisitor visitor, File file, LinkedList<String> relativePath, int segmentIndex, AtomicBoolean stopFlag) {
+    private void doVisit(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
         if (stopFlag.get()) {
             return;
         }
@@ -96,7 +97,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
             patternSet.include(includePattern);
             patternSet.exclude(excludeSpec);
             DirectoryFileTree fileTree = new DirectoryFileTree(baseDir, patternSet, fileSystem);
-            fileTree.visitFrom(visitor, file, new RelativePath(file.isFile(), relativePath.toArray(new String[relativePath.size()])));
+            fileTree.visitFrom(visitor, file, new RelativePath(file.isFile(), pathSegments.toArray(new String[0])), stopFlag);
         } else if (segment.contains("*") || segment.contains("?")) {
             PatternStep step = PatternStepFactory.getStep(segment, false);
             File[] children = file.listFiles();
@@ -113,35 +114,35 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
                 }
                 String childName = child.getName();
                 if (step.matches(childName)) {
-                    relativePath.addLast(childName);
-                    doVisitDirOrFile(visitor, child, relativePath, segmentIndex + 1, stopFlag);
-                    relativePath.removeLast();
+                    pathSegments.addLast(childName);
+                    doVisitDirOrFile(visitor, child, pathSegments, segmentIndex + 1, stopFlag);
+                    pathSegments.removeLast();
                 }
             }
         } else {
-            relativePath.addLast(segment);
-            doVisitDirOrFile(visitor, new File(file, segment), relativePath, segmentIndex + 1, stopFlag);
-            relativePath.removeLast();
+            pathSegments.addLast(segment);
+            doVisitDirOrFile(visitor, new File(file, segment), pathSegments, segmentIndex + 1, stopFlag);
+            pathSegments.removeLast();
         }
     }
 
-    private void doVisitDirOrFile(FileVisitor visitor, File file, LinkedList<String> relativePath, int segmentIndex, AtomicBoolean stopFlag) {
+    private void doVisitDirOrFile(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
         if (file.isFile()) {
             if (segmentIndex == patternSegments.size()) {
-                RelativePath path = new RelativePath(true, relativePath.toArray(new String[relativePath.size()]));
-                FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
+                RelativePath path = new RelativePath(true, pathSegments.toArray(new String[0]));
+                FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem);
                 if (!excludeSpec.isSatisfiedBy(details)) {
                     visitor.visitFile(details);
                 }
             }
         } else if (file.isDirectory()) {
-            RelativePath path = new RelativePath(false, relativePath.toArray(new String[relativePath.size()]));
-            FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
+            RelativePath path = new RelativePath(false, pathSegments.toArray(new String[0]));
+            FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem);
             if (!excludeSpec.isSatisfiedBy(details)) {
                 visitor.visitDir(details);
             }
             if (segmentIndex < patternSegments.size()) {
-                doVisit(visitor, file, relativePath, segmentIndex, stopFlag);
+                doVisit(visitor, file, pathSegments, segmentIndex, stopFlag);
             }
         }
     }
