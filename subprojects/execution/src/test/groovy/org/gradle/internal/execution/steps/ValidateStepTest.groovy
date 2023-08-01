@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.interfaces.Problem
 import org.gradle.api.problems.interfaces.ProblemGroup
 import org.gradle.api.problems.interfaces.Severity
@@ -45,7 +46,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
     def delegateResult = Mock(Result)
 
     def setup() {
-        def validationContext = new DefaultWorkValidationContext(new DocumentationRegistry(), WorkValidationContext.TypeOriginInspector.NO_OP)
+        def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, Stub(Problems))
         context.getValidationContext() >> validationContext
     }
 

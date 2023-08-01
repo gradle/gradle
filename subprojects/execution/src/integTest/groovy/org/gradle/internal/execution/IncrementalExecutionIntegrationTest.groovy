@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.interfaces.Severity
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.cache.Cache
