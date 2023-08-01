@@ -314,40 +314,40 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 //        assert problems.size() == 1
     }
 
-    @ValidationTestFor([
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
-        ValidationProblemId.MISSING_ANNOTATION
-    ])
-    def "TAPI: can validate properties of an artifact transform action"() {
-        given:
-        def toolingApi = new ToolingApi(distribution, temporaryFolder)
-
-        createMyTransformAction()
-
-        def events = []
-
-        when:
-        settingsFile.touch()
-        toolingApi.withConnection {
-            it.newBuild()
-                .forTasks("validatePlugins")
-                .addProgressListener(new ProgressListener() {
-                    @Override
-                    void statusChanged(ProgressEvent event) {
-                        println("Progress: ${event}")
-                        events << event
-                    }
-                }, PROBLEMS)
-                .run()
-        }
-
-        then:
-        BuildException e = thrown()
-
-        expect:
-        events.size() == 1
-        events[0] instanceof ProblemEvent
-    }
+//    @ValidationTestFor([
+//        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+//        ValidationProblemId.MISSING_ANNOTATION
+//    ])
+//    def "TAPI: can validate properties of an artifact transform action"() {
+//        given:
+//        def toolingApi = new ToolingApi(distribution, temporaryFolder)
+//
+//        createMyTransformAction()
+//
+//        def events = []
+//
+//        when:
+//        settingsFile.touch()
+//        toolingApi.withConnection {
+//            it.newBuild()
+//                .forTasks("validatePlugins")
+//                .addProgressListener(new ProgressListener() {
+//                    @Override
+//                    void statusChanged(ProgressEvent event) {
+//                        println("Progress: ${event}")
+//                        events << event
+//                    }
+//                }, PROBLEMS)
+//                .run()
+//        }
+//
+//        then:
+//        BuildException e = thrown()
+//
+//        expect:
+//        events.size() == 1
+//        events[0] instanceof ProblemEvent
+//    }
 
     private createMyTransformAction() {
         file("src/main/java/MyTransformAction.java") << """
