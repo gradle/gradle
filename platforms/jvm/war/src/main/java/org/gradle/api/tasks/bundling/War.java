@@ -74,7 +74,7 @@ public abstract class War extends Jar {
 
         CopySpecInternal renameSpec = webInf.addChild();
         renameSpec.into("");
-        renameSpec.from(getWebXml());
+        renameSpec.from((Callable<?>) () -> getWebXml().getOrNull());
         renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
 
         webAppDirectory = getObjectFactory().directoryProperty();
