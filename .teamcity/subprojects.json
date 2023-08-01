@@ -28,6 +28,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "base-ide-plugins",
+    "path": "platforms/ide/base-ide-plugins",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "base-services",
     "path": "subprojects/base-services",
     "unitTests": true,
@@ -347,7 +354,7 @@
     "path": "subprojects/ide",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": true
+    "crossVersionTests": false
   },
   {
     "name": "ide-native",
@@ -355,6 +362,13 @@
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
+  },
+  {
+    "name": "ide-plugins",
+    "path": "platforms/ide/ide-plugins",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "installation-beacon",

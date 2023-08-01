@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes for the model used by the {@link org.gradle.plugins.ide.eclipse.EclipsePlugin}.
+ * Classes for the model used by the eclipse plugins.
  */
 package org.gradle.plugins.ide.eclipse.model;
