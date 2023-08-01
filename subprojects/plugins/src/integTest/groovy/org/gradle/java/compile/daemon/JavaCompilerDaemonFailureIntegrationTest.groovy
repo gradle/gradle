@@ -21,6 +21,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 
 class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     def "startup failure messages from a compiler daemon are NOT associated with the task that starts it"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 

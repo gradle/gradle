@@ -27,6 +27,11 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
     @Rule
     BlockingHttpServer server = new BlockingHttpServer(180_000)
 
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     def setup() {
         server.start()
 
