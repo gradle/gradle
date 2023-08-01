@@ -29,6 +29,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
     val antLauncher = "org.apache.ant:ant-launcher"
+    val antJUnit = "org.apache.ant:ant-junit"
     val asm = "org.ow2.asm:asm"
     val asmAnalysis = "org.ow2.asm:asm-analysis"
     val asmCommons = "org.ow2.asm:asm-commons"
