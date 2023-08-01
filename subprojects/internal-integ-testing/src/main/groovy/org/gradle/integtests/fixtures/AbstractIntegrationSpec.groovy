@@ -48,6 +48,7 @@ import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
 import org.junit.Assume
 import org.junit.Rule
+import org.opentest4j.AssertionFailedError
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -78,8 +79,8 @@ abstract class AbstractIntegrationSpec extends Specification {
     private GradleExecuter executor
     private boolean ignoreCleanupAssertions
 
-
-    def buildOperations
+    private BuildOperationsFixture buildOperations
+    private boolean enableProblemsAssertions
 
     GradleExecuter getExecuter() {
         if (executor == null) {
@@ -107,9 +108,14 @@ abstract class AbstractIntegrationSpec extends Specification {
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
 
-    @Lazy private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+    @Lazy
+    private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
 
     def setup() {
+        // Reset the problem API event checking flag
+        // Currently, the check is disabled by default, and can be enabled by `enableProblemsCheck()`
+        enableProblemsAssertions = false
+
         // Verify that the previous test (or fixtures) has cleaned up state correctly
         m2.assertNoLeftoverState()
 
@@ -121,10 +127,6 @@ abstract class AbstractIntegrationSpec extends Specification {
             }
         }
 
-        setupBuildOperationFixture()
-    }
-
-    def setupBuildOperationFixture() {
         buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
     }
 
@@ -472,8 +474,9 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
-// disable until all problems are reported as expected
-//        assert !buildOperations.problems().empty
+        if (enableProblemsAssertions && buildOperations.problems().isEmpty()) {
+            throw new AssertionFailedError("Expected to receive problems but received none.")
+        }
         return failure
     }
 
@@ -722,6 +725,27 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     void assumeGroovy4() {
         Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
     }
+
+    /**
+     * When called, the Problem API event checking in {@link #fails(java.lang.String[])} will be <b>disabled</b>.
+     * <p>
+     * @see #enableProblemsCheck()
+     */
+    void ignoreProblemsCheck() {
+        this.enableProblemsAssertions = false
+    }
+
+    /**
+     * When called, the Problem API event checking in  {@link #fails(java.lang.String[])} will be <b>enabled</b>.
+     * <p>
+     * The check makes sure that for each failed execution, a Problem event was emitted.
+     *
+     * @see #ignoreProblemsCheck()
+     */
+    void enableProblemsCheck() {
+        this.enableProblemsAssertions = true
+    }
+}
 
     /**
      * Generates a `repositories` block pointing to the standard maven repo fixture.
