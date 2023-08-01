@@ -1106,6 +1106,8 @@ See link:{gradle-issues}13506[gradle/gradle#13506].
 
 When running builds using <<test_kit#test_kit, TestKit>>, the configuration cache can interfere with Java agents, such as the Jacoco agent, that are applied to these builds.
 
+See link:{gradle-issues}25979[gradle/gradle#25979].
+
 [[config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties]]
 === Fine-grained tracking of Gradle properties as build configuration inputs
 
