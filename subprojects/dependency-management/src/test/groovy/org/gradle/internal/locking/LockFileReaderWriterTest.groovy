@@ -234,7 +234,8 @@ empty=d
         context.isScript() >> true
         resolver.resolve("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME") >> tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME")
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile, listener)
-        tmpDir.file('buildscript-gradle.lockfile') << """#ignored
+        def lockFile = tmpDir.file('buildscript-gradle.lockfile')
+        lockFile << """#ignored
 <<<<<<< HEAD
 ======
 bar=a,c
@@ -247,7 +248,7 @@ empty=d
 
         then:
         def ex = thrown(InvalidLockFileException)
-        ex.message == "Invalid lock state for lock file specified in '${tmpDir.testDirectory}/buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME'. Line: <<<<<<< HEAD For more information on formatting, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."
+        ex.message == "Invalid lock state for lock file specified in '${lockFile.path}'. Line: <<<<<<< HEAD For more information on formatting, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."
     }
 
     def 'fails to read a unique lockfile if root could not be determined'() {
