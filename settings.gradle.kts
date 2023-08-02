@@ -133,10 +133,6 @@ unassigned {
     subproject("build-cache-packaging")
     subproject("execution")
     subproject("build-profile")
-    subproject("kotlin-dsl")
-    subproject("kotlin-dsl-provider-plugins")
-    subproject("kotlin-dsl-tooling-models")
-    subproject("kotlin-dsl-tooling-builders")
     subproject("worker-processes")
     subproject("base-annotations")
     subproject("security")
@@ -145,6 +141,16 @@ unassigned {
     subproject("problems")
     subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
+}
+
+// Core Configuration Platform
+platform("core-configuration") {
+    subproject("kotlin-dsl")
+    subproject("kotlin-dsl-provider-plugins")
+    subproject("kotlin-dsl-tooling-builders")
+    subproject("kotlin-dsl-tooling-models")
+    subproject("kotlin-dsl-plugins")
+    subproject("kotlin-dsl-integ-tests")
 }
 
 // IDE Platform
@@ -171,11 +177,6 @@ platform("enterprise") {
     subproject("enterprise-workers")
 }
 
-// Plugin portal projects
-unassigned {
-    subproject("kotlin-dsl-plugins")
-}
-
 // Internal utility and verification projects
 unassigned {
     subproject("internal-instrumentation-api")
@@ -191,7 +192,6 @@ unassigned {
     subproject("internal-architecture-testing")
     subproject("internal-build-reports")
     subproject("integ-test")
-    subproject("kotlin-dsl-integ-tests")
     subproject("distributions-integ-tests")
     subproject("soak")
     subproject("smoke-test")
