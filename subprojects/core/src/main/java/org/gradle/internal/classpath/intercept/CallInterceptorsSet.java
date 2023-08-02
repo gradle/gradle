@@ -22,6 +22,7 @@ import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.vmplugin.v8.CacheableCallSite;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.classpath.GroovyCallInterceptorsProvider;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsHelper;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
@@ -33,7 +34,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsHelper.withEntryPoint;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY;
@@ -68,8 +68,8 @@ public class CallInterceptorsSet implements CallSiteDecorator, CallInterceptorRe
     /**
      * Creates the interceptor set, collecting the interceptors from the stream.
      */
-    public CallInterceptorsSet(Stream<CallInterceptor> interceptors) {
-        interceptors.forEach(this::addInterceptor);
+    public CallInterceptorsSet(GroovyCallInterceptorsProvider interceptorsProvider) {
+        interceptorsProvider.getCallInterceptors().forEach(this::addInterceptor);
     }
 
     private void addInterceptor(CallInterceptor interceptor) {

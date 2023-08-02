@@ -21,13 +21,14 @@ import org.gradle.internal.classpath.intercept.CallInterceptorsSet
 import spock.lang.Specification
 
 import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS
+import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.*
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY
 
 class CallInterceptingMetaClassTest extends Specification {
 
-    CallInterceptorResolver callInterceptors = new CallInterceptorsSet(GroovyCallInterceptorsProvisionTools.getInterceptorsFromClass(GROOVY_GENERATED_CLASS).stream())
+    CallInterceptorResolver callInterceptors = new CallInterceptorsSet(new ClassSourceGroovyCallInterceptorsProvider(GROOVY_GENERATED_CLASS));
     private MetaClass originalMetaClass = null
     private static InterceptorTestReceiver instance = null
 

@@ -16,10 +16,15 @@
 
 package org.gradle.internal.classpath
 
+
 import org.gradle.internal.metaobject.BeanDynamicObject
 
 import java.lang.reflect.Constructor
 import java.util.function.Predicate
+
+import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
+import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider
+import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.DEFAULT
 
 class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionTest {
 
@@ -49,7 +54,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
 
     @Override
     protected GroovyCallInterceptorsProvider groovyCallInterceptors() {
-        GroovyCallInterceptorsProvider.DEFAULT + { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
+        return DEFAULT + new ClassLoaderSourceGroovyCallInterceptorsProvider(this.getClass().classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
     // Define a nested classes so that we can freely modify the metaClass of it loaded in the child class loader

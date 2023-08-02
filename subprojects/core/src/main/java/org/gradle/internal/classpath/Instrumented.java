@@ -24,6 +24,7 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
@@ -110,7 +111,7 @@ public class Instrumented {
     }
 
     /**
-     * This API follows the requirements in {@link GroovyCallInterceptorsProvisionTools}.
+     * This API follows the requirements in {@link org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
      * @deprecated This should not be called from the sources.
      */
     @SuppressWarnings("unused")
@@ -133,9 +134,13 @@ public class Instrumented {
         );
     }
 
-    private static volatile CallSiteDecorator currentCallDecorator = new CallInterceptorsSet(
-        GroovyCallInterceptorsProvisionTools.getInterceptorsFromProvider(GroovyCallInterceptorsProvider.DEFAULT).stream()
-    );
+    private static volatile CallSiteDecorator currentCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
+
+    public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
+        ClassLoaderSourceGroovyCallInterceptorsProvider classLoaderCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
+        GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderCallInterceptors);
+        currentCallDecorator = new CallInterceptorsSet(callInterceptors);
+    }
 
     @NonNullApi
     private static final class InterceptorResolverImpl implements CallInterceptorResolver {

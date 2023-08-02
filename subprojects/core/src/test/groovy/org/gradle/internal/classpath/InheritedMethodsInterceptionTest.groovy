@@ -16,14 +16,16 @@
 
 package org.gradle.internal.classpath
 
+
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentingTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 
 import java.util.function.Predicate
 
 import static java.util.function.Predicate.isEqual
+import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
+import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider
 import static org.gradle.internal.classpath.InstrumentedClasses.nestedClassesOf
-
 /**
  * See {@link BasicCallInterceptionTest} for a basic example
  */
@@ -40,7 +42,7 @@ class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
 
     @Override
     protected GroovyCallInterceptorsProvider groovyCallInterceptors() {
-        return { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
+        return new ClassLoaderSourceGroovyCallInterceptorsProvider(this.getClass().classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
     @Override
