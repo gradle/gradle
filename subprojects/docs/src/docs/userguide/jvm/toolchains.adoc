@@ -86,7 +86,7 @@ Acts as a placeholder and matches any implementation from any vendor (e.g. hotsp
 `J9`::
 Matches only virtual machine implementations using the OpenJ9/IBM J9 runtime engine.
 
-For example, to use an https://www.eclipse.org/openj9/[IBM Semeru] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
+For example, to use an https://www.eclipse.org/openj9/[IBM] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
 you can specify the filter as shown in the example below.
 
 ====
@@ -198,6 +198,12 @@ JVM auto-detection knows how to work with:
 
 Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
 
+[NOTE]
+====
+Whether you are using toolchain auto-detection or you are configuring <<sec:custom_loc>>, installations that are
+non-existing or without a `bin/java` executable will be ignored with a warning, but they won't generate an error.
+====
+
 [[sub:disable_auto_detect]]
 === How to disable auto-detection
 
@@ -210,7 +216,7 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 == Auto-provisioning
 
 If Gradle can't find a locally available toolchain that matches the requirements of the build, it can automatically download one (as long as a toolchain download repository has been configured; for detail, see <<#sub:download_repositories,relevant section>>).
-Gradle installs the downloaded JDKs in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
+Gradle installs the downloaded JDKs in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>>.
 
 [NOTE]
 ====
@@ -218,7 +224,7 @@ Gradle only downloads JDK versions for GA releases.
 There is no support for downloading early access versions.
 ====
 
-Once installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>, a provisioned JDK becomes one of the JDKs visible to <<#sec:auto_detection,auto-detection>> and can be used by any subsequent builds, just like any other JDK installed on the system.
+Once installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>>, a provisioned JDK becomes one of the JDKs visible to <<#sec:auto_detection,auto-detection>> and can be used by any subsequent builds, just like any other JDK installed on the system.
 
 Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones.
 None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
@@ -230,13 +236,19 @@ Toolchain download repository definitions are added to a build by applying speci
 For details on writing such plugins, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.
 
 One example of a toolchain resolver plugin is the https://github.com/gradle/disco-toolchains[Disco Toolchains Plugin], based on the https://github.com/foojayio/discoapi[foojay Disco API].
+It even has a convention variant, which automatically takes care of all the needed configuration, just by being applied:
 
-Beyond applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
+====
+include::sample[dir="snippets/java/toolchain-foojay/kotlin/",files="settings.gradle.kts[tags=plugin-application]"]
+include::sample[dir="snippets/java/toolchain-foojay/groovy/",files="settings.gradle[tags=plugin-application]"]
+====
+
+In general, when applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
 Let's illustrate with an example.
 Consider two toolchain resolver plugins applied by the build:
 
-* One is the Disco plugin mentioned above, which downloads toolchains via the `DiscoToolchainResolver` it provides.
-* The other contains a resolver named `AdoptiumResolver`, which duplicates the legacy toolchain resolver from past Gradle versions.
+* One is the Foojay plugin mentioned above, which downloads toolchains via the `FoojayToolchainResolver` it provides.
+* The other contains a **FICTITIOUS** resolver named `MadeUpResolver`.
 
 The following example uses these toolchain resolvers in a build via the `toolchainManagement` block in the settings file:
 
@@ -281,7 +293,7 @@ gradle -q javaToolchains
      | Vendor:             AdoptOpenJDK
      | Architecture:       x86_64
      | Is JDK:             false
-     | Detected by:        system property 'org.gradle.java.installations.paths'
+     | Detected by:        Gradle property 'org.gradle.java.installations.paths'
 
  + Microsoft JDK 16.0.2+7
      | Location:           /Users/username/.sdkman/candidates/java/16.0.2.7.1-ms
@@ -305,7 +317,7 @@ gradle -q javaToolchains
      | Vendor:             Oracle
      | Architecture:       x86_64
      | Is JDK:             false
-     | Detected by:        macOS java_home
+     | Detected by:        MacOS java_home
 ----
 
 This can help to debug which toolchains are available to the build, how they are detected and what kind of metadata Gradle knows about those toolchains.
@@ -377,8 +389,8 @@ Let's illustrate with an example.
 A toolchain specification requests Java version 17.
 Gradle detects the following matching installations:
 
-* Oracle JRE v17.0.0
-* Oracle JDK v17.0.1
+* Oracle JRE v17.0.1
+* Oracle JDK v17.0.0
 * Microsoft JDK 17.0.0
 * Microsoft JRE 17.0.1
 * Microsoft JDK 17.0.1
@@ -437,3 +449,14 @@ If an <<#sec:configuring_toolchain_specifications, unconfigured>> toolchain spec
 This can be achieved by passing an empty lambda when requesting a tool: `javaToolchainService.launcherFor({})`.
 
 You can find more details on defining custom tasks in the <<more_about_tasks.adoc#more_about_tasks, Authoring tasks>> documentation.
+
+[[sec:limitations]]
+== Toolchains limitations
+
+Gradle may detect toolchains incorrectly when it's running in a JVM compiled against `musl`, an https://musl.libc.org/[alternative implementation] of the C standard library.
+JVMs compiled against `musl` can sometimes override the `LD_LIBRARY_PATH` environment variable to control dynamic library resolution.
+This can influence forked java processes launched by Gradle, resulting in unexpected behavior.
+
+As a consequence, using multiple java toolchains is discouraged in environments with the `musl` library.
+This is the case in most Alpine distributions — consider using another distribution, like Ubuntu, instead.
+If you are using a single toolchain, the JVM running Gradle, to build and run your application, you can safely ignore this limitation.

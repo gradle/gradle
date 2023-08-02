@@ -18,6 +18,7 @@ package org.gradle.api.internal.cache;
 
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.cache.Cleanup;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
@@ -42,7 +43,7 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
 
     Provider<CleanupFrequency> getCleanupFrequency();
 
-    void finalizeConfigurationValues();
+    void finalizeConfiguration(Gradle gradle);
 
     /**
      * Synchronizes the property values of the provided cache configurations with those of this cache configuration

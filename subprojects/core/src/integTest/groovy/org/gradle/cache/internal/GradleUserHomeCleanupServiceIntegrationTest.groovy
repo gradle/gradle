@@ -222,6 +222,61 @@ class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpe
         DistType.SNAPSHOT | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_SNAPSHOT_DISTS
     }
 
+    def "does not clean up unused version-specific cache directories and corresponding distributions when clean is disabled using #cleanupMethod"() {
+        given:
+        requireOwnGradleUserHomeDir() // because we delete caches and distributions
+        disableCacheCleanup(cleanupMethod)
+
+        and:
+        def oldButRecentlyUsedGradleDist = versionedDistDirs(DistType.RELEASED.version("1.4.5"), USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs(DistType.RELEASED.version("2.3.4"), NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS, "my-dist-2")
+
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
+
+        and:
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+
+        when:
+        succeeds("help")
+
+        then:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsExist()
+
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+
+        where:
+        cleanupMethod << CleanupMethod.values()
+    }
+
+    def "cleans up unused version-specific cache directories and corresponding #type distributions when DSL is configured even if legacy property is present"() {
+        given:
+        requireOwnGradleUserHomeDir() // because we delete caches and distributions
+        disableCacheCleanupViaProperty()
+        explicitlyEnableCacheCleanupViaDsl()
+
+        and:
+        def oldButRecentlyUsedGradleDist = versionedDistDirs(DistType.RELEASED.version("1.4.5"), USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs(DistType.RELEASED.version("2.3.4"), NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS, "my-dist-2")
+
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
+
+        when:
+        succeeds("help")
+
+        then:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsDoNotExist()
+
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+
+        getGcFile(currentCacheDir).assertExists()
+    }
+
     @Override
     TestFile getGradleUserHomeDir() {
         return executer.gradleUserHomeDir

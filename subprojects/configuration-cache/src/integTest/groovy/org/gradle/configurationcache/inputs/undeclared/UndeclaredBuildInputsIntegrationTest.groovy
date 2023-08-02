@@ -599,7 +599,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        EnvVariableInjection.unsetEnvironmentVariable("CI").setup(this)
+        EnvVariableInjection.checkEnvironmentVariableUnset("CI")
         configurationCacheRun()
 
         then:
@@ -670,7 +670,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         '''
 
         when:
-        EnvVariableInjection.unsetEnvironmentVariable("CI1").setup(this)
+        EnvVariableInjection.checkEnvironmentVariableUnset("CI1")
         configurationCacheRun()
 
         then:
@@ -866,6 +866,35 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         configurationCache.assertStateLoaded()
         outputContains("Execution: some.property.1 = 0")
         outputContains("Execution: some.property.2 = 2")
+    }
+
+    def "system properties overwritten in build logic cannot be overridden by CLI argument"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            System.properties.putAll(("someProperty"): "build-logic-value")
+            def property = providers.systemProperty("someProperty")
+
+             tasks.register("print") {
+                doLast {
+                 println("Execution: \${property.orNull}")
+                }
+             }
+        """)
+
+        when:
+        configurationCacheRun "print"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Execution: build-logic-value")
+
+        when:
+        System.clearProperty("someProperty")
+        configurationCacheRun "print", "-DsomeProperty=cli-overridden-value"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: build-logic-value")
     }
 
     def "reports build logic reading files in #title"() {

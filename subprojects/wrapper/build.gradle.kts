@@ -33,7 +33,7 @@ dependencies {
 }
 
 val executableJar by tasks.registering(Jar::class) {
-    archiveFileName.set("gradle-wrapper.jar")
+    archiveFileName = "gradle-wrapper.jar"
     manifest {
         attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
@@ -46,9 +46,4 @@ val executableJar by tasks.registering(Jar::class) {
 
 tasks.jar {
     from(executableJar)
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

@@ -30,7 +30,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
@@ -104,7 +104,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeature1RuntimeElements {
                     extendsFrom optionalFeature1Implementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
                     }
@@ -116,7 +116,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeature2RuntimeElements {
                     extendsFrom optionalFeature2Implementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
                     }
@@ -190,7 +190,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
                     }
@@ -222,8 +222,11 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             }
 
             task touchFile {
+                // explicit dependency otherwise this task may run before the Jar task
+                dependsOn tasks.jar
+                def outputFile = file("\$buildDir/$optionalFeatureFileName")
                 doLast {
-                    file("\$buildDir/$optionalFeatureFileName") << "test"
+                    outputFile << "test"
                 }
             }
         """
@@ -298,7 +301,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
                     }
@@ -383,7 +386,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }

@@ -20,13 +20,14 @@ import spock.lang.Specification
 
 class CurrentBuildOperationPreservingRunnableTest extends Specification {
 
-    private static final EXPECTED_BUILD_OPERATION = new DefaultBuildOperationRef(new OperationIdentifier(42L), new OperationIdentifier(1))
+    private static final EXPECTED_INNER_BUILD_OPERATION = new DefaultBuildOperationRef(new OperationIdentifier(42L), new OperationIdentifier(1))
+    private static final EXPECTED_OUTER_BUILD_OPERATION = new DefaultBuildOperationRef(new OperationIdentifier(43L), new OperationIdentifier(2))
 
     def delegate = Mock(Runnable)
     def currentBuildOperationRef = new CurrentBuildOperationRef()
 
     def runner() {
-        new CurrentBuildOperationPreservingRunnable(delegate, currentBuildOperationRef)
+        CurrentBuildOperationPreservingRunnable.wrapIfNeeded(delegate, currentBuildOperationRef)
     }
 
     def "forward execution to delegate runnable"() {
@@ -40,15 +41,19 @@ class CurrentBuildOperationPreservingRunnableTest extends Specification {
 
     def "preserve build operation identifier during execution of the delegate runnable"() {
         given:
-        currentBuildOperationRef.set(EXPECTED_BUILD_OPERATION)
+        // Set the current build operation to a known value for initializing the runner
+        currentBuildOperationRef.set(EXPECTED_INNER_BUILD_OPERATION)
+        def runner = runner()
+        // Then act as if we've been moved to a code section with a new build operation active
+        currentBuildOperationRef.set(EXPECTED_OUTER_BUILD_OPERATION)
 
         when:
-        runner().run()
+        runner.run()
 
         then:
         1 * delegate.run() >> {
-            assert currentBuildOperationRef.get() == EXPECTED_BUILD_OPERATION
+            assert currentBuildOperationRef.get() == EXPECTED_INNER_BUILD_OPERATION
         }
-        currentBuildOperationRef.get() != EXPECTED_BUILD_OPERATION
+        currentBuildOperationRef.get() == EXPECTED_OUTER_BUILD_OPERATION
     }
 }

@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.ObjectHolder;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -103,7 +103,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private final String taskPath;
         private final FileCollection sourceFiles;
         private final FileCollection headerFilesCollection;
-        private PersistentStateCache<CompilationState> compileStateCache;
+        private ObjectHolder<CompilationState> compileStateCache;
         private IncrementalCompilation incrementalCompilation;
 
         StateCollectingIncrementalCompiler(

@@ -39,10 +39,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         MODULE             // constraints in module are published with strict constraints, consumer uses normal dependencies with 'endorseStrictVersions()'
     }
 
-    def setup() {
-        resolve.withStrictReasonsCheck()
-    }
-
     String platformDependency(platformType, String dependency) {
         //noinspection GroovyFallthrough
         switch (platformType) {
@@ -178,7 +174,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         resolve.expectGraph {
             root(':', ':test:') {
                 edge(platformType == ENFORCED_PLATFORM ? "org:platform:${expectStrictVersion(platformType, '1.+')}" : 'org:platform:1.+', 'org:platform:1.0') {
-                    byRequest()
                     if (platformType != MODULE) {
                         configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                         noArtifacts()
@@ -191,15 +186,14 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                     constraint("org:foo:${expectStrictVersion(platformType, '3.0', '3.1 & 3.2')}", 'org:foo:3.0').byConstraint()
                 }
                 edge('org:bar', 'org:bar:2.0') {
-                    byRequest()
                     if (platformType == ENFORCED_PLATFORM) {
                         forced()
                     }
                     edge('org:foo:3.1', 'org:foo:3.0') {
                         if (platformType != ENFORCED_PLATFORM) {
+                            notRequested()
                             byAncestor()
                         } else {
-                            byRequest()
                             forced()
                         }
                     }
@@ -241,7 +235,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         resolve.expectGraph {
             root(':', ':test:') {
                 edge(platformType == ENFORCED_PLATFORM ? "org:platform:${expectStrictVersion(platformType, '1.+')}" : 'org:platform:1.+', 'org:platform:1.1') {
-                    byRequest()
                     if (platformType != MODULE) {
                         configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                         noArtifacts()
@@ -254,15 +247,14 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                     constraint("org:foo:${expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", 'org:foo:3.1.1').byConstraint()
                 }
                 edge('org:bar', 'org:bar:2.0') {
-                    byRequest()
                     if (platformType == ENFORCED_PLATFORM) {
                         forced()
                     }
                     edge('org:foo:3.1', 'org:foo:3.1.1') {
                         if (platformType != ENFORCED_PLATFORM) {
+                            notRequested()
                             byAncestor()
                         } else {
-                            byRequest()
                             forced()
                         }
                     }
@@ -388,7 +380,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                 root(':', ':test:') {
                     constraint('org:foo:{strictly 3.2}', "org:foo:$expectedFooVersion").byConstraint()
                     edge('org:platform:1.+', 'org:platform:1.1') {
-                        byRequest()
                         if (platformType != MODULE) {
                             configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                             noArtifacts()
@@ -397,8 +388,13 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                         constraint("org:foo:${expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", "org:foo:$expectedFooVersion").byConstraint()
                     }
                     edge('org:bar', 'org:bar:2.0') {
-                        edge('org:foo:3.1', "org:foo:$expectedFooVersion").byAncestor()
-                    }.byRequest()
+                        edge('org:foo:3.1', "org:foo:$expectedFooVersion") {
+                            if (platformType != ENFORCED_PLATFORM) {
+                                notRequested()
+                            }
+                            byAncestor()
+                        }
+                    }
                 }
             }
         }

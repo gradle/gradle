@@ -17,25 +17,25 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import javax.inject.Inject;
 import java.io.Serializable;
 
 public class ZincScalaCompilerFacade implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
-    private final CacheRepository cacheRepository;
+    private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
 
     private final HashedClasspath scalaClasspath;
 
     @Inject
-    public ZincScalaCompilerFacade(CacheRepository cacheRepository, HashedClasspath scalaClasspath) {
-        this.cacheRepository = cacheRepository;
+    public ZincScalaCompilerFacade(UnscopedCacheBuilderFactory unscopedCacheBuilderFactory, HashedClasspath scalaClasspath) {
+        this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
         this.scalaClasspath = scalaClasspath;
     }
 
     @Override
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        return ZincScalaCompilerFactory.getCompiler(cacheRepository, scalaClasspath).execute(spec);
+        return ZincScalaCompilerFactory.getCompiler(unscopedCacheBuilderFactory, scalaClasspath).execute(spec);
     }
 }

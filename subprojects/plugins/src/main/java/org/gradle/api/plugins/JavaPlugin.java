@@ -25,14 +25,20 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
+import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
@@ -241,21 +247,25 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
         project.getPluginManager().apply("org.gradle.jvm-test-suite");
 
-        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-
         // Create the 'java' component.
-        DefaultJvmSoftwareComponent javaComponent = objectFactory.newInstance(DefaultJvmSoftwareComponent.class, "java", javaExtension);
-        project.getComponents().add(javaComponent);
+        JvmSoftwareComponentInternal component = objectFactory.newInstance(
+            DefaultJvmSoftwareComponent.class,
+            JvmConstants.JAVA_COMPONENT_NAME, SourceSet.MAIN_SOURCE_SET_NAME
+        );
+        project.getComponents().add(component);
 
         // Set the 'java' component as the project's default.
         Configuration defaultConfiguration = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION);
-        defaultConfiguration.extendsFrom(javaComponent.getRuntimeElements());
-        ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
+        defaultConfiguration.extendsFrom(component.getMainFeature().getRuntimeElementsConfiguration());
+        ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(component);
 
+        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
-
-        configureBuiltInTest(project, javaComponent);
         configureSourceSets(javaExtension, buildOutputCleanupRegistry);
+
+        configureTestTaskOrdering(project.getTasks());
+        configureBuiltInTest(project, component);
+        configureDiagnostics(project, component);
         configureBuild(project);
     }
 
@@ -264,7 +274,20 @@ public abstract class JavaPlugin implements Plugin<Project> {
         pluginExtension.getSourceSets().all(sourceSet -> buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput()));
     }
 
-    private static void configureBuiltInTest(Project project, DefaultJvmSoftwareComponent javaComponent) {
+    /**
+     * Unless there are other concerns, we'd prefer to run jar tasks prior to test tasks, as this might offer a small performance improvement
+     * for common usage.  In practice, running test tasks tends to take longer than building a jar; especially as a project matures. If tasks
+     * in downstream projects require the jar from this project, and the jar and test tasks in this project are available to be run in either order,
+     * running jar first so that other projects can continue executing tasks in parallel while this project runs its tests could be an improvement.
+     * However, while we want to prioritize cross-project dependencies to maximize parallelism if possible, we don't want to add an explicit
+     * dependsOn() relationship between the jar task and the test task, so that any projects which need to run test tasks first will not need modification.
+     */
+    private static void configureTestTaskOrdering(TaskContainer tasks) {
+        TaskCollection<Jar> jarTasks = tasks.withType(Jar.class);
+        tasks.withType(Test.class).configureEach(test -> test.shouldRunAfter(jarTasks));
+    }
+
+    private static void configureBuiltInTest(Project project, JvmSoftwareComponentInternal component) {
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
             final SourceSet testSourceSet = suite.getSources();
@@ -279,7 +302,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
             // relies on the main source set being created before the tests. So, this code here cannot live in the
             // JvmTestSuitePlugin and must live here, so that we can ensure we register this test suite after we've
             // created the main source set.
-            final SourceSet mainSourceSet = javaComponent.getSources();
+            final SourceSet mainSourceSet = component.getMainFeature().getSourceSet();
             final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
             final FileCollection testSourceSetOutput = testSourceSet.getOutput();
             testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
@@ -295,11 +318,17 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
     }
 
+    private static void configureDiagnostics(Project project, JvmSoftwareComponentInternal component) {
+        project.getTasks().withType(DependencyInsightReportTask.class).configureEach(task -> {
+            new DslObject(task).getConventionMapping().map("configuration", component.getMainFeature()::getCompileClasspathConfiguration);
+        });
+    }
+
     private static void configureBuild(Project project) {
         project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, true,
-            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, false,
-            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }
 
     /**

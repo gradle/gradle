@@ -36,6 +36,11 @@ public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplie
     }
 
     @Override
+    public String getSourceName() {
+        return "SDKMAN!";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         return candidatesDir.map(findJavaCandidates()).getOrElse(Collections.emptySet());
     }
@@ -47,7 +52,7 @@ public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplie
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
         return candidatesDir -> {
             final File root = new File(candidatesDir, "java");
-            return FileBasedInstallationFactory.fromDirectory(root, "SDKMAN!");
+            return FileBasedInstallationFactory.fromDirectory(root, getSourceName());
         };
     }
 

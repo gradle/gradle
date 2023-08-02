@@ -24,8 +24,9 @@ import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -411,8 +412,8 @@ class NativeBasePluginTest extends Specification {
     }
 
     def "adds Maven publications for component with main publication"() {
-        def variant1 = Stub(UsageContext)
         def artifact1 = Stub(PublishArtifact)
+        def variant1 = new DefaultSoftwareComponentVariant('variant1', ImmutableAttributes.EMPTY, [artifact1] as Set)
         artifact1.getFile() >> projectDir.file("artifact1")
         variant1.artifacts >> [artifact1]
         def publishableVariant1 = Stub(PublishableVariant)
@@ -420,10 +421,9 @@ class NativeBasePluginTest extends Specification {
         publishableVariant1.usages >> [variant1]
         publishableVariant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
-        def variant2 = Stub(UsageContext)
         def artifact2 = Stub(PublishArtifact)
+        def variant2 = new DefaultSoftwareComponentVariant('variant2', ImmutableAttributes.EMPTY, [artifact2] as Set)
         artifact2.getFile() >> projectDir.file("artifact1")
-        variant2.artifacts >> [artifact2]
         def publishableVariant2 = Stub(PublishableVariant)
         publishableVariant2.name >> "release"
         publishableVariant2.usages >> [variant2]

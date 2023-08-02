@@ -20,11 +20,11 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -44,7 +44,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     private DynamicObject dynamicObject;
     private ExtensionContainer extensionContainer;
     private ConventionMapping conventionMapping;
-    private Convention convention;
+    private org.gradle.api.plugins.Convention convention;
 
     private final Object object;
 
@@ -62,9 +62,16 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
 
     @Override
     @Deprecated
-    public Convention getConvention() {
+    public org.gradle.api.plugins.Convention getConvention() {
+// TODO nag once KGP doesn't register conventions anymore
+//        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
+//            .willBeRemovedInGradle9()
+//            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
+//            .nagUser();
         if (convention == null) {
-            this.convention = toType(object, org.gradle.api.internal.HasConvention.class).getConvention();
+            this.convention = DeprecationLogger.whileDisabled(() ->
+                toType(object, org.gradle.api.internal.HasConvention.class).getConvention()
+            );
         }
         return convention;
     }
@@ -80,7 +87,9 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     @Override
     public ConventionMapping getConventionMapping() {
         if (conventionMapping == null) {
-            this.conventionMapping = toType(object, IConventionAware.class).getConventionMapping();
+            this.conventionMapping = DeprecationLogger.whileDisabled(() ->
+                toType(object, IConventionAware.class).getConventionMapping()
+            );
         }
         return conventionMapping;
     }
@@ -105,8 +114,8 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
             return type.cast(delegate);
         } else {
             throw new IllegalStateException(
-                    String.format("Cannot create DslObject for '%s' (class: %s) as it does not implement '%s' (it is not a DSL object)",
-                            delegate, delegate.getClass().getSimpleName(), type.getName())
+                String.format("Cannot create DslObject for '%s' (class: %s) as it does not implement '%s' (it is not a DSL object)",
+                    delegate, delegate.getClass().getSimpleName(), type.getName())
             );
         }
     }

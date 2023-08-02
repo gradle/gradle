@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -396,7 +397,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 configurations {
                     green {
                         extendsFrom(compile)
-                        canBeResolved = true
+                        assert canBeResolved
                         canBeConsumed = false
                         attributes {
                             attribute(artifactType, 'green')
@@ -430,16 +431,41 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         run(":app:toBeFinalized", "withDependency")
 
+        def lib1Message = "Transforming lib1.jar with MakeGreen"
+        def lib2Message = "Transforming lib2.jar with MakeGreen"
+
         then:
-        output.count("Transforming lib1.jar with MakeGreen") == 1
-        output.count("Transforming lib2.jar with MakeGreen") == 1
+        if (!GradleContextualExecuter.configCache) {
+            // Only runs once, as the transform execution in-memory cache is not discarded prior to execution time
+            output.count(lib1Message) == 1
+            output.count(lib2Message) == 1
+        } else {
+            // Transform is also executed at execution time, as the artifact has changed and the execution cache is discarded on load from cache
+            output.count(lib1Message) == 2
+            output.count(lib2Message) == 2
+        }
 
         when:
         run(":app:toBeFinalized", "withDependency")
 
         then:
-        output.count("Transforming lib1.jar with MakeGreen") == 1
-        output.count("Transforming lib2.jar with MakeGreen") == 1
+        if (!GradleContextualExecuter.configCache) {
+            // Runs again, as the artifact has changed
+            output.count(lib1Message) == 1
+            output.count(lib2Message) == 1
+        } else {
+            // Not executed at configuration time, and the transform has already executed for the artifact
+            output.count(lib1Message) == 0
+            output.count(lib2Message) == 0
+        }
+
+        when:
+        run(":app:toBeFinalized", "withDependency")
+
+        then:
+        // Not executed as the transform has already executed for the artifact
+        output.count(lib1Message) == 0
+        output.count(lib2Message) == 0
     }
 
     def "each file is transformed once per set of configuration parameters"() {
@@ -896,6 +922,119 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
 
         output.count("Transformed") == 0
+    }
+
+    def "workspace id of project transforms independent between workspaces"() {
+        def projectDir1 = file("project1")
+        def projectDir2 = file("project2")
+        [projectDir1, projectDir2].each { dir ->
+            def project = new BuildTestFile(dir, "root")
+            project.with {
+                settingsFile << """
+                    rootProject.name = 'root'
+                    include 'lib'
+                    include 'util'
+                    include 'app'
+                """
+                buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
+            }
+        }
+
+        when:
+        executer.inDirectory(projectDir1)
+        succeeds ":app:resolve"
+        def project1OutputDir = projectOutputDir("lib1.jar", "lib1.jar.txt")
+
+        and:
+        executer.inDirectory(projectDir2)
+        succeeds ":app:resolve"
+        def project2OutputDir = projectOutputDir("lib1.jar", "lib1.jar.txt")
+
+        then:
+        projectDir1.relativePath(project1OutputDir) == projectDir2.relativePath(project2OutputDir)
+    }
+
+    def "workspace id of project transforms is unique per build"() {
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        file("project-artifact.jar").text = "project artifact"
+        buildFile << """
+            project(':lib') {
+                artifacts {
+                    compile rootProject.file("project-artifact.jar")
+                }
+            }
+            project(':util') {
+                artifacts {
+                    compile rootProject.file("project-artifact.jar")
+                }
+            }
+        """
+
+        when:
+        succeeds ":app:resolve"
+
+        then:
+        def outputDirs = projectOutputDirs("project-artifact.jar", "project-artifact.jar.txt")
+        outputDirs.size() == 2
+        (outputDirs.parentFile.name as Set).size() == 2
+    }
+
+    @ToBeFixedForConfigurationCache(because = "project :lib-project:producer not found.")
+    def "workspace id of project transforms is unique per build with included builds"() {
+        // The setup here is in a way that the project path of the project dependency in the same build
+        // is the same as the buildTreePath of the substituted project dependency in the included build.
+        // This way we test that you can't do special handling for "local" project dependencies when calculating
+        // a transform workspace.
+        def includedBuild = new BuildTestFile(file("lib-project"), "lib-project")
+        includedBuild.with {
+            settingsFile << """
+                include(":producer")
+            """
+            file("project-artifact.jar").text = "project artifact"
+            buildFile << declareAttributes() << """
+                project(':producer') {
+                    group = "com.test"
+                    artifacts {
+                        compile rootProject.file("project-artifact.jar")
+                    }
+                }
+            """
+        }
+        def consumerIncludedBuild = new BuildTestFile(file("consumer-included-build"), "consumer-included-build")
+        consumerIncludedBuild.with {
+            settingsFile << """
+                include(":lib-project:producer")
+                include 'app'
+                include 'util'
+                include 'lib'
+            """
+            file("project-artifact.jar").text = "project artifact"
+            buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform() <<"""
+                project(':lib-project:producer') {
+                    artifacts {
+                        compile rootProject.file("project-artifact.jar")
+                    }
+                }
+                project(':app') {
+                    dependencies {
+                        compile project(':lib-project:producer')
+                        compile 'com.test:producer:1.0'
+                    }
+                }
+            """
+        }
+        settingsFile << """
+            includeBuild('lib-project')
+            includeBuild('consumer-included-build')
+        """
+
+        when:
+        succeeds ":consumer-included-build:app:resolve"
+
+        then:
+        def outputDirs = projectOutputDirs("project-artifact.jar", "project-artifact.jar.txt")
+        outputDirs.size() == 2
+        (outputDirs.parentFile.name as Set).size() == 2
     }
 
     def "transform is re-executed when input file content changes between builds"() {
@@ -1776,7 +1915,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         transformingBuild.waitForFinish()
     }
 
-    def "does not clean up cache when cache cleanup is disabled via #method"() {
+    def "does not clean up cache when cache cleanup is disabled via #cleanupMethod"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
         ["lib1", "lib2"].each { name ->
@@ -1786,7 +1925,47 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanup(method)
+        disableCacheCleanup(cleanupMethod)
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        executer.noDeprecationChecks()
+        run '--stop' // ensure daemon does not cache file access times in memory
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        gcFile.lastModified = daysAgo(2)
+
+        and:
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        outputDir1.assertExists()
+        outputDir2.assertExists()
+
+        where:
+        cleanupMethod << CleanupMethod.values()
+    }
+
+    def "cleans up cache when DSL is configured even if legacy property is set"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1", "lib2"].each { name ->
+            buildFile << withExternalLibDependency(name)
+        }
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        disableCacheCleanupViaProperty()
+        explicitlyEnableCacheCleanupViaDsl()
         succeeds ":app:resolve"
 
         then:
@@ -1805,11 +1984,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         executer.withTasks("help").start().waitForFinish()
 
         then:
-        outputDir1.assertExists()
+        outputDir1.assertDoesNotExist()
         outputDir2.assertExists()
-
-        where:
-        method << CleanupMethod.values()
+        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
 
     String getResolveTask() {

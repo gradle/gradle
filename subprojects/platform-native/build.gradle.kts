@@ -65,4 +65,4 @@ packageCycles {
     excludePatterns.add("org/gradle/nativeplatform/toolchain/internal/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

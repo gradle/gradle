@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -23,14 +24,13 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.wrapper.WrapperExecutor
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Issue
 import spock.lang.Shared
 
 import static org.gradle.internal.hash.Hashing.sha256
 
-@Issue('https://github.com/gradle/gradle-private/issues/1537')
 // wrapperExecuter requires a real distribution
 @IgnoreIf({ GradleContextualExecuter.embedded })
+@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3799")
 class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
 
     private static final String WRAPPER_PROPERTIES_PATH = 'gradle/wrapper/gradle-wrapper.properties'
@@ -40,13 +40,17 @@ class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    def setup() {
+    def configureServer(boolean expectHead) {
+        if (expectHead) {
+            server.expect(server.head("/gradle-bin.zip"))
+        }
         server.expect(server.get("/gradle-bin.zip").sendFile(distribution.binDistribution))
         server.start()
     }
 
     def "wrapper execution fails when using bad checksum"() {
         given:
+        configureServer(true)
         prepareWrapper(new URI(gradleBin))
 
         and:
@@ -83,6 +87,7 @@ Expected checksum: 'bad'
 
     def "wrapper successfully verifies good checksum"() {
         given:
+        configureServer(true)
         prepareWrapper(new URI(gradleBin))
 
         and:
@@ -90,13 +95,13 @@ Expected checksum: 'bad'
 
         when:
         def success = wrapperExecuter.run()
-
         then:
         success.output.contains('BUILD SUCCESSFUL')
     }
 
     def "wrapper requires checksum configuration if a checksum is present in gradle-wrapper.properties"() {
         given:
+        configureServer(true)
         prepareWrapper(new URI(gradleBin))
 
         and:
@@ -116,6 +121,7 @@ Expected checksum: 'bad'
 
     def "wrapper uses new checksum if it was provided as an option"() {
         given:
+        configureServer(true)
         prepareWrapper(new URI(gradleBin))
 
         and:
@@ -137,6 +143,7 @@ Expected checksum: 'bad'
 
     def "wrapper preserves new checksum if it was provided in properties"() {
         given:
+        configureServer(false)
         def releasedDistribution = IntegrationTestBuildContext.INSTANCE.distribution("7.5")
         prepareWrapper(releasedDistribution.binDistribution.toURI())
 

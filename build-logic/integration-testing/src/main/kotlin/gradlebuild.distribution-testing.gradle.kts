@@ -16,8 +16,8 @@
 
 import gradlebuild.basics.repoRoot
 import gradlebuild.cleanup.services.CachesCleaner
-import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
+import gradlebuild.integrationtests.tasks.DistributionTest
 
 plugins {
     java
@@ -29,8 +29,8 @@ val docsProjectLocation = "subprojects/docs" // TODO instead of reaching directl
 val intTestHomeDir = repoRoot().dir("intTestHomeDir")
 
 val cachesCleanerService = gradle.sharedServices.registerIfAbsent("cachesCleaner", CachesCleaner::class) {
-    parameters.gradleVersion.set(moduleIdentity.version.map { it.version })
-    parameters.homeDir.set(intTestHomeDir)
+    parameters.gradleVersion = moduleIdentity.version.map { it.version }
+    parameters.homeDir = intTestHomeDir
 }
 
 fun Gradle.rootBuild(): Gradle = parent.let { it?.rootBuild() ?: this }
@@ -51,9 +51,9 @@ fun executerRequiresFullDistribution(taskName: String) =
     taskName.startsWith("noDaemon")
 
 fun DistributionTest.addSetUpAndTearDownActions() {
-    cachesCleaner.set(cachesCleanerService)
+    cachesCleaner = cachesCleanerService
     gradle.rootBuild().sharedServices.registrations.findByName("daemonTracker")?.let {
-        tracker.set(it.service)
+        tracker = it.service
     }
 }
 
@@ -62,30 +62,28 @@ fun DistributionTest.configureGradleTestEnvironment() {
 
     gradleInstallationForTest.apply {
         if (executerRequiresDistribution(taskName)) {
-            gradleHomeDir.setFrom(
-                if (executerRequiresFullDistribution(taskName)) {
-                    configurations["${prefix}TestFullDistributionRuntimeClasspath"]
-                } else {
-                    configurations["${prefix}TestDistributionRuntimeClasspath"]
-                }
-            )
+            gradleHomeDir = if (executerRequiresFullDistribution(taskName)) {
+                configurations["${prefix}TestFullDistributionRuntimeClasspath"]
+            } else {
+                configurations["${prefix}TestDistributionRuntimeClasspath"]
+            }
         }
         // Set the base user home dir to be share by integration tests.
         // The actual user home dir will be a subfolder using the name of the distribution.
-        gradleUserHomeDir.set(intTestHomeDir)
+        gradleUserHomeDir = intTestHomeDir
         // The user home dir is not wiped out by clean. Move the daemon working space underneath the build dir so they don't pile up on CI.
         // The actual daemon registry dir will be a subfolder using the name of the distribution.
-        daemonRegistry.set(repoRoot().dir("build/daemon"))
-        gradleSnippetsDir.set(repoRoot().dir("$docsProjectLocation/src/snippets"))
+        daemonRegistry = repoRoot().dir("build/daemon")
+        gradleSnippetsDir = repoRoot().dir("$docsProjectLocation/src/snippets")
     }
 
     // Wire the different inputs for local distributions and repos that are declared by dependencies in the build scripts
-    normalizedDistributionZip.distributionZip.setFrom(configurations["${prefix}TestNormalizedDistributionPath"])
-    binDistributionZip.distributionZip.setFrom(configurations["${prefix}TestBinDistributionPath"])
-    allDistributionZip.distributionZip.setFrom(configurations["${prefix}TestAllDistributionPath"])
-    docsDistributionZip.distributionZip.setFrom(configurations["${prefix}TestDocsDistributionPath"])
-    srcDistributionZip.distributionZip.setFrom(configurations["${prefix}TestSrcDistributionPath"])
-    localRepository.localRepo.setFrom(configurations["${prefix}TestLocalRepositoryPath"])
+    normalizedDistributionZip.distributionZip = configurations["${prefix}TestNormalizedDistributionPath"]
+    binDistributionZip.distributionZip = configurations["${prefix}TestBinDistributionPath"]
+    allDistributionZip.distributionZip = configurations["${prefix}TestAllDistributionPath"]
+    docsDistributionZip.distributionZip = configurations["${prefix}TestDocsDistributionPath"]
+    srcDistributionZip.distributionZip = configurations["${prefix}TestSrcDistributionPath"]
+    localRepository.localRepo = configurations["${prefix}TestLocalRepositoryPath"]
 }
 
 fun DistributionTest.setJvmArgsOfTestJvm() {

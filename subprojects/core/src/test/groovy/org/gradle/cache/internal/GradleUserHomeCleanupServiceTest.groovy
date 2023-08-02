@@ -21,10 +21,8 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.provider.Property
 import org.gradle.cache.CleanupFrequency
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.initialization.GradleUserHomeDirProvider
-import org.gradle.internal.cache.MonitoredCleanupAction
-import org.gradle.internal.cache.MonitoredCleanupActionDecorator
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestFile
@@ -50,16 +48,14 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     def userHomeDirProvider = Stub(GradleUserHomeDirProvider) {
         getGradleUserHomeDirectory() >> userHomeDir
     }
-    def globalScopedCache = Mock(GlobalScopedCache) {
+    def cacheBuilderFactory = Mock(GlobalScopedCacheBuilderFactory) {
         getRootDir() >> userHomeDir.createDir("caches")
     }
     def usedGradleVersions = Stub(UsedGradleVersions) {
         getUsedGradleVersions() >> ([] as SortedSet)
     }
     def progressLoggerFactory = Stub(ProgressLoggerFactory)
-    def cleanupActionDecorator = Stub(MonitoredCleanupActionDecorator) {
-        decorate(_) >> { args -> args[0] }
-    }
+
     def releasedWrappers = Stub(CacheResourceConfigurationInternal) {
         getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS)
     }
@@ -81,10 +77,9 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     @Subject def cleanupService = new GradleUserHomeCleanupService(
             TestFiles.deleter(),
             userHomeDirProvider,
-            globalScopedCache,
+            cacheBuilderFactory,
             usedGradleVersions,
             progressLoggerFactory,
-            cleanupActionDecorator,
             cacheConfigurations
     )
 
@@ -172,7 +167,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         cleanupService.cleanup()
 
         then:
-        cleanupActionDecorator.decorate(_) >> Stub(MonitoredCleanupAction)
+        cacheConfigurations.cleanupFrequency >> property(CleanupFrequency.NEVER)
 
         and:
         oldCacheDir.assertExists()

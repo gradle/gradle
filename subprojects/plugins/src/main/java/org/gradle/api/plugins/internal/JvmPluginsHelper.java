@@ -15,38 +15,25 @@
  */
 package org.gradle.api.plugins.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
-import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.AdhocComponentWithVariants;
-import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
@@ -55,15 +42,11 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -76,40 +59,6 @@ import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 public class JvmPluginsHelper {
 
     /**
-     * Adds an API configuration to a source set, so that API dependencies
-     * can be declared.
-     *
-     * @param sourceSet the source set to add an API for
-     * @return the created API configuration
-     */
-    public static Configuration addApiToSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
-        Configuration apiConfiguration = maybeCreateInvisibleConfig(
-            configurations,
-            sourceSet.getApiConfigurationName(),
-            "API dependencies for " + sourceSet + ".",
-            false
-        );
-
-        Configuration compileOnlyApiConfiguration = maybeCreateInvisibleConfig(
-            configurations,
-            sourceSet.getCompileOnlyApiConfigurationName(),
-            "Compile only API dependencies for " + sourceSet + ".",
-            false
-        );
-
-        Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
-        apiElementsConfiguration.extendsFrom(apiConfiguration, compileOnlyApiConfiguration);
-
-        Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        implementationConfiguration.extendsFrom(apiConfiguration);
-
-        Configuration compileOnlyConfiguration = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
-        compileOnlyConfiguration.extendsFrom(compileOnlyApiConfiguration);
-
-        return apiConfiguration;
-    }
-
-    /***
      * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
      */
     @Deprecated
@@ -142,7 +91,7 @@ public class JvmPluginsHelper {
         options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
     }
 
-    /***
+    /**
      * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
      */
     @Deprecated
@@ -161,12 +110,12 @@ public class JvmPluginsHelper {
         sourceDirectorySet.compiledBy(compileTask, AbstractCompile::getDestinationDirectory);
     }
 
-    public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks, @Nullable JavaPluginExtension javaPluginExtension) {
+    public static void configureJavaDocTask(String displayName, SourceSet sourceSet, TaskContainer tasks, @Nullable JavaPluginExtension javaPluginExtension) {
         String javadocTaskName = sourceSet.getJavadocTaskName();
         if (!tasks.getNames().contains(javadocTaskName)) {
             tasks.register(javadocTaskName, Javadoc.class, javadoc -> {
-                javadoc.setDescription("Generates Javadoc API documentation for the " + (featureName == null ? "main source code." : "'" + featureName + "' feature."));
-                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+                javadoc.setDescription("Generates Javadoc API documentation for the " + displayName + ".");
+                javadoc.setGroup(JvmConstants.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
                 if (javaPluginExtension != null) {
@@ -177,32 +126,28 @@ public class JvmPluginsHelper {
         }
     }
 
-    public static void configureDocumentationVariantWithArtifact(
+    public static Configuration createDocumentationVariantWithArtifact(
         String variantName,
         @Nullable String featureName,
         String docsType,
         List<Capability> capabilities,
         String jarTaskName,
         Object artifactSource,
-        @Nullable AdhocComponentWithVariants component,
-        ConfigurationContainer configurations,
-        TaskContainer tasks,
-        ObjectFactory objectFactory,
-        FileResolver fileResolver,
-        TaskDependencyFactory taskDependencyFactory
+        ProjectInternal project
     ) {
-        Configuration variant = maybeCreateInvisibleConfig(
-            configurations,
-            variantName,
-            docsType + " elements for " + (featureName == null ? "main" : featureName) + ".",
-            true
-        );
+        @SuppressWarnings("deprecation") Configuration variant = project.getConfigurations().maybeCreateMigratingUnlocked(variantName, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        variant.setVisible(false);
+        variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
+
+        ObjectFactory objectFactory = project.getObjects();
         AttributeContainer attributes = variant.getAttributes();
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
         attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
         attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
         capabilities.forEach(variant.getOutgoing()::capability);
+
+        TaskContainer tasks = project.getTasks();
 
         if (!tasks.getNames().contains(jarTaskName)) {
             TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
@@ -215,142 +160,11 @@ public class JvmPluginsHelper {
                 tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
             }
         }
-        TaskProvider<Task> jar = tasks.named(jarTaskName);
-        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, fileResolver, taskDependencyFactory));
-        if (component != null) {
-            component.addVariantsFromConfiguration(variant, new JavaConfigurationVariantMapping("runtime", true));
-        }
+
+        TaskProvider<Jar> jar = tasks.named(jarTaskName, Jar.class);
+        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory()));
+
+        return variant;
     }
 
-    private static Configuration maybeCreateInvisibleConfig(
-        ConfigurationContainer container,
-        String name,
-        String description,
-        boolean canBeConsumed
-    ) {
-        Configuration configuration = container.maybeCreate(name);
-        configuration.setVisible(false);
-        configuration.setDescription(description);
-        configuration.setCanBeResolved(false);
-        configuration.setCanBeConsumed(canBeConsumed);
-        return configuration;
-    }
-
-    @Nullable
-    public static AdhocComponentWithVariants findJavaComponent(SoftwareComponentContainer components) {
-        SoftwareComponent component = components.findByName("java");
-        if (component instanceof AdhocComponentWithVariants) {
-            return (AdhocComponentWithVariants) component;
-        }
-        return null;
-    }
-
-    public static Action<ConfigurationInternal> configureLibraryElementsAttributeForCompileClasspath(boolean javaClasspathPackaging, SourceSet sourceSet, TaskProvider<JavaCompile> compileTaskProvider, ObjectFactory objectFactory) {
-        return conf -> {
-            AttributeContainerInternal attributes = conf.getAttributes();
-            if (!attributes.contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
-                String libraryElements;
-                // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
-                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularity().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
-                    libraryElements = LibraryElements.JAR;
-                } else {
-                    libraryElements = LibraryElements.CLASSES;
-                }
-                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryElements));
-            }
-        };
-    }
-
-    /**
-     * A custom artifact type which allows the getFile call to be done lazily only when the
-     * artifact is actually needed.
-     */
-    private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
-        private final String type;
-
-        public IntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency) {
-            super(taskDependencyFactory, dependency);
-            this.type = type;
-        }
-
-        @Override
-        public String getName() {
-            return getFile().getName();
-        }
-
-        @Override
-        public String getExtension() {
-            return "";
-        }
-
-        @Override
-        public String getType() {
-            return type;
-        }
-
-        @Nullable
-        @Override
-        public String getClassifier() {
-            return null;
-        }
-
-        @Override
-        public Date getDate() {
-            return null;
-        }
-
-        @Override
-        public boolean shouldBePublished() {
-            return false;
-        }
-    }
-
-    /**
-     * An {@link IntermediateJavaArtifact} with a non-lazy File.
-     */
-    public static class ImmediateIntermediateJavaArtifact extends IntermediateJavaArtifact {
-
-        private final File file;
-
-        public ImmediateIntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, File file) {
-            super(taskDependencyFactory, type, dependency);
-            this.file = file;
-        }
-
-        @Override
-        public File getFile() {
-            return file;
-        }
-    }
-
-    /**
-     * An {@link IntermediateJavaArtifact} which achieves lazy file access via a {@link Provider} instead
-     * of inheritance.
-     */
-    public static class ProviderBasedIntermediateJavaArtifact extends IntermediateJavaArtifact {
-
-        private final Provider<File> fileProvider;
-
-        // Used in the Gradle build;
-        // TODO: remove once the usage in gradlebuild.test-fixtures.gradle.kts is no longer there
-        /**
-         * @deprecated Use the overload accepting a TaskDependencyFactory
-         */
-        @Deprecated
-        public ProviderBasedIntermediateJavaArtifact(
-            String type, Object dependency, Provider<File> fileProvider
-        ) {
-            this(DefaultTaskDependencyFactory.withNoAssociatedProject(), type, dependency, fileProvider);
-        }
-
-        public ProviderBasedIntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
-            super(taskDependencyFactory, type, dependency);
-            this.fileProvider = fileProvider;
-        }
-
-        @Override
-        public File getFile() {
-            return fileProvider.get();
-        }
-    }
 }

@@ -281,15 +281,27 @@ fun Encoder.writeClassPath(classPath: ClassPath) {
     // because it is important for the equality checks.
     if (classPath is TransformedClassPath) {
         writeBoolean(true)
-        writeCollection(classPath.asFiles.zip(classPath.asTransformedFiles)) {
-            writeFile(it.first)
-            writeFile(it.second)
-        }
+        writeTransformedClassPath(classPath)
     } else {
         writeBoolean(false)
-        writeCollection(classPath.asFiles) {
-            writeFile(it)
-        }
+        writeDefaultClassPath(classPath)
+    }
+}
+
+
+internal
+fun Encoder.writeDefaultClassPath(classPath: ClassPath) {
+    writeCollection(classPath.asFiles) {
+        writeFile(it)
+    }
+}
+
+
+internal
+fun Encoder.writeTransformedClassPath(classPath: TransformedClassPath) {
+    writeCollection(classPath.asFiles.zip(classPath.asTransformedFiles)) {
+        writeFile(it.first)
+        writeFile(it.second)
     }
 }
 
@@ -319,7 +331,7 @@ fun Decoder.readDefaultClassPath(): ClassPath {
 internal
 fun Decoder.readTransformedClassPath(): ClassPath {
     val size = readSmallInt()
-    val builder = TransformedClassPath.Builder.withExpectedSize(size)
+    val builder = TransformedClassPath.builderWithExactSize(size)
     for (i in 0 until size) {
         builder.add(readFile(), readFile())
     }
@@ -328,7 +340,7 @@ fun Decoder.readTransformedClassPath(): ClassPath {
 
 
 internal
-fun Encoder.writeFile(file: File?) {
+fun Encoder.writeFile(file: File) {
     BaseSerializerFactory.FILE_SERIALIZER.write(this, file)
 }
 

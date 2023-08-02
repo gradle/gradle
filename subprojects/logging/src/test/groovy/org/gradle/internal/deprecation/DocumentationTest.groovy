@@ -37,13 +37,12 @@ class DocumentationTest extends Specification {
         def documentationReference = Documentation.userManual(documentationId, documentationSection)
 
         expect:
-        documentationReference.documentationUrl() == expectedUrl
-        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
+        documentationReference.consultDocumentationMessage() == expectedUrl
 
         where:
         documentationId | documentationSection | expectedUrl
-        "foo"           | "bar"                | DOCUMENTATION_REGISTRY.getDocumentationFor("foo", "bar")
-        "foo"           | null                 | DOCUMENTATION_REGISTRY.getDocumentationFor("foo")
+        "foo"           | "bar"                | DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", "foo", "bar")
+        "foo"           | null                 | DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", "foo")
     }
 
     def "creates upgrade guide reference"() {
@@ -63,7 +62,7 @@ class DocumentationTest extends Specification {
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForProperty(Documentation, "property")
         documentationReference.documentationUrl() == expectedUrl
-        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
+        documentationReference.consultDocumentationMessage() == "For more information, please refer to ${expectedUrl} in the Gradle documentation."
     }
 
 }

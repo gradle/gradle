@@ -21,6 +21,17 @@ Gradle supports this scenario through _multi-project_ builds.
 
 For details about authoring _multi-project_ builds, consult the <<multi_project_builds#multi_project_builds,Authoring Multi-Project Builds section of the user manual>>.
 
+[[sec:project_path]]
+== Project path
+
+A project path has the following pattern: it starts with an optional colon, which denotes the root project.
+The root project, `:`, is the only project in a path that is not specified by its name.
+The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project.
+You can see the project paths when running `gradle projects` as shown in <<sec:identifying_project_structure,identifying project structure>> section.
+
+In most cases project paths reflect filesystem layout, but there are exceptions.
+Most notable one is for composite builds.
+See also how to declare <<declaring_dependencies_between_subprojects#declaring_dependencies_between_subprojects, dependencies between subprojects>> with `include` and <<composite_builds#defining_composite_builds,create composite builds>> with `includeBuild`.
 
 [[sec:identifying_project_structure]]
 == Identifying project structure
@@ -71,12 +82,7 @@ The next section shows how this can be achieved directly from the project's root
 
 You can use a task's fully qualified name to execute a specific task in a specific subproject.
 For example: `gradle :services:webservice:build` will run the `build` task of the _webservice_ subproject.
-The fully qualified name of a task is simply its project path plus the task name.
-
-A project path has the following pattern: it starts with an optional colon, which denotes the root project.
-The root project is the only project in a path that is not specified by its name.
-The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project.
-You can see the project paths when running `gradle projects` as shown in <<sec:identifying_project_structure,identifying project structure>> section.
+The fully qualified name of a task is simply its <<sec:project_path,project path>> plus the task name.
 
 This approach works for any task, so if you want to know what tasks are in a particular subproject,
 just use the `tasks` task, e.g. `gradle :services:webservice:tasks`.

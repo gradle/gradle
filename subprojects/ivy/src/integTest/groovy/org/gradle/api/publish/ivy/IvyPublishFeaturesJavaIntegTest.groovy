@@ -30,7 +30,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
@@ -96,7 +96,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 optionalFeature1RuntimeElements {
                     extendsFrom optionalFeature1Implementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
@@ -108,7 +108,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 optionalFeature2RuntimeElements {
                     extendsFrom optionalFeature2Implementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
@@ -174,7 +174,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
@@ -202,8 +202,11 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             }
 
             task touchFile {
+                // explicit dependency otherwise this task may run before the Jar task
+                dependsOn tasks.jar
+                def featureFile = file("\$buildDir/$optionalFeatureFileName")
                 doLast {
-                    file("\$buildDir/$optionalFeatureFileName") << "test"
+                    featureFile << "test"
                 }
             }
         """
@@ -271,7 +274,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
@@ -348,7 +351,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }

@@ -67,17 +67,17 @@ fun configureValidationTask(project: Project,
     val idWithoutDots = pluginId.replace('.', '_')
     return project.tasks.register<ValidatePlugins>("validatePluginWithId_" + idWithoutDots) {
         group = "Plugin development"
-        outputFile.set(project.layout.buildDirectory.file("reports/plugins/validation-report-for-$idWithoutDots.txt"))
+        outputFile = project.layout.buildDirectory.file("reports/plugins/validation-report-for-$idWithoutDots.txt")
 
         val scriptHandler = project.buildscript as ScriptHandlerInternal
         val scriptClassPath = scriptHandler.scriptClassPath.asFiles
-        classpath.setFrom(scriptClassPath)
+        classpath = project.files(scriptClassPath)
 
         val archiveOperations = findArchiveOperations(project)
         val pluginClassesOf = pluginJars.stream()
             .map { zipPath: File? -> archiveOperations.zipTree(zipPath!!) }
             .collect(Collectors.toList())
-        classes.setFrom(pluginClassesOf)
+        classes = project.files(pluginClassesOf)
     }
 }
 

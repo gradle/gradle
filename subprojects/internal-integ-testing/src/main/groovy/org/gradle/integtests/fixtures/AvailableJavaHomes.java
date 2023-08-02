@@ -32,17 +32,17 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.operations.TestBuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.progress.NoOpProgressLoggerFactory;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
@@ -249,9 +249,10 @@ public abstract class AvailableJavaHomes {
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
-        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), new TestBuildOperationExecutor(), OperatingSystem.current())
-            .listInstallations().stream()
-            .map(metadataDetector::getMetadata)
+        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), metadataDetector, null, OperatingSystem.current(), new NoOpProgressLoggerFactory())
+            .toolchains()
+            .stream()
+            .map(x -> x.metadata)
             .filter(JvmInstallationMetadata::isValidInstallation)
             .sorted(Comparator.comparing(JvmInstallationMetadata::getDisplayName).thenComparing(JvmInstallationMetadata::getLanguageVersion))
             .collect(Collectors.toList());
@@ -293,6 +294,11 @@ public abstract class AvailableJavaHomes {
         private static final Pattern JDK_PATTERN = Pattern.compile("JDK\\d\\d?");
 
         @Override
+        public String getSourceName() {
+            return "JDK env variables";
+        }
+
+        @Override
         public Set<InstallationLocation> get() {
             return System.getenv().entrySet()
                 .stream()
@@ -311,6 +317,11 @@ public abstract class AvailableJavaHomes {
         }
 
         @Override
+        public String getSourceName() {
+            return "base dir " + baseDir.getName();
+        }
+
+        @Override
         public Set<InstallationLocation> get() {
             final File[] files = baseDir.listFiles();
             if (files != null) {
@@ -318,7 +329,7 @@ public abstract class AvailableJavaHomes {
                     .filter(File::isDirectory)
                     .filter(file -> file.getName().toLowerCase().contains("jdk") || file.getName().toLowerCase().contains("jre"))
                     .filter(file -> new File(file, OperatingSystem.current().getExecutableName("bin/java")).exists())
-                    .map(file -> new InstallationLocation(file, "base dir " + baseDir.getName()))
+                    .map(file -> new InstallationLocation(file, getSourceName()))
                     .collect(Collectors.toSet());
             }
             return Collections.emptySet();

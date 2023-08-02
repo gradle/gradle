@@ -18,29 +18,23 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantSelectionResult;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultProjectDependencyMetadata implements ForcingDependencyMetadata {
+public class DefaultProjectDependencyMetadata extends DelegatingDependencyMetadata implements ForcingDependencyMetadata {
     private final ProjectComponentSelector selector;
     private final DependencyMetadata delegate;
-    private final boolean isTransitive;
 
     public DefaultProjectDependencyMetadata(ProjectComponentSelector selector, DependencyMetadata delegate) {
+        super(delegate);
         this.selector = selector;
         this.delegate = delegate;
-        this.isTransitive = delegate.isTransitive();
     }
 
     @Override
@@ -67,46 +61,6 @@ public class DefaultProjectDependencyMetadata implements ForcingDependencyMetada
             return this;
         }
         return delegate.withTargetAndArtifacts(target, artifacts);
-    }
-
-    @Override
-    public boolean isChanging() {
-        return delegate.isChanging();
-    }
-
-    @Override
-    public boolean isConstraint() {
-        return delegate.isConstraint();
-    }
-
-    @Override
-    public boolean isEndorsingStrictVersions() {
-        return delegate.isEndorsingStrictVersions();
-    }
-
-    @Override
-    public String getReason() {
-        return delegate.getReason();
-    }
-
-    @Override
-    public boolean isTransitive() {
-        return isTransitive;
-    }
-
-    @Override
-    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        return delegate.selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
-    }
-
-    @Override
-    public List<IvyArtifactName> getArtifacts() {
-        return delegate.getArtifacts();
-    }
-
-    @Override
-    public DependencyMetadata withReason(String reason) {
-        return delegate.withReason(reason);
     }
 
     @Override

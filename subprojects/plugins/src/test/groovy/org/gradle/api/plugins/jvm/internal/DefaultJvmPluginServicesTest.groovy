@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins.jvm.internal
 
-import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationPublications
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
@@ -47,6 +47,7 @@ import static org.gradle.api.attributes.Category.LIBRARY
 import static org.gradle.api.attributes.Category.REGULAR_PLATFORM
 import static org.gradle.api.attributes.DocsType.DOCS_TYPE_ATTRIBUTE
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
+import static org.gradle.api.attributes.Usage.JAVA_API
 import static org.gradle.api.attributes.Usage.JAVA_RUNTIME
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import static org.gradle.api.attributes.java.TargetJvmEnvironment.STANDARD_JVM
@@ -56,20 +57,17 @@ import static org.gradle.util.AttributeTestUtil.named
 
 class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
-    def configuresCompileClasspath() {
+    def "configures compileClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
-        Action[] action = new Action[1]
-        def config
-        config = Stub(ConfigurationInternal) {
-            beforeLocking(_) >> { args -> action[0] = args[0] }
+        def config = Stub(ConfigurationInternal) {
             getAttributes() >> mutable
         }
         def javaCompileProvider = Stub(TaskProvider) {
-                get() >> Stub(JavaCompile) {
-                    getTargetCompatibility() >> '8'
-                }
+            get() >> Stub(JavaCompile) {
+                getTargetCompatibility() >> '8'
             }
+        }
         when:
         services.configureAsCompileClasspath(attrs)
 
@@ -84,8 +82,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         ]
 
         when:
-        services.useDefaultTargetPlatformInference(config, javaCompileProvider)
-        action[0].execute(config)
+        jvmLanguageUtilities.useDefaultTargetPlatformInference(config, javaCompileProvider)
 
         then:
         mutable.asMap() == [
@@ -97,7 +94,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         ]
     }
 
-    def configuresRuntimeClasspath() {
+    def "configures runtimeClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
 
@@ -113,6 +110,43 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
+        ]
+    }
+
+    def "configures apiElements"() {
+        def mutable = AttributeTestUtil.attributesFactory().mutable()
+        def attrs = Mock(Configuration)
+
+        when:
+        services.configureAsApiElements(attrs)
+
+        then:
+        1 * attrs.getAttributes() >> mutable
+        0 * _
+        mutable.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
+            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
+        ]
+
+    }
+
+    def "configures runtimeElements"() {
+        def mutable = AttributeTestUtil.attributesFactory().mutable()
+        def attrs = Mock(Configuration)
+
+        when:
+        services.configureAsRuntimeElements(attrs)
+
+        then:
+        1 * attrs.getAttributes() >> mutable
+        0 * _
+        mutable.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
         ]
     }
 

@@ -43,7 +43,7 @@ Gradle will use the build cache for this build only.
 Put `org.gradle.caching=true` in your `gradle.properties`::
 Gradle will try to reuse outputs from previous builds for all builds, unless explicitly disabled with `--no-build-cache`.
 
-When the build cache is enabled, it will store build outputs in the Gradle user home.
+When the build cache is enabled, it will store build outputs in the Gradle User Home.
 For configuring this directory or different kinds of build caches see <<#sec:build_cache_configure,Configure the Build Cache>>.
 
 [[sec:task_output_caching]]
@@ -277,7 +277,7 @@ The remote build cache can be configured by specifying the type of build cache t
 === Built-in local build cache
 
 The built-in local build cache, link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache], uses a directory to store build cache artifacts.
-By default, this directory resides in the Gradle user home directory, but its location is configurable.
+By default, this directory resides in the Gradle User Home, but its location is configurable.
 
 Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
 How often Gradle will perform this clean-up is configurable as shown in the example below.
@@ -396,7 +396,7 @@ include::sample[dir="snippets/buildCache/developer-ci-setup/kotlin",files="setti
 include::sample[dir="snippets/buildCache/developer-ci-setup/groovy",files="settings.gradle[tags=developer-ci-setup]"]
 ====
 
-It is also possible to configure the build cache from an <<init_scripts.adoc#sec:using_an_init_script,init script>>, which can be used from the command line, added to your Gradle user home or be a part of your custom Gradle distribution.
+It is also possible to configure the build cache from an <<init_scripts.adoc#sec:using_an_init_script,init script>>, which can be used from the command line, added to your Gradle User Home or be a part of your custom Gradle distribution.
 
 .Init script to configure the build cache
 ====

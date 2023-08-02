@@ -38,6 +38,9 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
     ProgressEventCollector progressEventCollector
 
     def setup() {
+        // Avoid mixing JUnit dependencies with the ones from the JVM running this test
+        // For example, when using PTS/TD for running this test, the JUnit Platform Launcher classes from the GE plugin take precedence
+        toolingApi.requireDaemons()
         progressEventCollector = new ProgressEventCollector()
     }
 
@@ -51,7 +54,8 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:3.8.1'
+                testCompileOnly 'junit:junit:3.8.1'
+                testRuntimeOnly 'junit:junit:4.13.2'
             }
         """
         file("src/test/java/FooTest.java") << """
@@ -76,7 +80,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         frameworkFailures.size() == 0
         failures.size() == assertionFailures.size() + frameworkFailures.size()
 
-        assertionFailures[0].message == "String are not equal: expected:<foo> but was:<bar>"
+        assertionFailures[0].message == "String are not equal: expected:<[foo]> but was:<[bar]>"
         assertionFailures[0].description.length() > 100
         assertionFailures[0].description.contains('junit.framework.ComparisonFailure')
         assertionFailures[0].causes.empty

@@ -18,15 +18,22 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
+
     MinimalJavaCompileOptions getCompileOptions();
 
     @Override
     File getDestinationDir();
+
+    @Nullable
+    File getClassBackupDir();
+
+    void setClassBackupDir(@Nullable File classBackupDir);
 
     /**
      * The annotation processor path to use. When empty, no processing should be done. When not empty, processing should be done.
@@ -39,17 +46,26 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
     Set<AnnotationProcessorDeclaration> getEffectiveAnnotationProcessors();
 
-    void setClasses(Set<String> classes);
+    void setClassesToProcess(Set<String> classes);
 
-    Set<String> getClasses();
+    /**
+     * Classes to process are already compiled classes that are passed to Java compiler.
+     * They are passed to Java compiler since they are required by some annotation processor to revisit.
+     */
+    Set<String> getClassesToProcess();
+
+    void setClassesToCompile(Set<String> classes);
+
+    /**
+     * Classes to compile are all classes that we know from Java sources that will be compiled.
+     * These classes are deleted before a compilation and are not passed to Java compiler (their sources are passed to a compiler).
+     * We only need them in {@link CompilationClassBackupService} so we know what files don't need a backup.
+     */
+    Set<String> getClassesToCompile();
 
     List<File> getModulePath();
 
     void setModulePath(List<File> modulePath);
-
-    boolean isIncrementalCompilationOfJavaModule();
-
-    void setIsIncrementalCompilationOfJavaModule(boolean isIncrementalCompilationOfJavaModule);
 
     default boolean annotationProcessingConfigured() {
         return !getAnnotationProcessorPath().isEmpty() && !getCompileOptions().getCompilerArgs().contains("-proc:none");

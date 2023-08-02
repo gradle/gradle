@@ -28,16 +28,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ClassNameCollector implements TaskListener {
     private final Map<File, Optional<String>> relativePaths = new HashMap<>();
+    private final Consumer<String> classBackupService;
     private final Map<String, Set<String>> mapping = new HashMap<>();
     private final Function<File, Optional<String>> relativize;
     private final Elements elements;
 
-    public ClassNameCollector(Function<File, Optional<String>> relativize, Elements elements) {
+    public ClassNameCollector(Function<File, Optional<String>> relativize, Consumer<String> classBackupService, Elements elements) {
         this.relativize = relativize;
+        this.classBackupService = classBackupService;
         this.elements = elements;
     }
 
@@ -47,11 +50,6 @@ public class ClassNameCollector implements TaskListener {
 
     @Override
     public void started(TaskEvent e) {
-
-    }
-
-    @Override
-    public void finished(TaskEvent e) {
         JavaFileObject sourceFile = e.getSourceFile();
         if (isSourceFile(sourceFile)) {
             File asSourceFile = new File(sourceFile.getName());
@@ -61,6 +59,10 @@ public class ClassNameCollector implements TaskListener {
                 processPackageInfo(asSourceFile);
             }
         }
+    }
+
+    @Override
+    public void finished(TaskEvent e) {
     }
 
     private static boolean isSourceFile(JavaFileObject sourceFile) {
@@ -73,6 +75,7 @@ public class ClassNameCollector implements TaskListener {
             String key = relativePath.get();
             String symbol = normalizeName(e.getTypeElement());
             registerMapping(key, symbol);
+            classBackupService.accept(symbol);
         }
     }
 

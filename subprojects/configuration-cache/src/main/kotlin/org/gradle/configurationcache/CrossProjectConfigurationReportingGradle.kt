@@ -35,6 +35,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.services.BuildServiceRegistry
@@ -231,6 +232,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun getPluginManager(): PluginManagerInternal =
         delegate.pluginManager
+
+    override fun getExtensions(): ExtensionContainer =
+        delegate.extensions
 
     override fun getGradleVersion(): String =
         delegate.gradleVersion

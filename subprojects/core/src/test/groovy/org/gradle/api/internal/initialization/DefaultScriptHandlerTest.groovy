@@ -15,14 +15,11 @@
  */
 package org.gradle.api.internal.initialization
 
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.DependencyConstraintSet
-import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClasspathUtil
@@ -33,10 +30,8 @@ import spock.lang.Specification
 class DefaultScriptHandlerTest extends Specification {
     def repositoryHandler = Mock(RepositoryHandler)
     def dependencyHandler = Mock(DependencyHandler)
-    def dependencyConstraintHandler = Mock(DependencyConstraintHandler)
-    def dependencyConstraintSet = Mock(DependencyConstraintSet)
-    def configurationContainer = Mock(ConfigurationContainer)
-    def configuration = Mock(Configuration)
+    def configurationContainer = Mock(RoleBasedConfigurationContainerInternal)
+    def configuration = Mock(ResettableConfiguration)
     def scriptSource = Stub(ScriptSource)
     def depMgmtServices = Mock(DependencyResolutionServices) {
         getAttributesSchema() >> Stub(AttributesSchemaInternal)
@@ -47,7 +42,6 @@ class DefaultScriptHandlerTest extends Specification {
     }
     def classpathResolver = Mock(ScriptClassPathResolver)
     def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver)
-    def attributes = Mock(AttributeContainerInternal)
 
     def "adds classpath configuration when configuration container is queried"() {
         when:
@@ -57,7 +51,7 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
-        1 * configurationContainer.create('classpath') >> configuration
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
         1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
@@ -71,7 +65,7 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
-        1 * configurationContainer.create('classpath') >> configuration
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
         1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
@@ -102,7 +96,7 @@ class DefaultScriptHandlerTest extends Specification {
         and:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
-        1 * configurationContainer.create('classpath') >> configuration
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
         1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         1 * classpathResolver.resolveClassPath(configuration) >> classpath
     }
@@ -138,7 +132,7 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * depMgmtServices.configurationContainer >> configurationContainer
-        1 * configurationContainer.create('classpath') >> configuration
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
         1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         1 * dependencyHandler.add('config', 'dep')
     }

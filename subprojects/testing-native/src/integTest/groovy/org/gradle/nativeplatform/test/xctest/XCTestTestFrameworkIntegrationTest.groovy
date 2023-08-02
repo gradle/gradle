@@ -22,13 +22,15 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.junit.Assume.assumeTrue
 
-@Requires(TestPrecondition.NOT_MAC_OS_X_M1)
+@Requires(UnitTestPreconditions.NotMacOsM1)
+@DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
         def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)

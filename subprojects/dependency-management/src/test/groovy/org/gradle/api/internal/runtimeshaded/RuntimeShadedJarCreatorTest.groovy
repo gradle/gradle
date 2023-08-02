@@ -58,7 +58,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
             progressLoggerFactory,
             new ImplementationDependencyRelocator(RuntimeShadedJarType.API),
             new ClasspathWalker(TestFiles.fileSystem()),
-            new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.root))
+            new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
         )
     }
 

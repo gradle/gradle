@@ -133,7 +133,7 @@ include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourc
 [[sec:controlling_the_build_environment]]
 == Controlling the build environment
 
-The runner executes the test builds in an isolated environment by specifying a dedicated "working directory" in a directory inside the JVM's temp directory (i.e. the location specified by the `java.io.tmpdir` system property, typically `/tmp`). Any configuration in the default Gradle user home directory (e.g. `~/.gradle/gradle.properties`) is not used for test execution. The TestKit does not expose a mechanism for fine grained control of all aspects of the environment (e.g., JDK). Future versions of the TestKit will provide improved configuration options.
+The runner executes the test builds in an isolated environment by specifying a dedicated "working directory" in a directory inside the JVM's temp directory (i.e. the location specified by the `java.io.tmpdir` system property, typically `/tmp`). Any configuration in the default Gradle User Home (e.g. `~/.gradle/gradle.properties`) is not used for test execution. The TestKit does not expose a mechanism for fine grained control of all aspects of the environment (e.g., JDK). Future versions of the TestKit will provide improved configuration options.
 
 The TestKit uses dedicated daemon processes that are automatically shut down after test execution.
 
@@ -227,7 +227,7 @@ To enable the <<build_cache.adoc#build_cache,Build Cache>> in your tests, you ca
 include::{snippetsPath}/testKit/testKitFunctionalTestSpockBuildCache/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-build-cache]
 ----
 
-Note that TestKit re-uses a Gradle user home between tests (see link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(java.io.File)]) which contains the default location for the local build cache.
+Note that TestKit re-uses a Gradle User Home between tests (see link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(java.io.File)]) which contains the default location for the local build cache.
 For testing with the build cache, the build cache directory should be cleaned between tests.
 The easiest way to accomplish this is to configure the local build cache to use a temporary directory.
 

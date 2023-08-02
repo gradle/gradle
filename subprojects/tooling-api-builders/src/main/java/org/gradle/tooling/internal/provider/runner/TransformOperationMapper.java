@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationDetails;
-import org.gradle.api.internal.artifacts.transform.TransformationNode;
+import org.gradle.api.internal.artifacts.transform.ExecutePlannedTransformStepBuildOperationDetails;
+import org.gradle.api.internal.artifacts.transform.TransformStepNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
@@ -44,8 +44,8 @@ import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildO
  *
  * @since 5.1
  */
-class TransformOperationMapper implements BuildOperationMapper<ExecuteScheduledTransformationStepBuildOperationDetails, DefaultTransformDescriptor>, OperationDependencyLookup {
-    private final Map<TransformationNode, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
+class TransformOperationMapper implements BuildOperationMapper<ExecutePlannedTransformStepBuildOperationDetails, DefaultTransformDescriptor>, OperationDependencyLookup {
+    private final Map<TransformStepNode, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
     private final OperationDependenciesResolver operationDependenciesResolver;
 
     TransformOperationMapper(OperationDependenciesResolver operationDependenciesResolver) {
@@ -58,37 +58,37 @@ class TransformOperationMapper implements BuildOperationMapper<ExecuteScheduledT
     }
 
     @Override
-    public Class<ExecuteScheduledTransformationStepBuildOperationDetails> getDetailsType() {
-        return ExecuteScheduledTransformationStepBuildOperationDetails.class;
+    public Class<ExecutePlannedTransformStepBuildOperationDetails> getDetailsType() {
+        return ExecutePlannedTransformStepBuildOperationDetails.class;
     }
 
     @Override
     public InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
-        if (node instanceof TransformationNode) {
+        if (node instanceof TransformStepNode) {
             return descriptors.get(node);
         }
         return null;
     }
 
     @Override
-    public DefaultTransformDescriptor createDescriptor(ExecuteScheduledTransformationStepBuildOperationDetails details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
+    public DefaultTransformDescriptor createDescriptor(ExecutePlannedTransformStepBuildOperationDetails details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
         OperationIdentifier id = buildOperation.getId();
         String displayName = buildOperation.getDisplayName();
         String transformerName = details.getTransformerName();
         String subjectName = details.getSubjectName();
-        Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTransformationNode());
+        Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTransformStepNode());
         DefaultTransformDescriptor descriptor = new DefaultTransformDescriptor(id, displayName, parent, transformerName, subjectName, dependencies);
-        descriptors.put(details.getTransformationNode(), descriptor);
+        descriptors.put(details.getTransformStepNode(), descriptor);
         return descriptor;
     }
 
     @Override
-    public InternalOperationStartedProgressEvent createStartedEvent(DefaultTransformDescriptor descriptor, ExecuteScheduledTransformationStepBuildOperationDetails executeScheduledTransformationStepBuildOperationDetails, OperationStartEvent startEvent) {
+    public InternalOperationStartedProgressEvent createStartedEvent(DefaultTransformDescriptor descriptor, ExecutePlannedTransformStepBuildOperationDetails details, OperationStartEvent startEvent) {
         return new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), descriptor);
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTransformDescriptor descriptor, ExecuteScheduledTransformationStepBuildOperationDetails executeScheduledTransformationStepBuildOperationDetails, OperationFinishEvent finishEvent) {
+    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTransformDescriptor descriptor, ExecutePlannedTransformStepBuildOperationDetails details, OperationFinishEvent finishEvent) {
         return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, toOperationResult(finishEvent));
     }
 }

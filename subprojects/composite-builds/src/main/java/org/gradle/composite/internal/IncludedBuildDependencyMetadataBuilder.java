@@ -35,7 +35,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         return createCompositeCopy(foreignIdentifier, originalComponent);
     }
 
-    private LocalComponentMetadata createCompositeCopy(final ProjectComponentIdentifier componentIdentifier, LocalComponentGraphResolveState originalComponentMetadata) {
+    private static LocalComponentMetadata createCompositeCopy(final ProjectComponentIdentifier componentIdentifier, LocalComponentGraphResolveState originalComponentMetadata) {
         return originalComponentMetadata.copy(componentIdentifier, originalArtifact -> {
             // Currently need to resolve the file, so that the artifact can be used in both a script classpath and the main build. Instead, this should be resolved as required
             File file = originalArtifact.getFile();

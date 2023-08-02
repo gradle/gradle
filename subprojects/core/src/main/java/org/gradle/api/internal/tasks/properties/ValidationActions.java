@@ -21,13 +21,13 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
@@ -35,6 +35,10 @@ public enum ValidationActions implements ValidationAction {
     NO_OP("file collection") {
         @Override
         public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
+        }
+
+        @Override
+        public void validate(String propertyName, Supplier<Object> propertyValue, PropertyValidationContext context) {
         }
     },
     INPUT_FILE_VALIDATOR("file") {
@@ -198,29 +202,27 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static void reportCannotWriteFileToDirectory(String propertyName, PropertyValidationContext context, File file) {
-        context.visitPropertyProblem(problem -> {
-                PropertyProblemBuilder problemBuilder = problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+        context.visitPropertyProblem(problem ->
+                problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
                     .reportAs(ERROR)
                     .forProperty(propertyName)
                     .withDescription(() -> "is not writable because '" + file + "' is not a file")
                     .happensBecause(() -> "Cannot write a file to a location pointing at a directory")
                     .addPossibleSolution(() -> "Configure '" + propertyName + "' to point to a file, not a directory")
                     .addPossibleSolution(() -> "Annotate '" + propertyName + "' with @OutputDirectory instead of @OutputFiles")
-                    .documentedAt("validation_problems", "cannot_write_output");
-            }
+                    .documentedAt("validation_problems", "cannot_write_output")
         );
     }
 
     private static void reportCannotCreateParentDirectories(String propertyName, PropertyValidationContext context, File file, File ancestor) {
-        context.visitPropertyProblem(problem -> {
-                PropertyProblemBuilder problemBuilder = problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+        context.visitPropertyProblem(problem ->
+                problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
                     .reportAs(ERROR)
                     .forProperty(propertyName)
                     .withDescription(() -> "is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
                     .happensBecause(() -> "Cannot create parent directories that are existing as file")
                     .addPossibleSolution(() -> "Configure '" + propertyName + "' to point to the correct location")
-                    .documentedAt("validation_problems", "cannot_write_output");
-            }
+                    .documentedAt("validation_problems", "cannot_write_output")
         );
     }
 
@@ -257,26 +259,29 @@ public enum ValidationActions implements ValidationAction {
     protected abstract void doValidate(String propertyName, Object value, PropertyValidationContext context);
 
     @Override
-    public void validate(String propertyName, Object value, PropertyValidationContext context) {
+    public void validate(String propertyName, Supplier<Object> value, PropertyValidationContext context) {
         try {
-            doValidate(propertyName, value, context);
+            doValidate(propertyName, value.get(), context);
         } catch (UnsupportedNotationException unsupportedNotationException) {
-            context.visitPropertyProblem(problem -> {
-                    problem.withId(ValidationProblemId.UNSUPPORTED_NOTATION)
-                        .forProperty(propertyName)
-                        .reportAs(ERROR)
-                        .withDescription(() -> "has unsupported value '" + value + "'")
-                        .happensBecause(() -> "Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
-                    Collection<String> candidates = unsupportedNotationException.getCandidates();
-                    if (candidates.isEmpty()) {
-                        problem.addPossibleSolution(() -> "Use a value of type '" + targetType + "'");
-                    } else {
-                        candidates.forEach(candidate -> problem.addPossibleSolution(() -> toCandidateSolution(candidate)));
-                    }
-                    problem.documentedAt("validation_problems", "unsupported_notation");
-                }
-            );
+            reportUnsupportedValue(propertyName, context, targetType, value.get(), unsupportedNotationException.getCandidates());
         }
+    }
+
+    private static void reportUnsupportedValue(String propertyName, PropertyValidationContext context, String targetType, Object value, Collection<String> candidates) {
+        context.visitPropertyProblem(problem -> {
+                problem.withId(ValidationProblemId.UNSUPPORTED_NOTATION)
+                    .forProperty(propertyName)
+                    .reportAs(ERROR)
+                    .withDescription(() -> "has unsupported value '" + value + "'")
+                    .happensBecause(() -> "Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
+                if (candidates.isEmpty()) {
+                    problem.addPossibleSolution(() -> "Use a value of type '" + targetType + "'");
+                } else {
+                    candidates.forEach(candidate -> problem.addPossibleSolution(() -> toCandidateSolution(candidate)));
+                }
+                problem.documentedAt("validation_problems", "unsupported_notation");
+            }
+        );
     }
 
     private static String typeOf(@Nullable Object instance) {

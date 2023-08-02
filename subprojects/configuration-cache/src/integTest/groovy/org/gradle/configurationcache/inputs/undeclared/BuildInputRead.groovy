@@ -19,6 +19,10 @@ package org.gradle.configurationcache.inputs.undeclared
 abstract class BuildInputRead {
     abstract String getKotlinExpression();
 
+    List<String> requiredImports() {
+        Collections.emptyList()
+    }
+
     String getJavaExpression() {
         return getKotlinExpression()
     }

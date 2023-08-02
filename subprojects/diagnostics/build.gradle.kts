@@ -54,8 +54,3 @@ packageCycles {
     excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
     excludePatterns.add("org/gradle/api/plugins/internal/*")
 }
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}

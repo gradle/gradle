@@ -16,10 +16,12 @@
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmVendorSpec
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
+import org.gradle.kotlin.dsl.*
 
 fun JavaPluginExtension.configureJavaToolChain() {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.ADOPTIUM)
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.ADOPTIUM
     }
 }

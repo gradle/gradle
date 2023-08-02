@@ -17,9 +17,9 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.provider.Provider
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.language.nativeplatform.internal.Names
@@ -41,7 +41,7 @@ class DefaultCppBinaryTest extends Specification {
     def compile = Stub(Configuration)
     def link = Stub(Configuration)
     def runtime = Stub(Configuration)
-    def configurations = Stub(ConfigurationContainer)
+    def configurations = Stub(RoleBasedConfigurationContainerInternal)
 
     DefaultCppBinary binary
 

@@ -19,7 +19,11 @@ task compileWithoutOptimization(type: GroovyCompile) {
 }
 
 task sanityCheck(dependsOn: [compileWithOptimization, compileWithoutOptimization]) {
+    def optDestDir = compileWithOptimization.destinationDirectory
+    def noOptDestDir = compileWithoutOptimization.destinationDirectory
     doLast {
-        assert file("${compileWithOptimization.destinationDirectory.get()}/MethodInvocations.class").size() != file("${compileWithoutOptimization.destinationDirectory.get()}/MethodInvocations.class").size()
+        def optFile = optDestDir.file("MethodInvocations.class").get().asFile
+        def noOptFile = noOptDestDir.file("MethodInvocations.class").get().asFile
+        assert optFile.size() != noOptFile.size()
     }
 }

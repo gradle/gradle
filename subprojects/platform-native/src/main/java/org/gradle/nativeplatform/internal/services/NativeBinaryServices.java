@@ -86,8 +86,8 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     }
 
     private static final class BuildSessionScopeServices {
-        WindowsSdkLocator createWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry) {
-            return new DefaultWindowsSdkLocator(os, windowsRegistry);
+        WindowsSdkLocator createWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
+            return new DefaultWindowsSdkLocator(os, windowsRegistry, systemInfo);
         }
 
         VisualCppMetadataProvider createVisualCppMetadataProvider(WindowsRegistry windowsRegistry) {

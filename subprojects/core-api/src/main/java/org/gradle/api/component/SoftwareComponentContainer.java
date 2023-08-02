@@ -16,10 +16,10 @@
 
 package org.gradle.api.component;
 
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 
 /**
  * A Container that contains all of the Software Components produced by a Project.
  */
-public interface SoftwareComponentContainer extends NamedDomainObjectSet<SoftwareComponent> {
+public interface SoftwareComponentContainer extends ExtensiblePolymorphicDomainObjectContainer<SoftwareComponent> {
 }

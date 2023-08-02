@@ -28,13 +28,13 @@ plugins {
 val reportTask = tasks.register<IncubatingApiReportTask>("incubationReport") {
     group = "verification"
     description = "Generates a report of incubating APIS"
-    title.set(project.name)
-    versionFile.set(repoRoot().file("version.txt"))
-    releasedVersionsFile.set(releasedVersionsFile())
+    title = project.name
+    versionFile = repoRoot().file("version.txt")
+    releasedVersionsFile = releasedVersionsFile()
     sources.from(sourceSets.main.get().java.sourceDirectories)
     sources.from(sourceSets.main.get().groovy.sourceDirectories)
-    htmlReportFile.set(file(layout.buildDirectory.file("reports/incubation/${project.name}.html")))
-    textReportFile.set(file(layout.buildDirectory.file("reports/incubation/${project.name}.txt")))
+    htmlReportFile = file(layout.buildDirectory.file("reports/incubation/${project.name}.html"))
+    textReportFile = file(layout.buildDirectory.file("reports/incubation/${project.name}.txt"))
 }
 
 plugins.withId("org.jetbrains.kotlin.jvm") {

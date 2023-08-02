@@ -18,11 +18,10 @@ package org.gradle.cache.internal;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
-import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -39,6 +38,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+
+import static org.gradle.cache.internal.CacheInitializationAction.NO_INIT_REQUIRED;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
 
@@ -57,7 +58,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     protected final File propertiesFile;
     private final File gcFile;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private CacheCoordinator cacheAccess;
+    private DefaultCacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(
         File dir,
@@ -94,8 +95,8 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return this;
     }
 
-    private CacheCoordinator createCacheAccess() {
-        return new DefaultCacheAccess(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
+    private DefaultCacheCoordinator createCacheAccess() {
+        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
     }
 
     private File getLockTarget() {
@@ -111,17 +112,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     protected CacheInitializationAction getInitAction() {
-        return new CacheInitializationAction() {
-            @Override
-            public boolean requiresInitialization(FileLock fileLock) {
-                return false;
-            }
-
-            @Override
-            public void initialize(FileLock fileLock) {
-                throw new UnsupportedOperationException();
-            }
-        };
+        return NO_INIT_REQUIRED;
     }
 
     protected CacheCleanupExecutor getCleanupExecutor() {
@@ -169,17 +160,17 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     @Override
-    public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
+    public <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters) {
         return cacheAccess.newCache(parameters);
     }
 
     @Override
-    public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-        return cacheAccess.newCache(PersistentIndexedCacheParameters.of(name, keyType, valueSerializer));
+    public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        return cacheAccess.newCache(IndexedCacheParameters.of(name, keyType, valueSerializer));
     }
 
     @Override
-    public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
+    public <K, V> boolean indexedCacheExists(IndexedCacheParameters<K, V> parameters) {
         return cacheAccess.cacheExists(parameters);
     }
 

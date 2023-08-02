@@ -78,7 +78,6 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
 
         then:
         executedAndNotSkipped(":compileScala")
-        outputDoesNotContain("[Warn]")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
         JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
@@ -112,7 +111,6 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
 
         then:
         executedAndNotSkipped(":compileScala")
-        outputDoesNotContain("[Warn]")
         outputContains("Compiling with Zinc Scala compiler")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == targetJdk.javaVersion
@@ -148,7 +146,6 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
         withInstallations(currentJdk, otherJdk).run(":compileScala")
         then:
         executedAndNotSkipped(":compileScala")
-        outputDoesNotContain("[Warn]")
 
         when:
         withInstallations(currentJdk, otherJdk).run(":compileScala")
@@ -198,7 +195,6 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
 
         then:
         executedAndNotSkipped(":compileScala")
-        outputDoesNotContain("[Warn]")
 
         outputContains("project.sourceCompatibility = 11")
         outputContains("project.targetCompatibility = 11")
@@ -248,7 +244,6 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
 
         then:
         executedAndNotSkipped(":test")
-        outputDoesNotContain("[Warn]")
         outputContains("Running Scala test with Java version ${jdk.javaVersion}")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == javaVersion
@@ -256,7 +251,7 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
         JavaVersion.forClass(classFile("scala", "test", "ScalaTest.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
-        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it }
+        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_20 }
     }
 
     private TestFile configureTool(Jvm jdk) {

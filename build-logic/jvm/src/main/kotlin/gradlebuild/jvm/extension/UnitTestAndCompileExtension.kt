@@ -42,7 +42,7 @@ abstract class UnitTestAndCompileExtension(
     }
 
     /**
-     * Enforces **Java 6** compatibility.
+     * Enforces **Java 7** compatibility.
      */
     fun usedInToolingApi() {
         enforceCompatibility(7)
@@ -51,7 +51,7 @@ abstract class UnitTestAndCompileExtension(
     private
     fun enforceCompatibility(majorVersion: Int) {
         tasks.withType<JavaCompile>().configureEach {
-            options.release.set(null as Int?)
+            options.release = null
             options.compilerArgs.remove("-parameters")
             sourceCompatibility = "$majorVersion"
             targetCompatibility = "$majorVersion"

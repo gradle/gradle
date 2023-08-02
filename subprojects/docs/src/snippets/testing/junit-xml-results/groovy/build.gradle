@@ -13,13 +13,13 @@ dependencies {
 // tag::configure-location-task[]
 test {
     reports {
-        junitXml.outputLocation.set(layout.buildDirectory.dir("test-junit-xml"))
+        junitXml.outputLocation = layout.buildDirectory.dir("test-junit-xml")
     }
 }
 // end::configure-location-task[]
 
 // tag::configure-location-convention[]
-testResultsDirName = "$buildDir/junit-xml"
+java.testResultsDir = layout.buildDirectory.dir("junit-xml")
 // end::configure-location-convention[]
 
 // tag::configure-content[]

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride;
@@ -27,16 +28,17 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Depe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer.WriteDependencyVerificationFile;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefinedKeys;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -65,7 +67,6 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 @ServiceScope(Scopes.BuildTree.class)
@@ -91,7 +92,7 @@ public class StartParameterResolutionOverride {
         }
     }
 
-    public ModuleComponentRepository overrideModuleVersionRepository(ModuleComponentRepository original) {
+    public ModuleComponentRepository<ModuleComponentResolveMetadata> overrideModuleVersionRepository(ModuleComponentRepository<ModuleComponentResolveMetadata> original) {
         if (startParameter.isOffline()) {
             return new OfflineModuleComponentRepository(original);
         }
@@ -138,25 +139,25 @@ public class StartParameterResolutionOverride {
         // There's currently no good way to figure that out.
         File buildDir = new File(gradleDir.getParentFile(), "build");
         File reportsDirectory = new File(buildDir, "reports");
-        File verifReportsDirectory = new File(reportsDirectory, "dependency-verification");
-        return new File(verifReportsDirectory, "at-" + timeProvider.getCurrentTime());
+        File verifyReportsDirectory = new File(reportsDirectory, "dependency-verification");
+        return new File(verifyReportsDirectory, "at-" + timeProvider.getCurrentTime());
     }
 
-    private static class OfflineModuleComponentRepository extends BaseModuleComponentRepository {
+    private static class OfflineModuleComponentRepository extends BaseModuleComponentRepository<ModuleComponentResolveMetadata> {
 
         private final FailedRemoteAccess failedRemoteAccess = new FailedRemoteAccess();
 
-        public OfflineModuleComponentRepository(ModuleComponentRepository original) {
+        public OfflineModuleComponentRepository(ModuleComponentRepository<ModuleComponentResolveMetadata> original) {
             super(original);
         }
 
         @Override
-        public ModuleComponentRepositoryAccess getRemoteAccess() {
+        public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getRemoteAccess() {
             return failedRemoteAccess;
         }
     }
 
-    private static class FailedRemoteAccess implements ModuleComponentRepositoryAccess {
+    private static class FailedRemoteAccess implements ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> {
         @Override
         public String toString() {
             return "offline remote";
@@ -168,7 +169,7 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
             result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, () -> String.format("No cached version of %s available for offline mode.", moduleComponentIdentifier.getDisplayName())));
         }
 
@@ -222,7 +223,7 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
+        public void upload(ReadableContent resource, ExternalResourceName destination) {
             throw new ResourceException(destination.getUri(), String.format("Cannot upload to '%s' in offline mode.", destination.getUri()));
         }
 
@@ -239,7 +240,7 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
+        public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
             throw new DependencyVerificationException("Dependency verification cannot be performed", error);
         }
     }
@@ -258,7 +259,7 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
+        public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
             if (resolutionStrategy.isDependencyVerificationEnabled()) {
                 return delegate.overrideDependencyVerification(original, resolveContextName, resolutionStrategy);
             } else {
@@ -268,8 +269,8 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public void buildFinished(Gradle gradle) {
-            delegate.buildFinished(gradle);
+        public void buildFinished(GradleInternal model) {
+            delegate.buildFinished(model);
         }
 
         @Override

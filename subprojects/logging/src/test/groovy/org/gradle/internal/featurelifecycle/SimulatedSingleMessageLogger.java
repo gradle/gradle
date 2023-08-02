@@ -22,19 +22,21 @@ public class SimulatedSingleMessageLogger {
     public static final String INDIRECT_CALL = "indirect call";
     public static final String INDIRECT_CALL_2 = "second-level indirect call";
 
-    public static FeatureUsage indirectlySecondLevel(String message) {
+    public static TestFeatureUsage indirectlySecondLevel(String message) {
         return indirectly(message);
     }
 
-    public static FeatureUsage indirectly(String message) {
+    public static TestFeatureUsage indirectly(String message) {
         return nagUserWith(message);
     }
 
-    public static FeatureUsage nagUserWith(String message) {
+    public static TestFeatureUsage nagUserWith(String message) {
         return new TestFeatureUsage(message, SimulatedSingleMessageLogger.class);
     }
 
-    private static class TestFeatureUsage extends FeatureUsage {
+    static class TestFeatureUsage extends FeatureUsage {
+        public final Exception exception = new Exception();
+
         public TestFeatureUsage(String summary, Class<?> calledFrom) {
             super(summary, calledFrom);
         }

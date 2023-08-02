@@ -40,16 +40,16 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
-import org.gradle.internal.component.external.model.CapabilityInternal;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultShadowedCapability;
+import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ShadowedCapability;
+import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
@@ -513,9 +513,9 @@ public class ModuleMetadataSerializer {
             int capabilitiesCount = decoder.readSmallInt();
             for (int j = 0; j < capabilitiesCount; j++) {
                 String appendix = decoder.readNullableString();
-                CapabilityInternal capability = new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
+                CapabilityInternal capability = new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
                 if (appendix != null) {
-                    capability = new DefaultShadowedCapability(capability, appendix);
+                    capability = new ShadowedImmutableCapability(capability, appendix);
                 }
                 variant.addCapability(capability);
             }

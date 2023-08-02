@@ -21,13 +21,16 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.BrokenAction
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
-import org.gradle.util.Requires
 
-@Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6", "1.7") })
+@Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
 @TargetGradleVersion("current")
+@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         toolingApi.requireDaemons()

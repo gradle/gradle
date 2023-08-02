@@ -113,7 +113,7 @@ Prepares the given source set's classes and resources for packaging and executio
 The Java plugin attaches some of its tasks to the lifecycle tasks defined by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>> — which the Java Plugin applies automatically — and it also adds a few other lifecycle tasks:
 
 `assemble`::
-_Depends on_: `jar`, and all other tasks that create artifacts attached to the `archives` configuration
+_Depends on_: `jar`
 +
 Aggregate task that assembles all the archives in the project. This task is added by the Base Plugin.
 
@@ -159,8 +159,6 @@ include::javaProjectTestLayout.adoc[]
 
 include::javaProjectGenericLayout.adoc[]
 
-[[sec:java_convention_properties]]
-
 [[sec:changing_java_project_layout]]
 === Changing the project layout
 
@@ -195,12 +193,12 @@ The name of the source set, used to identify it.
 The output files of the source set, containing its compiled classes and resources.
 
 `output.classesDirs` — (read-only) link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
-_Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
+_Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
 +
 The directories to generate the classes of this source set into. May contain directories for other JVM languages, e.g. _build/classes/kotlin/main_.
 
 `output.resourcesDir` — `File`::
-_Default value_: `$buildDir/resources/$name`, e.g. _build/resources/main_
+_Default value_: `layout.buildDirectory.dir("resources/$name")`, e.g. _build/resources/main_
 +
 The directory to generate the resources of this source set into.
 
@@ -228,7 +226,7 @@ _Default value_: `src/$name/java`, e.g. _src/main/java_
 The source directories containing the Java source files of this source set.  You can set this to any value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
 
 `java.destinationDirectory` — `DirectoryProperty`::
-_Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
+_Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
 +
 The directory to generate compiled Java sources into. You can set this to any value that is described in <<working_with_files.adoc#sec:single_file_paths,this section>>.
 
@@ -294,7 +292,12 @@ Tasks such as `compileJava` and `test` then use one or more of those configurati
 [NOTE]
 ====
 
-To find information on the `api` configuration, please consult the <<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
+For information on the `default` and `archives` configurations, please consult the
+<<base_plugin.adoc#sec:base_plugin_configurations,Base Plugin>> reference documentation.
+
+For information on the `api` or `compileOnlyApi` configurations, please consult the
+<<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and
+<<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
 
 ====
 
@@ -331,15 +334,8 @@ Runtime only dependencies for running tests.
 `testRuntimeClasspath` extends `testRuntimeOnly, testImplementation`::
 Runtime classpath for running tests. Used by task `test`.
 
-`archives`::
-Artifacts (e.g. jars) produced by this project. Used by Gradle to determine "default" tasks to execute when building.
-
-`default` extends `runtimeElements`::
-The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.
-
 The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
 
- * Gray text — the configuration is _deprecated_.
  * Green background — you can declare dependencies against the configuration.
  * Blue-gray background — the configuration is for consumption by tasks, not for you to declare dependencies.
  * Light blue background with monospace text — a task.
@@ -414,13 +410,13 @@ Automatically packages source code and creates a variant `sourceElements` with a
 The name of the directory to generate reports into, relative to the build directory. Default value: `reports`
 
 `(read-only) File reportsDir`::
-The directory to generate reports into. Default value: `__buildDir__/__reporting.baseDir__`
+The directory to generate reports into. Default value: `__reporting.baseDirectory__`
 
 `String testResultsDirName`::
 The name of the directory to generate test result .xml files into, relative to the build directory. Default value: `test-results`
 
 `(read-only) File testResultsDir`::
-The directory to generate test result .xml files into. Default value: `__buildDir__/__testResultsDirName__`
+The directory to generate test result .xml files into. Default value: `layout.buildDirectory.dir(__testResultsDirName__)`
 
 `String testReportDirName`::
 The name of the directory to generate the test report into, relative to the reports directory. Default value: `tests`
@@ -432,19 +428,19 @@ The directory to generate the test report into. Default value: `__reportsDir__/t
 The name of the directory to generate libraries into, relative to the build directory. Default value: `libs`
 
 `(read-only) File libsDir`::
-The directory to generate libraries into. Default value: `__buildDir__/__libsDirName__`
+The directory to generate libraries into. Default value: `layout.buildDirectory.dir(__libsDirName__)`
 
 `String distsDirName`::
 The name of the directory to generate distributions into, relative to the build directory. Default value: `distributions`
 
 `(read-only) File distsDir`::
-The directory to generate distributions into. Default value: `__buildDir__/__distsDirName__`
+The directory to generate distributions into. Default value: `layout.buildDirectory.dir(__distsDirName__)`
 
 `String docsDirName`::
 The name of the directory to generate documentation into, relative to the build directory. Default value: `docs`
 
 `(read-only) File docsDir`::
-The directory to generate documentation into. Default value: `__buildDir__/__docsDirName__`
+The directory to generate documentation into. Default value: `layout.buildDirectory.dir(__docsDirName__)`
 
 `String dependencyCacheDirName`::
 The name of the directory to cache source dependency information relative to the build directory. Default value: `dependency-cache`.
@@ -460,6 +456,7 @@ The basename to use for archives, such as JAR or ZIP files. Default value: `__pr
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.
 
+[[sec:java_convention_properties]]
 == Convention properties (deprecated)
 
 The Java Plugin adds a number of convention properties to the project. You can use these properties in your build script as though they were properties of the project object.
@@ -514,26 +511,6 @@ To help you understand how incremental compilation works, the following provides
     Use <<toolchains.adoc#toolchains, toolchains>> instead if possible.
 * Having a source structure that does not match the package names, while legal for compilation, might end up causing trouble in the toolchain.
     Even more if annotation processing and <<build_cache.adoc#build_cache,caching>> are involved.
-
-Additionally, Gradle might temporarily change the output location while running incremental compilation.
-This might affect some annotation processors that inspect output locations or accept file paths as arguments (e.g., `-XepExcludedPaths` in Error Prone).
-There are two options:
-
- - Disable `incremental after failure` by setting link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--[`options.incrementalAfterFailure`] to `false` on the JavaCompile task.
--  Keep `incremental after failure` enabled by instead passing a temporary output value to the annotation processor as a parameter so that the annotation processor is aware of the temporary path. 
-
-In the case of Error Prone, `-XepExcludedPaths` must be set. Given an existing value of `-XepExcludedPaths=.\*/build/generated/.*`, the updated value would be
-`-XepExcludedPaths=.\*/(build/generated|compileJava/compileTransaction/annotation-output)/.*`.
-
-The following table shows the mapping from default output location to temporary output location:
-
-.Compiler output to temporary output location
-|===
-| JavaCompile location property | Default output location | Temporary output location
-| `destinationDirectory` | `build/classes/java/main` | `build/tmp/<task-name>/compileTransaction/compile-output`
-| `options.generatedSourceOutputDirectory` | `build/generated/sources/annotationProcessor/java/main` | `build/tmp/<task-name>/compileTransaction/annotation-output`
-| `options.headerOutputDirectory` | `build/generated/sources/headers/java/main` | `build/tmp/<task-name>/compileTransaction/header-output`
-|===
 
 [[sec:incremental_annotation_processing]]
 == Incremental annotation processing

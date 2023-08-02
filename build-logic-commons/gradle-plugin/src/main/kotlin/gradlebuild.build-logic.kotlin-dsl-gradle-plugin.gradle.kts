@@ -21,6 +21,7 @@ plugins {
     id("gradlebuild.code-quality")
     id("gradlebuild.ktlint")
     id("gradlebuild.ci-reporting")
+    id("gradlebuild.test-retry")
 }
 
 java.configureJavaToolChain()
@@ -34,7 +35,7 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        allWarningsAsErrors.set(true)
+        allWarningsAsErrors = true
     }
 }
 
@@ -54,8 +55,8 @@ tasks.named("codeQuality") {
 }
 
 tasks.validatePlugins {
-    failOnWarning.set(true)
-    enableStricterValidation.set(true)
+    failOnWarning = true
+    enableStricterValidation = true
 }
 
 tasks.withType<Test>().configureEach {

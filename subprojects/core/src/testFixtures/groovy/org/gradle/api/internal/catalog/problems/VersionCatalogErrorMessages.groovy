@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf
+import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 @CompileStatic
@@ -125,7 +126,7 @@ trait VersionCatalogErrorMessages {
         }
 
         String getDocumentation() {
-            "Please refer to ${doc.getDocumentationFor("version_catalog_problems", section)} for more details about this problem."
+            doc.getDocumentationRecommendationFor("information","version_catalog_problems", section)
         }
 
         abstract String build()
@@ -147,7 +148,7 @@ trait VersionCatalogErrorMessages {
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog $catalog, parsing failed with ${errors.size()} error${errors.size() > 1 ? "s" : ""}.
+            """${intro}  - Problem: In version catalog $catalog, parsing failed with ${errors.size()} error${getPluralEnding(errors)}.
 
     Reason: ${errors.join('\n    ')}.
 

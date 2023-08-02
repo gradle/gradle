@@ -95,7 +95,7 @@ You often need to locate the tasks that you have defined in the build file, for 
 There are a number of ways of doing this. Firstly, just like with defining tasks there are language specific syntaxes for the Groovy and Kotlin DSL:
 
 In general, tasks are available through the `tasks` collection.
-You should use of the methods that return a _task provider_ – `register()` or `named()` – to make sure you do not break <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>>.
+You should use the methods that return a _task provider_ – `register()` or `named()` – to make sure you do not break <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>>.
 
 .Accessing tasks via tasks collection
 ====
@@ -533,137 +533,137 @@ If you are coming from Ant, an enhanced Gradle task like _Copy_ seems like a cro
 
 Some documentation previously appearing in this chapter has been moved to the <<incremental_build.adoc#incremental_build, Incremental Build>> chapter.
 
-[[sec:up_to_date_checks]]
+[[sec:more_up_to_date_checks]]
 ==== Up-to-date checks (AKA Incremental Build)
 
 Moved to the <<incremental_build.adoc#incremental_build, Incremental Build>> chapter.
 
-[[sec:task_inputs_outputs]]
+[[sec:more_task_inputs_outputs]]
 ==== Task inputs and outputs
 
 Moved to a <<incremental_build.adoc#sec:task_inputs_outputs, section under Incremental Build>>.
 
-[[sec:task_input_output_annotations]]
+[[sec:more_task_input_output_annotations]]
 ==== Custom task types
 
 Moved to a <<incremental_build.adoc#sec:task_input_output_annotations, section under Incremental Build>>.
 
-[[sec:task_input_using_dependency_resolution_results]]
+[[sec:more_task_input_using_dependency_resolution_results]]
 ==== Using dependency resolution results
 
 Moved to a <<incremental_build.adoc#sec:task_input_using_dependency_resolution_results, section under Incremental Build>>.
 
-[[sec:task_input_using_classpath_annotations]]
+[[sec:more_task_input_using_classpath_annotations]]
 ==== Using the classpath annotations
 
 Moved to a <<incremental_build.adoc#sec:task_input_using_classpath_annotations, section under Incremental Build>>.
 
-[[sec:task_input_nested_inputs]]
+[[sec:more_task_input_nested_inputs]]
 ==== Nested inputs
 
 Moved to a <<incremental_build.adoc#sec:task_input_nested_inputs, section under Incremental Build>>.
 
-[[sec:task_input_validation]]
+[[sec:more_task_input_validation]]
 ==== Runtime validation
 
 Moved to a <<incremental_build.adoc#sec:task_input_validation, section under Incremental Build>>.
 
-[[sec:task_input_output_runtime_api]]
+[[sec:more_task_input_output_runtime_api]]
 ==== Runtime API
 
 Moved to a <<incremental_build.adoc#sec:task_input_output_runtime_api, section under Incremental Build>>.
 
-[[sec:runtime_api_for_adhoc]]
+[[sec:more_runtime_api_for_adhoc]]
 ==== Using it for ad-hoc tasks
 
 Moved to a <<incremental_build.adoc#sec:runtime_api_for_adhoc, section under Incremental Build>>.
 
-[[sec:runtime_api_configuration]]
+[[sec:more_runtime_api_configuration]]
 ==== Fine-grained configuration
 
 Moved to a <<incremental_build.adoc#sec:runtime_api_configuration, section under Incremental Build>>.
 
-[[sec:runtime_api_for_custom_tasks]]
+[[sec:more_runtime_api_for_custom_tasks]]
 ==== Using it for custom task types
 
 Moved to a <<incremental_build.adoc#sec:runtime_api_for_custom_tasks, section under Incremental Build>>.
 
-[[sec:task_input_output_side_effects]]
+[[sec:more_task_input_output_side_effects]]
 ==== Important beneficial side effects
 
 Moved to a <<incremental_build.adoc#sec:task_input_output_side_effects, section under Incremental Build>>.
 
-[[sec:inferred_task_dependencies]]
+[[sec:more_inferred_task_dependencies]]
 ==== Inferred task dependencies
 
 Moved to a <<incremental_build.adoc#sec:inferred_task_dependencies, section under Incremental Build>>.
 
-[[sec:task_input_output_validation]]
+[[sec:more_task_input_output_validation]]
 ==== Input and output validation
 
 Moved to a <<incremental_build.adoc#sec:task_input_output_validation, section under Incremental Build>>.
 
-[[sec:task_input_output_continuous_build]]
+[[sec:more_task_input_output_continuous_build]]
 ==== Continuous build
 
 Moved to a <<incremental_build.adoc#sec:task_input_output_continuous_build, section under Incremental Build>>.
 
-[[sec:task_input_output_parallelism]]
+[[sec:more_task_input_output_parallelism]]
 ==== Task parallelism
 
 Moved to a <<incremental_build.adoc#sec:task_input_output_parallelism, section under Incremental Build>>.
 
-[[sec:how_does_it_work]]
+[[sec:more_how_does_it_work]]
 ==== How does it work?
 
 Moved to a <<incremental_build.adoc#sec:how_does_it_work, section under Incremental Build>>.
 
-[[sec:advanced_inc_build]]
+[[sec:more_advanced_inc_build]]
 ==== Advanced techniques
 
 Moved to a <<incremental_build.adoc#sec:advanced_inc_build, section under Incremental Build>>.
 
-[[sec:add_cached_input_output_methods]]
+[[sec:more_add_cached_input_output_methods]]
 ==== Adding your own cached input/output methods
 
 Moved to a <<incremental_build.adoc#sec:add_cached_input_output_methods, section under Incremental Build>>.
 
-[[sec:link_output_dir_to_input_files]]
+[[sec:more_link_output_dir_to_input_files]]
 ==== Linking an `@OutputDirectory` to an `@InputFiles`
 
 Moved to a <<incremental_build.adoc#sec:link_output_dir_to_input_files, section under Incremental Build>>.
 
-[[sec:disable-state-tracking]]
+[[sec:more_disable-state-tracking]]
 ==== Disabling up-to-date checks
 
 Moved to a <<incremental_build.adoc#sec:disable-state-tracking, section under Incremental Build>>.
 
-[[sec:untracked_external_tool]]
+[[sec:more_untracked_external_tool]]
 ==== Integrate an external tool which does its own up-to-date checking
 
 Moved to a <<incremental_build.adoc#sec:untracked_external_tool, section under Incremental Build>>.
 
-[[sec:configure_input_normalization]]
+[[sec:more_configure_input_normalization]]
 ==== Configure input normalization
 
 Moved to a <<incremental_build.adoc#sec:configure_input_normalization, section under Incremental Build>>.
 
-[[sec:property_file_normalization]]
+[[sec:more_property_file_normalization]]
 ==== Properties file normalization
 
 Moved to a <<incremental_build.adoc#sec:property_file_normalization, section under Incremental Build>>.
 
-[[sec:meta_inf_normalization]]
+[[sec:more_meta_inf_normalization]]
 ==== Java `META-INF` normalization
 
 Moved to a <<incremental_build.adoc#sec:meta_inf_normalization, section under Incremental Build>>.
 
-[[sec:custom_up_to_date_logic]]
+[[sec:more_custom_up_to_date_logic]]
 ==== Providing custom up-to-date logic
 
 Moved to a <<incremental_build.adoc#sec:custom_up_to_date_logic, section under Incremental Build>>.
 
-[[sec:stale_task_outputs]]
+[[sec:more_stale_task_outputs]]
 ==== Stale task outputs
 
 Moved to a <<incremental_build.adoc#sec:stale_task_outputs, section under Incremental Build>>.

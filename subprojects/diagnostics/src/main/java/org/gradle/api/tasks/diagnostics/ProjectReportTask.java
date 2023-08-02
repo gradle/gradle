@@ -122,12 +122,12 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     @Override
     protected void generateReportFor(ProjectDetails project, ProjectReportModel model) {
-        renderProjectTree(project, model);
+        renderProjectTree(model);
         renderIncludedBuilds(model);
         renderHelp(project, model);
     }
 
-    private void renderProjectTree(ProjectDetails project, ProjectReportModel model) {
+    private void renderProjectTree(ProjectReportModel model) {
         StyledTextOutput textOutput = getRenderer().getTextOutput();
         renderProject(model, new GraphRenderer(textOutput), true, textOutput);
         if (model.children.isEmpty()) {

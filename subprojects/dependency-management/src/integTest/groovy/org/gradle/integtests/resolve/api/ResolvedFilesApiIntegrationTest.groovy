@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -40,6 +41,7 @@ allprojects {
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "result includes files from local and external components and file dependencies in a fixed order"() {
         mavenRepo.module("org", "test", "1.0").publish()
         mavenRepo.module("org", "test2", "1.0").publish()
@@ -116,6 +118,7 @@ task show {
         outputContains("files 12: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "applies compatibility rules to select variant"() {
         settingsFile << """
 include 'a', 'b'
@@ -193,6 +196,7 @@ task show {
         "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "applies disambiguation rules to select variant"() {
         settingsFile << """
 include 'a', 'b'
@@ -255,6 +259,7 @@ task show {
         "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure when there is more than one compatible variant"() {
         settingsFile << """
 include 'a', 'b'
@@ -312,6 +317,7 @@ task show {
         "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure when there is no compatible variant"() {
         mavenRepo.module("test", "test", "1.2").publish()
 
@@ -392,6 +398,7 @@ task show {
         "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure to resolve component when files are queried using #expression"() {
         buildFile << """
 allprojects {
@@ -436,6 +443,7 @@ task show {
         "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure to download artifact when files are queried using #expression"() {
         buildFile << """
 allprojects {
@@ -482,6 +490,7 @@ task show {
         "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure to query file dependency when files are queried using #expression"() {
         buildFile << """
 dependencies {
@@ -516,6 +525,7 @@ task show {
         "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports multiple failures to resolve artifacts when files are queried using #expression"() {
         settingsFile << "include 'a'"
         buildFile << """

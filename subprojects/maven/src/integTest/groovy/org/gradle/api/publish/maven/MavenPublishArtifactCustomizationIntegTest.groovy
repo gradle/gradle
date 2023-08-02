@@ -425,6 +425,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
             task customFileTask {
                 ext.outputFile = file('customFile-1.0-docs.html')
+                def outputFile = ext.outputFile
                 doLast {
                     outputFile << '<html/>'
                 }
@@ -434,6 +435,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                 ext.outputFile = project.objects.fileProperty()
                 outputs.file(outputFile)
                 outputFile.set(file('regularFile-1.0.reg'))
+                def outputFile = outputFile
                 doLast {
                     outputFile.get().getAsFile() << 'foo'
                 }
@@ -455,7 +457,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         """
     }
 
-    def "can attach a task provider as an artifact"() {
+    def "can attach an archive task provider as an artifact"() {
         createBuildScripts("""
             def customJar = tasks.register("myJar", Jar) {
                 archiveClassifier = 'classy'
@@ -477,9 +479,11 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     def "can attach an arbitrary task provider as an artifact if it has a single output file"() {
         createBuildScripts("""
             def customTask = tasks.register("myTask") {
+                def buildDir = buildDir
                 outputs.file("\${buildDir}/output.txt")
+                def outputFile = file("\${buildDir}/output.txt")
                 doLast {
-                    file("\${buildDir}/output.txt") << 'custom task'
+                    outputFile << 'custom task'
                 }
             }
             publications {
@@ -553,7 +557,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
             configurations.create("srcLicense") {
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
             }
 
             def srcLicenseDir = tasks.register("srcLicenseDir", Sync) {

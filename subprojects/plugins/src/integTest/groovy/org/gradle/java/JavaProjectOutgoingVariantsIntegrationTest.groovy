@@ -71,12 +71,19 @@ project(':consumer') {
     configurations { consume }
     dependencies { consume project(':java') }
     task resolve {
-        inputs.files configurations.consume
-        doLast {
-            println "files: " + configurations.consume.files.collect { it.name }
-            configurations.consume.incoming.artifacts.each {
-                println "\$it.id \$it.variant.attributes"
+        def config = configurations.consume
+        inputs.files config
+        def fileNames = provider {
+            config.files.collect { it.name }
+        }
+        def incomingArtifacts = provider {
+            config.incoming.artifacts.collect {
+                "\$it.id \$it.variant.attributes"
             }
+        }
+        doLast {
+            println "files: " + fileNames.get()
+            incomingArtifacts.get().each { println it }
         }
     }
 }

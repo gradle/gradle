@@ -25,6 +25,8 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -39,6 +41,13 @@ import java.io.File;
 import java.net.URI;
 
 public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal, DynamicObjectAware {
+
+    /**
+     * If set to {@code true}, the buildscript's {@code classpath} configuration will not be reset after the
+     * classpath has been assembled. Defaults to {@code false}.
+     */
+    public static final String DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY = "org.gradle.incubating.reset-buildscript-classpath.disabled";
+
     private static final Logger LOGGER = Logging.getLogger(DefaultScriptHandler.class);
 
     private final ResourceLocation scriptResource;
@@ -47,9 +56,10 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private final DependencyResolutionServices dependencyResolutionServices;
     private final DependencyLockingHandler dependencyLockingHandler;
     // The following values are relatively expensive to create, so defer creation until required
+    private ClassPath resolvedClasspath;
     private RepositoryHandler repositoryHandler;
     private DependencyHandler dependencyHandler;
-    private ConfigurationContainer configContainer;
+    private RoleBasedConfigurationContainerInternal configContainer;
     private Configuration classpathConfiguration;
     private DynamicObject dynamicObject;
 
@@ -79,7 +89,17 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public ClassPath getInstrumentedScriptClassPath() {
-        return scriptClassPathResolver.resolveClassPath(classpathConfiguration);
+        if (resolvedClasspath == null) {
+            resolvedClasspath = scriptClassPathResolver.resolveClassPath(classpathConfiguration);
+            if (!System.getProperty(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY, "false").equals("true") && classpathConfiguration != null) {
+                ((ResettableConfiguration) classpathConfiguration).resetResolutionState();
+            }
+        }
+        return resolvedClasspath;
+    }
+
+    public void dropResolvedClassPath() {
+        resolvedClasspath = null;
     }
 
     @Override
@@ -107,16 +127,17 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         return configContainer;
     }
 
+    @SuppressWarnings("deprecation")
     private void defineConfiguration() {
         // Defer creation and resolution of configuration until required. Short-circuit when script does not require classpath
         if (configContainer == null) {
-            configContainer = dependencyResolutionServices.getConfigurationContainer();
+            configContainer = (RoleBasedConfigurationContainerInternal) dependencyResolutionServices.getConfigurationContainer();
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
         }
         if (classpathConfiguration == null) {
-            classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
+            classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
             scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler);
         }
     }

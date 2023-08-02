@@ -23,7 +23,7 @@ IDEA has built-in support for importing Gradle projects.
 If you need to fine tune the import process so that the project loads correctly, you can use the <<idea_plugin.adoc#idea_plugin,IDEA Plugin for Gradle>>.
 
 NetBeans::
-Add the http://plugins.netbeans.org/plugin/44510/gradle-support[Gradle Support] plugin to NetBeans in order to import and run projects with Gradle builds.
+Built-in support for Gradle in https://netbeans.apache.org/[Apache NetBeans]
 
 Visual Studio::
 For developing C++ projects, Gradle comes with a <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio plugin>>.
@@ -107,7 +107,11 @@ include::sample[dir="snippets/toolingApi/runBuild/kotlin",files="build.gradle.kt
 include::sample[dir="snippets/toolingApi/runBuild/groovy",files="build.gradle[tags=use-tooling-api]"]
 ====
 
-The main entry point to the Tooling API is the link:{javadocPath}/org/gradle/tooling/GradleConnector.html[GradleConnector]. You can navigate from there to find code samples and explore the available Tooling API models. You can use link:https://docs.gradle.org/nightly/javadoc/org/gradle/tooling/GradleConnector.html#connect--[GradleConnector.connect()] to create a link:{javadocPath}/org/gradle/tooling/ProjectConnection.html[ProjectConnection]. A `ProjectConnection` connects to a single Gradle project. Using the connection you can execute tasks, tests and retrieve models relative to this project.
+The main entry point to the Tooling API is the link:{javadocPath}/org/gradle/tooling/GradleConnector.html[GradleConnector].
+You can navigate from there to find code samples and explore the available Tooling API models.
+You can use link:{javadocPath}/org/gradle/tooling/GradleConnector.html#connect--[GradleConnector.connect()] to create a link:{javadocPath}/org/gradle/tooling/ProjectConnection.html[ProjectConnection].
+A `ProjectConnection` connects to a single Gradle project.
+Using the connection you can execute tasks, tests and retrieve models relative to this project.
 
 [[sec:embedding_compatibility]]
 === Compatibility of Java and Gradle versions

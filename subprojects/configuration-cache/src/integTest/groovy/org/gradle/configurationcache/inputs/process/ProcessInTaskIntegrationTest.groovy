@@ -35,7 +35,6 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stri
 class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in task configuration is a problem"() {
         given:
-        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/src/main/java/SneakyTask.java") << """
             import ${DefaultTask.name};
@@ -83,7 +82,6 @@ class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
 
     def "using #snippetsFactory.summary in task action is not a problem"() {
         given:
-        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/src/main/java/SneakyTask.java") << """
             import ${DefaultTask.name};
@@ -124,7 +122,6 @@ class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
 
     def "using #snippetsFactory.summary in task action of buildSrc is not a problem"() {
         given:
-        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/build.gradle") << """
             import ${DefaultTask.name};
@@ -168,7 +165,6 @@ class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
 
     def "using #snippetsFactory.summary in worker task action of buildSrc is not a problem"() {
         given:
-        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/build.gradle") << """
             import ${DefaultTask.name}
@@ -262,7 +258,7 @@ class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
             println("Applied script plugin")
         """
 
-        settingsFileWithStableConfigurationCache("""
+        settingsFile("""
             pluginManagement {
                 includeBuild('included')
             }
@@ -291,7 +287,6 @@ class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
 
     def "using #snippetsFactory.summary in task up-to-date is not a problem"() {
         given:
-        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/src/main/java/SneakyTask.java") << """
             import ${DefaultTask.name};
@@ -337,7 +332,6 @@ class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
 
     def "using #snippetsFactory.summary in up-to-date task of buildSrc is not a problem"() {
         given:
-        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/build.gradle") << """
             import ${DefaultTask.name};

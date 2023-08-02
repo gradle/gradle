@@ -18,8 +18,8 @@ package org.gradle.internal.deprecation;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
-import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -54,17 +54,20 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class DeprecationLogger {
 
-    private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
+    /**
+     * Counts the levels of nested {@code whileDisabled} invocations.
+     */
+    private static final ThreadLocal<Integer> DISABLE_COUNT = new ThreadLocal<Integer>() {
         @Override
-        protected Boolean initialValue() {
-            return true;
+        protected Integer initialValue() {
+            return 0;
         }
     };
 
     private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER = new LoggingDeprecatedFeatureHandler();
 
-    public synchronized static void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        DEPRECATED_FEATURE_HANDLER.init(reporter, warningMode, buildOperationProgressEventEmitter);
+    public synchronized static void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        DEPRECATED_FEATURE_HANDLER.init(problemDiagnosticsFactory, warningMode, buildOperationProgressEventEmitter);
     }
 
     public synchronized static void reset() {
@@ -100,7 +103,7 @@ public class DeprecationLogger {
     /**
      * Indirect usage means that stack trace at the time the deprecation is logged does not indicate the call site.
      * This directs GE to not display unhelpful stacktraces with the deprecation.
-     *
+     * <p>
      * Output: ${feature} has been deprecated.
      */
     @CheckReturnValue
@@ -139,7 +142,7 @@ public class DeprecationLogger {
             DeprecationMessage build() {
                 return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
             }
-        });
+        }); // TODO: it is not ok that NO_DOCUMENTATION is hardcoded here
     }
 
     /**
@@ -250,34 +253,60 @@ public class DeprecationLogger {
 
     @Nullable
     public static <T> T whileDisabled(Factory<T> factory) {
-        ENABLED.set(false);
+        disable();
         try {
             return factory.create();
         } finally {
-            ENABLED.set(true);
+            maybeEnable();
         }
     }
 
     public static void whileDisabled(Runnable action) {
-        ENABLED.set(false);
+        disable();
         try {
             action.run();
         } finally {
-            ENABLED.set(true);
+            maybeEnable();
         }
     }
 
     public static <T, E extends Exception> T whileDisabledThrowing(ThrowingFactory<T, E> factory) {
-        ENABLED.set(false);
+        disable();
         try {
             return toUncheckedThrowingFactory(factory).create();
         } finally {
-            ENABLED.set(true);
+            maybeEnable();
         }
+    }
+
+    public static <E extends Exception> void whileDisabledThrowing(ThrowingRunnable<E> runnable) {
+        disable();
+        try {
+            toUncheckedThrowingRunnable(runnable).run();
+        } finally {
+           maybeEnable();
+        }
+    }
+
+    private static void disable() {
+        DISABLE_COUNT.set(DISABLE_COUNT.get() + 1);
+    }
+
+    private static void maybeEnable() {
+        DISABLE_COUNT.set(DISABLE_COUNT.get() - 1);
+    }
+
+    private static boolean isEnabled() {
+        // log deprecation messages only after the outermost whileDisabled finished execution
+        return DISABLE_COUNT.get() == 0;
     }
 
     public interface ThrowingFactory<T, E extends Exception> {
         T create() throws E;
+    }
+
+    public interface ThrowingRunnable<E extends Exception> {
+        void run() throws E;
     }
 
     /**
@@ -297,8 +326,21 @@ public class DeprecationLogger {
         };
     }
 
-    private static boolean isEnabled() {
-        return ENABLED.get();
+    /**
+     * Turns a {@link ThrowingRunnable} into a {@link Runnable}.
+     *
+     * @see #toUncheckedThrowingFactory(ThrowingFactory)
+     */
+    private static <E extends Exception> Runnable toUncheckedThrowingRunnable(final ThrowingRunnable<E> throwingRunnable) {
+        return new Runnable() {
+            @Nullable
+            @Override
+            public void run() {
+                @SuppressWarnings("unchecked")
+                ThrowingRunnable<RuntimeException> runnable = (ThrowingRunnable<RuntimeException>) throwingRunnable;
+                runnable.run();
+            }
+        };
     }
 
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {

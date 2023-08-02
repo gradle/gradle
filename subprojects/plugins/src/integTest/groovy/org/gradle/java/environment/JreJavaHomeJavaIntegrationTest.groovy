@@ -18,8 +18,8 @@ package org.gradle.java.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.IgnoreIf
 
 class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
@@ -37,7 +37,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         }
         """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileJava").run().output
+        executer.withJavaHome(jreJavaHome.absolutePath).withTasks("compileJava").run().output
         then:
         javaClassFile("org/test/JavaClazz.class").exists()
 
@@ -45,7 +45,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         forkMode << [true, false]
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "java compilation works in forking mode = #forkMode when gradle is started with no JAVA_HOME defined"() {
         given:
         writeJavaTestSource("src/main/java");

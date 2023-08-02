@@ -17,23 +17,24 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.util.Matchers
+import org.gradle.util.Path
 import spock.lang.Specification
 
 
 class DefaultBuildIdentifierTest extends Specification {
     def "create build from name"() {
         expect:
-        def id = new DefaultBuildIdentifier('thing')
-        id.name == 'thing'
+        def id = new DefaultBuildIdentifier(Path.path(":thing"))
+        id.buildPath == ':thing'
         id.currentBuild
-        id.toString() == "build 'thing'"
+        id.toString() == "build ':thing'"
     }
 
     def "has equals"() {
         expect:
-        def id = new DefaultBuildIdentifier('one')
-        def same = new DefaultBuildIdentifier('one')
-        def different = new DefaultBuildIdentifier('two')
+        def id = new DefaultBuildIdentifier(Path.path(":one"))
+        def same = new DefaultBuildIdentifier(Path.path(":one"))
+        def different = new DefaultBuildIdentifier(Path.path(":two"))
 
         Matchers.strictlyEquals(id, same)
         id != different

@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.Container;
@@ -29,6 +29,8 @@ import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 public class ClasspathFactory {
 
     private final EclipseClasspath classpath;
@@ -40,13 +42,13 @@ public class ClasspathFactory {
     }
 
     public List<ClasspathEntry> createEntries() {
-        List<ClasspathEntry> entries = Lists.newArrayList();
+        ImmutableList.Builder<ClasspathEntry> entries = ImmutableList.builder();
         entries.add(createOutput());
         entries.addAll(createSourceFolders());
         entries.addAll(createContainers());
         entries.addAll(createDependencies());
         entries.addAll(createClassFolders());
-        return entries;
+        return entries.build();
     }
 
     private ClasspathEntry createOutput() {
@@ -58,12 +60,9 @@ public class ClasspathFactory {
     }
 
     private List<ClasspathEntry> createContainers() {
-        List<ClasspathEntry> containers = Lists.newArrayList();
-        for (String container : classpath.getContainers()) {
-            Container entry = new Container(container);
-            containers.add(entry);
-        }
-        return containers;
+        return classpath.getContainers().stream()
+            .map(Container::new)
+            .collect(toImmutableList());
     }
 
     private List<AbstractClasspathEntry> createDependencies() {

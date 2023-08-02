@@ -380,6 +380,7 @@ The following types/formats are supported:
   - Instances of IvyArtifact.
   - Instances of AbstractArchiveTask.
   - Instances of PublishArtifact.
+  - Instances of Provider.
   - Maps containing a 'source' entry, for example [source: '/path/to/file', extension: 'zip'].
   - Anything that can be converted to a file, as per Project.file()""")
     }
@@ -400,6 +401,49 @@ The following types/formats are supported:
         module.assertArtifactsPublished("ivy-2.0.xml", "ivyPublish-2.0.jar")
     }
 
+    def "can attach an archive task provider as an artifact"() {
+        createBuildScripts("""
+            def customJar = tasks.register("myJar", Jar) {
+                archiveClassifier = 'classy'
+            }
+            publications {
+                mavenCustom(IvyPublication) {
+                    artifact(customJar)
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        executedAndNotSkipped ":myJar", ":publish"
+    }
+
+    def "can attach an arbitrary task provider as an artifact if it has a single output file"() {
+        createBuildScripts("""
+            def customTask = tasks.register("myTask") {
+                def buildDir = buildDir
+                outputs.file("\${buildDir}/output.txt")
+                def outputFile = file("\${buildDir}/output.txt")
+                doLast {
+                    outputFile << 'custom task'
+                }
+            }
+            publications {
+                mavenCustom(IvyPublication) {
+                    artifact(customTask)
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        executedAndNotSkipped ":myTask", ":publish"
+    }
+
     private createBuildScripts(def publications, def append = "") {
         file("customFile.txt") << "some content"
         settingsFile << "rootProject.name = 'ivyPublish'"
@@ -412,6 +456,7 @@ The following types/formats are supported:
 
             task customDocsTask {
                 ext.outputFile = file('customDocs.html')
+                def outputFile = outputFile
                 doLast {
                     outputFile << '<html/>'
                 }
@@ -421,6 +466,7 @@ The following types/formats are supported:
                 ext.outputFile = project.objects.fileProperty()
                 outputs.file(outputFile)
                 outputFile.set(file('regularFile-1.0.reg'))
+                def outputFile = outputFile
                 doLast {
                     outputFile.get().getAsFile() << 'foo'
                 }

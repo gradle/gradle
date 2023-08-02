@@ -18,7 +18,6 @@ package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -113,7 +112,6 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "adhoc dependency resolution in task action")
     void "caches incremental build state"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")
@@ -131,7 +129,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void "does not rebuild artifact cache when run with --rerun-tasks"() {
+    void "does not rebuild artifact cache when run with --rerun-tasks"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")
 
@@ -177,8 +175,11 @@ dependencies { compile 'commons-io:commons-io:1.4@jar' }
 task 'hello$i' {
     File file = file('$TEST_FILE')
     outputs.file file
-    doLast {
+    def compileFiles = provider {
         configurations.compile.resolve()
+    }
+    doLast {
+        compileFiles.get()
         file.parentFile.mkdirs()
         file.write('Hello $i')
     }
@@ -202,8 +203,11 @@ dependencies { other 'commons-lang:commons-lang:2.6@jar' }
 task newTask {
     File file = file('$TEST_FILE')
     outputs.file file
-    doLast {
+    def otherFiles = provider {
         configurations.other.resolve()
+    }
+    doLast {
+        otherFiles.get()
         file.parentFile.mkdirs()
         file.write('I am new')
     }

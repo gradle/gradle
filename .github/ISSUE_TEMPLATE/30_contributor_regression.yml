@@ -1,0 +1,74 @@
+name: Regression
+description: Report a problem about something that used to work
+labels: [ "a:regression", "to-triage" ]
+assignees: [ ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please use our bug report template to report problems with something that has never worked.
+        Regressions reports are greatly appreciated during our RC phase and before a final release.
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: Tell us what should happen
+    validations:
+      required: true
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: Tell us what happens instead of the expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context (optional)
+      description: |
+        How has this issue affected you? What are you trying to accomplish?
+        Providing context helps us come up with a solution that is most useful in the real world
+    validations:
+      required: false
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        Provide a self-contained example project as an attached archive or a Github project.
+        You can use [the template](https://github.com/gradle/gradle-issue-reproducer) with a Gradle GitHub action set up to showcase your problem.
+        In the rare cases where this is infeasible, we will also accept a detailed set of instructions.
+        You can also use [Gradle Project Replicator](https://github.com/android/project-replicator) to reproduce the structure of your project.
+    validations:
+      required: true
+  - type: input
+    id: gradle-version
+    attributes:
+      label: Gradle version
+      description: What version of Gradle are you running?
+    validations:
+      required: true
+  - type: input
+    id: gradle-old-version
+    attributes:
+      label: Gradle version that used to work
+      description: What version of Gradle gives proper result for your case?
+    validations:
+      required: true
+  - type: input
+    id: build-scan-url
+    attributes:
+      label: Build scan URL (optional)
+      description: |
+        You can run your build command with `--scan` to publish a Build Scan to [scans.gradle.com](https://scans.gradle.com/).
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Your Environment (optional)
+      description: |
+        Include as many relevant details about the environment you experienced the bug in
+    validations:
+      required: false

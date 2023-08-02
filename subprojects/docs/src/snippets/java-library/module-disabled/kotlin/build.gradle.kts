@@ -8,11 +8,11 @@ repositories {
 
 // tag::disableModulePath[]
 java {
-    modularity.inferModulePath.set(false)
+    modularity.inferModulePath = false
 }
 
 tasks.compileJava {
-    modularity.inferModulePath.set(false)
+    modularity.inferModulePath = false
 }
 // end::disableModulePath[]
 

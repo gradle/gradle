@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
@@ -34,12 +35,16 @@ import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.initialization.DefaultLegacyTypesSupport;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.impl.DefaultDeleter;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
@@ -66,6 +71,12 @@ import static org.gradle.api.internal.provider.ManagedFactories.ProviderManagedF
 import static org.gradle.api.internal.provider.ManagedFactories.SetPropertyManagedFactory;
 
 public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
+
+    protected final ClassPath additionalModuleClassPath;
+
+    public WorkerSharedGlobalScopeServices(ClassPath additionalModuleClassPath) {
+        this.additionalModuleClassPath = additionalModuleClassPath;
+    }
 
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         return new DefaultCacheFactory(fileLockManager, executorFactory, progressLoggerFactory);
@@ -130,5 +141,17 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
             new ProviderManagedFactory(),
             namedObjectInstantiator
         );
+    }
+
+    DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
+        return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
+    }
+
+    CurrentGradleInstallation createCurrentGradleInstallation() {
+        return CurrentGradleInstallation.locate();
+    }
+
+    ClassLoaderFactory createClassLoaderFactory() {
+        return new DefaultClassLoaderFactory();
     }
 }

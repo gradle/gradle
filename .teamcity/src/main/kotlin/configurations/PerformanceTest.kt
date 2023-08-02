@@ -52,7 +52,7 @@ class PerformanceTest(
         val type = performanceTestBuildSpec.type
         val os = performanceTestBuildSpec.os
         val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
-        applyPerformanceTestSettings(os = os, timeout = type.timeout)
+        applyPerformanceTestSettings(os = os, arch = os.defaultArch, timeout = type.timeout)
         artifactRules = individualPerformanceTestArtifactRules
 
         params {
@@ -73,6 +73,8 @@ class PerformanceTest(
         failureConditions {
             // We have test-retry to handle the crash in tests
             javaCrash = false
+            // We want to see the flaky tests for flakiness detection
+            supportTestRetry = (performanceTestBuildSpec.type != PerformanceTestType.flakinessDetection)
         }
         if (testProjects.isNotEmpty()) {
             steps {

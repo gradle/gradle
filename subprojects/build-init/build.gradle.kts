@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":dependency-management"))
     implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
     implementation(project(":platform-native"))
     implementation(project(":plugins"))
     implementation(project(":resources"))
@@ -23,6 +24,7 @@ dependencies {
     implementation(project(":wrapper"))
     implementation(project(":wrapper-shared"))
     implementation(project(":testing-base"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -55,8 +57,8 @@ dependencies {
     integTestImplementation(project(":native"))
     integTestImplementation(libs.jetty)
 
-    testRuntimeOnly(project(":distributions-core")) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
+    testRuntimeOnly(project(":distributions-jvm")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

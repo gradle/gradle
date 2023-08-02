@@ -1,12 +1,9 @@
-// A task that displays a greeting
-abstract class Greeting : DefaultTask() {
-    // Configurable by the user
+abstract class Greeting : DefaultTask() { // <1>
     @get:Input
-    abstract val greeting: Property<String>
+    abstract val greeting: Property<String> // <2>
 
-    // Read-only property calculated from the greeting
     @Internal
-    val message: Provider<String> = greeting.map { it + " from Gradle" }
+    val message: Provider<String> = greeting.map { it + " from Gradle" } // <3>
 
     @TaskAction
     fun printMessage() {
@@ -15,7 +12,6 @@ abstract class Greeting : DefaultTask() {
 }
 
 tasks.register<Greeting>("greeting") {
-    // Configure the greeting
-    greeting.set("Hi")
-
+    greeting.set("Hi") // <4>
+    greeting = "Hi" // <5>
 }

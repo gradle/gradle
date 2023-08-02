@@ -42,6 +42,7 @@ dependencies {
     runtimeOnly(libs.commonsIo)
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
+    runtimeOnly(project(":instrumentation-declarations"))
 
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":base-services"))
@@ -49,6 +50,8 @@ dependencies {
     manifestClasspath(project(":core-api"))
     manifestClasspath(project(":core"))
     manifestClasspath(project(":persistent-cache"))
+
+    agentsClasspath(project(":instrumentation-agent"))
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(project(":native"))
@@ -84,9 +87,5 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}

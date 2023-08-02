@@ -19,6 +19,7 @@ import org.bouncycastle.openpgp.PGPObjectFactory;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPUtil;
+import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -133,11 +134,14 @@ public class PublicKeyDownloadService implements PublicKeyService {
 
     private void extractKeyRing(InputStream stream, PublicKeyResultBuilder builder, Consumer<? super PGPPublicKeyRing> onKeyring) throws IOException {
         try (InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
-            PGPObjectFactory objectFactory = new PGPObjectFactory(
-                decoderStream, new BcKeyFingerprintCalculator());
+            KeyFingerPrintCalculator fingerprintCalculator = new BcKeyFingerprintCalculator();
+            PGPObjectFactory objectFactory = new PGPObjectFactory(decoderStream, fingerprintCalculator);
             PGPPublicKeyRing keyring = (PGPPublicKeyRing) objectFactory.nextObject();
-            onKeyring.accept(keyring);
-            builder.keyRing(keyring);
+
+            PGPPublicKeyRing strippedKeyRing = KeyringStripper.strip(keyring, fingerprintCalculator);
+
+            onKeyring.accept(strippedKeyRing);
+            builder.keyRing(strippedKeyRing);
         }
     }
 

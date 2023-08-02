@@ -19,10 +19,10 @@ package org.gradle.caching.local.internal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.CleanupAction
+import org.gradle.cache.UnscopedCacheBuilderFactory
 import org.gradle.cache.internal.CleanupActionDecorator
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -38,13 +38,13 @@ import spock.lang.Specification
 class DirectoryBuildCacheServiceFactoryTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    def cacheRepository = Mock(CacheRepository)
-    def globalScopedCache = Mock(GlobalScopedCache)
+    def cacheRepository = Mock(UnscopedCacheBuilderFactory)
+    def globalScopedCache = Mock(GlobalScopedCacheBuilderFactory)
     def resolver = Mock(FileResolver)
     def fileStoreFactory = Mock(DirectoryBuildCacheFileStoreFactory)
     def cleanupActionDecorator = Mock(CleanupActionDecorator)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileStoreFactory, cleanupActionDecorator, fileAccessTimeJournal, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root))
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileStoreFactory, cleanupActionDecorator, fileAccessTimeJournal, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.createDir("tmp")))
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()

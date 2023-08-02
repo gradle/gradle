@@ -91,7 +91,7 @@ jobs:
             If you are still interested in contributing this, please ensure that
             it is rebased against the latest branch (usually `master`), all review
             comments have been addressed and the build is passing.
-  close-pending-reproducer:
+  close-pending:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/stale@v6
@@ -100,7 +100,8 @@ jobs:
           operations-per-run: 30
           exempt-all-milestones: true
           days-before-stale: -1
-          only-labels: 'pending:reproducer'
+          only-issue-labels: 'pending:reproducer'
+          only-pr-labels: 'pending:dco'
 
           # ISSUES ------------------------------------------------------------
           days-before-issue-close: 7
@@ -111,5 +112,9 @@ jobs:
             In the meantime, closing as unreproducible.
 
           # PULL REQUESTS -----------------------------------------------------
-          stale-pr-label: 'pending:reproducer'
-          days-before-pr-close: -1
+          days-before-pr-close: 7
+          stale-pr-label: 'pending:dco'
+          close-pr-label: 'closed:missing-dco'
+          close-pr-message: >
+            While we asked sign your commits, it has not been done. If you sign your commits, we will consider this pull request again.
+            In the meantime, closing as missing DCO (see the [Developer Certificate of Origin](https://probot.github.io/apps/dco/) GitHub app).

@@ -30,6 +30,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,18 +73,24 @@ public class UriTextResource implements TextResource {
     private final URI sourceUri;
     private final RelativeFilePathResolver resolver;
 
-    public UriTextResource(String description, File sourceFile, RelativeFilePathResolver resolver) {
+    UriTextResource(String description, @Nonnull File sourceFile, RelativeFilePathResolver resolver) {
         this.description = description;
         this.sourceFile = FileUtils.normalize(sourceFile);
         this.sourceUri = sourceFile.toURI();
         this.resolver = resolver;
     }
 
-    public UriTextResource(String description, URI sourceUri, RelativeFilePathResolver resolver) {
+    public UriTextResource(String description, @Nonnull URI sourceUri, RelativeFilePathResolver resolver) {
         this.description = description;
         this.sourceFile = sourceUri.getScheme().equals("file") ? FileUtils.normalize(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;
         this.resolver = resolver;
+    }
+
+    public static UriTextResource from(String description, File sourceFile, RelativeFilePathResolver resolver) {
+        return sourceFile.exists() ?
+            new UriTextResource(description, sourceFile, resolver) :
+            new EmptyFileTextResource(description, sourceFile, resolver);
     }
 
     @Override

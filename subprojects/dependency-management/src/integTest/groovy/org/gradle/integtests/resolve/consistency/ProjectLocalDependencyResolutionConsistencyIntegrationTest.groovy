@@ -57,6 +57,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
             root(':', ':test:') {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConsistentResolution('other')
+                    byConflictResolution('between versions 1.1 and 1.0')
                 }
                 constraint("org:foo:{strictly 1.1}", "org:foo:1.1")
             }
@@ -203,8 +204,12 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                     byConsistentResolution('compileClasspath')
                     module('org:fooA:1.0') {
                         byConsistentResolution('compileClasspath')
+                        byAncestor()
+                        notRequested()
                         module("org:transitive:1.0") {
                             byConsistentResolution('compileClasspath')
+                            byAncestor()
+                            notRequested()
                         }
                     }
                 }
@@ -289,6 +294,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
             root(':', ':test:') {
                 edge('org:foo:1.1', 'org:foo:1.2') {
                     selectedByRule()
+                    byConsistentResolution('other')
                 }
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.2")
             }
@@ -327,6 +333,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
             root(':', ':test:') {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConsistentResolution('other')
+                    byConflictResolution('between versions 1.1 and 1.0')
                 }
                 constraint("org:foo:{strictly 1.1}", "org:foo:1.1")
             }

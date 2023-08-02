@@ -15,9 +15,8 @@
  */
 
 import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
@@ -31,6 +30,20 @@ configurations.transitiveSourcesElements {
     val main = sourceSets.main.get()
     main.kotlin.srcDirs.forEach {
         outgoing.artifact(it)
+    }
+}
+
+kotlin {
+    target.compilations.named("testFixtures") {
+        associateWith(target.compilations["main"])
+    }
+    target.compilations.named("test") {
+        associateWith(target.compilations["main"])
+        associateWith(target.compilations["testFixtures"])
+    }
+    target.compilations.named("integTest") {
+        associateWith(target.compilations["main"])
+        associateWith(target.compilations["testFixtures"])
     }
 }
 
@@ -56,21 +69,6 @@ tasks {
         systemProperty(
             DefaultClassLoaderScope.STRICT_MODE_PROPERTY,
             true
-        )
-    }
-}
-
-fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
-    compilerOptions {
-        allWarningsAsErrors.set(true)
-        apiVersion.set(KotlinVersion.KOTLIN_1_8)
-        languageVersion.set(KotlinVersion.KOTLIN_1_8)
-        jvmTarget.set(JvmTarget.JVM_1_8)
-        freeCompilerArgs.addAll(
-            "-Xjsr305=strict",
-            "-java-parameters",
-            "-Xsam-conversions=class",
-            "-Xskip-metadata-version-check",
         )
     }
 }

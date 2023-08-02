@@ -39,6 +39,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
@@ -47,6 +48,8 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.net.URI;
+import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.internal.serialization.Transient.varOf;
@@ -226,8 +229,10 @@ public abstract class PublishToIvyRepository extends DefaultTask {
                     repository.getUrl(),
                     repository.isAllowInsecureProtocol(),
                     credentialsSpec(),
-                    repository.getRepositoryLayout()
-                );
+                    repository.getRepositoryLayout(),
+                    repository.additionalArtifactPatterns(),
+                    repository.additionalIvyPatterns(),
+                    repository.getConfiguredAuthentication());
             }
 
             @Nullable
@@ -244,13 +249,19 @@ public abstract class PublishToIvyRepository extends DefaultTask {
             private final AbstractRepositoryLayout layout;
             private final boolean allowInsecureProtocol;
             private final String name;
+            private final Set<String> artifactPatterns;
+            private final Set<String> ivyPatterns;
+            private final Collection<Authentication> authentications;
 
-            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials, AbstractRepositoryLayout layout) {
+            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials, AbstractRepositoryLayout layout, Set<String> artifactPatterns, Set<String> ivyPatterns, Collection<Authentication> authentications) {
                 this.name = name;
                 this.repositoryUrl = repositoryUrl;
                 this.allowInsecureProtocol = allowInsecureProtocol;
                 this.credentials = credentials;
                 this.layout = layout;
+                this.artifactPatterns = artifactPatterns;
+                this.ivyPatterns = ivyPatterns;
+                this.authentications = authentications;
             }
 
             @Override
@@ -258,12 +269,15 @@ public abstract class PublishToIvyRepository extends DefaultTask {
                 DefaultIvyArtifactRepository repository = (DefaultIvyArtifactRepository) services.get(BaseRepositoryFactory.class).createIvyRepository();
                 repository.setName(name);
                 repository.setUrl(repositoryUrl);
+                artifactPatterns.forEach(repository::artifactPattern);
+                ivyPatterns.forEach(repository::ivyPattern);
                 repository.setAllowInsecureProtocol(allowInsecureProtocol);
                 repository.setRepositoryLayout(layout);
                 if (credentials != null) {
                     Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
                     repository.setConfiguredCredentials(provider.get());
                 }
+                repository.authentication(container -> container.addAll(authentications));
                 return repository;
             }
         }

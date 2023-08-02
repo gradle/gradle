@@ -22,6 +22,7 @@ import org.gradle.api.plugins.ApplicationPluginConvention;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class DefaultJavaApplication implements JavaApplication {
     private final ApplicationPluginConvention convention;
@@ -31,17 +32,17 @@ public class DefaultJavaApplication implements JavaApplication {
     public DefaultJavaApplication(ApplicationPluginConvention convention, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.convention = convention;
         this.mainModule = objectFactory.property(String.class);
-        this.mainClass = objectFactory.property(String.class).convention(providerFactory.provider(convention::getMainClassName));
+        this.mainClass = objectFactory.property(String.class).convention(providerFactory.provider(() -> DeprecationLogger.whileDisabled(convention::getMainClassName)));
     }
 
     @Override
     public String getApplicationName() {
-        return convention.getApplicationName();
+        return DeprecationLogger.whileDisabled(convention::getApplicationName);
     }
 
     @Override
     public void setApplicationName(String applicationName) {
-        convention.setApplicationName(applicationName);
+        DeprecationLogger.whileDisabled(() -> convention.setApplicationName(applicationName));
     }
 
     @Override
@@ -56,31 +57,31 @@ public class DefaultJavaApplication implements JavaApplication {
 
     @Override
     public Iterable<String> getApplicationDefaultJvmArgs() {
-        return convention.getApplicationDefaultJvmArgs();
+        return DeprecationLogger.whileDisabled(convention::getApplicationDefaultJvmArgs);
     }
 
     @Override
     public void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs) {
-        convention.setApplicationDefaultJvmArgs(applicationDefaultJvmArgs);
+        DeprecationLogger.whileDisabled(() -> convention.setApplicationDefaultJvmArgs(applicationDefaultJvmArgs));
     }
 
     @Override
     public String getExecutableDir() {
-        return convention.getExecutableDir();
+        return DeprecationLogger.whileDisabled(convention::getExecutableDir);
     }
 
     @Override
     public void setExecutableDir(String executableDir) {
-        convention.setExecutableDir(executableDir);
+        DeprecationLogger.whileDisabled(() -> convention.setExecutableDir(executableDir));
     }
 
     @Override
     public CopySpec getApplicationDistribution() {
-        return convention.getApplicationDistribution();
+        return DeprecationLogger.whileDisabled(convention::getApplicationDistribution);
     }
 
     @Override
     public void setApplicationDistribution(CopySpec applicationDistribution) {
-        convention.setApplicationDistribution(applicationDistribution);
+        DeprecationLogger.whileDisabled(() -> convention.setApplicationDistribution(applicationDistribution));
     }
 }

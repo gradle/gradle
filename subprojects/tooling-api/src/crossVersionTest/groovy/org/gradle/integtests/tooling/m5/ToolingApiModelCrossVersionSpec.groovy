@@ -40,10 +40,8 @@ System.err.println 'this is stderr'
         file('build.gradle') << 'broken'
 
         when:
-        withConnection { connection ->
-            def builder = connection.model(GradleProject.class)
-            collectOutputs(builder)
-            return builder.get()
+        withConnection {
+            it.model(GradleProject.class).get()
         }
 
         then:

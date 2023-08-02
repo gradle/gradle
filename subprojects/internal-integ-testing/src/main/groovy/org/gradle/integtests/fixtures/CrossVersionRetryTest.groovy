@@ -29,7 +29,7 @@ class CrossVersionRetryTest extends CrossVersionIntegrationSpec {
         iteration++
 
         when:
-        throwWhen(new ServiceCreationException("Could not create service of type ArtifactCacheLockingManager using DependencyManagementBuildScopeServices.createArtifactCacheLockingManager().",
+        throwWhen(new ServiceCreationException("Could not create service of type ArtifactCacheLockingAccessCoordinator using DependencyManagementBuildScopeServices.createArtifactCacheLockingManager().",
             new UncheckedIOException("Unable to create directory 'metadata-2.1'")), iteration == 1)
 
         then:

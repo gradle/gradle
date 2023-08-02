@@ -80,6 +80,17 @@ public class CacheVersionMapping {
             return this;
         }
 
+        /**
+         * You should not use this method. But Gradle 7.6.2 backport made it necessary.
+         * Only one set of argument is currently accepted
+         */
+        public Builder changedToWithConflict(int cacheVersion, String minGradleVersion) {
+            GradleVersion parsedGradleVersion = GradleVersion.version(minGradleVersion);
+            Preconditions.checkArgument(cacheVersion == 100 && minGradleVersion.equals("8.0-milestone-5"));
+            versions.put(parsedGradleVersion, cacheVersion);
+            return this;
+        }
+
         public CacheVersionMapping build() {
             return build(CacheVersion.empty());
         }

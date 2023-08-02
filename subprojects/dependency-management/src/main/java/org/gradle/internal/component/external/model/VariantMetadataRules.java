@@ -99,7 +99,7 @@ public class VariantMetadataRules {
             if (descriptors.isEmpty()) {
                 // we must add the implicit capability here because it is assumed that if there's a rule
                 // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
-                descriptors.add(new ImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()));
+                descriptors.add(new DefaultImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()));
             }
             DefaultMutableCapabilities mutableCapabilities = new DefaultMutableCapabilities(descriptors);
             return capabilitiesRules.execute(variant, mutableCapabilities);

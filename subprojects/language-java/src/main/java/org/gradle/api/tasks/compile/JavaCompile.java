@@ -63,6 +63,7 @@ import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
+import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.work.Incremental;
@@ -73,8 +74,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
-
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Compiles Java source files.
@@ -217,10 +216,9 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         return previousCompilationDataFile;
     }
 
-    private WorkResult performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
+    private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
         WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationExecutor.class)).execute(spec);
         setDidWork(result.getDidWork());
-        return result;
     }
 
     @VisibleForTesting
@@ -234,7 +232,6 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
 
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
-        spec.setOriginalDestinationDir(spec.getDestinationDir());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, getClasspath())));
@@ -259,20 +256,26 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
         JavaCompiler javaCompilerTool = getJavaCompiler().get();
         File toolchainJavaHome = javaCompilerTool.getMetadata().getInstallationPath().getAsFile();
-        File toolchainExecutable = javaCompilerTool.getExecutablePath().getAsFile();
 
         ForkOptions forkOptions = getOptions().getForkOptions();
         File customJavaHome = forkOptions.getJavaHome();
-        checkState(
-            customJavaHome == null || customJavaHome.equals(toolchainJavaHome),
-            "Toolchain from `javaHome` property on `ForkOptions` does not match toolchain from `javaCompiler` property"
-        );
+        if (customJavaHome != null) {
+            JavaExecutableUtils.validateMatchingFiles(
+                customJavaHome, "Toolchain from `javaHome` property on `ForkOptions`",
+                toolchainJavaHome, "toolchain from `javaCompiler` property"
+            );
+        }
 
         String customExecutablePath = forkOptions.getExecutable();
-        checkState(
-            customExecutablePath == null || new File(customExecutablePath).equals(toolchainExecutable),
-            "Toolchain from `executable` property on `ForkOptions` does not match toolchain from `javaCompiler` property"
-        );
+        if (customExecutablePath != null) {
+            // We do not match the custom executable against the compiler executable from the toolchain (javac),
+            // because the custom executable can be set to the path of another tool in the toolchain such as a launcher (java).
+            File customExecutableJavaHome = JavaExecutableUtils.resolveJavaHomeOfExecutable(customExecutablePath);
+            JavaExecutableUtils.validateMatchingFiles(
+                customExecutableJavaHome, "Toolchain from `executable` property on `ForkOptions`",
+                toolchainJavaHome, "toolchain from `javaCompiler` property"
+            );
+        }
     }
 
     private boolean isToolchainCompatibleWithJava8() {

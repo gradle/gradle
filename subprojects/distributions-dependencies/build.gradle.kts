@@ -15,8 +15,11 @@ plugins {
 
 description = "Provides a platform dependency to align all distribution versions"
 
-val antVersion = "1.10.11"
-val asmVersion = "9.3"
+val antVersion = "1.10.13"
+// Don't forget to bump versions in
+// subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
+// when upgrading ASM.
+val asmVersion = "9.5"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
 val jacksonVersion = "2.14.1"
@@ -66,8 +69,7 @@ dependencies {
         api(libs.commonsLang)           { version { strictly("2.6") }}
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
-        api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gradleProfiler)        { version { strictly("0.19.0") }}
+        api(libs.gradleProfiler)        { version { strictly("0.20.0") }}
         api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
@@ -90,8 +92,9 @@ dependencies {
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.8.9") }}
+        api(libs.h2Database)            { version { strictly("2.2.220") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
-        api(libs.hikariCP)              { version { strictly("4.0.2") }}
+        api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
         api(libs.ivy)                   { version { strictly("2.3.0"); because("2.4.0 contains a breaking change in DefaultModuleDescriptor.getExtraInfo(), cf. https://issues.apache.org/jira/browse/IVY-1457") }}
@@ -103,12 +106,13 @@ dependencies {
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
         api(libs.jansi)                 { version { strictly("1.18"); because("2.x changes the API") }}
         api(libs.jatl)                  { version { strictly("0.2.3") }}
+        api(libs.javaPoet)              { version { strictly("1.13.0") } }
         api(libs.jaxbCore)              { version { strictly(jaxbVersion) }}
         api(libs.jaxbImpl)              { version { strictly(jaxbVersion) }}
         api(libs.jcifs)                 { version { strictly("1.3.17") }}
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
-        api(libs.jetbrainsAnnotations)  { version { strictly("20.1.0") }}
+        api(libs.jetbrainsAnnotations)  { version { strictly("24.0.1") }}
         api(libs.jgit)                  { version { strictly("5.7.0.202003110725-r"); because("Upgrade has breaking API changes") }}
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
@@ -139,7 +143,7 @@ dependencies {
         api(libs.plist)                 { version { strictly("1.21") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
-        api(libs.snakeyaml)             { version { strictly("1.32") }}
+        api(libs.snakeyaml)             { version { strictly("2.0") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
         api(libs.trove4j)               { version { strictly("1.0.20200330") }}
@@ -161,6 +165,7 @@ dependencies {
         api(libs.bytebuddy)             { version { strictly(bytebuddyVersion) }}
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}
         api(libs.cglib)                 { version { strictly("3.2.6") }}
+        api(libs.compileTesting)        { version { strictly("0.21.0")}}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}

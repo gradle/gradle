@@ -16,9 +16,9 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.DefaultCacheRepository;
+import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
 import org.gradle.initialization.layout.GlobalCacheDir;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -33,8 +33,8 @@ public class WorkerSharedUserHomeScopeServices {
         registration.add(GlobalCacheDir.class);
     }
 
-    CacheRepository createCacheRepository(GlobalCacheDir globalCacheDir, CacheFactory cacheFactory) {
-        return new DefaultCacheRepository(new DefaultCacheScopeMapping(globalCacheDir.getDir(), GradleVersion.current()), cacheFactory);
+    UnscopedCacheBuilderFactory createCacheRepository(GlobalCacheDir globalCacheDir, CacheFactory cacheFactory) {
+        return new DefaultUnscopedCacheBuilderFactory(new DefaultCacheScopeMapping(globalCacheDir.getDir(), GradleVersion.current()), cacheFactory);
     }
 
     IsolatableFactory createIsolatableFactory(

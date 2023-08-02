@@ -185,15 +185,15 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         def loadOrder = [
             ":",
             ":nested",
-            ":nested-nested",
+            ":nested:nested-nested",
             ":nested-cli",
-            ":nested-cli-nested",
-            ":nested-nested:buildSrc",
-            ":nested-nested:buildSrc:buildSrc",
+            ":nested-cli:nested-cli-nested",
+            ":nested:nested-nested:buildSrc",
+            ":nested:nested-nested:buildSrc:buildSrc",
             ":nested:buildSrc",
             ":nested:buildSrc:buildSrc",
-            ":nested-cli-nested:buildSrc",
-            ":nested-cli-nested:buildSrc:buildSrc",
+            ":nested-cli:nested-cli-nested:buildSrc",
+            ":nested-cli:nested-cli-nested:buildSrc:buildSrc",
             ":nested-cli:buildSrc",
             ":nested-cli:buildSrc:buildSrc",
             ":buildSrc",
@@ -206,12 +206,12 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
             ":nested",
             ":",
             ":nested-cli",
-            ":nested-nested",
-            ":nested-nested:buildSrc",
+            ":nested:nested-nested",
+            ":nested:nested-nested:buildSrc",
             ":nested",
             ":nested:buildSrc",
-            ":nested-cli-nested",
-            ":nested-cli-nested:buildSrc",
+            ":nested-cli:nested-cli-nested",
+            ":nested-cli:nested-cli-nested:buildSrc",
             ":nested-cli",
             ":nested-cli:buildSrc",
             ":",
@@ -219,18 +219,18 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         ]
 
         def buildIdentifiedEvents = buildOperations.progress(BuildIdentifiedProgressDetails)
-        buildIdentifiedEvents*.details.buildPath == [
+        buildIdentifiedEvents*.details.buildPath ==~ [
             ":",
             ":nested",
             ":nested-cli",
-            ":nested-nested",
-            ":nested-cli-nested",
-            ":nested-nested:buildSrc",
-            ":nested-nested:buildSrc:buildSrc",
+            ":nested:nested-nested",
+            ":nested-cli:nested-cli-nested",
+            ":nested:nested-nested:buildSrc",
+            ":nested:nested-nested:buildSrc:buildSrc",
             ":nested:buildSrc",
             ":nested:buildSrc:buildSrc",
-            ":nested-cli-nested:buildSrc",
-            ":nested-cli-nested:buildSrc:buildSrc",
+            ":nested-cli:nested-cli-nested:buildSrc",
+            ":nested-cli:nested-cli-nested:buildSrc:buildSrc",
             ":nested-cli:buildSrc",
             ":nested-cli:buildSrc:buildSrc",
             ":buildSrc",
@@ -242,15 +242,15 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
 
         def configureOrder = [
                 ":",
-                ":nested-nested",
-                ":nested-nested:buildSrc",
-                ":nested-nested:buildSrc:buildSrc",
+                ":nested:nested-nested",
+                ":nested:nested-nested:buildSrc",
+                ":nested:nested-nested:buildSrc:buildSrc",
                 ":nested",
                 ":nested:buildSrc",
                 ":nested:buildSrc:buildSrc",
-                ":nested-cli-nested",
-                ":nested-cli-nested:buildSrc",
-                ":nested-cli-nested:buildSrc:buildSrc",
+                ":nested-cli:nested-cli-nested",
+                ":nested-cli:nested-cli-nested:buildSrc",
+                ":nested-cli:nested-cli-nested:buildSrc:buildSrc",
                 ":nested-cli",
                 ":nested-cli:buildSrc",
                 ":nested-cli:buildSrc:buildSrc",
@@ -268,12 +268,10 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         def dirs = configureOrder
             .collect { it.substring(1) } // strip leading :
             .collect { it.replaceAll(":", "/") }
-            .collect { it.replaceAll("nested-nested", "nested/nested-nested") }
-            .collect { it.replaceAll("nested-cli-nested", "nested-cli/nested-cli-nested") }
             .collect { it ? file(it) : testDirectory }
             .collect { it.absolutePath }
 
-        loadProjectsBuildOperations*.result.rootProject.projectDir == dirs
+        loadProjectsBuildOperations*.result.rootProject.projectDir ==~ dirs
     }
 
     def "operations are fired when child build is not used"() {

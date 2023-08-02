@@ -16,11 +16,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 
-@Requires(TestPrecondition.WINDOWS)
+@Requires(UnitTestPreconditions.Windows)
 class SubstIntegrationTest extends AbstractIntegrationSpec {
     def "up to date check works from filesystem's root - input folder to output file"() {
         def drive = 'X:'

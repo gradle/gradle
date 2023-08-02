@@ -70,6 +70,11 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
+    public boolean isJvmLanguage() {
+        return true;
+    }
+
+    @Override
     public boolean supportsPackage() {
         return true;
     }
@@ -87,35 +92,41 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
         String multi = isSingleProject(settings) ? "" : "_multi_project";
-        return Optional.of(documentationRegistry.getSampleFor("building_" + getLanguage().getName() + "_" + getComponentType().pluralName() + multi));
+        return Optional.of(documentationRegistry.getSampleForMessage("building_" + getLanguage().getName() + "_" + getComponentType().pluralName() + multi));
     }
 
     @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        if (isSingleProject(settings)) {
-            addMavenCentral(buildScriptBuilder);
-            String languagePlugin = description.getPluginName();
-            if (languagePlugin != null) {
-                String pluginVersionProperty = description.getPluginVersionProperty();
-                String pluginVersion = pluginVersionProperty == null ? null : libraryVersionProvider.getVersion(pluginVersionProperty);
-                buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin, pluginVersion);
+        if (!isSingleProject(settings)) {
+            return;
+        }
+
+        addMavenCentral(buildScriptBuilder);
+
+        description.getPluginName().ifPresent(languagePlugin -> {
+            String pluginVersionProperty = description.getPluginVersionProperty();
+            String pluginVersion = pluginVersionProperty == null ? null : libraryVersionProvider.getVersion(pluginVersionProperty);
+            buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin, pluginVersion);
+        });
+
+        settings.getJavaLanguageVersion().ifPresent(languageVersion -> {
+            buildScriptBuilder.javaToolchainFor(languageVersion);
+        });
+
+        buildScriptBuilder
+            .fileComment("This generated file contains a sample " + getLanguage() + " " + getComponentType() + " project to get you started.")
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("details on building Java & JVM projects", "building_java_projects"));
+
+        addStandardDependencies(buildScriptBuilder, false);
+
+        if (settings.isUseTestSuites()) {
+            // Spock test framework requires that we also have the Groovy plugin applied
+            if (getLanguage() != Language.GROOVY && settings.getTestFramework() == BuildInitTestFramework.SPOCK) {
+                buildScriptBuilder.plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy");
             }
-
-            buildScriptBuilder.fileComment("This generated file contains a sample " + getLanguage() + " " + getComponentType() + " project to get you started.");
-            buildScriptBuilder.fileComment("For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle")
-                .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
-
-            addStandardDependencies(buildScriptBuilder, false);
-
-            if (settings.isUseTestSuites()) {
-                // Spock test framework requires that we also have the Groovy plugin applied
-                if (getLanguage() != Language.GROOVY && settings.getTestFramework() == BuildInitTestFramework.SPOCK) {
-                    buildScriptBuilder.plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy");
-                }
-                configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
-            } else {
-                addTestFramework(settings.getTestFramework(), buildScriptBuilder);
-            }
+            configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
+        } else {
+            addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         }
     }
 
@@ -123,7 +134,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         if ("common".equals(conventionPluginName)) {
             addMavenCentral(buildScriptBuilder);
-            String languagePlugin = description.getPluginName() == null ? "java" : description.getPluginName();
+            String languagePlugin = description.getPluginName().orElse("java");
             buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin);
             addStandardDependencies(buildScriptBuilder, true);
             addDependencyConstraints(buildScriptBuilder);
@@ -162,7 +173,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
     private String templatePath(String baseFileName) {
         return getLanguage().getName() + getComponentType().toString() + "/" + baseFileName
-            + "." + templateLanguage(baseFileName).getExtension() +".template";
+            + "." + templateLanguage(baseFileName).getExtension() + ".template";
     }
 
     private Language templateLanguage(String baseFileName) {
@@ -233,8 +244,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                             groovyModuleDependency("groovy", libraryVersionProvider.getVersion("groovy")));
                 }
                 buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
-                        "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
-                        "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                    "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
+                    "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                buildScriptBuilder.testRuntimeOnlyDependency(null, "org.junit.platform:junit-platform-launcher");
                 buildScriptBuilder.taskMethodInvocation(
                     "Use JUnit Platform for unit tests.",
                     "test", "Test", "useJUnitPlatform");
@@ -250,8 +262,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 break;
             case JUNIT_JUPITER:
                 buildScriptBuilder.testImplementationDependency(
-                        "Use JUnit Jupiter for testing.",
-                        "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter"));
+                    "Use JUnit Jupiter for testing.",
+                    "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter"));
+                buildScriptBuilder.testRuntimeOnlyDependency(null, "org.junit.platform:junit-platform-launcher");
 
                 buildScriptBuilder.taskMethodInvocation(
                     "Use JUnit Platform for unit tests.",
@@ -264,9 +277,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 String junitVersion = libraryVersionProvider.getVersion("junit");
                 String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
                 buildScriptBuilder.testImplementationDependency("Use Scalatest for testing our library",
-                    "junit:junit:" + junitVersion,
-                    "org.scalatest:scalatest_" + scalaVersion + ":" + scalaTestVersion,
-                    "org.scalatestplus:junit-4-13_" + scalaVersion + ":" + scalaTestPlusJunitVersion)
+                        "junit:junit:" + junitVersion,
+                        "org.scalatest:scalatest_" + scalaVersion + ":" + scalaTestVersion,
+                        "org.scalatestplus:junit-4-13_" + scalaVersion + ":" + scalaTestPlusJunitVersion)
                     .testRuntimeOnlyDependency("Need scala-xml at test runtime",
                         "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
                 break;
@@ -274,10 +287,11 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit 5 integration.", "org.jetbrains.kotlin:kotlin-test-junit5");
                 // TODO: Make this work with JUnit 5.6.0 again, see https://github.com/gradle/gradle/issues/13955
                 buildScriptBuilder.testImplementationDependency("Use the JUnit 5 integration.", "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter"));
+                buildScriptBuilder.testRuntimeOnlyDependency(null, "org.junit.platform:junit-platform-launcher");
 
                 buildScriptBuilder.taskMethodInvocation(
-                        "Use JUnit Platform for unit tests.",
-                        "test", "Test", "useJUnitPlatform");
+                    "Use JUnit Platform for unit tests.",
+                    "test", "Test", "useJUnitPlatform");
                 break;
             default:
                 buildScriptBuilder.testImplementationDependency("Use JUnit test framework.", "junit:junit:" + libraryVersionProvider.getVersion("junit"));

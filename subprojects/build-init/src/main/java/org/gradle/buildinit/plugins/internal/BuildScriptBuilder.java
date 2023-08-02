@@ -30,8 +30,10 @@ import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -55,6 +57,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor.PLUGINS_BUILD_LOCATION;
 
 /**
  * Assembles the parts of a build script.
@@ -332,6 +335,7 @@ public class BuildScriptBuilder {
     /**
      * Adds a top level block statement.
      *
+     *
      * @return The body of the block, to which further statements can be added.
      */
     public ScriptBlockBuilder block(@Nullable String comment, String methodName) {
@@ -344,6 +348,16 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentBuilder) {
         blockContentBuilder.execute(block.block(comment, methodName));
         return this;
+    }
+
+    public BuildScriptBuilder javaToolchainFor(JavaLanguageVersion languageVersion) {
+        return block("Apply a specific Java toolchain to ease working on different environments.", "java", t -> {
+            t.block(null, "toolchain", t1 -> {
+                t1.propertyAssignment(null, "languageVersion",
+                    new MethodInvocationExpression(null, "JavaLanguageVersion.of", singletonList(new LiteralValue(languageVersion.asInt()))),
+                false);
+            });
+        });
     }
 
     /**
@@ -496,6 +510,10 @@ public class BuildScriptBuilder {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    public void includePluginsBuild() {
+        block.includePluginsBuild();
     }
 
     public interface Expression {
@@ -1116,7 +1134,7 @@ public class BuildScriptBuilder {
                 ScriptBlockImpl constraintsBlock = new ScriptBlockImpl();
                 for (String config : this.constraints.keySet()) {
                     for (Statement constraintSpec : this.constraints.get(config)) {
-                            constraintsBlock.add(constraintSpec);
+                        constraintsBlock.add(constraintSpec);
                     }
                 }
                 printer.printBlock("constraints", constraintsBlock);
@@ -1135,7 +1153,7 @@ public class BuildScriptBuilder {
             if (!constraints.isEmpty()) {
                 ScriptBlock constraintsBlock = new ScriptBlock(null, "constraints");
                 for (String config : constraints.keySet()) {
-                    for(Statement statement : constraints.get(config)) {
+                    for (Statement statement : constraints.get(config)) {
                         constraintsBlock.add(statement);
                     }
                 }
@@ -1193,28 +1211,28 @@ public class BuildScriptBuilder {
 
         @Override
         public SuiteSpec junitJupiterSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, libraryVersionProvider.getVersion("junit-jupiter"),  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, libraryVersionProvider.getVersion("junit-jupiter"), builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec spockSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, libraryVersionProvider.getVersion("spock"),  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, libraryVersionProvider.getVersion("spock"), builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec kotlinTestSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, libraryVersionProvider.getVersion("kotlin"),  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, libraryVersionProvider.getVersion("kotlin"), builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec testNG(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, libraryVersionProvider.getVersion("testng"),  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, libraryVersionProvider.getVersion("testng"), builder);
             suites.add(spec);
             return spec;
         }
@@ -1499,7 +1517,8 @@ public class BuildScriptBuilder {
     }
 
     private static class TopLevelBlock extends ScriptBlockImpl {
-        final BlockStatement plugins = new BlockStatement("plugins");
+        final BlockStatement pluginsManagement = new BlockStatement(InitialPassStatementTransformer.PLUGIN_MANAGEMENT);
+        final BlockStatement plugins = new BlockStatement(InitialPassStatementTransformer.PLUGINS);
         final RepositoriesBlock repositories;
         final DependenciesBlock dependencies = new DependenciesBlock();
         final TestingBlock testing;
@@ -1516,6 +1535,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
+            printer.printStatement(pluginsManagement);
             printer.printStatement(plugins);
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
@@ -1564,6 +1584,11 @@ public class BuildScriptBuilder {
                     comments.add(statement.getComment());
                 }
             }
+        }
+
+        public void includePluginsBuild() {
+            pluginsManagement.add(new MethodInvocation("Include 'plugins build' to define convention plugins.",
+                new MethodInvocationExpression(null, "includeBuild", expressionValues(PLUGINS_BUILD_LOCATION))));
         }
     }
 
@@ -2273,7 +2298,8 @@ public class BuildScriptBuilder {
 
             @Override
             protected void handleInsecureURL(URI repoLocation, ScriptBlockImpl statements) {
-                LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+                LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. {}",
+                    documentationRegistry.getDocumentationRecommendationFor("options", "build_init_plugin", "sec:allow_insecure"));
                 throw new GradleException(String.format("Build generation aborted due to insecure protocol in repository: %s", repoLocation));
             }
         }
@@ -2289,7 +2315,8 @@ public class BuildScriptBuilder {
 
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
-                LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+                LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. {}",
+                    documentationRegistry.getDocumentationRecommendationFor("information on how to do this", "build_init_plugin", "sec:allow_insecure"));
                 // use the insecure URL as-is
                 statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
                 // Leave a commented out block for opting into using the insecure repository

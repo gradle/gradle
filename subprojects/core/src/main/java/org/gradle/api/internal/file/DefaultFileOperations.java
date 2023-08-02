@@ -52,7 +52,7 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
@@ -75,6 +75,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"})
 public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
+    private final ObjectFactory objectFactory;
     private final Instantiator instantiator;
     private final Deleter deleter;
     private final ResourceHandler resourceHandler;
@@ -87,7 +88,7 @@ public class DefaultFileOperations implements FileOperations {
     private final TaskDependencyFactory taskDependencyFactory;
     private final ProviderFactory providers;
     private final DecompressionCacheFactory decompressionCacheFactory;
-    private final ScopedCache scopedCache;
+    private final ScopedCacheBuilderFactory cacheBuilderFactory;
 
     public DefaultFileOperations(
         FileResolver fileResolver,
@@ -104,10 +105,11 @@ public class DefaultFileOperations implements FileOperations {
         TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providers,
         DecompressionCacheFactory decompressionCacheFactory,
-        ScopedCache scopedCache
+        ScopedCacheBuilderFactory cacheBuilderFactory
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
+        this.objectFactory = objectFactory;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.resourceHandler = resourceHandlerFactory.create(this);
@@ -129,7 +131,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileSystem = fileSystem;
         this.deleter = deleter;
         this.decompressionCacheFactory = decompressionCacheFactory;
-        this.scopedCache = scopedCache;
+        this.cacheBuilderFactory = cacheBuilderFactory;
     }
 
     @Override
@@ -188,7 +190,7 @@ public class DefaultFileOperations implements FileOperations {
         DecompressionCache nonLockingCache = new DecompressionCache() {
             @Override
             public File getBaseDir() {
-                return directoryFileTreeFactory.create(scopedCache.baseDirForCrossVersionCache(DecompressionCache.EXPANSION_CACHE_KEY)).getDir();
+                return directoryFileTreeFactory.create(cacheBuilderFactory.baseDirForCrossVersionCache(DecompressionCache.EXPANSION_CACHE_KEY)).getDir();
             }
 
             @Override
@@ -299,7 +301,7 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public CopySpec copySpec() {
-        return instantiator.newInstance(DefaultCopySpec.class, fileCollectionFactory, instantiator, patternSetFactory);
+        return instantiator.newInstance(DefaultCopySpec.class, fileCollectionFactory, objectFactory, instantiator, patternSetFactory);
     }
 
     @Override
@@ -325,7 +327,7 @@ public class DefaultFileOperations implements FileOperations {
         ProviderFactory providers = services.get(ProviderFactory.class);
         TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
         DecompressionCacheFactory decompressionCacheFactory = services.get(DecompressionCacheFactory.class);
-        ScopedCache scopedCache = services.get(ScopedCache.class);
+        ScopedCacheBuilderFactory cacheBuilderFactory = services.get(ScopedCacheBuilderFactory.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
@@ -350,6 +352,6 @@ public class DefaultFileOperations implements FileOperations {
             taskDependencyFactory,
             providers,
             decompressionCacheFactory,
-            scopedCache);
+            cacheBuilderFactory);
     }
 }

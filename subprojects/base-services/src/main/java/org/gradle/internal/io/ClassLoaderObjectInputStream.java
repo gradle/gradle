@@ -15,6 +15,9 @@
  */
 package org.gradle.internal.io;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.classanalysis.JavaClassUtil;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -38,6 +41,36 @@ public class ClassLoaderObjectInputStream extends ObjectInputStream {
             return Class.forName(desc.getName(), false, loader);
         } catch (ClassNotFoundException e) {
             return super.resolveClass(desc);
+        } catch (UnsupportedClassVersionError e) {
+            try {
+                Integer majorVersion = JavaClassUtil.getClassMajorVersion(desc.getName(), loader);
+                if (majorVersion != null) {
+                    throw new UnsupportedClassVersionErrorWithJavaVersion(e, JavaVersion.forClassVersion(majorVersion));
+                }
+                // We could not find the class. Throw the original error.
+                throw e;
+            } catch (IOException ignored) {
+                // There was an error parsing the class. Throw the original error.
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * Specialization of {@link UnsupportedClassVersionError} which includes the {@link JavaVersion} of
+     * the class which is unsupported. The base class only includes the class version in the error message
+     * and does not provide programmatic access.
+     */
+    public static class UnsupportedClassVersionErrorWithJavaVersion extends UnsupportedClassVersionError  {
+        private final JavaVersion version;
+        public UnsupportedClassVersionErrorWithJavaVersion(UnsupportedClassVersionError cause, JavaVersion version) {
+            super(cause.getMessage());
+            initCause(cause);
+            this.version = version;
+        }
+
+        public JavaVersion getVersion() {
+            return version;
         }
     }
 }

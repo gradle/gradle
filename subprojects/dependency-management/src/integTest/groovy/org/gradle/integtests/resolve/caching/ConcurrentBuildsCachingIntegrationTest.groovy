@@ -45,13 +45,15 @@ dependencies {
     b "group1:module2:0.99"
 }
 task a {
+    def files = configurations.a
     doLast {
-        configurations.a.files
+        files.files
     }
 }
 task b {
+    def files = configurations.b
     doLast {
-        configurations.b.files
+        files.files
     }
 }
 task block1 {

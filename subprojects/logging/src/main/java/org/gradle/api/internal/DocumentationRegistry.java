@@ -25,33 +25,64 @@ import org.gradle.util.GradleVersion;
  */
 @ServiceScope(Scope.Global.class)
 public class DocumentationRegistry {
-    private final GradleVersion gradleVersion;
+    public final static String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
+    public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
+    public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
+    public static final String LEARN_MORE_STRING = "To learn more about Gradle by exploring our Samples at ";
 
     public DocumentationRegistry() {
-        this.gradleVersion = GradleVersion.current();
     }
+
 
     /**
      * Returns the location of the documentation for the given feature, referenced by id. The location may be local or remote.
      */
     public String getDocumentationFor(String id) {
-        return String.format("https://docs.gradle.org/%s/userguide/%s.html", gradleVersion.getVersion(), id);
+        return String.format("%s/userguide/%s.html", BASE_URL, id);
     }
 
+
+    /**
+     * Returns the location of the documentation for the given feature, referenced by id and section. The location may be local or remote.
+     */
     public String getDocumentationFor(String id, String section) {
-        return String.format("https://docs.gradle.org/%s/userguide/%s.html#%s", gradleVersion.getVersion(), id, section);
+        return getDocumentationFor(id) + "#" + section;
     }
 
     public String getDslRefForProperty(Class<?> clazz, String property) {
         String className = clazz.getName();
-        return String.format("https://docs.gradle.org/%s/dsl/%s.html#%s:%s", gradleVersion.getVersion(), className, className, property);
+        return String.format(DSL_PROPERTY_URL_FORMAT, BASE_URL, className, className, property);
+    }
+
+    public String getDslRefForProperty(String className, String property) {
+        return String.format(DSL_PROPERTY_URL_FORMAT, BASE_URL, className, className, property);
     }
 
     public String getSampleIndex() {
-        return String.format("https://docs.gradle.org/%s/samples", gradleVersion.getVersion());
+        return BASE_URL + "/samples";
     }
 
     public String getSampleFor(String id) {
-        return String.format("https://docs.gradle.org/%s/samples/sample_%s.html", gradleVersion.getVersion(), id);
+        return String.format(getSampleIndex() + "/sample_%s.html", id);
+    }
+
+    public String getSampleForMessage(String id) {
+        return LEARN_MORE_STRING + getSampleFor(id);
+    }
+
+    public String getSampleForMessage() {
+        return LEARN_MORE_STRING + getSampleIndex();
+    }
+
+    public String getDocumentationRecommendationFor(String topic, String id) {
+        return getRecommendationString(topic, getDocumentationFor(id));
+    }
+
+    public String getDocumentationRecommendationFor(String topic, String id, String section) {
+        return getRecommendationString(topic, getDocumentationFor(id, section));
+    }
+
+    private static String getRecommendationString(String topic, String url) {
+        return String.format(RECOMMENDATION, topic.trim(), url);
     }
 }

@@ -21,20 +21,15 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseClassPathUtil;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
@@ -246,6 +241,16 @@ public abstract class EclipseClasspath {
     }
 
     /**
+     * The base output directory for source sets.
+     * <p>
+     * See {@link EclipseClasspath} for an example.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    public abstract Property<File> getBaseSourceOutputDir();
+
+    /**
      * Whether to download and associate source Jars with the dependency Jars. Defaults to true.
      * <p>
      * See {@link EclipseClasspath} for an example.
@@ -352,17 +357,7 @@ public abstract class EclipseClasspath {
     public List<ClasspathEntry> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        boolean inferModulePath = false;
-        Task javaCompileTask = project.getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
-        if (javaCompileTask instanceof JavaCompile) {
-            JavaCompile javaCompile = (JavaCompile) javaCompileTask;
-            inferModulePath = javaCompile.getModularity().getInferModulePath().get();
-            if (inferModulePath) {
-                List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) javaCompile.getSource());
-                inferModulePath = JavaModuleDetector.isModuleSource(true, sourceRoots);
-            }
-        }
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), inferModulePath);
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), EclipseClassPathUtil.isInferModulePath(this.project));
         return classpathFactory.createEntries();
     }
 
@@ -377,9 +372,7 @@ public abstract class EclipseClasspath {
 
     public FileReferenceFactory getFileReferenceFactory() {
         FileReferenceFactory referenceFactory = new FileReferenceFactory();
-        for (Map.Entry<String, File> entry : pathVariables.entrySet()) {
-            referenceFactory.addPathVariable(entry.getKey(), entry.getValue());
-        }
+        pathVariables.forEach((key, value) -> referenceFactory.addPathVariable(key, value));
         return referenceFactory;
     }
 

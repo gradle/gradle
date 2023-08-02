@@ -22,10 +22,10 @@ import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CacheVisitor;
 import org.gradle.internal.Cast;
@@ -45,7 +45,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
      * In case multiple threads is accessing the cache, for example when running JUnit 5 tests in parallel,
      * the map must be protected from concurrent modification.
      */
-    final Map<Pair<File, String>, PersistentIndexedCache<?, ?>> caches = Collections.synchronizedMap(Maps.newLinkedHashMap());
+    final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(Maps.newLinkedHashMap());
 
     @Override
     public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
@@ -114,27 +114,27 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
             assertNotClosed();
-            return createCache(name, valueSerializer);
+            return createIndexedCache(name, valueSerializer);
         }
 
         @Override
-        public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
+        public <K, V> boolean indexedCacheExists(IndexedCacheParameters<K, V> parameters) {
             return true;
         }
 
         @Override
-        public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
+        public <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters) {
             assertNotClosed();
-            return createCache(parameters.getCacheName(), parameters.getValueSerializer());
+            return createIndexedCache(parameters.getCacheName(), parameters.getValueSerializer());
         }
 
-        private <K, V> PersistentIndexedCache<K, V> createCache(String name, Serializer<V> valueSerializer) {
+        private <K, V> IndexedCache<K, V> createIndexedCache(String name, Serializer<V> valueSerializer) {
             assertNotClosed();
-            PersistentIndexedCache<?, ?> indexedCache = caches.get(Pair.of(cacheDir, name));
+            IndexedCache<?, ?> indexedCache = caches.get(Pair.of(cacheDir, name));
             if (indexedCache == null) {
-                indexedCache = new TestInMemoryPersistentIndexedCache<K, V>(valueSerializer);
+                indexedCache = new TestInMemoryIndexedCache<K, V>(valueSerializer);
                 caches.put(Pair.of(cacheDir, name), indexedCache);
             }
             return Cast.uncheckedCast(indexedCache);

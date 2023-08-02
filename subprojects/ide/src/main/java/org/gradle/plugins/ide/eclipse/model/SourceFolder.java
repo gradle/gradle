@@ -18,13 +18,12 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +48,7 @@ public class SourceFolder extends AbstractClasspathEntry {
     private List<String> parseNodeListAttribute(Node node, String attributeName) {
         Object attribute = node.attribute(attributeName);
         if (attribute == null) {
-            return Collections.emptyList();
+            return ImmutableList.of();
         } else {
             return Arrays.asList(((String)attribute).split("\\|"));
         }
@@ -58,8 +57,8 @@ public class SourceFolder extends AbstractClasspathEntry {
     public SourceFolder(String projectRelativePath, String output) {
         super(projectRelativePath);
         this.output = normalizePath(output);
-        this.includes = Lists.newArrayList();
-        this.excludes = Lists.newArrayList();
+        this.includes = ImmutableList.of();
+        this.excludes = ImmutableList.of();
     }
 
     public String getOutput() {
@@ -122,12 +121,13 @@ public class SourceFolder extends AbstractClasspathEntry {
         path = name;
     }
 
+    private static final Joiner JOINER = Joiner.on("|");
+
     @Override
     public void appendNode(Node node) {
         Map<String, Object> attributes = Maps.newLinkedHashMap();
-        Joiner joiner = Joiner.on("|");
-        attributes.put("including", joiner.join(includes));
-        attributes.put("excluding", joiner.join(excludes));
+        attributes.put("including", JOINER.join(includes));
+        attributes.put("excluding", JOINER.join(excludes));
         attributes.put("output", output);
         addClasspathEntry(node, attributes);
     }

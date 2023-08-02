@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":model-groovy"))
     implementation(project(":resources"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
@@ -56,7 +57,7 @@ dependencies {
     testFixturesImplementation(project(":model-core"))
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true
 
 strictCompile {
     ignoreDeprecations()

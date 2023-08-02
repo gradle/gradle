@@ -16,7 +16,8 @@
 
 package org.gradle.internal.jvm;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
@@ -27,12 +28,18 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 public class Jvm implements JavaInfo {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
+    private static final HashSet<String> VENDOR_PROPERTIES = Sets.newHashSet("java.vendor", "java.vm.vendor");
+    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
+    private static final Pattern APP_NAME_REGEX = Pattern.compile("APP_NAME_\\d+");
+    private static final Pattern JAVA_MAIN_CLASS_REGEX = Pattern.compile("JAVA_MAIN_CLASS_\\d+");
 
     private final OperatingSystem os;
     //supplied java location
@@ -42,34 +49,21 @@ public class Jvm implements JavaInfo {
     private final boolean userSupplied;
     private final String implementationJavaVersion;
     private final JavaVersion javaVersion;
-    private static final AtomicReference<JvmImplementation> CURRENT = new AtomicReference<JvmImplementation>();
 
     // Cached resolved executables
     private File javaExecutable;
     private File javacExecutable;
     private File javadocExecutable;
-    private File toolsJar;
+    private Optional<File> toolsJar;
     private Boolean jdk;
 
     public static Jvm current() {
         Jvm jvm = CURRENT.get();
         if (jvm == null) {
-            CURRENT.compareAndSet(null, createCurrent());
+            CURRENT.compareAndSet(null, new Jvm(OperatingSystem.current()));
             jvm = CURRENT.get();
         }
         return jvm;
-    }
-
-    @VisibleForTesting
-    static JvmImplementation createCurrent() {
-        String vendor = System.getProperty("java.vm.vendor");
-        if (vendor.toLowerCase().startsWith("apple inc.")) {
-            return new AppleJvm(OperatingSystem.current());
-        }
-        if (vendor.toLowerCase().startsWith("ibm corporation")) {
-            return new IbmJvm(OperatingSystem.current());
-        }
-        return new JvmImplementation(OperatingSystem.current());
     }
 
     private static Jvm create(File javaBase, @Nullable String implementationJavaVersion, @Nullable JavaVersion javaVersion) {
@@ -258,9 +252,9 @@ public class Jvm implements JavaInfo {
     }
 
     private File findJavaHome(File javaBase) {
-        File toolsJar = findToolsJar(javaBase);
-        if (toolsJar != null) {
-            return toolsJar.getParentFile().getParentFile();
+        Optional<File> toolsJar = findToolsJar(javaBase);
+        if (toolsJar.isPresent()) {
+            return toolsJar.get().getParentFile().getParentFile();
         } else if (javaBase.getName().equalsIgnoreCase("jre") && new File(javaBase.getParentFile(), "bin/java").exists()) {
             return javaBase.getParentFile();
         } else {
@@ -274,10 +268,12 @@ public class Jvm implements JavaInfo {
     @Override
     public File getToolsJar() {
         if (toolsJar != null) {
-            return toolsJar;
+            return toolsJar.orNull();
+        } else {
+            toolsJar = findToolsJar(javaHome);
         }
-        toolsJar = findToolsJar(javaHome);
-        return toolsJar;
+
+        return toolsJar.orNull();
     }
 
     /**
@@ -320,23 +316,19 @@ public class Jvm implements JavaInfo {
         if (standaloneJre != null) {
             return standaloneJre;
         }
-        File embeddedJre = getEmbeddedJre();
-        if (embeddedJre != null) {
-            return embeddedJre;
-        }
-        return null;
+        return getEmbeddedJre();
     }
 
-    private File findToolsJar(File javaHome) {
+    private Optional<File> findToolsJar(File javaHome) {
         File toolsJar = new File(javaHome, "lib/tools.jar");
         if (toolsJar.exists()) {
-            return toolsJar;
+            return Optional.of(toolsJar);
         }
         if (javaHome.getName().equalsIgnoreCase("jre")) {
             javaHome = javaHome.getParentFile();
             toolsJar = new File(javaHome, "lib/tools.jar");
             if (toolsJar.exists()) {
-                return toolsJar;
+                return Optional.of(toolsJar);
             }
         }
 
@@ -346,72 +338,37 @@ public class Jvm implements JavaInfo {
                 javaHome = new File(javaHome.getParentFile(), "jdk" + version);
                 toolsJar = new File(javaHome, "lib/tools.jar");
                 if (toolsJar.exists()) {
-                    return toolsJar;
+                    return Optional.of(toolsJar);
                 }
             }
         }
 
-        return null;
+        return Optional.absent();
     }
 
-    public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
-        return envVars;
+    public static Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
+        Map<String, Object> vars = new HashMap<String, Object>();
+        for (Map.Entry<String, ?> entry : envVars.entrySet()) {
+            // The following are known variables that can change between builds and should not be inherited
+            if (APP_NAME_REGEX.matcher(entry.getKey()).matches()
+                || JAVA_MAIN_CLASS_REGEX.matcher(entry.getKey()).matches()
+                || entry.getKey().equals("TERM_SESSION_ID")
+                || entry.getKey().equals("ITERM_SESSION_ID")) {
+                continue;
+            }
+            vars.put(entry.getKey(), entry.getValue());
+        }
+        return vars;
     }
 
     public boolean isIbmJvm() {
-        return false;
-    }
-
-    /**
-     * Details about a known JVM implementation.
-     */
-    static class JvmImplementation extends Jvm {
-        JvmImplementation(OperatingSystem os) {
-            super(os);
-        }
-    }
-
-    static class IbmJvm extends JvmImplementation {
-        IbmJvm(OperatingSystem os) {
-            super(os);
-        }
-
-        @Override
-        public boolean isIbmJvm() {
-            return true;
-        }
-    }
-
-    /**
-     * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE, but this is likely an over-simplification.
-     */
-    static class AppleJvm extends JvmImplementation {
-        AppleJvm(OperatingSystem os) {
-            super(os);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public File getToolsJar() {
-            return null;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
-            Map<String, Object> vars = new HashMap<String, Object>();
-            for (Map.Entry<String, ?> entry : envVars.entrySet()) {
-                if (entry.getKey().matches("APP_NAME_\\d+") || entry.getKey().matches("JAVA_MAIN_CLASS_\\d+")) {
-                    continue;
-                }
-                vars.put(entry.getKey(), entry.getValue());
+        for (String vendorProperty : VENDOR_PROPERTIES) {
+            if (System.getProperties().containsKey(vendorProperty)
+                && System.getProperty(vendorProperty).toLowerCase().startsWith("ibm corporation")) {
+                return true;
             }
-            return vars;
         }
+        return false;
     }
 
 }

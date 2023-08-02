@@ -20,5 +20,5 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 
 public interface TransformOutputsInternal extends TransformOutputs {
 
-    TransformationResult getRegisteredOutputs();
+    TransformExecutionResult getRegisteredOutputs();
 }

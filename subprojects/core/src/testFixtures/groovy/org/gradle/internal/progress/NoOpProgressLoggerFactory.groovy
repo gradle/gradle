@@ -22,11 +22,11 @@ import org.gradle.internal.operations.BuildOperationDescriptor
 
 class NoOpProgressLoggerFactory implements ProgressLoggerFactory {
     ProgressLogger newOperation(String loggerCategory) {
-        throw new UnsupportedOperationException()
+        return new Logger()
     }
 
     ProgressLogger newOperation(Class<?> loggerCategory) {
-        throw new UnsupportedOperationException()
+        return new Logger()
     }
 
     ProgressLogger newOperation(Class<?> loggerCategory, BuildOperationDescriptor buildOperationDescriptor) {

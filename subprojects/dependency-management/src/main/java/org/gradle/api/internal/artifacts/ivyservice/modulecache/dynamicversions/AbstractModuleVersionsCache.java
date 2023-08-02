@@ -32,7 +32,7 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
     }
 
     @Override
-    public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
+    public void cacheModuleVersionList(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
         LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
         ModuleAtRepositoryKey key = createKey(repository, moduleId);
         ModuleVersionsCacheEntry entry = createEntry(listedVersions);
@@ -40,7 +40,7 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
     }
 
     @Override
-    public CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId) {
+    public CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId) {
         ModuleAtRepositoryKey key = createKey(repository, moduleId);
         ModuleVersionsCacheEntry entry = get(key);
         return entry == null ? null : versionList(entry);
@@ -53,7 +53,7 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
         );
     }
 
-    private ModuleAtRepositoryKey createKey(ModuleComponentRepository repository, ModuleIdentifier moduleId) {
+    private ModuleAtRepositoryKey createKey(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId) {
         return new ModuleAtRepositoryKey(repository.getId(), moduleId);
     }
 

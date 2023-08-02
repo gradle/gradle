@@ -1,11 +1,11 @@
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver' version '0.3.0'
+    id 'org.gradle.toolchains.foojay-resolver' version '0.4.0'
 }
 
 import java.util.Optional
 import javax.inject.Inject
 
-apply plugin: AdoptiumPlugin
+apply plugin: MadeUpPlugin
 
 // tag::toolchain-management[]
 toolchainManagement {
@@ -14,8 +14,8 @@ toolchainManagement {
             repository('foojay') { // <2>
                 resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver
             }
-            repository('adoptium') { // <3>
-                resolverClass = AdoptiumResolver
+            repository('made_up') { // <3>
+                resolverClass = MadeUpResolver
                 credentials {
                     username "user"
                     password "password"
@@ -31,7 +31,7 @@ toolchainManagement {
 
 rootProject.name = 'toolchain-management'
 
-abstract class AdoptiumPlugin implements Plugin<Settings> {
+abstract class MadeUpPlugin implements Plugin<Settings> {
 
     @Inject
     protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
@@ -40,11 +40,11 @@ abstract class AdoptiumPlugin implements Plugin<Settings> {
         settings.getPlugins().apply("jvm-toolchain-management")
 
         JavaToolchainResolverRegistry registry = getToolchainResolverRegistry()
-        registry.register(AdoptiumResolver.class)
+        registry.register(MadeUpResolver.class)
     }
 }
 
-abstract class AdoptiumResolver implements JavaToolchainResolver {
+abstract class MadeUpResolver implements JavaToolchainResolver {
     @Override
     Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
         return Optional.empty()

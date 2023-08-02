@@ -28,8 +28,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.GroovyRuntime;
@@ -39,6 +38,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.GroovydocAccess;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
@@ -57,17 +57,17 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
-    private final JvmPluginServices jvmPluginServices;
+    private final JvmLanguageUtilities jvmLanguageUtils;
 
     @Inject
     public GroovyBasePlugin(
         ObjectFactory objectFactory,
         ModuleRegistry moduleRegistry,
-        JvmEcosystemUtilities jvmPluginServices
+        JvmLanguageUtilities jvmPluginServices
     ) {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
-        this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
+        this.jvmLanguageUtils = jvmPluginServices;
     }
 
     @Override
@@ -120,7 +120,9 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private GroovySourceDirectorySet getGroovySourceDirectorySet(SourceSet sourceSet) {
         final org.gradle.api.internal.tasks.DefaultGroovySourceSet groovySourceSet = objectFactory.newInstance(org.gradle.api.internal.tasks.DefaultGroovySourceSet.class, "groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
-        new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
+        DeprecationLogger.whileDisabled(() ->
+            new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet)
+        );
         return groovySourceSet.getGroovy();
     }
 
@@ -135,8 +137,8 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureTargetPlatform(TaskProvider<GroovyCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
-        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
-        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
+        jvmLanguageUtils.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
+        jvmLanguageUtils.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
     }
 
     private TaskProvider<GroovyCompile> createGroovyCompileTask(Project project, SourceSet sourceSet, GroovySourceDirectorySet groovySource) {
@@ -157,6 +159,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
         return compileTask;
     }
+
     private void configureGroovydoc(Project project, GroovyRuntime groovyRuntime) {
         project.getTasks().withType(Groovydoc.class).configureEach(groovydoc -> {
             groovydoc.getConventionMapping().map("groovyClasspath", () -> {

@@ -19,13 +19,14 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.api.JavaVersion.VERSION_1_8
 import static org.gradle.api.JavaVersion.VERSION_1_9
 
-@Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_1_9) })
+@Requires([IntegTestPreconditions.Java8HomeAvailable, IntegTestPreconditions.Java9HomeAvailable ])
 class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
     /**

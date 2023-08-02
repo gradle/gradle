@@ -33,10 +33,21 @@ sealed class ConfigurationCacheFingerprint {
         val jvm: String,
         val startParameterProperties: Map<String, Any?>,
         /**
+         * Whether the undeclared inputs accessed while serializing the task graph will be
+         * excluded from input tracking. This is a temporary opt-out flag after a change
+         * was made in that behavior.
+         */
+        val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean,
+        /**
          * Whether the instrumentation agent was used when computing the cache.
          * With the agent, the class paths may be stored differently, making the caches incompatible with one another.
          */
-        val instrumentationAgentUsed: Boolean
+        val instrumentationAgentUsed: Boolean,
+        /**
+         * The file system paths that will be ignored during file system checks tracking for the cache fingerprint.
+         * @see org.gradle.configurationcache.DefaultIgnoredConfigurationInputs
+         */
+        val ignoredFileSystemCheckInputPaths: String?
     ) : ConfigurationCacheFingerprint()
 
     data class InitScripts(
@@ -78,7 +89,9 @@ sealed class ConfigurationCacheFingerprint {
         val value: Any?
     ) : ConfigurationCacheFingerprint()
 
-    data class RemoteScript(val uri: URI) : ConfigurationCacheFingerprint()
+    data class RemoteScript(
+        val uri: URI
+    ) : ConfigurationCacheFingerprint()
 
     abstract class ChangingDependencyResolutionValue(
         val expireAt: Long
@@ -102,7 +115,7 @@ sealed class ConfigurationCacheFingerprint {
             get() = "cached artifact information for $displayName has expired"
     }
 
-    class SystemPropertiesPrefixedBy(
+    data class SystemPropertiesPrefixedBy(
         val prefix: String,
         val snapshot: Map<String, Any?>
     ) : ConfigurationCacheFingerprint() {
@@ -122,7 +135,7 @@ sealed class ConfigurationCacheFingerprint {
         }
     }
 
-    class EnvironmentVariablesPrefixedBy(
+    data class EnvironmentVariablesPrefixedBy(
         val prefix: String,
         val snapshot: Map<String, String?>
     ) : ConfigurationCacheFingerprint()

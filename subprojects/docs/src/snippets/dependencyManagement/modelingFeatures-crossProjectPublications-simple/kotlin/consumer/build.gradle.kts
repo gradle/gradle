@@ -5,7 +5,6 @@ plugins {
 // tag::resolvable-configuration[]
 val instrumentedClasspath by configurations.creating {
     isCanBeConsumed = false
-    isCanBeResolved = true
 }
 // end::resolvable-configuration[]
 

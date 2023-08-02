@@ -29,6 +29,7 @@ public class ApiCompilerResult extends DefaultWorkResult {
     private final AnnotationProcessingResult annotationProcessingResult = new AnnotationProcessingResult();
     private final ConstantsAnalysisResult constantsAnalysisResult = new ConstantsAnalysisResult();
     private final Map<String, Set<String>> sourceToClassMapping = new HashMap<>();
+    private final Map<String, String> backupClassFiles = new HashMap<>();
 
     public ApiCompilerResult() {
         super(true, null);
@@ -44,5 +45,9 @@ public class ApiCompilerResult extends DefaultWorkResult {
 
     public Map<String, Set<String>> getSourceClassesMapping() {
         return sourceToClassMapping;
+    }
+
+    public Map<String, String> getBackupClassFiles() {
+        return backupClassFiles;
     }
 }

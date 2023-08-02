@@ -16,6 +16,8 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
 import java.io.File;
 
@@ -39,4 +41,6 @@ public interface IsolatedAntBuilder {
      * method is given a separate Ant project.
      */
     void execute(Closure antClosure);
+
+    void execute(Action<AntBuilderDelegate> antBuilderAction);
 }

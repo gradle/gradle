@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyi
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.DependencyVerificationReportWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.VerificationReport;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefinedKeys;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
@@ -42,6 +42,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -163,7 +164,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     @Override
-    public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
+    public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
         return new DependencyVerifyingModuleComponentRepository(original, this, verifier.getConfiguration().isVerifySignatures());
     }
 

@@ -15,18 +15,18 @@
 [[migrating_from_maven]]
 = Migrating Builds From Apache Maven
 
-TIP: Suffering from slow Maven builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up Maven builds by up to 90%.
+https://maven.apache.org[Apache Maven] is a build tool for Java and other JVM-based projects. It is typical to migrate an existing Maven build to Gradle.
 
-https://maven.apache.org[Apache Maven] is a build tool for Java and other JVM-based projects that's in widespread use, and so people that want to use Gradle often have to migrate an existing Maven build.
-This guide will help with such a migration by explaining the differences and similarities between the two tools' models and providing steps that you can follow to ease the process.
+This guide will help with such a migration by explaining the differences and similarities between the two tools and providing steps that you can follow to ease the process.
 
 Converting a build can be scary, but you don't have to do it alone.
-You can search docs, forums, and StackOverflow from link:https://gradle.org/help[help.gradle.org] or reach out to the link:https://discuss.gradle.org/c/help-discuss[Gradle community on the forums] if you get stuck.
+You can search our https://docs.gradle.org/[documentation], post on our https://discuss.gradle.org/[community forums], or reach out on our https://gradle.org/slack-invite[Slack channel] if you get stuck.
 
 [[migmvn:making_a_case]]
 == Making a case for migration
 
 The primary differences between Gradle and Maven are flexibility, performance, user experience, and dependency management.
+
 A visual overview of these aspects is available in the link:https://gradle.org/maven-vs-gradle[Maven vs Gradle feature comparison].
 
 Since Gradle 3.0, Gradle has invested heavily in making Gradle builds much faster, with features such as link:https://blog.gradle.org/introducing-gradle-build-cache[build caching], link:https://blog.gradle.org/incremental-compiler-avoidance[compile avoidance], and an improved incremental Java compiler.
@@ -44,62 +44,68 @@ This may make migrating between the two seem intimidating, but migrations can be
 Here we lay out a series of steps for you to follow that will help facilitate the migration of any Maven build to Gradle:
 
 TIP: Keep the old Maven build and new Gradle build side by side.
-You know the Maven build works, so you should keep it until you are confident that the Gradle build produces all the same artifacts and otherwise does what you need.
-This also means that users can try the Gradle build without getting a new copy of the source tree.
+You know the Maven build works, so you should keep it until you are confident that the Gradle build produces all the same artifacts.
+This also means that users can try the Gradle build without creating a new copy of the source tree.
 
- . link:https://scans.gradle.com#maven[Create a build scan for the Maven build].
+ . link:https://scans.gradle.com[Create a build scan for the Maven build].
 +
 A build scan will make it easier to visualize what's happening in your existing Maven build.
-For Maven builds, you'll be able to see the project structure, what plugins are being used, a timeline of the build steps, and more.
-Keep this handy so you can compare it to the Gradle build scans you get while converting the project.
+For Maven builds, you will be able to see the project structure, what plugins are being used, a timeline of the build steps, and more.
+Keep this handy so you can compare it to the Gradle build scans while converting the project.
 +
-. Develop a mechanism to verify that the two builds produce the same artifacts
+. Develop a mechanism to verify that the two builds produce the same artifacts.
 +
 This is a vitally important step to ensure that your deployments and tests don't break.
 Even small changes, such as the contents of a manifest file in a JAR, can cause problems.
-If your Gradle build produces the same output as the Maven build, this will give you and others confidence in switching over and make it easier to implement the big changes that will provide the greatest benefits.
+If your Gradle build produces the same output as the Maven build, this will give you confidence in switching over and make it easier to implement the changes that will provide the greatest benefits.
 +
 This doesn't mean that you need to verify every artifact at every stage, although doing so can help you quickly identify the source of a problem.
-You can just focus on the critical output such as final reports and the artifacts that are published or deployed.
+You should focus on the critical output such as final reports and the artifacts that are published or deployed.
 +
 You will need to factor in some inherent differences in the build output that Gradle produces compared to Maven.
 Generated POMs will contain only the information needed for consumption and they will use `<compile>` and `<runtime>` scopes correctly for that scenario.
 You might also see differences in the order of files in archives and of files on classpaths.
-Most differences will be benign, but it's worth identifying them and verifying that they are OK.
- . <<migmvn:automatic_conversion,Run an automatic conversion>>
+Most differences will be minor, but it's worth identifying them and verifying that they are acceptable.
++
+ . <<migmvn:automatic_conversion,Run an automatic conversion>>.
 +
 This will create all the Gradle build files you need, even for <<migmvn:multimodule_builds,multi-module builds>>.
 For simpler Maven projects, the Gradle build will be ready to run!
++
  . link:https://scans.gradle.com[Create a build scan for the Gradle build].
 +
 A build scan will make it easier to visualize what's happening in the build.
 For Gradle builds, you'll be able to see the project structure, the dependencies (regular and inter-project ones), what plugins are being used and the console output of the build.
 +
-Your build may fail at this point, but that's ok; the scan will still run. Compare the build scan for the Gradle build to the one for the Maven build and continue down this list to troubleshoot the failures.
+Your build may fail at this point, but that's ok; the scan will still run.
+Compare the build scan for the Gradle build to the one for the Maven build and continue down this list to troubleshoot the failures.
 +
 We recommend that you regularly generate build scans during the migration to help you identify and troubleshoot problems.
-If you want, you can also use a Gradle build scan to identify opportunities to <<performance.adoc#performance_gradle,improve the performance of the build>>, after all performance is a big reason for switching to Gradle in the first place.
- . <<migmvn:migrating_deps,Verify your dependencies and fix any problems>>
- . <<migmvn:integration_tests,Configure integration and functional tests>>
+If you want, you can also use a Gradle build scan to identify opportunities to <<performance.adoc#performance_gradle,improve the performance of the build>>.
++
+ . <<migmvn:migrating_deps,Verify your dependencies and fix any problems>>.
++
+ . <<migmvn:integration_tests,Configure integration and functional tests>>.
 +
 Many tests can simply be migrated by configuring an extra source set.
 If you are using a third-party library, such as http://docs.fitnesse.org/FrontPage[FitNesse], look to see whether  there is a suitable community plugin available on the https://plugins.gradle.org/[Gradle Plugin Portal].
- . Replace Maven plugins with Gradle equivalents
++
+ . Replace Maven plugins with Gradle equivalents.
 +
 In the case of <<migmvn:common_plugins,popular plugins>>, Gradle often has an equivalent plugin that you can use.
 You might also find that you can <<migmvn:unnecessary_plugins,replace a plugin with built-in Gradle functionality>>.
 As a last resort, you may need to reimplement a Maven plugin <<migmvn:custom_plugins,via your own custom plugins and task types>>.
-
++
 The rest of this chapter looks in more detail at specific aspects of migrating a build from Maven to Gradle.
 
 [[migmvn:build_lifecycle]]
 == Understanding the build lifecycle
 
 Maven builds are based around the concept of https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html[_build lifecycles_] that consist of a set of fixed phases.
-This can prove an impediment for users migrating to Gradle because its build lifecycle is <<build_lifecycle#build_lifecycle,something different>>, although it's important to understand how Gradle builds fit into the structure of initialization, configuration, and execution phases.
-Fortunately, Gradle has a feature that can mimic Maven's phases: <<more_about_tasks#sec:lifecycle_tasks,_lifecycle tasks_>>.
+This can be a challenge for users migrating to Gradle because the build lifecycle is <<build_lifecycle#build_lifecycle,a new concept>>.
+Although it's important to understand how Gradle builds fit into the structure of *initialization*, *configuration*, and *execution* phases, Gradle provides a helper feature that can mimic Maven's phases: <<more_about_tasks#sec:lifecycle_tasks,_lifecycle tasks_>>.
 
-These allow you to define your own "lifecycles" by creating no-action tasks that simply depend on the tasks you're interested in.
+This feature allow you to define your own "lifecycles" by creating no-action tasks that simply depend on the tasks you're interested in.
 And to make the transition to Gradle easier for Maven users, the <<base_plugin#sec:base_tasks,Base Plugin>> -- applied by all the JVM language plugins like the <<java_library_plugin#java_library_plugin,Java Library Plugin>> -- provides a set of lifecycle tasks that correspond to the main Maven phases.
 
 Here is a list of some of the main Maven phases and the Gradle tasks that they map to:
@@ -113,16 +119,16 @@ This compiles all classes for all source files of all languages and also perform
 
 `test`::
 Use the `test` task provided by the Java Plugin.
-It runs just the unit tests, or more specifically, the tests that make up the <<java_plugin.adoc#source_sets,`test` source set>>.
+It runs the unit tests, and more specifically, the tests that make up the <<java_plugin.adoc#source_sets,`test` source set>>.
 
 `package`::
 Use the `assemble` task provided by the Base Plugin.
-This builds whatever is the appropriate package for the project, for example a JAR for Java libraries or a WAR for traditional Java webapps.
+This builds whatever is the appropriate package for the project; for example, a JAR for Java libraries or a WAR for traditional Java webapps.
 
 `verify`::
 Use the `check` task provided by the Base Plugin.
 This runs all verification tasks that are attached to it, which typically includes the unit tests, any static analysis tasks -- such as <<checkstyle_plugin#checkstyle_plugin,Checkstyle>> -- and others.
-If you want to include integration tests, you will have to <<migmvn:integration_tests,configure these manually>>, which is a simple process.
+If you want to include integration tests, you will have to <<migmvn:integration_tests,configure these manually>>.
 
 `install`::
 Use the `publishToMavenLocal` task provided by the <<publishing_maven#publishing_maven:tasks,Maven Publish Plugin>>.
@@ -135,7 +141,7 @@ Gradle also allows you to resolve dependencies against the local Maven cache, as
 `deploy`::
 Use the `publish` task provided by the <<publishing_maven#publishing_maven:tasks,Maven Publish Plugin>> -- making sure you switch from the older Maven Plugin (ID: `maven`) if your build is using that one.
 This will publish your package to all configured publication repositories.
-There are also other tasks that allow you to publish to a single repository even when multiple ones are defined.
+There are also tasks that allow you to publish to a single repository even when multiple ones are defined.
 +
 Note that the Maven Publish Plugin does not publish *source and Javadoc JARs* _by default_, but this can easily be activated as explained in <<building_java_projects.adoc#sec:java_packaging,the guide for building java projects>>.
 
@@ -150,8 +156,8 @@ Once Gradle is <<installation#installation,installed on your system>>, all you h
 > gradle init
 ----
 
-from the root project directory and let Gradle do its thing.
-That basically consists of parsing the existing POMs and generating the corresponding Gradle build scripts.
+from the root project directory.
+This consists of parsing the existing POMs and generating the corresponding Gradle build scripts.
 Gradle will also create a settings script if you're migrating a <<multi_project_builds#multi_project_builds,multi-project build>>.
 
 You'll find that the new Gradle build includes the following:
@@ -162,8 +168,8 @@ You'll find that the new Gradle build includes the following:
 
 See the <<build_init_plugin#sec:pom_maven_conversion,Build Init Plugin chapter>> for a complete list of the automatic conversion features.
 
-One thing to bear in mind is that assemblies are not automatically converted.
-They aren't necessarily problematic to convert, but you will need to do some manual work.
+One thing to keep in mind is that assemblies are not automatically converted.
+This additional conversion will required some manual work.
 Options include:
 
  * Using the <<distribution_plugin#distribution_plugin,Distribution Plugin>>
@@ -172,7 +178,7 @@ Options include:
  * <<working_with_files#sec:creating_archives_example,Creating custom archive tasks>>
  * Using a suitable community plugin from the https://plugins.gradle.org/[Gradle Plugin Portal]
 
-If your Maven build does not have many plugins or much in the way of customisation, you can simply run
+If your Maven build does not have many plugins or custom steps, you can simply run
 
 [listing.terminal]
 ----
@@ -180,13 +186,13 @@ If your Maven build does not have many plugins or much in the way of customisati
 ----
 
 once the migration has completed.
-This will run the tests and produce the required artifacts without any extra intervention on your part.
+This will run the tests and produce the required artifacts automatically.
 
 [[migmvn:migrating_deps]]
 == Migrating dependencies
 
 Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> in Gradle), and transitive dependencies.
-In fact, Gradle works perfectly with Maven-compatible repositories, which makes it easy to migrate your dependencies.
+In fact, Gradle works with Maven-compatible repositories which makes it easy to migrate your dependencies.
 
 NOTE: One notable difference between the two tools is in how they manage version conflicts. Maven uses a "closest" match algorithm, whereas Gradle picks the newest.
 Don't worry though, you have a lot of control over which versions are selected, as documented in <<dependency_constraints.adoc#dependency-constraints,Managing Transitive Dependencies>>.
@@ -198,7 +204,7 @@ Over the following sections, we will show you how to migrate the most common ele
 
 Gradle uses the same dependency identifier components as Maven: group ID, artifact ID and version.
 It also supports classifiers.
-So all you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies#declaring-dependencies,Declaring Dependencies>> chapter.
+All you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies#declaring-dependencies,Declaring Dependencies>> chapter.
 
 For example, consider this Maven-style dependency on Log4J:
 
@@ -326,7 +332,7 @@ Maven builds use exclusions to keep unwanted dependencies -- or unwanted _versio
 You can do the same thing with Gradle, but that's not necessarily the _right_ thing to do.
 Gradle provides other options that may be more appropriate for a given situation, so you really need to understand _why_ an exclusion is in place to migrate it properly.
 
-If you want to exclude a dependency for reasons unrelated to versions, then check out the section on <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps>>.
+If you want to exclude a dependency for reasons unrelated to versions, then check out the section on <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps,excluding transitive dependencies>>.
 It shows you how to attach an exclusion either to an entire configuration (often the most appropriate solution) or to a dependency.
 You can even easily apply an exclusion to all configurations.
 
@@ -433,9 +439,9 @@ One important piece of behavior you need to be aware of is what happens when the
 Always.
 Fortunately, you can mimic the concept of profiles to provide overridable default values.
 
-Which brings us on to Maven profiles.
+Which brings us to Maven profiles.
 These are a way to enable and disable different configurations based on environment, target platform, or any other similar factor.
-Logically, they are nothing more than limited ‘if' statements.
+Logically, they are nothing more than limited `if` statements.
 And since Gradle has much more powerful ways to declare conditions, it does not need to have formal support for profiles (except in the POMs of dependencies).
 You can easily get the same behavior by combining conditions with secondary build scripts, as you'll see.
 
@@ -513,7 +519,7 @@ If you really don't want your integration tests to fail the build, then you can 
 
 Source sets also give you a lot of flexibility on where you place the source files for your integration tests.
 You can easily keep them in the same directory as the unit tests or, more preferably, in a separate source directory like `src/integTest/java`.
-To support other types of tests, you just add more source sets and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] tasks!
+To support other types of tests, simple add more source sets and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] tasks.
 
 [[migmvn:common_plugins]]
 == Migrating common plugins
@@ -527,7 +533,7 @@ Although the plugin systems are very different beneath the surface, they share m
 * JaCoCo
 * AntRun (see further down)
 
-Why does this matter? Because many plugins rely on standard Java conventions, so migration is just a matter of replicating the configuration of the Maven plugin in Gradle.
+Why does this matter? Because many plugins rely on standard Java conventions, migration is just a matter of replicating the configuration of the Maven plugin in Gradle.
 As an example, here's a simple Maven Checkstyle plugin configuration:
 
 [source,xml]
@@ -558,7 +564,7 @@ As an example, here's a simple Maven Checkstyle plugin configuration:
 ----
 
 Everything outside of the configuration block can safely be ignored when migrating to Gradle.
-In this case, the corresponding Gradle configuration looks like the following:
+In this case, the corresponding Gradle configuration is as follows:
 
 .Configuring the Gradle Checkstyle Plugin
 ====
@@ -567,7 +573,8 @@ include::sample[dir="snippets/mavenMigration/basic/groovy",files="build.gradle[t
 ====
 
 The Checkstyle tasks are automatically added as dependencies of the `check` task, which also includes `test`.
-If you want to ensure that Checkstyle runs before the tests, then just specify an ordering with the mustRunAfter() method:
+If you want to ensure that Checkstyle runs before the tests, then just specify an ordering with the
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[mustRunAfter(...)] method:
 
 .Controlling when the `checkstyle` task runs
 ====
@@ -599,7 +606,8 @@ To learn more, see <<ant#ant,Using Ant from Gradle>>.
 
 [TIP]
 ====
-It may be simpler and cleaner to just <<custom_tasks#custom_tasks,create custom task types>> to replace the work that Ant is doing for you. You can then more readily benefit from <<incremental_build.adoc#incremental_build,incremental build>> and other useful Gradle features.
+It may be simpler and cleaner to just <<custom_tasks#custom_tasks,create custom task types>> to replace the work that Ant is doing for you.
+You can then more readily benefit from <<incremental_build.adoc#incremental_build,incremental build>> and other useful Gradle features.
 ====
 
 
@@ -628,7 +636,7 @@ Simply define task inputs and outputs that correspond to the mojo parameters and
 If a plugin depends on the Maven project, then you will have to rewrite it.
 Don't start by considering how the Maven plugin works, but look at what problem it is trying to solve.
 Then try to work out how to solve that problem in Gradle.
-You'll probably find that the two build models are different enough that "transcribing" Maven plugin code into a Gradle plugin just won't be effective.
+You will probably find that the two build models are different enough that "transcribing" Maven plugin code into a Gradle plugin just won't be effective.
 On the plus side, the plugin is likely to be much easier to write than the original Maven one because Gradle has a much richer build model and API.
 
 If you do need to implement custom logic, either via build scripts or plugins, check out the https://gradle.org/guides/?q=Plugin%20Development[Guides related to plugin development].

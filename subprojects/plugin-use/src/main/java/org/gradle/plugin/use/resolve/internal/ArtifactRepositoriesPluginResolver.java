@@ -17,6 +17,7 @@ package org.gradle.plugin.use.resolve.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -101,7 +102,10 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         ConfigurationContainer configurations = resolutionServices.getConfigurationContainer();
         Configuration configuration = configurations.detachedConfiguration(dependency);
         configuration.setTransitive(false);
-        return !configuration.getResolvedConfiguration().hasError();
+        ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
+            view.setLenient(true);
+        });
+        return lenientView.getArtifacts().getFailures().isEmpty();
     }
 
     private ModuleDependency getMarkerDependency(PluginRequestInternal pluginRequest) {

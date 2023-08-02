@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 public class FooTest {
   @Test public void test() { }

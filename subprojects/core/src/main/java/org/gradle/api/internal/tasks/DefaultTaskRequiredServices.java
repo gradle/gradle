@@ -18,22 +18,22 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.properties.GetServiceReferencesVisitor;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceProvider;
+import org.gradle.api.services.internal.ConsumedBuildServiceProvider;
+import org.gradle.api.services.internal.RegisteredBuildServiceProvider;
 import org.gradle.internal.Cast;
-import org.gradle.internal.properties.PropertyValue;
-import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
-
-import static java.util.Collections.emptySet;
 
 public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private final TaskInternal task;
@@ -44,7 +44,10 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
      * Services registered explicitly via Task#usesService(provider).
      */
     @Nullable
-    private Set<Provider<? extends BuildService<?>>> registeredServices;
+    private Set<RegisteredBuildServiceProvider<?, ?>> registeredServices;
+
+    @Nullable
+    private Collection<? extends BuildServiceProvider<?, ?>> consumedServices;
 
     public DefaultTaskRequiredServices(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker) {
         this.task = task;
@@ -54,53 +57,67 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     @Override
     public Set<Provider<? extends BuildService<?>>> getElements() {
-        ImmutableSet.Builder<Provider<? extends BuildService<?>>> allUsedServices = ImmutableSet.builder();
-        Set<Provider<? extends BuildService<?>>> registeredServices = this.registeredServices != null ? this.registeredServices : emptySet();
-        allUsedServices.addAll(registeredServices);
-        collectRequiredServices(allUsedServices);
-        return allUsedServices.build();
+        return getElements(false);
+    }
+
+    @Override
+    public Set<Provider<? extends BuildService<?>>> searchServices() {
+        return getElements(true);
+    }
+
+    private Set<Provider<? extends BuildService<?>>> getElements(boolean search) {
+        ImmutableSet.Builder<BuildServiceProvider<?, ?>> allServicesUsed = ImmutableSet.builder();
+        if (registeredServices != null) {
+            allServicesUsed.addAll(registeredServices);
+        }
+        if (search && consumedServices == null) {
+            collectConsumedServices();
+        }
+        if (consumedServices != null) {
+            consumedServices.stream()
+                .map(it -> ((ConsumedBuildServiceProvider<?>) it).resolveIfPossible())
+                .filter(Objects::nonNull)
+                .forEach(allServicesUsed::add);
+        }
+        ImmutableSet<BuildServiceProvider<?, ?>> build = allServicesUsed.build();
+        return Cast.uncheckedCast(build);
+    }
+
+    private void collectConsumedServices() {
+        GetServiceReferencesVisitor collector = new GetServiceReferencesVisitor();
+        TaskPropertyUtils.visitAnnotatedProperties(propertyWalker, task, TypeValidationContext.NOOP, collector);
+        // this goes through task to benefit from services a task has available
+        task.acceptServiceReferences(collector.getServiceReferences());
     }
 
     @Override
     public boolean isServiceRequired(Provider<? extends BuildService<?>> toCheck) {
-        return getElements().stream().anyMatch(it -> BuildServiceProvider.isSameService(toCheck, it));
-    }
-
-    /**
-     * Collects services declared as referenced (via @ServiceReference) into the given set.
-     */
-    private void collectRequiredServices(ImmutableSet.Builder<Provider<? extends BuildService<?>>> requiredServices) {
-        visitServiceReferences(referenceProvider ->
-            requiredServices.add(asBuildServiceProvider(referenceProvider))
-        );
-    }
-
-    private Provider<? extends BuildService<?>> asBuildServiceProvider(Provider<? extends BuildService<?>> referenceProvider) {
-        if (referenceProvider instanceof DefaultProperty) {
-            DefaultProperty<?> asProperty = Cast.uncheckedNonnullCast(referenceProvider);
-            ProviderInternal<?> provider = asProperty.getProvider();
-            return Cast.uncheckedNonnullCast(provider);
-        }
-        return referenceProvider;
-    }
-
-    private void visitServiceReferences(Consumer<Provider<? extends BuildService<?>>> visitor) {
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
-            @Override
-            public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
-                visitor.accept(Cast.uncheckedCast(value.call()));
-            }
-        });
+        return getElements(false).stream().anyMatch(it -> BuildServiceProvider.isSameService(toCheck, it));
     }
 
     @Override
     public void registerServiceUsage(Provider<? extends BuildService<?>> service) {
         taskMutator.mutate("Task.usesService(Provider)", () -> {
-            if (registeredServices == null) {
-                registeredServices = new LinkedHashSet<>();
-            }
             // TODO:configuration-cache assert build service is from the same build as the task
-            registeredServices.add(service);
+            addRegisteredService(Cast.uncheckedNonnullCast(service));
         });
+    }
+
+    private void addRegisteredService(RegisteredBuildServiceProvider<?, ?> service) {
+        if (registeredServices == null) {
+            registeredServices = new LinkedHashSet<>();
+        }
+        registeredServices.add(service);
+    }
+
+    @Override
+    public void acceptServiceReferences(List<? extends BuildServiceProvider<?, ?>> serviceReferences) {
+        // someone already collected service references for us, just remember them
+        consumedServices = serviceReferences;
+    }
+
+    @Override
+    public boolean hasServiceReferences() {
+        return consumedServices != null;
     }
 }

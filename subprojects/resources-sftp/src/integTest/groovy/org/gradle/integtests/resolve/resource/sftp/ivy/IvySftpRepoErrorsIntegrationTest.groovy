@@ -16,12 +16,17 @@
 
 package org.gradle.integtests.resolve.resource.sftp.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionTest {
 
-    @ToBeFixedForConfigurationCache
     void "resolve missing dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -49,17 +54,21 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
 
         then:
         fails 'retrieve'
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        assertTaskFailureDescription(":retrieve")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause("""Could not find org.group.name:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
+        failure.assertHasResolutions(repositoryHint("ivy.xml"),
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
+
     }
 
-    @ToBeFixedForConfigurationCache
     void "resolve missing dynamic dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -85,7 +94,7 @@ Required by:
 
         then:
         fails 'retrieve'
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        assertTaskFailureDescription(":retrieve")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause("""Could not find any matches for org.group.name:projectA:1.+ as no versions of org.group.name:projectA are available.
 Searched in the following locations:
@@ -94,7 +103,6 @@ Required by:
 """)
     }
 
-    @ToBeFixedForConfigurationCache
     void "resolve dependencies from a SFTP Ivy repository with invalid credentials"() {
         given:
         buildFile << """
@@ -119,13 +127,12 @@ Required by:
         fails 'retrieve'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        assertTaskFailureDescription(":retrieve")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
             .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
-    @ToBeFixedForConfigurationCache
     void "resolve dependencies from a SFTP Ivy repository with unsupported password authentication"() {
         given:
         server.withPasswordAuthenticationDisabled()
@@ -152,13 +159,12 @@ Required by:
         fails 'retrieve'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        assertTaskFailureDescription(":retrieve")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
             .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
-    @ToBeFixedForConfigurationCache
     void "resolve dependencies from an unreachable SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -186,13 +192,12 @@ Required by:
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        assertTaskFailureDescription(":retrieve")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
             .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
     }
 
-    @ToBeFixedForConfigurationCache
     void 'resolve dependencies from a SFTP Ivy that returns a failure'() {
         given:
         buildFile << """
@@ -222,13 +227,12 @@ Required by:
         failure = executer.withTasks('retrieve').runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        assertTaskFailureDescription(":retrieve")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
             .assertHasCause("Could not get resource '${projectA.ivy.uri}'")
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot add invalid authentication types for sftp repo"() {
         given:
         def remoteIvyRepo = getIvySftpRepo()
@@ -256,8 +260,18 @@ task retrieve(type: Sync) {
         expect:
         fails 'retrieve'
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        assertTaskFailureDescription(":retrieve")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'sftp'")
+    }
+
+    private void assertTaskFailureDescription(String taskSelector) {
+        if (GradleContextualExecuter.configCache) {
+            failureDescriptionContains("Configuration cache state could not be cached:")
+            failureDescriptionContains(taskSelector)
+        } else {
+            def description = "Execution failed for task '${taskSelector}'."
+            failure.assertHasDescription(description)
+        }
     }
 }

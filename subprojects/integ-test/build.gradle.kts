@@ -6,6 +6,7 @@ description = "Integration tests which don't fit anywhere else - should probably
 
 dependencies {
     integTestImplementation(project(":base-services"))
+    integTestImplementation(project(":build-option"))
     integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
@@ -16,6 +17,7 @@ dependencies {
     integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":bootstrap"))
     integTestImplementation(project(":launcher"))
+    integTestImplementation(project(":ide-plugins"))
     integTestImplementation(libs.groovy)
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
@@ -37,10 +39,13 @@ dependencies {
     crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":scala"))
     crossVersionTestImplementation(project(":ear"))
+    crossVersionTestImplementation(project(":war"))
     crossVersionTestImplementation(project(":testing-jvm"))
     crossVersionTestImplementation(project(":ide"))
+    crossVersionTestImplementation(project(":ide-plugins"))
     crossVersionTestImplementation(project(":code-quality"))
     crossVersionTestImplementation(project(":signing"))
+    crossVersionTestImplementation(project(":functional"))
 
     integTestImplementation(testFixtures(project(":core")))
     integTestImplementation(testFixtures(project(":diagnostics")))
@@ -54,9 +59,4 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-testFilesCleanup.reportOnly.set(true)
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}
+testFilesCleanup.reportOnly = true

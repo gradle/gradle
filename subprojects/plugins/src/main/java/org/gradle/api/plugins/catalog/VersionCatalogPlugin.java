@@ -22,9 +22,11 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.CatalogExtensionInternal;
+import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.TomlFileGenerator;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.tasks.TaskProvider;
@@ -51,17 +53,15 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        Configuration dependenciesConfiguration = createDependenciesConfiguration(project);
+        Configuration dependenciesConfiguration = createDependenciesConfiguration((ProjectInternal) project);
         CatalogExtensionInternal extension = createExtension(project, dependenciesConfiguration);
         TaskProvider<TomlFileGenerator> generator = createGenerator(project, extension);
-        createPublication(project, generator);
+        createPublication((ProjectInternal) project, generator);
     }
 
-    private void createPublication(Project project, TaskProvider<TomlFileGenerator> generator) {
-        Configuration exported = project.getConfigurations().create(VERSION_CATALOG_ELEMENTS, cnf -> {
+    private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
+        @SuppressWarnings("deprecation") Configuration exported = project.getConfigurations().migratingUnlocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, cnf -> {
             cnf.setDescription("Artifacts for the version catalog");
-            cnf.setCanBeConsumed(true);
-            cnf.setCanBeResolved(false);
             cnf.getOutgoing().artifact(generator);
             cnf.attributes(attrs -> {
                 attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
@@ -73,11 +73,9 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
         versionCatalog.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true));
     }
 
-    private Configuration createDependenciesConfiguration(Project project) {
-        return project.getConfigurations().create(GRADLE_PLATFORM_DEPENDENCIES, cnf -> {
+    private Configuration createDependenciesConfiguration(ProjectInternal project) {
+        return project.getConfigurations().dependencyScopeUnlocked(GRADLE_PLATFORM_DEPENDENCIES, cnf -> {
             cnf.setVisible(false);
-            cnf.setCanBeConsumed(false);
-            cnf.setCanBeResolved(false);
         });
     }
 

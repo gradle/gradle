@@ -21,6 +21,8 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.FilePermissions;
+import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
@@ -211,12 +213,12 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public int getMode() {
-            return entry.getMode() & 0777;
+        public FilePermissions getPermissions() {
+            return new DefaultFilePermissions(entry.getMode());
         }
 
         @Override
-        protected String safeEntryName() {
+        protected String getEntryName() {
             return entry.getName();
         }
 

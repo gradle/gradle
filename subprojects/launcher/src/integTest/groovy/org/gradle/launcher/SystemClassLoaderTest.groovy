@@ -17,6 +17,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.agents.AgentUtils
 import spock.lang.IgnoreIf
 
 /**
@@ -96,7 +97,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
             it.contains("gradle-launcher")
         }
         !maybeHasAgent || libraries.any {
-            it.contains("gradle-instrumentation-agent")
+            it.contains(AgentUtils.AGENT_MODULE_NAME)
         }
     }
 }

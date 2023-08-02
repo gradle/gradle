@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.codehaus.groovy:groovy-all:3.0.13")
+    implementation("org.codehaus.groovy:groovy-all:3.0.18")
 }
 
 publishing {
@@ -22,7 +22,7 @@ publishing {
     }
     repositories {
         maven {
-            url = uri("${buildDir}/publishing-repository")
+            url = uri(layout.buildDirectory.dir("publishing-repository"))
         }
     }
 }

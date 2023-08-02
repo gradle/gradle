@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 public class LockFileReaderWriter {
 
     private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
-    private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
+    private static final String LIMITATIONS_DOC_LINK = " " + new DocumentationRegistry().getDocumentationRecommendationFor("information on limitations", "dependency_locking", "locking_limitations");
 
     static final String UNIQUE_LOCKFILE_NAME = "gradle.lockfile";
     static final String FILE_SUFFIX = ".lockfile";
@@ -111,14 +111,14 @@ public class LockFileReaderWriter {
     private void checkValidRoot() {
         if (lockFilesRoot == null) {
             throw new IllegalStateException("Dependency locking cannot be used for project '" + context.getProjectPath() + "'." +
-                " See limitations in the documentation (" + DOC_REG.getDocumentationFor("dependency_locking", "locking_limitations") +").");
+                LIMITATIONS_DOC_LINK);
         }
     }
 
     private void checkValidRoot(String configurationName) {
         if (lockFilesRoot == null) {
             throw new IllegalStateException("Dependency locking cannot be used for configuration '" + context.identityPath(configurationName) + "'." +
-                " See limitations in the documentation (" + DOC_REG.getDocumentationFor("dependency_locking", "locking_limitations") +").");
+                LIMITATIONS_DOC_LINK);
         }
     }
 

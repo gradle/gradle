@@ -90,8 +90,7 @@ public class ReportDaemonStatusClient {
         printStoppedDaemons(stopEvents);
 
         LOGGER.quiet("");
-
-        LOGGER.quiet(STATUS_FOOTER + " See " + documentationRegistry.getDocumentationFor("gradle_daemon", "sec:status"));
+        LOGGER.quiet(STATUS_FOOTER + " " + documentationRegistry.getDocumentationRecommendationFor("on this", "gradle_daemon", "sec:status"));
     }
 
     @VisibleForTesting

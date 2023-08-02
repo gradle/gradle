@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerThreadRegistry;
@@ -31,11 +32,8 @@ import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.internal.CollectionUtils;
 
-import java.io.File;
-import java.net.URL;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -43,10 +41,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final WorkerProcessFactory workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
-    private final Iterable<File> classPath;
-    private final Iterable<File> modulePath;
+    private final ForkedTestClasspath classpath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
-    private final ModuleRegistry moduleRegistry;
     private final Lock lock = new ReentrantLock();
     private final WorkerThreadRegistry workerThreadRegistry;
     private RemoteTestClassProcessor remoteProcessor;
@@ -55,26 +51,24 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
     private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
+    private final Set<Throwable> unrecoverableExceptions = Sets.newHashSet();
+
 
     public ForkingTestClassProcessor(
         WorkerThreadRegistry workerThreadRegistry,
         WorkerProcessFactory workerFactory,
         WorkerTestClassProcessorFactory processorFactory,
         JavaForkOptions options,
-        Iterable<File> classPath,
-        Iterable<File> modulePath,
+        ForkedTestClasspath classpath,
         Action<WorkerProcessBuilder> buildConfigAction,
-        ModuleRegistry moduleRegistry,
         DocumentationRegistry documentationRegistry
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
-        this.classPath = classPath;
-        this.modulePath = modulePath;
+        this.classpath = classpath;
         this.buildConfigAction = buildConfigAction;
-        this.moduleRegistry = moduleRegistry;
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -111,9 +105,10 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     RemoteTestClassProcessor forkProcess() {
         WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
         builder.setBaseName("Gradle Test Executor");
-        builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
-        builder.applicationClasspath(classPath);
-        builder.applicationModulePath(modulePath);
+        builder.setImplementationClasspath(classpath.getImplementationClasspath());
+        builder.setImplementationModulePath(classpath.getImplementationModulepath());
+        builder.applicationClasspath(classpath.getApplicationClasspath());
+        builder.applicationModulePath(classpath.getApplicationModulepath());
         options.copyTo(builder.getJavaCommand());
         builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         buildConfigAction.execute(builder);
@@ -123,41 +118,24 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
         ObjectConnection connection = workerProcess.getConnection();
         connection.useParameterSerializers(TestEventSerializer.create());
+        connection.addUnrecoverableErrorHandler(new Action<Throwable>() {
+            @Override
+            public void execute(Throwable throwable) {
+                lock.lock();
+                try {
+                    if (!stoppedNow) {
+                        unrecoverableExceptions.add(throwable);
+                    }
+                } finally {
+                    lock.unlock();
+                }
+            }
+        });
         connection.addIncoming(TestResultProcessor.class, resultProcessor);
         RemoteTestClassProcessor remoteProcessor = connection.addOutgoing(RemoteTestClassProcessor.class);
         connection.connect();
         remoteProcessor.startProcessing();
         return remoteProcessor;
-    }
-
-    List<URL> getTestWorkerImplementationClasspath() {
-        return CollectionUtils.flattenCollections(URL.class,
-            moduleRegistry.getModule("gradle-core-api").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-worker-processes").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-core").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-logging").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-logging-api").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-messaging").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-files").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-file-temp").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-hashing").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-base-services").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-enterprise-logging").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-enterprise-workers").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-cli").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-testing-jvm-infrastructure").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-testing-junit-platform").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-build-operations").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("javax.inject").getImplementationClasspath().getAsURLs()
-        );
     }
 
     @Override
@@ -178,14 +156,15 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             if (!stoppedNow) {
                 throw new ExecException(e.getMessage()
                     + "\nThis problem might be caused by incorrect test process configuration."
-                    + "\nPlease refer to the test execution section in the User Manual at "
-                    + documentationRegistry.getDocumentationFor("java_testing", "sec:test_execution"), e.getCause());
+                    + "\n" + documentationRegistry.getDocumentationRecommendationFor("on test execution", "java_testing", "sec:test_execution"), e.getCause());
             }
         } finally {
             if (completion != null) {
                 completion.leaseFinish();
             }
         }
+
+        maybeRethrowUnrecoverableExceptions();
     }
 
     @Override
@@ -198,6 +177,18 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
         } finally {
             lock.unlock();
+        }
+    }
+
+    /**
+     * If there are communication errors while receiving test results from the test worker,
+     * we can get in a situation where a test appears skipped even though it actually failed.
+     * We want to capture the communication errors and be sure to fail the test execution so
+     * as to avoid any false positives.
+     */
+    private void maybeRethrowUnrecoverableExceptions() {
+        if (!unrecoverableExceptions.isEmpty()) {
+            throw new DefaultMultiCauseException("Unexpected errors were encountered while processing test results that may result in some results being incorrect or incomplete.", unrecoverableExceptions);
         }
     }
 }

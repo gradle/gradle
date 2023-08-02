@@ -23,8 +23,14 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
  */
 public interface SelectedArtifactSet extends TaskDependencyContainer {
     /**
-     * Visits the files and artifacts of this set. Does not include any files or artifacts which could not be selected. Failures to select or resolve artifacts are supplied to the visitor.
+     * Visits the artifacts of this set. Does not include any artifacts that could not be selected. Failures to select or resolve artifacts are supplied to the visitor.
      */
     void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure);
 
+    /**
+     * Visits the files of this set. Does not include any files that could not be selected. Failures to select or resolve artifacts are supplied to the visitor.
+     */
+    default void visitFiles(ResolvedFileVisitor visitor, boolean continueOnSelectionFailure) {
+        visitArtifacts(new ArtifactVisitorToResolvedFileVisitorAdapter(visitor), continueOnSelectionFailure);
+    }
 }

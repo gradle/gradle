@@ -24,10 +24,10 @@ public interface TransformedVariantFactory {
     ResolvedArtifactSet transformedExternalArtifacts(ComponentIdentifier componentIdentifier,
                                                      ResolvedVariant sourceVariant,
                                                      VariantDefinition variantDefinition,
-                                                     ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
+                                                     TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory);
 
     ResolvedArtifactSet transformedProjectArtifacts(ComponentIdentifier componentIdentifier,
                                                     ResolvedVariant sourceVariant,
                                                     VariantDefinition variantDefinition,
-                                                    ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
+                                                    TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory);
 }

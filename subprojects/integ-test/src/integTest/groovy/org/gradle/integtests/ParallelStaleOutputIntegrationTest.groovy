@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -86,12 +85,18 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         // We just need to assert that the build fails with the right error message here, it doesn't matter which task is the first to fail,
         // allowing either failure to pass the test should reduce flakiness on CI.
+
+        def docLinkMessage = getDocLinkMessage()
         if (result.error.contains("Could not create task ':a:bar'.")) {
-            result.assertHasErrorOutput("Resolution of the configuration :a:myconf was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+            result.assertHasErrorOutput("Resolution of the configuration :a:myconf was attempted from a context different than the project context. " + docLinkMessage);
         } else if (result.error.contains("Could not create task ':b:bar'.")) {
-            result.assertHasErrorOutput("Resolution of the configuration :b:myconf was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+            result.assertHasErrorOutput("Resolution of the configuration :b:myconf was attempted from a context different than the project context. " + docLinkMessage)
         } else {
             throw new AssertionError("Unexpected task failure in test, see error output.")
         }
+    }
+
+    def getDocLinkMessage() {
+        documentationRegistry.getDocumentationRecommendationFor("information", "viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
     }
 }

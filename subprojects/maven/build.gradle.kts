@@ -40,12 +40,12 @@ dependencies {
     testImplementation(testFixtures(project(":model-core")))
     testImplementation(testFixtures(project(":dependency-management")))
 
-    integTestImplementation(project(":ear"))
     integTestImplementation(project(":enterprise-operations"))
 
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
     }
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(project(":dependency-management"))
@@ -54,7 +54,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {
@@ -67,9 +67,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}
+integTest.usesJavadocCodeSnippets = true

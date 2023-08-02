@@ -43,6 +43,16 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
+
+    /**
+     * Identifier of the type of the work used in build operations.
+     * <p>
+     * Values returned here become part of the contract of related build operations.
+     */
+    default Optional<String> getBuildOperationWorkType() {
+        return Optional.empty();
+    }
+
     /**
      * Determine the identity of the work unit that uniquely identifies it
      * among the other work units of the same type in the current build.
@@ -102,6 +112,13 @@ public interface UnitOfWork extends Describable {
          */
         @Nullable
         Object getOutput();
+
+        /**
+         * Whether this output should be stored in the build cache.
+         */
+        default boolean canStoreInCache() {
+            return true;
+        }
     }
 
     enum WorkResult {

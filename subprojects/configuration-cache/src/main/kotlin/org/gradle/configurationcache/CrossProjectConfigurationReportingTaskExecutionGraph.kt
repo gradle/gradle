@@ -18,7 +18,6 @@ package org.gradle.configurationcache
 
 import groovy.lang.Closure
 import org.gradle.api.Action
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
@@ -28,7 +27,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.Node
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
@@ -153,17 +151,14 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     private
     fun reportProjectIsolationProblem(requestPath: String?) {
-        val message = StructuredMessage.build {
+        val problem = problemFactory.problem {
             text("Project ")
             reference(referrerProject.identityPath.toString())
             text(" cannot access the tasks in the task graph that were created by other projects")
-        }
-        val exception = InvalidUserCodeException(
+        }.exception { message ->
             // As the exception message is not used for grouping, we can safely add the exact task name to it:
-            message.toString().capitalized() +
-                if (requestPath != null) "; tried to access '$requestPath'" else '"'
-        )
-        val problem = problemFactory.problem(message, exception)
+            message.capitalized() + if (requestPath != null) "; tried to access '$requestPath'" else '"'
+        }.build()
         problems.onProblem(problem)
     }
 

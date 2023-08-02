@@ -2,7 +2,7 @@ NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com
 
 This is an link:sample_java_modules_multi_project.html[extension of this sample] that adds blackbox integration tests.
 
-NOTE: There is also a link:sample_incubating_modules_multi_project_with_integration_tests.html[new sample] demonstrating how to use the link:{userManualPath}/feature_lifecycle.html#sec:incubating_state[incubating] link:{userManualPath}/jvm_test_suite_plugin.html[Test Suite Plugin] in this scenario.
+NOTE: There is also a link:sample_incubating_java_modules_multi_project_with_integration_tests.html[new sample] demonstrating how to use the link:{userManualPath}/feature_lifecycle.html#sec:incubating_state[incubating] link:{userManualPath}/jvm_test_suite_plugin.html[Test Suite Plugin] in this scenario.
 
 Here, we add an additional source set _integrationTest_ with a `module-info.java`.
 

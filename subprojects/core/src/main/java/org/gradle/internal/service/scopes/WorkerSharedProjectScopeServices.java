@@ -44,11 +44,11 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.DecompressionCacheFactory;
-import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
-import org.gradle.cache.scopes.ProjectScopedCache;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.internal.scopes.DefaultProjectScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.ProjectScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
@@ -102,7 +102,7 @@ public class WorkerSharedProjectScopeServices {
             ProviderFactory providers,
             TaskDependencyFactory taskDependencyFactory,
             DecompressionCacheFactory decompressionCache,
-            ScopedCache scopedCache
+            ScopedCacheBuilderFactory cacheBuilderFactory
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -119,11 +119,11 @@ public class WorkerSharedProjectScopeServices {
                 taskDependencyFactory,
                 providers,
                 decompressionCache,
-                scopedCache);
+                cacheBuilderFactory);
     }
 
-    protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
-        return instantiator.newInstance(DefaultFileSystemOperations.class, fileOperations);
+    protected FileSystemOperations createFileSystemOperations(ObjectFactory objectFactory, Instantiator instantiator, FileOperations fileOperations) {
+        return instantiator.newInstance(DefaultFileSystemOperations.class, objectFactory, fileOperations);
     }
 
     protected ArchiveOperations createArchiveOperations(Instantiator instantiator, FileOperations fileOperations) {
@@ -154,11 +154,11 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 
-    protected ProjectScopedCache createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, CacheRepository cacheRepository) {
-        return new DefaultProjectScopedCache(temporaryFileProvider.newTemporaryFile(".cache"), cacheRepository);
+    protected ProjectScopedCacheBuilderFactory createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory);
     }
 
-    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, CacheRepository cacheRepository) {
-        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCache(temporaryFileProvider.newTemporaryFile(".cache"), cacheRepository));
+    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory));
     }
 }

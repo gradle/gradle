@@ -16,9 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 
 import java.io.File;
 
@@ -36,10 +37,9 @@ public interface DependencyVerificationOverride {
         return new File(gradleDir, VERIFICATION_KEYRING_GPG);
     }
 
-    ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy);
+    ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy);
 
-    default void buildFinished(Gradle gradle) {
-
+    default void buildFinished(GradleInternal model) {
     }
 
     /**

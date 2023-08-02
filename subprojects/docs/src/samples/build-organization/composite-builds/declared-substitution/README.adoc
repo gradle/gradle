@@ -8,7 +8,7 @@ In `dependencySubstitution` terms, the default substitutions are:
 ```
 dependencySubstitution {
     ... for each project in included build ...
-    substitute module("${project.group}:${project.name}") with project(":${project.name}")
+    substitute module("${project.group}:${project.name}") using project(":${project.name}")
 }
 ```
 

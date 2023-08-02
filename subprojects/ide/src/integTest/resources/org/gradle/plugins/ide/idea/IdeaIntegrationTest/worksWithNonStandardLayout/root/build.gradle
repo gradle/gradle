@@ -1,8 +1,0 @@
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-
-    sourceCompatibility = 1.5
-}
-
-idea.project.jdkName = '1.7'

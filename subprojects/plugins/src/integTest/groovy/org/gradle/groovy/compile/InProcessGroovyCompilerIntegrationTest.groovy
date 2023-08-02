@@ -18,7 +18,7 @@ package org.gradle.groovy.compile
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
 @IntegrationTestTimeout(300)
-class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+class InProcessGroovyCompilerIntegrationTest extends AbstractApiGroovyCompilerIntegrationSpec {
 
     def setup() {
         if (groovyVersionNumber < "2.0") {

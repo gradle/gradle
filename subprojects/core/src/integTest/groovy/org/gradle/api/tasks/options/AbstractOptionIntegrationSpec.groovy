@@ -90,22 +90,24 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
-    String taskWithSinglePropertyOption(String optionType) {
+    String taskWithSinglePropertyOption(String propertyType, String optionType) {
+        String methodName = propertyType.substring(0, 1).toLowerCase() + propertyType.substring(1)
+
         """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.Internal;
             import org.gradle.api.tasks.TaskAction;
             import org.gradle.api.tasks.options.Option;
+            import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-
-            import java.util.List;
+            import org.gradle.api.provider.SetProperty;
 
             public class SampleTask extends DefaultTask {
-                private final Property<$optionType> myProp = getProject().getObjects().property(${optionType}.class);
+                private final $propertyType<$optionType> myProp = getProject().getObjects().${methodName}(${optionType}.class);
 
                 @Internal
                 @Option(option = "myProp", description = "Configures command line option 'myProp'.")
-                public Property<$optionType> getMyProp() {
+                public $propertyType<$optionType> getMyProp() {
                     return myProp;
                 }
 
@@ -121,12 +123,14 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
-    String groovyTaskWithSinglePropertyOption(String optionType) {
+    String groovyTaskWithSinglePropertyOption(String propertyType, String optionType) {
+        String methodName = propertyType.substring(0, 1).toLowerCase() + propertyType.substring(1)
+
         """
             public class SampleTask extends DefaultTask {
                 @Internal
                 @Option(option = "myProp", description = "Configures command line option 'myProp'.")
-                final Property<$optionType> myProp = project.objects.property($optionType)
+                final $propertyType<$optionType> myProp = project.objects.$methodName($optionType)
 
                 @TaskAction
                 public void renderOptionValue() {

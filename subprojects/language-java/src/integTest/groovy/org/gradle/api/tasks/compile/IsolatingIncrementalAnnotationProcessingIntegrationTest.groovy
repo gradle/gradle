@@ -189,17 +189,27 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
     def "incremental processing works on subsequent incremental compilations after failure"() {
         given:
         def a = java "@Helper class A {}"
+        java "@Helper class B {}"
         java "class Unrelated {}"
         run "compileJava"
         a.text = "@Helper class A { public void foo() {} }"
         outputs.snapshot { run "compileJava" }
 
         when:
-        a.text = "@Helper class A { public void bar() { garbage } }"
-        runAndFail "compileJava"
+        a.text = "@Helper class A { public String bar() { return 0; } }"
+        runAndFail "compileJava", "-d"
 
         then:
         outputs.noneRecompiled()
+        outputContains("Deleting generated files: [${file("build/classes/java/main/AHelperResource.txt")}, " +
+            "${file("build/generated/sources/annotationProcessor/java/main/AHelper.java")}]"
+        )
+        outputContains("Restoring stashed files: [" +
+            "${file("build/classes/java/main/A.class")}, " +
+            "${file("build/classes/java/main/AHelper.class")}, " +
+            "${file("build/classes/java/main/AHelperResource.txt")}, " +
+            "${file("build/generated/sources/annotationProcessor/java/main/AHelper.java")}]"
+        )
 
         when:
         a.text = "@Helper class A { public void bar() {} }"
@@ -232,11 +242,13 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.snapshot { run "compileJava" }
 
         when:
-        unrelated.text = "class Unrelated { public void foo() { garbage } }"
-        runAndFail "compileJava"
+        unrelated.text = "class Unrelated { public Unrelated foo() { return 0; } }"
+        runAndFail "compileJava", "-d"
 
         then:
         outputs.noneRecompiled()
+        outputContains("Deleting generated files: []")
+        outputContains("Restoring stashed files: [${file("build/classes/java/main/Unrelated.class")}]")
 
         when:
         unrelated.text = "class Unrelated { public void foo() {} }"

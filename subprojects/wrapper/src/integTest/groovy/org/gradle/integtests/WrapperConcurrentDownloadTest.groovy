@@ -26,6 +26,7 @@ class WrapperConcurrentDownloadTest extends AbstractWrapperIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
+        server.expect(server.head("/gradle-bin.zip"))
         server.expect(server.get("/gradle-bin.zip").sendFile(distribution.binDistribution))
         server.start()
     }

@@ -15,26 +15,13 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.exceptions.FailureResolutionAware;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * A {@code TaskSelectionException} is thrown when the tasks to execute cannot be selected due to some user input problem.
  */
-public class TaskSelectionException extends InvalidUserDataException implements FailureResolutionAware {
+public class TaskSelectionException extends BaseSelectionException {
     public TaskSelectionException(String message) {
-        super(message);
-    }
-
-    @Override
-    public void appendResolutions(Context context) {
-        context.appendResolution(output -> {
-            output.text("Run ");
-            context.getClientMetaData().describeCommand(output.withStyle(UserInput), ProjectInternal.TASKS_TASK);
-            output.text(" to get a list of available tasks.");
-        });
+        super(message, ProjectInternal.TASKS_TASK, "tasks");
     }
 }

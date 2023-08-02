@@ -4,6 +4,8 @@ import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
 
+import javax.inject.Inject
+
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
 import static gradlebuild.basics.BuildParamsKt.isConfigurationCacheEnabledForDocsTests
 import static gradlebuild.basics.BuildParamsKt.shouldRunBrokenForConfigurationCacheDocsTests
@@ -555,9 +557,11 @@ samples {
     }
 }
 
-// Use the version of Gradle being built, not the version of Gradle used to build
-tasks.named("generateWrapperForSamples") {
+// Use the version of Gradle being built, not the version of Gradle used to build,
+// also don't validate distribution url, since it is just a local distribution
+tasks.named("generateWrapperForSamples", Wrapper) {
     gradleVersion = project.version
+    validateDistributionUrl = false
 }
 
 // TODO: The rich console to plain text is flaky
@@ -573,6 +577,10 @@ tasks.withType(InstallSample).configureEach {
     }
 }
 
+tasks.named("quickTest") {
+    dependsOn("checkDeadInternalLinks")
+}
+
 // TODO add some kind of test precondition support in sample test conf
 tasks.named("docsTest") { task ->
     maxParallelForks = 2
@@ -580,17 +588,15 @@ tasks.named("docsTest") { task ->
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
     // we want to verify that the samples work with the Gradle distribution being built.
-    def installationEnvProvider = new GradleInstallationForTestEnvironmentProvider(project, task)
+    def installationEnvProvider = objects.newInstance(GradleInstallationForTestEnvironmentProvider.class, project, task)
     installationEnvProvider.gradleHomeDir.from(configurations.integTestDistributionRuntimeClasspath)
-    installationEnvProvider.samplesdir.set(project.layout.buildDirectory.dir("working/samples/testing"))
+    installationEnvProvider.samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
     jvmArgumentProviders.add(installationEnvProvider)
 
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
     testClassesDirs = sourceSets.docsTest.output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
     systemProperties.clear()
-    // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 
     filter {
         // workaround for https://github.com/gradle/dotcom/issues/5958
@@ -613,15 +619,6 @@ tasks.named("docsTest") { task ->
         }
         // disable sanityCheck of 'structuring-software-projects' in any case due to deprecation warning in Android project
         excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*_sanityCheck.sample"
-
-        // Do not execute Java Module tests on JVM < 9
-        if (!javaVersion.java9Compatible) {
-            excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"
-            excludeTestsMatching "org.gradle.docs.samples.*.incubating-java-modules-*.sample"
-            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-application*.sample'
-            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
-            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-patch-module*.sample'
-        }
 
         if (OperatingSystem.current().windows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
@@ -698,6 +695,8 @@ tasks.named("docsTest") { task ->
                 "snippet-ant-rename-task_kotlin_renameAntDelegate.sample",
                 "snippet-ant-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig.sample",
                 "snippet-ant-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig.sample",
+                "snippet-ant-ant-logging_groovy_antLogging.sample",
+                "snippet-ant-ant-logging_kotlin_antLogging.sample",
                 "snippet-buildlifecycle-task-execution-events_groovy_sanityCheck.sample",
                 "snippet-buildlifecycle-task-execution-events_groovy_taskExecutionEvents.groovy.sample",
                 "snippet-buildlifecycle-task-execution-events_kotlin_sanityCheck.sample",
@@ -718,6 +717,8 @@ tasks.named("docsTest") { task ->
                 "snippet-ide-idea-additional-test-sources_kotlin_ideaAdditionalTestSources.sample",
                 "snippet-ide-idea_groovy_projectWithXml.sample",
                 "snippet-ide-idea_kotlin_projectWithXml.sample",
+                "snippet-init-scripts-custom-logger_groovy_customLogger.groovy.sample",
+                "snippet-init-scripts-custom-logger_kotlin_customLogger.kotlin.sample",
                 "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-all.sample",
                 "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-model-task.sample",
                 "snippet-model-rules-configure-as-required_groovy_modelDslConfigureRuleRunWhenRequired.sample",
@@ -753,36 +754,6 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
 
-                // TODO(https://github.com/gradle/gradle/issues/19725) EAR plugin support
-                "snippet-ear-ear-customized_groovy_earCustomized.sample",
-                "snippet-ear-ear-customized_kotlin_earCustomized.sample",
-                "snippet-ear-ear-with-war_groovy_earWithWar.sample",
-                "snippet-ear-ear-with-war_kotlin_earWithWar.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/13469) Ivy Publish plugin support
-                "snippet-ivy-publish-conditional-publishing_groovy_publishingIvyConditionally.sample",
-                "snippet-ivy-publish-descriptor-customization_groovy_publishingIvyGenerateDescriptor.sample",
-                "snippet-ivy-publish-descriptor-customization_kotlin_publishingIvyGenerateDescriptor.sample",
-                "snippet-ivy-publish-java-multi-project_groovy_publish-multi-project.sample",
-                "snippet-ivy-publish-java-multi-project_kotlin_publish-multi-project.sample",
-                "snippet-ivy-publish-quickstart_groovy_publishingIvyPublishLifecycle.sample",
-                "snippet-ivy-publish-quickstart_groovy_publishingIvyPublishSingle.sample",
-                "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishLifecycle.sample",
-                "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishSingle.sample",
-                "snippet-plugins-publishing_groovy_publishToIvy.sample",
-                "snippet-plugins-publishing_kotlin_publishToIvy.sample",
-                "snippet-tooling-api-custom-model_groovy_sanityCheck.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/13470) Signing plugin support
-                "snippet-signing-configurations_groovy_signingArchivesOutput.sample",
-                "snippet-signing-configurations_kotlin_signingArchivesOutput.sample",
-                "snippet-signing-maven-publish_groovy_publishingMavenSignAndPublish.sample",
-                "snippet-signing-maven-publish_groovy_signingPluginSignPublication.sample",
-                "snippet-signing-maven-publish_kotlin_publishingMavenSignAndPublish.sample",
-                "snippet-signing-maven-publish_kotlin_signingPluginSignPublication.sample",
-                "snippet-signing-tasks_groovy_signingTaskOutput.sample",
-                "snippet-signing-tasks_kotlin_signingTaskOutput.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
                 "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",
                 "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
@@ -793,6 +764,12 @@ tasks.named("docsTest") { task ->
             def testsToBeFixedForConfigurationCache = [
                 "snippet-build-cache-configure-task_groovy_configureTask.sample",
                 "snippet-build-cache-configure-task_kotlin_configureTask.sample",
+                // TODO(mlopatkin) These snippets use bintray plugin which is not fully CC-compatible. Remove bintray plugin from samples.
+                "snippet-plugins-buildscript_groovy_sanityCheck.sample",
+                "snippet-plugins-buildscript_kotlin_sanityCheck.sample",
+                "snippet-plugins-dsl_groovy_sanityCheck.sample",
+                "snippet-plugins-dsl_kotlin_sanityCheck.sample",
+                "snippet-kotlin-dsl-interoperability-closure-of_kotlin_sanityCheck.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
@@ -842,6 +819,7 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
     private final FileCollection testTaskClasspath
     private final Directory repoRoot
 
+    @Inject
     GradleInstallationForTestEnvironmentProvider(Project project, Test testTask) {
         this.gradleHomeDir = project.objects.fileCollection()
         this.samplesdir = project.objects.directoryProperty()

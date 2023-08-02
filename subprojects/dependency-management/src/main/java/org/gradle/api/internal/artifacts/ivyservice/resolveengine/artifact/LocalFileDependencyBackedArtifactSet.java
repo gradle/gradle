@@ -23,8 +23,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet;
-import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
-import org.gradle.api.internal.artifacts.transform.Transformation;
+import org.gradle.api.internal.artifacts.transform.TransformChain;
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
@@ -53,7 +54,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet, LocalDependencyFiles, VariantSelector.Factory {
+public class LocalFileDependencyBackedArtifactSet implements TransformedArtifactSet, LocalDependencyFiles, VariantSelector.Factory {
     private static final DisplayName LOCAL_FILE = Describables.of("local file");
 
     private final LocalFileDependencyMetadata dependencyMetadata;
@@ -126,14 +127,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             selectedArtifacts.add(selector.select(variant, this));
         }
         CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(listener);
-        if (visitType == FileCollectionStructureVisitor.VisitType.Spec) {
-            listener.visitArtifacts(new CollectionSpec(fileCollection));
-        }
     }
 
     @Override
-    public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
-        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, variantDefinition.getTargetAttributes(), variantDefinition.getTransformation(), dependenciesResolver, calculatedValueContainerFactory);
+    public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory, TransformedVariantFactory transformedVariantFactory) {
+        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, variantDefinition.getTargetAttributes(), variantDefinition.getTransformChain(), dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
     @Override
@@ -267,36 +265,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate,
                                                ImmutableAttributes attributes,
-                                               Transformation transformation,
-                                               ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver,
+                                               TransformChain transformChain,
+                                               TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
                                                CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            super(delegate.getComponentId(), delegate, attributes, Collections.emptyList(), transformation, dependenciesResolver, calculatedValueContainerFactory);
+            super(delegate.getComponentId(), delegate, attributes, Collections.emptyList(), transformChain, dependenciesResolverFactory, calculatedValueContainerFactory);
             this.delegate = delegate;
-        }
-
-        public ComponentIdentifier getOwnerId() {
-            return delegate.getComponentId();
-        }
-
-        public File getFile() {
-            return delegate.getFile();
-        }
-    }
-
-    private static class CollectionSpec implements Artifacts {
-        private final FileCollectionInternal fileCollection;
-
-        public CollectionSpec(FileCollectionInternal fileCollection) {
-            this.fileCollection = fileCollection;
-        }
-
-        @Override
-        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-        }
-
-        @Override
-        public void visit(ArtifactVisitor visitor) {
-            visitor.visitSpec(fileCollection);
         }
     }
 }

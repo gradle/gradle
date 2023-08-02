@@ -18,5 +18,5 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.cleanup.services.DaemonTracker
 
 gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
-    parameters.rootProjectDir.set(repoRoot())
+    parameters.rootProjectDir = repoRoot()
 }

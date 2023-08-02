@@ -18,8 +18,8 @@ package org.gradle.java.compile.incremental
 
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
@@ -39,7 +39,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
     }
 
     // This behavior is kept for backward compatibility - may be removed in the future
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles when upstream module-info changes with manual module path"() {
         source api: ["package a; public class A {}"], impl: ["package b; import a.A; class B extends A {}"]
         def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
@@ -73,7 +73,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         result.hasErrorOutput("package a is not visible")
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     @Issue("https://github.com/gradle/gradle/issues/23067")
     def "incremental compilation works with modules #description"() {
         file("impl/build.gradle") << """
@@ -120,7 +120,42 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    def "incremental compilation detects if some exported package for compiled module was deleted #description"() {
+        file("impl/build.gradle") << """
+            def layout = project.layout
+            tasks.compileJava {
+                modularity.inferModulePath = $inferModulePath
+                options.compilerArgs.addAll($compileArgs)
+                doFirst {
+                    $doFirst
+                }
+            }
+        """
+        source impl: ["package a; public class A {}", "package b; public class B {}"]
+        file("impl/src/main/$languageName/module-info.$languageName").text = """
+            module impl {
+                exports a;
+                exports b;
+            }
+        """
+        succeeds "impl:${language.compileTaskName}"
+
+        when:
+        impl.snapshot { file("impl/src/main/$languageName/b/B.$languageName").delete() }
+
+        then:
+        runAndFail "impl:${language.compileTaskName}", "--info"
+        impl.noneRecompiled()
+        result.hasErrorOutput("module-info.java:4: error: package is empty or does not exist: b")
+
+        where:
+        description                 | inferModulePath | compileArgs                                                  | doFirst
+        "with inferred module-path" | "true"          | "[]"                                                         | ""
+        "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
+    }
+
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "incremental compilation works for multi-module project with manual module paths"() {
         file("impl/build.gradle") << """
             def layout = project.layout
@@ -170,7 +205,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         impl.recompiledFqn("my.module.first.b.B", "my.module.second.c.C", "my.module.first.module-info", "my.module.second.module-info", "my.module.unrelated.module-info")
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles when upstream module-info changes"() {
         given:
         settingsFile << "include 'otherApi'"

@@ -20,10 +20,10 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -195,18 +195,18 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
-            return reference.cache.createCache(parameters);
+        public <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters) {
+            return reference.cache.createIndexedCache(parameters);
         }
 
         @Override
-        public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-            return reference.cache.createCache(name, keyType, valueSerializer);
+        public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+            return reference.cache.createIndexedCache(name, keyType, valueSerializer);
         }
 
         @Override
-        public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
-            return reference.cache.cacheExists(parameters);
+        public <K, V> boolean indexedCacheExists(IndexedCacheParameters<K, V> parameters) {
+            return reference.cache.indexedCacheExists(parameters);
         }
 
         @Override

@@ -25,7 +25,11 @@ import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A build service that is consumed.
@@ -51,7 +55,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        RegisteredBuildServiceProvider<T, ?> resolvedProvider = resolve();
+        RegisteredBuildServiceProvider<T, ?> resolvedProvider = resolve(true);
         if (resolvedProvider == null) {
             return Value.missing();
         }
@@ -59,20 +63,35 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     }
 
     @Nullable
-    private RegisteredBuildServiceProvider<T, BuildServiceParameters> resolve() {
-        if (resolvedProvider == null) {
-            BuildServiceRegistry buildServiceRegistry = internalServices.get(BuildServiceRegistry.class);
-            BuildServiceRegistration<?, ?> registration = ((BuildServiceRegistryInternal) buildServiceRegistry).findRegistration(this.getType(), this.getName());
-            if (registration == null) {
-                return null;
-            }
-            // resolved, so remember it
-            resolvedProvider = Cast.uncheckedCast(registration.getService());
-        }
+    public RegisteredBuildServiceProvider<T, ?> resolveIfPossible() {
+        resolve(false);
         return resolvedProvider;
     }
 
     @Nullable
+    private RegisteredBuildServiceProvider<T, BuildServiceParameters> resolve(boolean failIfAmbiguous) {
+        if (resolvedProvider == null) {
+            BuildServiceRegistry buildServiceRegistry = internalServices.get(BuildServiceRegistry.class);
+            Set<BuildServiceRegistration<?, ?>> results = ((BuildServiceRegistryInternal) buildServiceRegistry).findRegistrations(this.getType(), this.getName());
+            if (results.isEmpty()) {
+                return null;
+            }
+            if (results.size() > 1) {
+                if (!failIfAmbiguous) {
+                    return null;
+                }
+                String names = results.stream()
+                    .map(it -> it.getName() + ": " + getProvidedType(it.getService()).getTypeName())
+                    .collect(Collectors.joining(", "));
+                throw new IllegalArgumentException(String.format("Cannot resolve service by type for type '%s' when there are two or more instances. Please also provide a service name. Instances found: %s.", getType().getTypeName(), names));
+            }
+            // resolved, so remember it
+            resolvedProvider = Cast.uncheckedCast(results.stream().findFirst().get().getService());
+        }
+        return resolvedProvider;
+    }
+
+    @Nonnull
     @Override
     public Class<T> getType() {
         return serviceType;
@@ -89,13 +108,18 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
 
     @Override
     public BuildServiceDetails<T, BuildServiceParameters> getServiceDetails() {
-        BuildServiceProvider<T, BuildServiceParameters> resolvedProvider = resolve();
+        BuildServiceProvider<T, BuildServiceParameters> resolvedProvider = resolve(true);
         return resolvedProvider != null ? resolvedProvider.getServiceDetails() : new BuildServiceDetails<>(buildIdentifier, serviceName, serviceType);
     }
 
     @Override
     public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
-        RegisteredBuildServiceProvider<T, BuildServiceParameters> resolved = resolve();
+        RegisteredBuildServiceProvider<T, BuildServiceParameters> resolved = resolve(true);
         return resolved != null ? resolved.withFinalValue(consumer) : super.withFinalValue(consumer);
+    }
+
+    @Override
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return resolve(false) != null;
     }
 }

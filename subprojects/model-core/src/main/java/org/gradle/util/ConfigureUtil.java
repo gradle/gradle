@@ -19,12 +19,12 @@ package org.gradle.util;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.Action;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.Actions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
@@ -73,7 +73,7 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
 public class ConfigureUtil {
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
-        // TODO log deprecation once idea is fixed
+        logDeprecation();
         return configureByMapInternal(properties, delegate);
     }
 
@@ -102,6 +102,7 @@ public class ConfigureUtil {
     }
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate, Collection<?> mandatoryKeys) {
+        logDeprecation();
         if (!mandatoryKeys.isEmpty()) {
             Collection<String> missingKeys = toStringList(mandatoryKeys);
             missingKeys.removeAll(toStringList(properties.keySet()));
@@ -109,7 +110,6 @@ public class ConfigureUtil {
                 throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
             }
         }
-        logDeprecation();
         return configureByMapInternal(properties, delegate);
     }
 
@@ -145,8 +145,7 @@ public class ConfigureUtil {
      * @return The delegate param
      */
     public static <T> T configure(@Nullable Closure configureClosure, T target) {
-        // TODO log deprecation once the protobuf plugin is fixed
-        // logDeprecation();
+        logDeprecation();
         if (configureClosure == null) {
             return target;
         }
@@ -212,7 +211,7 @@ public class ConfigureUtil {
     private static void logDeprecation() {
         DeprecationLogger.deprecateType(ConfigureUtil.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .withUpgradeGuideSection(8, "org_gradle_util_reports_deprecations")
             .nagUser();
     }
 

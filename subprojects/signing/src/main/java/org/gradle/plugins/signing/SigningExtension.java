@@ -24,10 +24,12 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
@@ -155,11 +157,11 @@ public abstract class SigningExtension {
      * Provides the configuration that signature artifacts are added to. Called once during construction.
      */
     protected Configuration getDefaultConfiguration() {
-        final ConfigurationContainer configurations = project.getConfigurations();
+        final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
         return configuration != null
             ? configuration
-            : configurations.create(DEFAULT_CONFIGURATION_NAME);
+            : configurations.migratingUnlocked(DEFAULT_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE);
     }
 
     /**
@@ -321,7 +323,7 @@ public abstract class SigningExtension {
     /**
      * Creates signing tasks that sign {@link Configuration#getAllArtifacts() all artifacts} of the given configurations.
      *
-     * <p>The created tasks will be named "sign<i>&lt;configuration name capitalized&gt;</i>". That is, given a configuration with the name "archives" the created task will be named "signArchives".
+     * <p>The created tasks will be named "sign<i>&lt;configuration name capitalized&gt;</i>". That is, given a configuration with the name "conf" the created task will be named "signConf".
      *
      * The signature artifacts for the created tasks are added to the {@link #getConfiguration() configuration} for this settings object.
      *
@@ -396,14 +398,12 @@ public abstract class SigningExtension {
         });
         final Map<Signature, T> artifacts = new HashMap<>();
         signTask.getSignatures().all(signature -> {
-            @Nullable final T artifact = publicationToSign.addDerivedArtifact(
+            final T artifact = publicationToSign.addDerivedArtifact(
                 Cast.uncheckedNonnullCast(signature.getSource()),
                 new DefaultDerivedArtifactFile(signature, signTask)
             );
-            if (artifact != null) {
-                artifact.builtBy(signTask);
-                artifacts.put(signature, artifact);
-            }
+            artifact.builtBy(signTask);
+            artifacts.put(signature, artifact);
         });
         signTask.getSignatures().whenObjectRemoved(signature -> {
             final T artifact = artifacts.remove(signature);

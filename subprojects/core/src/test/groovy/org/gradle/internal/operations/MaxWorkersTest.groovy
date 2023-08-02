@@ -214,7 +214,9 @@ class MaxWorkersTest extends ConcurrentSpec {
     }
 
     WorkerLeaseRegistry workerLeaseService(int maxWorkers) {
-        return new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, maxWorkers))
+        def service = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, maxWorkers))
+        service.startProjectExecution(true)
+        return service
     }
 
     static class SimpleWorker implements BuildOperationWorker<DefaultBuildOperationQueueTest.TestBuildOperation> {

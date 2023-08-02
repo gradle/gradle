@@ -76,9 +76,15 @@ task groovydoc(type: Groovydoc) {
 }
 
 task verify {
+    def customCompileClasspathState = provider {
+        configurations.customCompileClasspath.state.toString()
+    }
+    def customRuntimeClasspathState = provider {
+        configurations.customRuntimeClasspath.state.toString()
+    }
     doLast {
-        assert configurations.customCompileClasspath.state.toString() == "UNRESOLVED"
-        assert configurations.customRuntimeClasspath.state.toString() == "UNRESOLVED"
+        assert customCompileClasspathState.get() == "UNRESOLVED"
+        assert customRuntimeClasspathState.get() == "UNRESOLVED"
     }
 }
         """
@@ -129,10 +135,12 @@ task verify {
 
             task assertDirectoriesAreEquals {
                 def mainGroovySourceDirSet = sourceSets.main.groovy
+                def mainGroovyDestDir = mainGroovySourceDirSet.destinationDirectory
                 def compileGroovyDestinationDir = compileGroovy.destinationDirectory
+                def binDir = file("$buildDir/bin")
                 doLast {
-                    assert mainGroovySourceDirSet.destinationDirectory.get().asFile == compileGroovyDestinationDir.get().asFile
-                    assert mainGroovySourceDirSet.destinationDirectory.get().asFile == file("$buildDir/bin")
+                    assert mainGroovyDestDir.get().asFile == compileGroovyDestinationDir.get().asFile
+                    assert mainGroovyDestDir.get().asFile == binDir
                 }
             }
         '''

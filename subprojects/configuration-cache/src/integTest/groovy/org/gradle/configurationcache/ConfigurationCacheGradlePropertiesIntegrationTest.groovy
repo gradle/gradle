@@ -16,13 +16,15 @@
 
 package org.gradle.configurationcache
 
-import groovy.test.NotYetImplemented
-import org.gradle.configurationcache.fixtures.BuildLogicChangeFixture
+import org.gradle.configurationcache.fixtures.GradlePropertiesIncludedBuildFixture
+import org.gradle.configurationcache.fixtures.SystemPropertiesCompositeBuildFixture
+import org.gradle.test.fixtures.Flaky
 import spock.lang.Issue
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
 import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
 
+@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3859')
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "invalidates cache when set of Gradle property defining system properties changes"() {
@@ -150,44 +152,165 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         ]
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/19184")
-    @NotYetImplemented
-    def "system properties from included build properties file"() {
+    @Issue("https://github.com/gradle/gradle/issues/19793")
+    def "gradle properties must be accessible from task in #build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        def fixture = new BuildLogicChangeFixture(file('build-logic'))
-        fixture.setup()
-        settingsFile << """
-            pluginManagement {
-                includeBuild 'build-logic'
-            }
-        """
-        buildFile << """
-            plugins { id('$fixture.pluginId') }
-
-            println(providers.systemProperty('fromPropertiesFile').orNull + "!")
-        """
-        file('build-logic/gradle.properties') << 'systemProp.fromPropertiesFile=42'
+        build.setup(this)
 
         when:
-        System.clearProperty('fromPropertiesFile')
-        configurationCacheRun fixture.task
+        configurationCacheRun build.task()
 
         then:
-        outputContains fixture.expectedOutputBeforeChange
-        outputContains '42!'
         configurationCache.assertStateStored()
+        outputContains build.expectedPropertyOutput()
 
         when:
-        System.clearProperty('fromPropertiesFile')
+        configurationCacheRun build.task()
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains build.expectedPropertyOutput()
+        outputDoesNotContain "GradleProperties has not been loaded yet."
+
+        where:
+        build << GradlePropertiesIncludedBuildFixture.builds()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19184")
+    def "system properties declared in properties of composite build"() {
+        given:
+        String systemProp = "fromPropertiesFile"
+        def configurationCache = newConfigurationCacheFixture()
+        def fixture = spec.createFixtureFor(this, systemProp)
+        fixture.setup()
+
+        when:
+        System.clearProperty(systemProp)
         configurationCacheRun fixture.task
 
         then:
-        outputDoesNotContain "because system property 'fromPropertiesFile' has changed"
-        outputContains fixture.expectedOutputBeforeChange
+        outputContains(fixture.expectedConfigurationTimeValue())
+        outputContains(fixture.expectedExecutionTimeValue())
+
+        when:
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task
+
+        then:
         configurationCache.assertStateLoaded()
+        outputContains(fixture.expectedExecutionTimeValue())
 
         cleanup:
-        System.clearProperty('fromPropertiesFile')
+        System.clearProperty(systemProp)
+
+        where:
+        spec << SystemPropertiesCompositeBuildFixture.specsWithSystemPropertyAccess()
+    }
+
+    def "passing cli override doesn't invalidates cache entry if property wasn't read at configuration time"() {
+        given:
+        String systemProp = "fromPropertiesFile"
+        def configurationCache = newConfigurationCacheFixture()
+        def fixture = spec.createFixtureFor(this, systemProp)
+        fixture.setup()
+
+        when:
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task
+
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task, "-D$systemProp=overridden value"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: overridden value")
+
+        cleanup:
+        System.clearProperty(systemProp)
+
+        where:
+        spec << SystemPropertiesCompositeBuildFixture.specsWithoutSystemPropertyAccess()
+    }
+
+    def "passing cli override invalidates cache entry if property was read at configuration time"() {
+        given:
+        String systemProp = "fromPropertiesFile"
+        def configurationCache = newConfigurationCacheFixture()
+        def fixture = spec.createFixtureFor(this, systemProp)
+        fixture.setup()
+
+        when:
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task
+
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task, "-D$systemProp=overridden value"
+
+        then:
+        outputContains("because system property '$systemProp' has changed")
+        outputContains("Execution: overridden value")
+
+        when:
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task, "-D$systemProp=overridden value"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: overridden value")
+
+        cleanup:
+        System.clearProperty(systemProp)
+
+        where:
+        spec << SystemPropertiesCompositeBuildFixture.specsWithSystemPropertyAccess()
+    }
+
+    def "runtime mutation system properties in composite build"() {
+        given:
+        String systemProp = "fromPropertiesFile"
+        def configurationCache = newConfigurationCacheFixture()
+        def includedBuildSystemPropertyDefinition = new SystemPropertiesCompositeBuildFixture.IncludedBuild("included-build")
+        def spec = new SystemPropertiesCompositeBuildFixture.Spec(
+            [includedBuildSystemPropertyDefinition],
+            SystemPropertiesCompositeBuildFixture.SystemPropertyAccess.NO_ACCESS
+        )
+
+        def fixture = spec.createFixtureFor(this, systemProp)
+        fixture.setup()
+
+        settingsFile << "System.setProperty('$systemProp', 'mutated value')\n"
+
+        when:
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task
+
+        then:
+        outputContains("Execution: ${includedBuildSystemPropertyDefinition.propertyValue()}")
+
+        when:
+        System.clearProperty(systemProp)
+        configurationCacheRun fixture.task
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: ${includedBuildSystemPropertyDefinition.propertyValue()}")
+
+        cleanup:
+        System.clearProperty(systemProp)
     }
 }

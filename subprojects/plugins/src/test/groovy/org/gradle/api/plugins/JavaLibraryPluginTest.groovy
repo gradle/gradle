@@ -19,6 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -38,7 +39,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaLibraryPlugin)
 
         when:
-        def api = project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
+        def api = project.configurations.getByName(JvmConstants.API_CONFIGURATION_NAME)
 
         then:
         !api.visible
@@ -47,7 +48,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !api.canBeResolved
 
         when:
-        def implementation = project.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+        def implementation = project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
         !implementation.visible
@@ -56,7 +57,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !implementation.canBeResolved
 
         when:
-        def runtimeOnly = project.configurations.getByName(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME)
+        def runtimeOnly = project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
 
         then:
         runtimeOnly.transitive
@@ -66,7 +67,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         runtimeOnly.extendsFrom == [] as Set
 
         when:
-        def runtimeElements = project.configurations.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+        def runtimeElements = project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
 
         then:
         runtimeElements.transitive
@@ -76,7 +77,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         runtimeElements.extendsFrom == [implementation, runtimeOnly] as Set
 
         when:
-        def runtimeClasspath = project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        def runtimeClasspath = project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
 
         then:
         runtimeClasspath.transitive
@@ -86,7 +87,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         runtimeClasspath.extendsFrom == [runtimeOnly, implementation] as Set
 
         when:
-        def compileOnlyApi = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_API_CONFIGURATION_NAME)
+        def compileOnlyApi = project.configurations.getByName(JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME)
 
         then:
         compileOnlyApi.extendsFrom == [] as Set
@@ -96,7 +97,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !compileOnlyApi.canBeResolved
 
         when:
-        def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
+        def compileOnly = project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
         compileOnly.extendsFrom == [compileOnlyApi] as Set
@@ -104,7 +105,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         compileOnly.transitive
 
         when:
-        def compileClasspath = project.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        def compileClasspath = project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
         compileClasspath.extendsFrom == toSet(compileOnly, implementation)
@@ -112,7 +113,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         compileClasspath.transitive
 
         when:
-        def apiElements = project.configurations.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME)
+        def apiElements = project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
 
         then:
         !apiElements.visible
@@ -121,7 +122,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !apiElements.canBeResolved
 
         when:
-        def testImplementation = project.configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
+        def testImplementation = project.configurations.getByName(JvmConstants.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
         testImplementation.extendsFrom == toSet(implementation)
@@ -130,7 +131,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !testImplementation.canBeResolved
 
         when:
-        def testRuntimeOnly = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
+        def testRuntimeOnly = project.configurations.getByName(JvmConstants.TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
 
         then:
         testRuntimeOnly.transitive
@@ -140,7 +141,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
 
         when:
-        def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
+        def testCompileOnly = project.configurations.getByName(JvmConstants.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
         testCompileOnly.extendsFrom == toSet(compileOnlyApi)
@@ -150,7 +151,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         testCompileOnly.transitive
 
         when:
-        def testCompileClasspath = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        def testCompileClasspath = project.configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
         testCompileClasspath.extendsFrom == toSet(testCompileOnly, testImplementation)
@@ -211,29 +212,29 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
     def "adds Java library component"() {
         given:
         project.pluginManager.apply(JavaLibraryPlugin)
-        project.dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, "org:api1:1.0")
-        project.dependencies.constraints.add(JavaPlugin.API_CONFIGURATION_NAME, "org:api2:2.0")
-        project.dependencies.add(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, "org:impl1:1.0")
-        project.dependencies.constraints.add(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, "org:impl2:2.0")
+        project.dependencies.add(JvmConstants.API_CONFIGURATION_NAME, "org:api1:1.0")
+        project.dependencies.constraints.add(JvmConstants.API_CONFIGURATION_NAME, "org:api2:2.0")
+        project.dependencies.add(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME, "org:impl1:1.0")
+        project.dependencies.constraints.add(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME, "org:impl2:2.0")
 
         when:
-        def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
-        SoftwareComponentInternal javaLibrary = project.components.getByName("java")
+        def jarTask = project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
+        SoftwareComponentInternal javaLibrary = project.components.getByName(JvmConstants.JAVA_COMPONENT_NAME)
         def runtimeVariant = javaLibrary.usages.find { it.name == 'runtimeElements' }
         def apiVariant = javaLibrary.usages.find { it.name == 'apiElements' }
 
         then:
         runtimeVariant.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
         runtimeVariant.dependencies.size() == 2
-        runtimeVariant.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
+        runtimeVariant.dependencies == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         runtimeVariant.dependencyConstraints.size() == 2
-        runtimeVariant.dependencyConstraints == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencyConstraints
+        runtimeVariant.dependencyConstraints == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencyConstraints
 
         apiVariant.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
         apiVariant.dependencies.size() == 1
-        apiVariant.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
+        apiVariant.dependencies == project.configurations.getByName(JvmConstants.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         apiVariant.dependencyConstraints.size() == 1
-        apiVariant.dependencyConstraints == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencyConstraints
+        apiVariant.dependencyConstraints == project.configurations.getByName(JvmConstants.API_CONFIGURATION_NAME).allDependencyConstraints
     }
 
 }

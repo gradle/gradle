@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
@@ -116,7 +115,6 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "serializes multiple copies of file collection for task")
     def "files are requested once only when dependency is resolved"() {
         buildFile << '''
             def jarFile = file("jar-1.jar")
@@ -138,6 +136,12 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                 }
             }
 '''
+
+        when:
+        run ":help"
+
+        then:
+        outputDoesNotContain("FILES REQUESTED")
 
         when:
         run ":checkFiles"
@@ -232,4 +236,46 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         }
     }
 
+    def "can select directory using artifact type and compatibility rule"() {
+        settingsFile << "rootProject.name='main'"
+        file("someDir").createDir()
+        buildFile << '''
+            allprojects {
+                configurations {
+                    compile {
+                        attributes {
+                            attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "thing")
+                        }
+                    }
+                }
+                dependencies {
+                    attributesSchema {
+                        attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE) {
+                            compatibilityRules.add(DirectoryIsOk)
+                        }
+                    }
+                }
+            }
+            dependencies {
+                compile files("someDir")
+            }
+            class DirectoryIsOk implements AttributeCompatibilityRule {
+                void execute(CompatibilityCheckDetails<String> details) {
+                    if (details.producerValue == ArtifactTypeDefinition.DIRECTORY_TYPE) {
+                        details.compatible()
+                    }
+                }
+            }
+'''
+
+        when:
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":main:") {
+                files << "someDir"
+            }
+        }
+    }
 }

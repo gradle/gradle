@@ -25,6 +25,8 @@ class UndeclaredBuildInputsKotlinSettingsScriptIntegrationTest extends AbstractU
     @Override
     void buildLogicApplication(BuildInputRead read) {
         settingsKotlinFile << """
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
+
             println("apply = " + ${read.kotlinExpression})
 
             gradle.rootProject {

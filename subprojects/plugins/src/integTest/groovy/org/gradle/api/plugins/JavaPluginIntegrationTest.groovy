@@ -109,7 +109,7 @@ Artifacts
             // A resolvable configuration to collect source data
             def sourceElementsConfig = configurations.create("sourceElements") {
                 visible = true
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION))
@@ -121,11 +121,13 @@ Artifacts
                 sourceElements project
             }
 
-            def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
-
             def testResolve = tasks.register('testResolve') {
+                def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
+                def resolvedConfigFiles = provider {
+                    sourceElementsConfig.files
+                }
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                    assert resolvedConfigFiles.get().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
@@ -197,7 +199,7 @@ Artifacts
             // A resolvable configuration to collect JaCoCo coverage data
             def sourceElementsConfig = configurations.create("sourceElements") {
                 visible = true
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
                 attributes {
@@ -212,8 +214,11 @@ Artifacts
                                          project(':subB').file("src/main/java")]
 
             def testResolve = tasks.register('testResolve') {
+                def actual = provider {
+                    sourceElementsConfig.files
+                }
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                    assert actual.get().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
@@ -482,9 +487,10 @@ Artifacts
                 config project(":")
             }
             tasks.register("consumeRuntimeClasses") {
-                dependsOn configurations.config
+                def config = configurations.config
+                dependsOn config
                 doLast {
-                    assert configurations.config.files*.name.contains("custom")
+                    assert config.files*.name.contains("custom")
                 }
             }
         """
@@ -527,5 +533,28 @@ Artifacts
 
         then:
         result.assertTasksExecuted(":compileJava", ":bar")
+    }
+
+    def "accessing reportsDir convention from the java plugin convention is deprecated"() {
+        given:
+        buildScript("""
+            plugins { id 'java' }
+            println(reportsDir)
+        """)
+
+        expect:
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation"
+        )
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
+        succeeds('help')
     }
 }

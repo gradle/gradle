@@ -45,6 +45,7 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.jsoup)
 
@@ -62,4 +63,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

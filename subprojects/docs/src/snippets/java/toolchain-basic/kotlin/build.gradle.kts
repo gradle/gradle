@@ -5,7 +5,7 @@ plugins {
 // tag::toolchain[]
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 // end::toolchain[]

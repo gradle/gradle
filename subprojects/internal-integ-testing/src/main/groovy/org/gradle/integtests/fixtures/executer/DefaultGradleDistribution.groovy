@@ -142,7 +142,12 @@ class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_18
         }
 
-        return javaVersion >= JavaVersion.VERSION_1_8 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_19)
+        // 8.3 added JDK 20 support
+        if (isSameOrOlder("8.2.1")) {
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_19
+        }
+
+        return javaVersion >= JavaVersion.VERSION_1_8 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_20)
     }
 
     @Override
@@ -319,6 +324,11 @@ class DefaultGradleDistribution implements GradleDistribution {
             return stderr;
         }
         return stdout;
+    }
+
+    @Override
+    boolean isSupportsKotlinScript() {
+        return isSameOrNewer("4.10.3"); // see compatibility matrix https://docs.gradle.org/8.0/userguide/compatibility.html
     }
 
     protected boolean isSameOrNewer(String otherVersion) {

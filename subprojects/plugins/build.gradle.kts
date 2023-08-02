@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":execution")) {
         because("We need it for BuildOutputCleanupRegistry")
     }
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -46,25 +47,24 @@ dependencies {
     testImplementation(libs.jsoup)
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":resources-http")))
-    testImplementation(testFixtures(project(":platform-native")))
     testImplementation(testFixtures(project(":jvm-services")))
-    testImplementation(testFixtures(project(":language-jvm")))
-    testImplementation(testFixtures(project(":language-java")))
     testImplementation(testFixtures(project(":language-groovy")))
-    testImplementation(testFixtures(project(":diagnostics")))
 
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":base-services-groovy"))
     testFixturesImplementation(project(":file-collections"))
+    testFixturesImplementation(testFixtures(project(":language-groovy")))
     testFixturesImplementation(project(":language-jvm"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(testFixtures(project(":model-core")))
     testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(libs.guava)
 
+    integTestImplementation(testFixtures(project(":enterprise-operations")))
+    integTestImplementation(testFixtures(project(":language-java")))
     integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures(project(":resources-http")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
@@ -81,12 +81,7 @@ packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true
 
 description = """Provides core Gradle plugins such as the base plugin and version catalog plugin, as well as JVM-related plugins for building different types of Java and Groovy projects."""

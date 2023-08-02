@@ -148,9 +148,11 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
     private void verifyProject(def project, String name, String identityPath = null, List<String> children = [], File projectDir = testDirectory.file(name), String buildFileName = 'build.gradle') {
         assert project.name == name
         assert project.identityPath == identityPath ?: project.path
+        assert project.buildTreePath == identityPath ?: project.path
         assert project.projectDir == projectDir.absolutePath
         assert project.buildFile == new File(projectDir, buildFileName).absolutePath
         assert project.children*.path == children
+        assert project.buildTreePath == identityPath ?: project.path
     }
 
     Map project(String path, Map rootProject, Map parent = null) {

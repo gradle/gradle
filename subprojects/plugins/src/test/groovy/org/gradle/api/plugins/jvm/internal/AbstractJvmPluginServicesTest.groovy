@@ -17,13 +17,12 @@
 package org.gradle.api.plugins.jvm.internal
 
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.plugins.Convention
-import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -33,8 +32,6 @@ import java.util.concurrent.Callable
 abstract class AbstractJvmPluginServicesTest extends Specification {
     def configurations = Mock(ConfigurationContainer)
     def tasks = Mock(TaskContainerInternal)
-    def softwareComponents = Mock(SoftwareComponentContainer)
-    def sourceSets = Mock(SourceSetContainer)
     def project = Stub(ProjectInternal) {
         getObjects() >> TestUtil.objectFactory()
         getProviders() >> TestUtil.providerFactory()
@@ -52,7 +49,7 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
             findPlugin(_) >> null
         }
         getExtensions() >> Stub(ExtensionContainerInternal) {
-            findByType(_) >> null
+            getByType(JavaPluginExtension) >> Mock(JavaPluginExtension)
         }
         getTasks() >> tasks
         getConfigurations() >> configurations
@@ -60,17 +57,14 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
 
     @Subject
     DefaultJvmPluginServices services = new DefaultJvmPluginServices(
-        configurations,
         TestUtil.objectFactory(),
-        tasks,
-        softwareComponents,
-        TestUtil.instantiatorFactory().decorateScheme().instantiator()
+        TestUtil.providerFactory(),
+        TestUtil.instantiatorFactory().decorateScheme().instantiator(),
+        project
     )
 
-    def setup() {
-        services.inject(
-            project,
-            sourceSets
-        )
-    }
+    DefaultJvmLanguageUtilities jvmLanguageUtilities = new DefaultJvmLanguageUtilities(
+        TestUtil.providerFactory(),
+        project
+    )
 }

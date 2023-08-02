@@ -15,33 +15,35 @@
  */
 package org.gradle.api.plugins.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
-import org.gradle.api.plugins.jvm.internal.JvmVariantBuilderInternal;
+import org.gradle.api.component.AdhocComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private final String name;
-    private final List<Capability> capabilities = Lists.newArrayListWithExpectedSize(2);
-    private final JvmModelingServices jvmEcosystemUtilities;
+    private final List<Capability> capabilities = new ArrayList<>(1);
+    private final ProjectInternal project;
 
-    private boolean overrideDefaultCapability = true;
     private SourceSet sourceSet;
     private boolean withJavadocJar = false;
     private boolean withSourcesJar = false;
     private boolean allowPublication = true;
 
-    public DefaultJavaFeatureSpec(String name,
-                                  Capability defaultCapability,
-                                  JvmModelingServices jvmModelingServices) {
+    public DefaultJavaFeatureSpec(String name, ProjectInternal project) {
         this.name = name;
-        this.jvmEcosystemUtilities = jvmModelingServices;
-        this.capabilities.add(defaultCapability);
+        this.project = project;
     }
 
     @Override
@@ -51,11 +53,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
     @Override
     public void capability(String group, String name, String version) {
-        if (overrideDefaultCapability) {
-            capabilities.clear();
-            overrideDefaultCapability = false;
-        }
-        capabilities.add(new ImmutableCapability(group, name, version));
+        capabilities.add(new DefaultImmutableCapability(group, name, version));
     }
 
     @Override
@@ -83,24 +81,43 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             throw new InvalidUserCodeException("You must specify which source set to use for feature '" + name + "'");
         }
 
-        jvmEcosystemUtilities.createJvmVariant(name, builder -> {
-            builder.usingSourceSet(sourceSet)
-                .withDisplayName("feature " + name)
-                .exposesApi();
-            if (withJavadocJar) {
-                builder.withJavadocJar();
-            }
-            if (withSourcesJar) {
-                builder.withSourcesJar();
-            }
-            if (allowPublication) {
-                builder.published();
-            }
-            for (Capability capability : capabilities) {
-                ((JvmVariantBuilderInternal)builder).capability(capability);
-            }
-        });
+        if (capabilities.isEmpty()) {
+            capabilities.add(new ProjectDerivedCapability(project, name));
+        }
 
+        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, true, SourceSet.isMain(sourceSet));
+        feature.withApi();
+
+        AdhocComponentWithVariants component = findJavaComponent();
+        if (withJavadocJar && component != null) {
+            feature.withJavadocJar();
+            Configuration javadocElements = feature.getJavadocElementsConfiguration();
+            component.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
+        }
+        if (withSourcesJar && component != null) {
+            feature.withSourcesJar();
+            Configuration sourcesElements = feature.getSourcesElementsConfiguration();
+            component.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
+        }
+
+        if (allowPublication && component != null) {
+            component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
+            component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+        }
+    }
+
+    // TODO: #23495 Investigate the implications of using this class without
+    //       the java plugin applied, and thus no java component present.
+    //       In the long run, all domain objects created by this feature should be
+    //       owned by a component. If we do not add them to the default java component,
+    //       we should be adding them to a user-provided or new component instead.
+    @Nullable
+    public AdhocComponentWithVariants findJavaComponent() {
+        SoftwareComponent component = project.getComponents().findByName("java");
+        if (component instanceof AdhocComponentWithVariants) {
+            return (AdhocComponentWithVariants) component;
+        }
+        return null;
     }
 
 }

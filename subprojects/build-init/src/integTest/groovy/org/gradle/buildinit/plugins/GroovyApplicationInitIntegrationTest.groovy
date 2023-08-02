@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
-class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+class GroovyApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.groovy"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.groovy"
@@ -143,6 +143,29 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run('init', '--type', 'groovy-application', '--package', 'my.app', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.app.AppTest", "application has a greeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello World!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """
@@ -155,6 +178,9 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
                 package org.acme;
 
                 class SampleMainTest {
+
+                    @org.junit.jupiter.api.Test
+                    public void sampleTest() { }
                 }
         """
         when:

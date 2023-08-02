@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.execution.model.annotations;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Optional;
@@ -28,6 +28,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
@@ -46,8 +47,10 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         propertyMetadata.getAnnotation(ServiceReference.class).ifPresent(annotation -> {
-            String serviceName = StringUtils.trimToNull(annotation.value());
-            visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, serviceName);
+            String serviceName = annotation.value();
+            TypeToken<?> declaredType = propertyMetadata.getDeclaredType();
+            Class<?> serviceType = Cast.uncheckedCast(((ParameterizedType) declaredType.getType()).getActualTypeArguments()[0]);
+            visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, serviceName, Cast.uncheckedCast(serviceType));
         });
     }
 

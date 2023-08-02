@@ -57,7 +57,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         ProjectConnection connection = connector.connect() // using withConnection would call close after the closure
 
         def build = connection.newBuild()
@@ -89,7 +89,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         ProjectConnection connection = connector.connect() // using withConnection would call close after the closure
 
         def build = connection.newBuild()
@@ -122,7 +122,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         ProjectConnection connection = connector.connect()
 
         def query = connection.model(EclipseProject)
@@ -151,7 +151,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         ProjectConnection connection1 = connector.connect()
         ProjectConnection connection2 = connector.connect()
 
@@ -187,7 +187,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         ProjectConnection connection = connector.connect()
 
         def build = connection.newBuild()
@@ -203,7 +203,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
     def "disconnect before build starts"() {
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         connector.connect()
         connector.disconnect()
 
@@ -225,7 +225,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         ProjectConnection connection = connector.connect()
 
         def cancellation = GradleConnector.newCancellationTokenSource()
@@ -255,7 +255,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         ProjectConnection connection = connector.connect()
 
         def cancellation = GradleConnector.newCancellationTokenSource()
@@ -285,7 +285,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         ProjectConnection connection = connector.connect()
 
         def build = connection.newBuild()
@@ -311,7 +311,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         withConnection(connector) { connection ->
             def build = connection.newBuild()
             build.forTasks('myTask').run()
@@ -334,7 +334,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         withConnection(connector) { connection ->
             def build = connection.newBuild()
             build.forTasks('hang').run(resultHandler)
@@ -349,7 +349,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
     def "cannot run build operations on project connection after disconnect"() {
         setup:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         ProjectConnection connection = connector.connect()
         connection.getModel(GradleProject)
         connector.disconnect()
@@ -364,7 +364,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
     def "cannot create new project connection after disconnect"() {
         setup:
-        GradleConnector connector = toolingApi.connector()
+        def connector = toolingApi.connector()
         withConnection(connector) { connection ->
             connection.getModel(EclipseProject)
         }

@@ -246,8 +246,12 @@ class JsonModelWriter(val writer: Writer) {
 
     private
     fun jsonString(value: String) {
-        buffer.addJsonEscapedString(value)
-        write(buffer.toStringAndRecycle())
+        if (value.isEmpty()) {
+            write("\"\"")
+        } else {
+            buffer.addJsonEscapedString(value)
+            write(buffer.toStringAndRecycle())
+        }
     }
 
     private

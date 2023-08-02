@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -32,6 +31,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.catalog.parser.DependenciesModelHelper;
@@ -50,7 +50,6 @@ import org.gradle.internal.management.VersionCatalogBuilderInternal;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -230,18 +229,17 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         cnf.getDependencies().add(dependency);
     }
 
+    @SuppressWarnings("deprecation")
     private Configuration createResolvableConfiguration(DependencyResolutionServices drs) {
         // The zero at the end of the configuration comes from the previous implementation;
         // Multiple files could be imported, and all members of the list were given their own configuration, postfixed by the index in the array.
         // After moving this into a single-file import, we didn't want to break the lock files generated for the configuration, so we simply kept the zero.
-        Configuration cnf = drs.getConfigurationContainer().create("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
+        Configuration cnf = ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableDependencyScopeUnlocked("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
         cnf.getResolutionStrategy().activateDependencyLocking();
         cnf.attributes(attrs -> {
             attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
             attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERSION_CATALOG));
         });
-        cnf.setCanBeResolved(true);
-        cnf.setCanBeConsumed(false);
         return cnf;
     }
 
@@ -258,7 +256,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             );
         }
     }
-
     private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
             throwVersionCatalogProblem(VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT, spec ->
@@ -276,9 +273,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                     .documented()
             );
         }
-        Instrumented.fileObserved(modelFile, getClass().getName());
+
+        Instrumented.fileOpened(modelFile, getClass().getName());
         try {
-            TomlCatalogFileParser.parse(new ByteArrayInputStream(Files.toByteArray(modelFile)), this);
+            TomlCatalogFileParser.parse(modelFile.toPath(), this);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

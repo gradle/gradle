@@ -18,23 +18,23 @@ package org.gradle.language.internal
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import spock.lang.Specification
 
 
 class DefaultComponentDependenciesTest extends Specification {
-    def configurations = Stub(ConfigurationContainer)
+    def configurations = Stub(RoleBasedConfigurationContainerInternal)
     def dependencyFactory = Mock(DependencyHandler)
     def implDeps = Mock(Configuration)
     def deps = Mock(DependencySet)
     DefaultComponentDependencies dependencies
 
     def setup() {
-        configurations.create("impl") >> implDeps
+        configurations.dependencyScopeUnlocked("impl") >> implDeps
         implDeps.dependencies >> deps
 
         dependencies = new DefaultComponentDependencies(configurations, "impl") {

@@ -18,15 +18,17 @@ package org.gradle.smoketests
 
 import groovy.json.JsonSlurper
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.VersionNumber
 
 /**
  * JDK11 or later since AGP 7.x requires Java11
  */
-@Requires(TestPrecondition.JDK11_OR_LATER)
+@Requires(UnitTestPreconditions.Jdk11OrLater)
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
     @Override
@@ -49,7 +51,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         given:
         BuildResult result
         useSample("gmm-example")
-        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.7.10")
+        def kotlinVersion = "1.7.10"
         def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("7.3")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
@@ -137,15 +139,31 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             // https://youtrack.jetbrains.com/issue/KT-44266#focus=Comments-27-4639508.0-0
             runner.withJvmArguments(runner.jvmArguments + [
                 "-Dkotlin.daemon.jvm.options=" +
-                "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
-                "--add-opens=java.base/java.util=ALL-UNNAMED"
+                    "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
+                    "--add-opens=java.base/java.util=ALL-UNNAMED"
             ])
         }
         return runner
     }
 
+    private static SmokeTestGradleRunner expectingDeprecations(SmokeTestGradleRunner runner, String kotlinVersion, String agpVersion) {
+        VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        return runner.deprecations(KotlinAndroidDeprecations) {
+            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
+            expectProjectConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
+            expectConventionTypeDeprecation(kotlinVersionNumber, agpVersionNumber)
+            expectJavaPluginConventionDeprecation(kotlinVersionNumber)
+            expectBasePluginConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+            if (GradleContextualExecuter.isConfigCache()) {
+                expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
+            }
+        }
+    }
+
     private BuildResult publish(String kotlinVersion, String agpVersion) {
-        return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
+        return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(expectingDeprecations(runner('publish'), kotlinVersion, agpVersion))
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
             .build()
@@ -186,7 +204,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
         if (metadataFileName.startsWith('kotlin-multiplatform') && !OperatingSystem.current().isMacOsX()) {
             // MacOS lib cannot be built on other platforms, so kotlin plugin won't add `artifactType` there
-            moduleRoot.variants.findAll { it.attributes["org.jetbrains.kotlin.native.target"] == "macos_x64" }.each { it.attributes.remove("artifactType")}
+            moduleRoot.variants.findAll { it.attributes["org.jetbrains.kotlin.native.target"] == "macos_x64" }.each { it.attributes.remove("artifactType") }
         }
 
         moduleRoot

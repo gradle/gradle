@@ -250,7 +250,7 @@ public class Maven2Gradle {
     private Set<MavenProject> modules(Set<MavenProject> projects, boolean incReactors) {
         return projects.stream().filter(project -> {
             Optional<MavenProject> parentIsPartOfThisBuild = projects.stream().filter(proj ->
-                project.getParent() != null && proj.getArtifactId().equals(project.getParent().getArtifactId()) && proj.getGroupId().equals(project.getParent().getGroupId())
+                project.getParent() == null || (project.getParent() != null && proj.getArtifactId().equals(project.getParent().getArtifactId()) && proj.getGroupId().equals(project.getParent().getGroupId()))
             ).findFirst();
             return parentIsPartOfThisBuild.isPresent() && (incReactors || !"pom".equals(project.getPackaging()));
         }).collect(Collectors.toSet());
@@ -418,10 +418,10 @@ public class Maven2Gradle {
             if (configuration != null) {
                 Xpp3Dom configuredSource = configuration.getChild("source");
                 Xpp3Dom configuredTarget = configuration.getChild("target");
-                if (configuredSource != null && !configuredSource.getValue().trim().isEmpty()) {
+                if (configuredSource != null && configuredSource.getValue() != null && !configuredSource.getValue().trim().isEmpty()) {
                     source = configuredSource.getValue();
                 }
-                if (configuredTarget != null && !configuredTarget.getValue().trim().isEmpty()) {
+                if (configuredTarget != null && configuredTarget.getValue() != null && !configuredTarget.getValue().trim().isEmpty()) {
                     target = configuredTarget.getValue();
                 }
             }

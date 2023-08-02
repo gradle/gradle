@@ -53,12 +53,12 @@ strictCompile {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release.set(null as? Int)
+    options.release = null
     sourceCompatibility = "8"
     targetCompatibility = "8"
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true
 
 packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")

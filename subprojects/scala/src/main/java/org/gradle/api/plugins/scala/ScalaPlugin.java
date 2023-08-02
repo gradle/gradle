@@ -24,10 +24,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
@@ -49,12 +49,12 @@ public abstract class ScalaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ScalaBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
-        final SourceSet main = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName("main");
+        JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
-        configureScaladoc(project, main);
+        configureScaladoc(project, mainFeature);
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().getByName("incrementalScalaAnalysisElements");
-        String compileTaskName = main.getCompileTaskName("scala");
+        String compileTaskName = mainFeature.getSourceSet().getCompileTaskName("scala");
         final TaskProvider<AbstractScalaCompile> compileScala = project.getTasks().withType(AbstractScalaCompile.class).named(compileTaskName);
         final Provider<RegularFile> compileScalaMapping = project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + compileTaskName + ".mapping");
         compileScala.configure(task -> task.getAnalysisMappingFile().set(compileScalaMapping));
@@ -62,16 +62,16 @@ public abstract class ScalaPlugin implements Plugin<Project> {
             compileScalaMapping, configurablePublishArtifact -> configurablePublishArtifact.builtBy(compileScala));
     }
 
-    private static void configureScaladoc(final Project project, final SourceSet main) {
+    private static void configureScaladoc(final Project project, final JvmFeatureInternal feature) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
             scalaDoc.getConventionMapping().map("classpath", (Callable<FileCollection>) () -> {
                 ConfigurableFileCollection files = project.files();
-                files.from(main.getOutput());
-                files.from(main.getCompileClasspath());
+                files.from(feature.getSourceSet().getOutput());
+                files.from(feature.getSourceSet().getCompileClasspath());
                 return files;
             });
-            scalaDoc.setSource(main.getExtensions().getByType(ScalaSourceDirectorySet.class));
-            scalaDoc.getCompilationOutputs().from(main.getOutput());
+            scalaDoc.setSource(feature.getSourceSet().getExtensions().getByType(ScalaSourceDirectorySet.class));
+            scalaDoc.getCompilationOutputs().from(feature.getSourceSet().getOutput());
         });
         project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
             scalaDoc.setDescription("Generates Scaladoc for the main source code.");

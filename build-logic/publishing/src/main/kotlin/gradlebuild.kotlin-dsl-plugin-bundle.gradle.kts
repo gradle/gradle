@@ -28,7 +28,7 @@ plugins {
 extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin)
 
 tasks.validatePlugins {
-    enableStricterValidation.set(true)
+    enableStricterValidation = true
 }
 
 // Remove gradleApi() and gradleTestKit() as we want to compile/run against Gradle modules
@@ -44,6 +44,14 @@ publishing.publications.withType<MavenPublication>().configureEach {
     if (name == "pluginMaven") {
         groupId = project.group.toString()
         artifactId = moduleIdentity.baseName.get()
+    }
+    pom {
+        licenses {
+            license {
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
     }
 }
 
@@ -74,7 +82,7 @@ val publishPluginsToTestRepository by tasks.registering {
 
 val futurePluginVersionsPropertiesFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties")
 val writeFuturePluginVersions by tasks.registering(WriteProperties::class) {
-    destinationFile.set(futurePluginVersionsPropertiesFile)
+    destinationFile = futurePluginVersionsPropertiesFile
 }
 val futurePluginVersionsDestDir = futurePluginVersionsPropertiesFile.map { it.asFile.parentFile }
 sourceSets.main {
@@ -100,8 +108,8 @@ publishing {
 }
 
 gradlePlugin {
-    website.set("https://github.com/gradle/kotlin-dsl")
-    vcsUrl.set("https://github.com/gradle/kotlin-dsl")
+    website = "https://github.com/gradle/gradle/tree/HEAD/platforms/core-configuration/kotlin-dsl-plugins"
+    vcsUrl = "https://github.com/gradle/gradle/tree/HEAD/platforms/core-configuration/kotlin-dsl-plugins"
 
     plugins.all {
 

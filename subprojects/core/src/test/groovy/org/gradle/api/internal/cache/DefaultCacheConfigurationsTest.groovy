@@ -17,14 +17,16 @@
 package org.gradle.api.internal.cache
 
 import org.gradle.api.cache.Cleanup
+import org.gradle.api.cache.MarkingStrategy
 import org.gradle.cache.CleanupFrequency
+import org.gradle.cache.internal.LegacyCacheCleanupEnablement
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo
 
 class DefaultCacheConfigurationsTest extends Specification {
-    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class)
+    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Mock(LegacyCacheCleanupEnablement))
 
     def "cannot modify cache configurations via convenience method unless mutable"() {
         when:
@@ -79,6 +81,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
         cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
         cacheConfigurations.cleanup."${method}"(Cleanup.DISABLED)
+        cacheConfigurations.markingStrategy."${method}"(MarkingStrategy.NONE)
 
         then:
         noExceptionThrown()
@@ -120,6 +123,13 @@ class DefaultCacheConfigurationsTest extends Specification {
         then:
         e = thrown(IllegalStateException)
         assertCannotConfigureErrorIsThrown(e, "cleanup")
+
+        when:
+        cacheConfigurations.markingStrategy."${method}"(MarkingStrategy.CACHEDIR_TAG)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "markingStrategy")
 
         where:
         method << ["set", "value", "convention"]
@@ -173,7 +183,7 @@ class DefaultCacheConfigurationsTest extends Specification {
     }
 
     def "synchronized configurations reflect changes in property values"() {
-        def mutableCacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations)
+        def mutableCacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations, Mock(LegacyCacheCleanupEnablement))
 
         when:
         cacheConfigurations.synchronize(mutableCacheConfigurations)
@@ -184,12 +194,14 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
         cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
         cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        cacheConfigurations.markingStrategy.set(MarkingStrategy.NONE)
 
         then:
         mutableCacheConfigurations.createdResources.removeUnusedEntriesOlderThan.get() == twoDaysAgo
         mutableCacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.get() == twoDaysAgo
         mutableCacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.get() == twoDaysAgo
         mutableCacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.get() == twoDaysAgo
+        mutableCacheConfigurations.markingStrategy.get() == MarkingStrategy.NONE
     }
 
     def "will not require cleanup unless configured"() {

@@ -43,7 +43,7 @@ public interface ArtifactVisitor {
     void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> capabilities, ResolvableArtifact artifact);
 
     /**
-     * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(DisplayName, AttributeContainer, List, ResolvableArtifact)}?
+     * Should the file for each artifact be made available prior to calling {@link #visitArtifact(DisplayName, AttributeContainer, List, ResolvableArtifact)}?
      *
      * Returns true here allows the collection to preemptively resolve the files in parallel.
      */
@@ -53,12 +53,6 @@ public interface ArtifactVisitor {
      * Called when some problem occurs visiting some element of the set. Visiting may continue.
      */
     void visitFailure(Throwable failure);
-
-    /**
-     * Called for a set that may be backed by a file collection, when {@link #prepareForVisit(FileCollectionInternal.Source)} return {@link FileCollectionStructureVisitor.VisitType#Spec}.
-     */
-    default void visitSpec(FileCollectionInternal spec) {
-    }
 
     /**
      * Called after a set of artifacts has been visited.

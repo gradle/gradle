@@ -18,6 +18,6 @@ apply<GreetingPlugin>()
 
 // Configure the extension using a DSL block
 configure<GreetingPluginExtension> {
-    message.set("Hi")
-    greeter.set("Gradle")
+    message = "Hi"
+    greeter = "Gradle"
 }

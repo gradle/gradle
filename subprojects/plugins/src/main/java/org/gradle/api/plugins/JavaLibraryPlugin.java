@@ -17,17 +17,11 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 
 import javax.inject.Inject;
-
-import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_API_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME;
 
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
@@ -38,30 +32,20 @@ import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_
  */
 public abstract class JavaLibraryPlugin implements Plugin<Project> {
 
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
-
     @Inject
-    public JavaLibraryPlugin(JvmEcosystemUtilities jvmEcosystemUtilities) {
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
-    }
+    public JavaLibraryPlugin() { }
 
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
-        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-        ConfigurationContainer configurations = project.getConfigurations();
-        SourceSet sourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        JvmPluginsHelper.addApiToSourceSet(sourceSet, configurations);
-        makeCompileOnlyApiVisibleToTests(configurations);
+        JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
+        component.getMainFeature().withApi();
 
-        Configuration apiElements = configurations.getByName(sourceSet.getApiElementsConfigurationName());
-        jvmEcosystemUtilities.configureClassesDirectoryVariant(apiElements, sourceSet);
-    }
-
-    private void makeCompileOnlyApiVisibleToTests(ConfigurationContainer configurations) {
-        Configuration testCompileOnly = configurations.getByName(TEST_COMPILE_ONLY_CONFIGURATION_NAME);
-        Configuration compileOnlyApi = configurations.getByName(COMPILE_ONLY_API_CONFIGURATION_NAME);
-        testCompileOnly.extendsFrom(compileOnlyApi);
+        // Make compileOnlyApi visible to tests.
+        JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
+        project.getConfigurations()
+            .getByName(defaultTestSuite.getSources().getCompileOnlyConfigurationName())
+            .extendsFrom(component.getMainFeature().getCompileOnlyApiConfiguration());
     }
 }

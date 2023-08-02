@@ -21,6 +21,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -74,6 +75,13 @@ public interface BuildStateRegistry {
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
      */
     IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition);
+
+    /**
+     * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
+     *
+     * This is used when loaded from the Configuration Cache when the path of the build is already known.
+     */
+    IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition, Path buildPath);
 
     /**
      * Creates an implicit included build. An implicit build is-a nested build that is managed by Gradle and whose outputs are used by dependency resolution.

@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.IoActions;
@@ -234,7 +233,6 @@ public abstract class WriteProperties extends DefaultTask {
      * @since 8.1
      */
     @OutputFile
-    @Incubating
     abstract public RegularFileProperty getDestinationFile();
 
     @TaskAction

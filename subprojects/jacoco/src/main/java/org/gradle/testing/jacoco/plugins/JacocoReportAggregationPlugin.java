@@ -22,18 +22,18 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.internal.jacoco.DefaultJacocoCoverageReport;
 import org.gradle.testing.base.TestSuite;
@@ -41,7 +41,6 @@ import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
-import java.util.concurrent.Callable;
 
 /**
  * Adds configurations to for resolving variants containing JaCoCo code coverage results, which may span multiple subprojects.  Reacts to the presence of the jvm-test-suite plugin and creates
@@ -56,7 +55,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
     public static final String JACOCO_AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
 
     @Inject
-    protected abstract JvmEcosystemUtilities getEcosystemUtilities();
+    protected abstract JvmPluginServices getEcosystemUtilities();
 
     @Override
     public void apply(Project project) {
@@ -64,32 +63,31 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         project.getPluginManager().apply("jvm-ecosystem");
         project.getPluginManager().apply("jacoco");
 
-        Configuration jacocoAggregation = project.getConfigurations().create(JACOCO_AGGREGATION_CONFIGURATION_NAME);
+
+        ConfigurationContainer configurations = ((ProjectInternal) project).getConfigurations();
+        Configuration jacocoAggregation = configurations.dependencyScope(JACOCO_AGGREGATION_CONFIGURATION_NAME).get();
         jacocoAggregation.setDescription("Collects project dependencies for purposes of JaCoCo coverage report aggregation");
         jacocoAggregation.setVisible(false);
-        jacocoAggregation.setCanBeConsumed(false);
-        jacocoAggregation.setCanBeResolved(false);
 
-        ObjectFactory objects = project.getObjects();
-        Configuration codeCoverageResultsConf = project.getConfigurations().create("aggregateCodeCoverageReportResults");
-        codeCoverageResultsConf.setDescription("Graph needed for the aggregated JaCoCo coverage report.");
+        Configuration codeCoverageResultsConf = configurations.resolvable("aggregateCodeCoverageReportResults").get();
+        codeCoverageResultsConf.setDescription("Resolvable configuration used to gather files for the JaCoCo coverage report aggregation via ArtifactViews, not intended to be used directly");
         codeCoverageResultsConf.extendsFrom(jacocoAggregation);
         codeCoverageResultsConf.setVisible(false);
-        codeCoverageResultsConf.setCanBeConsumed(false);
-        codeCoverageResultsConf.setCanBeResolved(true);
+
+        project.getPlugins().withType(JavaBasePlugin.class, plugin -> {
+            // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
+            getEcosystemUtilities().configureAsRuntimeClasspath(codeCoverageResultsConf);
+        });
+
+        ObjectFactory objects = project.getObjects();
 
         ArtifactView sourceDirectories = codeCoverageResultsConf.getIncoming().artifactView(view -> {
             view.withVariantReselection();
             view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
-            view.attributes(attributes -> {
-                attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.class, Bundling.EXTERNAL));
-                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.MAIN_SOURCES));
-            });
+            getEcosystemUtilities().configureAsSources(view);
         });
 
         ArtifactView classDirectories = codeCoverageResultsConf.getIncoming().artifactView(view -> {
-            view.withVariantReselection();
             view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
             view.attributes(attributes -> {
                 attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.class, LibraryElements.CLASSES));
@@ -102,25 +100,19 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         // Iterate and configure each user-specified report.
         reporting.getReports().withType(JacocoCoverageReport.class).all(report -> {
             report.getReportTask().configure(task -> {
-                Callable<FileCollection> executionData = () ->
-                    codeCoverageResultsConf.getIncoming().artifactView(view -> {
-                        view.withVariantReselection();
-                        view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
-                        view.attributes(attributes -> {
-                            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
-                            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
-                            attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.BINARY_DATA_TYPE);
-                        });
-                    }).getFiles();
+                ArtifactView executionData = codeCoverageResultsConf.getIncoming().artifactView(view -> {
+                    view.withVariantReselection();
+                    view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+                    view.attributes(attributes -> {
+                        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+                        attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+                        attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
+                        attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.BINARY_DATA_TYPE);
+                    });
+                });
 
                 configureReportTaskInputs(task, classDirectories, sourceDirectories, executionData);
             });
-        });
-
-        project.getPlugins().withType(JavaBasePlugin.class, plugin -> {
-            // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
-            getEcosystemUtilities().configureAsRuntimeClasspath(codeCoverageResultsConf);
         });
 
         // convention for synthesizing reports based on existing test suites in "this" project
@@ -139,8 +131,8 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureReportTaskInputs(JacocoReport task, ArtifactView classDirectories, ArtifactView sourceDirectories, Callable<FileCollection> executionData) {
-        task.getExecutionData().from(executionData);
+    private void configureReportTaskInputs(JacocoReport task, ArtifactView classDirectories, ArtifactView sourceDirectories, ArtifactView executionData) {
+        task.getExecutionData().from(executionData.getFiles());
         task.getClassDirectories().from(classDirectories.getFiles());
         task.getSourceDirectories().from(sourceDirectories.getFiles());
     }

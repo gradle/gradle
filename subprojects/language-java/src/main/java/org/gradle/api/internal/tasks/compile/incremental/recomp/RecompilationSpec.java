@@ -55,10 +55,6 @@ public class RecompilationSpec {
         return Collections.unmodifiableSet(classesToCompile);
     }
 
-    public boolean hasClassToCompile(String className) {
-        return classesToCompile.contains(className);
-    }
-
     public void addClassToReprocess(String classToReprocess) {
         classesToProcess.add(classToReprocess);
     }

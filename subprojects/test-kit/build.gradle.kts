@@ -45,7 +45,7 @@ dependencies {
 
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
     classpath.from(sourceSets.main.map { it.runtimeClasspath })
-    outputFile.set(layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt"))
+    outputFile = layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt")
 }
 tasks.jar {
     into("org/gradle/api/internal/runtimeshaded") {

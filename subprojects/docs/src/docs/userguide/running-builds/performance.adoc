@@ -80,7 +80,7 @@ org.gradle.parallel=true
 Parallel builds can significantly improve build times; how much depends on your project structure and
 how many dependencies you have between subprojects.
 A build whose execution time is dominated by a single subproject won't benefit much at all.
-Niether will a project with lots of inter-subproject dependencies.
+Neither will a project with lots of inter-subproject dependencies.
 But most multi-subproject builds see a reduction in build times.
 
 For more information about parallel builds, check out the
@@ -178,7 +178,7 @@ To enable the configuration cache by default, add the following setting to the `
 .gradle.properties
 [source,properties]
 ----
-org.gradle.unsafe.configuration-cache=true
+org.gradle.configuration-cache=true
 ----
 ====
 
@@ -607,8 +607,8 @@ To enable the reports based on a project property, check for the presence of a p
 ----
 tasks.withType<Test>().configureEach {
     if (!project.hasProperty("createReports")) {
-        reports.html.required.set(false)
-        reports.junitXml.required.set(false)
+        reports.html.required = false
+        reports.junitXml.required = false
     }
 }
 ----
@@ -741,7 +741,7 @@ To enable incremental compilation by default in older Gradle versions, add the f
 [source.multi-language-sample,kotlin]
 ----
 tasks.withType<JavaCompile>().configureEach {
-    options.incremental = true
+    options.isIncremental = true
 }
 ----
 .build.gradle

@@ -21,6 +21,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 
 import javax.annotation.Nullable;
 
+import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION;
+
 public abstract class Documentation {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
@@ -43,11 +45,11 @@ public abstract class Documentation {
     }
 
     @Nullable
-    abstract String documentationUrl();
+    public abstract String documentationUrl();
 
     @Nullable
     public String consultDocumentationMessage() {
-        return String.format("See %s for more details.", documentationUrl());
+        return String.format(RECOMMENDATION, "information", documentationUrl());
     }
 
     public static abstract class AbstractBuilder<T> {
@@ -96,7 +98,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             return null;
         }
 
@@ -116,7 +118,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             if (section != null) {
                 return DOCUMENTATION_REGISTRY.getDocumentationFor(id, section);
             }
@@ -134,7 +136,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             return DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, section);
         }
 
@@ -154,7 +156,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
     }

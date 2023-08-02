@@ -37,7 +37,9 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -46,6 +48,8 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
 
 /**
@@ -53,6 +57,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InitBuild extends DefaultTask {
+    private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
@@ -79,7 +84,8 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * Should the build be split into multiple subprojects?
      *
-     * This property can be set via command-line option '--split-project'.
+     * This property can be set via the command-line options '--split-project'
+     * and '--no-split-project'.
      *
      * @since 6.7
      */
@@ -91,7 +97,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     /**
-     * The desired DSL of build scripts to create, defaults to 'groovy'.
+     * The desired DSL of build scripts to create, defaults to 'kotlin'.
      *
      * This property can be set via command-line option '--dsl'.
      *
@@ -100,7 +106,7 @@ public abstract class InitBuild extends DefaultTask {
     @Optional
     @Input
     public String getDsl() {
-        return isNullOrEmpty(dsl) ? BuildInitDsl.GROOVY.getId() : dsl;
+        return isNullOrEmpty(dsl) ? BuildInitDsl.KOTLIN.getId() : dsl;
     }
 
     /**
@@ -116,7 +122,7 @@ public abstract class InitBuild extends DefaultTask {
      */
     @Input
     @Optional
-    @Option(option = "incubating", description = "Allow the generated build to use new features and APIs")
+    @Option(option = "incubating", description = "Allow the generated build to use new features and APIs.")
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
     }
@@ -189,8 +195,6 @@ public abstract class InitBuild extends DefaultTask {
 
         BuildInitDsl dsl = getBuildInitDsl(inputHandler, initDescriptor);
 
-        boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
-
         BuildInitTestFramework testFramework = getBuildInitTestFramework(inputHandler, initDescriptor, modularizationOption);
 
         String projectName = getProjectName(inputHandler, initDescriptor);
@@ -198,6 +202,10 @@ public abstract class InitBuild extends DefaultTask {
         String packageName = getPackageName(inputHandler, initDescriptor, projectName);
 
         validatePackageName(packageName);
+
+        java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(inputHandler, initDescriptor);
+
+        boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
 
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(
@@ -209,15 +217,35 @@ public abstract class InitBuild extends DefaultTask {
             packageName,
             testFramework,
             insecureProtocol.get(),
-            projectDir);
+            projectDir,
+            toolChainVersion);
         initDescriptor.generate(settings);
 
-        initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
+        initDescriptor.getFurtherReading(settings)
+            .ifPresent(link -> getLogger().lifecycle(link));
     }
 
     private static void validatePackageName(String packageName) {
         if (!isNullOrEmpty(packageName) && !SourceVersion.isName(packageName)) {
             throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
+        }
+    }
+
+    java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
+        if (!initDescriptor.supportsJavaTargets()) {
+            return empty();
+        }
+
+        JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
+        String version = inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
+        try {
+            int parsedVersion = Integer.parseInt(version);
+            if (parsedVersion < MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
+                throw new GradleException("Java target version: '" + version + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
+            }
+            return of(JavaLanguageVersion.of(parsedVersion));
+        } catch (NumberFormatException e) {
+            throw new GradleException("Invalid Java target version '" + version + "'. The version must be an integer.", e);
         }
     }
 
@@ -247,7 +275,8 @@ public abstract class InitBuild extends DefaultTask {
         if (!isNullOrEmpty(type)) {
             return ModularizationOption.SINGLE_PROJECT;
         }
-        return inputHandler.selectOption("Split functionality across multiple subprojects?", initDescriptor.getModularizationOptions(), ModularizationOption.SINGLE_PROJECT);
+        boolean multipleSubprojects = inputHandler.askYesNoQuestion("Generate multiple subprojects for application?", false);
+        return multipleSubprojects ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
     }
 
     private boolean shouldUseIncubatingAPIs(UserInputHandler inputHandler) {

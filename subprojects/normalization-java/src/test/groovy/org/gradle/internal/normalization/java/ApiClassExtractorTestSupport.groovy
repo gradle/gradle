@@ -106,8 +106,12 @@ class ApiClassExtractorTestSupport extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
+    // The default target version can be updated to a new version when necessary, as long as
+    // you also update `ApiClassExtractorTest#target binary compatibility is maintained` with new assumptions.
+    private static final String DEFAULT_TARGET_VERSION = '8'
+
     protected ApiContainer toApi(Map<String, String> sources) {
-        toApi('1.7', [], sources)
+        toApi(DEFAULT_TARGET_VERSION, [], sources)
     }
 
     protected ApiContainer toApi(String targetVersion, Map<String, String> sources) {
@@ -115,7 +119,7 @@ class ApiClassExtractorTestSupport extends Specification {
     }
 
     protected ApiContainer toApi(List<String> packages, Map<String, String> sources) {
-        toApi('1.7', packages, sources)
+        toApi(DEFAULT_TARGET_VERSION, packages, sources)
     }
 
     protected ApiContainer toApi(String targetVersion, List<String> packages,  Map<String, String> sources) {

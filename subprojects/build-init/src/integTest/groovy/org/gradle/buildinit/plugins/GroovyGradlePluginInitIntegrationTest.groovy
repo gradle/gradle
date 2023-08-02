@@ -93,6 +93,25 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/18206")
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs builds in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "re-running check succeeds"() {

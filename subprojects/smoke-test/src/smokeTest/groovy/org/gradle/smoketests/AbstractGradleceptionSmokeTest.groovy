@@ -19,19 +19,22 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.SmokeTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import java.text.SimpleDateFormat
 
-@Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
-})
+@Requires([
+    UnitTestPreconditions.Jdk9OrLater,
+    IntegTestPreconditions.NotConfigCached,
+    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
+])
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()

@@ -774,4 +774,10 @@
     "testProject" : "largeMonolithicJavaProject",
     "linux" : 83000
   } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.calculate task graph with test finalizer",
+    "durations" : [ {
+        "testProject" : "largeAndroidBuild",
+        "linux" : 1200000
+    } ]
 } ]

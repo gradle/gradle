@@ -126,13 +126,19 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
             task verifyClasspath {
                 dependsOn(configurations.compileClasspath)
                 dependsOn(configurations.runtimeClasspath)
+                def incomingCompileClasspath = provider {
+                    configurations.compileClasspath.incoming.resolutionResult.allDependencies.collect {
+                        it.toString()
+                    } as Set
+                }
+                def incomingRuntimeClasspath = provider {
+                    configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.collect {
+                        it.toString()
+                    } as Set
+                }
                 doLast {
-                    assert configurations.compileClasspath.incoming.resolutionResult.allDependencies.collect {
-                        it.toString()
-                    } as Set == ['project :b', 'project :c', 'project :e'] as Set // only API dependencies
-                    assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.collect {
-                        it.toString()
-                    } as Set == ['project :b', 'project :c', 'project :d', 'project :g'] as Set // all dependencies (except compile only)
+                    assert incomingCompileClasspath.get() == ['project :b', 'project :c', 'project :e'] as Set // only API dependencies
+                    assert incomingRuntimeClasspath.get() == ['project :b', 'project :c', 'project :d', 'project :g'] as Set // all dependencies (except compile only)
                 }
             }
         """
@@ -219,9 +225,10 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
             }
 
             task resolveRuntime {
-                dependsOn(configurations.runtimeClasspath)
+                def runtimeClasspath = configurations.runtimeClasspath
+                dependsOn(runtimeClasspath)
                 doLast {
-                    assert configurations.runtimeClasspath.files.name as Set == ['b.jar'] as Set
+                    assert runtimeClasspath.files.name as Set == ['b.jar'] as Set
                 }
             }
         """
@@ -382,14 +389,21 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
             task verifyClasspath {
                 dependsOn(configurations.compileClasspath)
                 dependsOn(configurations.runtimeClasspath)
+                def incomingCompileClasspath = provider {
+                    configurations.compileClasspath.incoming.resolutionResult.allDependencies.collect {
+                        it.toString()
+                    } as Set
+                }
+                def runtimeClasspath = configurations.runtimeClasspath
+                def incomingRuntimeClasspath = provider {
+                    runtimeClasspath.incoming.resolutionResult.allDependencies.collect {
+                        it.toString()
+                    } as Set
+                }
                 doLast {
-                    assert configurations.compileClasspath.incoming.resolutionResult.allDependencies.collect {
-                        it.toString()
-                    } as Set == ['project :b', 'project :c'] as Set // only API dependencies
-                    assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.collect {
-                        it.toString()
-                    } as Set == ['project :b', 'project :c', 'project :d'] as Set // all dependencies
-                    assert configurations.runtimeClasspath.files.name as Set == ['b-my-feature.jar', 'c.jar', 'd.jar'] as Set
+                    assert incomingCompileClasspath.get() == ['project :b', 'project :c'] as Set // only API dependencies
+                    assert incomingRuntimeClasspath.get() == ['project :b', 'project :c', 'project :d'] as Set // all dependencies
+                    assert runtimeClasspath.files.name as Set == ['b-my-feature.jar', 'c.jar', 'd.jar'] as Set
                 }
             }
         """
@@ -526,6 +540,68 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         executedAndNotSkipped ':compileMain211Java', ':compileMain212Java'
     }
 
+    def "creates configurations when using main source set and java-library is not applied" () {
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            sourceSets {
+               main
+            }
+
+            configurations {
+                testCompileClasspath
+                testRuntimeClasspath
+            }
+
+            java {
+               registerFeature('feature') {
+                  usingSourceSet(sourceSets.main)
+               }
+            }
+        """
+
+        when:
+        succeeds 'dependencies'
+
+        then:
+        outputContains("featureRuntimeOnly")
+        outputContains("featureCompileOnly")
+        outputContains("featureImplementation")
+        outputContains("featureApi")
+        outputContains("featureCompileOnlyApi")
+        outputContains("featureRuntimeElements")
+        outputContains("featureApiElements")
+    }
+
+    def "creates configurations when using main source set and main feature name"() {
+        buildFile << """
+            plugins {
+                id('java-library')
+            }
+
+            java {
+                registerFeature('main') {
+                   usingSourceSet(sourceSets.main)
+                }
+            }
+        """
+
+        when:
+        run 'dependencies'
+
+        then:
+        outputContains("mainRuntimeOnly")
+        outputContains("mainCompileOnly")
+        outputContains("mainImplementation")
+        outputContains("mainApi")
+        outputContains("mainCompileOnlyApi")
+        outputContains("mainRuntimeElements")
+        outputContains("mainApiElements")
+    }
+
     def "elements configurations have the correct roles"() {
         given:
         buildFile << """
@@ -550,11 +626,11 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                 [apiElements, runtimeElements].each {
                     assert it.canBeConsumed == true
                     assert it.canBeResolved == false
-                    assert it.canBeDeclaredAgainst == true
+                    assert it.canBeDeclared == true
 
-                    assert it.declarationAlternatives == null
-                    assert it.resolutionAlternatives == null
-                    assert it.consumptionDeprecation == null
+                    assert it.deprecatedForDeclarationAgainst == true
+                    assert it.deprecatedForResolution == false
+                    assert it.deprecatedForConsumption == false
                 }
             }
         """
@@ -564,7 +640,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
     }
 
     private void packagingTasks(boolean expectExecuted, String subproject, String feature = '') {
-        def tasks = [":$subproject:process${feature.capitalize()}Resources", ":$subproject:${feature.isEmpty()? 'classes' : feature + 'Classes'}", ":$subproject:${feature.isEmpty()? 'jar' : feature + 'Jar'}"]
+        def tasks = [":$subproject:process${feature.capitalize()}Resources", ":$subproject:${feature.isEmpty() ? 'classes' : feature + 'Classes'}", ":$subproject:${feature.isEmpty() ? 'jar' : feature + 'Jar'}"]
         if (expectExecuted) {
             executed(*tasks)
         } else {

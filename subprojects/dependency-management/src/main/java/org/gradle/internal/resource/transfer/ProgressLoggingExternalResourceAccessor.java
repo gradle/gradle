@@ -25,6 +25,7 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
@@ -121,6 +122,10 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             try {
                 return delegate.withContent(location, revalidate, (inputStream, metaData) -> {
                     downloadOperation.setContentLength(metaData.getContentLength());
+                    if(metaData.wasMissing()) {
+                        context.failed(ResourceExceptions.getMissing(metaData.getLocation()));
+                        return null;
+                    }
                     ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
                     return action.execute(stream, metaData);
                 });

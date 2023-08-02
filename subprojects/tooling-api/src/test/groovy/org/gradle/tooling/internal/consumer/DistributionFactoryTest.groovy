@@ -26,8 +26,8 @@ import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.StatusEvent
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
-import org.gradle.util.internal.DistributionLocator
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.DistributionLocator
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -47,23 +47,26 @@ class DistributionFactoryTest extends Specification {
 
     def usesTheWrapperPropertiesToDetermineTheDefaultDistribution() {
         def zipFile = createZip { }
-        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
+
+        def zipFileUri = zipFile.toURI().toASCIIString()
+        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=$zipFileUri"
 
         expect:
-        factory.getDefaultDistribution(tmpDir.testDirectory, false).displayName == "Gradle distribution '${zipFile.toURI()}'"
+        factory.getDefaultDistribution(tmpDir.testDirectory, false).displayName == "Gradle distribution '$zipFileUri'"
     }
 
     def usesTheWrapperPropertiesToDetermineTheDefaultDistributionForASubprojectInAMultiProjectBuild() {
         def zipFile = createZip { }
         tmpDir.file('settings.gradle') << 'include "child"'
-        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
+        def zipFileUri = zipFile.toURI().toASCIIString()
+        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=$zipFileUri"
 
         expect:
-        factory.getDefaultDistribution(tmpDir.testDirectory.createDir("child"), true).displayName == "Gradle distribution '${zipFile.toURI()}'"
+        factory.getDefaultDistribution(tmpDir.testDirectory.createDir("child"), true).displayName == "Gradle distribution '$zipFileUri'"
     }
 
     def usesTheCurrentVersionAsTheDefaultDistributionWhenNoWrapperPropertiesFilePresent() {
-        def uri = new DistributionLocator().getDistributionFor(GradleVersion.current())
+        def uri = new DistributionLocator().getDistributionFor(GradleVersion.current()).toASCIIString()
 
         expect:
         factory.getDefaultDistribution(tmpDir.testDirectory, false).displayName == "Gradle distribution '${uri}'"
@@ -150,7 +153,7 @@ class DistributionFactoryTest extends Specification {
                 file("gradle-launcher-0.9.jar")
             }
         }
-        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
+        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI().toASCIIString()}"
         def dist = factory.getDefaultDistribution(tmpDir.testDirectory, false)
         def result = dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, customUserHome, cancellationToken)
 
@@ -265,7 +268,7 @@ class DistributionFactoryTest extends Specification {
         then:
         1 * cancellationToken.addCallback(_)
         GradleConnectionException e = thrown()
-        e.cause.message == "Gradle distribution '${zipFile.toURI()}' does not appear to contain a Gradle distribution."
+        e.cause.message == "Gradle distribution '${zipFile.toURI().toASCIIString()}' does not appear to contain a Gradle distribution."
     }
 
     private TestFile createZip(Closure cl) {

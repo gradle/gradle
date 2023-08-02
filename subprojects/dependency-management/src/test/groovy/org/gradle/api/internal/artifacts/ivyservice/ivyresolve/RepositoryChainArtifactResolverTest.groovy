@@ -20,6 +20,7 @@ import com.google.common.collect.Maps
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -52,6 +53,9 @@ class RepositoryChainArtifactResolverTest extends Specification {
     final repo2Source = new RepositoryChainModuleSource(repo2)
 
     final moduleSources = ImmutableModuleSources.of(repo2Source)
+    final component = Stub(ComponentArtifactResolveMetadata) {
+        getSources() >> moduleSources
+    }
 
     final resolver = new RepositoryChainArtifactResolver(calculatedValueContainerFactory)
 
@@ -62,7 +66,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
 
     def "locates artifact with local access in repository defined by module source"() {
         when:
-        resolver.resolveArtifact(moduleVersionId, artifact, moduleSources, result)
+        resolver.resolveArtifact(component, artifact, result)
         then:
         result.hasResult()
         cache.size() == 1
@@ -81,7 +85,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         result.result.file == artifactFile
 
         when:
-        resolver.resolveArtifact(moduleVersionId, artifact, moduleSources, result)
+        resolver.resolveArtifact(component, artifact, result)
         then:
         result.hasResult()
         result.result.file == artifactFile
@@ -91,7 +95,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
 
     def "locates artifact with remote access in repository defined by module source"() {
         when:
-        resolver.resolveArtifact(moduleVersionId, artifact, moduleSources, result)
+        resolver.resolveArtifact(component, artifact, result)
         then:
         result.hasResult()
         cache.size() == 1
@@ -113,7 +117,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         result.result.file == artifactFile
 
         when:
-        resolver.resolveArtifact(moduleVersionId, artifact, moduleSources, result)
+        resolver.resolveArtifact(component, artifact, result)
         then:
         result.hasResult()
         result.result.file == artifactFile

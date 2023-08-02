@@ -21,11 +21,13 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT_JUPITER;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.KOTLINTEST;
@@ -65,7 +67,7 @@ public class Description {
     private final Language language;
     private final BuildInitTestFramework defaultTestFramework;
     private final Set<BuildInitTestFramework> supportedTestFrameworks;
-    private final String pluginName;
+    private final Optional<String> pluginName;
     private final String pluginVersionProperty;
 
     private Description(Language language, BuildInitTestFramework defaultTestFramework, List<BuildInitTestFramework> supportedTestFrameworks,
@@ -73,7 +75,7 @@ public class Description {
         this.language = language;
         this.defaultTestFramework = defaultTestFramework;
         this.supportedTestFrameworks = new TreeSet<>(supportedTestFrameworks);
-        this.pluginName = pluginName;
+        this.pluginName = ofNullable(pluginName);
         this.pluginVersionProperty = pluginVersionProperty;
     }
 
@@ -89,8 +91,7 @@ public class Description {
         return supportedTestFrameworks;
     }
 
-    @Nullable
-    public String getPluginName() {
+    public Optional<String> getPluginName() {
         return pluginName;
     }
 

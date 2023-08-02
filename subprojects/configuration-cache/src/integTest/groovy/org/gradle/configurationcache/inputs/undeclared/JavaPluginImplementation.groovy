@@ -29,6 +29,7 @@ trait JavaPluginImplementation {
             import ${Project.name};
             import ${Plugin.name};
             import ${Task.name};
+            ${read.requiredImports().collect { "import $it;" }.join("\n")}
 
             public class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
@@ -54,6 +55,7 @@ trait JavaPluginImplementation {
             import ${Project.name};
             import ${Plugin.name};
             import ${Task.name};
+            ${read.requiredImports().collect { "import $it;" }.join("\n")}
 
             public class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {

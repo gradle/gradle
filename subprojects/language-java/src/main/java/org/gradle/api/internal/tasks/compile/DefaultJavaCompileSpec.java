@@ -19,9 +19,11 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.compile.CompileOptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -31,14 +33,26 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private MinimalJavaCompileOptions compileOptions;
     private List<File> annotationProcessorPath;
     private Set<AnnotationProcessorDeclaration> effectiveAnnotationProcessors;
-    private Set<String> classes;
+    private Set<String> classesToProcess;
     private List<File> modulePath;
     private List<File> sourceRoots;
-    private boolean isIncrementalCompilationOfJavaModule;
+    private Set<String> classesToCompile = Collections.emptySet();
+    private File backupDestinationDir;
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
         return compileOptions;
+    }
+
+    @Nullable
+    @Override
+    public File getClassBackupDir() {
+        return backupDestinationDir;
+    }
+
+    @Override
+    public void setClassBackupDir(@Nullable File classBackupDir) {
+        this.backupDestinationDir = classBackupDir;
     }
 
     public void setCompileOptions(CompileOptions compileOptions) {
@@ -66,13 +80,23 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     }
 
     @Override
-    public Set<String> getClasses() {
-        return classes;
+    public Set<String> getClassesToProcess() {
+        return classesToProcess;
     }
 
     @Override
-    public void setClasses(Set<String> classes) {
-        this.classes = classes;
+    public void setClassesToProcess(Set<String> classes) {
+        this.classesToProcess = classes;
+    }
+
+    @Override
+    public void setClassesToCompile(Set<String> classes) {
+        this.classesToCompile = classes;
+    }
+
+    @Override
+    public Set<String> getClassesToCompile() {
+        return classesToCompile;
     }
 
     @Override
@@ -104,16 +128,6 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setModulePath(List<File> modulePath) {
         this.modulePath = modulePath;
-    }
-
-    @Override
-    public boolean isIncrementalCompilationOfJavaModule() {
-        return isIncrementalCompilationOfJavaModule;
-    }
-
-    @Override
-    public void setIsIncrementalCompilationOfJavaModule(boolean isIncrementalCompilationOfJavaModule) {
-        this.isIncrementalCompilationOfJavaModule = isIncrementalCompilationOfJavaModule;
     }
 
     @Override

@@ -18,17 +18,12 @@ package org.gradle.workers.internal
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.workers.fixtures.WorkerExecutorFixture
-import spock.lang.Ignore
-import spock.lang.Issue
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
-    WorkerExecutorFixture fixture = new WorkerExecutorFixture(temporaryFolder)
-
     def setup() {
         buildFile << """
             import org.gradle.workers.WorkerExecutor
@@ -68,8 +63,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
+                def namedParam = testObject
                 parameters {
-                    testParam = testObject
+                    testParam = namedParam
                 }
             }
         """
@@ -136,8 +132,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
+                def arrayParam = testObject
                 parameters {
-                    testParam = testObject
+                    testParam = arrayParam
                 }
             }
         """
@@ -160,8 +157,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
+                def arrayParam = testObject
                 parameters {
-                    testParam = testObject
+                    testParam = arrayParam
                 }
             }
         """
@@ -291,43 +289,6 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << ISOLATION_MODES
     }
 
-    /**
-     * This is a reproduction test case for https://github.com/gradle/gradle/issues/13843.  This will only fail if the
-     * system default encoding does not match the encoding of the build process.  I was able to reliably get it to fail
-     * on Ubuntu Linux 16.04.
-     */
-    @Issue('https://github.com/gradle/gradle/issues/13843')
-    @Ignore
-    def "can provide a file property parameter with non-ASCII characters using isolation mode #isolationMode"() {
-        buildFile << """
-            ${parameterWorkAction('RegularFileProperty', '''
-                def file = parameters.testParam.get().getAsFile()
-                println file.text
-            ''')}
-
-            task runWork(type: ParameterTask) {
-                isolationMode = ${isolationMode}
-                def file = project.file("test!@#\\\$^&()_+=-.`~,你所有的基地都属于我们")
-                doFirst {
-                    file.parentFile.mkdirs()
-                    file.text = "foo"
-                }
-                parameters {
-                    testParam.set(file)
-                }
-            }
-        """
-
-        when:
-        succeeds("runWork")
-
-        then:
-        outputContains("foo")
-
-        where:
-        isolationMode << ISOLATION_MODES
-    }
-
     def "can provide directory property parameters with isolation mode #isolationMode"() {
         buildFile << """
             ${parameterWorkAction('DirectoryProperty', 'println parameters.testParam.get().getAsFile().name')}
@@ -408,8 +369,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
+                def objectParam = testObject
                 parameters {
-                    testParam = testObject
+                    testParam = objectParam
                 }
             }
         """

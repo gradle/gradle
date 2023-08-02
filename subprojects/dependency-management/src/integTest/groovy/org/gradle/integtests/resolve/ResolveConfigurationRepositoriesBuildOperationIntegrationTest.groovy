@@ -36,7 +36,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         using m2
         buildFile << """
             apply plugin: 'java'
-            ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toString())}
+            ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toASCIIString())}
             task resolve {
                 def files = configurations.compileClasspath
                 doLast { files.files }
@@ -56,8 +56,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         op.details.buildPath == ":"
         def repos = op.details.repositories
         repos.size() == 1
-        repos.first() == augmentMapWithProperties(expectedRepo, [
-            URL: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
+        def repo1 = repos.first()
+        repo1.remove('id')
+        repo1 == augmentMapWithProperties(expectedRepo, [
+            URL: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toASCIIString() : mavenHttpRepo.uri.toASCIIString(),
             DIRS: [buildFile.parentFile.file('fooDir').absolutePath]
         ])
 
@@ -434,7 +436,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedMavenRepo() {
         [
-            id: 'maven',
             name: 'maven',
             type: 'MAVEN',
             properties: [
@@ -471,7 +472,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedIvyRepo() {
         [
-            id: 'ivy',
             name: 'ivy',
             type: 'IVY',
             properties: [
@@ -493,7 +493,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedIvyRepoNoUrl() {
         [
-            id: 'ivy',
             name: 'ivy',
             type: 'IVY',
             properties: [
@@ -517,7 +516,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedFlatDirRepo() {
         [
-            id: 'flatDir',
             name: 'flatDir',
             type: 'FLAT_DIR',
             properties: [
@@ -532,7 +530,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedMavenLocalRepo() {
         [
-            id: 'MavenLocal',
             name: 'MavenLocal',
             type: 'MAVEN',
             properties: [
@@ -551,7 +548,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedMavenCentralRepo() {
         [
-            id: 'MavenRepo',
             name: 'MavenRepo',
             type: 'MAVEN',
             properties: [
@@ -570,7 +566,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedJcenterRepo() {
         [
-            id: 'BintrayJCenter',
             name: 'BintrayJCenter',
             type: 'MAVEN',
             properties: [
@@ -589,7 +584,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedGoogleRepo() {
         [
-            id: 'Google',
             name: 'Google',
             type: 'MAVEN',
             properties: [
@@ -608,7 +602,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedGradlePluginPortalRepo() {
         [
-            id: 'Gradle Central Plugin Repository',
             name: 'Gradle Central Plugin Repository',
             type: 'MAVEN',
             properties: [

@@ -15,8 +15,6 @@
 [[signing_plugin]]
 = The Signing Plugin
 
-WARNING: The Signing Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The Signing Plugin adds the ability to digitally sign built files and artifacts. These digital signatures can then be used to prove who built the artifact the signature is attached to as well as other information such as when the signature was generated.
 
 The Signing Plugin currently only provides support for generating https://en.wikipedia.org/wiki/Pretty_Good_Privacy#OpenPGP[OpenPGP signatures] (which is the signature format http://central.sonatype.org/pages/requirements.html#sign-files-with-gpgpgp[required for publication to the Maven Central Repository]).
@@ -164,22 +162,22 @@ In addition, the above DSL allows to `sign` multiple comma-separated publication
 [[sec:signing_configurations]]
 === Signing Configurations
 
-It is common to want to sign the artifacts of a configuration. For example, the <<java_plugin.adoc#java_plugin,Java plugin>> configures a jar to build and this jar artifact is added to the `archives` configuration. Using the Signing DSL, you can specify that all of the artifacts of this configuration should be signed.
+It is common to want to sign the artifacts of a configuration. For example, the <<java_plugin.adoc#java_plugin,Java plugin>> configures a jar to build and this jar artifact is added to the `runtimeElements` configuration. Using the Signing DSL, you can specify that all of the artifacts of this configuration should be signed.
 
 .Signing a configuration
 ====
-include::sample[dir="snippets/signing/configurations/kotlin",files="build.gradle.kts[tags=sign-archives]"]
-include::sample[dir="snippets/signing/configurations/groovy",files="build.gradle[tags=sign-archives]"]
+include::sample[dir="snippets/signing/configurations/kotlin",files="build.gradle.kts[tags=sign-runtime-elements]"]
+include::sample[dir="snippets/signing/configurations/groovy",files="build.gradle[tags=sign-runtime-elements]"]
 ====
 
-This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signArchives`, that will build any `archives` artifacts (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
+This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signRuntimeElements`, that will build any `runtimeElements` artifacts (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
 
 === Example: Signing a configuration output
 
-.Output of **`gradle signArchives`**
+.Output of **`gradle signRuntimeElements`**
 ----
-> gradle signArchives
-include::{snippetsPath}/signing/configurations/tests/signingArchivesOutput.out[]
+> gradle signRuntimeElements
+include::{snippetsPath}/signing/configurations/tests/signingRuntimeElementsOutput.out[]
 ----
 
 [[sec:signing_tasks]]
@@ -241,4 +239,4 @@ include::sample[dir="snippets/signing/conditional/groovy",files="build.gradle[ta
 When signing <<#sec:signing_publications,publications>>, the resultant signature artifacts are automatically added to the corresponding publication.
 Thus, when publishing to a repository, e.g. by executing the `publish` task, your signatures will be distributed along with the other artifacts without any additional configuration.
 
-When signing <<#sec:signing_configurations,configurations>> and <<#sec:signing_tasks,tasks>>, the resultant signature artifacts are automatically added to the `signatures` and `archives` dependency configurations.
+When signing <<#sec:signing_configurations,configurations>> and <<#sec:signing_tasks,tasks>>, the resultant signature artifacts are automatically added to the `signatures` dependency configuration.

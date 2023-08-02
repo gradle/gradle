@@ -56,7 +56,7 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -229,6 +229,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         };
     }
 
+    @Deprecated
     @Override
     public Dependency module(Object notation) {
         return module(notation, null);
@@ -239,6 +240,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation);
     }
 
+    @Deprecated
     @Override
     @SuppressWarnings("rawtypes")
     public Dependency module(Object notation, @Nullable Closure configureClosure) {
@@ -380,7 +382,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
         } else if (testFixturesDependency instanceof ModuleDependency) {
             ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
-            moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new ImmutableCapability(
+            moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(
                 moduleDependency.getGroup(),
                 moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX,
                 null)));
@@ -453,7 +455,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
         @Override
         public void testFixtures() {
-            this.capabilitiesMutator = capabilities -> capabilities.requireCapability(new ImmutableCapability(dep.getModule().getGroup(), dep.getModule().getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+            this.capabilitiesMutator = capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(dep.getModule().getGroup(), dep.getModule().getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
         }
 
         @Override

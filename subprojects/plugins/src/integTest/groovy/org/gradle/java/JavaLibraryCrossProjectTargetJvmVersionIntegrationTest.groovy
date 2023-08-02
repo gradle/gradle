@@ -17,7 +17,6 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.hamcrest.Matchers
 
@@ -92,7 +91,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
             [6, 7, 9].each { v ->
                 configurations {
                     "apiElementsJdk\${v}" {
-                        canBeConsumed = true
+                        assert canBeConsumed
                         canBeResolved = false
                         attributes {
                             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-api'))
@@ -140,8 +139,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         expected = "apiElementsJdk$selected"
     }
 
-    @ToBeFixedForConfigurationCache(because = "serializes the incorrect artifact in ArtifactCollection used by resolve fixture")
-    def "can disable automatic setting of target JVM attribute"() {
+    def "can disable selection of dependencies based on jvm version"() {
         file("producer/build.gradle") << """
             java {
                 targetCompatibility = JavaVersion.VERSION_1_7

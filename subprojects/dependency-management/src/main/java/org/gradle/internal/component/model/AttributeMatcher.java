@@ -16,23 +16,31 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
 public interface AttributeMatcher {
+
+    @VisibleForTesting
+    AttributeSelectionSchema getSelectionSchema();
+
+    /**
+     * Determines whether the given candidate is compatible with the requested criteria.
+     */
     boolean isMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested);
 
     <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested);
 
+    /**
+     * Selects all matches from {@code candidates} that are compatible with the {@code requested} criteria attributes.
+     */
     <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, AttributeMatchingExplanationBuilder builder);
-
-    <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback, AttributeMatchingExplanationBuilder builder);
 
     List<MatchingDescription<?>> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested);
 

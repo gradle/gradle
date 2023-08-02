@@ -38,7 +38,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
         """
@@ -53,8 +53,8 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             configurations.create("legacy") {
                 description = "My legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -69,8 +69,8 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             configurations.create("legacy") {
                 description = "My custom legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -96,7 +96,7 @@ My custom legacy configuration""")
             configurations.create("custom") {
                 description = "My custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
             }
         """
 
@@ -121,7 +121,7 @@ My custom configuration
             configurations.create("custom") {
                 description = "My custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
 
                 attributes {
                     attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
@@ -159,7 +159,7 @@ Attributes
             configurations.create("someConf") {
                 description = "My first custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
 
                 attributes {
                     attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
@@ -171,7 +171,7 @@ Attributes
             configurations.create("otherConf") {
                 description = "My second custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
 
                 attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.DOCUMENTATION));
@@ -231,7 +231,7 @@ Attributes
         result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -298,7 +298,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -389,7 +389,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -471,7 +471,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -576,7 +576,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -658,7 +658,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -756,7 +756,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -826,7 +826,7 @@ Secondary Variants (*)
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -893,7 +893,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -978,7 +978,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1045,7 +1045,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1127,7 +1127,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org.test:extra:1.0
@@ -1159,7 +1159,7 @@ Capabilities
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1219,7 +1219,7 @@ Secondary Variants (*)
             def sample = configurations.create("sample") {
                 visible = true
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
 
                 attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
@@ -1240,7 +1240,7 @@ Secondary Variants (*)
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1307,7 +1307,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1392,7 +1392,7 @@ Artifacts
             configurations.create("custom") {
                 description = "My custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
             }
 
             task redJar(type: Jar) {

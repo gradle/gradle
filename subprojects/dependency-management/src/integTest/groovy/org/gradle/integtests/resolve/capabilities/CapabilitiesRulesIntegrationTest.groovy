@@ -182,13 +182,12 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
 
             tasks.register("dumpCapabilitiesFromArtifactView") {
+                def artifactCollection = configurations.conf.incoming.artifactView {
+                    attributes {
+                        attribute(Attribute.of("artifactType", String), "jar")
+                    }
+                }.artifacts
                 doFirst {
-                    def artifactCollection = configurations.conf.incoming.artifactView {
-                        attributes {
-                            attribute(Attribute.of("artifactType", String), "jar")
-                        }
-                    }.artifacts
-
                     artifactCollection.artifacts.each {
                         println "Artifact: \${it.id.componentIdentifier.displayName}"
                         println "  - artifact: \${it.file}"
@@ -198,7 +197,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                             throw new IllegalStateException("Expected default capability to be explicit")
                         } else {
                             println "  - capabilities: " + capabilities.collect {
-                                if (!(it instanceof org.gradle.internal.component.external.model.ImmutableCapability)) {
+                                if (!(it instanceof org.gradle.internal.component.external.model.DefaultImmutableCapability)) {
                                     throw new IllegalStateException("Unexpected capability type: \$it")
                                 }
                                 "\${it}"
@@ -514,7 +513,11 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('jakarta:xml', 'jakarta:xml:1.0') {
-                    module('jakarta:activation:1.0')
+                    byConflictResolution()
+                    selectedByRule()
+                    module('jakarta:activation:1.0') {
+                        byConflictResolution()
+                    }
                 }
                 module('hadoop:yarn:1.0') {
                     edge('javax:jaxb:1.0', 'jakarta:xml:1.0')

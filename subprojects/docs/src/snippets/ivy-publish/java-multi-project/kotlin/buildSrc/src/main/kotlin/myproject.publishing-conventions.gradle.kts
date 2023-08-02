@@ -26,7 +26,7 @@ publishing {
         create<IvyPublication>("ivy") {
             from(components["java"])
             descriptor.description {
-                text.set(providers.provider({ description }))
+                text = providers.provider({ description })
             }
         }
     }

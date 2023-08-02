@@ -16,11 +16,9 @@
 
 package org.gradle.configurationcache.isolated
 
-
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
 class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     @Rule
@@ -30,7 +28,6 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.start()
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "projects are configured and models created in parallel when project scoped model is queried concurrently"() {
         withSomeToolingModelBuilderPluginInBuildSrc("""
             ${server.callFromBuildUsingExpression("'model-' + project.name")}
@@ -44,14 +41,19 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         apply(file("a"))
         apply(file("b"))
 
+        // Prebuild buildSrc
+        server.expect("configure-root")
+        server.expect("configure-a")
+        server.expect("configure-b")
+        run()
+
         given:
         server.expect("configure-root")
         server.expectConcurrent("model-root", "configure-a", "configure-b")
         server.expectConcurrent("model-a", "model-b")
 
         when:
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -68,8 +70,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         }
 
         when:
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -93,8 +94,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("configure-a", "configure-b")
         server.expectConcurrent("model-a", "model-b")
 
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -114,8 +114,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         }
 
         when:
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model4 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -128,7 +127,6 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         fixture.assertStateLoaded()
     }
 
-    @Ignore("not implemented yet")
     def "projects are configured in parallel when projects use plugins from included builds and project scoped model is queried concurrently"() {
         withSomeToolingModelBuilderPluginInChildBuild("plugins", """
             ${server.callFromBuildUsingExpression("'model-' + project.name")}
@@ -143,23 +141,28 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         apply(file("a"))
         apply(file("b"))
 
+        // Prebuild plugins
+        server.expect("configure-a")
+        server.expect("configure-b")
+        run()
+
         given:
         server.expectConcurrent("configure-a", "configure-b")
         server.expectConcurrent("model-a", "model-b")
 
         when:
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
-        model.size() == 2
-        model[0].message == "It works from project :a"
-        model[1].message == "It works from project :b"
+        model.size() == 3
+        model[0] == null
+        model[1].message == "It works from project :a"
+        model[2].message == "It works from project :b"
 
         and:
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":")
+            projectsConfigured(":plugins", ":", ":a", ":b")
             buildModelCreated()
             modelsCreated(":a", ":b")
         }

@@ -40,7 +40,8 @@ import java.util.zip.ZipFile;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
+import static org.gradle.util.internal.PathTraversalChecker.safePathName;
+import static org.gradle.wrapper.Download.safeUri;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
@@ -66,7 +67,6 @@ public class Install {
 
         return exclusiveFileAccessManager.access(localZipFile, new Callable<File>() {
             public File call() throws Exception {
-                String distributionSha256Sum = configuration.getDistributionSha256Sum();
                 final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
                 if (distDir.isDirectory() && markerFile.isFile()) {
                     InstallCheck installCheck = verifyDistributionRoot(distDir, distDir.getAbsolutePath());
@@ -78,10 +78,9 @@ public class Install {
                     markerFile.delete();
                 }
 
-                URI safeDistributionUrl = Download.safeUri(distributionUrl);
-                fetchDistribution(safeDistributionUrl, localZipFile, distributionUrl, distDir, configuration);
+                fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
 
-                InstallCheck installCheck = verifyDistributionRoot(distDir, safeDistributionUrl.toString());
+                InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
                 if (installCheck.isVerified()) {
                     setExecutablePermissions(installCheck.gradleHome);
                     markerFile.createNewFile();
@@ -94,7 +93,7 @@ public class Install {
         });
     }
 
-    private void fetchDistribution(URI safeDistributionUrl, File localZipFile, URI distributionUrl, File distDir, WrapperConfiguration configuration) throws Exception {
+    private void fetchDistribution(File localZipFile, URI distributionUrl, File distDir, WrapperConfiguration configuration) throws Exception {
         String distributionSha256Sum = configuration.getDistributionSha256Sum();
         boolean failed = false;
         int retries = RETRIES;
@@ -102,12 +101,12 @@ public class Install {
             try {
                 boolean needsDownload = !localZipFile.isFile() || failed;
                 if (needsDownload) {
-                    forceFetch(safeDistributionUrl, localZipFile, distributionUrl);
+                    forceFetch(localZipFile, distributionUrl);
                 }
 
                 deleteLocalTopLevelDirs(distDir);
 
-                verifyDownloadChecksum(configuration.getDistribution().toString(), localZipFile, distributionSha256Sum);
+                verifyDownloadChecksum(configuration.getDistribution().toASCIIString(), localZipFile, distributionSha256Sum);
 
                 unzipLocal(localZipFile, distDir);
                 failed = false;
@@ -125,13 +124,13 @@ public class Install {
     }
 
 
-    String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) throws Exception {
+    private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
+        URI distribution = configuration.getDistribution();
         try {
-            URI distributionUrl = new URI(configuration.getDistribution().toString() + SHA_256);
-            URI safeDistributionUrl = Download.safeUri(distributionUrl);
+            URI distributionUrl = distribution.resolve(distribution.getPath() + SHA_256);
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + SHA_256);
 
-            forceFetch(safeDistributionUrl, tmpZipFile, distributionUrl);
+            forceFetch(tmpZipFile, distributionUrl);
 
             BufferedReader reader = new BufferedReader(new FileReader(tmpZipFile));
             try {
@@ -140,7 +139,7 @@ public class Install {
                 reader.close();
             }
         } catch (Exception e) {
-            logger.log("Could not fetch hash for " + configuration.getDistribution() + ".");
+            logger.log("Could not fetch hash for " + safeUri(distribution) + ".");
             logger.log("Reason: " + e.getMessage());
             return null;
         }
@@ -164,10 +163,11 @@ public class Install {
         }
     }
 
-    private void forceFetch(URI safeDistributionUrl, File localTargetFile, URI distributionUrl) throws Exception {
+    private void forceFetch(File localTargetFile, URI distributionUrl) throws Exception {
         File tempDownloadFile = new File(localTargetFile.getParentFile(), localTargetFile.getName() + ".part");
         tempDownloadFile.delete();
-        logger.log("Downloading " + safeDistributionUrl);
+
+        logger.log("Downloading " + safeUri(distributionUrl));
         download.download(distributionUrl, tempDownloadFile);
         if(localTargetFile.exists()) {
             localTargetFile.delete();
@@ -321,7 +321,7 @@ public class Install {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
-                File destFile = new File(dest, safeZipEntryName(entry.getName()));
+                File destFile = new File(dest, safePathName(entry.getName()));
                 if (entry.isDirectory()) {
                     destFile.mkdirs();
                     continue;

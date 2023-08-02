@@ -66,9 +66,10 @@ enum class Os(
     val jprofilerHome: String,
     val killAllGradleProcesses: String,
     val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%",
-    val perfTestJavaVendor: String = "oracle",
+    val perfTestJavaVendor: JvmVendor = JvmVendor.openjdk,
     val buildJavaVersion: JvmVersion = JvmVersion.java11,
-    val perfTestJavaVersion: JvmVersion = JvmVersion.java8
+    val perfTestJavaVersion: JvmVersion = JvmVersion.java17,
+    val defaultArch: Arch = Arch.AMD64
 ) {
     LINUX(
         "Linux",
@@ -82,13 +83,13 @@ enum class Os(
         jprofilerHome = """C:\Program Files\jprofiler\jprofiler11.1.4""",
         killAllGradleProcesses = killAllGradleProcessesWindows,
         perfTestWorkingDir = "P:/",
-        perfTestJavaVendor = "openjdk"
     ),
     MACOS(
         "Mac",
         androidHome = "/opt/android/sdk",
         jprofilerHome = "/Applications/JProfiler11.1.4.app",
-        killAllGradleProcesses = killAllGradleProcessesUnixLike
+        killAllGradleProcesses = killAllGradleProcessesUnixLike,
+        defaultArch = Arch.AARCH64
     );
 
     fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""

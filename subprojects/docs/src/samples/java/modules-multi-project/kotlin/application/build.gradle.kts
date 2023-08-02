@@ -8,6 +8,6 @@ dependencies {
 }
 
 application {
-    mainModule.set("org.gradle.sample.app")
-    mainClass.set("org.gradle.sample.app.Main")
+    mainModule = "org.gradle.sample.app"
+    mainClass = "org.gradle.sample.app.Main"
 }

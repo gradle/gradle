@@ -20,11 +20,11 @@ import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
-import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
+import org.gradle.caching.internal.DefaultBuildCacheKey
+import org.gradle.caching.internal.NextGenBuildCacheService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.internal.resource.transport.http.HttpClientHelper
@@ -59,29 +59,7 @@ class HttpBuildCacheServiceTest extends Specification {
     BuildCacheServiceFactory.Describer buildCacheDescriber
     HttpClientHelper.Factory httpClientHelperFactory = HttpClientHelper.Factory.createFactory(new DocumentationRegistry())
 
-    def key = new BuildCacheKey() {
-        def hashCode = HashCode.fromString("01234567abcdef")
-
-        @Override
-        String getHashCode() {
-            return hashCode.toString()
-        }
-
-        @Override
-        String toString() {
-            return getHashCode()
-        }
-
-        @Override
-        byte[] toByteArray() {
-            return hashCode.toByteArray()
-        }
-
-        @Override
-        String getDisplayName() {
-            return getHashCode()
-        }
-    }
+    def key = new DefaultBuildCacheKey(HashCode.fromString("01234567abcdef"))
     private config = TestUtil.newInstance(HttpBuildCache.class)
 
     HttpBuildCacheService cacheRef
@@ -378,12 +356,18 @@ class HttpBuildCacheServiceTest extends Specification {
 
     }
 
-    static class Writer implements BuildCacheEntryWriter {
+    static class Writer implements NextGenBuildCacheService.NextGenWriter {
         private final byte[] content
         private int writeCount = 0
 
         Writer(byte[] content) {
             this.content = content
+        }
+
+        @Override
+        InputStream openStream() throws IOException {
+            ++writeCount
+            return new ByteArrayInputStream(content)
         }
 
         @Override

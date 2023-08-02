@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
@@ -77,7 +78,8 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
     }
 
     @Override
-    public int getMode() {
-        return stat.getUnixMode(file);
+    public FilePermissions getPermissions() {
+        int unixNumeric = stat.getUnixMode(file);
+        return new DefaultFilePermissions(unixNumeric);
     }
 }

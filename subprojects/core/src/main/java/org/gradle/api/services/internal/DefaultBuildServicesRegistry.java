@@ -18,6 +18,7 @@ package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -26,7 +27,6 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
@@ -53,8 +53,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
+import static org.gradle.api.services.internal.BuildServiceProvider.asBuildServiceProvider;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
@@ -129,11 +129,23 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         });
     }
 
+    @Nullable
     @Override
     public DefaultServiceRegistration<?, ?> findRegistration(Class<?> type, String name) {
         return uncheckedCast(!name.isEmpty() ?
             findByName(name) :
             findByType(type)
+        );
+    }
+
+    @Override
+    public Set<BuildServiceRegistration<?, ?>> findRegistrations(Class<?> type, String name) {
+        return withRegistrations(registrations ->
+            ImmutableSet.<BuildServiceRegistration<?, ?>>builder().addAll(registrations.matching(it ->
+                type.isAssignableFrom(BuildServiceProvider.getProvidedType(it.getService()))
+                    &&
+                (StringUtils.isEmpty(name) || it.getName().equals(name))
+            )).build()
         );
     }
 
@@ -146,18 +158,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     @Nullable
     @Override
     public BuildServiceRegistration<?, ?> findByType(Class<?> type) {
-        Set<BuildServiceRegistration<?, ?>> results = withRegistrations(registrations ->
-            ImmutableSet.<BuildServiceRegistration<?, ?>>builder().addAll(
-                registrations.matching(it -> type.isAssignableFrom(getProvidedType(it.getService())))
-            ).build()
-        );
-        if (results.size() > 1) {
-            String names = results.stream()
-                .map(it -> it.getName() + ": " + getProvidedType(it.getService()).getTypeName())
-                .collect(Collectors.joining(", "));
-            throw new IllegalArgumentException(String.format("Cannot resolve service by type for type '%s' when there are two or more instances. Please also provide a service name. Instances found: %s.", type.getTypeName(), names));
-        }
-        return results.stream().findFirst().orElse(null);
+        return findRegistrations(type, null).stream().findFirst().orElse(null);
     }
 
     @Override
@@ -213,13 +214,6 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             }
         }
         return locks.build();
-    }
-
-    private BuildServiceProvider<?, ?> asBuildServiceProvider(Provider<? extends BuildService<?>> service) {
-        if (service instanceof BuildServiceProvider) {
-            return uncheckedCast(service);
-        }
-        throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
     }
 
     @Nullable
@@ -309,10 +303,6 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             this.registrations.addAll(preserved);
             return null;
         });
-    }
-
-    private static <T> Class<T> getProvidedType(Provider<T> provider) {
-        return ((ProviderInternal<T>) provider).getType();
     }
 
     private static class ServiceBackedSharedResource implements SharedResource {

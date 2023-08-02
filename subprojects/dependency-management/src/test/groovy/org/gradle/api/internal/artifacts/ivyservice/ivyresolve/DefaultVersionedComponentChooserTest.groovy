@@ -28,10 +28,10 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.AttributeMatcher
-import org.gradle.internal.component.model.ComponentAttributeMatcher
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.result.ComponentSelectionContext
@@ -48,20 +48,20 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def versionComparator = new DefaultVersionComparator()
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, versionParser)
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
-    def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+    def attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
     def consumerAttributes = ImmutableAttributes.EMPTY
     def cachePolicy = new DefaultCachePolicy()
 
     def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules, attributesSchema)
 
     def "chooses latest version for component meta data"() {
-        def one = Stub(ComponentResolveMetadata) {
+        def one = Stub(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Stub(ComponentResolveMetadata) {
+        def two = Stub(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
-        def three = Stub(ComponentResolveMetadata) {
+        def three = Stub(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
         }
 
@@ -79,10 +79,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
     }
 
     def "chooses non-generated descriptor over generated"() {
-        def one = Mock(ComponentResolveMetadata) {
+        def one = Mock(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Mock(ComponentResolveMetadata) {
+        def two = Mock(ModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
 
@@ -365,8 +365,11 @@ class DefaultVersionedComponentChooserTest extends Specification {
             getStatus() >> status
             getAttributes() >> AttributeTestUtil.attributes(attributes)
         }
+        def state = Stub(ModuleComponentGraphResolveState) {
+            getModuleResolveMetadata() >> meta
+        }
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
-        result.resolved(meta)
+        result.resolved(state)
         return result
     }
 

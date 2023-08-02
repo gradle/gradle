@@ -17,11 +17,11 @@
 package gradlebuild.basics.transforms
 
 import com.google.common.io.Files
-import gradlebuild.basics.classanalysis.addJarEntry
 import gradlebuild.basics.classanalysis.ClassAnalysisException
 import gradlebuild.basics.classanalysis.ClassDetails
 import gradlebuild.basics.classanalysis.ClassGraph
 import gradlebuild.basics.classanalysis.JarAnalyzer
+import gradlebuild.basics.classanalysis.addJarEntry
 import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction

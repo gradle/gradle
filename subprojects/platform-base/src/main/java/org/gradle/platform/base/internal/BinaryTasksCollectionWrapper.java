@@ -16,25 +16,17 @@
 
 package org.gradle.platform.base.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.platform.base.BinaryTasksCollection;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
-
-public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
-    private final BinaryTasksCollection delegate;
+public class BinaryTasksCollectionWrapper extends DelegatingDomainObjectSet<Task> implements BinaryTasksCollection {
 
     public BinaryTasksCollectionWrapper(BinaryTasksCollection delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
     public <T extends Task> T findSingleTaskWithType(Class<T> type) {
@@ -49,184 +41,33 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
     }
 
     @Override
+    protected BinaryTasksCollection getDelegate() {
+        return (BinaryTasksCollection) super.getDelegate();
+    }
+
+    @Override
     public String taskName(String verb) {
-        return delegate.taskName(verb);
+        return getDelegate().taskName(verb);
     }
 
     @Override
     public String taskName(String verb, String object) {
-        return delegate.taskName(verb, object);
+        return getDelegate().taskName(verb, object);
     }
 
     @Override
     public Task getBuild() {
-        return delegate.getBuild();
+        return getDelegate().getBuild();
     }
 
     @Override
     public Task getCheck() {
-        return delegate.getCheck();
+        return getDelegate().getCheck();
     }
 
     @Override
     public <T extends Task> void create(String name, Class<T> type, Action<? super T> config) {
-        delegate.create(name, type, config);
-    }
-
-    @Override
-    public <S extends Task> DomainObjectSet<S> withType(Class<S> type) {
-        return delegate.withType(type);
-    }
-
-    @Override
-    public DomainObjectSet<Task> matching(Spec<? super Task> spec) {
-        return delegate.matching(spec);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public DomainObjectSet<Task> matching(Closure spec) {
-        return delegate.matching(spec);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public Set<Task> findAll(Closure spec) {
-        return delegate.findAll(spec);
-    }
-
-    @Override
-    public <S extends Task> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
-        return delegate.withType(type, configureAction);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public <S extends Task> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
-        return delegate.withType(type, configureClosure);
-    }
-
-    @Override
-    public Action<? super Task> whenObjectAdded(Action<? super Task> action) {
-        return delegate.whenObjectAdded(action);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public void whenObjectAdded(Closure action) {
-        delegate.whenObjectAdded(action);
-    }
-
-    @Override
-    public Action<? super Task> whenObjectRemoved(Action<? super Task> action) {
-        return delegate.whenObjectRemoved(action);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public void whenObjectRemoved(Closure action) {
-        delegate.whenObjectRemoved(action);
-    }
-
-    @Override
-    public void all(Action<? super Task> action) {
-        delegate.all(action);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public void all(Closure action) {
-        delegate.all(action);
-    }
-
-    @Override
-    public void configureEach(Action<? super Task> action) {
-        delegate.configureEach(action);
-    }
-
-    @Override
-    public int size() {
-        return delegate.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return delegate.isEmpty();
-    }
-
-    @Override
-    public boolean contains(Object o) {
-        return delegate.contains(o);
-    }
-
-    @Override
-    public Iterator<Task> iterator() {
-        return delegate.iterator();
-    }
-
-    @Override
-    public Object[] toArray() {
-        return delegate.toArray();
-    }
-
-    @Override
-    public <T> T[] toArray(T[] a) {
-        return delegate.toArray(a);
-    }
-
-    @Override
-    public boolean add(Task task) {
-        return delegate.add(task);
-    }
-
-    @Override
-    public void addLater(Provider<? extends Task> provider) {
-        delegate.addLater(provider);
-    }
-
-    @Override
-    public void addAllLater(Provider<? extends Iterable<Task>> provider) {
-        delegate.addAllLater(provider);
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        return delegate.remove(o);
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        return delegate.containsAll(c);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends Task> c) {
-        return delegate.addAll(c);
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        return delegate.removeAll(c);
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        return delegate.retainAll(c);
-    }
-
-    @Override
-    public void clear() {
-        delegate.clear();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return delegate.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-        return delegate.hashCode();
+        getDelegate().create(name, type, config);
     }
 
 }

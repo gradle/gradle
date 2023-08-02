@@ -20,6 +20,7 @@ import com.google.common.collect.Comparators
 import com.google.common.collect.ImmutableSortedMultiset
 import com.google.common.collect.Iterables
 import com.google.common.collect.Multiset
+import groovy.test.NotYetImplemented
 import groovy.transform.Canonical
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
@@ -180,7 +181,7 @@ allprojects {
                 configurations {
                     testImplementation {
                         extendsFrom implementation
-                        canBeResolved = true
+                        assert canBeResolved
                         canBeConsumed = false
                         attributes.attribute(color, 'blue')
                     }
@@ -1231,6 +1232,35 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
             singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
             singleStep('common.jar'),
             singleStep('lib.jar', 'common.jar', 'slf4j-api-1.7.25.jar'),
+        )
+    }
+
+    @NotYetImplemented
+    def "transform dependencies include multiple artifacts for the same output"() {
+        setupBuildWithSingleStep()
+        buildFile("""
+            project(":common") {
+                task secondProducer(type: FileProducer) {
+                    output = layout.buildDirectory.file("common2.jar")
+                    content = "common2"
+                }
+                artifacts {
+                    implementation secondProducer.output
+                }
+            }
+        """)
+
+        when:
+        run ":app:resolve"
+
+        then:
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar', 'common2.jar'), // Requested behavior: transforming common includes common2 as a dependency
+            singleStep('common2.jar', 'common.jar'), // Requested behavior: transforming common2 includes common as a dependency
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar', 'common2.jar'),
         )
     }
 

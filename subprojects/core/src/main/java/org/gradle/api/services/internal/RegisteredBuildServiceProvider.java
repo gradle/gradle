@@ -28,6 +28,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
@@ -88,7 +89,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return serviceDetails.getParameters();
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public Class<T> getType() {
         return serviceDetails.getImplementationType();
@@ -179,5 +180,10 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     @Override
     public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
         return this;
+    }
+
+    @Override
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return true;
     }
 }

@@ -133,7 +133,7 @@ public class ClasspathUtil {
                 String schemeSpecificPart = location.getRawSchemeSpecificPart();
                 int pos = schemeSpecificPart.indexOf("!");
                 if (pos > 0) {
-                    assert schemeSpecificPart.substring(pos + 1).equals("/" + name);
+                    assert schemeSpecificPart.substring(pos + 1).endsWith("/" + name);
                     URI jarFile = new URI(schemeSpecificPart.substring(0, pos));
                     if (jarFile.getScheme().equals("file")) {
                         return new File(jarFile.getPath());

@@ -18,29 +18,29 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.FileLock;
-import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
+import org.gradle.cache.MultiProcessSafeIndexedCache;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
 
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
-    private final MultiProcessSafePersistentIndexedCache<K, V> persistentCache;
+    private final MultiProcessSafeIndexedCache<K, V> indexedCache;
 
-    public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> persistentCache) {
+    public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafeIndexedCache<K, V> indexedCache) {
         this.asyncCacheAccess = asyncCacheAccess;
-        this.persistentCache = persistentCache;
+        this.indexedCache = indexedCache;
     }
 
     @Override
     public String toString() {
-        return "{async-cache cache: " + persistentCache + "}";
+        return "{async-cache cache: " + indexedCache + "}";
     }
 
     @Nullable
     @Override
     public V get(final K key) {
-        return asyncCacheAccess.read(() -> persistentCache.getIfPresent(key));
+        return asyncCacheAccess.read(() -> indexedCache.getIfPresent(key));
     }
 
     @Override
@@ -53,7 +53,7 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
         try {
             asyncCacheAccess.enqueue(() -> {
                 try {
-                    persistentCache.put(key, value);
+                    indexedCache.put(key, value);
                 } finally {
                     completion.run();
                 }
@@ -69,7 +69,7 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
         try {
             asyncCacheAccess.enqueue(() -> {
                 try {
-                    persistentCache.remove(key);
+                    indexedCache.remove(key);
                 } finally {
                     completion.run();
                 }
@@ -82,16 +82,16 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
 
     @Override
     public void afterLockAcquire(FileLock.State currentCacheState) {
-        persistentCache.afterLockAcquire(currentCacheState);
+        indexedCache.afterLockAcquire(currentCacheState);
     }
 
     @Override
     public void finishWork() {
-        persistentCache.finishWork();
+        indexedCache.finishWork();
     }
 
     @Override
     public void beforeLockRelease(FileLock.State currentCacheState) {
-        persistentCache.beforeLockRelease(currentCacheState);
+        indexedCache.beforeLockRelease(currentCacheState);
     }
 }

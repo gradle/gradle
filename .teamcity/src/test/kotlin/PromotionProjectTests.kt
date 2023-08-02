@@ -29,6 +29,10 @@ import org.junit.jupiter.params.provider.CsvSource
 import promotion.PromotionProject
 
 class PromotionProjectTests {
+    init {
+        DslContext.initForTest()
+    }
+
     @Test
     fun `promotion project has expected build types for master branch`() {
         val model = setupModelFor("master")
@@ -275,8 +279,7 @@ class PromotionProjectTests {
         // Set the project id here, so we can use methods on the DslContext
         DslContext.projectId = AbsoluteId("Gradle_${branchName.toCapitalized()}")
         DslContext.addParameters("Branch" to branchName)
-        val model = PromotionProject(VersionedSettingsBranch(branchName, true))
-        return model
+        return PromotionProject(VersionedSettingsBranch(branchName))
     }
 
     private fun gradleStep(steps: List<BuildStep>, index: Int): GradleBuildStep {

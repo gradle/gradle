@@ -23,14 +23,14 @@ import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 
 class CppLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {
     HelloWorldApp app = new CppHelloWorldApp()
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:

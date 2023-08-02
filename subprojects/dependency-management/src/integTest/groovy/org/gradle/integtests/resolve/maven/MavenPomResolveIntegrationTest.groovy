@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -188,6 +189,7 @@ task retrieve {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22279")
+    @ToBeFixedForConfigurationCache(because = "task uses Artifact Query API")
     def "can resolve POM as an artifact after it was resolved via ARQ"() {
         given:
         def original = mavenHttpRepo.module('groupA', 'artifactA', '1.0').publishPom()

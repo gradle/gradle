@@ -18,8 +18,10 @@ package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithCppLibrary
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.vcs.fixtures.GitFileRepository
 
+@DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def app = new SwiftAppWithCppLibrary()
 

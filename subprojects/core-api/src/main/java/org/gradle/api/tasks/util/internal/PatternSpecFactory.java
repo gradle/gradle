@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -43,10 +44,15 @@ import java.util.Map;
  * implementation that caches all other patterns as well, see {@link CachingPatternSpecFactory}.
  */
 @ServiceScope(Scope.Global.class)
-public class PatternSpecFactory {
+public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
     private String[] previousDefaultExcludes;
     private final Map<CaseSensitivity, Spec<FileTreeElement>> defaultExcludeSpecCache = new EnumMap<>(CaseSensitivity.class);
+
+    @Override
+    public void onDefaultExcludesChanged(List<String> excludes) {
+        setDefaultExcludesFromSettings(excludes.toArray(new String[0]));
+    }
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
         return Specs.intersect(createIncludeSpec(patternSet), Specs.negate(createExcludeSpec(patternSet)));

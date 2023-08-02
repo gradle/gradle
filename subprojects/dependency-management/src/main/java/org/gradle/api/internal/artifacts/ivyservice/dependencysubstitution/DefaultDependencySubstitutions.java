@@ -46,6 +46,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Describables;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -59,13 +60,10 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.util.Path;
 
 import javax.inject.Inject;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
 public class DefaultDependencySubstitutions implements DependencySubstitutionsInternal {
-    private final Set<Action<? super DependencySubstitution>> substitutionRules;
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
     private final NotationParser<Object, ComponentSelector> projectSelectorNotationParser;
     private final ComponentSelectionDescriptor reason;
@@ -75,6 +73,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private final NotationParser<Object, Capability> capabilityNotationParser;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
+    private ImmutableActionSet<DependencySubstitution> substitutionRules;
     private boolean rulesMayAddProjectDependency;
 
     public static DefaultDependencySubstitutions forResolutionStrategy(ComponentIdentifierFactory componentIdentifierFactory,
@@ -118,11 +117,11 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                                           ObjectFactory objectFactory,
                                           ImmutableAttributesFactory attributesFactory,
                                           NotationParser<Object, Capability> capabilityNotationParser) {
-        this(reason, new LinkedHashSet<>(), moduleSelectorNotationParser, projectSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
+        this(reason, ImmutableActionSet.empty(), moduleSelectorNotationParser, projectSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
     }
 
     private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
-                                           Set<Action<? super DependencySubstitution>> substitutionRules,
+                                           ImmutableActionSet<DependencySubstitution> substitutionRules,
                                            NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                            NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
                                            Instantiator instantiator,
@@ -140,13 +139,19 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
+    public void discard() {
+        substitutionRules = ImmutableActionSet.empty();
+        rulesMayAddProjectDependency = false;
+    }
+
+    @Override
     public boolean rulesMayAddProjectDependency() {
         return rulesMayAddProjectDependency;
     }
 
     @Override
     public Action<DependencySubstitution> getRuleAction() {
-        return Actions.composite(substitutionRules);
+        return substitutionRules;
     }
 
     protected void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
@@ -158,7 +163,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
     private void addRule(Action<? super DependencySubstitution> rule) {
         mutationValidator.validateMutation(MutationValidator.MutationType.STRATEGY);
-        substitutionRules.add(rule);
+        substitutionRules = substitutionRules.add(rule);
     }
 
     @Override
@@ -236,11 +241,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             public Substitution using(ComponentSelector notation) {
                 DefaultDependencySubstitution.validateTarget(notation);
 
-                boolean projectInvolved = false;
-                if (substituted instanceof ProjectComponentSelector || notation instanceof ProjectComponentSelector) {
-                    // A project is involved, need to be aware of it
-                    projectInvolved = true;
-                }
+                // A project is involved, need to be aware of it
+                boolean projectInvolved = substituted instanceof ProjectComponentSelector || notation instanceof ProjectComponentSelector;
 
                 if (substituted instanceof UnversionedModuleComponentSelector) {
                     final ModuleIdentifier moduleId = ((UnversionedModuleComponentSelector) substituted).getModuleIdentifier();
@@ -268,7 +270,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     public DependencySubstitutionsInternal copy() {
         return new DefaultDependencySubstitutions(
             reason,
-            new LinkedHashSet<>(substitutionRules),
+            substitutionRules,
             moduleSelectorNotationParser,
             projectSelectorNotationParser,
             instantiator,

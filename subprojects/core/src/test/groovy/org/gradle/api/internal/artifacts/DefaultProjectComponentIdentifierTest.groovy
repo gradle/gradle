@@ -30,6 +30,7 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         id.projectPath == ':project:path'
         id.projectName == 'projectName'
         id.displayName == 'project :id:path'
+        id.buildTreePath == ':id:path'
         id.toString() == 'project :id:path'
     }
 
@@ -48,15 +49,11 @@ class DefaultProjectComponentIdentifierTest extends Specification {
     }
 
     private static newProjectId(String path) {
-        newProjectId(buildId(":"), path)
+        newProjectId(DefaultBuildIdentifier.ROOT, path)
     }
 
     private static newProjectId(BuildIdentifier build, String path) {
         new DefaultProjectComponentIdentifier(build, Path.path(path), Path.path(path), "name")
-    }
-
-    private static buildId(String name) {
-        return new DefaultBuildIdentifier(name)
     }
 
 }

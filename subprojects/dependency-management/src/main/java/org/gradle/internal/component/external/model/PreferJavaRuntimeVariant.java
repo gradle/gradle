@@ -24,7 +24,10 @@ import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -37,6 +40,7 @@ import java.util.Set;
  * metadata format by default without breaking a bunch of consumers that depend on this assumption,
  * declaring no preference for a particular variant.
  */
+@ServiceScope(Scope.Global.class)
 public class PreferJavaRuntimeVariant extends EmptySchema {
     private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Sets.newHashSet(Usage.USAGE_ATTRIBUTE, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
     private final PreferRuntimeVariantUsageDisambiguationRule usageDisambiguationRule;
@@ -52,6 +56,17 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
     @Override
     public Set<Attribute<?>> getAttributes() {
         return SUPPORTED_ATTRIBUTES;
+    }
+
+    @Nullable
+    @Override
+    public Attribute<?> getAttributeByName(String name) {
+        for (Attribute<?> attr : SUPPORTED_ATTRIBUTES) {
+            if (name.equals(attr.getName())) {
+                return attr;
+            }
+        }
+        return null;
     }
 
     @Override

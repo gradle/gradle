@@ -36,7 +36,7 @@ public class MavenNormalizedPublication {
 
     public MavenNormalizedPublication(
         String name,
-        MavenProjectIdentity projectIdentity,
+        MavenPublicationCoordinates projectIdentity,
         String packaging,
         MavenArtifact pomArtifact,
         MavenArtifact mainArtifact,

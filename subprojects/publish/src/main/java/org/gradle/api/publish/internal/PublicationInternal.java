@@ -23,9 +23,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.internal.Factory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public interface PublicationInternal<T extends PublicationArtifact> extends Publication, ProjectComponentPublication {
@@ -57,7 +55,6 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      * @param file The file to be used for publishing the derived artifact.
      * @return The newly created derived artifact.
      */
-    @Nullable
     T addDerivedArtifact(T originalArtifact, DerivedArtifact file);
 
     void removeDerivedArtifact(T artifact);
@@ -81,7 +78,8 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
         String getUri();
     }
 
-    interface DerivedArtifact extends Factory<File> {
+    interface DerivedArtifact {
         boolean shouldBePublished();
+        File create();
     }
 }

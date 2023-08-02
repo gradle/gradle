@@ -16,9 +16,11 @@
 
 package org.gradle.internal.reflect;
 
+import com.google.common.reflect.TypeToken;
 import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.ParameterizedType;
 
 public class JavaReflectionUtil {
 
@@ -54,5 +56,18 @@ public class JavaReflectionUtil {
         } catch (Throwable e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    /**
+     * Returns the {@link TypeToken} of a parameter specified by index.
+     *
+     * @param beanType the TypeToken of the bean
+     * @param parameterizedClass the parameterized class
+     * @param typeParameterIndex the index of the parameter
+     * @return a TypeToken
+     */
+    public static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedClass, int typeParameterIndex) {
+        ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedClass).getType();
+        return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
     }
 }

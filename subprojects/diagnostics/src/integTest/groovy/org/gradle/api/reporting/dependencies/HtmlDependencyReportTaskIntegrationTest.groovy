@@ -17,7 +17,6 @@ package org.gradle.api.reporting.dependencies
 
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import spock.lang.Issue
@@ -30,7 +29,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders graph"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -98,7 +96,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[1].dependencies[0].children.empty
     }
 
-    @ToBeFixedForConfigurationCache
     def "already rendered dependencies are marked as such"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -136,7 +133,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].dependencies[1].children[0].children.empty
     }
 
-    @ToBeFixedForConfigurationCache
     def "non-resolved dependencies are marked as such"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").dependsOn("foo", "qix", "1.0").publish()
@@ -170,7 +166,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].dependencies[1].resolvable == 'FAILED'
     }
 
-    @ToBeFixedForConfigurationCache
     def "conflicting dependencies are marked as such"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -201,7 +196,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].dependencies[1].name == "foo:bar:2.0"
     }
 
-    @ToBeFixedForConfigurationCache
     def "generates report for multiple projects"() {
         given:
         file("settings.gradle") << """
@@ -226,7 +220,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         jsonB.project.name == "b"
     }
 
-    @ToBeFixedForConfigurationCache
     def "copies necessary css, images and js files"() {
         given:
         file("build.gradle") << """
@@ -251,7 +244,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/project/dependencies/root.js").assertExists();
     }
 
-    @ToBeFixedForConfigurationCache
     def "generates index.html file"() {
         given:
         file("settings.gradle") << """
@@ -289,7 +281,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         projectB[1].text() == ""
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders insights graphs"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -371,7 +362,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         bazInsight[1].children[0].children.empty
     }
 
-    @ToBeFixedForConfigurationCache
     def "doesn't add insight for dependency with same prefix"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -401,7 +391,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2979")
-    @ToBeFixedForConfigurationCache
     def "renders a mix of project and external dependencies"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -528,7 +517,6 @@ rootProject.name = 'root'
         compileClasspathConfiguration.dependencies[3].children[0].children[0].children.empty
     }
 
-    @ToBeFixedForConfigurationCache
     void "does not fail if a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
@@ -565,7 +553,6 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
-    @ToBeFixedForConfigurationCache
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
@@ -576,10 +563,7 @@ rootProject.name = 'root'
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                compileOnly.deprecateForResolution('compileClasspath')
-                compileOnly.deprecateForConsumption { builder ->
-                    builder.willBecomeAnErrorInGradle9().withUpgradeGuideSection(8, "foo")
-                }
+                migratingUnlocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
             }
             dependencies {
                 compileOnly 'foo:foo:1.0'
@@ -587,6 +571,7 @@ rootProject.name = 'root'
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         run "htmlDependencyReport"
         def json = readGeneratedJson("root")
         def apiConfiguration = json.project.configurations.find { it.name == "compileOnly" }
@@ -601,7 +586,6 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
-    @ToBeFixedForConfigurationCache
     void "excludes directly undeclarable configurations"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
@@ -613,7 +597,7 @@ rootProject.name = 'root'
             }
             configurations {
                 undeclarable {
-                    canBeDeclaredAgainst = false
+                    canBeDeclared = false
                 }
             }
         """
@@ -627,7 +611,6 @@ rootProject.name = 'root'
         !undeclarableConfiguration
     }
 
-    @ToBeFixedForConfigurationCache
     void "includes indirectly declarable configurations"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
@@ -639,10 +622,10 @@ rootProject.name = 'root'
             }
             configurations {
                 declarable {
-                    canBeDeclaredAgainst = true
+                    canBeDeclared = true
                 }
                 undeclarable {
-                    canBeDeclaredAgainst = false
+                    canBeDeclared = false
                     extendsFrom(declarable)
                 }
             }

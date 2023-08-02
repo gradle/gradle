@@ -13,10 +13,10 @@
 // limitations under the License.
 
 [[upgrading_version_7]]
-= Upgrading your build from Gradle 7.x to the latest
+= Upgrading your build from Gradle 7.x to 8.0
 
-This chapter provides the information you need to migrate your Gradle 7.x builds to the latest Gradle release.
-For migrating from Gradle 4.x, 5.x, or 6.x, see the <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
+This chapter provides the information you need to migrate your Gradle 7.x builds to Gradle 8.0.
+For migrating from Gradle 6.x or earlier, complete the  <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
 
 We recommend the following steps for all users:
 
@@ -26,7 +26,7 @@ image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
 This is so that you can see any deprecation warnings that apply to your build.
 +
-Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
 . Update your plugins.
 +
 Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed.
@@ -93,7 +93,25 @@ test {
 }
 ```
 
-=== Removed APIs and features
+Additionally, setting the test framework multiple times to the _same_ framework now accumulates any options that might be set on the framework.
+Previously, each time the framework was set, it would cause the framework options to be overwritten.
+
+The following code now results in both the "foo" and "bar" tags to be included for the `test` task:
+```
+test {
+   useJUnitPlatform {
+        includeTags("foo")
+   }
+}
+tasks.withType(Test).configureEach {
+   // previously, this would overwrite the included tags to only include "bar"
+   useJUnitPlatform {
+        includeTags("bar")
+   }
+}
+```
+
+=== Removed APIs
 
 ==== Legacy ArtifactTransform API
 
@@ -112,11 +130,6 @@ With Gradle 8.0 you should use Kotlin Gradle Plugin 1.6.10 or later and Android 
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
-
-==== `--no-rebuild` command line option
-
-The `--no-rebuild` command line option and its short variant `-a` have been removed.
-They were used to tell Gradle not to rebuild project dependencies and could lead to wrong results.
 
 ==== JvmPluginsHelper
 
@@ -202,7 +215,7 @@ Use the `using(ComponentSelector)` method instead.
 
 ==== AbstractArchiveTask API Cleanup
 
-The deprecated `appendix`, `archiveName`, `archivePath`, `baseName`, `classifier`, `desintationDir`, `extension` and `version` properties of the `AbstractArchiveTask` task type have been removed.
+The deprecated `appendix`, `archiveName`, `archivePath`, `baseName`, `classifier`, `destinationDir`, `extension` and `version` properties of the `AbstractArchiveTask` task type have been removed.
 Use the `archiveAppendix`, `archiveFileName` , `archiveFile`, `archiveBaseName`, `archiveClassifier`, `destinationDirectory`, `archiveExtension` and `archiveVersion` properties instead.
 
 ==== IdeaModule API Cleanup
@@ -241,6 +254,63 @@ Use the `version(Action)` method to configure strict versions instead.
 
 The deprecated `build-scan` plugin application method has been removed from the Kotlin DSL.
 Use the `gradle-enterprise` method instead.
+
+==== Configuration extension methods removed from Kotlin DSL
+
+The Kotlin DSL added specialized extension methods for `NamedDomainObjectProvider<Configuration>` that are available when looking up a configuration by name.
+These extensions allowed builds to access some properties of a `Configuration` when using an instance of `NamedDomainObjectProvider<Configuration>` directly:
+```
+configurations.compileClasspath.files // equivalent to configurations.compileClasspath.get().files
+configurations.compileClasspath.singleFile // equivalent to configurations.compileClasspath.get().singleFile
+```
+
+All of these extensions have been removed from the API, but the methods are still available for plugins compiled against older versions of Gradle.
+
+* NamedDomainObjectProvider<Configuration>.addToAntBuilder
+* NamedDomainObjectProvider<Configuration>.all
+* NamedDomainObjectProvider<Configuration>.allArtifacts
+* NamedDomainObjectProvider<Configuration>.allDependencies
+* NamedDomainObjectProvider<Configuration>.allDependencyConstraints
+* NamedDomainObjectProvider<Configuration>.artifacts
+* NamedDomainObjectProvider<Configuration>.asFileTree
+* NamedDomainObjectProvider<Configuration>.asPath
+* NamedDomainObjectProvider<Configuration>.attributes
+* NamedDomainObjectProvider<Configuration>.buildDependencies
+* NamedDomainObjectProvider<Configuration>.contains
+* NamedDomainObjectProvider<Configuration>.copy
+* NamedDomainObjectProvider<Configuration>.copyRecursive
+* NamedDomainObjectProvider<Configuration>.defaultDependencies
+* NamedDomainObjectProvider<Configuration>.dependencies
+* NamedDomainObjectProvider<Configuration>.dependencyConstraints
+* NamedDomainObjectProvider<Configuration>.description
+* NamedDomainObjectProvider<Configuration>.exclude
+* NamedDomainObjectProvider<Configuration>.excludeRules
+* NamedDomainObjectProvider<Configuration>.extendsFrom
+* NamedDomainObjectProvider<Configuration>.fileCollection
+* NamedDomainObjectProvider<Configuration>.files
+* NamedDomainObjectProvider<Configuration>.filter
+* NamedDomainObjectProvider<Configuration>.getTaskDependencyFromProjectDependency
+* NamedDomainObjectProvider<Configuration>.hierarchy
+* NamedDomainObjectProvider<Configuration>.incoming
+* NamedDomainObjectProvider<Configuration>.isCanBeConsumed
+* NamedDomainObjectProvider<Configuration>.isCanBeResolved
+* NamedDomainObjectProvider<Configuration>.isEmpty
+* NamedDomainObjectProvider<Configuration>.isTransitive
+* NamedDomainObjectProvider<Configuration>.isVisible
+* NamedDomainObjectProvider<Configuration>.minus
+* NamedDomainObjectProvider<Configuration>.outgoing
+* NamedDomainObjectProvider<Configuration>.plus
+* NamedDomainObjectProvider<Configuration>.resolutionStrategy
+* NamedDomainObjectProvider<Configuration>.resolve
+* NamedDomainObjectProvider<Configuration>.resolvedConfiguration
+* NamedDomainObjectProvider<Configuration>.setDescription
+* NamedDomainObjectProvider<Configuration>.setExtendsFrom
+* NamedDomainObjectProvider<Configuration>.setTransitive
+* NamedDomainObjectProvider<Configuration>.singleFile
+* NamedDomainObjectProvider<Configuration>.state
+* NamedDomainObjectProvider<Configuration>.withDependencies
+
+You should prefer to directly reference the methods from `Configuration`.
 
 === Potential breaking changes
 
@@ -343,7 +413,7 @@ java {
 Gradle 7.x supports Kotlin Gradle Plugin 1.3.72 and above.
 Kotlin Gradle Plugin versions above 1.6.21 are not tested with Gradle 7.x.
 Gradle 8.x supports Kotlin Gradle Plugin 1.6.10 and above.
-You can use a lower Kotlin language version by modifying the language version and api version setting in the Kotlin `compile` task.
+You can use a lower Kotlin language version by modifying the language version and api version setting in the Kotlin compilation tasks.
 
 ==== Minimal supported Android Gradle Plugin version changed
 Gradle 7.x supports Android Gradle Plugin (AGP) 4.1 and above.
@@ -418,8 +488,6 @@ This behavior is now default.
 The property has been deprecated and its usage should be removed.
 You can find more information about this property <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>>.
 
-==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
-
 ==== Init scripts are applied to `buildSrc` builds
 
 Init scripts specified using `--init-script` are now applied to `buildSrc` builds. In previous releases these were applied to included builds but not `buildSrc builds.
@@ -444,7 +512,64 @@ the tasks for `buildSrc` completed and before any requested tasks started.
 
 This behavior is now consistent for `buildSrc` and included builds.
 
-==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
+==== Changes to paths of included builds
+
+In order to handle conflicts between nested included build names better, Gradle now uses the directory hierarchy of included builds to assign the build path.
+If you are running tasks from the command line in nested included builds, then you may need to adjust your invocation.
+
+For example, if you have the following hierarchy:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── settings.gradle.kts
+└── nested
+    ├── settings.gradle.kts
+    └── nestedNested
+        └── settings.gradle.kts
+----
+.settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("nested")
+----
+.nested/settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("nestedNested")
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── settings.gradle
+└── nested
+    ├── settings.gradle
+    └── nestedNested
+        └── settings.gradle
+----
+.settings.gradle
+[source,groovy]
+----
+includeBuild("nested")
+----
+.nested/settings.gradle
+[source,groovy]
+----
+includeBuild("nestedNested")
+----
+=====
+====
+
+Before Gradle 8.0, you ran `gradle :nestedNested:compileJava`.
+In Gradle 8.0 the invocation changes to `gradle :nested:nestedNested:compileJava`.
+
+==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
 
 The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
 Now, adding the `jst.ejb` facet implicitly removes the `jst.utility` facet:
@@ -463,34 +588,6 @@ eclipse {
 
 Previously, you had to explicitly configure PMD to ignore default rules with `ruleSets = []`.
 In the Gradle 8.0, setting `ruleSetConfig` or `ruleSetFiles` to a non-empty value implicitly ignores default rules.
-
-==== Changing test framework after setting test framework options is now an error
-
-When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
-change the test framework used by the `Test` task after configuring options.
-This was deprecated since it silently discarded configuration in some cases.
-
-The following code example now produces an error:
-```
-test {
-   options {
-   }
-
-   useJUnitPlatform()
-}
-```
-Instead, you can:
-
-- set the test framework before configuring options
-- migrate to the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>
-```
-test {
-   // select test framework before configuring options
-   useJUnitPlatform()
-   options {
-   }
-}
-```
 
 ==== Report `getOutputLocation` return type changed from Provider to Property
 
@@ -531,9 +628,10 @@ Gradle changes the compression library used for creating archives from an Ant ba
 As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
 [[kotlin_1_8.0]]
-==== Upgrade to Kotlin 1.8.0
+==== Upgrade to Kotlin 1.8.10
 
-The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[Kotlin 1.8.0].
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.10[Kotlin 1.8.10].
+Also see link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[Kotlin 1.8.0] release notes.
 For more information, see the release notes for Kotlin
 
 * https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20]
@@ -553,6 +651,12 @@ For information about breaking and nonbreaking changes in this upgrade, see the 
 * Kotlin 1.6 link:https://kotlinlang.org/docs/whatsnew16.html#language[language] / link:https://kotlinlang.org/docs/whatsnew16.html#standard-library[standard library]
 * Kotlin 1.7 link:https://kotlinlang.org/docs/whatsnew17.html#language[language] / link:https://kotlinlang.org/docs/whatsnew17.html#standard-library[standard library]
 * Kotlin 1.8 link:https://kotlinlang.org/docs/whatsnew18.html#language[language] / link:https://kotlinlang.org/docs/whatsnew18.html#standard-library[standard library]
+
+Note that the Kotlin Gradle Plugin 1.8.0 started using Java toolchains.
+It is recommended you configure a toolchain instead of defining Java `sourceCompatibility`/`targetCompatibility` in Kotlin projects.
+
+Also note that the Kotlin Gradle Plugin 1.8.0 introduced `compilerOptions` with lazy configuration properties as a replacement for `kotlinOptions` which did not support lazy configuration.
+It is recommended you configure Kotlin compilation using `compilerOptions` instead of `kotlinOptions`.
 
 [[kotlin_dsl_plugin_toolchains]]
 ==== `kotlinDslPluginOptions.jvmTarget` is deprecated
@@ -613,11 +717,19 @@ In case no toolchains are explicitly configured, the toolchain corresponding to 
 
 Similarly, tasks from the Groovy and Scala plugins also rely on toolchains to determine on which JVM they are executed.
 
-==== Scala compile options `getAdditionalParameters()` returns immutable list
+==== Scala compilation target
 
-The list of additional parameters for Scala compilation retrieved from the `ScalaCompileOptions` or `BaseScalaCompileOptions` is now immutable.
+With the toolchain changes described above, Scala compilation tasks are now always provided with a `target` or `release` parameter.
+The exact parameter and value depend on toolchain usage, or not, and Scala version.
 
-Previously, the mutability of the list depended on the last assigned value.
+See the <<scala_plugin#sec:scala_target,Scala plugin documentation>> for details.
+
+==== `pluginBundle` dropped in Plugin Publish plugin
+
+Gradle 8 no longer supports the `pluginBundle` extension.
+Its functionality has been merged into the `gradlePlugin` block.
+These changes require recent versions of the Plugin Publish plugin (link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.1.0[1.0.+]).
+Documentation on configuring plugin publication can be found both link:https://plugins.gradle.org/docs/publish-plugin[on the Portal] and <<publishing_gradle_plugins#configure_the_plugin_publishing_plugin,in the user manual>>.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
@@ -760,13 +872,6 @@ Other syntax effected by this change includes:
 Use `implementation.bundle(libs.bundles.testing)` instead.
 
 For more information, see the updated <<jvm_test_suite_plugin.adoc#sec:declare_an_additional_test_suite, declare an additional test suite>> example in the JVM Test Suite Plugin section of the user guide and the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyAdder.html[`DependencyAdder`] page in the DSL reference.
-
-==== Incremental compilation temporarily changes the output location
-
-Incremental Java and Groovy compilation may now change the compiler output location.
-This might affect some annotation processors that allow users to wire some action to file paths (e.g. `-XepExcludedPaths` in Error Prone).
-This behaviour can be disabled by setting `options.incrementalAfterFailure` to `false`.
-Please refer to the <<java_plugin#sec:incremental_compilation_known_issues, userguide section about known incremental compilation issues>> for more details.
 
 === Deprecations
 
@@ -1134,7 +1239,7 @@ There is a new `link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html
 
 Using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at the configuration time is now deprecated when the configuration cache is enabled.
 It will be an error in Gradle 8.0 and later.
-Gradle 7.5 introduces configuration cache-compatible ways to execute and obtain output of an external process with the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[provider-based APIs] or a custom implementation of the link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] interface.
+Gradle 7.5 introduces configuration cache-compatible ways to execute and obtain output of an external process with the link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html[provider-based APIs] or a custom implementation of the link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] interface.
 The <<configuration_cache#config_cache:requirements:external_processes,configuration cache chapter>> has more details to help with the migration to the new APIs.
 
 [[changes_7.4]]
@@ -1207,11 +1312,12 @@ If the set of attributes is shared across configurations, consider adding an add
 link:{javadocPath}/org/gradle/api/provider/Provider.html#forUseAtConfigurationTime--[Provider#forUseAtConfigurationTime] is now deprecated and scheduled for removal in Gradle 9.0.
 Clients should simply remove the call.
 
-The call was mandatory on providers of external values such as link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[system properties], link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[environment variables], link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#gradleProperty-java.lang.String-[Gradle properties] and link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[file contents] meant to be used at configuration time together with the configuration cache feature.
+The call was mandatory on providers of external values such as link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[system properties], link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[environment variables],
+link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:gradleProperty(java.lang.String)[Gradle properties] and link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:fileContents(org.gradle.api.file.RegularFile)[file contents] meant to be used at configuration time together with the configuration cache feature.
 
 Starting with version 7.4 Gradle will implicitly treat an external value used at configuration time as a configuration cache input.
 
-Clients are also free to use standard Java APIs such as `System#getenv` to read environment variables, `System#getProperty` to read system properties as well as Gradle APIs such as link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[`Project#property(String)`] and link:{javadocPath}/org/gradle/api/Project.html#findProperty-java.lang.String-[`Project#findProperty(String)`] to read Gradle properties at configuration time.
+Clients are also free to use standard Java APIs such as `System#getenv` to read environment variables, `System#getProperty` to read system properties as well as Gradle APIs such as link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[`Project#property(String)`] and link:{javadocPath}/org/gradle/api/Project.html#findProperty-java.lang.String-[`Project#findProperty(String)`] to read Gradle properties at configuration time.
 The `Provider` based APIs are still the recommended way to connect external values to task inputs for maximum configuration cache reuse.
 
 ==== `ConfigurableReport#setDestination(org.gradle.api.provider.Provider<java.io.File>)` has been deprecated
@@ -1223,10 +1329,8 @@ Use link:{javadocPath}/org/gradle/api/reporting/Report.html#getOutputLocation--[
 [[task_execution_events]]
 ==== Task execution listeners and events
 
-The Gradle configuration cache does not support listeners and events that have direct access to `Task` and `Project` instances,
-which allows Gradle to execute tasks in parallel and to store the minimal amount of data in the configuration cache.
-In order to move towards an API that is consistent whether the configuration cache is enabled or not,
-the following APIs are deprecated and will be removed or be made an error in Gradle 8.0:
+The Gradle configuration cache does not support listeners and events that have direct access to `Task` and `Project` instances, which allows Gradle to execute tasks in parallel and to store the minimal amount of data in the configuration cache.
+In order to move towards an API that is consistent whether the configuration cache is enabled or not, the following APIs are deprecated and will be removed or be made an error in Gradle 8.0:
 
 - Interface link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener]
 - Interface link:{javadocPath}/org/gradle/api/execution/TaskActionListener.html[TaskActionListener]
@@ -1236,8 +1340,7 @@ the following APIs are deprecated and will be removed or be made an error in Gra
 - Method link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html#afterTask-org.gradle.api.Action-[TaskExecutionGraph.afterTask()]
 - Registering TaskExecutionListener, TaskActionListener, TestListener, TestOutputListener via link:{javadocPath}/org/gradle/api/invocation/Gradle.html#addListener-java.lang.Object-[Gradle.addListener()]
 
-See the <<configuration_cache#config_cache:requirements:build_listeners,configuration cache chapter>> for details on how to migrate
-these usages to APIs that are supported by the configuration cache.
+See the <<configuration_cache#config_cache:requirements:build_listeners,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 
 [[build_finished_events]]
 ==== Build finished events
@@ -1248,28 +1351,23 @@ And so, the following API are deprecated and will be removed in Gradle 8.0:
 - Method link:{javadocPath}/org/gradle/api/invocation/Gradle.html#buildFinished-org.gradle.api.Action-[Gradle.buildFinished()]
 - Method link:{javadocPath}/org/gradle/BuildListener.html#buildFinished-org.gradle.BuildResult-[BuildListener.buildFinished()]
 
-See the <<configuration_cache#config_cache:requirements:build_listeners,configuration cache chapter>> for details on how to migrate
-these usages to APIs that are supported by the configuration cache.
+See the <<configuration_cache#config_cache:requirements:build_listeners,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 
 [[task_project]]
 ==== Calling `Task.getProject()` from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is
-now deprecated and will be made an error in Gradle 8.0.
+Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 8.0.
 This method can be used during configuration time, but it is recommended to avoid doing this.
 
-See the <<configuration_cache#config_cache:requirements:use_project_during_execution,configuration cache chapter>> for details on
-how to migrate these usages to APIs that are supported by the configuration cache.
+See the <<configuration_cache#config_cache:requirements:use_project_during_execution,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 
 [[task_dependencies]]
 ==== Calling `Task.getTaskDependencies()` from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getTaskDependencies--[Task.getTaskDependencies()] from a task action at
-execution time is now deprecated and will be made an error in Gradle 8.0.
+Calling link:{javadocPath}/org/gradle/api/Task.html#getTaskDependencies--[Task.getTaskDependencies()] from a task action at execution time is now deprecated and will be made an error in Gradle 8.0.
 This method can be used during configuration time, but it is recommended to avoid doing this.
 
-See the <<configuration_cache#config_cache:requirements:use_project_during_execution,configuration cache chapter>> for details on
-how to migrate these usages to APIs that are supported by the configuration cache.
+See the <<configuration_cache#config_cache:requirements:use_project_during_execution,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 
 [[undeclared_build_service_usage]]
 ==== Using a build service from a task without the corresponding `Task.usesService` declaration
@@ -1474,8 +1572,7 @@ This means that the following snippet no longer works in Gradle 7.1:
 
 ==== Start scripts require bash shell
 
-The command used to start Gradle, the Gradle wrapper as well as the scripts generated by the `application` plugin
-now require `bash` shell.
+The command used to start Gradle, the Gradle wrapper as well as the scripts generated by the `application` plugin now require `bash` shell.
 
 === Deprecations
 
@@ -1525,8 +1622,7 @@ Please use standard locations for settings and build files:
 * settings file in the root of the build
 * build file in the root of each subproject
 
-For the use case where custom settings or build files are used to model different behavior (similar to Maven profiles),
-consider using <<build_environment#sec:gradle_system_properties, system properties>> with conditional logic.
+For the use case where custom settings or build files are used to model different behavior (similar to Maven profiles), consider using <<build_environment#sec:gradle_system_properties, system properties>> with conditional logic.
 For example, given a piece of code in either settings or build file:
 ```
 if (System.getProperty("profile") == "custom") {
@@ -1540,12 +1636,10 @@ You can pass the `profile` system property to Gradle using `gradle -Dprofile=cus
 [[dependency_substitutions_with]]
 ==== Substitution.with replaced with Substitution.using
 
-<<resolution_rules#sec:dependency_substitution_rules, Dependency substitutions>> using `with` method have been deprecated
-and are replaced with `using` method that also allows chaining.
+<<resolution_rules#sec:dependency_substitution_rules, Dependency substitutions>> using `with` method have been deprecated and are replaced with `using` method that also allows chaining.
 For example, a dependency substitution rule `substitute(project(':a')).with(project(':b'))` should be replaced with
 `substitute(project(':a')).using(project(':b'))`.
-With chaining you can, for example, add a reason for a substitution like this:
-`substitute(project(':a')).using(project(':b')).because("a reason")`.
+With chaining you can, for example, add a reason for a substitution like this: `substitute(project(':a')).using(project(':b')).because("a reason")`.
 
 [[java_exec_properties]]
 ==== Properties deprecated in JavaExec task
@@ -1590,7 +1684,7 @@ Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,
 The concept of conventions is outdated and superseded by extensions.
 To reflect this in the Gradle API, the following elements are now deprecated:
 
-- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[Project.html#getConvention()]
+- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[org.gradle.api.Project.getConvention()]
 - `org.gradle.api.internal.HasConvention` (deprecated)
 
 The internal usages of conventions have been also cleaned up (see the deprecated items below).
@@ -1601,41 +1695,12 @@ Here are some examples:
 - Migrate plugin configuration: link:https://github.com/gradle/gradle/pull/16900/files#diff-ac53d4f39698b83e30b93855fe6a725ffd96d5ed9df156d4f9dfd32bdc7946e7[gradle/gradle#16900].
 - Migrate custom source sets: link:https://github.com/gradle/gradle/pull/17149/files#diff-e159587e2f9aec398fa795b1d8b344f1593cb631e15e04893d31cdc9465f9781[gradle/gradle#17149].
 
-[[base_convention_deprecation]]
-==== Deprecated `base` plugin conventions
-
-The convention properties contributed by the `base` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-The conventions are replaced by the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
-
-The old convention object defines the `distsDirName`, `libsDirName` and `archivesBaseName` properties with simple getter and setter methods.
-Those methods are available in the extension only to maintain backwards compatibility.
-Build scripts should solely use the properties of type `Property`:
-```
-base {
-    archivesName = 'customBase'
-    distsDirectory = layout.buildDirectory.dir('custom-dist')
-    libsDirectory = layout.buildDirectory.dir('custom-libs')
-}
-```
-
-[[application_convention_deprecation]]
-==== Deprecated `ApplicationPluginConvention`
-
-link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention] was already listed as deprecated in the <<application_plugin.adoc#sec:application_convention_properties, documentation>>.
-Now, it is officially annotated as deprecated and scheduled for removal in Gradle 8.0.
-
-[[java_convention_deprecation]]
-==== Deprecated `java` plugin conventions
-
-The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-They are replaced by the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can be configured in the `java {}` block.
-
 [[plugin_configuration_consumption]]
 ==== Deprecated consumption of internal plugin configurations
 
-Some of the core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
+Some core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
 published or consumed by another subproject directly.
-Gradle did not explicitly prohobit this.
+Gradle did not explicitly prohibit this.
 Gradle 7.1 deprecates consumption of those configurations and this will become an error in Gradle 8.0.
 
 The following plugin configurations have been deprecated for consumption:
@@ -1693,27 +1758,6 @@ configurations {
     }
 }
 ```
-
-[[project_report_convention_deprecation]]
-==== Deprecated `project-report` plugin conventions
-
-link:{groovyDslPath}/org.gradle.api.plugins.ProjectReportsPluginConvention.html[ProjectReportsPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0.
-Clients should configure the project report tasks directly.
-Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(...).configureEach(...)] can be used to configure each task of the same type (`HtmlDependencyReportTask` for example).
-
-[[war_convention_deprecation]]
-==== Deprecated `war` plugin conventions
-
-link:{javadocPath}/org/gradle/api/plugins/WarPluginConvention.html[WarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0.
-Clients should configure the `war` task  directly.
-Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
-
-[[ear_convention_deprecation]]
-==== Deprecated `ear` plugin conventions
-
-link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0.
-Clients should configure the `ear` task directly.
-Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(Ear.class).configureEach(...)] can be used to configure each task of type `Ear`.
 
 [[custom_source_set_deprecation]]
 ==== Deprecated custom source set interfaces

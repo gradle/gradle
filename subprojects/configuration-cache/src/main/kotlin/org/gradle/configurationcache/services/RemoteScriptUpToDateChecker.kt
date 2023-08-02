@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.services
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.resource.ExternalResourceName
@@ -33,7 +33,7 @@ import java.net.URI
 
 @ServiceScope(Scopes.BuildTree::class)
 class RemoteScriptUpToDateChecker(
-    private val artifactCacheLockingManager: ArtifactCacheLockingManager,
+    private val lockingAccessCoordinator: ArtifactCacheLockingAccessCoordinator,
     private val startParameter: ConfigurationCacheStartParameter,
     private val temporaryFileProvider: TemporaryFileProvider,
     private val externalResourceFileStore: ExternalResourceFileStore,
@@ -59,7 +59,7 @@ class RemoteScriptUpToDateChecker(
                 val downloadAction = DownloadAction(externalResourceName, temporaryFileProvider, null)
                 externalResource.withContentIfPresent(downloadAction)
 
-                artifactCacheLockingManager.useCache {
+                lockingAccessCoordinator.useCache {
                     val cachedResource = externalResourceFileStore.move(externalResource.toString(), downloadAction.destination)
                     val fileInFileStore = cachedResource.file
                     cachedExternalResourceIndex.store(externalResourceName.toString(), fileInFileStore, downloadAction.metaData)

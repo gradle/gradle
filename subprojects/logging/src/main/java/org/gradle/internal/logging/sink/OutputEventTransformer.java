@@ -26,24 +26,26 @@ import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.internal.GUtil;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Transforms the stream of output events to discard progress operations that are not interesting to the logging subsystem. This reduces the amount of work that downstream consumers have to do to process the stream. For example, these discarded events don't need to be written to the daemon client.
  */
 public class OutputEventTransformer implements OutputEventListener {
     // A map from progress operation id seen in event -> progress operation id that should be forwarded
-    private final Map<OperationIdentifier, OperationIdentifier> effectiveProgressOperation = new HashMap<OperationIdentifier, OperationIdentifier>();
+    private final Map<OperationIdentifier, OperationIdentifier> effectiveProgressOperation = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
     // A set of progress operations that have been forwarded
-    private final Set<OperationIdentifier> forwarded = new HashSet<OperationIdentifier>();
+    private final Set<OperationIdentifier> forwarded = Collections.newSetFromMap(new ConcurrentHashMap<OperationIdentifier, Boolean>());
 
     private final OutputEventListener listener;
+    private final Object lock;
 
-    public OutputEventTransformer(OutputEventListener listener) {
+    public OutputEventTransformer(OutputEventListener listener, Object lock) {
         this.listener = listener;
+        this.lock = lock;
     }
 
     @Override
@@ -59,7 +61,7 @@ public class OutputEventTransformer implements OutputEventListener {
                         startEvent = startEvent.withParentProgressOperation(mappedId);
                     }
                 }
-                listener.onOutput(startEvent);
+                invokeListener(startEvent);
                 return;
             }
 
@@ -72,7 +74,7 @@ public class OutputEventTransformer implements OutputEventListener {
                         startEvent = startEvent.withParentProgressOperation(mappedId);
                     }
                 }
-                listener.onOutput(startEvent);
+                invokeListener(startEvent);
             } else {
                 // Ignore this progress operation, and map any reference to it to its parent (or whatever its parent is mapped to)
                 OperationIdentifier mappedParent = effectiveProgressOperation.get(startEvent.getParentProgressOperationId());
@@ -85,12 +87,12 @@ public class OutputEventTransformer implements OutputEventListener {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
             OperationIdentifier mappedEvent = effectiveProgressOperation.remove(completeEvent.getProgressOperationId());
             if (mappedEvent == null && forwarded.remove(completeEvent.getProgressOperationId())) {
-                listener.onOutput(event);
+                invokeListener(event);
             }
         } else if (event instanceof ProgressEvent) {
             ProgressEvent progressEvent = (ProgressEvent) event;
             if (forwarded.contains(progressEvent.getProgressOperationId())) {
-                listener.onOutput(event);
+                invokeListener(event);
             }
         } else if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent outputEvent = (RenderableOutputEvent) event;
@@ -101,9 +103,15 @@ public class OutputEventTransformer implements OutputEventListener {
                     outputEvent = outputEvent.withBuildOperationId(mappedId);
                 }
             }
-            listener.onOutput(outputEvent);
+            invokeListener(outputEvent);
         } else {
+            invokeListener(event);
+        }
+    }
+    private void invokeListener(OutputEvent event) {
+        synchronized (lock) {
             listener.onOutput(event);
         }
     }
+
 }

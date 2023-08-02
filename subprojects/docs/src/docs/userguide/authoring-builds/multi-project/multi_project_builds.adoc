@@ -159,3 +159,5 @@ Besides, Gradle supports <<command_line_interface.adoc#sec:name_abbreviation,nam
 3. _Define the root project name in the settings file_:
 The ´rootProject.name´ effectively assigns a name to the build as a whole, which is used in reports like build scans.
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e. you can check out your project to any directory).
+If the root project name is not set and it is checked out to a root of a file system (e.g. `/` or `C:\`), the name will be generated randomly.
+
