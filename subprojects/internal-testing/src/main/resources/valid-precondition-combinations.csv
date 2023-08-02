@@ -71,6 +71,8 @@ UnitTestPreconditions$Windows,UnitTestPreconditions$Jdk7OrLater,UnitTestPrecondi
 UnitTestPreconditions$Windows,IntegTestPreconditions$IsEmbeddedExecutor
 UnitTestPreconditions$WorkingDir
 UnitTestPreconditions$OnRemoteTestDistributionExecutor
+UnitTestPreconditions$IsGroovy3
+UnitTestPreconditions$IsGroovy4
 
 IntegTestPreconditions$CanPublishToS3
 IntegTestPreconditions$HasMsBuild
