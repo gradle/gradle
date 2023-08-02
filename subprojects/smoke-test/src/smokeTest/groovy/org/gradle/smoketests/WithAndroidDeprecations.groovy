@@ -68,10 +68,6 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION)
     }
 
-    void maybeExpectGUtilDeprecation() {
-        runner.maybeExpectLegacyDeprecationWarning(GUTIL_DEPRECATION)
-    }
-
     void expectConfigUtilDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(
             versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIG_UTIL),
@@ -125,10 +121,7 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
     void maybeExpectOrgGradleUtilGUtilDeprecation(String agpVersion) {
         runner.maybeExpectLegacyDeprecationWarningIf(
             VersionNumber.parse(agpVersion) < VersionNumber.parse("7.5"),
-            "The org.gradle.util.GUtil type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "${DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_7", "org_gradle_util_reports_deprecations")}"
+            GUTIL_DEPRECATION
         )
     }
 }
