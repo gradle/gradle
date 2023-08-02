@@ -190,7 +190,8 @@ class TransformReplacerTest extends Specification {
         loadTransformedClass(cp, "Foo", original)
 
         then:
-        thrown(GradleException)
+        def e = thrown(GradleException)
+        e.message.contains("cannot be fully instrumented for Java ${JavaVersion.current().majorVersion}")
     }
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
@@ -222,7 +223,8 @@ class TransformReplacerTest extends Specification {
         loadTransformedClass(cp, "Foo", original)
 
         then:
-        thrown(GradleException)
+        def e = thrown(GradleException)
+        e.message.contains("cannot be fully instrumented for Java ${JavaVersion.current().majorVersion}")
     }
 
     private static final byte[] loadTransformedClass(TransformedClassPath cp, String className, File originalJar) {

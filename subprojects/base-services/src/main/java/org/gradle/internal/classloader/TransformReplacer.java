@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.agents.InstrumentingClassLoader;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.io.StreamByteBuffer;
 
@@ -200,10 +201,11 @@ public class TransformReplacer implements Closeable {
             if (jarFile == null) {
                 jarFile = JarCompat.open(jarFilePath);
                 if (jarFile.isMultiRelease() && !isTransformed(jarFile.getJarFile())) {
-                    throw new GradleException(
-                        "Cannot load multi-release JAR '"
-                            + originalJarFilePath.getAbsolutePath()
-                            + "' because it cannot be fully instrumented by this version of Gradle.");
+                    throw new GradleException(String.format(
+                        "Cannot load multi-release JAR '%s' because it cannot be fully instrumented for Java %d by this version of Gradle. Please use a supported Java version (<=%d).",
+                        originalJarFilePath.getAbsolutePath(),
+                        jarFile.javaRuntimeVersionUsed(),
+                        AsmConstants.MAX_SUPPORTED_JAVA_VERSION));
                 }
             }
             return jarFile.getJarFile();

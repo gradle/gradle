@@ -41,6 +41,8 @@ abstract class JarCompat implements Closeable {
 
     public abstract boolean isMultiRelease();
 
+    public abstract int javaRuntimeVersionUsed();
+
     @Override
     public final void close() throws IOException {
         jarFile.close();
@@ -65,6 +67,11 @@ abstract class JarCompat implements Closeable {
             // Pre-Java 9 platforms do not support multi-release JARs.
             return false;
         }
+
+        @Override
+        public int javaRuntimeVersionUsed() {
+            throw new UnsupportedOperationException("Cannot get runtime version used when running on Java <9");
+        }
     }
 
     @SuppressWarnings("Since15")
@@ -77,6 +84,13 @@ abstract class JarCompat implements Closeable {
         @Override
         public boolean isMultiRelease() {
             return jarFile.isMultiRelease();
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        public int javaRuntimeVersionUsed() {
+            // Deprecated major() is used to keep Java 9 compatibility.
+            return JarFile.runtimeVersion().major();
         }
     }
 }
