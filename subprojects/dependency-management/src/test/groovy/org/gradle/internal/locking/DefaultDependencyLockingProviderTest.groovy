@@ -222,7 +222,7 @@ empty=
         then:
         def ex = thrown(MissingLockStateException)
         1 * context.identityPath('conf') >> Path.path(':conf')
-        ex.message == 'Locking strict mode: Configuration \':conf\' is locked but does not have lock state.'
+        ex.message == 'Locking strict mode: Configuration \':conf\' is locked but does not have lock state. To create the lock state, run a task that will resolve that configuration and add --write-locks'
 
         where:
         unique << [true, false]
