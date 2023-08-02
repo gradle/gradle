@@ -26,6 +26,7 @@ import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeCl
 import org.gradle.internal.instrumentation.extensions.types.InstrumentedTypesResourceGenerator;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsResourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.jvmbytecode.InterceptJvmCallsGenerator;
 import org.gradle.internal.instrumentation.processor.extensibility.ClassLevelAnnotationsContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.CodeGeneratorContributor;
@@ -65,6 +66,8 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
 
             (CodeGeneratorContributor) InterceptJvmCallsGenerator::new,
             (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new,
+            // Generate META-INF/services resource with all generated CallInterceptors
+            (ResourceGeneratorContributor) InterceptGroovyCallsResourceGenerator::new,
 
             // Properties upgrade extensions
             new PropertyUpgradeAnnotatedMethodReader(),

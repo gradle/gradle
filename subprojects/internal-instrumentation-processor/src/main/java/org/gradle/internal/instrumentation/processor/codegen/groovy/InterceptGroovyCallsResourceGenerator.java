@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator.CALL_INTERCEPTOR_CLASS;
 
+/**
+ * Generates META-INF/services resource with all generated CallInterceptors so we can load them at runtime
+ */
 public class InterceptGroovyCallsResourceGenerator implements InstrumentationResourceGenerator {
     @Override
     public GenerationResult generateResourceForRequestedInterceptors(Collection<CallInterceptionRequest> interceptionRequests) {
