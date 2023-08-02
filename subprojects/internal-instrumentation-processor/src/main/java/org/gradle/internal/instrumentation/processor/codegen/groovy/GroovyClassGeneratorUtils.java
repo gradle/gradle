@@ -16,80 +16,37 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
-import com.squareup.javapoet.ClassName;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
+import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.ConstructorInterceptorSpec;
+import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.NamedCallableInterceptorSpec;
 import org.gradle.internal.instrumentation.util.NameUtil;
-import org.gradle.util.internal.TextUtil;
 import org.objectweb.asm.Type;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 class GroovyClassGeneratorUtils {
 
-    private static GroupedCallInterceptionRequests groupRequests(Collection<CallInterceptionRequest> interceptionRequests) {
-        Map<String, List<CallInterceptionRequest>> namedRequests = new LinkedHashMap<>();
-        Map<Type, List<CallInterceptionRequest>> constructorRequests = new LinkedHashMap<>();
+    public static CallInterceptorSpecs groupRequests(Collection<CallInterceptionRequest> interceptionRequests) {
+        Map<String, NamedCallableInterceptorSpec> namedRequests = new LinkedHashMap<>();
+        Map<Type, ConstructorInterceptorSpec> constructorRequests = new LinkedHashMap<>();
         interceptionRequests.forEach(request -> {
             if (request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class).isPresent()) {
                 CallableInfo callable = request.getInterceptedCallable();
                 CallableKindInfo kind = callable.getKind();
                 if (kind == CallableKindInfo.AFTER_CONSTRUCTOR) {
-                    constructorRequests.computeIfAbsent(request.getInterceptedCallable().getOwner().getType(), key -> new ArrayList<>()).add(request);
+                    constructorRequests.computeIfAbsent(request.getInterceptedCallable().getOwner().getType(), ConstructorInterceptorSpec::of).getRequests().add(request);
                 } else {
                     String nameKey = NameUtil.interceptedJvmMethodName(callable);
-                    namedRequests.computeIfAbsent(nameKey, key -> new ArrayList<>()).add(request);
+                    namedRequests.computeIfAbsent(nameKey, NamedCallableInterceptorSpec::of).getRequests().add(request);
                 }
             }
         });
 
-        return new GroupedCallInterceptionRequests(namedRequests, constructorRequests);
-    }
-
-    static class GroupedCallInterceptionRequests {
-        private final Map<String, List<CallInterceptionRequest>> namedRequests = new LinkedHashMap<>();
-        private final Map<Type, List<CallInterceptionRequest>> constructorRequests = new LinkedHashMap<>();
-
-
-        public Map<String, List<CallInterceptionRequest>> getNamedRequests() {
-            return namedRequests;
-        }
-
-        public Map<Type, List<CallInterceptionRequest>> getConstructorRequests() {
-            return constructorRequests;
-        }
-    }
-
-    static class CallInterceptingRequestGroup {
-        private final String className;
-        private final List<CallInterceptionRequest> requests;
-
-        private CallInterceptingRequestGroup(String className, List<CallInterceptionRequest> requests) {
-            this.className = className;
-            this.requests = requests;
-        }
-
-        static CallInterceptingRequestGroup namedCallableInterceptorGroup(String name, List<CallInterceptionRequest> requests) {
-            String className = TextUtil.capitalize(name) + "CallInterceptor";
-            return new CallInterceptingRequestGroup(name, className, requests);
-        }
-
-        static CallInterceptingRequestGroup constructorInterceptorGroup(Type constructorType, List<CallInterceptionRequest> requests) {
-            String className = ClassName.bestGuess(constructorType.getClassName()).simpleName() + "ConstructorCallInterceptor";
-            return new CallInterceptingRequestGroup(className, requests);
-        }
-
-        public String getClassName() {
-            return className;
-        }
-        public List<CallInterceptionRequest> getRequests() {
-            return requests;
-        }
+        return new CallInterceptorSpecs(namedRequests.values(), constructorRequests.values());
     }
 }

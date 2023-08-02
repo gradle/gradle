@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +43,11 @@ public class InterceptGroovyCallsResourceGenerator implements InstrumentationRes
             return new GenerationResult.NoResourceToGenerate();
         }
 
+        List<String> callInterceptorTypes = new ArrayList<>();
+        CallInterceptorSpecs specs = GroovyClassGeneratorUtils.groupRequests(requests);
+        specs.getNamedRequests().forEach(spec -> callInterceptorTypes.add(spec.getClassName()));
+        specs.getConstructorRequests().forEach(spec -> callInterceptorTypes.add(spec.getClassName()));
+
         return new GenerationResult.CanGenerateResource() {
             @Override
             public String getPackageName() {
@@ -55,8 +61,7 @@ public class InterceptGroovyCallsResourceGenerator implements InstrumentationRes
 
             @Override
             public void write(OutputStream outputStream) {
-                String types = requests.stream()
-                    .map(request -> request.getInterceptedCallable().getOwner().getType().getClassName().replace(".", "/"))
+                String types = callInterceptorTypes.stream()
                     .distinct()
                     .sorted()
                     .collect(Collectors.joining("\n"));
