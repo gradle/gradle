@@ -41,6 +41,7 @@ public interface GroovyCallInterceptorsProvider {
         return new CompositeGroovyCallInterceptorsProvider(this, other);
     }
 
+    @NonNullApi
     class ClassSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
         private final String className;
@@ -86,6 +87,7 @@ public interface GroovyCallInterceptorsProvider {
         }
     }
 
+    @NonNullApi
     class ClassLoaderSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
         private final ClassLoader classLoader;
@@ -113,6 +115,7 @@ public interface GroovyCallInterceptorsProvider {
         }
     }
 
+    @NonNullApi
     class CompositeGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
         private final GroovyCallInterceptorsProvider first;
