@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
     implementation(libs.guava)
+    implementation(libs.gson)
     implementation(libs.jansi)
 
     runtimeOnly(libs.log4jToSlf4j)

@@ -19,7 +19,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-public class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
+class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
+
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
 
     def "the task history lock can be acquired when the initial owner is busy executing tasks"() {
         settingsFile << "include 'a', 'b'"

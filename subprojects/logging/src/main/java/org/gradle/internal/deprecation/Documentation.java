@@ -17,16 +17,27 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.interfaces.DocLink;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public abstract class Documentation implements DocLink {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
-    static final Documentation NO_DOCUMENTATION = new NullDocumentation();
+    public static final Documentation NO_DOCUMENTATION = new NullDocumentation();
 
     public static Documentation userManual(String id, String section) {
         return new UserGuide(id, section);
@@ -47,6 +58,10 @@ public abstract class Documentation implements DocLink {
     @Nullable
     public String consultDocumentationMessage() {
         return String.format(RECOMMENDATION, "information", documentationUrl());
+    }
+
+    private static abstract class SerializerableDocumentation extends Documentation {
+        abstract Map<String, String> getProperties();
     }
 
     public static abstract class AbstractBuilder<T> {
@@ -89,7 +104,7 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    private static class NullDocumentation extends Documentation {
+    private static class NullDocumentation extends SerializerableDocumentation {
 
         private NullDocumentation() {
         }
@@ -103,9 +118,14 @@ public abstract class Documentation implements DocLink {
         public String consultDocumentationMessage() {
             return null;
         }
+
+        @Override
+        Map<String, String> getProperties() {
+            return ImmutableMap.of();
+        }
     }
 
-    private static class UserGuide extends Documentation {
+    private static class UserGuide extends SerializerableDocumentation {
         private final String page;
         private final String section;
 
@@ -125,13 +145,24 @@ public abstract class Documentation implements DocLink {
 
         @Override
         public String documentationUrl() {
-            if(section == null) {
+            if (section == null) {
                 return DOCUMENTATION_REGISTRY.getDocumentationFor(page);
             }
             if (topic == null) {
                 return DOCUMENTATION_REGISTRY.getDocumentationFor(page, section);
             }
             return DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor(topic, page, section);
+        }
+
+        @Override
+        Map<String, String> getProperties() {
+            ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder();
+            builder.put("page", page);
+            builder.put("section", section);
+            if (topic != null) {
+                builder.put("topic", topic);
+            }
+            return builder.build();
         }
     }
 
@@ -147,7 +178,7 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    private static class DslReference extends Documentation {
+    private static class DslReference extends SerializerableDocumentation {
         private final Class<?> targetClass;
         private final String property;
 
@@ -160,8 +191,42 @@ public abstract class Documentation implements DocLink {
         public String documentationUrl() {
             return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
+
+        @Override
+        Map<String, String> getProperties() {
+            return ImmutableMap.of("property", property, "targetClass", targetClass.getName());
+        }
     }
 
+    public static class DocLinkJsonDeserializer implements JsonDeserializer<DocLink> {
+        @Override
+        public DocLink deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject jsonObject = (JsonObject) json;
+            JsonElement page = jsonObject.get("page");
+            JsonElement section = jsonObject.get("section");
+            if (page == null && section == null) {
+                return NO_DOCUMENTATION;
+            }
+
+            return userManual(page.getAsString(), section.getAsString());
+        }
+    }
+
+    public static class DocLinkJsonSerializer implements JsonSerializer<DocLink> {
+        @Override
+        public JsonElement serialize(DocLink src, Type typeOfSrc, JsonSerializationContext context) {
+            final JsonObject jsonObject = new JsonObject();
+            if (src instanceof SerializerableDocumentation) {
+                SerializerableDocumentation sd = (SerializerableDocumentation) src;
+                for (Entry<String, String> entry : sd.getProperties().entrySet()) {
+                    if (entry.getValue() != null) {
+                        jsonObject.addProperty(entry.getKey(), entry.getValue());
+                    }
+                }
+            }
+            return jsonObject;
+        }
+    }
 }
 
 

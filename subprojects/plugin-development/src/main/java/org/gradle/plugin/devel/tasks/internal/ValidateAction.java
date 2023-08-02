@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.transform.CacheableTransform;
@@ -194,7 +193,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             try {
                 //noinspection ResultOfMethodCallIgnored
                 output.createNewFile();
-                Gson gson = new GsonBuilder().create();
+                Gson gson = ValidationProblemSerialization.createGsonBuilder().create();
                 Files.asCharSink(output, Charsets.UTF_8).write(gson.toJson(problemMessages));
             } catch (IOException ex) {
                 throw new java.io.UncheckedIOException(ex);

@@ -21,6 +21,12 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
+
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {

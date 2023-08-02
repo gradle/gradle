@@ -38,6 +38,11 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-2032")
     def "can simultaneously run gradle on projects with buildSrc"() {
         def initScript = file("init.gradle")

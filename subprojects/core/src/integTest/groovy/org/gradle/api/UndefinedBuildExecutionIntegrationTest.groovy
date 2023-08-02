@@ -30,6 +30,11 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     def "fails when attempting to execute tasks #tasks in directory with no settings or build file"() {
         when:
         fails(*tasks)

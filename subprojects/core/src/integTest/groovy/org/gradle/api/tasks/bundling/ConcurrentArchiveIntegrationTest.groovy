@@ -30,6 +30,11 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/22685")
     def "can visit and edit zip archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"

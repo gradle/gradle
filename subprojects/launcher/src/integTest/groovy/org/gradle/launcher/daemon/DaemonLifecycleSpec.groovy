@@ -33,6 +33,11 @@ import spock.lang.IgnoreIf
  */
 class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
 
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     def "daemons do some work - sit idle - then timeout and die"() {
         //in this particular test we need to make the daemon timeout
         //shorter than the state transition timeout so that

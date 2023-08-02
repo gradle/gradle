@@ -29,6 +29,11 @@ import org.junit.Rule
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     def setup() {
         server.start()
     }

@@ -61,6 +61,11 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir.file("caches")}")
     }
 
+    @Override
+    def setupBuildOperationFixture() {
+        //disable because of a test that is incompatible with the build operation fixture
+    }
+
     def "Error message due to unwritable Gradle daemon directory is not scary"() {
         given:
         def daemonDir = executer.daemonBaseDir
