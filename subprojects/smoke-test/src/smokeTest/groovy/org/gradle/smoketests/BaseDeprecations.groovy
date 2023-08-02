@@ -55,7 +55,7 @@ class BaseDeprecations {
     public static final String GUTIL_DEPRECATION = "The org.gradle.util.GUtil type has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Consult the upgrading guide for further information: " +
-        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","base_convention_deprecation")
+        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_7", "org_gradle_util_reports_deprecations")
 
     public static final String JAVA_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
