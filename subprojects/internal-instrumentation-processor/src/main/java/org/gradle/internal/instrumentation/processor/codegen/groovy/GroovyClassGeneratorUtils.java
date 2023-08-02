@@ -33,16 +33,22 @@ class GroovyClassGeneratorUtils {
 
     public static CallInterceptorSpecs groupRequests(Collection<CallInterceptionRequest> interceptionRequests) {
         Map<String, NamedCallableInterceptorSpec> namedRequests = new LinkedHashMap<>();
-        Map<Type, ConstructorInterceptorSpec> constructorRequests = new LinkedHashMap<>();
+        Map<String, ConstructorInterceptorSpec> constructorRequests = new LinkedHashMap<>();
         interceptionRequests.forEach(request -> {
             if (request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class).isPresent()) {
+                String implementationName = request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class)
+                    .map(RequestExtra.InterceptGroovyCalls::getImplementationClassName)
+                    .orElseThrow(() -> new IllegalStateException("Implementation class name is not set for " + request.getInterceptedCallable().getOwner().getType()));
                 CallableInfo callable = request.getInterceptedCallable();
                 CallableKindInfo kind = callable.getKind();
                 if (kind == CallableKindInfo.AFTER_CONSTRUCTOR) {
-                    constructorRequests.computeIfAbsent(request.getInterceptedCallable().getOwner().getType(), ConstructorInterceptorSpec::of).getRequests().add(request);
+                    Type constructedType = request.getInterceptedCallable().getOwner().getType();
+                    String typeKey = implementationName + ":" + constructedType;
+                    constructorRequests.computeIfAbsent(typeKey, k -> ConstructorInterceptorSpec.of(implementationName, constructedType)).getRequests().add(request);
                 } else {
-                    String nameKey = NameUtil.interceptedJvmMethodName(callable);
-                    namedRequests.computeIfAbsent(nameKey, NamedCallableInterceptorSpec::of).getRequests().add(request);
+                    String name = NameUtil.interceptedJvmMethodName(callable);
+                    String nameKey = implementationName + ":" + NameUtil.interceptedJvmMethodName(callable);
+                    namedRequests.computeIfAbsent(nameKey, k -> NamedCallableInterceptorSpec.of(implementationName, name)).getRequests().add(request);
                 }
             }
         });

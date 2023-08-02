@@ -47,17 +47,21 @@ class CallInterceptorSpecs {
     interface CallInterceptorSpec {
         String getClassName();
 
+        String getFullClassName();
+
         List<CallInterceptionRequest> getRequests();
 
         class NamedCallableInterceptorSpec implements CallInterceptorSpec {
 
             private final String name;
             private final String className;
+            private final String fullClassName;
             private final List<CallInterceptionRequest> requests;
 
-            private NamedCallableInterceptorSpec(String name, String className, List<CallInterceptionRequest> requests) {
+            private NamedCallableInterceptorSpec(String name, String className, String fullClassName, List<CallInterceptionRequest> requests) {
                 this.name = name;
                 this.className = className;
+                this.fullClassName = fullClassName;
                 this.requests = requests;
             }
 
@@ -72,25 +76,33 @@ class CallInterceptorSpecs {
             }
 
             @Override
+            public String getFullClassName() {
+                return fullClassName;
+            }
+
+            @Override
             public List<CallInterceptionRequest> getRequests() {
                 return requests;
             }
 
-            public static NamedCallableInterceptorSpec of(String name) {
+            public static NamedCallableInterceptorSpec of(String implementationName, String name) {
                 String className = TextUtil.capitalize(name) + "CallInterceptor";
-                return new NamedCallableInterceptorSpec(name, className, new ArrayList<>());
+                String fullClassName = implementationName + "$" + className;
+                return new NamedCallableInterceptorSpec(name, className, fullClassName, new ArrayList<>());
             }
         }
 
         class ConstructorInterceptorSpec implements CallInterceptorSpec {
 
+            private final String fullClassName;
             private final Type constructorType;
             private final String className;
             private final List<CallInterceptionRequest> requests;
 
-            private ConstructorInterceptorSpec(Type constructorType, String className, List<CallInterceptionRequest> requests) {
+            private ConstructorInterceptorSpec(Type constructorType, String className, String fullClassName, List<CallInterceptionRequest> requests) {
                 this.constructorType = constructorType;
                 this.className = className;
+                this.fullClassName = fullClassName;
                 this.requests = requests;
             }
 
@@ -104,13 +116,19 @@ class CallInterceptorSpecs {
             }
 
             @Override
+            public String getFullClassName() {
+                return fullClassName;
+            }
+
+            @Override
             public List<CallInterceptionRequest> getRequests() {
                 return requests;
             }
 
-            public static ConstructorInterceptorSpec of(Type constructedType) {
+            public static ConstructorInterceptorSpec of(String implementationName, Type constructedType) {
                 String className = ClassName.bestGuess(constructedType.getClassName()).simpleName() + "ConstructorCallInterceptor";
-                return new ConstructorInterceptorSpec(constructedType, className, new ArrayList<>());
+                String fullClassName = implementationName + "$" + className;
+                return new ConstructorInterceptorSpec(constructedType, className, fullClassName, new ArrayList<>());
             }
         }
     }

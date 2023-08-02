@@ -48,8 +48,8 @@ public class InterceptGroovyCallsResourceGenerator implements InstrumentationRes
 
         List<String> callInterceptorTypes = new ArrayList<>();
         CallInterceptorSpecs specs = GroovyClassGeneratorUtils.groupRequests(requests);
-        specs.getNamedRequests().forEach(spec -> callInterceptorTypes.add(spec.getClassName()));
-        specs.getConstructorRequests().forEach(spec -> callInterceptorTypes.add(spec.getClassName()));
+        specs.getNamedRequests().forEach(spec -> callInterceptorTypes.add(spec.getFullClassName()));
+        specs.getConstructorRequests().forEach(spec -> callInterceptorTypes.add(spec.getFullClassName()));
 
         return new GenerationResult.CanGenerateResource() {
             @Override
