@@ -764,9 +764,7 @@ testRuntimeClasspath
 
         buildFile << """
             configurations {
-                dependencyScope("deps")
-                resolvable("conf") {
-                    extendsFrom(deps)
+                conf {
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "cat"))
                     }
@@ -774,7 +772,7 @@ testRuntimeClasspath
             }
 
             dependencies {
-                deps project(":producer")
+                conf project(":producer")
             }
 
             task resolve {

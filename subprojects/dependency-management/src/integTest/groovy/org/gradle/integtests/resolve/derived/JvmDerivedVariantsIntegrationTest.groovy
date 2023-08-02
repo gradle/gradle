@@ -180,38 +180,109 @@ task resolve {
         noExceptionThrown()
     }
 
-    def "exception thrown when re-selecting artifacts if dependency has explicit artifact"() {
+    def "exception thrown when re-selecting artifacts if dependency has explicit artifact with classifier"() {
         file("consumer/build.gradle") << """
-dependencies {
-    implementation 'com.example:test:1.0:foo'
-}
+            dependencies {
+                implementation 'com.example:test:1.0:foo'
+            }
 
-task resolve {
-    def reselected = configurations.runtimeClasspath.incoming.artifactView {
-        withVariantReselection()
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
-        }
-    }.files
-    doLast {
-        println reselected.files
-    }
-}
-"""
+            task resolve {
+                def reselected = configurations.runtimeClasspath.incoming.artifactView {
+                    withVariantReselection()
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+                    }
+                }.files
+                doLast {
+                    println reselected.files
+                }
+            }
+        """
+
         when:
         fails(":consumer:resolve")
         then:
-        failure.assertHasCause("Cannot reselect artifacts for variant runtimeElements of com.example:test:1.0 since it has an explicitly requested artifact. Use a lenient ArtifactView to silence this error.")
+        failure.assertHasCause("Cannot reselect artifacts for com.example:test:1.0 since it has an explicitly requested artifact with classier 'foo'. Views of Configurations resolving dependencies with explicit artifacts must use lenient=true.")
 
         when:
         removeGMM()
         and:
         fails(":consumer:resolve")
         then:
-        failure.assertHasCause("Cannot reselect artifacts for variant runtime of com.example:test:1.0 since it has an explicitly requested artifact. Use a lenient ArtifactView to silence this error.")
+        failure.assertHasCause("Cannot reselect artifacts for com.example:test:1.0 since it has an explicitly requested artifact with classier 'foo'. Views of Configurations resolving dependencies with explicit artifacts must use lenient=true.")
+    }
+
+    def "exception thrown when re-selecting artifacts if dependency has explicit artifact with extension"() {
+        file("consumer/build.gradle") << """
+            dependencies {
+                implementation 'com.example:test:1.0@zip'
+            }
+
+            task resolve {
+                def reselected = configurations.runtimeClasspath.incoming.artifactView {
+                    withVariantReselection()
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+                    }
+                }.files
+                doLast {
+                    println reselected.files
+                }
+            }
+        """
+
+        when:
+        fails(":consumer:resolve")
+        then:
+        failure.assertHasCause("Cannot reselect artifacts for com.example:test:1.0 since it has an explicitly requested artifact with extension 'zip'. Views of Configurations resolving dependencies with explicit artifacts must use lenient=true.")
+
+        when:
+        removeGMM()
+        and:
+        fails(":consumer:resolve")
+        then:
+        failure.assertHasCause("Cannot reselect artifacts for com.example:test:1.0 since it has an explicitly requested artifact with extension 'zip'. Views of Configurations resolving dependencies with explicit artifacts must use lenient=true.")
+    }
+
+    def "exception thrown when re-selecting artifacts if dependency has explicit artifact with classifier and extension"() {
+        file("consumer/build.gradle") << """
+            dependencies {
+                implementation 'com.example:test:1.0:foo@zip'
+            }
+
+            task resolve {
+                def reselected = configurations.runtimeClasspath.incoming.artifactView {
+                    withVariantReselection()
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+                    }
+                }.files
+                doLast {
+                    println reselected.files
+                }
+            }
+        """
+
+        when:
+        fails(":consumer:resolve")
+        then:
+        failure.assertHasCause("Cannot reselect artifacts for com.example:test:1.0 since it has an explicitly requested artifact with classier 'foo' and with extension 'zip'. Views of Configurations resolving dependencies with explicit artifacts must use lenient=true.")
+
+        when:
+        removeGMM()
+        and:
+        fails(":consumer:resolve")
+        then:
+        failure.assertHasCause("Cannot reselect artifacts for com.example:test:1.0 since it has an explicitly requested artifact with classier 'foo' and with extension 'zip'. Views of Configurations resolving dependencies with explicit artifacts must use lenient=true.")
     }
 
     def "can re-select artifacts if dependency has explicit artifact when lenient=true"() {

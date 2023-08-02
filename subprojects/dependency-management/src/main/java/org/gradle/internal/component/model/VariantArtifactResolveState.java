@@ -35,7 +35,7 @@ public interface VariantArtifactResolveState {
      *
      * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
      */
-    ResolvedVariant resolveAdhocArtifacts(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts);
+    ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts);
 
     /**
      * Get all artifact variants, or "sub-variants" of this variant.

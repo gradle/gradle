@@ -197,7 +197,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         }
 
         @Override
-        public ResolvedVariant resolveAdhocArtifacts(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts) {
+        public ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts) {
             ImmutableList.Builder<ComponentArtifactMetadata> artifacts = ImmutableList.builderWithExpectedSize(dependencyArtifacts.size());
             for (IvyArtifactName dependencyArtifact : dependencyArtifacts) {
                 artifacts.add(graphSelectedConfiguration.artifact(dependencyArtifact));

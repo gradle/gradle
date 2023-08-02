@@ -84,10 +84,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet, VariantSelector
             if (selectFromAllVariants && !artifacts.isEmpty()) {
                 // Variants with overridden artifacts cannot be reselected since
                 // we do not know the "true" attributes of the requested artifact.
-                return new BrokenResolvedArtifactSet(new GradleException(
-                    String.format("Cannot reselect artifacts for variant %s of %s since it has an explicitly requested artifact. " +
-                        "Use a lenient ArtifactView to silence this error.", variant.getName(), componentId)
-                ));
+                return new BrokenResolvedArtifactSet(ExplicitArtifactReselectionException.create(componentId, artifacts));
             }
 
             ResolvedVariantSet variants;
@@ -135,7 +132,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet, VariantSelector
             visitResolvedArtifacts(componentMetadata, variantState, ownArtifacts::add, exclusions.mayExcludeArtifacts());
             return ownArtifacts.build();
         } else {
-            return ImmutableSet.of(variantState.resolveAdhocArtifacts(variantResolver, artifacts));
+            return ImmutableSet.of(variantState.resolveAdhocVariant(variantResolver, artifacts));
         }
     }
 
@@ -181,6 +178,35 @@ public class VariantResolvingArtifactSet implements ArtifactSet, VariantSelector
             for (VariantResolveMetadata subvariant : variant.getArtifactVariants()) {
                 visitor.accept(variantResolver.resolveVariant(component, subvariant));
             }
+        }
+    }
+
+    public static class ExplicitArtifactReselectionException extends GradleException {
+        public ExplicitArtifactReselectionException(String message) {
+            super(message);
+        }
+
+        public static ExplicitArtifactReselectionException create(ComponentIdentifier componentId, List<IvyArtifactName> requestedArtifacts) {
+            String details = "";
+            if (requestedArtifacts.size() == 1) {
+                IvyArtifactName artifact = requestedArtifacts.get(0);
+                boolean hasClassifier = false;
+                if (artifact.getClassifier() != null) {
+                    details += " with classier '" + artifact.getClassifier() + "'";
+                    hasClassifier = true;
+                }
+                if (artifact.getExtension() != null && !artifact.getExtension().equals("jar")) {
+                    if (hasClassifier) {
+                        details += " and";
+                    }
+                    details += " with extension '" + artifact.getExtension() + "'";
+                }
+            }
+
+            // TODO: Ideally, this error should include a documentation link: https://github.com/gradle/gradle/issues/26007
+            String message = String.format("Cannot reselect artifacts for %s since it has an explicitly requested artifact%s. " +
+                "Views of Configurations resolving dependencies with explicit artifacts must use lenient=true.", componentId, details);
+            return new ExplicitArtifactReselectionException(message);
         }
     }
 }
