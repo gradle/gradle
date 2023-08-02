@@ -1,6 +1,38 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
+            "member": "Class org.gradle.api.plugins.quality.CheckstylePlugin",
+            "acceptation": "Removed a static internal-only method",
+            "changes": [
+                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs(org.gradle.jvm.toolchain.JavaLauncher,org.gradle.workers.ForkingWorkerSpec)"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CodeNarcPlugin",
+            "member": "Class org.gradle.api.plugins.quality.CodeNarcPlugin",
+            "acceptation": "Removed a static internal-only method",
+            "changes": [
+                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs(org.gradle.jvm.toolchain.JavaLauncher,org.gradle.workers.ForkingWorkerSpec)"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdPlugin",
+            "member": "Class org.gradle.api.plugins.quality.PmdPlugin",
+            "acceptation": "Removed a static internal-only method",
+            "changes": [
+                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs(org.gradle.jvm.toolchain.JavaLauncher,org.gradle.workers.ForkingWorkerSpec)"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
+            "member": "Constructor org.gradle.kotlin.dsl.NamedDomainObjectContainerScope(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Private constructor changed to internal. This constructor was synthetically added by Kotlin to allow the private constructor to be called from companion object. It could not be called by Kotlin code.",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.util.SingleMessageLogger",
             "member": "Class org.gradle.util.SingleMessageLogger",
             "acceptation": "use Problems class for reporting warnings to TAPI",

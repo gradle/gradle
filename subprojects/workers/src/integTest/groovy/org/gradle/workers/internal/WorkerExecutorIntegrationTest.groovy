@@ -729,6 +729,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import org.gradle.api.artifacts.Configuration;
+            import org.gradle.api.artifacts.DependencyScopeConfiguration;
             import org.gradle.api.artifacts.ConfigurationContainer;
             import org.gradle.api.file.ConfigurableFileCollection;
             import org.gradle.api.tasks.Classpath;
@@ -743,16 +744,14 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             public class WorkerRunningPlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     ConfigurationContainer configurations = project.getConfigurations();
-                    NamedDomainObjectProvider<Configuration> bucket = configurations.register("bucket", config -> {
-                        config.setCanBeConsumed(false);
-                        config.setCanBeResolved(false);
+                    NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope = configurations.dependencyScope("deps", config -> {
                         config.getDependencies().add(project.getDependencies().create(project));
                     });
 
                     NamedDomainObjectProvider<Configuration> resolvable = configurations.register("resolvable", config -> {
                         config.setCanBeConsumed(false);
                         config.setCanBeResolved(true);
-                        config.extendsFrom(bucket.get());
+                        config.extendsFrom(dependencyScope.get());
                     });
 
                     project.getTasks().register("runAction", ActionRunningTask.class, task -> {

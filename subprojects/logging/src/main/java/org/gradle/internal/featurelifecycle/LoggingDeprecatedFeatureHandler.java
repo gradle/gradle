@@ -63,8 +63,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private GradleException error;
 
     public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, Problems problemsService) {
-        this.problemStream = problemDiagnosticsFactory.newStream();
         this.warningMode = warningMode;
+        this.problemStream = warningMode.shouldDisplayMessages()
+            ? problemDiagnosticsFactory.newUnlimitedStream()
+            : problemDiagnosticsFactory.newStream();
         this.progressEventEmitter = progressEventEmitter;
         this.problemsService = problemsService;
     }
@@ -101,7 +103,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
         return genericDeprecation.location(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
     }
-
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         String featureMessage = usage.formattedMessage();
         Location location = diagnostics.getLocation();

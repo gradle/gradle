@@ -467,12 +467,17 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public Integer getDirMode() {
-        return buildRootResolver().getDirMode();
+        return getMode(buildRootResolver().getDirPermissions());
     }
 
     @Override
     public Integer getFileMode() {
-        return buildRootResolver().getFileMode();
+        return getMode(buildRootResolver().getFilePermissions());
+    }
+
+    @Nullable
+    private Integer getMode(Provider<ConfigurableFilePermissions> permissions) {
+        return permissions.map(FilePermissions::toUnixNumeric).getOrNull();
     }
 
     @Override
@@ -773,8 +778,18 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
+        public Provider<ConfigurableFilePermissions> getFilePermissions() {
+            return filePermissions;
+        }
+
+        @Override
         public Provider<FilePermissions> getImmutableFilePermissions() {
             return getPermissions(filePermissions, CopySpecResolver::getImmutableFilePermissions);
+        }
+
+        @Override
+        public Provider<ConfigurableFilePermissions> getDirPermissions() {
+            return dirPermissions;
         }
 
         @Override

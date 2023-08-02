@@ -32,8 +32,8 @@ dependencies {
 
 // tag::customize-checkstyle-memory[]
 tasks.withType<Checkstyle>().configureEach {
-    minHeapSize.set("200m")
-    maxHeapSize.set("1g")
+    minHeapSize = "200m"
+    maxHeapSize = "1g"
 }
 // end::customize-checkstyle-memory[]
 
@@ -48,11 +48,11 @@ checkstyle {
 tasks.withType<Checkstyle>().configureEach {
     reports {
 // end::customize-checkstyle-report[]
-        sarif.required.set(true)
+        sarif.required = true
 // end::enable-checkstyle-sarif-report[]
 // tag::customize-checkstyle-report[]
-        xml.required.set(false)
-        html.required.set(true)
+        xml.required = false
+        html.required = true
         html.stylesheet = resources.text.fromFile("config/xsl/checkstyle-custom.xsl")
 // tag::enable-checkstyle-sarif-report[]
     }
@@ -64,13 +64,13 @@ tasks.withType<Checkstyle>().configureEach {
 pmd {
     isConsoleOutput = true
     toolVersion = "6.21.0"
-    rulesMinimumPriority.set(5)
+    rulesMinimumPriority = 5
     ruleSets = listOf("category/java/errorprone.xml", "category/java/bestpractices.xml")
 }
 // end::customize-pmd[]
 
 // tag::pmd-threads[]
 pmd {
-    threads.set(4)
+    threads = 4
 }
 // end::pmd-threads[]

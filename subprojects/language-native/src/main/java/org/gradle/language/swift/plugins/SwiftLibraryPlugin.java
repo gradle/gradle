@@ -148,7 +148,7 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
 
             library.getBinaries().whenElementKnown(SwiftSharedLibrary.class, sharedLibrary -> {
                 Names names = ((ComponentWithNames) sharedLibrary).getNames();
-                @SuppressWarnings("deprecation") Configuration apiElements = configurations.createWithRole(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+                @SuppressWarnings("deprecation") Configuration apiElements = configurations.migratingUnlocked(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
                 // TODO This should actually extend from the api dependencies, but since Swift currently
                 // requires all dependencies to be treated like api dependencies (with transitivity) we just
                 // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
@@ -163,7 +163,7 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
 
             library.getBinaries().whenElementKnown(SwiftStaticLibrary.class, staticLibrary -> {
                 Names names = ((ComponentWithNames) staticLibrary).getNames();
-                @SuppressWarnings("deprecation") Configuration apiElements = configurations.createWithRole(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+                @SuppressWarnings("deprecation") Configuration apiElements = configurations.migratingUnlocked(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
                 // TODO This should actually extend from the api dependencies, but since Swift currently
                 // requires all dependencies to be treated like api dependencies (with transitivity) we just
                 // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.

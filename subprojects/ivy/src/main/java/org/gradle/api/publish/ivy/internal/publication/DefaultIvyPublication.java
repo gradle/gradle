@@ -36,12 +36,13 @@ import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.component.IvyPublishingAwareVariant;
+import org.gradle.api.publish.internal.component.IvyPublishingAwareVariant;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -85,6 +86,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nonnull;
@@ -500,10 +502,11 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         }
 
         private void addProjectDependency(ProjectDependency dependency, String confMapping) {
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
+            Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
             DefaultIvyDependency moduleDep = new DefaultIvyDependency(
                 identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.emptyList(), dependency.getExcludeRules());
-            ivyDependencies.add(new DefaultIvyProjectDependency(moduleDep, dependency.getDependencyProject().getPath()));
+            ivyDependencies.add(new DefaultIvyProjectDependency(moduleDep, identityPath));
         }
 
         private void addExternalDependency(ExternalDependency dependency, String confMapping, ImmutableAttributes attributes) {

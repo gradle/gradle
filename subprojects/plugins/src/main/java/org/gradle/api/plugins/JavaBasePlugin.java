@@ -27,7 +27,6 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -42,8 +41,8 @@ import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.internal.NaggingJavaPluginConvention;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
@@ -118,11 +117,14 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public JavaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmPluginServices) {
+    public JavaBasePlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices) {
         this.objectFactory = objectFactory;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
-        this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
+        this.jvmPluginServices = jvmPluginServices;
     }
+
+    @Inject
+    protected abstract JvmLanguageUtilities getJvmLanguageUtils();
 
     @Override
     public void apply(final Project project) {
@@ -194,8 +196,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureTargetPlatform(TaskProvider<JavaCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
-        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
-        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
+        getJvmLanguageUtils().useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
+        getJvmLanguageUtils().useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
     }
 
     private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet javaSource, final Project project) {
@@ -264,38 +266,31 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        warnIfConfigurationAlreadyExists(configurations, implementationConfigurationName);
-        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRoles.BUCKET, false, false);
+        Configuration implementationConfiguration = configurations.maybeCreateDependencyScopeUnlocked(implementationConfigurationName);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
-        warnIfConfigurationAlreadyExists(configurations, compileOnlyConfigurationName);
-        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRoles.BUCKET, false, false);
+        Configuration compileOnlyConfiguration = configurations.maybeCreateDependencyScopeUnlocked(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        warnIfConfigurationAlreadyExists(configurations, compileClasspathConfigurationName);
-        Configuration compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, false, false);
+        Configuration compileClasspathConfiguration = configurations.maybeCreateResolvableUnlocked(compileClasspathConfigurationName);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
-        warnIfConfigurationAlreadyExists(configurations, annotationProcessorConfigurationName);
-        Configuration annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRoles.RESOLVABLE_BUCKET, false, false);
+        @SuppressWarnings("deprecation")
+        Configuration annotationProcessorConfiguration = configurations.maybeCreateResolvableDependencyScopeUnlocked(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
-        warnIfConfigurationAlreadyExists(configurations, runtimeOnlyConfigurationName);
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.BUCKET, false, false);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateDependencyScopeUnlocked(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        // TODO: The jmh plugin prevents asserting this role upon creation; if it has been applied, then it will pre-create a runtime classpath configuration
-        // for the jmg sourceset, which is both resolvable and declarable, so this would fail if we assert the role's usage here.
-        warnIfConfigurationAlreadyExists(configurations, runtimeClasspathConfigurationName);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, false, false);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreateResolvableUnlocked(runtimeClasspathConfigurationName);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
@@ -304,16 +299,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
-    }
-
-    private void warnIfConfigurationAlreadyExists(ConfigurationContainer configurations, String configurationName) {
-        if (configurations.findByName(configurationName) != null) {
-            DeprecationLogger.deprecateBehaviour("The configuration " + configurationName + " was created explicitly. This configuration name is reserved for creation by Gradle.")
-                    .withAdvice("Do not create a configuration with this name.")
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "configurations_allowed_usage")
-                    .nagUser();
-        }
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {

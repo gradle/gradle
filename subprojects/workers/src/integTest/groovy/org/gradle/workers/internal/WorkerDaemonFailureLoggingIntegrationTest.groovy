@@ -16,8 +16,9 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.internal.tasks.execution.ExecuteTaskActionBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 
 class WorkerDaemonFailureLoggingIntegrationTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
     def setup() {
@@ -33,7 +34,7 @@ class WorkerDaemonFailureLoggingIntegrationTest extends AbstractDaemonWorkerExec
         """
     }
 
-    def "worker startup failure messages are NOT associated with the task that starts it"() {
+    def "worker startup failure messages are associated with the task that starts it"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
         expect:
@@ -41,12 +42,16 @@ class WorkerDaemonFailureLoggingIntegrationTest extends AbstractDaemonWorkerExec
         fails("runInWorker")
 
         and:
-        def taskOperation = buildOperations.first(ExecuteTaskBuildOperationType) {
-            it.displayName == "Task :runInWorker"
+        def taskActionOperation = buildOperations.first(ExecuteTaskActionBuildOperationType) {
+            it.displayName == "Execute executeTask for :runInWorker"
         }
-        taskOperation != null
-        // there's only the task start progress, no failure progress
-        taskOperation.progress.size() == 1
-        errorOutput.contains("option: --not-a-real-argument")
+        taskActionOperation != null
+        def outputProgress = taskActionOperation.progress(StyledTextOutputEvent)
+        // Output may come in different orders, so we just check that all the expected messages are there.
+        def text = outputProgress*.details.spans*.text.flatten().join()
+        text.count("Unrecognized option: --not-a-real-argument") == 1
+        text.count("Error: Could not create the Java Virtual Machine.") == 1
+        text.count("Error: A fatal exception has occurred. Program will exit.") == 1
+        text.count("\n") == 3
     }
 }

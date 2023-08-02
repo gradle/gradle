@@ -382,8 +382,8 @@ public class DefaultTransform implements Transform {
                         : "Some problems were found with the configuration of the artifact transform parameter %s.",
                     getParameterObjectDisplayName(parameterObject)),
                 validationMessages.stream()
-                    .sorted()
                     .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                    .sorted()
                     .map(InvalidUserDataException::new)
                     .collect(Collectors.toList())
             );

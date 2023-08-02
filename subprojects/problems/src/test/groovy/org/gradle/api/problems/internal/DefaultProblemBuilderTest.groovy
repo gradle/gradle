@@ -16,13 +16,14 @@
 
 package org.gradle.api.problems.internal
 
+import org.gradle.api.problems.Problems
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
 import spock.lang.Specification
 
 class DefaultProblemBuilderTest extends Specification {
 
     def buildOperationEmitter = new NoOpBuildOperationProgressEventEmitter()
-    def builder = new DefaultProblemBuilder(buildOperationEmitter)
+    def builder = new DefaultProblemBuilder(Mock(Problems),buildOperationEmitter)
 
     def "missing location will throw an IllegalArgumentException"() {
         given:

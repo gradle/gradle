@@ -10,7 +10,7 @@ plugins {
 // tag::jacoco-configuration[]
 jacoco {
     toolVersion = "0.8.9"
-    reportsDirectory.set(layout.buildDirectory.dir("customJacocoReportDir"))
+    reportsDirectory = layout.buildDirectory.dir("customJacocoReportDir")
 }
 // end::jacoco-configuration[]
 
@@ -43,9 +43,9 @@ tasks.jacocoTestReport {
 // tag::report-configuration[]
 tasks.jacocoTestReport {
     reports {
-        xml.required.set(false)
-        csv.required.set(false)
-        html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir("jacocoHtml")
     }
 }
 // end::report-configuration[]

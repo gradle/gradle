@@ -241,4 +241,9 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader, export, null);
         }
     }
+
+    @Override
+    public MutableClassLoaderScope asMutable(String childSuffix) {
+        throw new UnsupportedOperationException("DefaultClassLoaderScope is not mutable");
+    }
 }

@@ -62,6 +62,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream
+        _ * diagnosticsFactory.newUnlimitedStream() >> problemStream
         handler.init(diagnosticsFactory, WarningMode.All, progressBroadcaster, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
     }
 

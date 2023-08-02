@@ -64,11 +64,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         and:
         def runner = useAgpVersion(agpVersion, runner('sourceSets'))
         runner.deprecations(AndroidDeprecations) {
-            expectProjectConventionDeprecationWarning(agpVersion)
-            expectAndroidConventionTypeDeprecationWarning(agpVersion)
-            if (GradleContextualExecuter.isNotConfigCache()) {
-                expectBasePluginConventionDeprecation(agpVersion)
-            }
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+            maybeExpectProjectConventionDeprecationWarning(agpVersion)
+            maybeExpectAndroidConventionTypeDeprecationWarning(agpVersion)
+            maybeExpectBasePluginConventionDeprecation(agpVersion)
         }
 
         when:
@@ -130,13 +129,12 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'up-to-date build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner.deprecations(AndroidDeprecations) {
-            if (!GradleContextualExecuter.isConfigCache()) {
-                expectReportDestinationPropertyDeprecation(agpVersion)
-                expectProjectConventionDeprecationWarning(agpVersion)
-                expectAndroidConventionTypeDeprecationWarning(agpVersion)
-                expectBasePluginConventionDeprecation(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-            }
+            maybeExpectGUtilDeprecation()
+            maybeExpectProjectConventionDeprecationWarning(agpVersion)
+            maybeExpectReportDestinationPropertyDeprecation(agpVersion)
+            maybeExpectAndroidConventionTypeDeprecationWarning(agpVersion)
+            maybeExpectBasePluginConventionDeprecation(agpVersion)
+            maybeExpectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
         }.build()
 
         then:
@@ -206,11 +204,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    static class AndroidDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
-        AndroidDeprecations(SmokeTestGradleRunner runner) {
-            super(runner)
-        }
-    }
 
     /**
      * @return ABI change runnable

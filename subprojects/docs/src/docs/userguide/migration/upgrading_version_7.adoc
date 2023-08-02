@@ -1239,7 +1239,7 @@ There is a new `link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html
 
 Using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at the configuration time is now deprecated when the configuration cache is enabled.
 It will be an error in Gradle 8.0 and later.
-Gradle 7.5 introduces configuration cache-compatible ways to execute and obtain output of an external process with the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[provider-based APIs] or a custom implementation of the link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] interface.
+Gradle 7.5 introduces configuration cache-compatible ways to execute and obtain output of an external process with the link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html[provider-based APIs] or a custom implementation of the link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] interface.
 The <<configuration_cache#config_cache:requirements:external_processes,configuration cache chapter>> has more details to help with the migration to the new APIs.
 
 [[changes_7.4]]
@@ -1312,11 +1312,12 @@ If the set of attributes is shared across configurations, consider adding an add
 link:{javadocPath}/org/gradle/api/provider/Provider.html#forUseAtConfigurationTime--[Provider#forUseAtConfigurationTime] is now deprecated and scheduled for removal in Gradle 9.0.
 Clients should simply remove the call.
 
-The call was mandatory on providers of external values such as link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[system properties], link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[environment variables], link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#gradleProperty-java.lang.String-[Gradle properties] and link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[file contents] meant to be used at configuration time together with the configuration cache feature.
+The call was mandatory on providers of external values such as link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[system properties], link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[environment variables],
+link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:gradleProperty(java.lang.String)[Gradle properties] and link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:fileContents(org.gradle.api.file.RegularFile)[file contents] meant to be used at configuration time together with the configuration cache feature.
 
 Starting with version 7.4 Gradle will implicitly treat an external value used at configuration time as a configuration cache input.
 
-Clients are also free to use standard Java APIs such as `System#getenv` to read environment variables, `System#getProperty` to read system properties as well as Gradle APIs such as link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[`Project#property(String)`] and link:{javadocPath}/org/gradle/api/Project.html#findProperty-java.lang.String-[`Project#findProperty(String)`] to read Gradle properties at configuration time.
+Clients are also free to use standard Java APIs such as `System#getenv` to read environment variables, `System#getProperty` to read system properties as well as Gradle APIs such as link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[`Project#property(String)`] and link:{javadocPath}/org/gradle/api/Project.html#findProperty-java.lang.String-[`Project#findProperty(String)`] to read Gradle properties at configuration time.
 The `Provider` based APIs are still the recommended way to connect external values to task inputs for maximum configuration cache reuse.
 
 ==== `ConfigurableReport#setDestination(org.gradle.api.provider.Provider<java.io.File>)` has been deprecated

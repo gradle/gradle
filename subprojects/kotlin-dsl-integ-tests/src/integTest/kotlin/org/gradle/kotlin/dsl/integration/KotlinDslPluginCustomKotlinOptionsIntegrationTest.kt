@@ -44,7 +44,6 @@ class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractPluginIntegrat
         """)
         build("help").apply {
             assertOutputContains("MyDataObject")
-            assertOutputContains("Language version 1.9 is experimental, there are no backwards compatibility guarantees for new language and library features")
         }
     }
 }

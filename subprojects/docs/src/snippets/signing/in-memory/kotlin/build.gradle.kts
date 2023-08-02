@@ -3,7 +3,7 @@ plugins {
 }
 
 tasks.register<Zip>("stuffZip") {
-    archiveBaseName.set("stuff")
+    archiveBaseName = "stuff"
     from("src/stuff")
 }
 

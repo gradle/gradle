@@ -416,4 +416,29 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
             assertDependsOn("junit:junit:4.13")
         }
     }
+
+    def "GenerateMavenPom scope attributes methods are deprecated"() {
+        given:
+        buildFile << """
+            plugins {
+                id("maven-publish")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication)
+                }
+            }
+
+            tasks.generatePomFileForMavenPublication {
+                withCompileScopeAttributes(org.gradle.api.internal.attributes.ImmutableAttributes.EMPTY)
+                withRuntimeScopeAttributes(org.gradle.api.internal.attributes.ImmutableAttributes.EMPTY)
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The GenerateMavenPom.withCompileScopeAttributes(ImmutableAttributes) method has been deprecated. This is scheduled to be removed in Gradle 9.0. This method was never intended for public use. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#generate_maven_pom_method_deprecations")
+        executer.expectDocumentedDeprecationWarning("The GenerateMavenPom.runtimeScopeAttributes(ImmutableAttributes) method has been deprecated. This is scheduled to be removed in Gradle 9.0. This method was never intended for public use. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#generate_maven_pom_method_deprecations")
+        succeeds(":help")
+    }
 }

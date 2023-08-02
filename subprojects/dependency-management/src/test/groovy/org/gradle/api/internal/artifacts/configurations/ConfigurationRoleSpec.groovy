@@ -28,8 +28,8 @@ class ConfigurationRoleSpec extends Specification {
         ConfigurationRoles.LEGACY                       || [UsageDescriber.CONSUMABLE, UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
         ConfigurationRoles.CONSUMABLE                   || [UsageDescriber.CONSUMABLE]
         ConfigurationRoles.RESOLVABLE                   || [UsageDescriber.RESOLVABLE]
-        ConfigurationRoles.RESOLVABLE_BUCKET            || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
-        ConfigurationRoles.BUCKET                       || [UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE  || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.DEPENDENCY_SCOPE             || [UsageDescriber.DECLARABLE_AGAINST]
     }
 
     private void assertDescriptionContains(ConfigurationRole role, List<String> usages) {

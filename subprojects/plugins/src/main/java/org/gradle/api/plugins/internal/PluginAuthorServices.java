@@ -18,13 +18,10 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmLanguageUtilities;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.Describables;
-import org.gradle.internal.instantiation.InstanceGenerator;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -41,6 +38,8 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeServices());
+        registration.add(DefaultJvmLanguageUtilities.class);
+        registration.add(DefaultJvmPluginServices.class);
     }
 
     private static class GlobalScopeServices {
@@ -50,18 +49,6 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     }
 
     private static class ProjectScopeServices {
-        JvmPluginServices createJvmPluginServices(ObjectFactory objectFactory,
-                                                  ProviderFactory providerFactory,
-                                                  InstantiatorFactory instantiatorFactory) {
-            InstanceGenerator instantiator = instantiatorFactory.decorateScheme().instantiator();
-            return instantiator.newInstanceWithDisplayName(DefaultJvmPluginServices.class,
-                Describables.of("JVM Plugin Services"),
-                objectFactory,
-                providerFactory,
-                instantiator
-            );
-        }
-
         SourceSetContainer createSourceSetContainer(ObjectFactory objectFactory) {
             return objectFactory.newInstance(DefaultSourceSetContainer.class);
         }

@@ -22,7 +22,8 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.22")
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.13.4") // Sync with `settings.gradle.kts`
+        api("org.apache.ant:ant:1.10.13") // Bump the version brought in transitively by gradle-guides-plugin
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.14.1") // Sync with `settings.gradle.kts`
         api("com.gradle.publish:plugin-publish-plugin:1.1.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")

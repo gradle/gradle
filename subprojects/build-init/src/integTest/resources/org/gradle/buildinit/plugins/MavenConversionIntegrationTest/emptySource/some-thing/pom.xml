@@ -12,7 +12,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source/>
-                    <target>1.7</target>
                 </configuration>
             </plugin>
         </plugins>

@@ -14,6 +14,6 @@ abstract class PrintValue : DefaultTask() {
 // tag::system-properties-task-inputs[]
 tasks.register<PrintValue>("printProperty") {
     // Using the Gradle API, provides a lazy Provider<String> wired to a task input
-    inputValue.set(providers.systemProperty("system"))
+    inputValue = providers.systemProperty("system")
 }
 // end::system-properties-task-inputs[]

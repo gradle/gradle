@@ -21,7 +21,7 @@ automations:
   complex_change:
     if:
       - {{ author.using_gitstream }}
-      - {{ branch | estimatedReviewTime >= 4 }}
+      - {{ branch | estimatedReviewTime >= 40 }}
       - {{ files | length >= 50 }}
       - {{ includes_src_changes }}
     run:
@@ -48,9 +48,9 @@ teams:
       - 'blindpirate'
   execution:
     members:
-      - 'asodja'
-      - 'lptr'
-      - 'FrauBoes'
+      - 'asodja-DISABLED'
+      - 'lptr-DISABLED'
+      - 'FrauBoes-DISABLED'
   ide:
     members:
       - 'hegyibalint'

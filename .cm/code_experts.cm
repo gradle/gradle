@@ -53,9 +53,9 @@ teams:
       - 'blindpirate'
   execution:
     members:
-      - 'asodja'
-      - 'lptr'
-      - 'FrauBoes'
+      - 'asodja-DISABLED'
+      - 'lptr-DISABLED'
+      - 'FrauBoes-DISABLED'
   ide:
     members:
       - 'hegyibalint'
@@ -65,6 +65,6 @@ teams:
     members:
       - 'big-guy'
       - 'ghale'
-      - 'jvandort'
+      - 'jvandort-DISABLED'
       - 'octylFractal'
       - 'tresat'

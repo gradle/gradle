@@ -43,7 +43,7 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.ScalaRuntime;
@@ -81,7 +81,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
      *
      * @since 6.0
      */
-    public static final String DEFAULT_ZINC_VERSION = "1.6.1";
+    public static final String DEFAULT_ZINC_VERSION = "1.9.3";
     private static final String DEFAULT_SCALA_ZINC_VERSION = "2.13";
 
     @VisibleForTesting
@@ -95,12 +95,12 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     public static final String SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME = "scalaCompilerPlugins";
 
     private final ObjectFactory objectFactory;
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public ScalaBasePlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices) {
         this.objectFactory = objectFactory;
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.jvmPluginServices = jvmPluginServices;
     }
 
     @Override
@@ -119,14 +119,15 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         configureScaladoc(project, scalaRuntime);
     }
 
+    @SuppressWarnings("deprecation")
     private void configureConfigurations(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
         DependencyHandler dependencyHandler = project.getDependencies();
 
-        Configuration plugins = project.getConfigurations().resolvableBucket(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
+        Configuration plugins = project.getConfigurations().resolvableDependencyScopeUnlocked(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
         plugins.setTransitive(false);
-        jvmEcosystemUtilities.configureAsRuntimeClasspath(plugins);
+        jvmPluginServices.configureAsRuntimeClasspath(plugins);
 
-        Configuration zinc = project.getConfigurations().resolvableBucket(ZINC_CONFIGURATION_NAME);
+        Configuration zinc = project.getConfigurations().resolvableDependencyScopeUnlocked(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false);
         zinc.setDescription("The Zinc incremental compiler to be used for this Scala project.");
 
@@ -157,7 +158,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
         })));
 
-        @SuppressWarnings("deprecation") final Configuration incrementalAnalysisElements = project.getConfigurations().createWithRole("incrementalScalaAnalysisElements", ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        @SuppressWarnings("deprecation") final Configuration incrementalAnalysisElements = project.getConfigurations().migratingUnlocked("incrementalScalaAnalysisElements", ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         incrementalAnalysisElements.setVisible(false);
         incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
         incrementalAnalysisElements.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
@@ -207,7 +208,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
     private static Configuration createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
         Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        @SuppressWarnings("deprecation") Configuration incrementalAnalysis = configurations.createWithRole("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
+        @SuppressWarnings("deprecation") Configuration incrementalAnalysis = configurations.migratingUnlocked("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
         incrementalAnalysis.setVisible(false);
         incrementalAnalysis.setDescription("Incremental compilation analysis files for " + ((DefaultSourceSet) sourceSet).getDisplayName());
         incrementalAnalysis.extendsFrom(classpath);

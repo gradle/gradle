@@ -21,6 +21,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
@@ -263,6 +264,14 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
         )
+        if (GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning(
+                "The Provider.forUseAtConfigurationTime method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Simply remove the call. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
+        }
 
         assertThat(
             build("print-kotlin-version").output,

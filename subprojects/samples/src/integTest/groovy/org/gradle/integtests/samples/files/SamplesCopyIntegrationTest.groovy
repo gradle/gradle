@@ -30,30 +30,10 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("files/copy")
-    def "can copy a single file with #dsl dsl"() {
-        given:
-        def dslDir = sample.dir.file(dsl)
-        executer.inDirectory(dslDir)
-        def reportsDir = dslDir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-
-        when:
-        succeeds('copyReport')
-
-        then:
-        dslDir.file('build/toArchive/my-report.pdf').isFile()
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @UsesSample("files/copy")
     def "can copy a single file using task properties for the paths with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
-        def reportsDir = dslDir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport2')
@@ -70,9 +50,11 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         given:
         def dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
+        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
-        succeeds('copyReport3')
+        succeeds('copyReport')
 
         then:
         dslDir.file('build/toArchive/my-report.pdf').isFile()

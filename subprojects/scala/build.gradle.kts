@@ -24,12 +24,13 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":dependency-management"))
     implementation(project(":process-services"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)
 
-    compileOnly("org.scala-sbt:zinc_2.13:1.6.1") {
+    compileOnly("org.scala-sbt:zinc_2.13:1.9.3") {
         // Because not needed and was vulnerable
         exclude(module="log4j-core")
         exclude(module="log4j-api")

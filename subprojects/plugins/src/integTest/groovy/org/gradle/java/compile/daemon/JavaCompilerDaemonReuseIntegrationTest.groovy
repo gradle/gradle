@@ -19,8 +19,11 @@ package org.gradle.java.compile.daemon
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.JavaAgentFixture
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.fixtures.TestJavaComponent
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.workers.internal.ExecuteWorkItemBuildOperationType
 import org.gradle.workers.internal.KeepAliveMode
 
@@ -79,6 +82,49 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         firstCompilerIdentity != secondCompilerIdentity
     }
 
+    @Requires(UnitTestPreconditions.Windows)
+    def "compiler daemon is not reused on Windows with Java agent"() {
+        withSingleProjectSources()
+        def javaAgent = new JavaAgentFixture()
+        javaAgent.writeProjectTo(testDirectory)
+
+        buildFile << """
+            tasks.compileMain2Java {
+                dependsOn("compileJava")
+            }
+            ${javaAgent.useJavaAgent('compileJava.options.forkOptions')}
+        """
+
+        when:
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
+        succeeds("compileAll", "--info")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
+
+        and:
+        outputContains("JavaAgent configured!")
+        result.groupedOutput.task(compileTaskPath('main')).assertOutputContains("Worker requested to be persistent, but the JVM argument '-javaagent:${file("javaagent/build/libs/javaagent.jar")}' may make the worker unreliable when reused across multiple builds. Worker will expire at the end of the build session.")
+        assertTwoCompilerDaemonsAreRunning()
+
+        when:
+        executer.withWorkerDaemonsExpirationDisabled()
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
+        succeeds("clean", "compileAll", "--info")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
+
+        and:
+        assertTwoCompilerDaemonsAreRunning()
+
+        def firstBuild = old(runningCompilerDaemons)
+        def secondBuild = runningCompilerDaemons
+        def diff = firstBuild - secondBuild
+        // We should reuse one daemon from the first build
+        diff.size() == 1
+    }
+
     def "reuses compiler daemons across multiple builds when enabled"() {
         withSingleProjectSources()
         buildFile << """
@@ -88,6 +134,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         """
 
         when:
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("compileAll")
 
         then:
@@ -98,6 +145,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("clean", "compileAll")
 
         then:
@@ -126,6 +174,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         file('src/main2/java/ClassWithWarning2.java') << classWithWarning
 
         when:
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("compileAll")
 
         then:
@@ -136,6 +185,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
 
         when:
         executer.withWorkerDaemonsExpirationDisabled()
+        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.DAEMON.name()}")
         succeeds("clean", "compileAll")
 
         then:
