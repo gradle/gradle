@@ -37,17 +37,16 @@ import static org.gradle.internal.instrumentation.processor.codegen.groovy.Inter
  */
 public class InterceptGroovyCallsResourceGenerator implements InstrumentationResourceGenerator {
     @Override
-    public GenerationResult generateResourceForRequestedInterceptors(Collection<CallInterceptionRequest> interceptionRequests) {
-        List<CallInterceptionRequest> requests = interceptionRequests.stream()
+    public Collection<CallInterceptionRequest> filterRequestsForResource(Collection<CallInterceptionRequest> interceptionRequests) {
+        return interceptionRequests.stream()
             .filter(request -> request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class).isPresent())
             .collect(Collectors.toList());
+    }
 
-        if (requests.isEmpty()) {
-            return new GenerationResult.NoResourceToGenerate();
-        }
-
+    @Override
+    public GenerationResult generateResourceForRequests(Collection<CallInterceptionRequest> filteredRequests) {
         List<String> callInterceptorTypes = new ArrayList<>();
-        CallInterceptorSpecs specs = GroovyClassGeneratorUtils.groupRequests(requests);
+        CallInterceptorSpecs specs = GroovyClassGeneratorUtils.groupRequests(filteredRequests);
         specs.getNamedRequests().forEach(spec -> callInterceptorTypes.add(spec.getFullClassName()));
         specs.getConstructorRequests().forEach(spec -> callInterceptorTypes.add(spec.getFullClassName()));
 
@@ -73,11 +72,6 @@ public class InterceptGroovyCallsResourceGenerator implements InstrumentationRes
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
-            }
-
-            @Override
-            public Collection<CallInterceptionRequest> getCoveredRequests() {
-                return requests;
             }
         };
     }

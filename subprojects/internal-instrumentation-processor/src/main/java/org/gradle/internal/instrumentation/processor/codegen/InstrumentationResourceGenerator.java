@@ -24,8 +24,18 @@ import java.util.List;
 
 public interface InstrumentationResourceGenerator {
 
-    GenerationResult generateResourceForRequestedInterceptors(
+    /**
+     * Filter the requests to only those that are relevant to the resource being generated.
+     */
+    Collection<CallInterceptionRequest> filterRequestsForResource(
         Collection<CallInterceptionRequest> interceptionRequests
+    );
+
+    /**
+     * Actually generate the resource for filtered requests. A collection of filtered requests passed as a parameter will always have at least one element.
+     */
+    GenerationResult generateResourceForRequests(
+        Collection<CallInterceptionRequest> filteredRequests
     );
 
     interface GenerationResult {
@@ -33,7 +43,6 @@ public interface InstrumentationResourceGenerator {
             String getPackageName();
             String getName();
             void write(OutputStream outputStream);
-            Collection<CallInterceptionRequest> getCoveredRequests();
         }
 
         class NoResourceToGenerate implements GenerationResult {
