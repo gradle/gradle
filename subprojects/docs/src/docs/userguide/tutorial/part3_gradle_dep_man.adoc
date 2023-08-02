@@ -13,16 +13,17 @@
 // limitations under the License.
 
 [[part3_gradle_dep_man]]
-= Part 3: Understanding Dependencies and Dependency Management
+= Part 3: Dependency Management
 
-Learn the basics of Project dependencies and Gradle's dependency management.
+Learn the basics of project dependencies and Gradle's dependency management.
 
 ****
 **In this section you will:**
 
-- View dependencies in the project
-- Use and analyze a Build Scan
-- Update dependencies in the project
+- Understand project dependencies
+- Inspect project dependencies
+- Use a Build Scan to analyze dependencies
+- Update project dependencies
 - Understand transitive dependencies
 ****
 
@@ -55,9 +56,10 @@ dependencies {
 Some key concepts in Gradle dependency management include:
 
 Repositories :: The source of dependencies - `mavenCentral()` +
-https://mvnrepository.com/repos/central[Maven Central] is a collection of jar files, plugins, and libraries provided by the Maven community.
+https://mvnrepository.com/repos/central[Maven Central] is a collection of jar files, plugins, and libraries provided by the Maven community and backed by https://central.sonatype.org/[Sonatype^].
+It is the de-facto public artifact store for Java and is used by many build systems.
 Dependencies :: Dependencies declared via configuration types - `junit` and `guava` +
-https://mvnrepository.com/artifact/junit/junit[JUnit] is a unit testing framework and https://mvnrepository.com/artifact/com.google.guava/guava[Guava] is a suite of core and expanded libraries from Google.
+https://mvnrepository.com/artifact/junit/junit[JUnit] is a unit testing framework and https://mvnrepository.com/artifact/com.google.guava/guava[Guava] is a suite of libraries from Google.
 
 Gradle needs specific information to find a dependency.
 Let's look at `com.google.guava:guava:31.1-jre` and `junit:junit:4.13.2`; they are broken down as follows:
@@ -82,8 +84,42 @@ Let's look at `com.google.guava:guava:31.1-jre` and `junit:junit:4.13.2`; they a
 |`4.13.2`
 |===
 
-== Step 2. Using Build Scan
-To view dependencies in our app, run the build task with an optional `--scan` flag.
+== Step 2. Understanding Transitive Dependencies
+A _transitive dependency_ is a dependency of a dependency.
+
+For our `guava` dependency to work, it requires a library called `failureaccess`.
+Therefore `failureaccess` is a transitive dependency of the project.
+
+== Step 3. Viewing Project Dependencies
+You can view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
+[source]
+----
+$ ./gradlew :app:dependencies
+
+> Task :app:dependencies
+
+------------------------------------------------------------
+Project ':app'
+------------------------------------------------------------
+
+...
+
+compileClasspath - Compile classpath for source set 'main'.
+\--- com.google.guava:guava:31.1-jre
+     +--- com.google.guava:failureaccess:1.0.1
+     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- org.checkerframework:checker-qual:3.12.0
+     +--- com.google.errorprone:error_prone_annotations:2.11.0
+     \--- com.google.j2objc:j2objc-annotations:1.3
+
+...
+----
+
+The output clearly depicts that `com.google.guava:guava:31.1-jre` has a dependency on `com.google.guava:failureaccess:1.0.1`.
+
+== Step 3. Viewing Dependencies in a Build Scan®
+To view dependencies using a Build Scan, run the build task with an optional `--scan` flag.
 
 In the `tutorial` directory, enter the command below and follow the prompt to accept the terms:
 [source]
@@ -121,44 +157,13 @@ image::tutorial/build-scan-dependencies.png[]
 
 As expected, we can see the declared dependencies `junit` and `guava` are used by Gradle to compile, run, and test the app.
 
-== Step 3. Understanding Transitive Dependencies
 Expand `com.google.guava:guava:31.1-jre` and `org.junit.jupiter:junit-jupiter:5.9.1` in the window:
 
 image::tutorial/build-scan-trans-dependencies.png[]
 
-There are several dependencies under `junit` and `guava` which are called _transitive dependencies_.
-
-Transitive dependencies are the dependencies `junit` and `guava` need to work.
-A _transitive dependency_ is a dependency of a dependency.
-
+There are several transitive dependencies under `junit` and `guava`.
 For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:31.1-jre` dependency.
 
-== Step 4. Viewing Project Dependencies
-You can also view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
-[source]
-----
-$ ./gradlew :app:dependencies
-
-> Task :app:dependencies
-
-------------------------------------------------------------
-Project ':app'
-------------------------------------------------------------
-
-annotationProcessor - Annotation processors and their dependencies for source set 'main'.
-No dependencies
-
-compileClasspath - Compile classpath for source set 'main'.
-\--- com.google.guava:guava:31.1-jre
-+--- com.google.guava:failureaccess:1.0.1
-+--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-+--- com.google.code.findbugs:jsr305:3.0.2
-+--- org.checkerframework:checker-qual:3.12.0
-+--- com.google.errorprone:error_prone_annotations:2.11.0
-\--- com.google.j2objc:j2objc-annotations:1.3
-
-...
-----
 
 == Step 4. Updating Project Dependencies
 Adding and changing dependencies is done in the build file.
