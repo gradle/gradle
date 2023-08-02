@@ -61,6 +61,20 @@ class MapPropertyMapViewTest extends Specification {
 
         then:
         mapProperty.get() == ["first": "value1", "second": "value22", "third": "value33", "forth": "value4", "fifth": "value5"]
+
+        when:
+        def entrySet = map.entrySet()
+        def removedForth = entrySet.remove(new AbstractMap.SimpleEntry<>("forth", "value4"))
+        def removedFifthEmptyValue = entrySet.remove(new AbstractMap.SimpleEntry<>("fifth", ""))
+        def removedFifthNullValue = entrySet.remove(new AbstractMap.SimpleEntry<>("fifth", null))
+        def removedNull = entrySet.remove(new AbstractMap.SimpleEntry<>(null, null))
+
+        then:
+        mapProperty.get() == ["first": "value1", "second": "value22", "third": "value33", "fifth": "value5"]
+        removedForth
+        !removedFifthEmptyValue
+        !removedFifthNullValue
+        !removedNull
     }
 
     def "map modification operations works with Groovy methods"() {

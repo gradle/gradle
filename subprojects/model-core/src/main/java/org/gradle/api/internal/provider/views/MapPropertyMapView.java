@@ -25,6 +25,7 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -96,7 +97,15 @@ public class MapPropertyMapView<K, V> extends AbstractMap<K, V> {
 
         @Override
         public boolean remove(Object o) {
-            throw new UnsupportedOperationException();
+            if (o instanceof Entry && MapPropertyMapView.this.containsKey(((Entry<?, ?>) o).getKey())) {
+                Entry<?, ?> entry = (Entry<?, ?>) o;
+                V value = MapPropertyMapView.this.get(entry.getKey());
+                if (Objects.equals(value, entry.getValue())) {
+                    MapPropertyMapView.this.remove(entry.getKey());
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
