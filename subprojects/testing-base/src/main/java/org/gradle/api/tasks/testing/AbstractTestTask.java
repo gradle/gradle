@@ -236,18 +236,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     protected abstract TestExecutionSpec createTestExecutionSpec();
 
-    @Internal
-    @VisibleForTesting
-    ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
-        return testListenerSubscriptions.get();
-    }
-
-    @Internal
-    @VisibleForTesting
-    ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
-        return testOutputListenerSubscriptions.get();
-    }
-
     @VisibleForTesting
     void setTestReporter(TestReporter testReporter) {
         this.testReporter = testReporter;
@@ -506,7 +494,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         addTestListener(testCountLogger);
 
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
-        testListenerInternalBroadcaster.add(new TestListenerAdapter(getTestListenerBroadcaster().getSource(), getTestOutputListenerBroadcaster().getSource()));
+        testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerSubscriptions.get().getSource(), testOutputListenerSubscriptions.get().getSource()));
 
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(AbstractTestTask.class);
         parentProgressLogger.setDescription("Test Execution");
