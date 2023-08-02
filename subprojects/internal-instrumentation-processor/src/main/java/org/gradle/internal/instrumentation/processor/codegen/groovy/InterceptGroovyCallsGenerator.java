@@ -40,7 +40,6 @@ import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -70,12 +69,10 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         Consumer<? super HasFailures.FailureInfo> onFailure
     ) {
         List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup);
-        MethodSpec getInterceptors = generateGetInterceptorsMethod(interceptorTypeSpecs);
 
         return builder -> builder
             .addModifiers(Modifier.PUBLIC)
-            .addTypes(interceptorTypeSpecs)
-            .addMethod(getInterceptors);
+            .addTypes(interceptorTypeSpecs);
     }
 
     private static List<TypeSpec> generateInterceptorClasses(Collection<CallInterceptionRequest> interceptionRequests) {
@@ -112,7 +109,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .superclass(CALL_INTERCEPTOR_CLASS)
             .addSuperinterface(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
             .addJavadoc(interceptorClassJavadoc(requests))
-            .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 
 
         MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addStatement("super($L)", scopes).build();
@@ -268,15 +265,4 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
     private static final ClassName PROPERTY_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.PropertyAwareCallInterceptor");
     private static final ClassName INTERCEPTED_SCOPE_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.InterceptScope");
     private static final ClassName INVOCATION_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.Invocation");
-
-    private static MethodSpec generateGetInterceptorsMethod(List<TypeSpec> interceptorTypes) {
-        MethodSpec.Builder method = MethodSpec.methodBuilder("getCallInterceptors")
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .returns(ParameterizedTypeName.get(ClassName.get(List.class), ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor")));
-        CodeBlock[] constructorCalls = interceptorTypes.stream().map(it -> CodeBlock.builder().add("new $T()", ClassName.bestGuess(it.name)).build()).toArray(CodeBlock[]::new);
-        CodeBlock constructorCallsArgs = CodeBlock.builder().add(interceptorTypes.stream().map(it -> "$L").collect(Collectors.joining(",\n")), (Object[]) constructorCalls).build();
-        method.addCode("return $T.asList($>\n$L$<\n", Arrays.class, constructorCallsArgs);
-        method.addCode(");");
-        return method.build();
-    }
 }
