@@ -19,6 +19,7 @@ package org.gradle.java.compile.daemon
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 
 class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
     @Override
@@ -26,7 +27,7 @@ class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
         //disable because of a test that is incompatible with the build operation fixture
     }
 
-    def "startup failure messages from a compiler daemon are NOT associated with the task that starts it"() {
+    def "startup failure messages from a compiler daemon are associated with the task that starts it"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
         buildFile << """
@@ -51,10 +52,14 @@ class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
         failure.assertTasksExecuted(":compileJava")
 
         and:
-        def taskOperation = buildOperations.first(CompileJavaBuildOperationType)
-        taskOperation != null
-        // there's only the task start progress, no failure progress
-        taskOperation.progress.size() == 2
-        errorOutput.contains("option: --not-a-real-argument")
+        def compileJavaOperation = buildOperations.first(CompileJavaBuildOperationType)
+        compileJavaOperation != null
+        def outputProgress = compileJavaOperation.progress(StyledTextOutputEvent)
+        // Output may come in different orders, so we just check that all the expected messages are there.
+        def text = outputProgress*.details.spans*.text.flatten().join()
+        text.count("Unrecognized option: --not-a-real-argument") == 1
+        text.count("Error: Could not create the Java Virtual Machine.") == 1
+        text.count("Error: A fatal exception has occurred. Program will exit.") == 1
+        text.count("\n") == 3
     }
 }

@@ -255,7 +255,7 @@ You should note that the `TestReport` type combines the results from multiple te
 The Test tasks creates XML files describing the test results, in the “JUnit XML” pseudo standard.
 It is common for CI servers and other tooling to observe test results via these XML files.
 
-By default, the files are written to `$buildDir/test-results/$testTaskName` with a file per test class.
+By default, the files are written to `layout.buildDirectory.dir("test-results/$testTaskName")` with a file per test class.
 The location can be changed for all test tasks of a project, or individually per test task.
 
 .Changing JUnit XML results location for all test tasks
@@ -264,7 +264,7 @@ include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gra
 include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-convention]"]
 ====
 
-With the above configuration, the XML files will be written to `$buildDir/junit-xml/$testTaskName`.
+With the above configuration, the XML files will be written to `layout.buildDirectory.dir("junit-xml/$testTaskName")`.
 
 .Changing JUnit XML results location for a particular test task
 ====
@@ -272,7 +272,7 @@ include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gra
 include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-task]"]
 ====
 
-With the above configuration, the XML files for the `test` task will be written to `$buildDir/test-results/test-junit-xml`.
+With the above configuration, the XML files for the `test` task will be written to `layout.buildDirectory.dir("test-results/test-junit-xml")`.
 The location of the XML files for other test tasks will be unchanged.
 
 [[junit_xml_configuration]]

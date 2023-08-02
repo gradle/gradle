@@ -22,12 +22,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -40,59 +38,36 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.VerificationTask;
-import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
-import org.gradle.workers.WorkerExecutor;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs;
 
 /**
  * Runs Checkstyle against some source files.
  */
 @CacheableTask
-public abstract class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
-
+public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
     private FileCollection checkstyleClasspath;
     private FileCollection classpath;
     private TextResource config;
     private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
     private final CheckstyleReports reports;
-    private boolean ignoreFailures;
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
     private final DirectoryProperty configDirectory;
-    private final Property<JavaLauncher> javaLauncher;
-    private final Property<String> minHeapSize;
-    private final Property<String> maxHeapSize;
     private final Property<Boolean> enableExternalDtdLoad;
 
     public Checkstyle() {
+        super();
         this.configDirectory = getObjectFactory().directoryProperty();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
-        this.minHeapSize = getObjectFactory().property(String.class);
-        this.maxHeapSize = getObjectFactory().property(String.class);
         this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
-        // Set default JavaLauncher to current JVM in case
-        // CheckstylePlugin that sets Java launcher convention is not applied
-        this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
-    }
-
-    private static Property<JavaLauncher> configureFromCurrentJvmLauncher(JavaToolchainService toolchainService, ObjectFactory objectFactory) {
-        Provider<JavaLauncher> currentJvmLauncherProvider = toolchainService.launcherFor(new CurrentJvmToolchainSpec(objectFactory));
-        return objectFactory.property(JavaLauncher.class).convention(currentJvmLauncherProvider);
     }
 
     /**
@@ -108,21 +83,6 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
      */
     public void setConfigFile(File configFile) {
         setConfig(getProject().getResources().getText().fromFile(configFile));
-    }
-
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    public WorkerExecutor getWorkerExecutor() {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -174,16 +134,6 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
         return reports;
     }
 
-    /**
-     * JavaLauncher for toolchain support.
-     *
-     * @since 7.5
-     */
-    @Nested
-    public Property<JavaLauncher> getJavaLauncher() {
-        return javaLauncher;
-    }
-
     @TaskAction
     public void run() {
         runWithProcessIsolation();
@@ -191,11 +141,8 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
 
     private void runWithProcessIsolation() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
-            spec.getForkOptions().setMinHeapSize(minHeapSize.getOrNull());
-            spec.getForkOptions().setMaxHeapSize(maxHeapSize.getOrNull());
-            spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", getEnableExternalDtdLoad().get());
-            maybeAddOpensJvmArgs(javaLauncher.get(), spec);
+            configureForkOptions(spec.getForkOptions());
+            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", enableExternalDtdLoad.get().toString());
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }
@@ -329,34 +276,6 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
     }
 
     /**
-     * Whether or not this task will ignore failures and continue running the build.
-     *
-     * @return true if failures should be ignored
-     */
-    @Override
-    public boolean getIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    /**
-     * Whether this task will ignore failures and continue running the build.
-     *
-     * @return true if failures should be ignored
-     */
-    @Internal
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    /**
-     * Whether this task will ignore failures and continue running the build.
-     */
-    @Override
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
-    }
-
-    /**
      * The maximum number of errors that are tolerated before breaking the build
      * or setting the failure property.
      *
@@ -418,34 +337,6 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
     }
 
     /**
-     * The minimum heap size for the Checkstyle worker process, if any.
-     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
-     *
-     * @return The minimum heap size. Value should be null if the default minimum heap size should be used.
-     *
-     * @since 7.5
-     */
-    @Optional
-    @Input
-    public Property<String> getMinHeapSize() {
-        return minHeapSize;
-    }
-
-    /**
-     * The maximum heap size for the Checkstyle worker process, if any.
-     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
-     *
-     * @return The maximum heap size. Value should be null if the default maximum heap size should be used.
-     *
-     * @since 7.5
-     */
-    @Optional
-    @Input
-    public Property<String> getMaxHeapSize() {
-        return maxHeapSize;
-    }
-
-    /**
      * Enable the use of external DTD files in configuration files.
      * <strong>Disabled by default because this may be unsafe.</strong>
      * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.
@@ -458,5 +349,15 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
     @Input
     public Property<Boolean> getEnableExternalDtdLoad() {
         return enableExternalDtdLoad;
+    }
+
+    /**
+     * Whether the build should break when the verifications performed by this task fail.
+     *
+     * @return true if failures should be ignored
+     */
+    @Internal
+    public boolean isIgnoreFailures() {
+        return getIgnoreFailures();
     }
 }

@@ -101,8 +101,8 @@ class InterpreterTest : TestWithTempFiles() {
         val stage1CacheDir = root.resolve("stage1").apply { mkdir() }
         val stage2CacheDir = root.resolve("stage2").apply { mkdir() }
 
-        val stage1ProgramId = ProgramId(stage1TemplateId, sourceHash, parentClassLoader, assignmentOverloadEnabled = true)
-        val stage2ProgramId = ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader, null, compilationClassPathHash, assignmentOverloadEnabled = true)
+        val stage1ProgramId = ProgramId(stage1TemplateId, sourceHash, parentClassLoader)
+        val stage2ProgramId = ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader, null, compilationClassPathHash)
 
         val mockServiceRegistry = mock<ServiceRegistry> {
             on { get(GradleUserHomeTemporaryFileProvider::class.java) } doReturn GradleUserHomeTemporaryFileProvider {

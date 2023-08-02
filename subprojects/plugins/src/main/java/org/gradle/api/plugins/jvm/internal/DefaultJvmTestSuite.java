@@ -23,7 +23,7 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -69,7 +69,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 // spock-core references junit-jupiter's BOM, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),
-        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.8.22", Collections.singletonList(
+        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.9.0", Collections.singletonList(
                 // kotlin-test-junit5 depends on junit-jupiter, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),
@@ -208,10 +208,10 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         // We avoid triggering realization of getTestSuiteTestingFramework by only adding our dependencies just before
         // resolution.
         implementation.withDependencies(dependencySet -> {
-            this.dependencies.getImplementation().bundle(getTestSuiteTestingFramework().map(vtf -> createDependencies(vtf.getImplementationDependencies())).orElse(Collections.emptyList()));
+            dependencySet.addAllLater(getTestSuiteTestingFramework().map(vtf -> createDependencies(vtf.getImplementationDependencies())).orElse(Collections.emptyList()));
         });
         runtimeOnly.withDependencies(dependencySet -> {
-            this.dependencies.getRuntimeOnly().bundle(getTestSuiteTestingFramework().map(vtf -> createDependencies(vtf.getRuntimeOnlyDependencies())).orElse(Collections.emptyList()));
+            dependencySet.addAllLater(getTestSuiteTestingFramework().map(vtf -> createDependencies(vtf.getRuntimeOnlyDependencies())).orElse(Collections.emptyList()));
         });
     }
 
@@ -256,7 +256,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
     protected abstract Property<VersionedTestingFramework> getTestSuiteTestingFramework();
 
-    private List<ExternalModuleDependency> createDependencies(List<String> dependencies) {
+    private Iterable<Dependency> createDependencies(List<String> dependencies) {
         return dependencies.stream().map(getDependencyFactory()::create).collect(Collectors.toList());
     }
 

@@ -175,29 +175,29 @@ Type
      SampleTask (SampleTask)
 
 Options
-     --feature     Opposite option of --no-feature
+     --feature     Opposite option of --no-feature.
 
-     --no-feature     Configures boolean option 'feature' that is only negated
+     --no-feature     Configures boolean option 'feature' that is only negated.
 
-     --myBooleanObjectOption     Configures boolean option 'myBooleanObjectOption'
+     --myBooleanObjectOption     Configures boolean option 'myBooleanObjectOption'.
 
-     --no-myBooleanObjectOption     Disables option --myBooleanObjectOption
+     --no-myBooleanObjectOption     Disables option --myBooleanObjectOption.
 
-     --myBooleanPrimitiveOption     Configures boolean option 'myBooleanPrimitiveOption'
+     --myBooleanPrimitiveOption     Configures boolean option 'myBooleanPrimitiveOption'.
 
-     --no-myBooleanPrimitiveOption     Disables option --myBooleanPrimitiveOption
+     --no-myBooleanPrimitiveOption     Disables option --myBooleanPrimitiveOption.
 
-     --myBooleanPropertyOption     Configures Property<Boolean> option 'myBooleanPropertyOption'
+     --myBooleanPropertyOption     Configures Property<Boolean> option 'myBooleanPropertyOption'.
 
-     --no-myBooleanPropertyOption     Disables option --myBooleanPropertyOption
+     --no-myBooleanPropertyOption     Disables option --myBooleanPropertyOption.
 
-     --myFieldOption     Configures boolean option 'myFieldOption'
+     --myFieldOption     Configures boolean option 'myFieldOption'.
 
-     --no-myFieldOption     Disables option --myFieldOption
+     --no-myFieldOption     Disables option --myFieldOption.
 
-     --propertyFeature     Opposite option of --no-propertyFeature
+     --propertyFeature     Opposite option of --no-propertyFeature.
 
-     --no-propertyFeature     Configures boolean option 'propertyFeature' that is only negated
+     --no-propertyFeature     Configures boolean option 'propertyFeature' that is only negated.
 
      --rerun     Causes the task to be re-run even if up-to-date.
 
@@ -226,27 +226,27 @@ Group
                 private Boolean myBooleanObjectOption;
                 private Property<Boolean> myBooleanPropertyOption = getProject().getObjects().property(Boolean.class).convention((Boolean)null);
 
-                @Option(description = "Configures boolean option 'myFieldOption'")
+                @Option(description = "Configures boolean option 'myFieldOption'.")
                 private Boolean myFieldOption;
 
-                @Option(option = "no-feature", description = "Configures boolean option 'feature' that is only negated")
+                @Option(option = "no-feature", description = "Configures boolean option 'feature' that is only negated.")
                 private Boolean feature = false;
 
                 private Property<Boolean> propertyFeature = getProject().getObjects().property(Boolean.class).convention((Boolean)null);
 
                 public SampleTask() {}
 
-                @Option(option = "myBooleanPrimitiveOption", description = "Configures boolean option 'myBooleanPrimitiveOption'")
+                @Option(option = "myBooleanPrimitiveOption", description = "Configures boolean option 'myBooleanPrimitiveOption'.")
                 public void setMyBooleanPrimitiveOption(boolean myBooleanPrimitiveOption) {
                     this.myBooleanPrimitiveOption = myBooleanPrimitiveOption;
                 }
 
-                @Option(option = "myBooleanObjectOption", description = "Configures boolean option 'myBooleanObjectOption'")
+                @Option(option = "myBooleanObjectOption", description = "Configures boolean option 'myBooleanObjectOption'.")
                 public void setMyBooleanObjectOption(Boolean myBooleanObjectOption) {
                     this.myBooleanObjectOption = myBooleanObjectOption;
                 }
 
-                @Option(option = "myBooleanPropertyOption", description = "Configures Property<Boolean> option 'myBooleanPropertyOption'")
+                @Option(option = "myBooleanPropertyOption", description = "Configures Property<Boolean> option 'myBooleanPropertyOption'.")
                 public void setMyBooleanPropertyOption(Boolean myBooleanPropertyOption) {
                     this.myBooleanPropertyOption.set(myBooleanPropertyOption);
                 }
@@ -259,7 +259,7 @@ Group
                     this.feature = feature;
                 }
 
-                @Option(option = "no-propertyFeature", description = "Configures boolean option 'propertyFeature' that is only negated")
+                @Option(option = "no-propertyFeature", description = "Configures boolean option 'propertyFeature' that is only negated.")
                 public void setPropertyFeature(Boolean propertyFeature) {
                     this.propertyFeature.set(propertyFeature);
                 }
@@ -287,10 +287,10 @@ Group
 
             public class SampleTask extends DefaultTask {
 
-                @Option(option = "my-option", description = "Option to trigger generation of opposite option")
+                @Option(option = "my-option", description = "Option to trigger generation of opposite option.")
                 private Boolean myOption;
 
-                @Option(option = "no-my-option", description = "Option clashing with generated opposite option")
+                @Option(option = "no-my-option", description = "Option clashing with generated opposite option.")
                 private Boolean noMyOption;
 
                 public void setMyOption(Boolean myOption) {

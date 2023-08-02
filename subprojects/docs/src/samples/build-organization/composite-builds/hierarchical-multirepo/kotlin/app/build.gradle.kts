@@ -6,7 +6,7 @@ group = "org.sample"
 version = "1.0"
 
 application {
-    mainClass.set("org.sample.myapp.Main")
+    mainClass = "org.sample.myapp.Main"
 }
 
 dependencies {

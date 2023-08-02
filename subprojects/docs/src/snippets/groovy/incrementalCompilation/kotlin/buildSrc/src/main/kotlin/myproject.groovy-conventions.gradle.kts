@@ -9,6 +9,6 @@ dependencies {
 // tag::enable-groovy-incremental[]
 tasks.withType<GroovyCompile>().configureEach {
     options.isIncremental = true
-    options.incrementalAfterFailure.set(true)
+    options.incrementalAfterFailure = true
 }
 // end::enable-groovy-incremental[]

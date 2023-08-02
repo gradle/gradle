@@ -117,7 +117,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     }
 
     private void createCoverageDataVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        @SuppressWarnings("deprecation") final Configuration variant = project.getConfigurations().createWithRole(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        @SuppressWarnings("deprecation") final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
 
@@ -139,13 +139,14 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     /**
      * Creates the configurations used by plugin.
      */
+    @SuppressWarnings("deprecation")
     private void addJacocoConfigurations() {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
-        Configuration agentConf = configurations.resolvableBucket(AGENT_CONFIGURATION_NAME);
+        Configuration agentConf = configurations.resolvableDependencyScopeUnlocked(AGENT_CONFIGURATION_NAME);
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
-        Configuration antConf = configurations.resolvableBucket(ANT_CONFIGURATION_NAME);
+        Configuration antConf = configurations.resolvableDependencyScopeUnlocked(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");

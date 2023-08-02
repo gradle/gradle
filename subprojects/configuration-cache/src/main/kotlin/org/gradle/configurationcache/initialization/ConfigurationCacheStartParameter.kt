@@ -66,6 +66,9 @@ class ConfigurationCacheStartParameter(
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
 
+    val isIgnoreInputsInTaskGraphSerialization: Boolean
+        get() = startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization
+
     val maxProblems: Int
         get() = startParameter.configurationCacheMaxProblems
 

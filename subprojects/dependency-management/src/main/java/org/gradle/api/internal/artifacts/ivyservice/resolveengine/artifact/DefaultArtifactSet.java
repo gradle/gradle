@@ -41,7 +41,7 @@ public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet, Vari
     private final ComponentArtifactResolveVariantState allVariants;
     private final Set<ResolvedVariant> legacyVariants;
 
-    DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants) {
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants) {
         this.componentIdentifier = componentIdentifier;
         this.schema = schema;
         this.selectionAttributes = selectionAttributes;

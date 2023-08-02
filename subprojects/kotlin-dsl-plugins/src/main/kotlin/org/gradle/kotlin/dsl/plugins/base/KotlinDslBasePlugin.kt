@@ -41,7 +41,6 @@ import org.gradle.kotlin.dsl.plugins.embedded.kotlinArtifactConfigurationNames
 abstract class KotlinDslBasePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        disableKotlinCompilationAvoidance()
 
         apply<EmbeddedKotlinPlugin>()
 
@@ -56,9 +55,4 @@ abstract class KotlinDslBasePlugin : Plugin<Project> {
         configurations.forEach {
             dependencies.add(it, gradleKotlinDsl())
         }
-
-    private
-    fun Project.disableKotlinCompilationAvoidance() {
-        extra["kotlin.incremental.useClasspathSnapshot"] = "false"
-    }
 }

@@ -3,5 +3,5 @@ plugins {
 }
 
 application {
-    mainClass.set("com.example.Hello")
+    mainClass = "com.example.Hello"
 }

@@ -24,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.13.4") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.14.1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
@@ -141,10 +141,6 @@ unassigned {
     subproject("base-annotations")
     subproject("security")
     subproject("normalization-java")
-    subproject("enterprise")
-    subproject("enterprise-operations")
-    subproject("enterprise-logging")
-    subproject("enterprise-workers")
     subproject("build-operations")
     subproject("problems")
     subproject("instrumentation-agent")
@@ -155,7 +151,18 @@ unassigned {
 platform("jvm") {
     subproject("code-quality")
     subproject("ear")
+    subproject("toolchains-jvm")
+    subproject("java-platform")
     subproject("war")
+}
+
+// Gradle Enterprise Platform
+platform("enterprise") {
+    subproject("enterprise")
+    subproject("enterprise-logging")
+    subproject("enterprise-operations")
+    subproject("enterprise-plugin-performance")
+    subproject("enterprise-workers")
 }
 
 // Plugin portal projects
@@ -183,7 +190,6 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
-    subproject("build-scan-performance")
     subproject("precondition-tester")
 }
 

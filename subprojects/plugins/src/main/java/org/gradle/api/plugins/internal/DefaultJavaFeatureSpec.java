@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
@@ -87,9 +85,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             capabilities.add(new ProjectDerivedCapability(project, name));
         }
 
-        @SuppressWarnings("deprecation")
-        ConfigurationRole role = ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE;
-        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, role, SourceSet.isMain(sourceSet));
+        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, true, SourceSet.isMain(sourceSet));
         feature.withApi();
 
         AdhocComponentWithVariants component = findJavaComponent();

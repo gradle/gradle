@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,24 @@
 
 package org.gradle.kotlin.dsl.assignment.internal
 
-import org.gradle.util.internal.IncubationLogger
+import org.gradle.internal.deprecation.DeprecationLogger
 
 
+/**
+ * This class is used in `kotlin-dsl` plugin from 4.0.2 to 4.1.0. To be removed in Gradle 9.0.
+ */
+@Suppress("unused")
 object KotlinDslAssignment {
 
-    const val ASSIGNMENT_SYSTEM_PROPERTY = "org.gradle.unsafe.kotlin.assignment"
+    init {
+        DeprecationLogger.deprecate("Internal class ${KotlinDslAssignment::class.java.name}")
+            .withAdvice("The class was most likely loaded from `kotlin-dsl` plugin version 4.1.0 or earlier version used in the build: avoid specifying a version for `kotlin-dsl` plugin.")
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser()
+    }
 
-    fun isAssignmentOverloadEnabled() =
-        System.getProperty(ASSIGNMENT_SYSTEM_PROPERTY, "true").trim() != "false"
-
-    internal
-    fun emitIncubatingLogMessage() {
-        if (isAssignmentOverloadEnabled()) {
-            // If the assignment overload is disabled for a project but some plugin was compiled using it, we should not do any logging.
-            IncubationLogger.incubatingFeatureUsed("Kotlin DSL property assignment")
-        }
+    fun isAssignmentOverloadEnabled(): Boolean {
+        return true
     }
 }

@@ -16,7 +16,7 @@ dependencies {
 }
 
 tasks.ear {
-    appDirectory.set(file("src/main/app"))  // use application metadata found in this folder
+    appDirectory = file("src/main/app")  // use application metadata found in this folder
     libDirName = "APP-INF/lib" // put dependent libraries into APP-INF/lib inside the generated EAR
     deploymentDescriptor {  // custom entries for application.xml:
 //      fileName = "application.xml"  // same as the default value

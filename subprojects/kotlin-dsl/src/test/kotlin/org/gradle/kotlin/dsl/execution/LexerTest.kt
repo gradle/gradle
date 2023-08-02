@@ -72,6 +72,50 @@ class LexerTest {
     }
 
     @Test
+    fun `ignores label definitions`() {
+
+        assertThat(
+            lex(
+                "kuku@ someblock {}",
+                buildscript, plugins
+            ),
+            equalTo(
+                Packaged(
+                    null,
+                    LexedScript(
+                        listOf(),
+                        listOf(),
+                        listOf()
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `skips annotation parsing inside blocks`() {
+
+        assertThat(
+            lex(
+                "plugins.withType<GroovyBasePlugin> {\n" +
+                    "   print(\"\${this@all.name}-groovy.xml\")\n" +
+                    "}",
+                buildscript, plugins
+            ),
+            equalTo(
+                Packaged(
+                    null,
+                    LexedScript(
+                        listOf(),
+                        listOf(),
+                        listOf()
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
     fun `extracts package name`() {
         assertThat(
             lex("\n" +

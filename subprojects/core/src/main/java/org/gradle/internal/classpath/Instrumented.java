@@ -25,6 +25,7 @@ import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
 import org.gradle.internal.classpath.intercept.CallSiteDecorator;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
@@ -135,6 +136,30 @@ public class Instrumented {
     private static volatile CallSiteDecorator currentCallDecorator = new CallInterceptorsSet(
         GroovyCallInterceptorsProvisionTools.getInterceptorsFromProvider(GroovyCallInterceptorsProvider.DEFAULT).stream()
     );
+
+    @NonNullApi
+    private static final class InterceptorResolverImpl implements CallInterceptorResolver {
+        @Nullable
+        @Override
+        public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
+            CallSiteDecorator currentDecorator = currentCallDecorator;
+            if (currentDecorator instanceof CallInterceptorResolver) {
+                return ((CallInterceptorResolver) currentDecorator).resolveCallInterceptor(scope);
+            }
+            return null;
+        }
+
+        @Override
+        public boolean isAwareOfCallSiteName(String name) {
+            CallSiteDecorator currentDecorator = currentCallDecorator;
+            if (currentDecorator instanceof CallInterceptorResolver) {
+                return ((CallInterceptorResolver) currentDecorator).isAwareOfCallSiteName(name);
+            }
+            return false;
+        }
+    }
+
+    public static final CallInterceptorResolver INTERCEPTOR_RESOLVER = new InterceptorResolverImpl();
 
     // TODO: We can support getting the interceptors in the instrumented code from different locations, not just `Instrumented.currentCallDecorator`,
     //       so that replacing the call interceptors for tests would instead work by embedding a different location
@@ -780,7 +805,7 @@ public class Instrumented {
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             int argsCount = invocation.getArgsCount();
             if (1 <= argsCount && argsCount <= 3) {
                 Optional<Process> result = tryCallExec(invocation.getReceiver(), invocation.getArgument(0), invocation.getOptionalArgument(1), invocation.getOptionalArgument(2), consumer);
@@ -824,7 +849,7 @@ public class Instrumented {
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             // Static calls have Class<ProcessGroovyMethods> as a receiver, command as a first argument, optional arguments follow.
             // "Extension" calls have command as a receiver and optional arguments as arguments.
             boolean isStaticCall = invocation.getReceiver().equals(ProcessGroovyMethods.class);
@@ -891,7 +916,7 @@ public class Instrumented {
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();
             if (receiver instanceof ProcessBuilder) {
                 return start((ProcessBuilder) receiver, consumer);

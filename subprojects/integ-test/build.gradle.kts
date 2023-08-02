@@ -43,6 +43,7 @@ dependencies {
     crossVersionTestImplementation(project(":ide"))
     crossVersionTestImplementation(project(":code-quality"))
     crossVersionTestImplementation(project(":signing"))
+    crossVersionTestImplementation(project(":functional"))
 
     integTestImplementation(testFixtures(project(":core")))
     integTestImplementation(testFixtures(project(":diagnostics")))

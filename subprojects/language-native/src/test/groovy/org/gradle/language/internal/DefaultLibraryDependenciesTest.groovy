@@ -33,7 +33,7 @@ class DefaultLibraryDependenciesTest extends Specification {
     DefaultLibraryDependencies dependencies
 
     def setup() {
-        configurations.bucket("api") >> apiDeps
+        configurations.dependencyScopeUnlocked("api") >> apiDeps
         apiDeps.dependencies >> deps
 
         dependencies = new DefaultLibraryDependencies(configurations, "impl", "api") {

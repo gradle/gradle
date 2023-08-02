@@ -555,7 +555,7 @@ Type
 Options
      --booleanValue     Configures a boolean flag in CustomTask.
 
-     --no-booleanValue     Disables option --booleanValue
+     --no-booleanValue     Disables option --booleanValue.
 
      --enumValue     Configures an enum value in CustomTask.
                      Available values are:
@@ -614,14 +614,14 @@ BUILD SUCCESSFUL"""
 Options
      --valueA     descA
 
-     --no-valueA     Disables option --valueA
+     --no-valueA     Disables option --valueA.
 
      --valueB     descB
 
-     --no-valueB     Disables option --valueB
+     --no-valueB     Disables option --valueB.
 
      --valueC     descC
 
-     --no-valueC     Disables option --valueC"""
+     --no-valueC     Disables option --valueC."""
     }
 }

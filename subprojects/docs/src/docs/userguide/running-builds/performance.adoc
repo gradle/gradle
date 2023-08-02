@@ -607,8 +607,8 @@ To enable the reports based on a project property, check for the presence of a p
 ----
 tasks.withType<Test>().configureEach {
     if (!project.hasProperty("createReports")) {
-        reports.html.required.set(false)
-        reports.junitXml.required.set(false)
+        reports.html.required = false
+        reports.junitXml.required = false
     }
 }
 ----

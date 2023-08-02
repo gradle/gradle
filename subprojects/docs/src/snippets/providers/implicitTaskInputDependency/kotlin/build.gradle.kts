@@ -24,10 +24,10 @@ abstract class Consumer : DefaultTask() {
 val producer = tasks.register<Producer>("producer") {
     // Set values for the producer lazily
     // Don't need to update the consumer.inputFile property. This is automatically updated as producer.outputFile changes
-    outputFile.set(layout.buildDirectory.file("file.txt"))
+    outputFile = layout.buildDirectory.file("file.txt")
 }
 tasks.register<Consumer>("consumer") {
     // Connect the producer task output to the consumer task input
     // Don't need to add a task dependency to the consumer task. This is automatically added
-    message.set(producer.flatMap { it.outputFile }.map { it.asFile.readText() })
+    message = producer.flatMap { it.outputFile }.map { it.asFile.readText() }
 }

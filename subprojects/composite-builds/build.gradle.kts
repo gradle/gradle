@@ -27,8 +27,8 @@ dependencies {
     integTestImplementation(project(":build-option"))
     integTestImplementation(project(":launcher"))
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
-        because("Requires test-kit: 'java-gradle-plugin' is used in some integration tests which always adds the test-kit dependency.")
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("Requires test-kit: 'java-gradle-plugin' is used in some integration tests which always adds the test-kit dependency.  The 'java-platform' plugin from the JVM platform is used in some tests.")
     }
 }
 
