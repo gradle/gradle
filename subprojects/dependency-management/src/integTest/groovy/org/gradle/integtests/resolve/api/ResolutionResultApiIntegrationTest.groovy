@@ -776,10 +776,11 @@ testRuntimeClasspath
             }
 
             task resolve {
-                def result = configurations.conf.incoming.resolutionResult
+                def rootComponent = configurations.conf.incoming.resolutionResult.rootComponent
                 doLast {
-                    assert result.root.dependencies.size() == 1
-                    def producer = result.root.dependencies[0].selected
+                    def root = rootComponent.get()
+                    assert root.dependencies.size() == 1
+                    def producer = root.dependencies[0].selected
                     assert producer.variants.first().displayName == "conf"
                 }
             }
