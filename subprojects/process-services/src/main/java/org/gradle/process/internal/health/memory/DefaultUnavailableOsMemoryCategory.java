@@ -18,42 +18,20 @@ package org.gradle.process.internal.health.memory;
 
 import org.gradle.api.NonNullApi;
 
-import java.util.Arrays;
-
 @NonNullApi
-public class DefaultLimitedOsMemoryCategory implements OsMemoryCategory.Limited {
+public class DefaultUnavailableOsMemoryCategory implements OsMemoryCategory.Unavailable {
     private final String name;
-    private final long total;
-    private final long free;
 
-    public DefaultLimitedOsMemoryCategory(String name, long total, long free) {
+    public DefaultUnavailableOsMemoryCategory(String name) {
         if (name == null) {
             throw new IllegalArgumentException("name cannot be null");
         }
-        if (total < 0) {
-            throw new IllegalArgumentException("total must be >= 0");
-        }
-        if (free < 0) {
-            throw new IllegalArgumentException("free must be >= 0");
-        }
         this.name = name;
-        this.total = total;
-        this.free = free;
     }
 
     @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public long getTotal() {
-        return total;
-    }
-
-    @Override
-    public long getFree() {
-        return free;
     }
 
     @Override
@@ -64,17 +42,17 @@ public class DefaultLimitedOsMemoryCategory implements OsMemoryCategory.Limited 
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultLimitedOsMemoryCategory that = (DefaultLimitedOsMemoryCategory) o;
-        return total == that.total && free == that.free && name.equals(that.name);
+        DefaultUnavailableOsMemoryCategory that = (DefaultUnavailableOsMemoryCategory) o;
+        return name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{name, total, free});
+        return name.hashCode();
     }
 
     @Override
     public String toString() {
-        return "LimitedMemory[" + name + ", total=" + total + ", free=" + free + ']';
+        return "UnavailableMemory[" + name + ']';
     }
 }

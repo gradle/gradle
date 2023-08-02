@@ -19,8 +19,8 @@ package org.gradle.launcher.daemon.server.health
 
 import com.google.common.base.Strings
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
-import org.gradle.process.internal.health.memory.DefaultLimitedOsMemoryCategory
-import org.gradle.process.internal.health.memory.DefaultUnknownOsMemoryCategory
+import org.gradle.process.internal.health.memory.DefaultAvailableOsMemoryCategory
+import org.gradle.process.internal.health.memory.DefaultUnavailableOsMemoryCategory
 import org.gradle.process.internal.health.memory.OsMemoryStatus
 import spock.lang.Specification
 
@@ -37,7 +37,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(0)
 
         when:
-        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
+        1 * mockMemoryStatus.physicalMemory >> { new DefaultAvailableOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
@@ -49,7 +49,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
         when:
-        1 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
+        1 * mockMemoryStatus.physicalMemory >> { new DefaultAvailableOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
@@ -61,8 +61,8 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
         when:
-        2 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, 0L) }
-        1 * mockMemoryStatus.virtualMemory >> { new DefaultUnknownOsMemoryCategory("virtual") }
+        2 * mockMemoryStatus.physicalMemory >> { new DefaultAvailableOsMemoryCategory("physical", MAX_MEMORY, 0L) }
+        1 * mockMemoryStatus.virtualMemory >> { new DefaultUnavailableOsMemoryCategory("virtual") }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
@@ -76,8 +76,8 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
         when:
-        2 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
-        2 * mockMemoryStatus.virtualMemory >> { new DefaultLimitedOsMemoryCategory("virtual", MAX_MEMORY, 0L) }
+        2 * mockMemoryStatus.physicalMemory >> { new DefaultAvailableOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
+        2 * mockMemoryStatus.virtualMemory >> { new DefaultAvailableOsMemoryCategory("virtual", MAX_MEMORY, 0L) }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
@@ -91,8 +91,8 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(0)
 
         when:
-        2 * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
-        2 * mockMemoryStatus.virtualMemory >> { new DefaultUnknownOsMemoryCategory("virtual") }
+        2 * mockMemoryStatus.physicalMemory >> { new DefaultAvailableOsMemoryCategory("physical", MAX_MEMORY, ONE_GIG) }
+        2 * mockMemoryStatus.virtualMemory >> { new DefaultUnavailableOsMemoryCategory("virtual") }
         expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
@@ -128,8 +128,8 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
     def "does not expire when no memory status notification is received" () {
         given:
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
-        _ * mockMemoryStatus.physicalMemory >> { new DefaultLimitedOsMemoryCategory("physical", MAX_MEMORY, 0L) }
-        _ * mockMemoryStatus.virtualMemory >> { new DefaultUnknownOsMemoryCategory("virtual") }
+        _ * mockMemoryStatus.physicalMemory >> { new DefaultAvailableOsMemoryCategory("physical", MAX_MEMORY, 0L) }
+        _ * mockMemoryStatus.virtualMemory >> { new DefaultUnavailableOsMemoryCategory("virtual") }
 
         expect:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()

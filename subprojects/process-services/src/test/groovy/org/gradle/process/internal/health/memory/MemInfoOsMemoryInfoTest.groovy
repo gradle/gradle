@@ -26,7 +26,7 @@ class MemInfoOsMemoryInfoTest extends Specification {
         expect:
         snapshot.physicalMemory.free == 32_343_658_496L
         snapshot.physicalMemory.total == 50_650_296_320L
-        snapshot.virtualMemory instanceof OsMemoryCategory.Unknown
+        snapshot.virtualMemory instanceof OsMemoryCategory.Unavailable
     }
 
     def "parses memory from /proc/meminfo on Linux 4.x"() {
@@ -36,7 +36,7 @@ class MemInfoOsMemoryInfoTest extends Specification {
         expect:
         snapshot.physicalMemory.free == 2_163_265_536L
         snapshot.physicalMemory.total == 33_594_605_568L
-        snapshot.virtualMemory instanceof OsMemoryCategory.Unknown
+        snapshot.virtualMemory instanceof OsMemoryCategory.Unavailable
     }
 
     def "throws unsupported operation exception when non-numeric values are provided"() {

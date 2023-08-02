@@ -21,25 +21,11 @@ package org.gradle.process.internal.health.memory;
  */
 public interface OsMemoryStatus {
     /**
-     * @return OS total memory in bytes
-     * @deprecated Use {@link #getPhysicalMemory()}{@code .}{@link OsMemoryCategory.Limited#getTotal() getTotal()} instead.
-     */
-    @Deprecated
-    long getTotalPhysicalMemory();
-
-    /**
-     * @return OS free memory in bytes
-     * @deprecated Use {@link #getPhysicalMemory()}{@code .}{@link OsMemoryCategory.Limited#getFree() getFree()} instead.
-     */
-    @Deprecated
-    long getFreePhysicalMemory();
-
-    /**
      * Get the physical memory information.
      *
      * @return the physical memory information
      */
-    OsMemoryCategory.Limited getPhysicalMemory();
+    OsMemoryCategory.Available getPhysicalMemory();
 
     /**
      * Get the virtual memory information.

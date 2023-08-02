@@ -25,28 +25,41 @@ import org.gradle.api.NonNullApi;
 @NonNullApi
 public interface OsMemoryCategory extends Named {
     /**
-     * Interface for limited memory. Total and free values are available.
+     * Get the name of this category.
+     *
+     * @return the name of this category
+     */
+    @Override
+    String getName();
+
+    /**
+     * Represents available memory information.
      */
     @NonNullApi
-    interface Limited extends OsMemoryCategory {
+    interface Available extends OsMemoryCategory {
         /**
-         * Get the total memory of this kind in bytes.
+         * Get the total memory of this category in bytes.
          *
-         * @return the total memory of this kind in bytes
+         * @return the total memory of this category in bytes
          */
         long getTotal();
 
         /**
-         * Get the free memory of this kind in bytes.
+         * Get the free memory of this category in bytes.
          *
-         * @return the free memory of this kind in bytes
+         * @return the free memory of this category in bytes
          */
         long getFree();
     }
 
     /**
-     * Marker interface for unknown memory.
+     * Marker interface for unavailable memory information.
+     *
+     * <p>
+     * This is used when a specific memory category is not available on the current platform.
+     * For example, we do not track virtual memory on Linux.
+     * </p>
      */
     @NonNullApi
-    interface Unknown extends OsMemoryCategory {}
+    interface Unavailable extends OsMemoryCategory {}
 }

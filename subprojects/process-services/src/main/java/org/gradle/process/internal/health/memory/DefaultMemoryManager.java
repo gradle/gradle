@@ -111,12 +111,12 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     }
 
     private boolean freeSpecificMemory(OsMemoryCategory status, long memoryAmountBytes) {
-        if (status instanceof OsMemoryCategory.Unknown) {
+        if (status instanceof OsMemoryCategory.Unavailable) {
             // no need to free
             return false;
         }
-        long totalMemory = ((OsMemoryCategory.Limited) status).getTotal();
-        long freeMemory = ((OsMemoryCategory.Limited) status).getFree();
+        long totalMemory = ((OsMemoryCategory.Available) status).getTotal();
+        long freeMemory = ((OsMemoryCategory.Available) status).getFree();
         long requestedFreeMemory = getMemoryThresholdInBytes(totalMemory) + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
         long newFreeMemory = doRequestFreeMemory(status.getName(), requestedFreeMemory, freeMemory);
         return newFreeMemory > freeMemory;

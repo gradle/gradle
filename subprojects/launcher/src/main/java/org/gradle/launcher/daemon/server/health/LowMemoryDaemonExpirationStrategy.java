@@ -66,8 +66,8 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
                     return result;
                 }
                 OsMemoryCategory virtualMemory = memoryStatus.getVirtualMemory();
-                if (virtualMemory instanceof OsMemoryCategory.Limited) {
-                    result = checkExpiry((OsMemoryCategory.Limited) virtualMemory, virtualMemoryThresholdInBytes);
+                if (virtualMemory instanceof OsMemoryCategory.Available) {
+                    result = checkExpiry((OsMemoryCategory.Available) virtualMemory, virtualMemoryThresholdInBytes);
                     if (result != null) {
                         return result;
                     }
@@ -81,7 +81,7 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
     }
 
     @Nullable
-    private DaemonExpirationResult checkExpiry(OsMemoryCategory.Limited memory, long memoryThresholdInBytes) {
+    private DaemonExpirationResult checkExpiry(OsMemoryCategory.Available memory, long memoryThresholdInBytes) {
         long freeMem = memory.getFree();
         if (freeMem < memoryThresholdInBytes) {
             LOGGER.info("after free system {} memory ({}) fell below threshold of {}", memory.getName(), NumberUtil.formatBytes(freeMem), NumberUtil.formatBytes(memoryThresholdInBytes));
@@ -102,8 +102,8 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
             this.memoryStatus = newStatus;
             this.physicalMemoryThresholdInBytes = normalizeThreshold((long) (memoryStatus.getPhysicalMemory().getTotal() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
             OsMemoryCategory virtualMemory = memoryStatus.getVirtualMemory();
-            if (virtualMemory instanceof OsMemoryCategory.Limited) {
-                this.virtualMemoryThresholdInBytes = normalizeThreshold((long) (((OsMemoryCategory.Limited) virtualMemory).getTotal() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
+            if (virtualMemory instanceof OsMemoryCategory.Available) {
+                this.virtualMemoryThresholdInBytes = normalizeThreshold((long) (((OsMemoryCategory.Available) virtualMemory).getTotal() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
             }
         } finally {
             lock.unlock();

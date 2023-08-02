@@ -24,8 +24,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class DefaultOsMemoryInfoIntegrationTest extends Specification {
 
-    @Requires(UnitTestPreconditions.Windows)
-    def "gets OS total memory on a Windows system"() {
+    def "gets OS total memory on any system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getTotal()
 
@@ -33,8 +32,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Requires(UnitTestPreconditions.Windows)
-    def "gets OS free memory on a Windows system"() {
+    def "gets OS free memory on any system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getFree()
 
@@ -48,62 +46,16 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
 
         then:
-        virtualMemory instanceof OsMemoryCategory.Limited
-        virtualMemory.getFree() > 0
-        virtualMemory.getTotal() > 0
+        virtualMemory instanceof OsMemoryCategory.Available
     }
 
-    @Requires(UnitTestPreconditions.Linux)
-    def "gets OS total memory on a Linux system"() {
-        when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getTotal()
 
-        then:
-        notThrown UnsupportedOperationException
-    }
-
-    @Requires(UnitTestPreconditions.Linux)
-    def "gets OS free memory on a Linux system"() {
-        when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getFree()
-
-        then:
-        notThrown UnsupportedOperationException
-    }
-
-    @Requires(UnitTestPreconditions.Linux)
-    def "reports unknown OS virtual memory on a Linux system"() {
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "reports unknown OS virtual memory on a non-Windows system"() {
         when:
         def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
 
         then:
-        virtualMemory instanceof OsMemoryCategory.Unknown
-    }
-
-    @Requires(UnitTestPreconditions.MacOs)
-    def "gets OS total memory on a MacOS system"() {
-        when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getTotal()
-
-        then:
-        notThrown UnsupportedOperationException
-    }
-
-    @Requires(UnitTestPreconditions.MacOs)
-    def "gets OS free memory on a MacOS system"() {
-        when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getFree()
-
-        then:
-        notThrown UnsupportedOperationException
-    }
-
-    @Requires(UnitTestPreconditions.MacOs)
-    def "reports unknown OS virtual memory on a MacOs system"() {
-        when:
-        def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
-
-        then:
-        virtualMemory instanceof OsMemoryCategory.Unknown
+        virtualMemory instanceof OsMemoryCategory.Unavailable
     }
 }

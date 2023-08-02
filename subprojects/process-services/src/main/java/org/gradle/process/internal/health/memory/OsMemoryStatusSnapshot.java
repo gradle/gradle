@@ -17,7 +17,7 @@
 package org.gradle.process.internal.health.memory;
 
 public class OsMemoryStatusSnapshot implements OsMemoryStatus {
-    private final OsMemoryCategory.Limited physicalMemory;
+    private final OsMemoryCategory.Available physicalMemory;
     private final OsMemoryCategory virtualMemory;
 
     /**
@@ -28,8 +28,8 @@ public class OsMemoryStatusSnapshot implements OsMemoryStatus {
      */
     public OsMemoryStatusSnapshot(long totalPhysicalMemory, long freePhysicalMemory) {
         this(
-            new DefaultLimitedOsMemoryCategory("physical", totalPhysicalMemory, freePhysicalMemory),
-            new DefaultUnknownOsMemoryCategory("virtual")
+            new DefaultAvailableOsMemoryCategory("physical", totalPhysicalMemory, freePhysicalMemory),
+            new DefaultUnavailableOsMemoryCategory("virtual")
         );
     }
 
@@ -45,30 +45,18 @@ public class OsMemoryStatusSnapshot implements OsMemoryStatus {
         long totalPhysicalMemory, long freePhysicalMemory, long totalVirtualMemory, long freeVirtualMemory
     ) {
         this(
-            new DefaultLimitedOsMemoryCategory("physical", totalPhysicalMemory, freePhysicalMemory),
-            new DefaultLimitedOsMemoryCategory("virtual", totalVirtualMemory, freeVirtualMemory)
+            new DefaultAvailableOsMemoryCategory("physical", totalPhysicalMemory, freePhysicalMemory),
+            new DefaultAvailableOsMemoryCategory("virtual", totalVirtualMemory, freeVirtualMemory)
         );
     }
 
-    private OsMemoryStatusSnapshot(OsMemoryCategory.Limited physicalMemory, OsMemoryCategory virtualMemory) {
+    private OsMemoryStatusSnapshot(OsMemoryCategory.Available physicalMemory, OsMemoryCategory virtualMemory) {
         this.physicalMemory = physicalMemory;
         this.virtualMemory = virtualMemory;
     }
 
     @Override
-    @Deprecated
-    public long getTotalPhysicalMemory() {
-        return getPhysicalMemory().getTotal();
-    }
-
-    @Override
-    @Deprecated
-    public long getFreePhysicalMemory() {
-        return getPhysicalMemory().getFree();
-    }
-
-    @Override
-    public OsMemoryCategory.Limited getPhysicalMemory() {
+    public OsMemoryCategory.Available getPhysicalMemory() {
         return physicalMemory;
     }
 

@@ -18,20 +18,42 @@ package org.gradle.process.internal.health.memory;
 
 import org.gradle.api.NonNullApi;
 
-@NonNullApi
-public class DefaultUnknownOsMemoryCategory implements OsMemoryCategory.Unknown {
-    private final String name;
+import java.util.Arrays;
 
-    public DefaultUnknownOsMemoryCategory(String name) {
+@NonNullApi
+public class DefaultAvailableOsMemoryCategory implements OsMemoryCategory.Available {
+    private final String name;
+    private final long total;
+    private final long free;
+
+    public DefaultAvailableOsMemoryCategory(String name, long total, long free) {
         if (name == null) {
             throw new IllegalArgumentException("name cannot be null");
         }
+        if (total < 0) {
+            throw new IllegalArgumentException("total must be >= 0");
+        }
+        if (free < 0) {
+            throw new IllegalArgumentException("free must be >= 0");
+        }
         this.name = name;
+        this.total = total;
+        this.free = free;
     }
 
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public long getTotal() {
+        return total;
+    }
+
+    @Override
+    public long getFree() {
+        return free;
     }
 
     @Override
@@ -42,17 +64,17 @@ public class DefaultUnknownOsMemoryCategory implements OsMemoryCategory.Unknown 
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultUnknownOsMemoryCategory that = (DefaultUnknownOsMemoryCategory) o;
-        return name.equals(that.name);
+        DefaultAvailableOsMemoryCategory that = (DefaultAvailableOsMemoryCategory) o;
+        return total == that.total && free == that.free && name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return Arrays.hashCode(new Object[]{name, total, free});
     }
 
     @Override
     public String toString() {
-        return "UnknownMemory[" + name + ']';
+        return "AvailableMemory[" + name + ", total=" + total + ", free=" + free + ']';
     }
 }
