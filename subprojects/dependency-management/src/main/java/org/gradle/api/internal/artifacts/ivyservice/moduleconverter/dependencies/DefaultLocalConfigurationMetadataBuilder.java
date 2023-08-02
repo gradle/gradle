@@ -89,7 +89,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        String name = configuration.getName();
+        String configurationName = configuration.getName();
         String description = configuration.getDescription();
         ComponentIdentifier componentId = parent.getId();
         ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configuration.getName());
@@ -106,13 +106,13 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             @Override
             public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(componentId, displayName, artifacts, model, calculatedValueContainerFactory);
-                variantsBuilder.add(new LocalVariantMetadata(configuration.getName(), configurationIdentifier, displayName, attributes, ImmutableCapabilities.of(capabilities), variantArtifacts));
+                variantsBuilder.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, ImmutableCapabilities.of(capabilities), variantArtifacts));
             }
 
             @Override
             public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(componentId, displayName, artifacts, model, calculatedValueContainerFactory);
-                variantsBuilder.add(new LocalVariantMetadata(configuration.getName() + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, ImmutableCapabilities.of(capabilities), variantArtifacts));
+                variantsBuilder.add(new LocalVariantMetadata(configurationName + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, ImmutableCapabilities.of(capabilities), variantArtifacts));
             }
         });
 
@@ -134,10 +134,10 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
 
         List<PublishArtifact> sourceArtifacts = artifactBuilder.build();
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts =
-            getConfigurationArtifacts(parent, model, calculatedValueContainerFactory, name, description, hierarchy, sourceArtifacts);
+            getConfigurationArtifacts(parent, model, calculatedValueContainerFactory, configurationName, description, hierarchy, sourceArtifacts);
 
         return new DefaultLocalConfigurationMetadata(
-            name,
+            configurationName,
             description,
             componentId,
             configuration.isVisible(),

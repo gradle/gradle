@@ -95,7 +95,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     }
 
     @Override
-    public LocalConfigurationMetadata copy(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer) {
+    public LocalConfigurationMetadata copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer) {
         ImmutableSet.Builder<LocalVariantMetadata> copiedVariants = ImmutableSet.builder();
         for (LocalVariantMetadata oldVariant : variants) {
             CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> newArtifacts =
