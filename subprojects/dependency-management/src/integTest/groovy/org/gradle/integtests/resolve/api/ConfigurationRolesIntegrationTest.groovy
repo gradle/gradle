@@ -212,6 +212,39 @@ This method is only meant to be called on configurations which allow the (non-de
         'dependency scope'      | 'canBeResolved = false; canBeConsumed = false'
     }
 
+    def "depending on consumable configuration that is deprecated for consumption emits warning"() {
+        buildFile << """
+            configurations {
+                res {
+                    canBeConsumed = false
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "foo"))
+                    }
+                }
+                migratingUnlocked("con", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "foo"))
+                    }
+                }
+            }
+
+            dependencies {
+                res project
+            }
+
+            task resolve {
+                def files = configurations.res.incoming.files
+                doLast {
+                    println files.files
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The con configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations.html in the Gradle documentation.")
+        succeeds("resolve")
+    }
+
     def "cannot create #first and #second configuration with the same name"() {
         buildFile << """
             configurations {

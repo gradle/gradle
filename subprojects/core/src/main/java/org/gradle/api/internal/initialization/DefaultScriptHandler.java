@@ -127,6 +127,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         return configContainer;
     }
 
+    @Override
+    public void configurations(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getConfigurations());
+    }
+
     @SuppressWarnings("deprecation")
     private void defineConfiguration() {
         // Defer creation and resolution of configuration until required. Short-circuit when script does not require classpath
