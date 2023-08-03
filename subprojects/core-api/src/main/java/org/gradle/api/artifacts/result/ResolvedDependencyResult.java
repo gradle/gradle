@@ -18,6 +18,8 @@ package org.gradle.api.artifacts.result;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
+
 /**
  * A dependency that was resolved successfully.
  */
@@ -34,5 +36,6 @@ public interface ResolvedDependencyResult extends DependencyResult {
      *
      * @since 5.6
      */
+    @Nullable
     ResolvedVariantResult getResolvedVariant();
 }

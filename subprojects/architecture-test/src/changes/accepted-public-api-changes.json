@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.artifacts.result.ResolvedDependencyResult",
+            "member": "Method org.gradle.api.artifacts.result.ResolvedDependencyResult.getResolvedVariant()",
+            "acceptation": "Corrected nullability annotation",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        }
+    ]
 }

@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
+import javax.annotation.Nullable;
+
 public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
     private final ResolvedComponentResult selectedComponent;
     private final ResolvedVariantResult selectedVariant;
@@ -40,6 +42,7 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
         return selectedComponent;
     }
 
+    @Nullable
     public ResolvedVariantResult getResolvedVariant() {
         return selectedVariant;
     }
