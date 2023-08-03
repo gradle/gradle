@@ -107,7 +107,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 expectBuildIdentifierNameDeprecation()
-                maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
             }.build()
     }
 
@@ -182,7 +181,9 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             runner.withArguments([runner.arguments, ['-I', init.canonicalPath]].flatten())
         }
-        return runner
+        return runner.deprecations(SantaTrackerDeprecations) {
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+        }
     }
 
     protected static boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes) {
