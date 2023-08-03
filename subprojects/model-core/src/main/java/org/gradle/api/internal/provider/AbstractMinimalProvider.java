@@ -22,6 +22,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 
@@ -34,13 +35,13 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this provider");
 
     @Override
-    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
+    public <S> ProviderInternal<S> map(final Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer) {
         // Could do a better job of inferring the type
         return new TransformBackedProvider<>(null, this, transformer);
     }
 
     @Override
-    public <S> Provider<S> flatMap(final Transformer<? extends Provider<? extends S>, ? super T> transformer) {
+    public <S> Provider<S> flatMap(final Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends S>, ? super T> transformer) {
         return new FlatMapProvider<>(this, transformer);
     }
 
@@ -121,14 +122,11 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Deprecated
     @Override
     public final Provider<T> forUseAtConfigurationTime() {
-        /*
- TODO:configuration-cache start nagging in Gradle 8.x
         DeprecationLogger.deprecateMethod(Provider.class, "forUseAtConfigurationTime")
             .withAdvice("Simply remove the call.")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "for_use_at_configuration_time_deprecation")
             .nagUser();
-*/
         return this;
     }
 

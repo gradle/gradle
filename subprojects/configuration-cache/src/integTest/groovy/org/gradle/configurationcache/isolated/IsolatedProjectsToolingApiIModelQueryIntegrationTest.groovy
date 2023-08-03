@@ -79,6 +79,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 
@@ -116,8 +117,8 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         fixture.assertStateStoredWithProblems {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
         }
 
         when:

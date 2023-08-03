@@ -28,4 +28,9 @@ public interface LocallyAvailableExternalResource extends ExternalResource {
      * Returns a local file containing the content of this resource. This may nor may not be the original resource.
      */
     File getFile();
+
+    /**
+     * Does this resource currently exist?
+     */
+    boolean exists();
 }

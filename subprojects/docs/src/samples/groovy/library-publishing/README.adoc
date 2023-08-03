@@ -3,8 +3,8 @@ NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com
 This sample shows how a Groovy library can be published to a repository with Gradle.
 
 ====
-include::sample[dir="groovy",files="my-library/build.gradle[]"]
 include::sample[dir="kotlin",files="my-library/build.gradle.kts[]"]
+include::sample[dir="groovy",files="my-library/build.gradle[]"]
 ====
 
 To publish the library:
@@ -46,4 +46,4 @@ build/publishing-repository/
 5 directories, 20 files
 ----
 
-For more information, see link:{userManualPath}/groovy_plugin.html[Groovy Plugin reference chapter].
+For more information, see link:{userManualPath}/publishing_setup.html[Publishing Libraries].

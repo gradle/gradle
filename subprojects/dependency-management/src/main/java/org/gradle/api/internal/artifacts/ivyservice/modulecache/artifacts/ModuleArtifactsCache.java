@@ -23,8 +23,8 @@ import org.gradle.internal.hash.HashCode;
 import java.util.Collection;
 
 public interface ModuleArtifactsCache {
-    CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts);
+    CachedArtifacts cacheArtifacts(ModuleComponentRepository<?> repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts);
 
-    CachedArtifacts getCachedArtifacts(ModuleComponentRepository delegate, ComponentIdentifier componentId, String context);
+    CachedArtifacts getCachedArtifacts(ModuleComponentRepository<?> delegate, ComponentIdentifier componentId, String context);
 
 }

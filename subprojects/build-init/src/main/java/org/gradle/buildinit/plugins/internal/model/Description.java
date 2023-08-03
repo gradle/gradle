@@ -20,12 +20,14 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT_JUPITER;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.KOTLINTEST;
@@ -37,35 +39,35 @@ public class Description {
     public final static Description JAVA = new Description(
         Language.JAVA,
         JUNIT_JUPITER,
-        Arrays.asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK),
+        asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK),
         null, null
     );
 
     public final static Description GROOVY = new Description(
         Language.GROOVY,
         SPOCK,
-        Collections.singletonList(SPOCK),
+        singletonList(SPOCK),
         "groovy", null
     );
 
     public final static Description SCALA = new Description(
         Language.SCALA,
         SCALATEST,
-        Collections.singletonList(SCALATEST),
+        singletonList(SCALATEST),
         "scala", null
     );
 
     public final static Description KOTLIN = new Description(
         Language.KOTLIN,
         KOTLINTEST,
-        Collections.singletonList(KOTLINTEST),
+        singletonList(KOTLINTEST),
         "org.jetbrains.kotlin.jvm", "kotlin"
     );
 
     private final Language language;
     private final BuildInitTestFramework defaultTestFramework;
     private final Set<BuildInitTestFramework> supportedTestFrameworks;
-    private final String pluginName;
+    private final Optional<String> pluginName;
     private final String pluginVersionProperty;
 
     private Description(Language language, BuildInitTestFramework defaultTestFramework, List<BuildInitTestFramework> supportedTestFrameworks,
@@ -73,7 +75,7 @@ public class Description {
         this.language = language;
         this.defaultTestFramework = defaultTestFramework;
         this.supportedTestFrameworks = new TreeSet<>(supportedTestFrameworks);
-        this.pluginName = pluginName;
+        this.pluginName = ofNullable(pluginName);
         this.pluginVersionProperty = pluginVersionProperty;
     }
 
@@ -89,8 +91,7 @@ public class Description {
         return supportedTestFrameworks;
     }
 
-    @Nullable
-    public String getPluginName() {
+    public Optional<String> getPluginName() {
         return pluginName;
     }
 

@@ -131,7 +131,7 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
             task incrementalTask(type: MyIncrementalTask) {
                 inputDir = file('src')
             }
-            
+
             class MyIncrementalTask extends DefaultTask {
                 ${supportsInputChanges ? "@Incremental" : ""}
                 @InputDirectory
@@ -185,7 +185,7 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @TargetGradleVersion('>=2.6 <5.1')
+    @TargetGradleVersion('>=3.0 <5.1')
     def "throws UnsupportedMethodException for execution reasons when target version does not support it"() {
         when:
         runBuild('tasks')
@@ -198,7 +198,7 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
         e.message.startsWith("Unsupported method: TaskExecutionResult.getExecutionReasons().")
     }
 
-    @TargetGradleVersion('>=2.6 <5.1')
+    @TargetGradleVersion('>=3.0 <5.1')
     def "throws UnsupportedMethodException for incremental property when target version does not support it"() {
         when:
         runBuild('tasks')

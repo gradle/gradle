@@ -3,8 +3,8 @@ NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com
 This sample shows how to build a Gradle plugin in the Java language.
 
 ====
-include::sample[dir="groovy",files="greeting-plugin/build.gradle[tags=plugin]"]
 include::sample[dir="kotlin",files="greeting-plugin/build.gradle.kts[tags=plugin]"]
+include::sample[dir="groovy",files="greeting-plugin/build.gradle[tags=plugin]"]
 ====
 
 For a more guided tour with plugin development, see link:https://gradle.org/guides/?q=Plugin%20Development[the guides for plugin development].

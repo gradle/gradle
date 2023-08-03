@@ -59,8 +59,9 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
         { false },
         cacheFactory
     )
-    def typeMetadataStore = new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
-    def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver())
+    def propertyHandlers = [new NoOpPropertyAnnotationHandler(Internal)]
+    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
+    def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers)
 
     TaskInternal task
     TaskInputsInternal inputs

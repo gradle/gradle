@@ -55,8 +55,8 @@ Once you have the API key you can publish as many plugins as you like.
 Add the {publishplugin} to the `plugins` block.
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugins_block]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
 ====
 The latest version of the {publishplugin} can be found on the https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{portal}].
 
@@ -73,8 +73,8 @@ This includes their identity plus the sources and documentation related to them.
 This will help people browsing the portal find more information about your plugins and learn how to contribute to their development.
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=global_config]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=global_config]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=global_config]"]
 ====
 <1> Make sure your project has a `group` set which is used to identify the artifacts (jar and metadata) you publish for your plugins
 in the repository of the {portal} and which is descriptive of the plugin author or the organization the plugins belong too.
@@ -93,8 +93,8 @@ If the plugin doesn't belong to any specific organization, then the plugin ID sh
 Remember that the plugin id and project group should match, i.e. have the same top level namespace.
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=per_plugin_config]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=per_plugin_config]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=per_plugin_config]"]
 ====
 <1> Plugin specific configuration also goes into the `gradlePlugin` block.
 <2> This is where we previously added global properties.
@@ -109,8 +109,8 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files=
 As an example consider the configuration for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin], which is already published to the {portal}.
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugin_example]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugin_example]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugin_example]"]
 ====
 
 If you browse the associated page on the {portal} for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin], you will see how the specified metadata is displayed.
@@ -140,8 +140,8 @@ For that, you only need to <<publishing_maven.adoc#publishing_maven:repositories
 Then you can run the `publish` task to publish your plugin to all repositories you have defined (but not the {portal}).
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=local_repository]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=local_repository]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=local_repository]"]
 ====
 
 To use the repository in another build, you have to add it to <<plugins.adoc#sec:custom_plugin_repositories,the repositories of the `pluginManagement {}` block>> in your `settings.gradle(.kts)` file.
@@ -154,6 +154,14 @@ Publish the plugin by using the `publishPlugin` task.
 ----
 $ ./gradlew publishPlugins
 ----
+
+You can validate your plugins before actually publishing them using the `--validate-only` flag:
+
+[listing]
+----
+$ ./gradlew publishPlugins --validate-only
+----
+
 
 If you have not configured your {portal} key and secret values in your `gradle.properties` file, you can specify them on the command-line
 

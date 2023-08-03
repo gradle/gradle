@@ -22,7 +22,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -38,14 +37,17 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.transform.UnzipTransform;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
@@ -150,7 +152,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         addHeaderZipTransform(dependencyHandler, objects);
 
         // Add outgoing configurations and publications
-        final ConfigurationContainer configurations = project.getConfigurations();
+        final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
 
         project.getDependencies().getAttributesSchema().attribute(LINKAGE_ATTRIBUTE).getDisambiguationRules().add(LinkageSelectionRule.class);
 
@@ -335,13 +337,12 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void addOutgoingConfigurationForLinkUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
+    private void addOutgoingConfigurationForLinkUsage(SoftwareComponentContainer components, final RoleBasedConfigurationContainerInternal configurations) {
         components.withType(ConfigurableComponentWithLinkUsage.class, component -> {
             Names names = component.getNames();
 
-            Configuration linkElements = configurations.create(names.withSuffix("linkElements"));
+            Configuration linkElements = configurations.migratingUnlocked(names.withSuffix("linkElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
             linkElements.extendsFrom(component.getImplementationDependencies());
-            linkElements.setCanBeResolved(false);
             AttributeContainer attributes = component.getLinkAttributes();
             copyAttributesTo(attributes, linkElements);
 
@@ -351,13 +352,12 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void addOutgoingConfigurationForRuntimeUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
+    private void addOutgoingConfigurationForRuntimeUsage(SoftwareComponentContainer components, final RoleBasedConfigurationContainerInternal configurations) {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, component -> {
             Names names = component.getNames();
 
-            Configuration runtimeElements = configurations.create(names.withSuffix("runtimeElements"));
+            Configuration runtimeElements = configurations.migratingUnlocked(names.withSuffix("runtimeElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
             runtimeElements.extendsFrom(component.getImplementationDependencies());
-            runtimeElements.setCanBeResolved(false);
 
             AttributeContainer attributes = component.getRuntimeAttributes();
             copyAttributesTo(attributes, runtimeElements);
@@ -377,7 +377,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
                     final ComponentWithVariants mainVariant = component.getMainPublication();
                     publishing.getPublications().create("main", MavenPublication.class, publication -> {
                         MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
-                        publicationInternal.getMavenProjectIdentity().getArtifactId().set(component.getBaseName());
+                        publicationInternal.getPom().getCoordinates().getArtifactId().set(component.getBaseName());
                         publicationInternal.from(mainVariant);
                         publicationInternal.publishWithOriginalFileName();
                     });
@@ -408,10 +408,10 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
 
     private void fillInCoordinates(Project project, MavenPublicationInternal publication, PublishableComponent publishableComponent) {
         final ModuleVersionIdentifier coordinates = publishableComponent.getCoordinates();
-        MutableMavenProjectIdentity identity = publication.getMavenProjectIdentity();
-        identity.getGroupId().set(project.provider(() -> coordinates.getGroup()));
-        identity.getArtifactId().set(project.provider(() -> coordinates.getName()));
-        identity.getVersion().set(project.provider(() -> coordinates.getVersion()));
+        MavenPublicationCoordinates pomCoordinates = publication.getPom().getCoordinates();
+        pomCoordinates.getGroupId().set(project.provider(() -> coordinates.getGroup()));
+        pomCoordinates.getArtifactId().set(project.provider(() -> coordinates.getName()));
+        pomCoordinates.getVersion().set(project.provider(() -> coordinates.getVersion()));
     }
 
     private void copyAttributesTo(AttributeContainer attributes, Configuration linkElements) {

@@ -78,7 +78,7 @@ public enum CachingDisabledReasonCategory {
      *     <li>an input is not tracked.</li>
      * </ul>
      *
-     * @see <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:how_does_it_work">How fingerprinting works</a>
+     * @see <a href="https://docs.gradle.org/current/userguide/incremental_build.html#sec:how_does_it_work">How fingerprinting works</a>
      */
     NON_CACHEABLE_INPUTS
 }

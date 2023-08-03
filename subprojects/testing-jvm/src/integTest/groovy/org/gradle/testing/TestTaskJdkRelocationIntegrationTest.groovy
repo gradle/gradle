@@ -19,14 +19,22 @@ package org.gradle.testing
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
-@Requires(adhoc = { AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_8).size() > 1 })
-class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+@Requires(IntegTestPreconditions.MoreThanOneJava8HomeAvailable)
+class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest implements JavaToolchainFixture {
+
+    def setup() {
+        executer.beforeExecute {
+            withInstallations(AvailableJavaHomes.jdk11)
+        }
+    }
 
     private File getOriginalJavaExecutable() {
         getAvailableJdk8s()[0].javaExecutable
@@ -68,8 +76,13 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
                 testImplementation "junit:junit:4.13"
             }
 
-            sourceCompatibility = "1.7"
-            targetCompatibility = "1.7"
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+                sourceCompatibility = "1.7"
+                targetCompatibility = "1.7"
+            }
 
             test {
                 executable "${TextUtil.escapeString(originalJavaExecutable)}"

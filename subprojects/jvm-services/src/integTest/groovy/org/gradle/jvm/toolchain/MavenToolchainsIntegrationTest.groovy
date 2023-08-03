@@ -17,12 +17,12 @@
 package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.TextUtil
+import org.spockframework.util.TextUtil
 
 class MavenToolchainsIntegrationTest extends AbstractIntegrationSpec {
     def "logs at info level when invalid toolchain file is provided"() {
         def toolchainsFile = file("toolchains.xml")
-        executer.withArgument("-Porg.gradle.java.installations.maven-toolchains-file=${TextUtil.escapeString(toolchainsFile.absolutePath)}")
+        executer.withArgument("-Porg.gradle.java.installations.maven-toolchains-file=${TextUtil.escape(toolchainsFile.absolutePath)}")
         executer.withToolchainDetectionEnabled()
         toolchainsFile << "not xml"
 

@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
@@ -35,8 +34,6 @@ import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
-import javax.inject.Inject;
-
 /**
  * Compiles Scala source files, and optionally, Java source files.
  */
@@ -47,15 +44,6 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
     private FileCollection zincClasspath;
     private FileCollection scalaCompilerPlugins;
     private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
-
-    @Inject
-    public ScalaCompile() {
-    }
-
-    @Inject
-    protected VersionParser getVersionParser() {
-        throw new UnsupportedOperationException();
-    }
 
     @Nested
     @Override
@@ -97,7 +85,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
 
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
-        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles(), getVersionParser());
+        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
         ScalaJavaJointCompileSpec spec = super.createSpec();
         if (getScalaCompilerPlugins() != null) {
             spec.setScalaCompilerPlugins(ImmutableList.copyOf(getScalaCompilerPlugins()));

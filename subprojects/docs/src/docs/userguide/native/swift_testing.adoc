@@ -88,8 +88,8 @@ Here’s an example of some filters that are applied every time the build runs:
 
 .Filter tests on every build
 ====
-include::sample[dir="snippets/swift/testFiltering/groovy",files="build.gradle[tags=test-filtering]"]
 include::sample[dir="snippets/swift/testFiltering/kotlin",files="build.gradle.kts[tags=test-filtering]"]
+include::sample[dir="snippets/swift/testFiltering/groovy",files="build.gradle[tags=test-filtering]"]
 ====
 
 For more details and examples of declaring filters in the build script, please see the TestFilter reference.
@@ -144,8 +144,8 @@ Here is a sample which generates a combined report for the unit tests from all s
 
 .Combine test reports from all subprojects
 ====
-include::sample[dir="snippets/swift/testReport/groovy",files="buildSrc/src/main/groovy/myproject.xctest-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]
 include::sample[dir="snippets/swift/testReport/kotlin",files="buildSrc/src/main/kotlin/myproject.xctest-conventions.gradle.kts[tags=test-report];build.gradle.kts[tags=test-report]"]
+include::sample[dir="snippets/swift/testReport/groovy",files="buildSrc/src/main/groovy/myproject.xctest-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]
 ====
 
 In this example, we use a convention plugin `myproject.xctest-conventions` to expose the test results from a project to Gradle's <<variant_model.adoc#understanding-variant-selection,variant aware dependency management engine>>.

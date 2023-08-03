@@ -292,7 +292,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         scriptCacheSize() == 4 // classpath + body for each build script
     }
 
-    @ToBeFixedForConfigurationCache(because = "remote scripts skipped")
     def "caches scripts applied from remote locations when remote script changes"() {
         server.start()
 
@@ -300,8 +299,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         root {
             'build.gradle'(this.applyFromRemote(server))
         }
-        def buildHash
-        def sharedHash
         server.expect(server.get("shared.gradle").send("""
             ${instrument('"shared"')}
             println 'Echo 0'

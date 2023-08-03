@@ -283,8 +283,8 @@ If the file isn't produced by another task, you may want to make sure that it ex
 If what you want to declare is that it doesn't matter that the file exists or not when the task is executed, you can use `@InputFiles` that won't fail for non-existing inputs:
 
 ====
-include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
 include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
 ====
 
 [[unexpected_input_file_type]]
@@ -382,10 +382,32 @@ To fix the problem either annotate the work type with `@CacheableTask`/`@Cacheab
 [[unsupported_value_type]]
 == Unsupported value type
 
-This error indicates that a task declares an input property with values of an unsupported type.
+This message indicates that a task declares an input property with values of an unsupported type.
 
-To fix this, look at the error message which indicates the list of possible solutions.
+To address this, look at the message which indicates the list of possible solutions.
 
-Please find below the list of unsupported value type and links to respective sections of the user manual:
+Please find below the list of unsupported value types:
 
-`ResolvedArtifactResult`:: <<more_about_tasks#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+`ResolvedArtifactResult`:: <<incremental_build#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+`java.net.URL`:: This type is not supported on properties annotated with @Input because up-to-date checks might to be inconsistent for this type, leading to incorrect build results.
+This is caused by a known issue in Java where the serialization of `java.net.URL` is incorrect.
+See the https://bugs.openjdk.org/browse/JDK-8075619[OpenJDK bug report] for more details.
+To address this, we suggest to use `java.net.URI` instead.
+
+[[unsupported_key_type_of_nested_map]]
+== Unsupported key type of nested map
+
+This error indicates that a nested map declares a key of an unsupported type.
+Gradle uses the key to generate a name for the (sub)property.
+Only allowing keys of type `Enum`, `Integer`, and `String` guarantees that these names are unique and well-formed, and is preferable to relying on `toString()` for producing such names.
+
+To fix this problem, change the type of the key to `Enum`, `Integer`, or `String`.
+
+[[unsupported_nested_type]]
+== Unsupported nested type
+
+This error indicates that an unsupported type is annotated as nested.
+Nested types are expected to either declare some annotated properties (which themselves are checked for annotations) or some conditional behaviour where capturing the type itself as input is important.
+Types of the Java SE API, types of the Kotlin stdlib, and Groovy's GString are not supported, because they meet neither of those requirements.
+
+To fix this problem, declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input.

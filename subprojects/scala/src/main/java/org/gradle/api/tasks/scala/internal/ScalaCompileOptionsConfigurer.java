@@ -16,14 +16,14 @@
 
 package org.gradle.api.tasks.scala.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -34,43 +34,87 @@ import java.util.Set;
  * @since 7.3
  */
 public class ScalaCompileOptionsConfigurer {
-    private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
 
-    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath, VersionParser versionParser) {
+    private static final int FALLBACK_JVM_TARGET = 8;
+
+    /**
+     * Support for these flags in different minor releases of Scala varies,
+     * but we need to detect as many variants as possible to avoid overriding the target or release.
+     */
+    private static final List<String> TARGET_DEFINING_PARAMETERS = Arrays.asList(
+        // Scala 2
+        "-target", "--target",
+        // Scala 2 and 3
+        "-release", "--release",
+        // Scala 3
+        "-java-output-version", "--java-output-version",
+        "-Xunchecked-java-output-version", "--Xunchecked-java-output-version",
+        "-Xtarget", "--Xtarget"
+    );
+
+    private static final VersionNumber PLAIN_TARGET_FORMAT_SINCE_VERSION = VersionNumber.parse("2.13.1");
+    private static final VersionNumber RELEASE_REPLACES_TARGET_SINCE_VERSION = VersionNumber.parse("2.13.9");
+
+    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
         if (toolchain == null) {
             return;
         }
 
-        File scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library");
-        if(scalaJar == null) {
+        // When Scala 3 is used it appears on the classpath together with Scala 2
+        File scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library_3");
+        if (scalaJar == null) {
+            scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library");
+            if (scalaJar == null) {
+                return;
+            }
+        }
+
+        VersionNumber scalaVersion = VersionNumber.parse(ScalaRuntimeHelper.getScalaVersion(scalaJar));
+        if (VersionNumber.UNKNOWN.equals(scalaVersion)) {
             return;
         }
 
-        String scalaVersion = ScalaRuntimeHelper.getScalaVersion(scalaJar);
-        if(scalaVersion == null) {
+        if (hasTargetDefiningParameter(scalaCompileOptions.getAdditionalParameters())) {
             return;
         }
 
-        if(scalaCompileOptions.getAdditionalParameters() != null && scalaCompileOptions.getAdditionalParameters().stream().anyMatch(s -> s.startsWith("-target:"))) {
-            return;
-        }
-
-        Integer jvmVersion = toolchain.getLanguageVersion().asInt();
-        String targetParameter = determineTargetParameter(scalaVersion, jvmVersion, versionParser);
-        if(scalaCompileOptions.getAdditionalParameters() == null) {
-            scalaCompileOptions.setAdditionalParameters(Collections.singletonList(targetParameter));
-        } else {
-            scalaCompileOptions.getAdditionalParameters().add(targetParameter);
-        }
+        String targetParameter = determineTargetParameter(scalaVersion, (JavaToolchain) toolchain);
+        scalaCompileOptions.getAdditionalParameters().add(targetParameter);
     }
 
-    private static String determineTargetParameter(String scalaVersion, Integer jvmVersion, VersionParser versionParser) {
-        VersionInfo currentScalaVersion = new VersionInfo(versionParser.transform(scalaVersion));
-        int compareWith2131 = VERSION_COMPARATOR.compare(currentScalaVersion, new VersionInfo(versionParser.transform("2.13.1")));
-        if(compareWith2131 < 0) {
-            return String.format("-target:jvm-1.%s", jvmVersion);
+    private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {
+        return additionalParameters.stream()
+            .anyMatch(s -> TARGET_DEFINING_PARAMETERS.stream().anyMatch(param -> param.equals(s) || s.startsWith(param + ":")));
+    }
+
+    /**
+     * Computes parameter to specify how Scala should handle Java APIs and produced bytecode version.
+     * <p>
+     * The exact result depends on the Scala version in use and if the toolchain is user specified or not.
+     *
+     * @param scalaVersion The detected scala version
+     * @param javaToolchain The toolchain used to run compilation
+     * @return a Scala compiler parameter
+     */
+    private static String determineTargetParameter(VersionNumber scalaVersion, JavaToolchain javaToolchain) {
+        boolean explicitToolchain = !javaToolchain.isFallbackToolchain();
+        int effectiveTarget = !explicitToolchain ? FALLBACK_JVM_TARGET : javaToolchain.getLanguageVersion().asInt();
+        if (scalaVersion.compareTo(VersionNumber.parse("3.0.0")) >= 0) {
+            if (explicitToolchain) {
+                return String.format("-release:%s", effectiveTarget);
+            } else {
+                return String.format("-Xtarget:%s", effectiveTarget);
+            }
+        } else if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_SINCE_VERSION) >= 0) {
+            if (explicitToolchain) {
+                return String.format("-release:%s", effectiveTarget);
+            } else {
+                return String.format("-target:%s", effectiveTarget);
+            }
+        } else if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_SINCE_VERSION) >= 0) {
+            return String.format("-target:%s", effectiveTarget);
         } else {
-            return String.format("-target:%s", jvmVersion);
+            return String.format("-target:jvm-1.%s", effectiveTarget);
         }
     }
 }

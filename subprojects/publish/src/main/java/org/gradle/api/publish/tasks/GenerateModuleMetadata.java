@@ -22,11 +22,11 @@ import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -317,8 +317,8 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
         }
 
         private void forEachArtifactOf(SoftwareComponentInternal component, Action<PublishArtifact> action) {
-            for (UsageContext usageContext : component.getUsages()) {
-                for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
+            for (SoftwareComponentVariant variant : component.getUsages()) {
+                for (PublishArtifact publishArtifact : variant.getArtifacts()) {
                     action.execute(publishArtifact);
                 }
             }
@@ -334,7 +334,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     }
 
     private SoftwareComponentInternal component() {
-        return publication().getComponent();
+        return publication().getComponent().getOrNull();
     }
 
     private PublicationInternal<?> publication() {

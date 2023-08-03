@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.Authenticator;
+import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.SocketTimeoutException;
 import java.net.URI;
@@ -81,6 +82,25 @@ public class Download implements IDownload {
         if (systemProperties.get("http.proxyUser") != null || systemProperties.get("https.proxyUser") != null) {
             // Only an authenticator for proxies needs to be set. Basic authentication is supported by directly setting the request header field.
             Authenticator.setDefault(new ProxyAuthenticator());
+        }
+    }
+
+    public void sendHeadRequest(URI uri) throws Exception {
+        URL safeUrl = safeUri(uri).toURL();
+        int responseCode = -1;
+        try {
+            HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
+            conn.setRequestMethod("HEAD");
+            addBasicAuthentication(uri, conn);
+            conn.setRequestProperty("User-Agent", calculateUserAgent());
+            conn.setConnectTimeout(networkTimeout);
+            conn.connect();
+            responseCode = conn.getResponseCode();
+            if (responseCode != 200) {
+                throw new RuntimeException("HEAD request to " + safeUrl + " failed: response code (" + responseCode + ")");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("HEAD request to " + safeUrl + " failed: response code (" + responseCode + "), timeout (" + networkTimeout + "ms)", e);
         }
     }
 

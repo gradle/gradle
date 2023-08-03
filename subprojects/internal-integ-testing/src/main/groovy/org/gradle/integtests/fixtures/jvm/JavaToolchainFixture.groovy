@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.jvm
 
 import groovy.transform.SelfType
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
@@ -90,5 +91,13 @@ trait JavaToolchainFixture {
         executer
             .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
         this as AbstractIntegrationSpec
+    }
+
+    /**
+     * Returns the Java version from the compiled class bytecode.
+     */
+    JavaVersion classJavaVersion(File classFile) {
+        assert classFile.exists()
+        return JavaVersion.forClass(classFile.bytes)
     }
 }

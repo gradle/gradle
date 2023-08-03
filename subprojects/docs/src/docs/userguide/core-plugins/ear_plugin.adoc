@@ -29,8 +29,8 @@ To use the Ear plugin, include the following in your build script:
 
 .Using the Ear plugin
 ====
-include::sample[dir="snippets/ear/earWithWar/groovy",files="build.gradle[tags=use-ear-plugin]"]
 include::sample[dir="snippets/ear/earWithWar/kotlin",files="build.gradle.kts[tags=use-ear-plugin]"]
+include::sample[dir="snippets/ear/earWithWar/groovy",files="build.gradle[tags=use-ear-plugin]"]
 ====
 
 [[sec:ear_tasks]]
@@ -101,8 +101,8 @@ Here is an example with the most important customization options:
 
 .Customization of ear plugin
 ====
-include::sample[dir="snippets/ear/earCustomized/groovy/ear",files="build.gradle[]"]
 include::sample[dir="snippets/ear/earCustomized/kotlin/ear",files="build.gradle.kts[]"]
+include::sample[dir="snippets/ear/earCustomized/groovy/ear",files="build.gradle[]"]
 ====
 
 You can also use customization options that the link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] task provides, such as `from` and `metaInf`.

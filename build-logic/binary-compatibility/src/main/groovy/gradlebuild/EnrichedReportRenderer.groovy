@@ -70,7 +70,16 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                         result.acceptedApiChanges.push(correction);
                     });
                     // Sort the array in place by type, then member
-                    result.acceptedApiChanges = result.acceptedApiChanges.sort((a, b) => (a.type +'#' + a.member) > (b.type + '#' + b.member));
+                    // Note that Firefox is fine with a sort function returning any positive or negative number, but Chrome 
+                    // requires 1 or -1 specifically and ignores higher or lower values.  This sort ought to remain consistent
+                    // with the sort used by AbstractAcceptedApiChangesMaintenanceTask.
+                    result.acceptedApiChanges.sort((a, b) => { 
+                        if ((a.type +'#' + a.member) > (b.type + '#' + b.member)) {
+                            return 1; 
+                        } else {
+                            return -1;
+                        }
+                    });
                     // Remove duplicates (equal adjacent elements) - a new, un@Incubating type will be here twice, as 2 errors are reported; use stringified JSON to compare
                     // Filtering an array is NOT in place
                     result.acceptedApiChanges = result.acceptedApiChanges.filter((item, pos, ary) => (!pos || (JSON.stringify(item) != JSON.stringify(ary[pos - 1]))));

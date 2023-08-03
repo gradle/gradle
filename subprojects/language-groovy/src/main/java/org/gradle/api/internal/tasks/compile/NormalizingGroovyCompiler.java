@@ -19,7 +19,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -53,12 +52,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
     }
 
     private void resolveAndFilterSourceFiles(final GroovyJavaJointCompileSpec spec) {
-        final List<String> fileExtensions = CollectionUtils.collect(spec.getGroovyCompileOptions().getFileExtensions(), new Transformer<String, String>() {
-            @Override
-            public String transform(String extension) {
-                return '.' + extension;
-            }
-        });
+        final List<String> fileExtensions = CollectionUtils.collect(spec.getGroovyCompileOptions().getFileExtensions(), extension -> '.' + extension);
         Iterable<File> filtered = Iterables.filter(spec.getSourceFiles(), new Predicate<File>() {
             @Override
             public boolean apply(File element) {

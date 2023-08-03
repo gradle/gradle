@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.api.Transformer;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputStream {
-    private Transformer<Object, Object> objectTransformer = new Transformer<Object, Object>() {
+    private InternalTransformer<Object, Object> objectTransformer = new InternalTransformer<Object, Object>() {
         @Override
         public Object transform(Object o) {
             try {
@@ -40,8 +40,8 @@ public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputS
         enableResolveObject(true);
     }
 
-    public final Transformer<ExceptionReplacingObjectInputStream, InputStream> getObjectInputStreamCreator() {
-        return new Transformer<ExceptionReplacingObjectInputStream, InputStream>() {
+    public final InternalTransformer<ExceptionReplacingObjectInputStream, InputStream> getObjectInputStreamCreator() {
+        return new InternalTransformer<ExceptionReplacingObjectInputStream, InputStream>() {
             @Override
             public ExceptionReplacingObjectInputStream transform(InputStream inputStream) {
                 try {
@@ -69,8 +69,8 @@ public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputS
         return obj;
     }
 
-    protected final Transformer<Class<?>, String> getClassNameTransformer() {
-        return new Transformer<Class<?>, String>() {
+    protected final InternalTransformer<Class<?>, String> getClassNameTransformer() {
+        return new InternalTransformer<Class<?>, String>() {
             @Override
             public Class<?> transform(String type) {
                 try {
@@ -86,11 +86,11 @@ public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputS
         return getClassLoader().loadClass(type);
     }
 
-    public Transformer<Object, Object> getObjectTransformer() {
+    public InternalTransformer<Object, Object> getObjectTransformer() {
         return objectTransformer;
     }
 
-    public void setObjectTransformer(Transformer<Object, Object> objectTransformer) {
+    public void setObjectTransformer(InternalTransformer<Object, Object> objectTransformer) {
         this.objectTransformer = objectTransformer;
     }
 }

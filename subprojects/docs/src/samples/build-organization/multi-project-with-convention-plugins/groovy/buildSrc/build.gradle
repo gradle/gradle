@@ -10,12 +10,12 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.spotbugs.snom:spotbugs-gradle-plugin:5.0.12'
+    implementation 'com.github.spotbugs.snom:spotbugs-gradle-plugin:5.0.14'
     testImplementation platform("org.spockframework:spock-bom:2.2-groovy-3.0")
     testImplementation 'org.spockframework:spock-core'
 }
 
-tasks.named('test') {
+tasks.named('test', Test) {
     useJUnitPlatform()
 }
 // end::repositories-and-dependencies[]

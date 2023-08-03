@@ -51,14 +51,11 @@ public class PCHUtils {
         }
 
         try {
-            FileUtils.writeLines(headerFile, CollectionUtils.collect(headers, new Transformer<String, String>() {
-                @Override
-                public String transform(String header) {
-                    if (header.startsWith("<")) {
-                        return "#include ".concat(header);
-                    } else {
-                        return "#include \"".concat(header).concat("\"");
-                    }
+            FileUtils.writeLines(headerFile, CollectionUtils.collect(headers, header -> {
+                if (header.startsWith("<")) {
+                    return "#include ".concat(header);
+                } else {
+                    return "#include \"".concat(header).concat("\"");
                 }
             }));
         } catch (IOException e) {

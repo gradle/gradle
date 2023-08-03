@@ -181,30 +181,38 @@ class SomeExtension {
 extensions.create('custom', SomeExtension)
 
 task useIntTypeDsl {
+    def custom = project.custom
     doLast {
         custom.prop = 123
     }
 }
 
 task useIntTypeApi {
+    def custom = project.custom
     doLast {
         custom.prop.set(123)
     }
 }
 
 task useFileTypeDsl {
+    def custom = project.custom
+    def layout = project.layout
     doLast {
         custom.prop = layout.projectDirectory.file("build.gradle")
     }
 }
 
 task useFileProviderDsl {
+    def custom = project.custom
+    def layout = project.layout
     doLast {
         custom.prop = layout.buildDirectory.file("build.gradle")
     }
 }
 
 task useFileProviderApi {
+    def custom = project.custom
+    def layout = project.layout
     doLast {
         custom.prop.set(layout.buildDirectory.file("build.gradle"))
     }
@@ -262,30 +270,38 @@ class SomeExtension {
 extensions.create('custom', SomeExtension)
 
 task useIntTypeDsl {
+    def custom = project.custom
     doLast {
         custom.prop = 123
     }
 }
 
 task useIntTypeApi {
+    def custom = project.custom
     doLast {
         custom.prop.set(123)
     }
 }
 
 task useDirTypeDsl {
+    def custom = project.custom
+    def layout = project.layout
     doLast {
         custom.prop = layout.projectDirectory.dir("src")
     }
 }
 
 task useDirProviderDsl {
+    def custom = project.custom
+    def layout = project.layout
     doLast {
         custom.prop = layout.buildDirectory
     }
 }
 
 task useDirProviderApi {
+    def custom = project.custom
+    def layout = project.layout
     doLast {
         custom.prop.set(layout.buildDirectory)
     }
@@ -510,6 +526,7 @@ task useDirProviderApi {
             task createFile {
                 ext.outputFile = project.objects.fileProperty()
                 outputs.file(outputFile)
+                def outputFile = ext.outputFile
                 doLast {
                     outputFile.get().asFile.text = 'file1'
                 }
@@ -622,6 +639,7 @@ task useDirProviderApi {
             task createDir {
                 ext.outputDir = project.objects.directoryProperty()
                 outputs.dir(outputDir)
+                def outputDir = ext.outputDir
                 doLast {
                     new File(outputDir.get().asFile, "file.txt").text = "dir1"
                 }

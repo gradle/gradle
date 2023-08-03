@@ -20,9 +20,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.internal.DeferredUtil;
 
@@ -59,12 +61,12 @@ public abstract class WriteProperties extends DefaultTask {
     private final Map<String, Callable<String>> deferredProperties = Maps.newHashMap();
     private final Map<String, String> properties = Maps.newHashMap();
     private String lineSeparator = "\n";
-    private Object outputFile;
     private String comment;
     private String encoding = "ISO_8859_1";
 
     /**
      * Returns an immutable view of properties to be written to the properties file.
+     *
      * @since 3.3
      */
     @Input
@@ -101,6 +103,7 @@ public abstract class WriteProperties extends DefaultTask {
      * <p>
      * Values are not allowed to be null.
      * </p>
+     *
      * @param name Name of the property
      * @param value Value of the property
      * @since 3.4
@@ -190,9 +193,18 @@ public abstract class WriteProperties extends DefaultTask {
     /**
      * Returns the output file to write the properties to.
      */
-    @OutputFile
+    @Internal
+    @Deprecated
     public File getOutputFile() {
-        return getServices().get(FileOperations.class).file(outputFile);
+        deprecationWarning();
+        return getDestinationFile().getAsFile().getOrNull();
+    }
+
+    private void deprecationWarning() {
+        DeprecationLogger.deprecateProperty(WriteProperties.class, "outputFile").replaceWith("destinationFile")
+            .willBeRemovedInGradle9()
+            .withDslReference()
+            .nagUser();
     }
 
     /**
@@ -200,21 +212,34 @@ public abstract class WriteProperties extends DefaultTask {
      *
      * @since 4.0
      */
+    @Deprecated
     public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
+        deprecationWarning();
+        getDestinationFile().set(outputFile);
     }
 
     /**
      * Sets the output file to write the properties to.
      */
+    @Deprecated
     public void setOutputFile(Object outputFile) {
-        this.outputFile = outputFile;
+        deprecationWarning();
+        getDestinationFile().set(getServices().get(FileOperations.class).file(outputFile));
     }
+
+    /**
+     * The output properties file.
+     *
+     * @since 8.1
+     */
+    @OutputFile
+    abstract public RegularFileProperty getDestinationFile();
 
     @TaskAction
     public void writeProperties() throws IOException {
         Charset charset = Charset.forName(getEncoding());
-        OutputStream out = new BufferedOutputStream(new FileOutputStream(getOutputFile()));
+        File file = getDestinationFile().getAsFile().get();
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
         try {
             Properties propertiesToWrite = new Properties();
             propertiesToWrite.putAll(getProperties());

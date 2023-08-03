@@ -26,7 +26,7 @@ if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors"
     project.gradle.taskGraph.whenReady {
         val allTasks = this@whenReady.allTasks
         val taskPathToReports = allTasks.associate { it.path to it.customReports() + it.attachedReportLocations() }.filter { it.value.isNotEmpty() }
-        globalExtension.taskPathToReports.set(taskPathToReports)
+        globalExtension.taskPathToReports = taskPathToReports
     }
 }
 

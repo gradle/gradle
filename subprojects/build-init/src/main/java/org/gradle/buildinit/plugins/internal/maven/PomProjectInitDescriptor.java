@@ -25,7 +25,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -77,6 +77,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
+    public boolean supportsJavaTargets() {
+        return false;
+    }
+
+    @Override
     public Set<ModularizationOption> getModularizationOptions() {
         return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
     }
@@ -87,7 +92,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects, JvmPluginServices jvmPluginServices) {
         DependencyHandler dependencies = detachedResolver.getDependencies();
         Configuration config = detachedResolver.getConfigurations().detachedConfiguration(
             dependencies.create("org.apache.maven:maven-core:" + MAVEN_VERSION),
@@ -98,7 +103,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
             dependencies.create("org.eclipse.aether:aether-connector-basic:" + AETHER_VERSION),
             dependencies.create("org.eclipse.aether:aether-transport-wagon:" + AETHER_VERSION)
         );
-        jvmEcosystemUtilities.configureAsRuntimeClasspath(config);
+        jvmPluginServices.configureAsRuntimeClasspath(config);
         detachedResolver.getRepositories().mavenCentral();
         mavenClasspath = config;
     }
@@ -138,7 +143,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.GROOVY;
+        return BuildInitDsl.KOTLIN;
     }
 
     @Override
@@ -158,6 +163,6 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getDocumentationFor("migrating_from_maven"));
+        return Optional.of(documentationRegistry.getDocumentationRecommendationFor("information", "migrating_from_maven"));
     }
 }

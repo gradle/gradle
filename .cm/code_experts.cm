@@ -1,0 +1,70 @@
+# -*- mode: yaml -*-
+manifest:
+  version: 1.0
+
+# The `automations` section lists automations to run on PRs in this repository.
+# Each automation has an `if` key that defines conditions to run the automation,
+# as well as a `run` key with the actions to do. All the conditions need to be true
+# for the actions to run (there is an implicit AND relation between
+# the conditions on each line).  Each condition is specified as a Jinja expression.  You
+# can also use the constant `true` if you want to always run the actions.
+
+# Each automation is independent of the others.  Every time a PR is opened or changed,
+# the conditions are evaluated and the actions are executed one by one in order
+# if all the conditions pass.  You can define multiple automations in a .cm file, but
+# each automation name should be unique within the file.
+
+# Every action only runs if a JVM team member is the author of the change, for testing purposes.
+automations:
+
+  # If someone is a primary author of the files in a change, but NOT the pr author, automatically add them as a reviewer.
+  add_primary_author_as_reviewer:
+    if:
+      - {{ author.using_gitstream }}
+      - {{ repo | codeExperts(gt=50) | match(branch.author) | nope }}
+    run:
+      - action: add-reviewers@v1
+        args:
+          reviewers: {{ repo | codeExperts(gt=50) }}
+
+  # Also post a comment that lists the best experts for the files that were modified.
+  comment_experts:
+    if:
+      - {{ author.using_gitstream }}
+    run:
+      - action: explain-code-experts@v1
+        args:
+          gt: 10
+
+# To simplify the automations section, some calculations are placed under unique YAML keys defined here.
+# Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
+# This section could also appear ahead of the automations section.
+
+author:
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
+
+teams:
+  build_scan:
+    members:
+      - 'alllex'
+      - 'wolfs'
+  dev_prod:
+    members:
+      - 'blindpirate'
+  execution:
+    members:
+      - 'asodja-DISABLED'
+      - 'lptr-DISABLED'
+      - 'FrauBoes-DISABLED'
+  ide:
+    members:
+      - 'hegyibalint'
+      - 'donat'
+      - 'reinsch82'
+  jvm:
+    members:
+      - 'big-guy'
+      - 'ghale'
+      - 'jvandort-DISABLED'
+      - 'octylFractal'
+      - 'tresat'

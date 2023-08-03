@@ -19,8 +19,8 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
@@ -29,7 +29,7 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample('codeQuality/codeQuality')
-    @Requires(TestPrecondition.STABLE_GROOVY) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
+    @Requires([UnitTestPreconditions.StableGroovy, UnitTestPreconditions.Jdk11OrLater]) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
     def "can generate reports with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)
         TestFile buildDir = projectDir.file('build')

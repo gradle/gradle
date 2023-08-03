@@ -17,20 +17,20 @@
 
 package org.gradle.nativeplatform.test.cunit
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.junit.Assume.assumeTrue
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@Requires(UnitTestPreconditions.CanInstallExecutable)
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample cunit = sample(temporaryFolder, 'cunit')

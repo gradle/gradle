@@ -38,6 +38,7 @@ import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 
 import javax.annotation.Nullable;
@@ -177,6 +178,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * Returns the project's cache dir.
      *
+     * <p>Note that this directory is managed by Gradle, and it assumes full ownership of its contents.
+     * Plugins and build logic should not store or modify any files or directories within this cache directory.
+     * 
      * @return project's cache dir, or null if the default location is to be used.
      */
     @Nullable
@@ -282,11 +286,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return The build file. May be null.
      *
      * @deprecated Setting custom build file to select the default project has been deprecated.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     @Nullable
     public File getBuildFile() {
+        logBuildOrSettingsFileDeprecation("buildFile");
         return buildFile;
     }
 
@@ -297,10 +302,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @deprecated Setting custom build file to select the default project has been deprecated.
      * Please use {@link #setProjectDir(File)} to specify the directory of the default project instead.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     public void setBuildFile(@Nullable File buildFile) {
+        logBuildOrSettingsFileDeprecation("buildFile");
         if (buildFile == null) {
             this.buildFile = null;
             setCurrentDir(null);
@@ -462,10 +468,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @deprecated Setting custom settings file for the build has been deprecated.
      * Please use {@link #setProjectDir(File)} to specify the directory of the default project instead.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     public void setSettingsFile(@Nullable File settingsFile) {
+        logBuildOrSettingsFileDeprecation("settingsFile");
         if (settingsFile == null) {
             this.settingsFile = null;
         } else {
@@ -482,13 +489,24 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return The settings file. May be null.
      *
      * @deprecated Setting custom build file to select the default project has been deprecated.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     @Nullable
     public File getSettingsFile() {
+        logBuildOrSettingsFileDeprecation("settingsFile");
         return settingsFile;
     }
+
+    private void logBuildOrSettingsFileDeprecation(String propertyName) {
+        DeprecationLogger.deprecateProperty(StartParameter.class, propertyName)
+            .withContext("Setting custom build file to select the default project has been deprecated.")
+            .withAdvice("Please use 'projectDir' to specify the directory of the default project instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "configuring_custom_build_layout")
+            .nagUser();
+    }
+
 
     /**
      * Adds the given file to the list of init scripts that are run before the build starts.  This list is in addition to the default init scripts.

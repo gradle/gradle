@@ -28,9 +28,9 @@ import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
+import org.gradle.configurationcache.serialization.CircularReferences
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.CircularReferences
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.ReadIdentities
 import org.gradle.configurationcache.serialization.ReadIsolate
@@ -203,8 +203,8 @@ class ConfigurationCacheFingerprintCheckerTest {
 
     private
     fun invalidationReasonForInitScriptsChange(
-        from: Iterable<Pair<File, HashCode?>>,
-        to: List<Pair<File, HashCode?>>
+        from: Iterable<Pair<File, HashCode>>,
+        to: List<Pair<File, HashCode>>
     ): InvalidationReason? = to.toMap().let { toMap ->
         checkFingerprintGiven(
             mock {
@@ -313,13 +313,16 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun push(codec: Codec<Any?>): Unit =
             undefined()
 
+        override fun push(owner: IsolateOwner): Unit =
+            undefined()
+
         override fun push(owner: IsolateOwner, codec: Codec<Any?>): Unit =
             undefined()
 
         override fun pop(): Unit =
             undefined()
 
-        override suspend fun forIncompatibleType(action: suspend () -> Unit) =
+        override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) =
             undefined()
 
         override fun writeNullableString(value: CharSequence?): Unit =
@@ -419,13 +422,16 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun push(codec: Codec<Any?>): Unit =
             undefined()
 
+        override fun push(owner: IsolateOwner): Unit =
+            undefined()
+
         override fun push(owner: IsolateOwner, codec: Codec<Any?>): Unit =
             undefined()
 
         override fun pop(): Unit =
             undefined()
 
-        override suspend fun forIncompatibleType(action: suspend () -> Unit) =
+        override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) =
             undefined()
 
         override fun readInt(): Int =

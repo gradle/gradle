@@ -69,8 +69,9 @@ dependencies {
 }
 
 task check {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == [${resolvedJars.collect { "'$it'" }.join(", ")}]
+        assert files.collect { it.name } == [${resolvedJars.collect { "'$it'" }.join(", ")}]
     }
 }
 """
@@ -115,14 +116,12 @@ dependencies {
     excluded 'org.gradle.test:direct:1.0'
 }
 
-def checkDeps(config, expectedDependencies) {
-    assert config*.name as Set == expectedDependencies as Set
-}
-
 task test {
+    def excluded = configurations.excluded
+    def extendedExcluded = configurations.extendedExcluded
     doLast {
-        checkDeps configurations.excluded, ['external-1.0.jar']
-        checkDeps configurations.extendedExcluded, ['external-1.0.jar']
+        assert excluded*.name == ['external-1.0.jar']
+        assert extendedExcluded*.name == ['external-1.0.jar']
     }
 }
 """
@@ -161,8 +160,9 @@ dependencies {
 }
 
 task check {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == [${expectedJars.collect { "'${it}.jar'" }.join(", ")}]
+        assert files.collect { it.name } == [${expectedJars.collect { "'${it}.jar'" }.join(", ")}]
     }
 }
 """
@@ -227,8 +227,9 @@ task check {
             }
 
             task checkDeps {
+                def runtimeClasspath = configurations.runtimeClasspath
                 doLast {
-                    assert configurations.runtimeClasspath*.name == ['a.jar', 'external-1.0.jar', 'b.jar']
+                    assert runtimeClasspath*.name == ['a.jar', 'external-1.0.jar', 'b.jar']
                 }
             }
 """
@@ -255,8 +256,9 @@ task check {
             }
 
             task resolve() {
+                def files = configurations.foo
                 doLast {
-                    configurations.foo.resolve()
+                    files.files
                 }
             }
         """
@@ -292,8 +294,9 @@ def checkDeps(config, expectedDependencies) {
 }
 
 task test {
+    def files = configurations.excluded
     doLast {
-        assert configurations.excluded.collect { it.name } == ['external-1.0.jar']
+        assert files.collect { it.name } == ['external-1.0.jar']
     }
 }
 """

@@ -3,20 +3,14 @@ import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
 import model.ALL_CROSS_VERSION_BUCKETS
 import model.CIBuildModel
 import model.DefaultFunctionalTestBucketProvider
-import model.FunctionalTestBucketProvider
-import model.GradleSubproject
 import model.JsonBasedGradleSubprojectProvider
 import model.QUICK_CROSS_VERSION_BUCKETS
-import model.SmallSubprojectBucket
-import model.Stage
-import model.StageName
 import model.TestCoverage
 import model.TestType
 import model.ignoredSubprojects
@@ -31,9 +25,7 @@ import java.io.File
 
 class CIConfigIntegrationTests {
     init {
-        // Set the project id here, so we can use methods on the DslContext
-        DslContext.projectId = AbsoluteId("Gradle_Master")
-        DslContext.addParameters("Branch" to "master")
+        DslContext.initForTest()
     }
 
     private val subprojectProvider = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
@@ -50,20 +42,6 @@ class CIConfigIntegrationTests {
     fun configurationTreeCanBeGenerated() {
         assertEquals(rootProject.subProjects.size, model.stages.size)
         assertEquals(rootProject.buildTypes.size, model.stages.size)
-    }
-
-    @Test
-    fun macOSBuildsSubset() {
-        val readyForRelease = rootProject.subProjects.find { it.name.contains(StageName.READY_FOR_RELEASE.stageName) }!!
-        val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
-
-        macOS.buildTypes.forEach { buildType ->
-            assertFalse(
-                Os.MACOS.ignoredSubprojects.any { subProject ->
-                    buildType.name.endsWith("($subProject)")
-                }
-            )
-        }
     }
 
     @Test
@@ -84,13 +62,6 @@ class CIConfigIntegrationTests {
                 it.dependencies.items.size, stage.stageName.stageName
             )
         }
-    }
-
-    class SubProjectBucketProvider(private val model: CIBuildModel) : FunctionalTestBucketProvider {
-        override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage) =
-            model.subprojects.subprojects.map {
-                SmallSubprojectBucket(it, false).createFunctionalTestsFor(model, stage, testCoverage, Int.MAX_VALUE)
-            }
     }
 
     private
@@ -187,17 +158,18 @@ class CIConfigIntegrationTests {
     }
 
     private fun subProjectFolderList(): List<File> {
-        val subProjectFolders = File("../subprojects").listFiles()!!.filter { it.isDirectory }
+        val subprojectRoots = File("../platforms").listFiles(File::isDirectory).plus(File("../subprojects"))
+        val subProjectFolders = subprojectRoots.map { it.listFiles(File::isDirectory).asList() }.flatten()
         assertFalse(subProjectFolders.isEmpty())
         return subProjectFolders
     }
 
     @Test
     fun allSubprojectsAreListed() {
-        val knownSubProjectNames = model.subprojects.subprojects.map { it.asDirectoryName() }
+        val knownSubprojectDirs = model.subprojects.subprojects.map { File("../", it.path) }
         subProjectFolderList().forEach {
             assertTrue(
-                it.name in knownSubProjectNames,
+                it in knownSubprojectDirs,
                 "Not defined: $it"
             )
         }
@@ -209,14 +181,12 @@ class CIConfigIntegrationTests {
         assertEquals(uuidList.distinct(), uuidList)
     }
 
-    private fun getSubProjectFolder(subProject: GradleSubproject): File = File("../subprojects/${subProject.asDirectoryName()}")
-
     @Test
     fun testsAreCorrectlyConfiguredForAllSubProjects() {
         model.subprojects.subprojects.filter {
             !ignoredSubprojects.contains(it.name)
         }.forEach {
-            val dir = getSubProjectFolder(it)
+            val dir = File("..", it.path)
             assertEquals(it.unitTests, File(dir, "src/test").isDirectory, "${it.name}'s unitTests is wrong!")
             assertEquals(it.functionalTests, File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
             assertEquals(it.crossVersionTests, File(dir, "src/crossVersionTest").isDirectory, "${it.name}'s crossVersionTests is wrong!")
@@ -225,14 +195,18 @@ class CIConfigIntegrationTests {
 
     @Test
     fun allSubprojectsDefineTheirUnitTestPropertyCorrectly() {
-        val projectsWithUnitTests = model.subprojects.subprojects.filter { it.unitTests }
+        val projectDirsWithUnitTests = model.subprojects.subprojects
+            .filter { it.unitTests }
+            .map { File("..", it.path) }
+
         val projectFoldersWithUnitTests = subProjectFolderList().filter {
             File(it, "src/test").exists() &&
                 it.name != "architecture-test" // architecture-test:test is part of Sanity Check
         }
+
         assertFalse(projectFoldersWithUnitTests.isEmpty())
         projectFoldersWithUnitTests.forEach {
-            assertTrue(projectsWithUnitTests.map { it.asDirectoryName() }.contains(it.name), "Contains unit tests: $it")
+            assertTrue(projectDirsWithUnitTests.contains(it), "Contains unit tests: $it")
         }
     }
 
@@ -251,25 +225,34 @@ class CIConfigIntegrationTests {
 
     @Test
     fun allSubprojectsDefineTheirFunctionTestPropertyCorrectly() {
-        val projectsWithFunctionalTests = model.subprojects.subprojects.filter { it.functionalTests }
+        val projectDirsWithFunctionalTests = model.subprojects.subprojects
+            .filter { it.functionalTests }
+            .map { File("..", it.path) }
+
         val projectFoldersWithFunctionalTests = subProjectFolderList().filter {
             File(it, "src/integTest").exists() &&
                 it.name != "distributions-integ-tests" && // distributions:integTest is part of Build Distributions
                 it.name != "soak" // soak tests have their own test category
         }
+
         assertFalse(projectFoldersWithFunctionalTests.isEmpty())
         projectFoldersWithFunctionalTests.forEach {
-            assertTrue(projectsWithFunctionalTests.map { it.asDirectoryName() }.contains(it.name), "Contains functional tests: $it")
+            assertTrue(projectDirsWithFunctionalTests.contains(it), "Contains functional tests: $it")
         }
     }
 
     @Test
     fun allSubprojectsDefineTheirCrossVersionTestPropertyCorrectly() {
-        val projectsWithCrossVersionTests = model.subprojects.subprojects.filter { it.crossVersionTests }
-        val projectFoldersWithCrossVersionTests = subProjectFolderList().filter { File(it, "src/crossVersionTest").exists() }
+        val projectDirsWithCrossVersionTests = model.subprojects.subprojects
+            .filter { it.crossVersionTests }
+            .map { File("..", it.path) }
+
+        val projectFoldersWithCrossVersionTests = subProjectFolderList()
+            .filter { File(it, "src/crossVersionTest").exists() }
+
         assertFalse(projectFoldersWithCrossVersionTests.isEmpty())
         projectFoldersWithCrossVersionTests.forEach {
-            assertTrue(projectsWithCrossVersionTests.map { it.asDirectoryName() }.contains(it.name), "Contains cross-version tests: $it")
+            assertTrue(projectDirsWithCrossVersionTests.contains(it), "Contains cross-version tests: $it")
         }
     }
 

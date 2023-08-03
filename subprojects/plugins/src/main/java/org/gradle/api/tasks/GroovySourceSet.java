@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  * org.gradle.api.plugins.GroovyPlugin}.
  *
  * @deprecated Using convention to contribute to source sets is deprecated. You can configure the groovy sources via the {@code GroovySourceDirectorySet} extension (e.g.
- * {@code sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class).setSrcDirs(...)}). This interface is scheduled for removal in Gradle 8.0.
+ * {@code sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class).setSrcDirs(...)}). This interface is scheduled for removal in Gradle 9.0.
  */
 @Deprecated
 public interface GroovySourceSet {

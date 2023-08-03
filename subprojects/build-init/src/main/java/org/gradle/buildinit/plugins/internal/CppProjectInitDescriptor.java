@@ -45,8 +45,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .fileComment("This generated file contains a sample C++ project to get you started.")
-            .fileComment("For more details take a look at the Building C++ applications and libraries chapter in the Gradle")
-            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_cpp_projects"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("details on building C++ applications and libraries", "building_cpp_projects"));
         configureBuildScript(settings, buildScriptBuilder);
     }
 
@@ -75,7 +74,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getSampleFor("building_cpp_" + getComponentType().pluralName()));
+        return Optional.of(documentationRegistry.getSampleForMessage("building_cpp_" + getComponentType().pluralName()));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);

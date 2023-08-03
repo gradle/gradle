@@ -19,9 +19,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.Flaky
+import org.gradle.util.GradleVersion
 import org.junit.Assume
 
+import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION
+
 abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec {
+
     def setup() {
         System.out.println("TAPI client is using Java " + clientJdkVersion)
 
@@ -214,7 +218,8 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
     def "tapi client can launch task with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
-        Assume.assumeTrue(gradleDaemonJdk!=null)
+        Assume.assumeTrue(gradleDaemonJdk != null)
+        sortOutNotSupportedNotWorkingCombinations(gradleVersion)
 
         when:
         succeeds("runTask",
@@ -228,8 +233,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
-
+        JavaVersion.VERSION_1_7 | MINIMUM_SUPPORTED_GRADLE_VERSION.version
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 
@@ -240,15 +244,16 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         JavaVersion.VERSION_1_8 | "6.9.2"
     }
 
+    private sortOutNotSupportedNotWorkingCombinations(String gradleVersion) {
+        Assume.assumeFalse(clientJdkVersion.majorVersion.toInteger() >= 16 && GradleVersion.version(gradleVersion) <= GradleVersion.version("4.0"))
+    }
+
     @Flaky
     def "tapi client can run build action with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
-        Assume.assumeTrue(gradleDaemonJdk!=null)
-
-        if (gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
-            executer.expectDeprecationWarning("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
-        }
+        Assume.assumeTrue(gradleDaemonJdk != null)
+        sortOutNotSupportedNotWorkingCombinations(gradleVersion)
 
         when:
         succeeds("buildAction",
@@ -262,8 +267,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
-
+        JavaVersion.VERSION_1_7 | MINIMUM_SUPPORTED_GRADLE_VERSION.version
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 

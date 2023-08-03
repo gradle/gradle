@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBuildValidationIntegrationTest {
     def "can query the included builds defined by an included build"() {
         given:
         def buildC = singleProjectBuild("buildC") {
@@ -29,25 +29,16 @@ class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBu
                 assert gradle.includedBuild("buildC").name == "buildC"
                 assert gradle.includedBuild("buildC").projectDir == file("${buildC.toURI()}")
                 assert gradle.includedBuilds.name == ["buildC"]
-
-                task broken {
-                    doLast {
-                        assert gradle.includedBuilds.name == ["buildC"]
-                        gradle.includedBuild("unknown")
-                    }
-                }
             """
+            validationTask(buildFile, "broken", """
+                assert gradle.includedBuilds.name == ["buildC"]
+                gradle.includedBuild("unknown")
+            """)
         }
         includeBuild(buildB)
 
-        buildA.buildFile << """
-            task broken {
-                dependsOn gradle.includedBuild("buildB").task(":broken")
-            }
-        """
-
         when:
-        fails(buildA, "broken")
+        fails(buildA, "buildB:broken")
 
         then:
         failure.assertHasCause("Included build 'unknown' not found in build 'buildB'.")
@@ -58,30 +49,19 @@ class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBu
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
                 assert gradle.includedBuilds.empty
-
-                task broken1 {
-                    doLast {
-                        assert gradle.includedBuilds.empty
-                        gradle.includedBuild("buildA")
-                    }
-                }
-                task broken2 {
-                    doLast {
-                        assert gradle.includedBuilds.empty
-                        gradle.includedBuild("buildB")
-                    }
-                }
             """
+            validationTask(buildFile, "broken1", """
+                assert gradle.includedBuilds.empty
+                gradle.includedBuild("buildA")
+            """)
+            validationTask(buildFile, "broken2", """
+                assert gradle.includedBuilds.empty
+                gradle.includedBuild("buildB")
+            """)
         }
         def buildB = singleProjectBuild("buildB") {
             settingsFile << """
                 includeBuild('${buildC.toURI()}')
-            """
-            buildFile << """
-                task broken {
-                    dependsOn gradle.includedBuild("buildC").task(":broken1")
-                    dependsOn gradle.includedBuild("buildC").task(":broken2")
-                }
             """
         }
         includeBuild(buildB)
@@ -93,11 +73,15 @@ class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBu
         """
 
         when:
-        executer.withArgument("--continue")
-        fails(buildA, "broken")
+        fails(buildA, "buildC:broken1")
 
         then:
         failure.assertHasCause("Included build 'buildA' not found in build 'buildC'.")
+
+        when:
+        fails(buildA, "buildC:broken2")
+
+        then:
         failure.assertHasCause("Included build 'buildB' not found in build 'buildC'.")
     }
 }

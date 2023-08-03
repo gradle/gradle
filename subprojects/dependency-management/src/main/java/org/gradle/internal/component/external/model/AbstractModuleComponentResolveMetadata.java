@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -27,15 +26,14 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
     private final ImmutableAttributesFactory attributesFactory;
@@ -124,11 +122,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public List<? extends DependencyMetadata> getSyntheticDependencies(String configuration) {
-        return Collections.emptyList();
-    }
-
-    @Override
     public List<String> getStatusScheme() {
         return statusScheme;
     }
@@ -153,7 +146,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return componentIdentifier.getDisplayName();
     }
 
-    @Nullable
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return schema;
@@ -191,7 +183,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
      * If it can not provide variants, absent must be returned to fall back to traditional configuration selection.
      */
     protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
-        return Optional.absent();
+        return Optional.empty();
     }
 
     @Override

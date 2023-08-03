@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
@@ -59,12 +58,7 @@ public class DefaultBuildResult implements BuildResult {
 
     @Override
     public List<String> taskPaths(TaskOutcome outcome) {
-        return Collections.unmodifiableList(CollectionUtils.collect(tasks(outcome), new Transformer<String, BuildTask>() {
-            @Override
-            public String transform(BuildTask buildTask) {
-                return buildTask.getPath();
-            }
-        }));
+        return Collections.unmodifiableList(CollectionUtils.collect(tasks(outcome), BuildTask::getPath));
     }
 
     @Nullable

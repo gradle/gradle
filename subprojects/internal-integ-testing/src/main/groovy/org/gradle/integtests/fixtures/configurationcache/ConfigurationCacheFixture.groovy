@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class ConfigurationCacheFixture {
-    static final String CONFIGURATION_CACHE_MESSAGE = "Configuration cache is an incubating feature."
     static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
     static final String CONFIGURE_ON_DEMAND_MESSAGE = "Configuration on demand is an incubating feature."
 
@@ -44,7 +43,6 @@ class ConfigurationCacheFixture {
      * Asserts that the configuration cache was not enabled.
      */
     void assertNotEnabled() {
-        spec.outputDoesNotContain(CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
         spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
         configurationCacheBuildOperations.assertNoConfigurationCache()
@@ -67,7 +65,7 @@ class ConfigurationCacheFixture {
 
     void assertStateStored(HasBuildActions details) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(details.loadsOnStore)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
@@ -90,7 +88,7 @@ class ConfigurationCacheFixture {
 
     void assertStateStoredWithProblems(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(details.runsTasks)
 
         spec.result.assertHasPostBuildOutput("Configuration cache entry ${details.storeAction}.")
 
@@ -113,9 +111,9 @@ class ConfigurationCacheFixture {
 
     void assertStateStoredAndDiscarded(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(false)
 
-        def message = "Configuration cache entry ${details.storeAction}."
+        def message = "Configuration cache entry ${details.storeAction}"
         boolean isFailure = spec.result instanceof ExecutionFailure
         if (isFailure) {
             spec.outputContains(message)
@@ -142,7 +140,7 @@ class ConfigurationCacheFixture {
 
     void assertStateRecreated(HasBuildActions details, HasInvalidationReason invalidationDetails) {
         assertHasRecreateReason(details, invalidationDetails)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(details.runsTasks)
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
         assertHasNoProblems()
     }
@@ -163,7 +161,7 @@ class ConfigurationCacheFixture {
 
     void assertStateRecreatedWithProblems(HasBuildActions details, HasInvalidationReason invalidationDetails, HasProblems problemDetails) {
         assertHasRecreateReason(details, invalidationDetails)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(false)
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
         assertHasProblems(problemDetails)
     }
@@ -240,7 +238,6 @@ class ConfigurationCacheFixture {
             // Runs in quiet mode, and does not log anything
             return
         }
-        spec.outputContains(CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
         spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
     }
@@ -346,6 +343,7 @@ class ConfigurationCacheFixture {
 
     trait HasBuildActions {
         boolean runsTasks = true
+        boolean loadsOnStore = true
 
         abstract String getStoreAction()
     }

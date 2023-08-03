@@ -18,29 +18,30 @@ package org.gradle.api.plugins.catalog.internal
 
 import com.google.common.collect.Interners
 import groovy.transform.Canonical
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Subject
+import spock.lang.TempDir
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.function.Supplier
 
 class TomlWriterTest extends Specification {
 
-    private StringWriter output = new StringWriter()
-    private Model sourceModel
-    private Model outputModel
-
-    @Subject
-    private TomlWriter writer = new TomlWriter(output)
+    @TempDir
+    File tempTomlDir
 
     def "generates an equivalent file from an input (#file)"() {
-        parse(file)
+        given:
+        def sourceModel = parse("/org/gradle/api/plugins/catalog/internal/${file}.toml")
 
         when:
-        generateFromModel()
+        def outputModel = generateFromModel(sourceModel)
 
         then:
         outputModel == sourceModel
@@ -54,6 +55,10 @@ class TomlWriterTest extends Specification {
     }
 
     def "generated file contains model version"() {
+        given:
+        def output = new StringWriter()
+        def writer = new TomlWriter(output)
+
         when:
         writer.generate(Stub(DefaultVersionCatalog))
 
@@ -66,24 +71,43 @@ format.version = "1.1"
 """
     }
 
-    private void generateFromModel() {
-        writer.generate(sourceModel.deps)
-        outputModel = parse(new ByteArrayInputStream(output.toString().getBytes("utf-8")))
+    def "error contains absolute path"() {
+        when:
+        parse("/org/gradle/api/plugins/catalog/internal/wrong.toml")
+
+        then:
+        def exception = thrown(InvalidUserDataException.class)
+        exception.message.contains("In file '")
+        exception.message.contains("wrong.toml'")
     }
 
-    private Model parse(String fileName) {
-        sourceModel = parse(this.class.getResourceAsStream("${fileName}.toml"))
+    private Model generateFromModel(Model sourceModel) {
+        def tomlFile = Files.createTempFile(tempTomlDir.toPath(), "test-", ".toml")
+
+        def writer = Files.newBufferedWriter(tomlFile)
+        writer.withCloseable {
+            def tomlWriter = new TomlWriter(it)
+            tomlWriter.generate(sourceModel.deps)
+        }
+
+        return parse(tomlFile)
     }
 
-    private Model parse(InputStream ins) {
+    private Model parse(String resourceName) {
+        def resourceUri = this.class.getResource(resourceName).toURI()
+        def resourcePath = Paths.get(resourceUri)
+
+        return parse(resourcePath)
+    }
+
+    private Model parse(Path path) {
         def builder = new DefaultVersionCatalogBuilder("libs",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
             Stub(Supplier))
-        ins.withCloseable {
-            TomlCatalogFileParser.parse(it, builder)
-        }
+
+        TomlCatalogFileParser.parse(path, builder)
         return new Model(builder.build())
     }
 

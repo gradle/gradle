@@ -24,8 +24,9 @@ import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -411,29 +412,28 @@ class NativeBasePluginTest extends Specification {
     }
 
     def "adds Maven publications for component with main publication"() {
-        def usage1 = Stub(UsageContext)
         def artifact1 = Stub(PublishArtifact)
+        def variant1 = new DefaultSoftwareComponentVariant('variant1', ImmutableAttributes.EMPTY, [artifact1] as Set)
         artifact1.getFile() >> projectDir.file("artifact1")
-        usage1.artifacts >> [artifact1]
-        def variant1 = Stub(PublishableVariant)
-        variant1.name >> "debug"
-        variant1.usages >> [usage1]
-        variant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
+        variant1.artifacts >> [artifact1]
+        def publishableVariant1 = Stub(PublishableVariant)
+        publishableVariant1.name >> "debug"
+        publishableVariant1.usages >> [variant1]
+        publishableVariant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
-        def usage2 = Stub(UsageContext)
         def artifact2 = Stub(PublishArtifact)
+        def variant2 = new DefaultSoftwareComponentVariant('variant2', ImmutableAttributes.EMPTY, [artifact2] as Set)
         artifact2.getFile() >> projectDir.file("artifact1")
-        usage2.artifacts >> [artifact2]
-        def variant2 = Stub(PublishableVariant)
-        variant2.name >> "release"
-        variant2.usages >> [usage2]
-        variant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
+        def publishableVariant2 = Stub(PublishableVariant)
+        publishableVariant2.name >> "release"
+        publishableVariant2.usages >> [variant2]
+        publishableVariant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
 
         def doNotPublish = Stub(SoftwareComponentInternal)
 
         def mainVariant = Stub(TestVariant)
         mainVariant.name >> "main"
-        mainVariant.variants >> [variant1, variant2, doNotPublish]
+        mainVariant.variants >> [publishableVariant1, publishableVariant2, doNotPublish]
 
         def component = Stub(PublicationAwareComponent)
         component.mainPublication >> mainVariant

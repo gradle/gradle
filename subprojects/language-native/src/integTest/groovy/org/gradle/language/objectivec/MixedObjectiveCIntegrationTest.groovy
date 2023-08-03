@@ -20,13 +20,16 @@ import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedObjectiveCHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
 @RequiresInstalledToolChain(GCC_COMPATIBLE)
-@Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.NOT_MAC_OS_X])
+@Requires([
+    UnitTestPreconditions.NotWindows,
+    UnitTestPreconditions.NotMacOs
+])
 class MixedObjectiveCIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     @Override

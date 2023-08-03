@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -28,26 +29,26 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import javax.inject.Inject
 
 import static org.hamcrest.CoreMatchers.containsString
 
-@ConfigurationCacheTest
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not nag when service is used by task without a corresponding usesService call and feature preview is NOT enabled"() {
@@ -250,29 +251,6 @@ service: closed with value 11
         outputDoesNotContain "'Task#usesService'"
     }
 
-    def "does not nag when service is annotated with @ServiceReference (unnamed) and feature preview is enabled"() {
-        given:
-        serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.name}()")
-        buildFile """
-            def provider = gradle.sharedServices.registerIfAbsent("counterService", CountingService) {
-                parameters.initial = 10
-                maxParallelUsages = 1
-            }
-
-            task implicit(type: Consumer) {
-                counter.convention(provider)
-            }
-        """
-        enableStableConfigurationCache()
-
-        when:
-        succeeds 'implicit'
-
-        then:
-        outputDoesNotContain "'Task#usesService'"
-    }
-
     def "can inject shared build service by name into nested bean property when reference is annotated with @ServiceReference('...')"() {
         given:
         serviceImplementation()
@@ -321,12 +299,15 @@ service: closed with value 11
         """
     }
 
-    def "can inject shared build service by name when reference is annotated with @ServiceReference('...')"() {
+    def "can inject shared build service by name when reference is annotated with @ServiceReference('#name') and service type is #registeredServiceType"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.name}('counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}('$name')")
         buildFile """
-            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+
+            abstract class SubCountingService extends CountingService {}
+
+            gradle.sharedServices.registerIfAbsent("counter", $registeredServiceType) {
                 parameters.initial = 10
                 maxParallelUsages = 1
             }
@@ -334,8 +315,8 @@ service: closed with value 11
             task named(type: Consumer) {
                 // reference will be set by name
                 doLast {
-                    assert requiredServices.elements.any { service ->
-                        service.type == CountingService
+                    assert requiredServices.elements.collect { it.type }.any { registeredServiceType ->
+                        registeredServiceType.isAssignableFrom(${registeredServiceType})
                     }
                 }
             }
@@ -344,6 +325,87 @@ service: closed with value 11
 
         when:
         succeeds 'named'
+
+        then:
+        outputDoesNotContain "'Task#usesService'"
+        outputContains """
+service: created with value = 10
+service: value is 11
+service: closed with value 11
+        """
+
+        where:
+        name      | registeredServiceType
+        "counter" | "CountingService"
+        ""        | "CountingService"
+        "counter" | "SubCountingService"
+        ""        | "SubCountingService"
+    }
+
+    def "cannot inject shared build service without a name when multiple services exist"() {
+        given:
+        serviceImplementation()
+        // unnamed service implies type-based lookup
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}")
+        buildFile """
+            gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+            gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            task ambiguous(type: Consumer) {
+                // reference cannot be resolved by type as multiple services with the given type exist
+                doLast {
+                    counter.get()
+                }
+            }
+        """
+        enableStableConfigurationCache()
+
+        when:
+        fails 'ambiguous'
+
+        then:
+        errorOutput.contains("Cannot resolve service by type for type 'CountingService' when there are two or more instances. Please also provide a service name. Instances found: counter1: CountingService, counter2: CountingService.")
+    }
+
+    def "can declare a service reference without a name when multiple services exist if a value is explicitly assigned"() {
+        given:
+        serviceImplementation()
+        // unnamed service implies type-based lookup
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}")
+        buildFile """
+            def service1 = gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
+                parameters.initial = 1
+                maxParallelUsages = 1
+            }
+            def service2 = gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+            def service3 = gradle.sharedServices.registerIfAbsent("counter3", CountingService) {
+                parameters.initial = 100
+                maxParallelUsages = 1
+            }
+
+            task unambiguous(type: Consumer) {
+                // explicit assignment avoids ambiguity
+                counter.convention(service2)
+                // explicit usage declaration required to avoid warning
+                usesService(service2)
+                doLast {
+                    counter.get()
+                }
+            }
+        """
+        enableStableConfigurationCache()
+
+        when:
+        succeeds 'unambiguous'
 
         then:
         outputDoesNotContain "'Task#usesService'"
@@ -371,6 +433,7 @@ service: closed with value 11
             task named(type: Consumer) {
                 // override service with an explicit assignment
                 counter.set(counterProvider2)
+                usesService(counterProvider2)
             }
         """
         enableStableConfigurationCache()
@@ -574,6 +637,30 @@ service: closed with value 12
         result.assertNotOutput("service:")
     }
 
+    def "service is not instantiated if not used"() {
+        serviceImplementation()
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}")
+        buildFile """
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+            }
+
+            task unused(type: Consumer) {
+                shouldCount.set(false)
+                doLast {
+                    println("Service not used")
+                }
+            }
+        """
+
+        when:
+        run("unused")
+
+        then:
+        output.count("service:") == 0
+        output.count("Service not used") == 1
+    }
+
     def "can use service from task doFirst() or doLast() action"() {
         serviceImplementation()
         buildFile << """
@@ -662,8 +749,7 @@ service: closed with value 12
         outputContains("service: closed with value 12")
     }
 
-    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "false")
-    @UnsupportedWithConfigurationCache
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
@@ -710,8 +796,8 @@ service: closed with value 12
         outputContains("service: closed with value 11")
     }
 
-    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "true")
-    def "service used at configuration and execution time can be used with configuration cache"() {
+    @IgnoreIf({ GradleContextualExecuter.configCache }) // already covers CC behavior
+    def "service used at configuration is discarded before execution time when used with configuration cache"() {
         serviceImplementation()
         buildFile << """
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
@@ -726,16 +812,19 @@ service: closed with value 12
 
             provider.get().increment()
         """
+        executer.beforeExecute {
+            withArgument("--configuration-cache")
+            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
+        }
 
         when:
         run("count")
 
         then:
-        output.count("service:") == 4
-        outputContains("service: created with value = 10")
-        outputContains("service: value is 11")
-        outputContains("service: value is 12")
-        outputContains("service: closed with value 12")
+        output.count("service:") == 6
+        output.count("service: created with value = 10") == 2
+        output.count("service: value is 11") == 2
+        output.count("service: closed with value 11")
 
         when:
         run("count")
@@ -760,6 +849,149 @@ service: closed with value 12
 
         then:
         result.assertNotOutput("service:")
+    }
+
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/17559")
+    def "service provided by a plugin cannot be shared by subprojects with different classloaders"() {
+        settingsFile """
+        pluginManagement {
+            includeBuild 'plugin1'
+            includeBuild 'plugin2'
+        }
+        include 'subproject1'
+        include 'subproject2'
+        """
+        // plugin 1 declares a service
+        groovyFile(file("plugin1/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        groovyFile(file("plugin1/src/main/groovy/my.plugin1.gradle"), """
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            abstract class MyService implements BuildService<BuildServiceParameters.None> {
+                String hello(String message) {
+                    "Hello, \$message"
+                }
+            }
+
+            def myService = gradle.sharedServices.registerIfAbsent("test", MyService) {}
+
+            project.task('hello') {
+                def projectName = project.name
+                doLast {
+                    assert MyService == myService.type
+                    println(myService.get().hello(projectName))
+                }
+            }
+        """)
+        // plugin 2
+        groovyFile(file("plugin2/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        groovyFile(file("plugin2/src/main/groovy/my.plugin2.gradle"), "/* no code needed */")
+        // subproject1 and subproject2 apply different sets of plugins, so get different classloaders
+        groovyFile(file("subproject1/build.gradle"), """
+        plugins {
+            id 'my.plugin1'
+            id 'my.plugin2'
+        }
+        """)
+        groovyFile(file("subproject2/build.gradle"), """
+        plugins {
+            // must include the plugin contributing the build service,
+            // and must be a different ordered set than the other project
+            // or else both subprojects are built with the same classloader
+            id 'my.plugin2'
+            id 'my.plugin1'
+        }
+        """)
+
+        when:
+        fails("hello")
+
+        then:
+        outputContains """
+> Task :subproject1:hello
+Hello, subproject1
+"""
+        outputContains """
+> Task :subproject2:hello FAILED
+"""
+        failureDescriptionContains("Execution failed for task ':subproject2:hello'.")
+        failureCauseContains("assert MyService == myService.type")
+    }
+
+    def "service provided by a plugin can be shared by subprojects with different classloaders when using by-type service references"() {
+        settingsFile """
+        pluginManagement {
+            includeBuild 'plugin1'
+            includeBuild 'plugin2'
+        }
+        include 'subproject1'
+        include 'subproject2'
+        """
+        // plugin 1 declares a service
+        groovyFile(file("plugin1/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        groovyFile(file("plugin1/src/main/groovy/my.plugin1.gradle"), """
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            abstract class MyService implements BuildService<BuildServiceParameters.None> {
+                String hello(String message) {
+                    "Hello, \$message"
+                }
+            }
+
+            gradle.sharedServices.registerIfAbsent("test-" + ${UUID.name}.randomUUID(), MyService) {}
+
+            abstract class HelloTask extends DefaultTask {
+                @$ServiceReference.name
+                abstract Property<MyService> getMyServiceReference()
+
+                @$Internal.name
+                abstract Property<String> getProjectName()
+
+                @TaskAction
+                def go() {
+                    println(myServiceReference.get().hello(projectName.get()))
+                }
+            }
+
+            project.tasks.register('hello', HelloTask) {
+                projectName = project.name
+                doLast {
+                    assert MyService == myServiceReference.type
+                }
+            }
+        """)
+
+        // plugin 2
+        groovyFile(file("plugin2/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        groovyFile(file("plugin2/src/main/groovy/my.plugin2.gradle"), "/* no code needed */")
+        // subproject1 and subproject2 apply different sets of plugins, so get different classloaders
+        groovyFile(file("subproject1/build.gradle"), """
+        plugins {
+            id 'my.plugin1'
+            id 'my.plugin2'
+        }
+        """)
+        groovyFile(file("subproject2/build.gradle"), """
+        plugins {
+            // must include the plugin contributing the build service,
+            // and must be a different ordered set than the other project
+            // or else both subprojects are built with the same classloader
+            id 'my.plugin2'
+            id 'my.plugin1'
+        }
+        """)
+
+        when:
+        succeeds(":subproject1:hello")
+
+        then:
+        outputContains("Hello, subproject1")
+
+        when:
+        succeeds(":subproject2:hello")
+
+        then:
+        outputContains("Hello, subproject2")
     }
 
     def "plugin applied to multiple projects can register a shared service"() {
@@ -1239,6 +1471,54 @@ service: closed with value 12
         }
     }
 
+    def "should not resolve providers when computing shared resources"() {
+        serviceImplementation()
+        buildFile """
+            import ${Inject.name}
+
+            def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+            }
+
+            abstract class NestedBean {
+                @Input
+                String getProperty() {
+                    "some-property";
+                }
+            }
+
+            abstract class Greeter extends DefaultTask {
+                @Inject
+                abstract ObjectFactory getObjects()
+
+                @Nested
+                final Property<NestedBean> unrelated = objects.property(NestedBean).convention(project.providers.provider {
+                    println("Resolving provider")
+                    def trace = new Throwable().getStackTrace()
+                    def getSharedResources = ${AbstractTask.name}.methods.find { it.name == "getSharedResources" }
+                    assert getSharedResources != null
+                    assert !trace.any {
+                        it.className == "${AbstractTask.name}" && it.methodName == getSharedResources.name
+                    }
+                    objects.newInstance(NestedBean)
+                })
+                @Internal
+                final Property<String> subject = project.objects.property(String).value("World")
+            }
+
+            tasks.register('hello', Greeter) {
+                it.usesService(serviceProvider)
+                doLast {
+                    println("Hello, \${subject.get()}")
+                }
+            }
+        """
+        expect:
+        succeeds("hello")
+        outputContains("Hello, World")
+        outputContains("Resolving provider")
+    }
+
     private void enableStableConfigurationCache() {
         settingsFile '''
             enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
@@ -1260,15 +1540,19 @@ service: closed with value 12
         """
     }
 
-    private void customTaskUsingServiceViaProperty(String annotationSnippet = "@Internal") {
-        buildFile << """
+    private void customTaskUsingServiceViaProperty(String annotationSnippet = "@Internal", TestFile targetBuildFile = buildFile) {
+        targetBuildFile << """
             abstract class Consumer extends DefaultTask {
                 ${annotationSnippet}
                 abstract Property<CountingService> getCounter()
+                @$Internal.name
+                final Property<Boolean> shouldCount = project.objects.property(Boolean).convention(true)
 
                 @TaskAction
                 def go() {
-                    counter.get().increment()
+                    if (shouldCount.get()) {
+                        counter.get().increment()
+                    }
                 }
             }
         """

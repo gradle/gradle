@@ -22,7 +22,7 @@ import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.component.external.model.ImmutableCapability
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.TestUtil
 
@@ -72,6 +72,6 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
     }
 
     private static Capability capability(String name) {
-        return new ImmutableCapability("test", name, "1.16")
+        return new DefaultImmutableCapability("test", name, "1.16")
     }
 }

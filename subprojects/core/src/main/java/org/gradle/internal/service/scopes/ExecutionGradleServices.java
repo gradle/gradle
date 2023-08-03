@@ -22,7 +22,7 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -49,6 +49,7 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CleanupStaleOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
@@ -70,8 +71,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.GradleVersion;
@@ -82,8 +81,8 @@ import java.util.function.Supplier;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class ExecutionGradleServices {
-    ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCache cacheRepository) {
-        return new DefaultExecutionHistoryCacheAccess(cacheRepository);
+    ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheBuilderFactory) {
+        return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
     }
 
     ExecutionHistoryStore createExecutionHistoryStore(
@@ -100,9 +99,9 @@ public class ExecutionGradleServices {
         );
     }
 
-    OutputFilesRepository createOutputFilesRepository(BuildScopedCache cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        PersistentCache cacheAccess = cacheRepository
-            .crossVersionCache("buildOutputCleanup")
+    OutputFilesRepository createOutputFilesRepository(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        PersistentCache cacheAccess = cacheBuilderFactory
+            .createCrossVersionCacheBuilder("buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Build Output Cleanup Cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
@@ -138,9 +137,10 @@ public class ExecutionGradleServices {
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
         // @formatter:off
         return new DefaultExecutionEngine(documentationRegistry,
-            new IdentifyStep<>(
+            new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
+            new ExecuteWorkBuildOperationFiringStep<>(buildOperationExecutor,
             new CleanupStaleOutputsStep<>(buildOperationExecutor, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
@@ -162,11 +162,7 @@ public class ExecutionGradleServices {
             new CancelExecutionStep<>(cancellationToken,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))))))))));
+        ))))))))))))))))))))))))));
         // @formatter:on
-    }
-
-    SharedResourceLeaseRegistry createSharedResourceLeaseRegistry(ResourceLockCoordinationService coordinationService) {
-        return new SharedResourceLeaseRegistry(coordinationService);
     }
 }

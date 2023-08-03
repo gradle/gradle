@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
@@ -33,6 +34,7 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
+import org.gradle.internal.buildtree.InitDeprecationLoggingActionExecutor;
 import org.gradle.internal.buildtree.ProblemReportingBuildActionRunner;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -70,6 +72,7 @@ import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
@@ -226,9 +229,11 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             ExceptionAnalyser exceptionAnalyser,
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
-            InternalOptions options
+            InternalOptions options,
+            ProblemDiagnosticsFactory problemDiagnosticsFactory,
+            StartParameter startParameter
         ) {
-            return new RootBuildLifecycleBuildActionExecutor(
+            return new InitDeprecationLoggingActionExecutor(new RootBuildLifecycleBuildActionExecutor(
                 buildStateRegistry,
                 new BuildCompletionNotifyingBuildActionRunner(
                     new FileSystemWatchingBuildActionRunner(
@@ -252,7 +257,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             buildRequestMetaData,
                             buildLoggerFactory),
                         options),
-                    gradleEnterprisePluginManager));
+                    gradleEnterprisePluginManager)),
+                problemDiagnosticsFactory, eventEmitter, startParameter);
         }
 
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {

@@ -21,7 +21,6 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.execution.EntryTaskSelector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.ExecutionResult
-import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.buildtree.BuildTreeWorkController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
@@ -33,13 +32,17 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private val workGraph: BuildTreeWorkGraphController,
     private val cache: BuildTreeConfigurationCache,
     private val buildRegistry: BuildStateRegistry,
-    private val eventListenerRegistry: BuildEventListenerRegistryInternal,
-    private val startParameter: ConfigurationCacheStartParameter
+    private val startParameter: ConfigurationCacheStartParameter,
 ) : BuildTreeWorkController {
 
     override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): ExecutionResult<Void> {
+        val graphBuilder: BuildTreeWorkGraphBuilder? = taskSelector?.let { selector ->
+            { buildState ->
+                addFinalization(buildState, selector::postProcessExecutionPlan)
+            }
+        }
         val executionResult = workGraph.withNewWorkGraph { graph ->
-            val result = cache.loadOrScheduleRequestedTasks(graph) {
+            val result = cache.loadOrScheduleRequestedTasks(graph, graphBuilder) {
                 workPreparer.scheduleRequestedTasks(graph, taskSelector)
             }
             if (!result.wasLoadedFromCache && !result.entryDiscarded && startParameter.loadAfterStore) {
@@ -53,11 +56,16 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             return executionResult
         }
 
-        eventListenerRegistry.unsubscribeAll()
-        buildRegistry.resetStateForAllBuilds()
+        cache.finalizeCacheEntry()
+        buildRegistry.visitBuilds { build ->
+            build.beforeModelReset().rethrow()
+        }
+        buildRegistry.visitBuilds { build ->
+            build.resetModel()
+        }
 
         return workGraph.withNewWorkGraph { graph ->
-            val finalizedGraph = cache.loadRequestedTasks(graph)
+            val finalizedGraph = cache.loadRequestedTasks(graph, graphBuilder)
             workExecutor.execute(finalizedGraph)
         }
     }

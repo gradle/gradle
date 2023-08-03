@@ -29,12 +29,13 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
     private final DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
     private File projectDirectory;
-    private List<LaunchableGradleTask> tasks = new LinkedList<LaunchableGradleTask>();
+    private List<LaunchableGradleTask> tasks = new LinkedList<>();
     private String name;
     private String description;
     private DefaultProjectIdentifier projectIdentifier;
     private DefaultGradleProject parent;
-    private List<? extends DefaultGradleProject> children = new LinkedList<DefaultGradleProject>();
+    private List<? extends DefaultGradleProject> children = new LinkedList<>();
+    private String buildTreePath;
 
     public String getName() {
         return name;
@@ -144,5 +145,14 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
 
     public DefaultGradleScript getBuildScript() {
         return buildScript;
+    }
+
+    public DefaultGradleProject setBuildTreePath(String buildTreePath) {
+        this.buildTreePath = buildTreePath;
+        return this;
+    }
+
+    public String getBuildTreePath() {
+        return buildTreePath;
     }
 }

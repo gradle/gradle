@@ -18,20 +18,16 @@ package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
-import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
-import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
-import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
+import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.serialization.Transient;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -44,7 +40,9 @@ import java.io.File;
 @UntrackedTask(because = "Gradle doesn't understand the data structures")
 public abstract class GenerateIvyDescriptor extends DefaultTask {
 
-    private IvyModuleDescriptorSpec descriptor;
+    private Transient.Var<IvyModuleDescriptorSpec> descriptor = Transient.varOf();
+    private final Cached<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = Cached.of(this::computeIvyDescriptorFileSpec);
+
     private Object destination;
 
     @Inject
@@ -59,11 +57,11 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      */
     @Internal
     public IvyModuleDescriptorSpec getDescriptor() {
-        return descriptor;
+        return descriptor.get();
     }
 
     public void setDescriptor(IvyModuleDescriptorSpec descriptor) {
-        this.descriptor = descriptor;
+        this.descriptor.set(descriptor);
     }
 
     /**
@@ -99,42 +97,12 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
+         ivyDescriptorSpec.get().writeTo(getDestination());
+    }
+
+    IvyDescriptorFileGenerator.DescriptorFileSpec computeIvyDescriptorFileSpec() {
         IvyModuleDescriptorSpecInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
-
-        IvyDescriptorFileGenerator ivyGenerator = new IvyDescriptorFileGenerator(descriptorInternal.getProjectIdentity(),
-                                                                                 descriptorInternal.writeGradleMetadataMarker(),
-                                                                                 descriptorInternal.getVersionMappingStrategy());
-        ivyGenerator.setStatus(descriptorInternal.getStatus());
-        ivyGenerator.setBranch(descriptorInternal.getBranch());
-        ivyGenerator.setExtraInfo(descriptorInternal.getExtraInfo().asMap());
-
-        for (IvyModuleDescriptorAuthor ivyAuthor : descriptorInternal.getAuthors()) {
-            ivyGenerator.addAuthor(ivyAuthor);
-        }
-
-        for (IvyModuleDescriptorLicense ivyLicense : descriptorInternal.getLicenses()) {
-            ivyGenerator.addLicense(ivyLicense);
-        }
-
-        ivyGenerator.setDescription(descriptorInternal.getDescription());
-
-        for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
-            ivyGenerator.addConfiguration(ivyConfiguration);
-        }
-
-        for (IvyArtifact ivyArtifact : descriptorInternal.getArtifacts()) {
-            ivyGenerator.addArtifact(ivyArtifact);
-        }
-
-        for (IvyDependencyInternal ivyDependency : descriptorInternal.getDependencies()) {
-            ivyGenerator.addDependency(ivyDependency);
-        }
-
-        for (IvyExcludeRule excludeRule : descriptorInternal.getGlobalExcludes()) {
-            ivyGenerator.addGlobalExclude(excludeRule);
-        }
-
-        ivyGenerator.withXml(descriptorInternal.getXmlAction()).writeTo(getDestination());
+        return IvyDescriptorFileGenerator.generateSpec(descriptorInternal);
     }
 
     private static IvyModuleDescriptorSpecInternal toIvyModuleDescriptorInternal(IvyModuleDescriptorSpec ivyModuleDescriptorSpec) {

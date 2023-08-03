@@ -18,6 +18,7 @@ package org.gradle
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.util.internal.DefaultGradleVersion
 
@@ -107,7 +108,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY) == warningsSummary
         output.contains("You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.") == warningsSummary
-        output.contains(LoggingDeprecatedFeatureHandler.WARNING_LOGGING_DOCS_MESSAGE) == warningsSummary
+        output.contains(documentationRegistry.getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")) == warningsSummary
 
         and: "system stack frames are filtered"
         !output.contains('jdk.internal.')
@@ -168,11 +169,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarnings(1)
         executer.usingInitScript(initScript)
         run '-s'
 
         then:
+        output.contains("Initialization script '${initScript}': line 3")
         output.contains('init.gradle:3)')
 
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
@@ -248,6 +250,51 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         'with full stacktrace'    | true
     }
 
+    def "reports line numbers for deprecations in builds scripts for buildSrc and included builds"() {
+        settingsFile << """
+            includeBuild("included")
+        """
+        buildFile << """
+            task broken {
+                doLast {
+                    ${deprecatedMethodUsage()}
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            task broken {
+                doLast {
+                    ${deprecatedMethodUsage()}
+                }
+            }
+        """
+        file("included/build.gradle") << """
+            task broken {
+                doLast {
+                    ${deprecatedMethodUsage()}
+                }
+            }
+        """
+
+        expect:
+        2.times {
+            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+            run("broken", "buildSrc:broken", "included:broken")
+
+            outputContains("Build file '${file("included/build.gradle")}': line 5")
+            outputContains("Build file '${file("buildSrc/build.gradle")}': line 5")
+            outputContains("Build file '${buildFile}': line 5")
+        }
+    }
+
+    String deprecatedMethodUsage() {
+        return """
+            ${DeprecationLogger.name}.deprecateMethod(Task.class, "someFeature()").willBeRemovedInGradle9().undocumented().nagUser();
+        """
+    }
+
     void assertFullStacktraceResult(boolean fullStacktraceEnabled, int warningsCount) {
         if (warningsCount == 0) {
             assert output.count('\tat') == 0 && output.count(RUN_WITH_STACKTRACE) == 0
@@ -257,5 +304,4 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             assert output.count('\tat') == 4 && output.count(RUN_WITH_STACKTRACE) == 4
         }
     }
-
 }

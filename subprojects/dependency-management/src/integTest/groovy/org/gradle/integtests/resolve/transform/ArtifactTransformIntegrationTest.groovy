@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
+import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -327,6 +327,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 dependencies {
                     artifactTypes {
                         blue {
+                            // Intentionally use different attributes in app2 vs app's artifactType registry
                             attributes.attribute(contents, 'bin')
                         }
                     }
@@ -2597,17 +2598,17 @@ Found the following transforms:
 
         given:
         buildFile << """
-            import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
+            import org.gradle.api.internal.artifacts.transform.TransformExecutionListener
             import org.gradle.internal.event.ListenerManager
 
-            project.services.get(ListenerManager).addListener(new ArtifactTransformListener() {
+            project.services.get(ListenerManager).addListener(new TransformExecutionListener() {
                 @Override
-                void beforeTransformerInvocation(Describable transformer, Describable subject) {
+                void beforeTransformExecution(Describable transformer, Describable subject) {
                     println "Before transformer \${transformer.displayName} on \${subject.displayName}"
                 }
 
                 @Override
-                void afterTransformerInvocation(Describable transformer, Describable subject) {
+                void afterTransformExecution(Describable transformer, Describable subject) {
                     println "After transformer \${transformer.displayName} on \${subject.displayName}"
                 }
             })
@@ -2638,11 +2639,24 @@ Found the following transforms:
         outputContains("After transformer FileSizer on lib.jar (project :lib)")
 
         and:
-        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            it.failure == null
-            displayName == "Transform lib.jar (project :lib) with FileSizer"
-            details.transformerName == "FileSizer"
-            details.subjectName == "lib.jar (project :lib)"
+        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
+        executeTransformationOp.failure == null
+        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with FileSizer"
+        with(executeTransformationOp.details) {
+            transformerName == "FileSizer"
+            subjectName == "lib.jar (project :lib)"
+            with(plannedTransformStepIdentity) {
+                nodeType == "TRANSFORM_STEP"
+                consumerBuildPath == ":"
+                consumerProjectPath == ":app"
+                componentId == [buildPath: ":", projectPath: ":lib"]
+                sourceAttributes == [artifactType: "jar", usage: "api"]
+                targetAttributes == [artifactType: "size", usage: "api"]
+                capabilities == [[group: "root", name: "lib", version: "unspecified"]]
+                artifactName == "lib.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformActionClass == "FileSizer"
         }
     }
 
@@ -2651,17 +2665,17 @@ Found the following transforms:
 
         given:
         buildFile << """
-            import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
+            import org.gradle.api.internal.artifacts.transform.TransformExecutionListener
             import org.gradle.internal.event.ListenerManager
 
-            project.services.get(ListenerManager).addListener(new ArtifactTransformListener() {
+            project.services.get(ListenerManager).addListener(new TransformExecutionListener() {
                 @Override
-                void beforeTransformerInvocation(Describable transformer, Describable subject) {
+                void beforeTransformExecution(Describable transformer, Describable subject) {
                     println "Before transformer \${transformer.displayName} on \${subject.displayName}"
                 }
 
                 @Override
-                void afterTransformerInvocation(Describable transformer, Describable subject) {
+                void afterTransformExecution(Describable transformer, Describable subject) {
                     println "After transformer \${transformer.displayName} on \${subject.displayName}"
                 }
             })
@@ -2698,10 +2712,24 @@ Found the following transforms:
         outputContains("After transformer BrokenTransform on lib.jar (project :lib)")
 
         and:
-        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            displayName == "Transform lib.jar (project :lib) with BrokenTransform"
-            details.transformerName == "BrokenTransform"
-            details.subjectName == "lib.jar (project :lib)"
+        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
+        executeTransformationOp.failure != null
+        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with BrokenTransform"
+        with(executeTransformationOp.details) {
+            transformerName == "BrokenTransform"
+            subjectName == "lib.jar (project :lib)"
+            with(plannedTransformStepIdentity) {
+                nodeType == "TRANSFORM_STEP"
+                consumerBuildPath == ":"
+                consumerProjectPath == ":app"
+                componentId == [buildPath: ":", projectPath: ":lib"]
+                sourceAttributes == [artifactType: "jar", usage: "api"]
+                targetAttributes == [artifactType: "size", usage: "api"]
+                capabilities == [[group: "root", name: "lib", version: "unspecified"]]
+                artifactName == "lib.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformActionClass == "BrokenTransform"
         }
     }
 
@@ -2794,6 +2822,6 @@ Found the following transforms:
                     println "capabilities: " + artifacts.collect { it.variant.capabilities }
                 }
             }
-"""
+        """
     }
 }

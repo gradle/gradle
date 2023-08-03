@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.utils.PGPUtils;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.security.internal.PGPUtils;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 

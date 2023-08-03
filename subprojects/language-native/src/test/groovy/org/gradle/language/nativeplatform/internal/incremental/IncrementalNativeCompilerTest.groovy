@@ -19,7 +19,7 @@ import com.google.common.collect.Sets
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResults
-import org.gradle.cache.PersistentStateCache
+import org.gradle.cache.ObjectHolder
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,7 +33,7 @@ class IncrementalNativeCompilerTest extends Specification {
 
     def delegateCompiler = Mock(Compiler)
     def outputs = Mock(TaskOutputsInternal)
-    def compileStateCache = Mock(PersistentStateCache)
+    def compileStateCache = Mock(ObjectHolder)
     def incrementalCompilation = Mock(IncrementalCompilation)
     def deleter = TestFiles.deleter()
     def compiler = new IncrementalNativeCompiler(outputs, delegateCompiler, deleter, compileStateCache, incrementalCompilation)

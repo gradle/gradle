@@ -293,8 +293,6 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         then:
         result.assertTaskExecuted(":buildSrc:compileJava")
         notifications.recordedOps.findAll { it.detailsType == ConfigureProjectBuildOperationType.Details.name }.size() == 2
-        notifications.recordedOps.findAll { it.detailsType == ExecuteTaskBuildOperationType.Details.name }.size() == 14 // including all buildSrc task execution events
+        notifications.recordedOps.findAll { it.detailsType == ExecuteTaskBuildOperationType.Details.name }.size() == 6 // including all buildSrc task execution events
     }
-
-
 }

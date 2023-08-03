@@ -54,4 +54,27 @@ class ConfigurationCacheDirIntegrationTest extends AbstractConfigurationCacheInt
         then:
         configurationCache.assertStateLoaded()
     }
+
+    def "configuration cache honours org.gradle.projectcachedir"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'help', '-Dorg.gradle.projectcachedir=custom-cache-dir'
+
+        then:
+        !file('.gradle/configuration-cache').exists()
+
+        and:
+        file('custom-cache-dir/configuration-cache').isDirectory()
+
+        and:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'help', '-Dorg.gradle.projectcachedir=custom-cache-dir'
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
 }

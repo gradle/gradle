@@ -9,7 +9,7 @@ repositories {
 // tag::locking-file-name[]
 val scalaVersion = "2.12"
 dependencyLocking {
-    lockFile.set(file("$projectDir/locking/gradle-${scalaVersion}.lockfile"))
+    lockFile = file("$projectDir/locking/gradle-${scalaVersion}.lockfile")
 }
 // end::locking-file-name[]
 

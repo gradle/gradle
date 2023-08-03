@@ -16,6 +16,11 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.TaskAction
+import org.gradle.configurationcache.serialization.codecs.ClosureCodec
+
 class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "from-cache build fails when task action closure reads a project property"() {
         given:
@@ -23,12 +28,10 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             tasks.register("some") {
                 doFirst {
                     println(name) // task property is ok
-                    println(buildDir)
+                    println($expression)
                 }
             }
         """
-
-        configurationCacheRun ":some"
 
         when:
         configurationCacheFails ":some"
@@ -39,6 +42,12 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasFailure("Execution failed for task ':some'.") {
             it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
         }
+
+        where:
+        expression       | _
+        "buildDir"       | _
+        "this.buildDir"  | _
+        "owner.buildDir" | _
     }
 
     def "from-cache build fails when task action closure sets a project property"() {
@@ -47,12 +56,10 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             tasks.register("some") {
                 doFirst {
                     description = "broken" // task property is ok
-                    version = 1.2
+                    $expression = 1.2
                 }
             }
         """
-
-        configurationCacheRun ":some"
 
         when:
         configurationCacheFails ":some"
@@ -63,6 +70,12 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasFailure("Execution failed for task ':some'.") {
             it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
         }
+
+        where:
+        expression      | _
+        "version"       | _
+        "this.version"  | _
+        "owner.version" | _
     }
 
     def "from-cache build fails when task action closure invokes a project method"() {
@@ -74,8 +87,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
                 }
             }
         """
-
-        configurationCacheRun ":some"
 
         when:
         configurationCacheFails ":some"
@@ -102,8 +113,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        configurationCacheRun ":some"
-
         when:
         configurationCacheFails ":some"
 
@@ -127,8 +136,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
                 }
             }
         """
-
-        configurationCacheRun ":some"
 
         when:
         configurationCacheFails ":some"
@@ -155,7 +162,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
         executer.beforeExecute { withArguments("-I", initScript.absolutePath) }
-        configurationCacheRun ":some"
 
         when:
         configurationCacheFails ":some"
@@ -182,8 +188,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        configurationCacheRun ":some"
-
         when:
         configurationCacheFails ":some"
 
@@ -192,6 +196,73 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasLineNumber(5)
         failure.assertHasFailure("Could not evaluate onlyIf predicate for task ':some'.") {
             // The cause is not reported
+        }
+    }
+
+    def "discards implicit objects for Groovy closure"() {
+        given:
+        createDir("buildSrc") {
+            file("src/main/groovy/GroovyTask.groovy") << """
+                import ${DefaultTask.name}
+                import ${Internal.name}
+                import ${TaskAction.name}
+
+                class GroovyTask extends DefaultTask {
+                    @Internal
+                    List<Closure> actions = []
+
+                    void action() {
+                        actions.add { "Groovy closure in task with delegate=\$delegate, owner=\${owner.class.name}, this=\${this.class.name}" }
+                    }
+
+                    void actionWithDelegate() {
+                        def action = { "Groovy closure in task with custom delegate=\$delegate, owner=\${owner.class.name}, this=\${this.class.name}" }
+                        action.delegate = new Bean()
+                        actions.add(action)
+                    }
+
+                    void actionWithChainedDelegate() {
+                        def cl = {
+                            delegate = new Bean()
+                            actions.add { "nested Groovy closure in task with delegate=\$delegate, owner=\${owner.class.name}, this=\${this.class.name}" }
+                        }
+                        cl()
+                    }
+
+                    @TaskAction
+                    void run() {
+                        actions.forEach { action ->
+                            println action()
+                        }
+                    }
+                }
+                class Bean {
+                    final String source = "custom delegate"
+                }
+            """
+        }
+        buildFile """
+            task test(type: GroovyTask) {
+                action()
+                actionWithDelegate()
+                actionWithChainedDelegate()
+                actions.add { "Groovy closure in script with delegate=\$delegate, owner=\${owner.class.name}, this=\${this.class.name}" }
+                def action = { "Groovy closure in script with custom delegate=\$delegate, owner=\${owner.class.name}, this=\${this.class.name}" }
+                action.delegate = new Bean()
+                actions.add(action)
+            }
+        """
+
+        expect:
+        2.times {
+            configurationCacheRun("test")
+            def brokenObject = ClosureCodec.BrokenObject.name
+            def brokenScript = ClosureCodec.BrokenScript.name
+            outputContains("Groovy closure in task with delegate=null, owner=$brokenObject, this=$brokenObject")
+            outputContains("Groovy closure in task with custom delegate=null, owner=$brokenObject, this=$brokenObject")
+            outputContains("nested Groovy closure in task with delegate=null, owner=$brokenObject, this=$brokenObject")
+            outputContains("Groovy closure in script with delegate=null, owner=$brokenScript, this=$brokenScript")
+            outputContains("Groovy closure in script with custom delegate=null, owner=$brokenScript, this=$brokenScript")
         }
     }
 }

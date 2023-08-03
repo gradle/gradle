@@ -7,22 +7,22 @@ In this sample, we are testing Java projects with JUnit5; however, this applies 
 Concretely, we add a _convention plugin_ in `buildSrc` to share the integration test setup between multiple subprojects:
 
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[]"]
 include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[]"]
 ====
 
 And apply it in an application project:
 
 ====
-include::sample[dir="groovy",files="application/build.gradle[]"]
 include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="groovy",files="application/build.gradle[]"]
 ====
 
 And in library projects:
 
 ====
-include::sample[dir="groovy",files="utilities/build.gradle[]"]
 include::sample[dir="kotlin",files="utilities/build.gradle.kts[]"]
+include::sample[dir="groovy",files="utilities/build.gradle[]"]
 ====
 
 These additional tests can be executed with the `integrationTest` task or as part of lifecycle `check`:

@@ -29,9 +29,11 @@ import org.codehaus.groovy.classgen.GeneratorContext;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
+import org.codehaus.groovy.control.messages.ExceptionMessage;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
@@ -58,6 +60,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -73,7 +76,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
         static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec, ApiCompilerResult result) {
             if (spec.incrementalCompilationEnabled()) {
-                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec), result);
+                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec), result, new CompilationClassBackupService(spec, result));
             } else {
                 return new NoOpCompilationCustomizer();
             }
@@ -101,10 +104,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     private static class TrackingClassGenerationCompilationCustomizer extends IncrementalCompilationCustomizer {
         private final CompilationSourceDirs compilationSourceDirs;
         private final ApiCompilerResult result;
+        private final CompilationClassBackupService compilationClassBackupService;
 
-        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, ApiCompilerResult result) {
+        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, ApiCompilerResult result, CompilationClassBackupService compilationClassBackupService) {
             this.compilationSourceDirs = compilationSourceDirs;
             this.result = result;
+            this.compilationClassBackupService = compilationClassBackupService;
         }
 
         @Override
@@ -113,8 +118,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
 
         private void inspectClassNode(SourceUnit sourceUnit, ClassNode classNode) {
+            String classFqName = classNode.getName();
             String relativePath = compilationSourceDirs.relativize(new File(sourceUnit.getSource().getURI().getPath())).orElseThrow(IllegalStateException::new);
-            result.getSourceClassesMapping().computeIfAbsent(relativePath, key -> new HashSet<>()).add(classNode.getName());
+            result.getSourceClassesMapping().computeIfAbsent(relativePath, key -> new HashSet<>()).add(classFqName);
+            compilationClassBackupService.maybeBackupClassFile(classFqName);
             Iterator<InnerClassNode> iterator = classNode.getInnerClasses();
             while (iterator.hasNext()) {
                 inspectClassNode(sourceUnit, iterator.next());
@@ -257,13 +264,20 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         try {
                             WorkResult javaCompilerResult = javaCompiler.execute(spec);
                             if (javaCompilerResult instanceof ApiCompilerResult) {
-                                result.getSourceClassesMapping().putAll(((ApiCompilerResult) javaCompilerResult).getSourceClassesMapping());
+                                copyJavaCompilerResult((ApiCompilerResult) javaCompilerResult);
                             }
                         } catch (CompilationFailedException e) {
+                            Optional<ApiCompilerResult> partialResult = e.getCompilerPartialResult();
+                            partialResult.ifPresent(result -> copyJavaCompilerResult(result));
                             cu.getErrorCollector().addFatalError(new SimpleMessage(e.getMessage(), cu));
                         }
                     }
                 };
+            }
+
+            private void copyJavaCompilerResult(ApiCompilerResult javaCompilerResult) {
+                result.getSourceClassesMapping().putAll(javaCompilerResult.getSourceClassesMapping());
+                result.getBackupClassFiles().putAll(javaCompilerResult.getBackupClassFiles());
             }
         });
 
@@ -271,10 +285,16 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             unit.compile();
             return result;
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
+            if (isFatalException(e)) {
+                // This indicates a compiler bug and not a user error,
+                // so we cannot recover from such error: we need to force full recompilation.
+                throw new CompilationFatalException(e);
+            }
+
             System.err.println(e.getMessage());
             // Explicit flush, System.err is an auto-flushing PrintWriter unless it is replaced.
             System.err.flush();
-            throw new CompilationFailedException();
+            throw new CompilationFailedException(result);
         } finally {
             // Remove compile and AST types from the Groovy loader
             compilerGroovyLoader.discardTypesFrom(classPathLoader);
@@ -283,6 +303,27 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compileClasspathLoader.shutdown();
             CompositeStoppable.stoppable(classPathLoader, astTransformClassLoader).stop();
         }
+    }
+
+    /**
+     * Returns true if the exception is fatal, unrecoverable for the incremental compilation. Example of such error:
+     * <pre>
+     * error: startup failed:
+     * General error during instruction selection: java.lang.NoClassDefFoundError: Unable to load class ClassName due to missing dependency DependencyName
+     *   java.lang.RuntimeException: java.lang.NoClassDefFoundError: Unable to load class ClassName due to missing dependency DependencyName
+     *      at org.codehaus.groovy.control.CompilationUnit$IPrimaryClassNodeOperation.doPhaseOperation(CompilationUnit.java:977)
+     *      at org.codehaus.groovy.control.CompilationUnit.processPhaseOperations(CompilationUnit.java:672)
+     *      at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:636)
+     *      at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:611)
+     * </pre>
+     */
+    private static boolean isFatalException(org.codehaus.groovy.control.CompilationFailedException e) {
+        if (e instanceof MultipleCompilationErrorsException) {
+            // Groovy compiler wraps any uncontrolled exception (e.g. IOException, NoClassDefFoundError and similar) in a `ExceptionMessage`
+            return ((MultipleCompilationErrorsException) e).getErrorCollector().getErrors().stream()
+                .anyMatch(message -> message instanceof ExceptionMessage);
+        }
+        return false;
     }
 
     private static boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {

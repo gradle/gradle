@@ -17,12 +17,14 @@
 package org.gradle.integtests.tooling.m9
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.junit.Assume
 
+@TargetGradleVersion(">=3.0")
 class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolvedFileOrderingIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
@@ -40,6 +41,7 @@ allprojects {
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "result includes files from local and external components and file dependencies in a fixed order and with duplicates removed"() {
         mavenRepo.module("org", "test", "1.0")
             .artifact(classifier: 'from-main')
@@ -133,20 +135,20 @@ project(':c') {
 task show {
     doLast {
         println "artifacts 1: " + configurations.compile.incoming.artifacts.collect { it.file.name }
-        println "artifacts 2: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }
-        println "artifacts 3: " + configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name }
+        println "artifacts 2: " + configurations.compile.incoming.artifactView { }.artifacts.collect { it.file.name }
+        println "artifacts 3: " + configurations.compile.incoming.artifactView { lenient = true }.artifacts.collect { it.file.name }
 
         println "files 1: " + configurations.compile.incoming.files.collect { it.name }
         println "files 2: " + configurations.compile.files.collect { it.name }
         println "files 3: " + configurations.compile.resolve().collect { it.name }
-        println "files 4: " + configurations.compile.resolvedConfiguration.files.collect { it.name }
-        println "files 5: " + configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
+        println "files 4: " + configurations.compile.incoming.artifactView { }.files.collect { it.name }
+        println "files 5: " + configurations.compile.incoming.artifactView { lenient = true }.files.collect { it.name }
 
         println "files 6: " + configurations.compile.files { true }.collect { it.name }
         println "files 7: " + configurations.compile.fileCollection { true }.collect { it.name }
         println "files 8: " + configurations.compile.fileCollection { true }.files.collect { it.name }
-        println "files 9: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
-        println "files 10: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
+        println "files 9: " + configurations.compile.incoming.artifactView { }.files.collect { it.name }
+        println "files 10: " + configurations.compile.incoming.artifactView { lenient = true }.files.collect { it.name }
     }
 }
 """
@@ -157,9 +159,8 @@ task show {
         then:
         // local artifacts are not de-duplicated. This is documenting existing behaviour rather than desired behaviour
         outputContains("artifacts 1: [test-lib.jar, a.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-
-        // 'resolvedArtifacts' does not include artifacts from file dependencies
-        outputContains("artifacts 2: [a.jar, a.jar, b.jar, c.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
+        outputContains("artifacts 2: [test-lib.jar, a.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
+        outputContains("artifacts 3: [test-lib.jar, a.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
 
         outputContains("files 1: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
         outputContains("files 2: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
@@ -171,7 +172,7 @@ task show {
         outputContains("files 6: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, c.jar, c-lib.jar, test3-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar]")
         outputContains("files 7: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, c.jar, c-lib.jar, test3-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar]")
         outputContains("files 8: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, c.jar, c-lib.jar, test3-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar]")
-        outputContains("files 9: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, c.jar, c-lib.jar, test3-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar]")
-        outputContains("files 10: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, c.jar, c-lib.jar, test3-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar]")
+        outputContains("files 9: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
+        outputContains("files 10: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
     }
 }

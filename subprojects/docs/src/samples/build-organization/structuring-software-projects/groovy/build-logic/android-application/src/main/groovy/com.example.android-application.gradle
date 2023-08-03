@@ -5,6 +5,12 @@ plugins {
 
 group = 'com.example.myproduct'
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
 android {
     compileSdkVersion(28)
     defaultConfig {

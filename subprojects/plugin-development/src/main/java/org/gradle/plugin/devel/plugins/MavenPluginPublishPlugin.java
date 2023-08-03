@@ -21,6 +21,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -36,6 +38,9 @@ import javax.inject.Inject;
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
 abstract class MavenPluginPublishPlugin implements Plugin<Project> {
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
 
     @Inject
     public MavenPluginPublishPlugin() {
@@ -82,13 +87,14 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
 
     private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
         String pluginId = declaration.getId();
-        String pluginGroupId = coordinates.getGroupId();
-        String pluginArtifactId = coordinates.getArtifactId();
-        String pluginVersion = coordinates.getVersion();
         MavenPublicationInternal publication = (MavenPublicationInternal) publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
         publication.setAlias(true);
         publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);
         publication.setGroupId(pluginId);
+
+        Provider<String> groupProvider = getProviderFactory().provider(coordinates::getGroupId);
+        Provider<String> artifactIdProvider = getProviderFactory().provider(coordinates::getArtifactId);
+        Provider<String> versionProvider = getProviderFactory().provider(coordinates::getVersion);
         publication.getPom().withXml(new Action<XmlProvider>() {
             @Override
             public void execute(XmlProvider xmlProvider) {
@@ -97,11 +103,11 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
                 Node dependencies = root.appendChild(document.createElement("dependencies"));
                 Node dependency = dependencies.appendChild(document.createElement("dependency"));
                 Node groupId = dependency.appendChild(document.createElement("groupId"));
-                groupId.setTextContent(pluginGroupId);
+                groupId.setTextContent(groupProvider.get());
                 Node artifactId = dependency.appendChild(document.createElement("artifactId"));
-                artifactId.setTextContent(pluginArtifactId);
+                artifactId.setTextContent(artifactIdProvider.get());
                 Node version = dependency.appendChild(document.createElement("version"));
-                version.setTextContent(pluginVersion);
+                version.setTextContent(versionProvider.get());
             }
         });
         publication.getPom().getName().set(declaration.getDisplayName());

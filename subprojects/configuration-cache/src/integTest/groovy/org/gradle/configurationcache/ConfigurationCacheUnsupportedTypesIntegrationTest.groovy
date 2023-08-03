@@ -51,15 +51,17 @@ import org.gradle.api.attributes.CompatibilityRuleChain
 import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.ConfigurationArtifactView
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.LenientResolutionResult
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.artifacts.configurations.DefaultResolvableConfiguration
+import org.gradle.api.internal.artifacts.configurations.DefaultUnlockedConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler
@@ -82,6 +84,7 @@ import org.gradle.api.internal.attributes.DefaultCompatibilityRuleChain
 import org.gradle.api.internal.attributes.DefaultDisambiguationRuleChain
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSet
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.internal.tasks.DefaultTaskContainer
@@ -95,14 +98,89 @@ import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler.Script
 import org.gradle.initialization.DefaultSettings
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
+import spock.lang.Shared
 
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors.DefaultThreadFactory
 import java.util.concurrent.Executors.FinalizableDelegatedExecutorService
 import java.util.concurrent.ThreadFactory
 
-
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Shared
+    private def disallowedServiceTypesAtExecution = [Project, ProjectInternal, Gradle, GradleInternal]
+
+    def "reports in task when injected service of #serviceType accessed at execution time"() {
+        given:
+        buildFile << """
+            abstract class Foo extends DefaultTask {
+
+                @Inject
+                public abstract ${serviceType.name} getInjected()
+
+                @TaskAction
+                void action() {
+                    println(getInjected())
+                }
+            }
+
+            tasks.register('foo', Foo)
+        """
+
+        when:
+        configurationCacheRunLenient "foo"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(1)
+            withUniqueProblems(
+                "Build file 'build.gradle': line 9: accessing non-serializable type '${serviceType.name}'"
+            )
+        }
+
+        where:
+        serviceType << disallowedServiceTypesAtExecution
+    }
+
+    def "reports in plugin when service of #serviceType accessed at execution time"() {
+        given:
+        buildFile << """
+            abstract class MyPlugin implements Plugin<Project> {
+
+                @Inject
+                public abstract ${serviceType.name} getInjected()
+
+                void apply(Project target) {
+                    registerTask(this, target)
+                }
+
+                private void registerTask(MyPlugin plugin, Project project) {
+                    project.tasks.register("foo") {
+                        doFirst {
+                            println(plugin.getInjected())
+                        }
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+        """
+
+        when:
+        configurationCacheRunLenient "foo"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(1)
+            withUniqueProblems(
+                "Build file 'build.gradle': line 14: accessing non-serializable type '${serviceType.name}'"
+            )
+        }
+
+        where:
+        serviceType << disallowedServiceTypesAtExecution
+    }
+
 
     def "reports when task field references an object of type #baseType"() {
         buildFile << """
@@ -128,9 +206,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
                 @TaskAction
                 void run() {
-                    println "this.reference = " + badReference
-                    println "bean.reference = " + bean.badReference
-                    println "beanWithSameType.reference = " + beanWithSameType.badReference
+                    println "this.reference = " + badReference?.toString()
+                    println "bean.reference = " + bean.badReference?.toString()
+                    println "beanWithSameType.reference = " + beanWithSameType.badReference?.toString()
                 }
             }
 
@@ -145,12 +223,18 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(3)
+            withTotalProblemsCount(6)
             withUniqueProblems(
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '$concreteTypeName', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
             )
             withProblemsWithStackTraceCount(0)
         }
+
+        and:
+        outputContains("this.reference = null")
+        outputContains("bean.reference = null")
+        outputContains("beanWithSameType.reference = null")
 
         when:
         configurationCacheRunLenient "broken"
@@ -241,6 +325,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
                 private final beanWithSameType = new SomeBean()
 
                 SomeTask() {
+                    ${creator}
                     badField = ${reference}
                     bean.badField = ${reference}
                     beanWithSameType.badField = ${reference}
@@ -265,15 +350,22 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(3)
+            withTotalProblemsCount(9)
             withUniqueProblems(
-                "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
+                "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
+                "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
             withProblemsWithStackTraceCount(0)
         }
 
         when:
         configurationCacheRunLenient "broken"
+
+        and:
+        outputContains("this.reference = null")
+        outputContains("bean.reference = null")
+        outputContains("beanWithSameType.reference = null")
 
         then:
         problems.assertResultHasProblems(result) {
@@ -291,8 +383,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         outputContains("beanWithSameType.reference = null")
 
         where:
-        concreteType              | baseType           | reference                                            | deserializedValue
-        DefaultConfiguration      | Configuration      | "project.configurations.maybeCreate('some')"         | 'file collection'
-        DefaultSourceDirectorySet | SourceDirectorySet | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
+        concreteType                     | baseType           | creator                                     | reference                                            | deserializedValue
+        DefaultUnlockedConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultResolvableConfiguration   | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultSourceDirectorySet        | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 }

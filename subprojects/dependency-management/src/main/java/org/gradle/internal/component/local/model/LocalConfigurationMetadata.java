@@ -17,26 +17,21 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Transformer;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
-import java.util.List;
-import java.util.Set;
-
-public interface LocalConfigurationMetadata extends ConfigurationMetadata {
-
-    String getDescription();
-
-    Set<String> getExtendsFrom();
-
-    @Override
-    List<? extends LocalOriginDependencyMetadata> getDependencies();
+public interface LocalConfigurationMetadata extends ConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
 
     @Override
     ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
 
     /**
-     * Returns the files attached to this configuration, if any. These should be represented as dependencies, but are currently represented as files as a migration step.
+     * Returns a copy of this configuration metadata, except with all artifacts transformed by the given transformer.
+     *
+     * @param artifactTransformer A transformer applied to all artifacts and sub-variant artifacts.
+     *
+     * @return A copy of this metadata, with the given transformer applied to all artifacts.
      */
-    Set<LocalFileDependencyMetadata> getFiles();
+    LocalConfigurationMetadata copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer);
+
 }

@@ -22,8 +22,8 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -111,7 +111,7 @@ model {
         // TODO - need to verify that the debug info ended up in the binary
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "can configure the binaries of a C++ library"() {
         given:
@@ -288,7 +288,7 @@ model {
 
     @Issue("https://github.com/gradle/gradle-native/issues/368")
     @RequiresInstalledToolChain(VISUALCPP)
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "can configure output file for shared library on MSVC"() {
         given:
@@ -328,7 +328,7 @@ model {
         file("build/libs/hello/shared/runtime/new_output/_hello.dll").assertExists()
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "can link to #linkage library binary with custom output file"() {
         given:

@@ -17,8 +17,11 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 
 class IvyBrokenDescriptorIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    ResolveFailureTestFixture failedResolve = new ResolveFailureTestFixture(buildFile)
+
     def setup() {
         buildFile << """
             repositories {
@@ -27,8 +30,8 @@ class IvyBrokenDescriptorIntegrationTest extends AbstractHttpDependencyResolutio
                 }
             }
             configurations { compile }
-            task showBroken { doLast { println configurations.compile.files } }
         """
+        failedResolve.prepare("compile")
     }
 
     def "reports Ivy descriptor that cannot be parsed"() {
@@ -47,7 +50,8 @@ dependencies {
         module.ivy.expectGet()
 
         then:
-        fails "showBroken"
+        fails "checkDeps"
+        failedResolve.assertFailurePresent(failure)
         failure
             .assertResolutionFailure(":compile")
             .assertHasCause("Could not parse Ivy file ${module.ivy.uri}")
@@ -73,9 +77,10 @@ dependencies {
         module.ivyFile.text = "<ivy-module>"
 
         when:
-        fails "showBroken"
+        fails "checkDeps"
 
         then:
+        failedResolve.assertFailurePresent(failure)
         failure
             .assertResolutionFailure(":compile")
             .assertHasCause("Could not parse Ivy file ${module.ivyFile}")
@@ -97,7 +102,8 @@ dependencies {
         module.ivy.expectGet()
 
         then:
-        fails "showBroken"
+        fails "checkDeps"
+        failedResolve.assertFailurePresent(failure)
         failure
             .assertResolutionFailure(":compile")
             .assertHasCause("Could not parse Ivy file ${module.ivy.uri}")
@@ -119,7 +125,8 @@ dependencies {
         module.ivy.expectGet()
 
         then:
-        fails "showBroken"
+        fails "checkDeps"
+        failedResolve.assertFailurePresent(failure)
         failure
             .assertResolutionFailure(":compile")
             .assertHasCause("Could not parse Ivy file ${module.ivy.uri}")
@@ -143,7 +150,8 @@ dependencies {
         parent.ivy.expectGetMissing()
 
         then:
-        fails "showBroken"
+        fails "checkDeps"
+        failedResolve.assertFailurePresent(failure)
         failure
             .assertResolutionFailure(":compile")
             .assertHasCause("Could not parse Ivy file ${module.ivy.uri}")
@@ -170,7 +178,8 @@ dependencies {
         parent.ivy.expectGet()
 
         then:
-        fails "showBroken"
+        fails "checkDeps"
+        failedResolve.assertFailurePresent(failure)
         failure
             .assertResolutionFailure(":compile")
             .assertHasCause("Could not parse Ivy file ${module.ivy.uri}")

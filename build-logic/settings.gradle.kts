@@ -15,9 +15,14 @@
  */
 
 pluginManagement {
+    includeBuild("../build-logic-commons")
     repositories {
         gradlePluginPortal()
     }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
 
 dependencyResolutionManagement {
@@ -30,18 +35,17 @@ dependencyResolutionManagement {
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        jcenter {
+        maven {
+            name = "Gradle public repository"
+            url = uri("https://repo.gradle.org/gradle/public")
             content {
                 includeModule("org.openmbee.junit", "junit-xml-parser")
-                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         mavenCentral()
         gradlePluginPortal()
     }
 }
-
-includeBuild("../build-logic-commons")
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 

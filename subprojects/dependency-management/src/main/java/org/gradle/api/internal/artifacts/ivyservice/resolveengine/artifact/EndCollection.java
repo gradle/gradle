@@ -32,10 +32,6 @@ public class EndCollection implements ResolvedArtifactSet.Artifacts {
     }
 
     @Override
-    public void finalizeNow(boolean requireFiles) {
-    }
-
-    @Override
     public void visit(ArtifactVisitor visitor) {
         visitor.endVisitCollection(source);
     }

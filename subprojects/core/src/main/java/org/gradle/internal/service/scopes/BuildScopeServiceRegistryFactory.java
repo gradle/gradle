@@ -17,13 +17,11 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.Closeable;
 
-// TODO:configuration-cache reconsider type visibility
 public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory, Closeable {
     private final ServiceRegistry services;
     private final CompositeStoppable registries = new CompositeStoppable();
@@ -38,11 +36,6 @@ public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory,
             GradleScopeServices gradleServices = new GradleScopeServices(services);
             registries.add(gradleServices);
             return gradleServices;
-        }
-        if (domainObject instanceof SettingsInternal) {
-            SettingsScopeServices settingsServices = new SettingsScopeServices(services, (SettingsInternal) domainObject);
-            registries.add(settingsServices);
-            return settingsServices;
         }
         throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.", domainObject.getClass().getSimpleName()));
     }

@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
@@ -31,12 +31,13 @@ import java.time.Duration;
 public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> {
     private final static Transformer<String, ModuleVersionIdentifier> KEY_TO_SNAPSHOTTABLE = Object::toString;
 
-    public ComponentMetadataSupplierRuleExecutor(GlobalScopedCache globalScopedCache,
-                                                 InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                 ValueSnapshotter snapshotter,
-                                                 BuildCommencedTimeProvider timeProvider,
-                                                 Serializer<ComponentMetadata> componentMetadataSerializer) {
-        super("md-supplier", globalScopedCache, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), KEY_TO_SNAPSHOTTABLE, componentMetadataSerializer);
+    public ComponentMetadataSupplierRuleExecutor(
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+            ValueSnapshotter snapshotter,
+            BuildCommencedTimeProvider timeProvider,
+            Serializer<ComponentMetadata> componentMetadataSerializer) {
+        super("md-supplier", cacheBuilderFactory, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), KEY_TO_SNAPSHOTTABLE, componentMetadataSerializer);
     }
 
     public static EntryValidator<ComponentMetadata> createValidator(final BuildCommencedTimeProvider timeProvider) {

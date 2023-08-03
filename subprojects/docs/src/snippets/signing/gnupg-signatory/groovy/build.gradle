@@ -9,6 +9,6 @@ version = '1.0'
 // tag::configure-signatory[]
 signing {
     useGpgCmd()
-    sign configurations.archives
+    sign configurations.runtimeElements
 }
 // end::configure-signatory[]

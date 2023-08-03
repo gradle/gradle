@@ -50,6 +50,7 @@ import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
+import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -60,7 +61,6 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkState;
 import static org.gradle.util.internal.GUtil.isTrue;
 
 /**
@@ -178,10 +178,9 @@ public abstract class Javadoc extends SourceTask {
     private void validateExecutableMatchesToolchain() {
         File toolchainExecutable = getJavadocTool().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
-        checkState(
-            customExecutable == null || new File(customExecutable).equals(toolchainExecutable),
-            "Toolchain from `executable` property does not match toolchain from `javadocTool` property"
-        );
+        JavaExecutableUtils.validateExecutable(
+                customExecutable, "Toolchain from `executable` property",
+                toolchainExecutable, "toolchain from `javadocTool` property");
     }
 
     private boolean isModule() {

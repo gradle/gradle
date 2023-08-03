@@ -16,12 +16,14 @@
 package org.gradle.internal.classloader
 
 import org.gradle.internal.classpath.DefaultClassPath
+import spock.lang.Issue
 import spock.lang.Specification
 
 class ClasspathUtilTest extends Specification {
     private static final URL JAR_URL = new URL('jar:file:home/duke/duke.jar!/')
     private static final URL HTTP_URL = new URL('http://www.foo.com/bar/')
-    private static final URL FILE_URL = new File('home/duke/duke.jar').toURI().toURL()
+    private static final File FILE = new File('/home/duke/duke.jar')
+    private static final URL FILE_URL = FILE.toURI().toURL()
     def factory = new DefaultClassLoaderFactory()
 
     def "filters non-file URLs from classpath"() {
@@ -35,5 +37,28 @@ class ClasspathUtilTest extends Specification {
         then:
         !classpath.asURLs.any { it == JAR_URL || it == HTTP_URL }
         classpath.asURLs.any { it == FILE_URL }
+    }
+
+    def "getClasspathForResource for jar scheme with resource name"() {
+        given:
+        def jarUrlWithResourceName = new URL('jar:file:/home/duke/duke.jar!/Test.class')
+
+        when:
+        def file = ClasspathUtil.getClasspathForResource(jarUrlWithResourceName, "Test.class")
+
+        then:
+        FILE.getPath() == file.getPath()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23625")
+    def "getClasspathForResource for jar scheme with prefix resource name"() {
+        given:
+        def jarUrlWithResourceName = new URL('jar:file:/home/duke/duke.jar!/META-INF/versions/9/Test.class')
+
+        when:
+        def file = ClasspathUtil.getClasspathForResource(jarUrlWithResourceName, "Test.class")
+
+        then:
+        FILE.getPath() == file.getPath()
     }
 }

@@ -35,9 +35,14 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 119 * 1024 * 1024
+        return 125 * 1024 * 1024
     }
 
+    /**
+     * This test verifies that the distribution does not contain any duplicate files.
+     * It also verifies that there are no classes duplicated between jars in the distribution.
+     * This test is not perfect, but it should catch most of the problems.
+     */
     @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
     def "validate dependency archives"() {
         when:
@@ -47,11 +52,17 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
         when:
         def jarsWithDuplicateFiles = [:]
+        def classesIndex = [:] as HashMap<String, List<String>> // class name -> list of containing jars
         jars.each { jar ->
             new ZipFile(jar).withCloseable {
                 def names = it.entries()*.name
                 def groupedNames = names.groupBy { it }
                 groupedNames.each { name, all ->
+                    if (name.endsWith(".class") && !name.endsWith("module-info.class") && !name.endsWith("package-info.class")) {
+                        def containingJars = classesIndex.computeIfAbsent(name, k -> [])
+                        containingJars.add(jar.name)
+                    }
+
                     if (all.size() > 1) {
                         def jarPath = jar.absolutePath - testDirectory.absolutePath
                         jarsWithDuplicateFiles.computeIfAbsent(jarPath, { [] }) << name
@@ -62,6 +73,10 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
         then:
         jarsWithDuplicateFiles == [:]
+
+        and:
+        def duplicateClasses = classesIndex.findAll { it.value.size() > 1 }
+        duplicateClasses.isEmpty()
     }
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {

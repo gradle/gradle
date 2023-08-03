@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.NonNullApi;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Cast;
@@ -41,6 +43,12 @@ public class MethodOptionElement {
             PropertySetter setter = mutateUsingReturnValue(method);
             return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
         }
+        if (HasMultipleValues.class.isAssignableFrom(method.getReturnType())) {
+            assertCanUseMethodReturnType(optionName, method);
+            PropertySetter setter = mutateUsingReturnValue(method);
+            Class<?> elementType = setter.getRawType();
+            return new MultipleValueOptionElement(optionName, option, elementType, setter, optionValueNotationParserFactory);
+        }
         if (method.getParameterCount() == 0) {
             return new BooleanOptionElement(optionName, option, setFlagUsingMethod(method));
         }
@@ -59,6 +67,9 @@ public class MethodOptionElement {
     }
 
     private static PropertySetter mutateUsingReturnValue(Method method) {
+        if (HasMultipleValues.class.isAssignableFrom(method.getReturnType())) {
+            return new MultipleValuePropertyValueSetter(method);
+        }
         return new PropertyValueSetter(method);
     }
 
@@ -134,6 +145,23 @@ public class MethodOptionElement {
         public void setValue(Object target, Object value) {
             Property<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, method).invoke(target));
             property.set(value);
+        }
+
+        protected Method getMethod() {
+            return method;
+        }
+    }
+
+    @NonNullApi
+    private static class MultipleValuePropertyValueSetter extends PropertyValueSetter {
+        public MultipleValuePropertyValueSetter(Method method) {
+            super(method);
+        }
+
+        @Override
+        public void setValue(Object target, Object value) {
+            HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
+            property.set((Iterable<?>) value);
         }
     }
 

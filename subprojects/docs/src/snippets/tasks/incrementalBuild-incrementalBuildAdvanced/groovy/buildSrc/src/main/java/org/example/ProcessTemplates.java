@@ -34,7 +34,7 @@ public abstract class ProcessTemplates extends DefaultTask {
 // tag::task-arg-method[]
     // ...
     public void sources(TaskProvider<?> inputTask) {
-        getSourceFiles().from(getProject().getLayout().files(inputTask));
+        getSourceFiles().from(inputTask);
     }
     // ...
 // end::task-arg-method[]

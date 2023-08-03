@@ -44,12 +44,15 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallationSupplier {
 
     private static final String PROPERTY_NAME = "org.gradle.java.installations.maven-toolchains-file";
     private static final String PARSE_EXPRESSION = "/toolchains/toolchain[type='jdk']/configuration/jdkHome//text()";
     private static final Logger LOGGER = Logging.getLogger(MavenToolchainsInstallationSupplier.class);
+    private static final Pattern ENV_VARIABLE_PATTERN = Pattern.compile("\\$\\{env\\.([^}]+)}");
 
     private final Provider<String> toolchainLocation;
     private final XPathFactory xPathFactory;
@@ -63,6 +66,11 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
         xPathFactory = XPathFactory.newInstance();
         documentBuilderFactory = DocumentBuilderFactory.newInstance();
         this.fileResolver = fileResolver;
+    }
+
+    @Override
+    public String getSourceName() {
+        return "Maven Toolchains";
     }
 
     @Override
@@ -80,11 +88,25 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                 for (int i = 0; i < nodes.getLength(); i++) {
                     Node item = nodes.item(i);
                     if (item != null && item.getNodeType() == Node.TEXT_NODE) {
-                        locations.add(item.getNodeValue().trim());
+                        String nodeValue = item.getNodeValue().trim();
+                        Matcher matcher = ENV_VARIABLE_PATTERN.matcher(nodeValue);
+                        StringBuffer resolvedValue = new StringBuffer();
+                        while (matcher.find()) {
+                            String envVariableName = matcher.group(1);
+                            Provider<String> envVariableValue = getEnvironmentProperty(envVariableName);
+                            if (envVariableValue.getOrNull() == null) {
+                                matcher.appendReplacement(resolvedValue, "\\${env." + envVariableName + "}");
+                                continue;
+                            }
+                            matcher.appendReplacement(resolvedValue, Matcher.quoteReplacement(envVariableValue.get()));
+                        }
+                        // If no match or there is remaining text after the environment property, append it.
+                        matcher.appendTail(resolvedValue);
+                        locations.add(resolvedValue.toString());
                     }
                 }
                 return locations.stream()
-                    .map(jdkHome -> new InstallationLocation(new File(jdkHome), "Maven Toolchains"))
+                    .map(jdkHome -> new InstallationLocation(new File(jdkHome), getSourceName()))
                     .collect(Collectors.toSet());
             } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
                 if (LOGGER.isDebugEnabled()) {

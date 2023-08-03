@@ -15,6 +15,10 @@
     <inspection_tool class="FoldExpressionIntoStream" enabled="false" level="INFORMATION" enabled_by_default="false" />
     <inspection_tool class="JavadocBlankLines" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="KotlinUnusedImport" enabled="true" level="ERROR" enabled_by_default="true" />
+    <inspection_tool class="MethodMayBeStatic" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="m_onlyPrivateOrFinal" value="false" />
+      <option name="m_ignoreEmptyMethods" value="true" />
+    </inspection_tool>
     <inspection_tool class="NewMethodNamingConvention" enabled="true" level="ERROR" enabled_by_default="true">
       <extension name="InstanceMethodNamingConvention" enabled="true">
         <option name="m_regex" value="[a-z][A-Za-z\d]*" />

@@ -11,7 +11,7 @@ gradlebuildJava.usedInWorkers()
  * Use Java 8 compatibility for JMH benchmarks
  */
 tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
-    options.release.set(8)
+    options.release = 8
 }
 
 dependencies {
@@ -35,8 +35,8 @@ dependencies {
 }
 
 jmh {
-    fork.set(1)
-    threads.set(2)
-    warmupIterations.set(10)
-    synchronizeIterations.set(false)
+    fork = 1
+    threads = 2
+    warmupIterations = 10
+    synchronizeIterations = false
 }

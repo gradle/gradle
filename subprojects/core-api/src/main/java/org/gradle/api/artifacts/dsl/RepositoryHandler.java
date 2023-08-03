@@ -69,7 +69,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     FlatDirectoryArtifactRepository flatDir(Map<String, ?> args);
 
     /**
-     * Adds an configures a repository which will look for dependencies in a number of local directories.
+     * Adds and configures a repository which will look for dependencies in a number of local directories.
      *
      * @param configureClosure The closure to execute to configure the repository.
      * @return The repository.
@@ -77,7 +77,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     FlatDirectoryArtifactRepository flatDir(@DelegatesTo(FlatDirectoryArtifactRepository.class) Closure configureClosure);
 
     /**
-     * Adds an configures a repository which will look for dependencies in a number of local directories.
+     * Adds and configures a repository which will look for dependencies in a number of local directories.
      *
      * @param action The action to execute to configure the repository.
      * @return The repository.

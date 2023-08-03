@@ -59,14 +59,14 @@ To use either the Eclipse or the Eclipse WTP plugin, include one of the lines in
 
 .Using the Eclipse plugin
 ====
-include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=use-eclipse-plugin]"]
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=use-eclipse-plugin]"]
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=use-eclipse-plugin]"]
 ====
 
 .Using the Eclipse WTP plugin
 ====
-include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=use-eclipse-wtp-plugin]"]
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=use-eclipse-wtp-plugin]"]
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=use-eclipse-wtp-plugin]"]
 ====
 
 _Note:_ Internally, the `eclipse-wtp` plugin also applies the `eclipse` plugin so you don't need to apply both.
@@ -240,16 +240,16 @@ A complete overwrite causes all existing content to be discarded, thereby losing
 
 .Partial Overwrite for Classpath
 ====
-include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=module-before-merged]"]
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=module-before-merged]"]
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=module-before-merged]"]
 ====
 
 The resulting `.classpath` file will only contain Gradle-generated dependency entries, but not any other dependency entries that may have been present in the original file. (In the case of dependency entries, this is also the default behavior.) Other sections of the `.classpath` file will be either left as-is or merged. The same could be done for the natures in the `.project` file:
 
 .Partial Overwrite for Project
 ====
-include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=project-before-merged]"]
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=project-before-merged]"]
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=project-before-merged]"]
 ====
 
 [[sec:eclipse_modify_domain_objects]]
@@ -259,8 +259,8 @@ The `whenMerged` hook allows to manipulate the fully populated domain objects. O
 
 .Export Classpath Entries
 ====
-include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=module-when-merged]"]
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=module-when-merged]"]
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=module-when-merged]"]
 ====
 
 [[sec:eclipse_modify_xml]]
@@ -270,8 +270,8 @@ The `withXml` hook allows to manipulate the in-memory XML representation just be
 
 .Customizing the XML
 ====
-include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=wtp-with-xml]"]
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=wtp-with-xml]"]
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=wtp-with-xml]"]
 ====
 
 [[sec:test-sources]]
@@ -303,8 +303,8 @@ You can customize the test source sets and configurations:
 
 .Customizing test sources
 ====
-include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=test-sources]"]
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=test-sources]"]
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=test-sources]"]
 ====
 
 TIP: Consider migrating away from manual definition of additional test source sets and towards the use of the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>> in scenarios like this.
@@ -313,8 +313,8 @@ You can also customize if a project should expose test sources to upstream proje
 
 .Customizing test fixtures
 ====
-include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=test-fixtures]"]
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=test-fixtures]"]
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=test-fixtures]"]
 ====
 
 Note, that this configuration also applies to the classpath of Buildship projects.

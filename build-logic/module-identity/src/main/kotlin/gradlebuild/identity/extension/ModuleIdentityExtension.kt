@@ -40,13 +40,13 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
 
     fun createBuildReceipt() {
         val createBuildReceipt by tasks.registering(BuildReceipt::class) {
-            this.version.set(this@ModuleIdentityExtension.version.map { it.version })
-            this.baseVersion.set(this@ModuleIdentityExtension.version.map { it.baseVersion.version })
-            this.snapshot.set(this@ModuleIdentityExtension.snapshot)
-            this.promotionBuild.set(this@ModuleIdentityExtension.promotionBuild)
+            this.version = this@ModuleIdentityExtension.version.map { it.version }
+            this.baseVersion = this@ModuleIdentityExtension.version.map { it.baseVersion.version }
+            this.snapshot = this@ModuleIdentityExtension.snapshot
+            this.promotionBuild = this@ModuleIdentityExtension.promotionBuild
             this.buildTimestampFrom(this@ModuleIdentityExtension.buildTimestamp)
-            this.commitId.set(project.buildCommitId)
-            this.receiptFolder.set(project.layout.buildDirectory.dir("generated-resources/build-receipt"))
+            this.commitId = project.buildCommitId
+            this.receiptFolder = project.layout.buildDirectory.dir("generated-resources/build-receipt")
         }
         tasks.named<Jar>("jar").configure {
             from(createBuildReceipt.map { it.receiptFolder })

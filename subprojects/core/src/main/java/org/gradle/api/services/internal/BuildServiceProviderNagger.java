@@ -17,7 +17,7 @@
 package org.gradle.api.services.internal;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.execution.TaskExecutionTracker;
+import org.gradle.internal.execution.WorkExecutionTracker;
 
 import java.util.Optional;
 
@@ -25,9 +25,9 @@ import static org.gradle.internal.deprecation.DeprecationLogger.deprecateBehavio
 
 public class BuildServiceProviderNagger implements BuildServiceProvider.Listener {
 
-    private final TaskExecutionTracker taskExecutionTracker;
+    private final WorkExecutionTracker taskExecutionTracker;
 
-    public BuildServiceProviderNagger(TaskExecutionTracker taskExecutionTracker) {
+    public BuildServiceProviderNagger(WorkExecutionTracker taskExecutionTracker) {
         this.taskExecutionTracker = taskExecutionTracker;
     }
 

@@ -17,15 +17,16 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.cache.DefaultCacheCleanup;
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CacheCleanupStrategy;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -34,9 +35,11 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import org.gradle.internal.resource.local.PathKeyFileStore;
+import org.gradle.internal.time.TimestampSuppliers;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -49,8 +52,8 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private static final String DIRECTORY_BUILD_CACHE_TYPE = "directory";
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
-    private final CacheRepository cacheRepository;
-    private final GlobalScopedCache globalScopedCache;
+    private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
+    private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final PathToFileResolver resolver;
     private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
     private final CleanupActionDecorator cleanupActionDecorator;
@@ -58,10 +61,11 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, GlobalScopedCache globalScopedCache, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
-                                             CleanupActionDecorator cleanupActionDecorator, FileAccessTimeJournal fileAccessTimeJournal, TemporaryFileProvider temporaryFileProvider) {
-        this.cacheRepository = cacheRepository;
-        this.globalScopedCache = globalScopedCache;
+    public DirectoryBuildCacheServiceFactory(
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory, GlobalScopedCacheBuilderFactory cacheBuilderFactory, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
+            CleanupActionDecorator cleanupActionDecorator, FileAccessTimeJournal fileAccessTimeJournal, TemporaryFileProvider temporaryFileProvider) {
+        this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
+        this.cacheBuilderFactory = cacheBuilderFactory;
         this.resolver = resolver;
         this.fileStoreFactory = fileStoreFactory;
         this.cleanupActionDecorator = cleanupActionDecorator;
@@ -76,19 +80,20 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         if (cacheDirectory != null) {
             target = resolver.resolve(cacheDirectory);
         } else {
-            target = globalScopedCache.baseDirForCrossVersionCache(BUILD_CACHE_KEY);
+            target = cacheBuilderFactory.baseDirForCrossVersionCache(BUILD_CACHE_KEY);
         }
         checkDirectory(target);
 
         int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
+        Supplier<Long> removeUnusedEntriesOlderThan = TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays);
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
             config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
-        PersistentCache persistentCache = cacheRepository
+        PersistentCache persistentCache = unscopedCacheBuilderFactory
             .cache(target)
-            .withCleanup(createCacheCleanup(removeUnusedEntriesAfterDays))
+            .withCleanupStrategy(createCacheCleanupStrategy(removeUnusedEntriesOlderThan))
             .withDisplayName("Build cache")
             .withLockOptions(mode(OnDemand))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
@@ -99,12 +104,12 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
     }
 
-    private DefaultCacheCleanup createCacheCleanup(int removeUnusedEntriesAfterDays) {
-        return DefaultCacheCleanup.from(cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesAfterDays)));
+    private CacheCleanupStrategy createCacheCleanupStrategy(Supplier<Long> removeUnusedEntriesTimestamp) {
+        return DefaultCacheCleanupStrategy.from(cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesTimestamp)));
     }
 
-    private LeastRecentlyUsedCacheCleanup createCleanupAction(int removeUnusedEntriesAfterDays) {
-        return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, () -> removeUnusedEntriesAfterDays);
+    private LeastRecentlyUsedCacheCleanup createCleanupAction(Supplier<Long> removeUnusedEntriesTimestamp) {
+        return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, removeUnusedEntriesTimestamp);
     }
 
     private static void checkDirectory(File directory) {

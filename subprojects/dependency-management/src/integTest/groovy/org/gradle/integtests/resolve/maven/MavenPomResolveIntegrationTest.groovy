@@ -18,9 +18,18 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+
+    def setup() {
+        settingsFile """
+            rootProject.name = 'test'
+        """
+    }
+
     def "follows relocation to another group"() {
         given:
         def original = mavenHttpRepo.module("groupA", "projectA", "1.2").publishPom()
@@ -45,11 +54,8 @@ class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 repositories { maven { url '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:projectA:1.2' }
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
 """
+        resolve.prepare()
 
         and:
         original.pom.expectGet()
@@ -57,15 +63,20 @@ task retrieve(type: Sync) {
         newModule.artifact.expectGet()
 
         when:
-        run "retrieve"
+        run "checkDeps"
 
         then:
-        file("libs").assertHasDescendants("projectA-1.2.jar")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("groupA:projectA:1.2") {
+                    noArtifacts()
+                    module("newGroupA:projectA:1.2") // relocation is treated as a dependency in the graph
+                }
+            }
+        }
     }
 
-
     @Issue("https://issues.gradle.org/browse/GRADLE-2861")
-    @ToBeFixedForConfigurationCache
     def "can handle pom with unspecified properties in dependency management"() {
         given:
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()
@@ -82,7 +93,7 @@ task retrieve(type: Sync) {
 </project>
 ''')
 
-        def module = mavenHttpRepo.module('group', 'artifact', '1.0').parent('group', 'parent', '1.0').publish()
+        def dep = mavenHttpRepo.module('group', 'artifact', '1.0').parent('group', 'parent', '1.0').publish()
 
         and:
         buildFile << """
@@ -93,18 +104,29 @@ task retrieve(type: Sync) {
             dependencies {
                 compile "group:artifact:1.0"
             }
-            task libs { doLast { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar'] } }
         """
+        resolve.prepare()
 
         and:
         parent.pom.expectGet()
-        module.pom.expectGet()
-        module.artifact.expectGet()
+        dep.pom.expectGet()
+        dep.artifact.expectGet()
 
         expect:
         // have to run twice to trigger the failure, to parse the descriptor from the cache
-        succeeds ":libs"
-        succeeds ":libs"
+        succeeds ":checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("group:artifact:1.0")
+            }
+        }
+
+        succeeds ":checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("group:artifact:1.0")
+            }
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22279")
@@ -131,41 +153,43 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 repositories { maven { url '${mavenHttpRepo.uri}' } }
-configurations { 
+configurations {
     first
     second
 }
-dependencies { 
-    first 'groupA:artifactA:1.0' 
-    second 'groupA:artifactA:2.0@pom' 
+dependencies {
+    first 'groupA:artifactA:1.0'
+    second 'groupA:artifactA:2.0@pom'
 }
 
 task retrieve {
+    def files = configurations.first
     doLast {
         // populates cache for POM artifact in memory
-        configurations.first.resolve()
-        
-        def resolvedArtifacts = configurations.second.resolvedConfiguration.resolvedArtifacts
-        assert resolvedArtifacts.size() == 1
-        
-        def resolvedArtifact = resolvedArtifacts[0]
-        assert resolvedArtifact.moduleVersion.id.group == "groupA"
-        assert resolvedArtifact.moduleVersion.id.name == "artifactA"
-        assert resolvedArtifact.moduleVersion.id.version == "2.0"       
+        files*.name
     }
 }
 
 """
+        resolve.prepare("second")
 
         and:
         original.pom.expectGet()
         newModule.pom.expectGet()
 
         expect:
-        succeeds "retrieve"
+        succeeds "retrieve", "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("groupA:artifactA:2.0") {
+                    artifact(type: "pom")
+                }
+            }
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22279")
+    @ToBeFixedForConfigurationCache(because = "task uses Artifact Query API")
     def "can resolve POM as an artifact after it was resolved via ARQ"() {
         given:
         def original = mavenHttpRepo.module('groupA', 'artifactA', '1.0').publishPom()
@@ -173,11 +197,11 @@ task retrieve {
         and:
         buildFile << """
 repositories { maven { url '${mavenHttpRepo.uri}' } }
-configurations { 
+configurations {
     conf
 }
-dependencies { 
-    conf 'groupA:artifactA:1.0@pom' 
+dependencies {
+    conf 'groupA:artifactA:1.0@pom'
 }
 
 task retrieve {
@@ -190,23 +214,22 @@ task retrieve {
         for (component in result.resolvedComponents) {
             component.getArtifacts(MavenPomArtifact).each { println "POM for " + component }
         }
-
-        def resolvedArtifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
-        assert resolvedArtifacts.size() == 1
-        
-        def resolvedArtifact = resolvedArtifacts[0]
-        assert resolvedArtifact.moduleVersion.id.group == "groupA"
-        assert resolvedArtifact.moduleVersion.id.name == "artifactA"
-        assert resolvedArtifact.moduleVersion.id.version == "1.0"       
     }
 }
-
 """
+        resolve.prepare("conf")
 
         and:
         original.pom.expectGet()
 
         expect:
-        succeeds "retrieve"
+        succeeds "retrieve", "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("groupA:artifactA:1.0") {
+                    artifact(type: "pom")
+                }
+            }
+        }
     }
 }

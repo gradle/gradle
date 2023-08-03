@@ -47,6 +47,8 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
     public abstract boolean isEmpty();
 
+    public abstract int size();
+
     public BroadcastDispatch<T> add(Dispatch<MethodInvocation> dispatch) {
         return add(dispatch, dispatch);
     }
@@ -79,6 +81,8 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
     public abstract BroadcastDispatch<T> removeAll(Collection<?> listeners);
 
     public abstract void visitListeners(Action<T> visitor);
+
+    public abstract void visitListenersUntyped(Action<Object> visitor);
 
     private static class ActionInvocationHandler implements Dispatch<MethodInvocation> {
         private final String methodName;
@@ -113,6 +117,11 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
         public BroadcastDispatch<T> remove(Object listener) {
             return this;
         }
@@ -129,6 +138,10 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public void visitListeners(Action<T> visitor) {
+        }
+
+        @Override
+        public void visitListenersUntyped(Action<Object> visitor) {
         }
 
         @Override
@@ -234,10 +247,20 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public int size() {
+            return 1;
+        }
+
+        @Override
         public void visitListeners(Action<T> visitor) {
             if (getType().isInstance(handler)) {
                 visitor.execute(getType().cast(handler));
             }
+        }
+
+        @Override
+        public void visitListenersUntyped(Action<Object> visitor) {
+            visitor.execute(handler);
         }
 
         @Override
@@ -337,8 +360,20 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public void visitListenersUntyped(Action<Object> visitor) {
+            for (SingletonDispatch<T> dispatcher : dispatchers) {
+                dispatcher.visitListenersUntyped(visitor);
+            }
+        }
+
+        @Override
         public boolean isEmpty() {
             return false;
+        }
+
+        @Override
+        public int size() {
+            return dispatchers.size();
         }
 
         @Override

@@ -1,7 +1,6 @@
 import org.gradle.api.internal.FeaturePreviews
 
 pluginManagement {
-    includeBuild("build-logic-settings")
     repositories {
         maven {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
@@ -13,10 +12,11 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        jcenter {
+        maven {
+            name = "Gradle public repository"
+            url = uri("https://repo.gradle.org/gradle/public")
             content {
                 includeModule("org.openmbee.junit", "junit-xml-parser")
-                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         gradlePluginPortal()
@@ -24,9 +24,9 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.11.4") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.14.1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("gradlebuild.internal.cc-experiment")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
 
 includeBuild("build-logic-commons")
@@ -38,138 +38,168 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 // ./gradlew generateSubprojectsInfo
 // task to update metadata about the build for CI
 
-include("distributions-dependencies") // platform for dependency versions
-include("core-platform")              // platform for Gradle distribution core
+unassigned {
+    subproject("distributions-dependencies") // platform for dependency versions
+    subproject("core-platform")              // platform for Gradle distribution core
+}
 
 // Gradle Distributions - for testing and for publishing a full distribution
-include("distributions-core")
-include("distributions-basics")
-include("distributions-publishing")
-include("distributions-jvm")
-include("distributions-native")
-include("distributions-full")
+unassigned {
+    subproject("distributions-core")
+    subproject("distributions-basics")
+    subproject("distributions-publishing")
+    subproject("distributions-jvm")
+    subproject("distributions-native")
+    subproject("distributions-full")
+}
 
 // Gradle implementation projects
-include("configuration-cache")
-include("functional")
-include("api-metadata")
-include("base-services")
-include("base-services-groovy")
-include("worker-services")
-include("logging-api")
-include("logging")
-include("process-services")
-include("jvm-services")
-include("core")
-include("dependency-management")
-include("wrapper")
-include("wrapper-shared")
-include("cli")
-include("launcher")
-include("bootstrap")
-include("messaging")
-include("resources")
-include("resources-http")
-include("resources-gcs")
-include("resources-s3")
-include("resources-sftp")
-include("plugins")
-include("scala")
-include("ide")
-include("ide-native")
-include("maven")
-include("code-quality")
-include("antlr")
-include("tooling-api")
-include("build-events")
-include("tooling-api-builders")
-include("signing")
-include("ear")
-include("native")
-include("reporting")
-include("diagnostics")
-include("publish")
-include("ivy")
-include("jacoco")
-include("build-init")
-include("build-option")
-include("platform-base")
-include("platform-native")
-include("platform-jvm")
-include("language-jvm")
-include("language-java")
-include("java-compiler-plugin")
-include("language-groovy")
-include("language-native")
-include("tooling-native")
-include("plugin-use")
-include("plugin-development")
-include("model-core")
-include("model-groovy")
-include("build-cache-http")
-include("testing-base")
-include("testing-native")
-include("testing-jvm")
-include("testing-jvm-infrastructure")
-include("testing-junit-platform")
-include("test-kit")
-include("installation-beacon")
-include("composite-builds")
-include("workers")
-include("persistent-cache")
-include("build-cache-base")
-include("build-cache")
-include("core-api")
-include("version-control")
-include("file-collections")
-include("file-temp")
-include("files")
-include("hashing")
-include("snapshots")
-include("file-watching")
-include("build-cache-packaging")
-include("execution")
-include("build-profile")
-include("kotlin-dsl")
-include("kotlin-dsl-provider-plugins")
-include("kotlin-dsl-tooling-models")
-include("kotlin-dsl-tooling-builders")
-include("worker-processes")
-include("base-annotations")
-include("security")
-include("normalization-java")
-include("enterprise")
-include("enterprise-operations")
-include("enterprise-logging")
-include("enterprise-workers")
-include("build-operations")
-include("problems")
+unassigned {
+    subproject("configuration-cache")
+    subproject("functional")
+    subproject("api-metadata")
+    subproject("base-services")
+    subproject("base-services-groovy")
+    subproject("worker-services")
+    subproject("logging-api")
+    subproject("logging")
+    subproject("process-services")
+    subproject("jvm-services")
+    subproject("core")
+    subproject("dependency-management")
+    subproject("wrapper")
+    subproject("wrapper-shared")
+    subproject("cli")
+    subproject("launcher")
+    subproject("bootstrap")
+    subproject("messaging")
+    subproject("resources")
+    subproject("resources-http")
+    subproject("resources-gcs")
+    subproject("resources-s3")
+    subproject("resources-sftp")
+    subproject("plugins")
+    subproject("scala")
+    subproject("ide")
+    subproject("ide-native")
+    subproject("maven")
+    subproject("antlr")
+    subproject("tooling-api")
+    subproject("build-events")
+    subproject("tooling-api-builders")
+    subproject("signing")
+    subproject("native")
+    subproject("reporting")
+    subproject("diagnostics")
+    subproject("publish")
+    subproject("ivy")
+    subproject("jacoco")
+    subproject("build-init")
+    subproject("build-option")
+    subproject("platform-base")
+    subproject("platform-native")
+    subproject("platform-jvm")
+    subproject("language-jvm")
+    subproject("language-java")
+    subproject("java-compiler-plugin")
+    subproject("language-groovy")
+    subproject("language-native")
+    subproject("tooling-native")
+    subproject("plugin-use")
+    subproject("plugin-development")
+    subproject("model-core")
+    subproject("model-groovy")
+    subproject("build-cache-http")
+    subproject("testing-base")
+    subproject("testing-native")
+    subproject("testing-jvm")
+    subproject("testing-jvm-infrastructure")
+    subproject("testing-junit-platform")
+    subproject("test-kit")
+    subproject("installation-beacon")
+    subproject("composite-builds")
+    subproject("workers")
+    subproject("persistent-cache")
+    subproject("build-cache-base")
+    subproject("build-cache")
+    subproject("core-api")
+    subproject("version-control")
+    subproject("file-collections")
+    subproject("file-temp")
+    subproject("files")
+    subproject("hashing")
+    subproject("snapshots")
+    subproject("file-watching")
+    subproject("build-cache-packaging")
+    subproject("execution")
+    subproject("build-profile")
+    subproject("worker-processes")
+    subproject("base-annotations")
+    subproject("security")
+    subproject("normalization-java")
+    subproject("build-operations")
+    subproject("problems")
+    subproject("instrumentation-agent")
+    subproject("instrumentation-declarations")
+}
 
-// Plugin portal projects
-include("kotlin-dsl-plugins")
+// Core Configuration Platform
+platform("core-configuration") {
+    subproject("kotlin-dsl")
+    subproject("kotlin-dsl-provider-plugins")
+    subproject("kotlin-dsl-tooling-builders")
+    subproject("kotlin-dsl-tooling-models")
+    subproject("kotlin-dsl-plugins")
+    subproject("kotlin-dsl-integ-tests")
+}
+
+// IDE Platform
+platform("ide") {
+    subproject("base-ide-plugins")
+    subproject("ide-plugins")
+}
+
+// JVM Platform
+platform("jvm") {
+    subproject("code-quality")
+    subproject("ear")
+    subproject("toolchains-jvm")
+    subproject("java-platform")
+    subproject("war")
+}
+
+// Gradle Enterprise Platform
+platform("enterprise") {
+    subproject("enterprise")
+    subproject("enterprise-logging")
+    subproject("enterprise-operations")
+    subproject("enterprise-plugin-performance")
+    subproject("enterprise-workers")
+}
 
 // Internal utility and verification projects
-include("docs")
-include("samples")
-include("architecture-test")
-include("internal-testing")
-include("internal-integ-testing")
-include("internal-performance-testing")
-include("internal-architecture-testing")
-include("internal-build-reports")
-include("integ-test")
-include("kotlin-dsl-integ-tests")
-include("distributions-integ-tests")
-include("soak")
-include("smoke-test")
-include("performance")
-include("build-scan-performance")
+unassigned {
+    subproject("internal-instrumentation-api")
+    subproject("internal-instrumentation-processor")
+    subproject("docs")
+    subproject("docs-asciidoctor-extensions-base")
+    subproject("docs-asciidoctor-extensions")
+    subproject("samples")
+    subproject("architecture-test")
+    subproject("internal-testing")
+    subproject("internal-integ-testing")
+    subproject("internal-performance-testing")
+    subproject("internal-architecture-testing")
+    subproject("internal-build-reports")
+    subproject("integ-test")
+    subproject("distributions-integ-tests")
+    subproject("soak")
+    subproject("smoke-test")
+    subproject("performance")
+    subproject("precondition-tester")
+}
 
 rootProject.name = "gradle"
-
-for (project in rootProject.children) {
-    project.projectDir = file("subprojects/${project.name}")
-}
 
 FeaturePreviews.Feature.values().forEach { feature ->
     if (feature.isActive) {
@@ -187,6 +217,25 @@ gradle.settingsEvaluated {
     }
 
     if (!JavaVersion.current().isJava11) {
-        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck'.")
+        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
     }
 }
+
+// region platform include DSL
+
+fun platform(platformName: String, platformConfiguration: PlatformScope.() -> Unit) =
+    PlatformScope("platforms/$platformName").platformConfiguration()
+
+fun unassigned(platformConfiguration: PlatformScope.() -> Unit) =
+    PlatformScope("subprojects").platformConfiguration()
+
+class PlatformScope(
+    private val basePath: String
+) {
+    fun subproject(projectName: String) {
+        include(projectName)
+        project(":$projectName").projectDir = file("$basePath/$projectName")
+    }
+}
+
+// endregion

@@ -9,11 +9,12 @@ repositories {
 // tag::jupiter-dependencies[]
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 // end::jupiter-dependencies[]
 
 // tag::enabling-junit-platform[]
-test {
+tasks.named('test', Test) {
     useJUnitPlatform()
 }
 // end::enabling-junit-platform[]

@@ -32,6 +32,7 @@ import groovy.lang.MetaClass;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -102,6 +103,12 @@ import static java.util.Optional.ofNullable;
  * </ul>
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
+    /**
+     * Types that are allowed to be instantiated directly by Gradle when exposed as a getter on a type.
+     *
+     * @implNote Keep in sync with subprojects/docs/src/docs/userguide/extending-gradle/custom_gradle_types.adoc
+     * @see ManagedObjectFactory#newInstance
+     */
     private static final ImmutableSet<Class<?>> MANAGED_PROPERTY_TYPES = ImmutableSet.of(
         ConfigurableFileCollection.class,
         ConfigurableFileTree.class,
@@ -112,6 +119,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         DirectoryProperty.class,
         Property.class,
         NamedDomainObjectContainer.class,
+        ExtensiblePolymorphicDomainObjectContainer.class,
         DomainObjectSet.class
     );
     private static final Object[] NO_PARAMS = new Object[0];
@@ -182,7 +190,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
-        PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
+        LazyGroovySupportTypePropertyHandler lazyGroovySupportTypedHandler = new LazyGroovySupportTypePropertyHandler();
         ManagedPropertiesHandler managedPropertiesHandler = new ManagedPropertiesHandler();
         NamePropertyHandler namePropertyHandler = new NamePropertyHandler();
         ExtensibleTypePropertyHandler extensibleTypeHandler = new ExtensibleTypePropertyHandler();
@@ -192,7 +200,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         List<ClassGenerationHandler> handlers = new ArrayList<>(5 + enabledAnnotations.size() + disabledAnnotations.size());
         handlers.add(extensibleTypeHandler);
         handlers.add(dslMixInHandler);
-        handlers.add(propertyTypedHandler);
+        handlers.add(lazyGroovySupportTypedHandler);
         handlers.add(servicesHandler);
         handlers.add(namePropertyHandler);
         handlers.add(managedPropertiesHandler);
@@ -398,7 +406,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private static boolean isEagerAttachProperty(PropertyMetadata property) {
         // Property is readable and without a setter of property type and getter is final, so attach owner eagerly in constructor
         // This should apply to all 'managed' types however for backwards compatibility is applied only to property types
-        return property.isReadableWithoutSetterOfPropertyType() && !property.getMainGetter().shouldOverride() && isPropertyType(property.getType());
+        return property.isReadableWithoutSetterOfPropertyType() && !property.getMainGetter().shouldOverride() && hasPropertyType(property);
     }
 
     private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
@@ -418,10 +426,18 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return property.isReadOnly() && "name".equals(property.getName()) && property.getType() == String.class && property.getMainGetter().isAbstract();
     }
 
+    private static boolean hasPropertyType(PropertyMetadata property) {
+        return isPropertyType(property.getType());
+    }
+
     private static boolean isPropertyType(Class<?> type) {
         return Property.class.isAssignableFrom(type) ||
             HasMultipleValues.class.isAssignableFrom(type) ||
             MapProperty.class.isAssignableFrom(type);
+    }
+
+    private static boolean isConfigurableFileCollectionType(Class<?> type) {
+        return ConfigurableFileCollection.class.isAssignableFrom(type);
     }
 
     private static boolean isAttachableType(MethodMetadata method) {
@@ -994,10 +1010,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void applyTo(ClassGenerationVisitor visitor) {
-            if (extensible && !hasExtensionAwareImplementation) {
+            boolean addExtensionProperty = extensible && !hasExtensionAwareImplementation;
+            boolean mixInConventionAware = conventionAware && !IConventionAware.class.isAssignableFrom(type);
+            if (addExtensionProperty || mixInConventionAware) {
+                visitor.addNoDeprecationConventionPrivateGetter();
+            }
+            if (addExtensionProperty) {
                 visitor.addExtensionsProperty();
             }
-            if (conventionAware && !IConventionAware.class.isAssignableFrom(type)) {
+            if (mixInConventionAware) {
                 visitor.mixInConventionAware();
             }
             for (PropertyMetadata property : conventionProperties) {
@@ -1085,6 +1106,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             for (PropertyMetadata property : ineligibleProperties) {
                 visitor.markPropertyAsIneligibleForConventionMapping(property);
             }
+            for (PropertyMetadata property : readOnlyProperties) {
+                if (hasPropertyType(property)) {
+                    boolean applyRole = isRoleType(property);
+                    visitor.attachOnDemand(property, applyRole);
+                }
+            }
         }
 
         @Override
@@ -1143,20 +1170,24 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static class PropertyTypePropertyHandler extends ClassGenerationHandler {
-        private final List<PropertyMetadata> propertyTyped = new ArrayList<>();
+    private static class LazyGroovySupportTypePropertyHandler extends ClassGenerationHandler {
+        private final List<PropertyMetadata> lazyGroovySupportTyped = new ArrayList<>();
 
         @Override
         void visitProperty(PropertyMetadata property) {
-            if (property.isReadable() && isPropertyType(property.getType())) {
-                propertyTyped.add(property);
+            // For ConfigurableFileCollection we generate setters just for readonly properties,
+            // since we want to support += for mutable FileCollection properties, but we don't support += for ConfigurableFileCollection (yet).
+            // And if we generate setter override for ConfigurableFileCollection, it's difficult to distinguish between these two cases in setFromAnyValue method.
+            if (property.isReadable() && hasPropertyType(property) ||
+                property.isReadOnly() && isConfigurableFileCollectionType(property.getType())) {
+                lazyGroovySupportTyped.add(property);
             }
         }
 
         @Override
         void applyTo(ClassGenerationVisitor visitor) {
-            for (PropertyMetadata property : propertyTyped) {
-                visitor.addPropertySetterOverloads(property, property.mainGetter);
+            for (PropertyMetadata property : lazyGroovySupportTyped) {
+                visitor.addLazyGroovySupportSetterOverloads(property, property.mainGetter);
             }
         }
     }
@@ -1416,6 +1447,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void attachDuringConstruction(PropertyMetadata property, boolean applyRole);
 
+        void attachOnDemand(PropertyMetadata property, boolean applyRole);
+
         void markPropertyAsIneligibleForConventionMapping(PropertyMetadata property);
 
         ClassGenerationVisitor builder();
@@ -1437,6 +1470,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void addNameConstructor();
 
         void mixInDynamicAware();
+
+        void addNoDeprecationConventionPrivateGetter();
 
         void mixInConventionAware();
 
@@ -1478,7 +1513,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addActionMethod(Method method);
 
-        void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter);
+        void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter);
 
         void addNameProperty();
 

@@ -1,46 +1,12 @@
+def prefix = "init $gradle.identityPath"
 
-println 'init QUIET out'
+println "$prefix QUIET out"
 logging.captureStandardOutput LogLevel.INFO
-println 'init INFO out'
+println "$prefix INFO out"
 
-System.err.println 'init ERROR err'
+System.err.println "$prefix ERROR err"
 logging.captureStandardError LogLevel.INFO
-System.err.println 'init INFO err'
+System.err.println "$prefix INFO err"
 
-logger.lifecycle('init lifecycle log')
-logger.info('init info log')
-
-useLogger(new CustomLogger())
-
-class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, TaskActionListener {
-    def logger = Logging.getLogger('init-script')
-
-    public void buildFinished(BuildResult result) {
-        logger.info("LOGGER: build finished")
-        println 'init callback quiet out'
-    }
-
-    public void beforeEvaluate(Project project) {
-        logger.lifecycle("LOGGER: evaluating $project.path")
-    }
-
-    public void afterEvaluate(Project project, ProjectState state) {
-        logger.info("LOGGER: evaluated project $project.path")
-    }
-
-    public void beforeExecute(Task task) {
-        logger.lifecycle("LOGGER: executing $task.path")
-    }
-
-    public void afterExecute(Task task, TaskState state) {
-        logger.info("LOGGER: executed task $task.path")
-    }
-
-    public void beforeActions(Task task) {
-        logger.info("LOGGER: task $task.path starting work")
-    }
-
-    public void afterActions(Task task) {
-        logger.info("LOGGER: task $task.path completed work")
-    }
-}
+logger.lifecycle("$prefix lifecycle log")
+logger.info("$prefix info log")

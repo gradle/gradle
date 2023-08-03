@@ -33,6 +33,7 @@ class BuildOperationSettingsProcessorTest extends Specification {
     def buildOperationScriptPlugin = new BuildOperationSettingsProcessor(settingsProcessor, buildOperationExecutor)
     def classLoaderScope = Mock(ClassLoaderScope)
     def startParameter = Mock(StartParameter)
+    def state = Mock(SettingsState)
     def settingsInternal = Mock(SettingsInternal)
     def rootDir = new File("root")
 
@@ -44,7 +45,7 @@ class BuildOperationSettingsProcessorTest extends Specification {
         buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
 
         then:
-        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> settingsInternal
+        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> state
     }
 
     def "exposes build operation with settings configuration result"() {
@@ -56,7 +57,7 @@ class BuildOperationSettingsProcessorTest extends Specification {
         buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
 
         then:
-        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> settingsInternal
+        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> state
         1 * gradleInternal.contextualize("Evaluate settings") >> contextualizedName
 
         and:
@@ -70,6 +71,7 @@ class BuildOperationSettingsProcessorTest extends Specification {
     }
 
     private void settings() {
+        _ * state.settings >> settingsInternal
         _ * settingsInternal.gradle >> gradleInternal
         _ * settingsLocation.settingsDir >> rootDir
         _ * settingsLocation.settingsFile >> new File("settings.gradle")

@@ -38,6 +38,7 @@ image::task-dag-examples.png[Example task graphs]
 Both plugins and your own build scripts contribute to the task graph via the <<tutorial_using_tasks#sec:task_dependencies,task dependency mechanism>>.
 
 [[build_lifecycle_events]]
+
 [[sec:build_phases]]
 == Build Phases
 
@@ -59,19 +60,19 @@ Execution::
 The following example shows which parts of settings and build files correspond to various build phases:
 
 ====
-include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
 include::sample[dir="snippets/buildlifecycle/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
 ====
 
 The following command configures and executes the `test` and `testBoth` tasks specified above.
 Because Gradle only configures requested tasks and their dependencies, the `configured` task never configures.
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,kotlin]
 ----
 > gradle test testBoth
 include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
 ----
-[source.multi-language-sample,kotlin]
+[source.multi-language-sample,groovy]
 ----
 > gradle test testBoth
 include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
@@ -93,7 +94,7 @@ When you run Gradle in a directory that contains *no* `settings.gradle` file:
 . If Gradle finds a `settings.gradle(.kts)` file, Gradle checks if the current project is part of the multi-project build. If so, Gradle builds as a multi-project.
 . If Gradle does not find a `settings.gradle(.kts)` file, Gradle builds as a single project.
 
-In the standard Gradle project layout, project paths match the physical subproject layout on disk.
+In the standard Gradle project layout, <<intro_multi_project_builds#sec:project_path,project paths>> match the physical subproject layout on disk.
 The automatic search for a settings file only works for multi-project builds with a standard project layout.
 To build projects that use a nonstandard layout, execute the build from the directory that contains `settings.gradle(.kts)`.
 
@@ -136,8 +137,8 @@ The following example uses `gradle.beforeProject()` to add `hasTests` property t
 Later, the example uses `gradle.afterProject()` to add a `test` task to each project where the `hasTests` property value is `true`:
 
 ====
-include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];project-a.gradle[]"]
 include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];project-a.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];project-a.gradle[]"]
 ====
 
 ----
@@ -171,8 +172,8 @@ For example, you could use these notifications to set some default values or met
 The following example sets a `srcDir` value on each task in a project:
 
 ====
-include::sample[dir="snippets/buildlifecycle/taskCreationEvents/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/buildlifecycle/taskCreationEvents/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/taskCreationEvents/groovy",files="build.gradle[]"]
 ====
 
 ----
@@ -203,19 +204,19 @@ These notifications work even when task execution fails.
 The following example logs the start and end of each task execution:
 
 ====
-include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/groovy",files="build.gradle[]"]
 ====
 
-[source.multi-language-sample,groovy]
-----
-> gradle -q broken
-include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-groovy/taskExecutionEvents.groovy.out[]
-----
 [source.multi-language-sample,kotlin]
 ----
 > gradle -q broken
 include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-kotlin/taskExecutionEvents.kotlin.out[]
+----
+[source.multi-language-sample,groovy]
+----
+> gradle -q broken
+include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-groovy/taskExecutionEvents.groovy.out[]
 ----
 
 To receive these events via a listener instead of a closure, add a link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener] to a project's link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph].

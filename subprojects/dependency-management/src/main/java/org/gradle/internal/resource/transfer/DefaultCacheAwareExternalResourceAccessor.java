@@ -20,7 +20,7 @@ import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
@@ -40,15 +40,12 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
-import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
@@ -59,18 +56,18 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final BuildCommencedTimeProvider timeProvider;
     private final TemporaryFileProvider temporaryFileProvider;
-    private final ArtifactCacheLockingManager artifactCacheLockingManager;
+    private final ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator;
     private final ExternalResourceCachePolicy externalResourceCachePolicy;
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileResourceRepository;
     private final ChecksumService checksumService;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.temporaryFileProvider = temporaryFileProvider;
-        this.artifactCacheLockingManager = artifactCacheLockingManager;
+        this.cacheAccessCoordinator = cacheAccessCoordinator;
         this.externalResourceCachePolicy = externalResourceCachePolicy;
         this.producerGuard = producerGuard;
         this.fileResourceRepository = fileResourceRepository;
@@ -187,22 +184,22 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     @Nullable
     private LocallyAvailableExternalResource copyToCache(final ExternalResourceName source, final ResourceFileStore fileStore, final ExternalResource resource) {
         // Download to temporary location
-        DownloadAction downloadAction = new DownloadAction(source);
+        DownloadAction downloadAction = new DownloadAction(source, temporaryFileProvider, LOGGER);
         resource.withContentIfPresent(downloadAction);
-        if (downloadAction.metaData == null) {
+        if (downloadAction.getMetaData() == null) {
             return null;
         }
 
         // Move into cache
         try {
-            return moveIntoCache(source, downloadAction.destination, fileStore, downloadAction.metaData);
+            return moveIntoCache(source, downloadAction.getDestination(), fileStore, downloadAction.getMetaData());
         } finally {
-            downloadAction.destination.delete();
+            downloadAction.getDestination().delete();
         }
     }
 
     private LocallyAvailableExternalResource moveIntoCache(final ExternalResourceName source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
-        return artifactCacheLockingManager.useCache(() -> {
+        return cacheAccessCoordinator.useCache(() -> {
             LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
             File fileInFileStore = cachedResource.getFile();
             cachedExternalResourceIndex.store(source.toString(), fileInFileStore, metaData);
@@ -212,29 +209,5 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     private long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
         return timeProvider.getCurrentTime() - cached.getCachedAt();
-    }
-
-    private class DownloadAction implements ExternalResource.ContentAndMetadataAction<Object> {
-        private final ExternalResourceName source;
-        File destination;
-        ExternalResourceMetaData metaData;
-
-        DownloadAction(ExternalResourceName source) {
-            this.source = source;
-        }
-
-        @Override
-        public Object execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
-            destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
-            this.metaData = metaData;
-            LOGGER.info("Downloading {} to {}", source, destination);
-            if (destination.getParentFile() != null) {
-                GFileUtils.mkdirs(destination.getParentFile());
-            }
-            try (FileOutputStream outputStream = new FileOutputStream(destination)) {
-                IOUtils.copyLarge(inputStream, outputStream);
-            }
-            return null;
-        }
     }
 }

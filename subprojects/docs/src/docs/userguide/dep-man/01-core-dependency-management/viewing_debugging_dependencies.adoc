@@ -22,6 +22,12 @@ It also displays information about dependency conflict resolution.
 The `dependencies` task can be especially helpful for issues related to transitive dependencies.
 Your build file lists direct dependencies, but the `dependencies` task can help you understand which transitive dependencies resolve during your build.
 
+[NOTE]
+====
+Graph of dependencies <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declared in the `buildscript` `classpath` configuration>>
+can be rendered using <<command_line_interface.adoc#sec:listing_project_dependencies, task `buildEnvironment`>>.
+====
+
 === Output Annotations
 
 The `dependencies` task marks dependency trees with the following annotations:
@@ -58,8 +64,8 @@ This avoids polluting other contexts, such as the compilation classpath for your
 The following example declares a custom dependency configuration named "scm" that contains the JGit dependency:
 
 ====
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
 include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
 ====
 
 
@@ -78,8 +84,8 @@ Gradle applies <<dependency_resolution.adoc#sec:version-conflict,version conflic
 The following example introduces a conflict with `commons-codec:commons-codec`, added both as a direct dependency and a transitive dependency of JGit:
 
 ====
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
 include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
 ====
 
 The dependency tree in a link:https://scans.gradle.com/[build scan] shows information about conflicts.

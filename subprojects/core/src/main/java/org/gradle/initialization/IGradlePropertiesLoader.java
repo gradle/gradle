@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.initialization.properties.MutableGradleProperties;
 
 import java.io.File;
 
@@ -26,9 +26,9 @@ public interface IGradlePropertiesLoader {
     String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
 
     /**
-     * Loads the immutable set of Gradle properties.
+     * Loads the set of Gradle properties.
      *
      * @since 6.2
      */
-    GradleProperties loadGradleProperties(File rootDir);
+    MutableGradleProperties loadGradleProperties(File rootDir);
 }

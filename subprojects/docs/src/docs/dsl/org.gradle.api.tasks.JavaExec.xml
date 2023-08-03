@@ -17,6 +17,10 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
+                <td>jvmArguments</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>jvmArgumentProviders</td>
                 <td><literal>[]</literal></td>
             </tr>

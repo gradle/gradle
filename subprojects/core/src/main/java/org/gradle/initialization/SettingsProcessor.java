@@ -24,8 +24,13 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
  * Responsible for locating, constructing, and configuring the {@link SettingsInternal} for a build.
  */
 public interface SettingsProcessor {
-    SettingsInternal process(GradleInternal gradle,
-                             SettingsLocation settingsLocation,
-                             ClassLoaderScope buildRootClassLoaderScope,
-                             StartParameter startParameter);
+    /**
+     * Load the settings for the given build. The caller is responsible for closing the return value.
+     */
+    SettingsState process(
+        GradleInternal gradle,
+        SettingsLocation settingsLocation,
+        ClassLoaderScope buildRootClassLoaderScope,
+        StartParameter startParameter
+    );
 }

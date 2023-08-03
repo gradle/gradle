@@ -54,12 +54,14 @@ class DaemonRegistryServicesTest extends Specification {
 
     def "the registry can be concurrently written to"() {
         when:
+        // obtain localhost address ahead of time as the first call in a JVM can take multiple secs in some systems
+        def localhost = Inet6Address.getLocalHost()
         def registry = registry("someDir").get(DaemonRegistry)
         5.times { idx ->
             concurrent.start {
-                def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [], DaemonParameters.Priority.NORMAL)
+                def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [], false, DaemonParameters.Priority.NORMAL)
                 registry.store(new DaemonInfo(
-                    new SocketInetAddress(Inet6Address.getLocalHost(), (int)(8888 + idx)), context, "foo-$idx".bytes, Idle))
+                    new SocketInetAddress(localhost, (int)(8888 + idx)), context, "foo-$idx".bytes, Idle))
             }
         }
         concurrent.finished()

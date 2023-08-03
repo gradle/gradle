@@ -79,8 +79,8 @@ If you want to suppress warnings, you can use the following APIs to do so:
 
 .Disabling publication warnings
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=ignore-pom-warnings]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/kotlin",files="build.gradle.kts[tags=ignore-pom-warnings]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=ignore-pom-warnings]"]
 ====
 
 [[sub:interactions-other-build-tools]]
@@ -104,8 +104,8 @@ If you know that the modules you depend on are always published with Gradle Modu
 
 .Resolving Gradle Module Metadata only
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/producer",files="build.gradle[tags=gradle_metadata_source]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/kotlin/producer",files="build.gradle.kts[tags=gradle_metadata_source]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/producer",files="build.gradle[tags=gradle_metadata_source]"]
 ====
 
 [[sub:gmm-validation]]
@@ -133,8 +133,8 @@ Users can choose to enable this unique identifier in their `publication`:
 
 .Configuring the build identifier of a publication
 ====
-include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle[tags=enable-build-id]"]
 include::sample[dir="snippets/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=enable-build-id]"]
+include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle[tags=enable-build-id]"]
 ====
 
 With the changes above, the generated Gradle Module Metadata file will always be different, forcing downstream tasks to consider it out-of-date.
@@ -151,6 +151,6 @@ In this case, disabling the publication of Gradle Module Metadata is done simply
 
 .Disabling publication of Gradle Module Metadata
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/producer",files="build.gradle[tags=disable_gradle_metadata_publication]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/kotlin/producer",files="build.gradle.kts[tags=disable_gradle_metadata_publication]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/producer",files="build.gradle[tags=disable_gradle_metadata_publication]"]
 ====

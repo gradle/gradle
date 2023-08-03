@@ -118,7 +118,6 @@ public class AvailableToolChains {
             if (OperatingSystem.current().isWindows()) {
                 compilers.addAll(findVisualCpps());
                 compilers.add(findMinGW());
-                compilers.add(findCygwin());
             } else if (OperatingSystem.current().isMacOsX()) {
                 compilers.addAll(findClangs(true));
                 compilers.addAll(findGccs(false));

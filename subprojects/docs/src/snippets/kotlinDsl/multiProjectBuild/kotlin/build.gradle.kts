@@ -42,7 +42,7 @@ project(":http") {
         "runtimeOnly"("org.slf4j:slf4j-simple:1.7.25")
     }
     configure<JavaApplication> {
-        mainClass.set("example.App")
+        mainClass = "example.App"
     }
     ratpack.baseDir = file("src/ratpack/baseDir")
 }

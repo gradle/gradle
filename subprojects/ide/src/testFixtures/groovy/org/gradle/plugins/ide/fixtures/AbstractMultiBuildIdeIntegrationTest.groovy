@@ -31,15 +31,15 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
     abstract IdeWorkspaceFixture workspace(TestFile workspaceDir, String ideWorkspaceName)
     abstract IdeProjectFixture project(TestFile projectDir, String ideProjectName)
 
+    @ToBeFixedForConfigurationCache(because = "ide plugins")
     @Issue("https://github.com/gradle/gradle/issues/5110")
     def "buildSrc project can apply IDE plugin"() {
         file("buildSrc/build.gradle") << """
             apply plugin: '${pluginId}'
-            tasks.build.dependsOn tasks.${workspaceTask}
         """
 
         expect:
-        succeeds()
+        succeeds(":buildSrc:${workspaceTask}")
         def workspace = workspace(file("buildSrc"), "buildSrc")
         if (libraryPluginId == "java-library") {
             def project = project(file("buildSrc"), "buildSrc")

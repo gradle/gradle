@@ -19,11 +19,12 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
+import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
@@ -50,7 +51,7 @@ class DependencyManagementProjectScopeServices {
     void configure(ServiceRegistration registration) {
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
-        registration.add(TransformationNodeDependencyResolver.class);
+        registration.add(TransformStepNodeDependencyResolver.class);
     }
 
     /** This is needed in order to get the {@code taskDependencyFactory} from the current project. */
@@ -72,25 +73,26 @@ class DependencyManagementProjectScopeServices {
         FileCollectionFactory fileCollectionFactory,
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         ImmutableAttributesFactory attributesFactory,
-        SimpleMapInterner stringInterner
+        SimpleMapInterner stringInterner,
+        CapabilityNotationParser capabilityNotationParser
     ) {
-        NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
-            instantiator,
-            DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner, attributesFactory, capabilityNotationParser),
-            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
-            new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-            capabilityNotationParser, projectDependencyFactory,
-            attributesFactory);
+                instantiator,
+                DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
+                DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
+                new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
+                capabilityNotationParser,
+                projectDependencyFactory,
+                attributesFactory);
     }
 
-    private ByUrlCachedExternalResourceIndex prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
+    private ByUrlCachedExternalResourceIndex prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
         return new ByUrlCachedExternalResourceIndex(
             "resource-at-url",
             timeProvider,
-            artifactCacheLockingManager,
+            cacheAccessCoordinator,
             externalResourceFileStore.getFileAccessTracker(),
             artifactCacheMetadata.getCacheDir().toPath()
         );

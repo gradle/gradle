@@ -16,7 +16,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CacheCleanup
+import org.gradle.cache.CacheCleanupStrategy
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.FileLock
@@ -44,7 +44,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
     def cacheDir = tmpDir.file("dir")
     def cleanupAction = Mock(CleanupAction)
-    def cacheCleanup = Mock(CacheCleanup)
+    def cacheCleanup = Mock(CacheCleanupStrategy)
     def lockManager = Mock(FileLockManager)
     def lock = Mock(FileLock)
     def progressLoggerFactory = Stub(ProgressLoggerFactory) {

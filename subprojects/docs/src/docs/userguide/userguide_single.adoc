@@ -28,12 +28,12 @@ toc::[]
 [[part:about_gradle]]
 == About Gradle
 
-include::what_is_gradle.adoc[leveloffset=+2]
+include::userguide.adoc[leveloffset=+2]
 
 [[part:getting_started]]
 == Getting Started
 
-include::getting_started.adoc[leveloffset=2]
+include::introduction.adoc[leveloffset=2]
 
 include::installation.adoc[leveloffset=+2]
 
@@ -73,6 +73,8 @@ include::build_cache.adoc[leveloffset=+2]
 include::tutorial_using_tasks.adoc[leveloffset=+2]
 
 include::more_about_tasks.adoc[leveloffset=+2]
+
+include::incremental_build.adoc[leveloffset=+2]
 
 include::writing_build_scripts.adoc[leveloffset=+2]
 

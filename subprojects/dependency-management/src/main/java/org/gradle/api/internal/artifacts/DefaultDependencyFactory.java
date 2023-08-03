@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -31,7 +30,6 @@ import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -51,7 +49,9 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final Instantiator instantiator;
     private final DependencyNotationParser dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
-    private final NotationParser<Object, ClientModule> clientModuleNotationParser;
+
+    @SuppressWarnings("deprecation")
+    private final NotationParser<Object, org.gradle.api.artifacts.ClientModule> clientModuleNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ProjectDependencyFactory projectDependencyFactory;
     private final ImmutableAttributesFactory attributesFactory;
@@ -60,7 +60,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         Instantiator instantiator,
         DependencyNotationParser dependencyNotationParser,
         NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
-        NotationParser<Object, ClientModule> clientModuleNotationParser,
+        @SuppressWarnings("deprecation") NotationParser<Object, org.gradle.api.artifacts.ClientModule> clientModuleNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         ProjectDependencyFactory projectDependencyFactory,
         ImmutableAttributesFactory attributesFactory
@@ -109,9 +109,10 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
 
     @Override
+    @Deprecated
     @SuppressWarnings("rawtypes")
-    public ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
-        ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
+    public org.gradle.api.artifacts.ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
+        org.gradle.api.artifacts.ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
         if (configureClosure != null) {
             configureModule(clientModule, configureClosure);
         }
@@ -123,9 +124,11 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         return projectDependencyFactory.createFromMap(projectFinder, map);
     }
 
+    @Deprecated
     @SuppressWarnings("rawtypes")
-    private void configureModule(ClientModule clientModule, Closure configureClosure) {
-        ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, this);
+    private void configureModule(org.gradle.api.artifacts.ClientModule clientModule, Closure configureClosure) {
+        org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate moduleFactoryDelegate =
+            new org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate(clientModule, this);
         moduleFactoryDelegate.prepareDelegation(configureClosure);
         configureClosure.call();
     }
@@ -134,7 +137,9 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ExternalModuleDependency create(CharSequence dependencyNotation) {
-        return dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+        ExternalModuleDependency dependency = dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+        injectServices(dependency);
+        return dependency;
     }
 
     @Override
@@ -146,6 +151,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     public ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension) {
         DefaultExternalModuleDependency dependency = instantiator.newInstance(DefaultExternalModuleDependency.class, group, name, version);
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, extension, classifier);
+        injectServices(dependency);
         return dependency;
     }
 
@@ -156,7 +162,9 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ProjectDependency create(Project project) {
-        return dependencyNotationParser.getProjectNotationParser().parseNotation(project);
+        ProjectDependency dependency = dependencyNotationParser.getProjectNotationParser().parseNotation(project);
+        injectServices(dependency);
+        return dependency;
     }
 
     // endregion

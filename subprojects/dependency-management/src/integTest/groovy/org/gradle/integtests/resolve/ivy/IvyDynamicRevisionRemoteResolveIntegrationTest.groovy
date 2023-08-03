@@ -259,7 +259,9 @@ dependencies {
     staticVersions group: "group", name: "projectA", version: "1.1"
     compile group: "group", name: "projectA", version: "latest.milestone"
 }
-task cache { doLast { configurations.staticVersions.files } }
+task cache {
+    def files = configurations.staticVersions
+    doLast { files*.name } }
 """
 
         and:
@@ -491,7 +493,7 @@ dependencies {
     }
 
     @Issue("gradle/gradle#3019")
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "Does not check for updates to remote artifact")
     def "should honour dynamic version cache expiry for subsequent resolutions in the same build"() {
         given:
         useRepository ivyHttpRepo
@@ -508,8 +510,10 @@ dependencies {
 }
 
 task resolveStaleThenFresh {
+    def stale = configurations.stale
+    def fresh = configurations.fresh
     doFirst {
-        println 'stale:' + configurations.stale.collect { it.name } + ',fresh:' + configurations.fresh.collect { it.name }
+        println 'stale:' + stale.collect { it.name } + ',fresh:' + fresh.collect { it.name }
     }
 }
 """
@@ -566,7 +570,10 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.+", "org.test:projectA:1.2").byReason("didn't match version 2.1")
+                edge("org.test:projectA:1.+", "org.test:projectA:1.2") {
+                    notRequested()
+                    byReason("didn't match version 2.1")
+                }
             }
         }
 
@@ -586,8 +593,11 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.+", "org.test:projectA:2.1").byConflictResolution("between versions 1.2 and 2.1")
-                edge("org.test:projectA:2.+", "org.test:projectA:2.1").byConflictResolution("between versions 1.2 and 2.1")
+                edge("org.test:projectA:1.+", "org.test:projectA:2.1") {
+                    byConflictResolution("between versions 1.2 and 2.1")
+                    byReason("didn't match version 2.1")
+                }
+                edge("org.test:projectA:2.+", "org.test:projectA:2.1")
             }
         }
 
@@ -609,9 +619,15 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.+", "org.test:projectA:3.0").byConflictResolution("between versions 3.0, 1.2 and 2.1")
-                edge("org.test:projectA:2.+", "org.test:projectA:3.0").byConflictResolution("between versions 3.0, 1.2 and 2.1")
-                edge("org.test:projectA:3.+", "org.test:projectA:3.0").byConflictResolution("between versions 3.0, 1.2 and 2.1")
+                edge("org.test:projectA:1.+", "org.test:projectA:3.0") {
+                    notRequested()
+                    byConflictResolution("between versions 3.0, 1.2 and 2.1")
+                    byReason("didn't match versions 2.1, 1.2, 1.1")
+                    byReason("didn't match versions 3.0, 2.1")
+                    byReason("didn't match version 3.0")
+                }
+                edge("org.test:projectA:2.+", "org.test:projectA:3.0")
+                edge("org.test:projectA:3.+", "org.test:projectA:3.0")
             }
         }
     }
@@ -1276,7 +1292,7 @@ dependencies {
             root(":", ":test:") {
                 edges.each { from, to ->
                     if (to instanceof List) {
-                        edge(from, to[0]).byReason(to[1])
+                        edge(from, to[0]).byReason(to[1]).notRequested()
                     } else {
                         edge(from, to)
                     }

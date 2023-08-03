@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.adapter;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 class MethodInvocation {
@@ -65,11 +66,12 @@ class MethodInvocation {
     /**
      * Marks the method as handled.
      */
-    public void setResult(Object result) {
+    public void setResult(@Nullable Object result) {
         found = true;
         this.result = result;
     }
 
+    @Nullable
     public Object getResult() {
         return result;
     }

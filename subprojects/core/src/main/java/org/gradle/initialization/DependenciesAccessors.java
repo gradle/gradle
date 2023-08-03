@@ -17,15 +17,21 @@ package org.gradle.initialization;
 
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
+import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DependenciesAccessors {
     void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings);
     void createExtensions(ProjectInternal project);
+    Map<String, ExternalModuleDependencyFactory> createPluginsBlockFactories(ObjectFactory objects);
     ClassPath getSources();
     ClassPath getClasses();
+
+    String IN_PLUGINS_BLOCK_FACTORIES_SUFFIX = "InPluginsBlock";
 }

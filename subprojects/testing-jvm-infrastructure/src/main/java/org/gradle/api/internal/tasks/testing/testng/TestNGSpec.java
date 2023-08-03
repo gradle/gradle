@@ -36,6 +36,7 @@ public class TestNGSpec implements Serializable {
     private final String configFailurePolicy;
     private final boolean preserveOrder;
     private final boolean groupByInstances;
+    private final boolean isDryRun;
 
     public TestNGSpec(
         TestFilterSpec filter,
@@ -49,7 +50,8 @@ public class TestNGSpec implements Serializable {
         Set<String> listeners,
         String configFailurePolicy,
         boolean preserveOrder,
-        boolean groupByInstances
+        boolean groupByInstances,
+        boolean isDryRun
     ) {
         this.filter = filter;
         this.defaultSuiteName = defaultSuiteName;
@@ -63,6 +65,7 @@ public class TestNGSpec implements Serializable {
         this.configFailurePolicy = configFailurePolicy;
         this.preserveOrder = preserveOrder;
         this.groupByInstances = groupByInstances;
+        this.isDryRun = isDryRun;
     }
 
     public TestFilterSpec getFilter() {
@@ -111,5 +114,9 @@ public class TestNGSpec implements Serializable {
 
     public boolean getGroupByInstances() {
         return groupByInstances;
+    }
+
+    public boolean isDryRun() {
+        return isDryRun;
     }
 }

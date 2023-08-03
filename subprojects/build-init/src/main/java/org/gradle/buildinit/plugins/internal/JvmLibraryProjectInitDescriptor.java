@@ -22,6 +22,8 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 import java.util.List;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
 
     private final TemplateLibraryVersionProvider libraryVersionProvider;
@@ -50,29 +52,28 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
     }
 
     @Override
-    protected void sourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates) {
-        templates.add("Library");
+    protected List<String> getSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+        return newArrayList("Library");
     }
 
     @Override
-    protected void testSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates) {
+    protected List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+        return newArrayList(getUnitTestSourceTemplateName(settings));
+    }
+
+    private static String getUnitTestSourceTemplateName(InitSettings settings) {
         switch (settings.getTestFramework()) {
             case SPOCK:
-                templates.add("groovy/LibraryTest");
-                break;
+                return "groovy/LibraryTest";
             case TESTNG:
-                templates.add("testng/LibraryTest");
-                break;
+                return "testng/LibraryTest";
             case JUNIT:
             case KOTLINTEST:
-                templates.add("LibraryTest");
-                break;
+                return "LibraryTest";
             case JUNIT_JUPITER:
-                templates.add("junitjupiter/LibraryTest");
-                break;
+                return "junitjupiter/LibraryTest";
             case SCALATEST:
-                templates.add("LibrarySuite");
-                break;
+                return "LibrarySuite";
             default:
                 throw new IllegalArgumentException();
         }

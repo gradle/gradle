@@ -12,7 +12,8 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":file-collections"))
-    implementation(project(":plugins"))
+    implementation(project(":functional"))
+    implementation(project(":platform-base"))
     implementation(project(":dependency-management"))
     implementation(project(":publish"))
     implementation(project(":maven"))
@@ -21,6 +22,10 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)
+
+    testFixturesImplementation(project(":base-services")) {
+        because("Required to access org.gradle.internal.SystemProperties")
+    }
 
     testImplementation(project(":ivy"))
     testImplementation(testFixtures(project(":core")))
@@ -41,4 +46,8 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+tasks {
+    integTest {
+        usesJavadocCodeSnippets = true
+    }
+}

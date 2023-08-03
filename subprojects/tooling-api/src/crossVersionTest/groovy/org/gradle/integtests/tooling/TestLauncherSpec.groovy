@@ -46,6 +46,9 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
     GradleBuildCancellation cancellationTokenSource
 
     def setup() {
+        // Avoid mixing JUnit dependencies with the ones from the JVM running this test
+        // For example, when using PTS/TD for running this test, the JUnit Platform Launcher classes from the GE plugin take precedence
+        toolingApi.requireDaemons()
         testCode()
     }
 
@@ -143,7 +146,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         }
 
         return descriptorByClassAndMethod.findAll {
-            def parent = it.parent
+            def parent = it
             while (parent.parent != null) {
                 parent = parent.parent
                 if (parent instanceof TaskOperationDescriptor) {

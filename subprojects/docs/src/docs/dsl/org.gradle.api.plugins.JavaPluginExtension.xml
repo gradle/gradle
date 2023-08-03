@@ -38,11 +38,11 @@
             </tr>
             <tr>
                 <td>docsDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/docs</literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/docs</literal></td>
             </tr>
             <tr>
                 <td>testResultsDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/test-results</literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/test-results</literal></td>
             </tr>
             <tr>
                 <td>testReportDir</td>

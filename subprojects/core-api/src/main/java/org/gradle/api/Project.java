@@ -264,7 +264,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * generated into.  The default value for the build directory is <code><i>projectDir</i>/build</code></p>
      *
      * @return The build directory. Never returns null.
+     * @deprecated Use {@code getLayout().getBuildDirectory()} instead
      */
+    @Deprecated
     File getBuildDir();
 
     /**
@@ -273,7 +275,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The build directory
      * @since 4.0
+     * @deprecated Use {@code getLayout().getBuildDirectory()} and set the {@link org.gradle.api.file.DirectoryProperty}
      */
+    @Deprecated
     void setBuildDir(File path);
 
     /**
@@ -282,7 +286,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * amongst other things, a relative or absolute path or File object to specify the build directory.</p>
      *
      * @param path The build directory. This is evaluated as per {@link #file(Object)}
+     * @deprecated Use {@code getLayout().getBuildDirectory()} and set the {@link org.gradle.api.file.DirectoryProperty}
      */
+    @Deprecated
     void setBuildDir(Object path);
 
     /**
@@ -304,7 +310,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Returns the name of this project. The project's name is not necessarily unique within a project hierarchy. You
-     * should use the {@link #getPath()} method for a unique identifier for the project.</p>
+     * should use the {@link #getPath()} method for a unique identifier for the project.
+     * If the root project is unnamed and is located on a file system root it will have a randomly-generated name
+     * </p>
      *
      * @return The name of this project. Never return null.
      */
@@ -543,6 +551,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The path. Never returns null.
      */
     String getPath();
+
+    /**
+     * Returns a path to the project for the full build tree.
+     *
+     * @return The build tree path
+     * @since 8.3
+     */
+    @Incubating
+    String getBuildTreePath();
 
     /**
      * <p>Returns the names of the default tasks of this project. These are used when no tasks names are provided when
@@ -961,15 +978,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
-     * Creates a {@code Provider} implementation based on the provided value.
+     * Creates a {@link Provider} implementation based on the provided value.
      *
-     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
+     *
+     * @param value The {@link Callable} use to calculate the value.
      * @return The provider. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    <T> Provider<T> provider(Callable<T> value);
+    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
 
     /**
      * Provides access to methods to create various kinds of {@link Provider} instances.
@@ -1760,6 +1778,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The components for this project.
      */
     SoftwareComponentContainer getComponents();
+
+    /**
+     * Configures software components.
+     *
+     * @param configuration Action to configure the software components.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    void components(Action<? super SoftwareComponentContainer> configuration);
 
     /**
      * Provides access to configuring input normalization.

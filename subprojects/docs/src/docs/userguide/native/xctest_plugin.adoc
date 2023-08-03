@@ -24,8 +24,8 @@ The XCTest Plugin provides the tasks, configurations and conventions for integra
 
 .Applying the XCTest Plugin
 ====
-include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=apply-plugin]"]
 include::sample[dir="snippets/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 [[sec:xctest_build_varants]]
@@ -43,8 +43,8 @@ The target machine can be configured as follows:
 
 .Configure application target machines
 ====
-include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=configure-target-machines]"]
 include::sample[dir="snippets/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=configure-target-machines]"]
 ====
 
 [[sec:xctest_tasks]]
@@ -114,7 +114,7 @@ Aggregate tasks that perform a full build of the project.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `clean` - Delete::
-Deletes the build directory and everything in it, i.e. the path specified by the `Project.getBuildDir()` project property.
+Deletes the build directory and everything in it, i.e. the path specified by the `layout.buildDirectory` project property.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 [[sec:xctest_dependency_management]]
@@ -191,7 +191,7 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 
 link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:macros[macros]:: []
 
-link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/test/__variant__`
+link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:objectFileDir[objectFileDir]:: `layout.buildDirectory.dir("obj/test/__$variant__")`
 
 link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:optimized[optimized]:: `false`
 
@@ -215,7 +215,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gr
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gradle.nativeplatform.tasks.LinkMachOBundle:libs[libs]:: `configurations.nativeLinkTest__Variant__`
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gradle.nativeplatform.tasks.LinkMachOBundle:linkedFile[linkedFile]:: `$buildDir/exe/test/__variant__/module`
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gradle.nativeplatform.tasks.LinkMachOBundle:linkedFile[linkedFile]:: `layout.buildDirectory.dir("exe/test/__$variant__/module")`
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gradle.nativeplatform.tasks.LinkMachOBundle:linkerArgs[linkerArgs]:: []
 
@@ -232,7 +232,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:libs[libs]:: `configurations.nativeLinkTest__Variant__`
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkedFile[linkedFile]:: `$buildDir/exe/test/__variant__/baseName`
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkedFile[linkedFile]:: `layout.buildDirectory.dir("exe/test/__$variant__/baseName")`
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkerArgs[linkerArgs]:: []
 
@@ -257,14 +257,14 @@ Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,int
 Some of the most common configuration options are shown below.
 
 [horizontal]
-link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:binResultDir[binResultDir]:: `$buildDir/test-results/xctest/__variant__/`
+link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:binResultDir[binResultDir]:: `layout.buildDirectory.dir("test-results/xctest/__$variant__/")`
 
 link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:ignoreFailures[ignoreFailures]:: `false`
 
-link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:reports[reports]:: `$buildDir/reports/tests/xctest/__variant__/` (HTML only)
+link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:reports[reports]:: `layout.buildDirectory.dir("reports/tests/xctest/__$variant__/")` (HTML only)
 
-link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:runScriptFile[runScriptFile]:: `$buildDir/install/test/__variant__/__xctest.module__`
+link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:runScriptFile[runScriptFile]:: `layout.buildDirectory.dir("install/test/__$variant__/__${xctest.module}__")`
 
-link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:testInstallDirectory[testInstallDirectory]:: `$buildDir/install/test/__variant__/`
+link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:testInstallDirectory[testInstallDirectory]:: `layout.buildDirectory.dir("install/test/__$variant__/")`
 
-link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:workingDirectory[workingDirectory]:: `$buildDir/install/test/__variant__/`
+link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:workingDirectory[workingDirectory]:: `layout.buildDirectory.dir("install/test/__$variant__/")`

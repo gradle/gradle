@@ -15,17 +15,17 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
-import org.gradle.util.Requires
 
-@Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
+import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.SigningTestPreconditions
+
+@Requires(SigningTestPreconditions.GpgAvailable)
 class SigningConfigurationsWithGpgCmdIntegrationSpec extends SigningConfigurationsIntegrationSpec {
     SignMethod getSignMethod() {
         return SignMethod.GPG_CMD
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not leak passphrase at info logging"() {
         given:
         buildFile << """

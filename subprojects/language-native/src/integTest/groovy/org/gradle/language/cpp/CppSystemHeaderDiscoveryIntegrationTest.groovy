@@ -33,6 +33,8 @@ class CppSystemHeaderDiscoveryIntegrationTest extends AbstractInstalledToolChain
         """
 
         when:
+        //TODO this fails in CI (for unknown reasons) with project access checks based on configuration barrier
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds("sysHeaders")
 
         then:

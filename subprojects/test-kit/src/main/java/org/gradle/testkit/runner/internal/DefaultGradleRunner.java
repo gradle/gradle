@@ -128,6 +128,10 @@ public class DefaultGradleRunner extends GradleRunner {
         return this;
     }
 
+    public List<String> getJvmArguments() {
+        return jvmArguments;
+    }
+
     public DefaultGradleRunner withJvmArguments(List<String> jvmArguments) {
         this.jvmArguments = Collections.unmodifiableList(new ArrayList<>(jvmArguments));
         return this;
@@ -273,6 +277,12 @@ public class DefaultGradleRunner extends GradleRunner {
             if (gradleExecutionResult.isSuccessful()) {
                 throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult), createBuildResult(gradleExecutionResult));
             }
+        });
+    }
+
+    @Override
+    public BuildResult run() {
+        return run(gradleExecutionResult -> {
         });
     }
 

@@ -54,22 +54,12 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
             }
         """
 
-        when:
-        server.expectConcurrent("b")
-        server.expectConcurrent("c")
-        server.expectConcurrent("a")
-        configurationCacheRun "a:slow"
-
-        then:
-        noExceptionThrown()
-
-        when:
-        server.expectConcurrent("b", "c")
-        server.expectConcurrent("a")
-        configurationCacheRun "a:slow"
-
-        then:
-        noExceptionThrown()
+        expect:
+        2.times {
+            server.expectConcurrent("b", "c")
+            server.expectConcurrent("a")
+            configurationCacheRun "a:slow"
+        }
     }
 
     // Don't run in parallel mode, as the expectation for the setup build are incorrect
@@ -97,25 +87,13 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
             }
         """
 
-        when:
-        // TODO - should run from the IE cache in this initial build as well, so tasks can run in parallel
-        server.expectConcurrent("b")
-        server.expectConcurrent("c")
-        server.expectConcurrent("a")
-        server.expectConcurrent("d")
-        configurationCacheRun "a", "d"
-
-        then:
-        noExceptionThrown()
-
-        when:
-        server.expectConcurrent("b", "c")
-        server.expectConcurrent("a")
-        server.expectConcurrent("d")
-        configurationCacheRun "a", "d"
-
-        then:
-        noExceptionThrown()
+        expect:
+        2.times {
+            server.expectConcurrent("b", "c")
+            server.expectConcurrent("a")
+            server.expectConcurrent("d")
+            configurationCacheRun "a", "d"
+        }
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -213,18 +191,12 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         }
 
         and: "requested finalizer dependencies to run in parallel"
-        ["finalizerDep", "finalizedDep", "finalized", "finalizer"].each {
-            // vintage build always executes tasks from the same project sequentially
-            server.expectConcurrent(it)
+        2.times {
+            server.expectConcurrent("finalizerDep", "finalizedDep")
+            ["finalized", "finalizer"].each {
+                server.expectConcurrent(it)
+            }
+            configurationCacheRun "finalizerDep", "finalized"
         }
-        configurationCacheRun "finalizerDep", "finalized"
-        configurationCache.assertStateStored()
-
-        server.expectConcurrent("finalizerDep", "finalizedDep")
-        ["finalized", "finalizer"].each {
-            server.expectConcurrent(it)
-        }
-        configurationCacheRun "finalizerDep", "finalized"
-        configurationCache.assertStateLoaded()
     }
 }

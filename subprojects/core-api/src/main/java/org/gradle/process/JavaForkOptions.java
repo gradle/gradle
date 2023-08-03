@@ -121,7 +121,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Returns the extra arguments to use to launch the JVM for the process. Does not include system properties and the
      * minimum/maximum heap size.
      *
-     * @return The arguments. Returns an empty list if there are no arguments.
+     * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
     @Nullable @Optional @Input
     List<String> getJvmArgs();
@@ -253,7 +253,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define
      * system properties, the minimum/maximum heap size, and the bootstrap classpath.
      *
-     * @return The arguments. Returns an empty list if there are no arguments.
+     * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
     @Internal
     List<String> getAllJvmArgs();

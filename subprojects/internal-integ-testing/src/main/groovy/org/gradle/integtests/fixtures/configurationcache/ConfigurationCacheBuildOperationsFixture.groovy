@@ -46,11 +46,11 @@ class ConfigurationCacheBuildOperationsFixture {
         assertThat(storeOperation(), nullValue())
     }
 
-    void assertStateStored() {
-        assertThat(loadOperation(), nullValue())
+    void assertStateStored(boolean expectLoad = true) {
         def store = storeOperation()
         assertThat(store, notNullValue())
         assertThat(store.failure, nullValue())
+        assertThat(loadOperation(), expectLoad ? notNullValue() : nullValue())
     }
 
     void assertStateStoreFailed() {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.rocache
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
@@ -82,6 +83,7 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
         assertNotInReadOnlyCache("other-1.0.jar")
     }
 
+    @UnsupportedWithConfigurationCache(because = "task uses artifact resolution API")
     def "can recover from corrupt read-only cache (#file)"() {
         given:
         def core = mavenHttpRepo.module('org.readonly', 'core', '1.0')
@@ -123,6 +125,7 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
         ]
     }
 
+    @UnsupportedWithConfigurationCache(because = "task uses artifact resolution API")
     def "fetches javadocs and sources from read-only cache"() {
         given:
         buildFile << """
@@ -138,7 +141,6 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
         then:
         noExceptionThrown()
     }
-
 
     @Override
     List<MavenHttpModule> getModulesInReadOnlyCache(MavenHttpRepository repo) {

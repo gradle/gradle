@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.CompileView
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult
@@ -102,60 +101,6 @@ class JavaEcosystemSupportTest extends Specification {
         Usage.JAVA_API          | [JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS, Usage.JAVA_API, JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS] | JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS
     }
 
-    def "check compile-view compatibility rules consumer=#consumer producer=#producer compatible=#compatible"() {
-        CompatibilityCheckDetails details = Mock(CompatibilityCheckDetails)
-
-        when:
-        new JavaEcosystemSupport.CompileViewCompatibilityRules().execute(details)
-
-        then:
-        1 * details.getConsumerValue() >> compileView(consumer)
-        1 * details.getProducerValue() >> compileView(producer)
-
-        if (compatible && !(consumer == producer)) {
-            1 * details.compatible()
-        } else {
-            0 * _
-        }
-
-        where:
-        consumer                  | producer                  | compatible
-        null                      | CompileView.JAVA_API      | true
-        null                      | CompileView.JAVA_INTERNAL | true
-
-        CompileView.JAVA_API      | CompileView.JAVA_API      | true
-        CompileView.JAVA_API      | CompileView.JAVA_INTERNAL | true
-
-        CompileView.JAVA_INTERNAL | CompileView.JAVA_API      | false
-        CompileView.JAVA_INTERNAL | CompileView.JAVA_INTERNAL | true
-    }
-
-    def "check compile-view disambiguation rules consumer=#consumer and candidates=#candidates chooses=#expected"() {
-        MultipleCandidatesDetails details = Mock(MultipleCandidatesDetails)
-
-        when:
-        new JavaEcosystemSupport.CompileViewDisambiguationRules(
-            compileView(CompileView.JAVA_API),
-            compileView(CompileView.JAVA_INTERNAL)
-        ).execute(details)
-
-        then:
-        1 * details.getConsumerValue() >> compileView(consumer)
-        1 * details.getCandidateValues() >> candidates.collect { compileView(it) }
-        1 * details.closestMatch({ assert it.name == expected })
-
-        where:
-        consumer                  | candidates                                        | expected
-        null                      | [CompileView.JAVA_API]                            | CompileView.JAVA_API
-        null                      | [CompileView.JAVA_API, CompileView.JAVA_INTERNAL] | CompileView.JAVA_API
-
-        CompileView.JAVA_API      | [CompileView.JAVA_API]                            | CompileView.JAVA_API
-        CompileView.JAVA_API      | [CompileView.JAVA_API, CompileView.JAVA_INTERNAL] | CompileView.JAVA_API
-
-        CompileView.JAVA_INTERNAL | [CompileView.JAVA_INTERNAL]                       | CompileView.JAVA_INTERNAL
-        CompileView.JAVA_INTERNAL | [CompileView.JAVA_API, CompileView.JAVA_INTERNAL] | CompileView.JAVA_INTERNAL
-    }
-
     def "check bundling compatibility rules consumer=#consumer producer=#producer compatible=#compatible"() {
         CompatibilityCheckDetails details = Mock(CompatibilityCheckDetails)
 
@@ -223,14 +168,6 @@ class JavaEcosystemSupportTest extends Specification {
             null
         } else {
             TestUtil.objectFactory().named(Usage, value)
-        }
-    }
-
-    private CompileView compileView(String value) {
-        if (value == null) {
-            null
-        } else {
-            TestUtil.objectFactory().named(CompileView, value)
         }
     }
 

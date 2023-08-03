@@ -331,7 +331,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
         @Override
         public void addCapability(String group, String name, String version) {
-            capabilities.add(new ImmutableCapability(group, name, version));
+            capabilities.add(new DefaultImmutableCapability(group, name, version));
         }
 
         @Override
@@ -457,7 +457,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
             this.attributes = attributes;
             this.requestedCapabilities = ImmutableList.copyOf(
                 requestedCapabilities.stream()
-                    .map(c -> new ImmutableCapability(c.getGroup(), c.getName(), c.getVersion()))
+                    .map(c -> new DefaultImmutableCapability(c.getGroup(), c.getName(), c.getVersion()))
                     .collect(Collectors.toList())
             );
             this.endorsing = endorsing;
@@ -526,12 +526,14 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
                 && Objects.equal(excludes, that.excludes)
                 && Objects.equal(reason, that.reason)
                 && Objects.equal(attributes, that.attributes)
-                && Objects.equal(requestedCapabilities, that.requestedCapabilities);
+                && Objects.equal(requestedCapabilities, that.requestedCapabilities)
+                && Objects.equal(endorsing, that.endorsing)
+                && Objects.equal(dependencyArtifact, that.dependencyArtifact);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes);
+            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes, endorsing, dependencyArtifact);
         }
     }
 

@@ -5,11 +5,11 @@ plugins {
 }
 
 val processTemplates by tasks.registering(ProcessTemplates::class) {
-    templateEngine.set(TemplateEngineType.FREEMARKER)
+    templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles.from(fileTree("src/templates"))
-    templateData.name.set("test")
-    templateData.variables.set(mapOf("year" to "2012"))
-    outputDir.set(file(layout.buildDirectory.dir("genOutput")))
+    templateData.name = "test"
+    templateData.variables = mapOf("year" to "2012")
+    outputDir = file(layout.buildDirectory.dir("genOutput"))
 }
 
 interface Injected {
@@ -86,11 +86,11 @@ tasks.register("processTemplatesAdHocSkipWhenEmpty") {
 tasks.register<ProcessTemplates>("processTemplatesWithExtraInputs") {
     // ...
 // end::custom-class-runtime-api[]
-    templateEngine.set(TemplateEngineType.FREEMARKER)
+    templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles.from(fileTree("src/templates"))
-    templateData.name.set("test")
-    templateData.variables.set(mapOf("year" to "2014"))
-    outputDir.set(file(layout.buildDirectory.dir("genOutput3")))
+    templateData.name = "test"
+    templateData.variables = mapOf("year" to "2014")
+    outputDir = file(layout.buildDirectory.dir("genOutput3"))
 // tag::custom-class-runtime-api[]
 
     inputs.file("src/headers/headers.txt")
@@ -114,13 +114,14 @@ tasks.register<Zip>("packageFiles2") {
 
 // tag::adhoc-destroyable-task[]
 tasks.register("removeTempDir") {
-    destroyables.register(layout.projectDirectory.dir("tmpDir"))
+    val tmpDir = layout.projectDirectory.dir("tmpDir")
+    destroyables.register(tmpDir)
     doLast {
-        delete(layout.projectDirectory.dir("tmpDir"))
+        tmpDir.asFile.deleteRecursively()
     }
 }
 // end::adhoc-destroyable-task[]
 
 tasks.build {
-    dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs", "processTemplatesWithoutAnnotations")
+    dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs")
 }

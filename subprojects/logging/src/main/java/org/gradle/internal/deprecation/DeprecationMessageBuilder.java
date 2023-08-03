@@ -25,7 +25,6 @@ import java.util.List;
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
-    private static final GradleVersion GRADLE8 = GradleVersion.version("8.0");
     private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
 
     private String summary;
@@ -51,30 +50,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: This is scheduled to be removed in Gradle 8.0.
-     */
-    public WithDeprecationTimeline willBeRemovedInGradle8() {
-        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE8);
-        return new WithDeprecationTimeline(this);
-    }
-
-    /**
-     * Output: This will fail with an error in Gradle 8.0.
-     */
-    public WithDeprecationTimeline willBecomeAnErrorInGradle8() {
-        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE8);
-        return new WithDeprecationTimeline(this);
-    }
-
-    /**
-     * Output: This will change in Gradle 8.0.
-     */
-    public WithDeprecationTimeline willChangeInGradle8() {
-        this.deprecationTimeline = DeprecationTimeline.willChangeInVersion(GRADLE8);
-        return new WithDeprecationTimeline(this);
-    }
-
-    /**
      * Output: This is scheduled to be removed in Gradle 9.0.
      */
     public WithDeprecationTimeline willBeRemovedInGradle9() {
@@ -91,13 +66,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: This will change in Gradle 9.0.
+     * Output: Starting with Gradle 9.0, ${message}.
      */
-    public WithDeprecationTimeline willChangeInGradle9() {
-        this.deprecationTimeline = DeprecationTimeline.willChangeInVersion(GRADLE9);
+    public WithDeprecationTimeline startingWithGradle9(String message) {
+        this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE9, message);
         return new WithDeprecationTimeline(this);
     }
-
 
     void setIndirectUsage() {
         this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
@@ -243,12 +217,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        public WithDeprecationTimeline willBeRemovedInGradle8() {
-            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE8));
-            return new WithDeprecationTimeline(this);
-        }
-
-        @Override
         public WithDeprecationTimeline willBeRemovedInGradle9() {
             setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE9));
             return new WithDeprecationTimeline(this);
@@ -356,6 +324,9 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         String formatAdvice(List<String> replacements) {
+            if (replacements.isEmpty()) {
+                return "Please " + deprecationType.usage + " another configuration instead.";
+            }
             return String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
         }
     }
@@ -508,14 +479,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         public DeprecateBehaviour(String behaviour) {
             this.behaviour = behaviour;
-        }
-
-        /**
-         * Output: This behavior is scheduled to be removed in Gradle 8.0.
-         */
-        public WithDeprecationTimeline willBeRemovedInGradle8() {
-            setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE8));
-            return new WithDeprecationTimeline(this);
         }
 
         /**

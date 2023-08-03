@@ -18,6 +18,9 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.component.AdhocComponentWithVariants
+import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -40,7 +43,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaPlugin)
 
         when:
-        def implementation = project.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+        def implementation = project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
         implementation.extendsFrom == toSet()
@@ -49,7 +52,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         !implementation.canBeResolved
 
         when:
-        def runtimeOnly = project.configurations.getByName(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME)
+        def runtimeOnly = project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
 
         then:
         runtimeOnly.transitive
@@ -59,7 +62,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         runtimeOnly.extendsFrom == [] as Set
 
         when:
-        def runtimeElements = project.configurations.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+        def runtimeElements = project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
 
         then:
         runtimeElements.transitive
@@ -69,7 +72,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         runtimeElements.extendsFrom == [implementation, runtimeOnly] as Set
 
         when:
-        def runtimeClasspath = project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        def runtimeClasspath = project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
 
         then:
         runtimeClasspath.transitive
@@ -79,7 +82,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         runtimeClasspath.extendsFrom == [runtimeOnly, implementation] as Set
 
         when:
-        def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
+        def compileOnly = project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
         compileOnly.extendsFrom == [] as Set
@@ -89,7 +92,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         compileOnly.transitive
 
         when:
-        def compileClasspath = project.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        def compileClasspath = project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
         compileClasspath.extendsFrom == toSet(compileOnly, implementation)
@@ -97,7 +100,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         compileClasspath.transitive
 
         when:
-        def annotationProcessor = project.configurations.getByName(JavaPlugin.ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
+        def annotationProcessor = project.configurations.getByName(JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
 
         then:
         annotationProcessor.extendsFrom == [] as Set
@@ -107,7 +110,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         annotationProcessor.canBeResolved
 
         when:
-        def testImplementation = project.configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
+        def testImplementation = project.configurations.getByName(JvmConstants.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
         testImplementation.extendsFrom == toSet(implementation)
@@ -115,7 +118,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testImplementation.transitive
 
         when:
-        def testRuntimeOnly = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
+        def testRuntimeOnly = project.configurations.getByName(JvmConstants.TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
 
         then:
         testRuntimeOnly.transitive
@@ -125,7 +128,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
 
         when:
-        def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
+        def testCompileOnly = project.configurations.getByName(JvmConstants.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
         testCompileOnly.extendsFrom == toSet()
@@ -135,7 +138,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testCompileOnly.transitive
 
         when:
-        def testCompileClasspath = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        def testCompileClasspath = project.configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
         testCompileClasspath.extendsFrom == toSet(testCompileOnly, testImplementation)
@@ -143,7 +146,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testCompileClasspath.transitive
 
         when:
-        def testAnnotationProcessor = project.configurations.getByName(JavaPlugin.TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
+        def testAnnotationProcessor = project.configurations.getByName(JvmConstants.TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
 
         then:
         testAnnotationProcessor.extendsFrom == [] as Set
@@ -153,7 +156,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testAnnotationProcessor.canBeResolved
 
         when:
-        def testRuntimeClasspath = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        def testRuntimeClasspath = project.configurations.getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
 
         then:
         testRuntimeClasspath.extendsFrom == toSet(testRuntimeOnly, testImplementation)
@@ -163,7 +166,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testRuntimeClasspath.canBeResolved
 
         when:
-        def apiElements = project.configurations.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME)
+        def apiElements = project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
 
         then:
         !apiElements.visible
@@ -187,7 +190,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def archivesConfiguration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
 
         then:
-        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archiveFile.get().asFile]
+        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JvmConstants.JAR_TASK_NAME).archiveFile.get().asFile]
     }
 
     def "adds java library component"() {
@@ -195,13 +198,14 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaPlugin)
 
         when:
-        def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
-        def javaLibrary = project.components.getByName("java")
+        def jarTask = project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
+        SoftwareComponentInternal javaLibrary = project.components.getByName("java")
 
         then:
+        javaLibrary instanceof AdhocComponentWithVariants
         def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }
         runtime.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
-        runtime.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies
+        runtime.dependencies == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies
     }
 
     def "creates standard source sets and applies mappings"() {
@@ -218,9 +222,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         mainSourceSet.annotationProcessorPath.is(project.configurations.annotationProcessor)
         mainSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
         mainSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/main')
-        mainSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME ] as Set
+        mainSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME ] as Set
         mainSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
-        mainSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_JAVA_TASK_NAME ]
+        mainSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JvmConstants.COMPILE_JAVA_TASK_NAME ]
         mainSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
         mainSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
 
@@ -235,9 +239,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testSourceSet.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
         testSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/test'))
         testSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/test')
-        testSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME ] as Set
+        testSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JvmConstants.TEST_CLASSES_TASK_NAME, JvmConstants.COMPILE_TEST_JAVA_TASK_NAME ] as Set
         testSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/test'))
-        testSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME ]
+        testSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JvmConstants.COMPILE_TEST_JAVA_TASK_NAME ]
         testSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
         testSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
         testSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/test'))
@@ -271,7 +275,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         new TestFile(project.file("src/test/resources/thing.txt")) << "foo"
 
         when:
-        def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
+        def task = project.tasks[JvmConstants.PROCESS_RESOURCES_TASK_NAME]
 
         then:
         task instanceof Copy
@@ -280,10 +284,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.destinationDir == project.sourceSets.main.output.resourcesDir
 
         when:
-        task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
+        task = project.tasks[JvmConstants.COMPILE_JAVA_TASK_NAME] as JavaCompile
 
         then:
-        task instanceof JavaCompile
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
@@ -294,14 +297,14 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.source.files == project.sourceSets.main.java.files
 
         when:
-        task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
+        task = project.tasks[JvmConstants.CLASSES_TASK_NAME]
 
         then:
         task instanceof DefaultTask
-        task dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME)
+        task dependsOn(JvmConstants.PROCESS_RESOURCES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
 
         when:
-        task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
+        task = project.tasks[JvmConstants.PROCESS_TEST_RESOURCES_TASK_NAME]
 
         then:
         task instanceof Copy
@@ -310,11 +313,10 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.destinationDir == project.sourceSets.test.output.resourcesDir
 
         when:
-        task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]
+        task = project.tasks[JvmConstants.COMPILE_TEST_JAVA_TASK_NAME] as JavaCompile
 
         then:
-        task instanceof JavaCompile
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME)
+        task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
@@ -324,18 +326,18 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.source.files == project.sourceSets.test.java.files
 
         when:
-        task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
+        task = project.tasks[JvmConstants.TEST_CLASSES_TASK_NAME]
 
         then:
         task instanceof DefaultTask
-        task dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME)
+        task dependsOn(JvmConstants.COMPILE_TEST_JAVA_TASK_NAME, JvmConstants.PROCESS_TEST_RESOURCES_TASK_NAME)
 
         when:
-        task = project.tasks[JavaPlugin.JAR_TASK_NAME]
+        task = project.tasks[JvmConstants.JAR_TASK_NAME]
 
         then:
         task instanceof Jar
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME)
+        task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
         task.mainSpec.sourcePaths == [project.sourceSets.main.output] as Set
         task.manifest != null
@@ -345,23 +347,23 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
 
         then:
-        task dependsOn(JavaPlugin.JAR_TASK_NAME)
+        task dependsOn(JvmConstants.JAR_TASK_NAME)
 
         when:
         task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
 
         then:
         task instanceof DefaultTask
-        task dependsOn(JavaPlugin.TEST_TASK_NAME)
+        task dependsOn(JvmConstants.TEST_TASK_NAME)
 
         when:
         project.sourceSets.main.java.srcDirs(temporaryFolder.getTestDirectory())
         temporaryFolder.file("SomeFile.java").touch()
-        task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
+        task = project.tasks[JvmConstants.JAVADOC_TASK_NAME]
 
         then:
         task instanceof Javadoc
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME)
+        task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.source.files == project.sourceSets.main.allJava.files
         assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         task.destinationDir == project.file("$project.docsDir/javadoc")
@@ -372,7 +374,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task instanceof DefaultTask
-        task dependsOn(JavaPlugin.JAR_TASK_NAME)
+        task dependsOn(JvmConstants.JAR_TASK_NAME)
 
         when:
         task = project.tasks[JavaBasePlugin.BUILD_TASK_NAME]
@@ -401,11 +403,11 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaPlugin)
 
         when:
-        def task = project.tasks[JavaPlugin.TEST_TASK_NAME]
+        def task = project.tasks[JvmConstants.TEST_TASK_NAME]
 
         then:
         task instanceof org.gradle.api.tasks.testing.Test
-        task dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME)
+        task dependsOn(JvmConstants.TEST_CLASSES_TASK_NAME, JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, JvmConstants.COMPILE_TEST_JAVA_TASK_NAME)
         task.classpath.files == project.sourceSets.test.runtimeClasspath.files
         task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
         task.workingDir == project.projectDir

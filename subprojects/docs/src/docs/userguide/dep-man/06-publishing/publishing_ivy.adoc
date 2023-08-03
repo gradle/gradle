@@ -15,8 +15,6 @@
 [[publishing_ivy]]
 = Ivy Publish Plugin
 
-WARNING: The Ivy Publish Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The Ivy Publish Plugin provides the ability to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
 
 A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
@@ -28,8 +26,8 @@ To use the Ivy Publish Plugin, include the following in your build script:
 
 .Applying the Ivy Publish Plugin
 ====
-include::sample[dir="snippets/ivy-publish/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/ivy-publish/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/ivy-publish/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 The Ivy Publish Plugin uses an extension on the project named `publishing` of type link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]. This extension provides a container of named publications and a container of named repositories. The Ivy Publish Plugin works with link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication] publications and link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository] repositories.
@@ -80,8 +78,8 @@ The `descriptor` property can also be used to add additional custom elements as 
 
 .customizing the publication identity
 ====
-include::sample[dir="snippets/ivy-publish/customize-identity/groovy",files="build.gradle[tags=customize-identity]"]
 include::sample[dir="snippets/ivy-publish/customize-identity/kotlin",files="build.gradle.kts[tags=customize-identity]"]
+include::sample[dir="snippets/ivy-publish/customize-identity/groovy",files="build.gradle[tags=customize-identity]"]
 ====
 
 [TIP]
@@ -100,8 +98,8 @@ The following sample shows how to use the most common aspects of the DSL:
 
 .Customizing the module descriptor file
 ====
-include::sample[dir="snippets/ivy-publish/descriptor-customization/groovy",files="build.gradle[tags=customize-descriptor]"]
 include::sample[dir="snippets/ivy-publish/descriptor-customization/kotlin",files="build.gradle.kts[tags=customize-descriptor]"]
+include::sample[dir="snippets/ivy-publish/descriptor-customization/groovy",files="build.gradle[tags=customize-descriptor]"]
 ====
 
 In this example we are simply adding a 'description' element to the generated Ivy dependency descriptor, but this hook allows you to modify any aspect of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
@@ -134,8 +132,8 @@ This is done by using the `versionMapping` DSL method which allows to configure 
 
 .Using resolved versions
 ====
-include::sample[dir="snippets/ivy-publish/descriptor-customization/groovy",files="build.gradle[tags=versions-resolved]"]
 include::sample[dir="snippets/ivy-publish/descriptor-customization/kotlin",files="build.gradle.kts[tags=versions-resolved]"]
+include::sample[dir="snippets/ivy-publish/descriptor-customization/groovy",files="build.gradle[tags=versions-resolved]"]
 ====
 
 In the example above, Gradle will use the versions resolved on the `runtimeClasspath` for dependencies declared in `api`, which are mapped to the `compile` configuration of Ivy.
@@ -151,8 +149,8 @@ Here's a simple example of defining a publishing repository:
 
 .Declaring repositories to publish to
 ====
-include::sample[dir="snippets/ivy-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
 include::sample[dir="snippets/ivy-publish/quickstart/kotlin",files="build.gradle.kts[tags=repositories]"]
+include::sample[dir="snippets/ivy-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
 ====
 
 The two main things you will want to configure are the repository's:
@@ -174,8 +172,8 @@ The descriptor file is customized to include the project description for each pr
 
 .Publishing a Java module
 ====
-include::sample[dir="snippets/ivy-publish/java-multi-project/groovy",files="settings.gradle[];buildSrc/build.gradle[];buildSrc/src/main/groovy/myproject.publishing-conventions.gradle[];project1/build.gradle[];project2/build.gradle[]"]
 include::sample[dir="snippets/ivy-publish/java-multi-project/kotlin",files="settings.gradle.kts[];buildSrc/build.gradle.kts[];buildSrc/src/main/kotlin/myproject.publishing-conventions.gradle.kts[];project1/build.gradle.kts[];project2/build.gradle.kts[]"]
+include::sample[dir="snippets/ivy-publish/java-multi-project/groovy",files="settings.gradle[];buildSrc/build.gradle[];buildSrc/src/main/groovy/myproject.publishing-conventions.gradle[];project1/build.gradle[];project2/build.gradle[]"]
 ====
 
 The result is that the following artifacts will be published for each project:

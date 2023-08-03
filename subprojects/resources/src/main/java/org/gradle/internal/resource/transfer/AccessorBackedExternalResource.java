@@ -54,6 +54,10 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
         this.revalidate = revalidate;
     }
 
+    public AccessorBackedExternalResource(ExternalResourceName name, ExternalResourceConnector connector, boolean revalidate) {
+        this(name, connector, connector, connector, revalidate);
+    }
+
     @Override
     public URI getURI() {
         return name.getUri();

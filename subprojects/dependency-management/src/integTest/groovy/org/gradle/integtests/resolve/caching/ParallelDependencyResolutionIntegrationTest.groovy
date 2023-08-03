@@ -44,7 +44,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
-                
+
                 repositories {
                     maven {
                         url '${mavenHttpRepo.uri}'
@@ -56,8 +56,9 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 }
 
                 task resolveDependencies {
+                    def compileClasspath = configurations.compileClasspath
                     doLast {
-                        configurations.compileClasspath.resolve()
+                        compileClasspath.files
                     }
                 }
             """
@@ -81,7 +82,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
-                
+
                 repositories {
                     ivy {
                         url '${ivyHttpRepo.uri}'
@@ -93,8 +94,9 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 }
 
                 task resolveDependencies {
+                    def compileClasspath = configurations.compileClasspath
                     doLast {
-                        configurations.compileClasspath.resolve()
+                        compileClasspath.files
                     }
                 }
             """
@@ -116,10 +118,11 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
             settingsFile << "include '$it'\n"
             file("$it/build.gradle") << """
                 apply plugin: 'java-library'
-                
+
                 task resolveDependencies {
+                    def compileClasspath = configurations.compileClasspath
                     doLast {
-                        configurations.compileClasspath.resolve()
+                        compileClasspath.files
                     }
                 }
             """

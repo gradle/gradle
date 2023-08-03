@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -57,15 +58,35 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     private final Factory<PatternSet> patternSetFactory;
     private final PropertyHost propertyHost;
     private final FileSystem fileSystem;
+    private final FileCollectionObservationListener listener;
 
-    public DefaultFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-                                        PropertyHost propertyHost, FileSystem fileSystem) {
+    public DefaultFileCollectionFactory(
+        PathToFileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        Factory<PatternSet> patternSetFactory,
+        PropertyHost propertyHost,
+        FileSystem fileSystem
+    ) {
+        this(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem, fileCollection -> {});
+    }
+
+    private DefaultFileCollectionFactory(
+        PathToFileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        Factory<PatternSet> patternSetFactory,
+        PropertyHost propertyHost,
+        FileSystem fileSystem,
+        FileCollectionObservationListener listener
+    ) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.patternSetFactory = patternSetFactory;
         this.propertyHost = propertyHost;
         this.fileSystem = fileSystem;
+        this.listener = listener;
     }
 
     @Override
@@ -73,7 +94,17 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (fileResolver == this.fileResolver) {
             return this;
         }
-        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem);
+        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem, listener);
+    }
+
+    @Override
+    public FileCollectionFactory forChildScope(FileCollectionObservationListener listener) {
+        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem, listener);
+    }
+
+    @Override
+    public FileCollectionFactory forChildScope(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
+        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem, listener);
     }
 
     @Override
@@ -88,7 +119,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public ConfigurableFileTree fileTree() {
-        return new DefaultConfigurableFileTree(fileResolver, patternSetFactory, taskDependencyFactory, directoryFileTreeFactory);
+        return new DefaultConfigurableFileTree(fileResolver, listener, patternSetFactory, taskDependencyFactory, directoryFileTreeFactory);
     }
 
     @Override
@@ -104,11 +135,11 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileTreeInternal treeOf(MinimalFileTree tree) {
-        return new FileTreeAdapter(tree, taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(tree, listener, taskDependencyFactory, patternSetFactory);
     }
 
     @Override
-    public FileCollectionInternal create(final TaskDependency builtBy, MinimalFileSet contents) {
+    public FileCollectionInternal create(TaskDependency builtBy, MinimalFileSet contents) {
         return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory) {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
@@ -205,7 +236,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentWriter) {
-        return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, fileGenerationListener, contentWriter, fileSystem), taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, fileGenerationListener, contentWriter, fileSystem), listener, taskDependencyFactory, patternSetFactory);
     }
 
     private static final class FixedFileCollection extends AbstractOpaqueFileCollection {

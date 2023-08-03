@@ -141,7 +141,7 @@ $ gradle clean build
 
 However, the intention implied in the command line order is that `clean` should run first, and then `build`.  It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster, since `clean` would remove what `build` created.  Conversely, if the command line order was `build` followed by `clean`, it would not be correct to execute `clean` before `build`.  Although Gradle will execute the build as quickly as possible, it will also respect the safety of the order of tasks specified on the command line and ensure that `clean` runs before `build` when specified in that order.
 
-Note that command line order safety relies on tasks properly declaring what they create, consume or remove.  See <<more_about_tasks.adoc#sec:up_to_date_checks,up-to-date checks>> for further information.
+Note that command line order safety relies on tasks properly declaring what they create, consume or remove.  See <<incremental_build.adoc#incremental_build,up-to-date checks>> for further information.
 
 [[sec:excluding_tasks_from_the_command_line]]
 === Excluding tasks from execution
@@ -161,7 +161,7 @@ You can see that the `test` task is not executed, even though it is a dependency
 [[sec:rerun_tasks]]
 === Forcing tasks to execute
 
-You can force Gradle to execute all tasks ignoring <<more_about_tasks.adoc#sec:up_to_date_checks,up-to-date checks>> using the `--rerun-tasks` option:
+You can force Gradle to execute all tasks ignoring <<incremental_build.adoc#incremental_build,up-to-date checks>> using the `--rerun-tasks` option:
 
 ----
 $ gradle test --rerun-tasks
@@ -293,6 +293,8 @@ By default, this report shows only those tasks which have been assigned to a tas
 $ gradle tasks --all
 ----
 
+The option `--no-all` can be used to limit the report to tasks assigned to a task group.
+
 If you need to be more precise, you can display only the tasks from a specific group using the `--group` option.
 
 ----
@@ -312,6 +314,8 @@ include::{snippetsPath}/tutorial/projectReports/tests/taskHelp.out[]
 
 This information includes the full task path, the task type, possible <<sec:task_options,task-specific command line options>> and the description of the given task.
 
+Additionally, you can get detailed information about the task class types using the `--types` option, or use `--no-types` to hide this information.
+
 === Reporting dependencies
 
 Build scans give a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
@@ -324,8 +328,9 @@ This will give you a link to a web-based report, where you can find dependency i
 
 image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
-Learn more in <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Viewing and debugging dependencies>>.
+Learn more in <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Viewing and debugging dependencies>>.
 
+[[sec:listing_project_dependencies]]
 === Listing project dependencies
 
 Running `gradle dependencies` gives you a list of the dependencies of the selected project, broken down by configuration. For each configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below is an example of this report:
@@ -334,7 +339,7 @@ Running `gradle dependencies` gives you a list of the dependencies of the select
 $ gradle dependencies
 ----
 
-Concrete examples of build scripts and output available in the <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Viewing and debugging dependencies>>.
+Concrete examples of build scripts and output available in the <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Viewing and debugging dependencies>>.
 
 Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
 
@@ -400,7 +405,7 @@ Print out the stacktrace also for user exceptions (e.g. compile error).  See als
 Create a https://gradle.com/build-scans[build scan] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
-Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
+Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
 `-Dorg.gradle.debug.host=(host address)`::
 Specifies the host address to listen on or connect to when debug is enabled.
@@ -417,7 +422,7 @@ If set to `true` and debugging is enabled, Gradle will run the build with the so
 When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached. _Default is `true`._
 
 `-Dorg.gradle.daemon.debug=true`::
-Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process.
+Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. (duplicate of `-Dorg.gradle.debug`)
 
 [[sec:command_line_performance]]
 == Performance options
@@ -451,7 +456,7 @@ Build projects in parallel. For limitations of this option, see <<multi_project_
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
 
 `--profile`::
-Generates a high-level performance report in the `$buildDir/reports/profile` directory. `--scan` is preferred.
+Generates a high-level performance report in the `layout.buildDirectory.dir("reports/profile")` directory. `--scan` is preferred.
 
 `--scan`::
 Generate a build scan with detailed performance diagnostics.
@@ -621,7 +626,7 @@ Specifies the build file. For example: `gradle --build-file=foo.gradle`. The def
 Specifies the settings file. For example: `gradle --settings-file=somewhere/else/settings.gradle`
 
 `-g`, `--gradle-user-home`::
-Specifies the Gradle user home directory. The default is the `.gradle` directory in the user's home directory.
+Specifies the Gradle User Home directory. The default is the `.gradle` directory in the user's home directory.
 
 `-p`, `--project-dir`::
 Specifies the start directory for Gradle. Defaults to current directory.
@@ -684,10 +689,11 @@ $ gradle init --type java-library
 The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a declared version of Gradle, downloading it beforehand if necessary.
 
 ----
-$ gradle wrapper --gradle-version=4.4
+$ gradle wrapper --gradle-version=8.1
 ----
 
-You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. Full details on how to use these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
+You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`.
+Full details on how to use these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
 
 [[sec:continuous_build]]
 == Continuous Build
@@ -735,7 +741,7 @@ Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered 
 [[sec:continuous_build_untracked]]
 ==== Inputs of untracked tasks
 
-Changes to the inputs of <<more_about_tasks.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
+Changes to the inputs of <<incremental_build.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
 
 [[sec:continuous_build_project_dir]]
 ==== Changes to files outside of project directories

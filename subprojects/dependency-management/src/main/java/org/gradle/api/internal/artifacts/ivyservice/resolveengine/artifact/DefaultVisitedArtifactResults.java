@@ -24,10 +24,20 @@ import org.gradle.api.specs.Spec;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
+    private static final Function<ResolvedArtifactSet, ResolvedArtifactSet> DO_NOTHING = resolvedArtifactSet -> resolvedArtifactSet;
+    private static final Function<ResolvedArtifactSet, ResolvedArtifactSet> ALLOW_UNAVAILABLE = resolvedArtifactSet -> {
+        if (resolvedArtifactSet instanceof UnavailableResolvedArtifactSet) {
+            return ResolvedArtifactSet.EMPTY;
+        } else {
+            return resolvedArtifactSet;
+        }
+    };
+
     private final ResolutionStrategy.SortOrder sortOrder;
     // Index of the artifact set == the id of the artifact set
     private final List<ArtifactSet> artifactsById;
@@ -37,8 +47,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         this.artifactsById = artifactsById;
     }
 
-    @Override
-    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
+    private SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, Function<ResolvedArtifactSet, ResolvedArtifactSet> artifactSetHandler) {
         if (artifactsById.isEmpty()) {
             return NoArtifactResults.INSTANCE;
         }
@@ -46,7 +55,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<>(artifactsById.size());
         for (ArtifactSet artifactSet : artifactsById) {
             ResolvedArtifactSet resolvedArtifacts = artifactSet.select(componentFilter, selector);
-            resolvedArtifactSets.add(resolvedArtifacts);
+            resolvedArtifactSets.add(artifactSetHandler.apply(resolvedArtifacts));
         }
 
         if (sortOrder == ResolutionStrategy.SortOrder.DEPENDENCY_FIRST) {
@@ -55,6 +64,16 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
 
         ResolvedArtifactSet composite = CompositeResolvedArtifactSet.of(resolvedArtifactSets);
         return new DefaultSelectedArtifactResults(sortOrder, composite, resolvedArtifactSets);
+    }
+
+    @Override
+    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
+        return select(componentFilter, selector, DO_NOTHING);
+    }
+
+    @Override
+    public SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
+        return select(componentFilter, selector, ALLOW_UNAVAILABLE);
     }
 
     private static class NoArtifactResults implements SelectedArtifactResults {

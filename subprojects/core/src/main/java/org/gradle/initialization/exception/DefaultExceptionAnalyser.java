@@ -17,56 +17,23 @@ package org.gradle.initialization.exception;
 
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectConfigurationException;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.ScriptCompilationException;
-import org.gradle.initialization.ClassLoaderScopeId;
-import org.gradle.initialization.ClassLoaderScopeOrigin;
-import org.gradle.initialization.ClassLoaderScopeRegistryListener;
-import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.service.ServiceCreationException;
+import org.gradle.problems.Location;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 
-import javax.annotation.Nullable;
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class DefaultExceptionAnalyser implements ExceptionCollector, ClassLoaderScopeRegistryListener, Closeable {
-    private final Map<String, String> scripts = new HashMap<>();
-    private final ClassLoaderScopeRegistryListenerManager listenerManager;
+public class DefaultExceptionAnalyser implements ExceptionCollector {
+    private final ProblemDiagnosticsFactory diagnosticsFactory;
 
-    public DefaultExceptionAnalyser(@Nullable ClassLoaderScopeRegistryListenerManager listenerManager) {
-        this.listenerManager = listenerManager;
-        if (listenerManager != null) {
-            listenerManager.add(this);
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (listenerManager != null) {
-            listenerManager.remove(this);
-        }
-    }
-
-    @Override
-    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin) {
-        if (origin instanceof ClassLoaderScopeOrigin.Script) {
-            ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
-            scripts.put(scriptOrigin.getFileName(), scriptOrigin.getDisplayName());
-        }
-    }
-
-    @Override
-    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash) {
+    public DefaultExceptionAnalyser(ProblemDiagnosticsFactory diagnosticsFactory) {
+        this.diagnosticsFactory = diagnosticsFactory;
     }
 
     @Override
@@ -105,7 +72,7 @@ public class DefaultExceptionAnalyser implements ExceptionCollector, ClassLoader
         // TODO: remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
-            source = scriptCompilationException.getScriptSource().getDisplayName();
+            source = scriptCompilationException.getScriptSource().getLongDisplayName().getCapitalizedDisplayName();
             lineNumber = scriptCompilationException.getLineNumber();
         }
 
@@ -115,12 +82,10 @@ public class DefaultExceptionAnalyser implements ExceptionCollector, ClassLoader
                 currentException != null;
                 currentException = currentException.getCause()
             ) {
-                for (StackTraceElement element : currentException.getStackTrace()) {
-                    if (element.getLineNumber() >= 0 && scripts.containsKey(element.getFileName())) {
-                        source = scripts.get(element.getFileName());
-                        lineNumber = element.getLineNumber();
-                        break;
-                    }
+                Location location = diagnosticsFactory.forException(currentException).getLocation();
+                if (location != null) {
+                    source = location.getSourceLongDisplayName().getCapitalizedDisplayName();
+                    lineNumber = location.getLineNumber();
                 }
             }
         }

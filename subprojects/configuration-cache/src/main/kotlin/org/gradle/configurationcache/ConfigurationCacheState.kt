@@ -16,62 +16,66 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.cache.CacheResourceConfiguration
 import org.gradle.api.cache.Cleanup
+import org.gradle.api.cache.MarkingStrategy
 import org.gradle.api.file.FileCollection
+import org.gradle.api.flow.FlowScope
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
-import org.gradle.api.provider.Property
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
-import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.configurationcache.extensions.serviceOf
-import org.gradle.configurationcache.extensions.unsafeLazy
+import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.flow.BuildFlowScope
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.codecs.Codecs
 import org.gradle.configurationcache.serialization.logNotImplemented
 import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readEnum
-import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.readStrings
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
+import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
-import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.build.NestedBuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
+import org.gradle.internal.build.StandAloneNestedBuild
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.util.Path
@@ -81,15 +85,41 @@ import java.io.InputStream
 import java.io.OutputStream
 
 
+typealias BuildTreeWorkGraphBuilder = BuildTreeWorkGraph.Builder.(BuildState) -> Unit
+
+
 internal
-enum class StateType {
-    Work, Model, Entry, BuildFingerprint, ProjectFingerprint, IntermediateModels, ProjectMetadata
+enum class StateType(val encryptable: Boolean = false) {
+    /**
+     * Contains the state for the entire build.
+     */
+    Work(true),
+    /**
+     * Contains the model objects sent back to the IDE in response to a TAPI request.
+     */
+    Model(true),
+    /**
+     * Contains the model objects queried by the IDE provided build action in order to calculate the model to send back.
+     */
+    IntermediateModels(true),
+    /**
+     * Contains the dependency resolution metadata for each project.
+     */
+    ProjectMetadata(false),
+    BuildFingerprint(true),
+    ProjectFingerprint(true),
+    /**
+     * The index file that points to all of these things
+     */
+    Entry(false)
 }
 
 
 internal
 interface ConfigurationCacheStateFile {
     val exists: Boolean
+    val stateType: StateType
+    val stateFile: ConfigurationCacheStateStore.StateFile
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
     fun delete()
@@ -116,7 +146,7 @@ class ConfigurationCacheState(
             writeInt(0x1ecac8e)
         }
 
-    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
+    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
         val builds = readRootBuild()
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
@@ -126,7 +156,7 @@ class ConfigurationCacheState(
                 identifyBuild(build)
             }
         }
-        return calculateRootTaskGraph(builds, graph)
+        return calculateRootTaskGraph(builds, graph, graphBuilder)
     }
 
     private
@@ -135,11 +165,13 @@ class ConfigurationCacheState(
 
         eventEmitter.emitNowForCurrent(BuildIdentifiedProgressDetails { identityPath })
 
-        val projects = convertProjects(state.projects, state.rootProjectName)
-        eventEmitter.emitNowForCurrent(object : ProjectsIdentifiedProgressDetails {
-            override fun getBuildPath() = identityPath
-            override fun getRootProject() = projects
-        })
+        if (state is BuildWithProjects) {
+            val projects = convertProjects(state.projects, state.rootProjectName)
+            eventEmitter.emitNowForCurrent(object : ProjectsIdentifiedProgressDetails {
+                override fun getBuildPath() = identityPath
+                override fun getRootProject() = projects
+            })
+        }
     }
 
     private
@@ -161,18 +193,20 @@ class ConfigurationCacheState(
     ): BuildStructureOperationProject {
         val childProjects = children.getOrDefault(project.path, emptyList()).map { convertProject(converted, it, rootProjectName, children) }.toSet()
         return converted.computeIfAbsent(project.path) {
-            // Root project name is serialized separately, could perhaps move it to this cached project state
+            // Root project name is serialized separately, could perhaps move it to this cached project state object
             val projectName = project.path.name ?: rootProjectName
-            BuildStructureOperationProject(projectName, project.path.path, project.path.path, project.projectDir.absolutePath, project.buildDir.absolutePath, childProjects)
+            BuildStructureOperationProject(projectName, project.path.path, project.path.path, project.projectDir.absolutePath, project.buildFile.absolutePath, childProjects)
         }
     }
 
     private
-    fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+    fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
         return graph.scheduleWork { builder ->
             for (build in builds) {
                 if (build is BuildWithWork) {
-                    builder.withWorkGraph(build.build.state) {
+                    val buildState = build.build.state
+                    graphBuilder?.invoke(builder, buildState)
+                    builder.withWorkGraph(buildState) {
                         it.setScheduledNodes(build.workGraph)
                     }
                 }
@@ -185,36 +219,35 @@ class ConfigurationCacheState(
         require(rootBuild.gradle.owner is RootBuildState)
         val gradle = rootBuild.gradle
         withDebugFrame({ "Gradle" }) {
-            write(gradle.settings.settingsScript.resource.file)
-            writeString(gradle.rootProject.name)
+            write(gradle.settings.settingsScript.resource.location.file)
             writeBuildTreeScopedState(gradle)
         }
         val buildEventListeners = buildEventListenersOf(gradle)
         writeBuildsInTree(rootBuild, buildEventListeners)
-        writeRootEventListenerSubscriptions(gradle, buildEventListeners)
     }
 
     private
     suspend fun DefaultReadContext.readRootBuild(): List<CachedBuildState> {
         val settingsFile = read() as File?
-        val rootProjectName = readString()
-        val rootBuild = host.createBuild(settingsFile, rootProjectName)
+        val rootBuild = host.createBuild(settingsFile)
         val gradle = rootBuild.gradle
         readBuildTreeState(gradle)
-        val builds = readBuildsInTree(rootBuild)
-        readRootEventListenerSubscriptions(gradle)
-        return builds
+        return readBuildsInTree(rootBuild)
     }
 
     private
     suspend fun DefaultWriteContext.writeBuildsInTree(rootBuild: VintageGradleBuild, buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
         val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentifier }
-        val builds = mutableListOf<BuildToStore>()
+        val builds = mutableMapOf<BuildState, BuildToStore>()
         host.visitBuilds { build ->
-            val hasWork = build.hasScheduledWork || build.isRootBuild
-            builds.add(BuildToStore(build, hasWork))
+            val state = build.state
+            builds[state] = BuildToStore(build, build.hasScheduledWork, build.isRootBuild)
+            if (build.hasScheduledWork && state is StandAloneNestedBuild) {
+                // Also require the owner of a buildSrc build
+                builds[state.owner] = builds.getValue(state.owner).hasChildren()
+            }
         }
-        writeCollection(builds) { build ->
+        writeCollection(builds.values) { build ->
             writeBuildState(
                 build,
                 StoredBuildTreeState(
@@ -235,26 +268,40 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeBuildState(build: BuildToStore, buildTreeState: StoredBuildTreeState, rootBuild: VintageGradleBuild) {
         val state = build.build.state
-        if (!build.hasWork) {
-            writeEnum(BuildType.BuildWithNoWork)
-            writeBuildWithNoWork(state, rootBuild)
-        } else if (state is RootBuildState) {
-            writeEnum(BuildType.RootBuild)
-            writeBuildContent(build.build, buildTreeState)
-        } else {
-            require(state is IncludedBuildState)
-            writeEnum(BuildType.IncludedBuild)
-            writeIncludedBuild(state, buildTreeState)
+        when {
+            !build.hasWork && !build.hasChildren -> {
+                writeEnum(BuildType.BuildWithNoWork)
+                writeBuildWithNoWork(state, rootBuild)
+            }
+
+            state is RootBuildState -> {
+                writeEnum(BuildType.RootBuild)
+                writeBuildContent(build.build, buildTreeState)
+            }
+
+            state is IncludedBuildState -> {
+                writeEnum(BuildType.IncludedBuild)
+                writeIncludedBuild(state, buildTreeState)
+            }
+
+            state is StandAloneNestedBuild -> {
+                writeEnum(BuildType.BuildSrcBuild)
+                writeBuildSrcBuild(state, buildTreeState)
+            }
+
+            else -> {
+                throw IllegalArgumentException()
+            }
         }
     }
 
     private
     suspend fun DefaultReadContext.readBuildState(rootBuild: ConfigurationCacheBuild): CachedBuildState {
-        val type = readEnum<BuildType>()
-        return when (type) {
+        return when (readEnum<BuildType>()) {
             BuildType.BuildWithNoWork -> readBuildWithNoWork(rootBuild)
             BuildType.RootBuild -> readBuildContent(rootBuild)
             BuildType.IncludedBuild -> readIncludedBuild(rootBuild)
+            BuildType.BuildSrcBuild -> readBuildSrcBuild(rootBuild)
         }
     }
 
@@ -263,8 +310,8 @@ class ConfigurationCacheState(
         val gradle = state.mutableModel
         withGradleIsolate(gradle, userTypesCodec) {
             write(gradle.settings.settingsScript.resource.file)
-            writeString(gradle.rootProject.name)
             writeBuildDefinition(state.buildDefinition)
+            write(state.identityPath)
         }
         // Encode the build state using the contextualized IO service for the nested build
         state.projects.withMutableStateOfAllProjects {
@@ -274,27 +321,59 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultReadContext.readIncludedBuild(rootBuild: ConfigurationCacheBuild): CachedBuildState {
-        lateinit var definition: BuildDefinition
         val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             val settingsFile = read() as File?
-            val rootProjectName = readString()
-            definition = readIncludedBuildDefinition(rootBuild)
-            rootBuild.addIncludedBuild(definition, settingsFile, rootProjectName)
+            val definition = readIncludedBuildDefinition(rootBuild)
+            val buildPath = read() as Path
+            rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
+
+        build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
-        return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor(definition), build)
+        return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
+    }
+
+    private
+    fun GradleInternal.loadGradleProperties() {
+        val settingDir = serviceOf<BuildLayout>().settingsDir
+        // Load Gradle properties from a file but skip applying system properties defined here.
+        // System properties from the file may be mutated by the build logic, and the execution-time values are already restored by the EnvironmentChangeTracker.
+        // Applying properties from file overwrites these modifications.
+        serviceOf<GradlePropertiesController>().loadGradlePropertiesFrom(settingDir, false)
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeBuildSrcBuild(state: StandAloneNestedBuild, buildTreeState: StoredBuildTreeState) {
+        val gradle = state.mutableModel
+        withGradleIsolate(gradle, userTypesCodec) {
+            write(state.owner.buildIdentifier)
+        }
+        // Encode the build state using the contextualized IO service for the nested build
+        state.projects.withMutableStateOfAllProjects {
+            gradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(stateFileFor(state.buildDefinition), buildTreeState)
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readBuildSrcBuild(rootBuild: ConfigurationCacheBuild): CachedBuildState {
+        val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
+            val ownerIdentifier = readNonNull<BuildIdentifier>()
+            rootBuild.getBuildSrcOf(ownerIdentifier)
+        }
+        build.gradle.loadGradleProperties()
+        // Decode the build state using the contextualized IO service for the build
+        return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
     }
 
     private
     suspend fun DefaultWriteContext.writeBuildWithNoWork(state: BuildState, rootBuild: VintageGradleBuild) {
         withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             writeString(state.identityPath.path)
-            if (state.isProjectsLoaded) {
+            if (state.projectsAvailable) {
                 writeBoolean(true)
                 writeString(state.projects.rootProject.name)
                 writeCollection(state.projects.allProjects) { project ->
-                    val buildDir = if (project.isCreated) project.mutableModel.buildDir else File(project.projectDir, Project.DEFAULT_BUILD_FILE)
-                    write(ProjectWithNoWork(project.projectPath, project.projectDir, buildDir))
+                    write(ProjectWithNoWork(project.projectPath, project.projectDir, project.mutableModel.buildFile))
                 }
             } else {
                 writeBoolean(false)
@@ -309,49 +388,61 @@ class ConfigurationCacheState(
             val hasProjects = readBoolean()
             if (hasProjects) {
                 val rootProjectName = readString()
-                val projects = readList() as List<ProjectWithNoWork>
+                val projects: List<ProjectWithNoWork> = readList().uncheckedCast()
                 BuildWithNoWork(identityPath, rootProjectName, projects)
             } else {
-                BuildWithNoWork(identityPath, identityPath.name!!, emptyList())
+                BuildWithNoProjects(identityPath)
             }
         }
 
     internal
     suspend fun DefaultWriteContext.writeBuildContent(build: VintageGradleBuild, buildTreeState: StoredBuildTreeState) {
         val gradle = build.gradle
-        val scheduledNodes = build.scheduledWork
-        withDebugFrame({ "Gradle" }) {
-            writeGradleState(gradle)
-            val projects = collectProjects(gradle.owner.projects, scheduledNodes, gradle.serviceOf())
-            writeProjects(gradle, projects)
-            writeRequiredBuildServicesOf(gradle, buildTreeState)
-        }
-        withDebugFrame({ "Work Graph" }) {
-            writeWorkGraphOf(gradle, scheduledNodes)
-        }
-        withDebugFrame({ "Cleanup registrations" }) {
-            writeBuildOutputCleanupRegistrations(gradle)
+        val state = build.state
+        if (state.projectsAvailable) {
+            writeBoolean(true)
+            val scheduledNodes = build.scheduledWork
+            withDebugFrame({ "Gradle" }) {
+                writeGradleState(gradle)
+                val projects = collectProjects(state.projects, scheduledNodes, gradle.serviceOf())
+                writeProjects(gradle, projects)
+                writeRequiredBuildServicesOf(state, buildTreeState)
+            }
+            withDebugFrame({ "Work Graph" }) {
+                writeWorkGraphOf(gradle, scheduledNodes)
+            }
+            withDebugFrame({ "Flow Scope" }) {
+                writeFlowScopeOf(gradle)
+            }
+            withDebugFrame({ "Cleanup registrations" }) {
+                writeBuildOutputCleanupRegistrations(gradle)
+            }
+        } else {
+            writeBoolean(false)
         }
     }
 
     internal
     suspend fun DefaultReadContext.readBuildContent(build: ConfigurationCacheBuild): CachedBuildState {
         val gradle = build.gradle
+        if (readBoolean()) {
+            readGradleState(build)
+            val projects = readProjects(gradle, build)
 
-        readGradleState(build)
+            build.createProjects()
 
-        val projects = readProjects(gradle, build)
+            initProjectProvider(build::getProject)
 
-        build.registerProjects()
+            applyProjectStates(projects, gradle)
+            readRequiredBuildServicesOf(gradle)
 
-        initProjectProvider(build::getProject)
-
-        applyProjectStates(projects, gradle)
-        readRequiredBuildServicesOf(gradle)
-
-        val workGraph = readWorkGraph(gradle)
-        readBuildOutputCleanupRegistrations(gradle)
-        return BuildWithWork(build.state.identityPath, build, gradle.rootProject.name, projects, workGraph)
+            val workGraph = readWorkGraph(gradle)
+            readFlowScopeOf(gradle)
+            readBuildOutputCleanupRegistrations(gradle)
+            return BuildWithWork(build.state.identityPath, build, gradle.rootProject.name, projects, workGraph)
+        } else {
+            return BuildWithNoProjects(build.state.identityPath)
+        }
     }
 
     private
@@ -368,21 +459,57 @@ class ConfigurationCacheState(
         }
 
     private
+    suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
+        withIsolate(IsolateOwner.OwnerFlowScope(gradle), userTypesCodec) {
+            val flowScopeState = buildFlowScopeOf(gradle).store()
+            write(flowScopeState)
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readFlowScopeOf(gradle: GradleInternal) {
+        withIsolate(IsolateOwner.OwnerFlowScope(gradle), userTypesCodec) {
+            buildFlowScopeOf(gradle).load(readNonNull())
+        }
+    }
+
+    private
+    fun buildFlowScopeOf(gradle: GradleInternal) =
+        gradle.serviceOf<FlowScope>().uncheckedCast<BuildFlowScope>()
+
+    private
     fun workNodeCodec(gradle: GradleInternal) =
         codecs.workNodeCodecFor(gradle)
 
     private
-    suspend fun DefaultWriteContext.writeRequiredBuildServicesOf(gradle: GradleInternal, buildTreeState: StoredBuildTreeState) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            write(buildTreeState.requiredBuildServicesPerBuild[buildIdentifierOf(gradle)])
+    suspend fun DefaultWriteContext.writeRequiredBuildServicesOf(build: BuildState, buildTreeState: StoredBuildTreeState) {
+        withGradleIsolate(build.mutableModel, userTypesCodec) {
+            val providers = buildTreeState.requiredBuildServicesPerBuild[build.buildIdentifier] ?: emptyList()
+            writeCollection(providers) { listener ->
+                writeBuildEventListenerSubscription(listener)
+            }
         }
     }
 
     private
     suspend fun DefaultReadContext.readRequiredBuildServicesOf(gradle: GradleInternal) {
+        val eventListenerRegistry by lazy { gradle.serviceOf<BuildEventListenerRegistryInternal>() }
         withGradleIsolate(gradle, userTypesCodec) {
-            read()
+            readCollection {
+                readBuildEventListenerSubscription(eventListenerRegistry)
+            }
         }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeBuildEventListenerSubscription(listener: Provider<*>) {
+        write(listener)
+    }
+
+    private
+    suspend fun DefaultReadContext.readBuildEventListenerSubscription(eventListenerRegistry: BuildEventListenerRegistryInternal) {
+        val listener = readNonNull<Provider<*>>()
+        eventListenerRegistry.subscribe(listener)
     }
 
     private
@@ -401,6 +528,7 @@ class ConfigurationCacheState(
             withDebugFrame({ "environment state" }) {
                 writeCachedEnvironmentState(gradle)
                 writePreviewFlags(gradle)
+                writeFileSystemDefaultExcludes(gradle)
             }
             withDebugFrame({ "gradle enterprise" }) {
                 writeGradleEnterprisePluginManager(gradle)
@@ -419,27 +547,12 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             readCachedEnvironmentState(gradle)
             readPreviewFlags(gradle)
+            readFileSystemDefaultExcludes(gradle)
             // It is important that the Gradle Enterprise plugin be read before
             // build cache configuration, as it may contribute build cache configuration.
             readGradleEnterprisePluginManager(gradle)
             readBuildCacheConfiguration(gradle)
             readCacheConfigurations(gradle)
-        }
-    }
-
-    private
-    suspend fun DefaultWriteContext.writeRootEventListenerSubscriptions(gradle: GradleInternal, listeners: List<Provider<*>>) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            withDebugFrame({ "listener subscriptions" }) {
-                writeBuildEventListenerSubscriptions(listeners)
-            }
-        }
-    }
-
-    private
-    suspend fun DefaultReadContext.readRootEventListenerSubscriptions(gradle: GradleInternal) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            readBuildEventListenerSubscriptions(gradle)
         }
     }
 
@@ -505,7 +618,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildDefinition(buildDefinition: BuildDefinition) {
         buildDefinition.run {
             writeString(name!!)
-            writeFile(buildRootDir)
+            write(buildRootDir)
             write(fromBuild)
             writeBoolean(isPluginBuild)
         }
@@ -514,7 +627,7 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readIncludedBuildDefinition(parentBuild: ConfigurationCacheBuild): BuildDefinition {
         val includedBuildName = readString()
-        val includedBuildRootDir = readFile()
+        val includedBuildRootDir: File? = read()?.uncheckedCast()
         val fromBuild = readNonNull<PublicBuildPath>()
         val pluginBuild = readBoolean()
         return BuildDefinition.fromStartParameterForBuild(
@@ -526,6 +639,19 @@ class ConfigurationCacheState(
             fromBuild,
             pluginBuild
         )
+    }
+
+    private
+    fun DefaultWriteContext.writeFileSystemDefaultExcludes(gradle: GradleInternal) {
+        val fileSystemDefaultExcludesProvider = gradle.serviceOf<FileSystemDefaultExcludesProvider>()
+        val currentDefaultExcludes = fileSystemDefaultExcludesProvider.currentDefaultExcludes
+        writeStrings(currentDefaultExcludes.toList())
+    }
+
+    private
+    fun DefaultReadContext.readFileSystemDefaultExcludes(gradle: GradleInternal) {
+        val defaultExcludes = readStrings()
+        gradle.serviceOf<FileSystemDefaultExcludesProvider>().updateCurrentDefaultExcludes(defaultExcludes)
     }
 
     private
@@ -550,65 +676,27 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
-            write(cacheConfigurations.releasedWrappers)
-            write(cacheConfigurations.snapshotWrappers)
-            write(cacheConfigurations.downloadedResources)
-            write(cacheConfigurations.createdResources)
+            write(cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.cleanup)
+            write(cacheConfigurations.markingStrategy)
         }
     }
 
     private
     suspend fun DefaultReadContext.readCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
-            cacheConfigurations.releasedWrappers = read() as CacheResourceConfiguration?
-            cacheConfigurations.snapshotWrappers = read() as CacheResourceConfiguration?
-            cacheConfigurations.downloadedResources = read() as CacheResourceConfiguration?
-            cacheConfigurations.createdResources = read() as CacheResourceConfiguration?
-            cacheConfigurations.cleanup = readNonNull<Property<Cleanup>>()
+            cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
+            cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }
-    }
-
-    private
-    suspend fun DefaultWriteContext.writeBuildEventListenerSubscriptions(listeners: List<Provider<*>>) {
-        writeCollection(listeners) { listener ->
-            when (listener) {
-                is RegisteredBuildServiceProvider<*, *> -> {
-                    writeBoolean(true)
-                    write(listener.buildIdentifier)
-                    writeString(listener.name)
-                }
-
-                else -> {
-                    writeBoolean(false)
-                    write(listener)
-                }
-            }
-        }
-    }
-
-    private
-    suspend fun DefaultReadContext.readBuildEventListenerSubscriptions(gradle: GradleInternal) {
-        val eventListenerRegistry by unsafeLazy {
-            gradle.serviceOf<BuildEventListenerRegistryInternal>()
-        }
-        val buildStateRegistry by unsafeLazy {
-            gradle.serviceOf<BuildStateRegistry>()
-        }
-        readCollection {
-            when (readBoolean()) {
-                true -> {
-                    val buildIdentifier = readNonNull<BuildIdentifier>()
-                    val serviceName = readString()
-                    val provider = buildStateRegistry.buildServiceRegistrationOf(buildIdentifier).getByName(serviceName)
-                    eventListenerRegistry.subscribe(provider.service)
-                }
-
-                else -> {
-                    val provider = readNonNull<Provider<*>>()
-                    eventListenerRegistry.subscribe(provider)
-                }
-            }
+        if (gradle.isRootBuild) {
+            gradle.serviceOf<CacheConfigurationsInternal>().setCleanupHasBeenConfigured(true)
         }
     }
 
@@ -633,14 +721,14 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
+        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
         write(environmentChangeTracker.getCachedState())
     }
 
     private
     suspend fun DefaultReadContext.readCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
-        val storedState = read() as EnvironmentChangeTracker.CachedEnvironmentState
+        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
+        val storedState = read() as ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState
         environmentChangeTracker.loadFrom(storedState)
     }
 
@@ -688,17 +776,18 @@ class ConfigurationCacheState(
         val relevantProjects = relevantProjectsRegistry.relevantProjects(nodes)
         return projects.allProjects.map { project ->
             val mutableModel = project.mutableModel
-            mutableModel.layout.buildDirectory.finalizeValue()
             if (relevantProjects.contains(project)) {
-                ProjectWithWork(project.projectPath, mutableModel.projectDir, mutableModel.buildDir, mutableModel.normalization.computeCachedState())
+                mutableModel.layout.buildDirectory.finalizeValue()
+                ProjectWithWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile, mutableModel.layout.buildDirectory.asFile.get(), mutableModel.normalization.computeCachedState())
             } else {
-                ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildDir)
+                ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile)
             }
         }
     }
 
     private
     suspend fun WriteContext.writeProjects(gradle: GradleInternal, projects: List<CachedProjectState>) {
+        writeString(gradle.rootProject.name)
         withGradleIsolate(gradle, userTypesCodec) {
             writeCollection(projects)
         }
@@ -707,10 +796,15 @@ class ConfigurationCacheState(
     private
     suspend fun ReadContext.readProjects(gradle: GradleInternal, build: ConfigurationCacheBuild): List<CachedProjectState> {
         withGradleIsolate(gradle, userTypesCodec) {
+            val rootProjectName = readString()
             return readList {
                 val project = readNonNull<CachedProjectState>()
                 if (project is ProjectWithWork) {
-                    build.createProject(project.path, project.projectDir, project.buildDir)
+                    if (project.path == Path.ROOT) {
+                        build.registerRootProject(rootProjectName, project.projectDir, project.buildDir)
+                    } else {
+                        build.registerProject(project.path, project.projectDir, project.buildDir)
+                    }
                 }
                 project
             }
@@ -726,10 +820,6 @@ class ConfigurationCacheState(
         get() = codecs.userTypesCodec()
 
     private
-    fun buildIdentifierOf(gradle: GradleInternal) =
-        gradle.owner.buildIdentifier
-
-    private
     fun buildEventListenersOf(gradle: GradleInternal) =
         gradle.serviceOf<BuildEventListenerRegistryInternal>()
             .subscriptions
@@ -738,11 +828,11 @@ class ConfigurationCacheState(
 
     private
     fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =
-        provider.buildIdentifier.name != BUILD_SRC
+        Path.path(provider.buildIdentifier.buildPath).name != BUILD_SRC
 
     private
-    fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =
-        getBuild(buildId).mutableModel.serviceOf<BuildServiceRegistryInternal>().registrations
+    val BuildState.projectsAvailable
+        get() = isProjectsLoaded && projects.rootProject.isCreated
 }
 
 
@@ -754,5 +844,5 @@ class StoredBuildTreeState(
 
 internal
 enum class BuildType {
-    BuildWithNoWork, RootBuild, IncludedBuild
+    BuildWithNoWork, RootBuild, IncludedBuild, BuildSrcBuild
 }

@@ -49,13 +49,25 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void handlesTestSrcWhichDoesNotContainAnyTestCases() {
-        TestFile buildFile = testFile("build.gradle")
-        buildFile.writelns("apply plugin: 'java'")
+        given:
+        testFile("build.gradle") << """
+            plugins {
+                id("java")
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test.useJUnit()
+        """
         testFile("src/test/java/org/gradle/NotATest.java") << """
             package org.gradle;
             public class NotATest {}
         """
 
+        expect:
+        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
         executer.withTasks("build").run()
     }
 
@@ -83,19 +95,30 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void separatesOutputResourcesFromCompiledClasses() throws IOException {
-        //given
-        TestFile buildFile = testFile("build.gradle")
-        buildFile.write("apply plugin: 'java'")
+        given:
+        testFile("build.gradle") << """
+            plugins {
+                id("java")
+            }
 
+           ${mavenCentralRepository()}
+
+            testing.suites.test.useJUnit()
+        """
         testFile("src/main/resources/prod.resource") << ""
         testFile("src/main/java/Main.java") << "class Main {}"
         testFile("src/test/resources/test.resource") << "test resource"
-        testFile("src/test/java/TestFoo.java") << "class TestFoo {}"
+        testFile("src/test/java/TestFoo.java") << """
+        public class TestFoo {
+            @org.junit.Test
+            public void test() {}
+        }
+        """
 
-        //when
+        when:
         executer.withTasks("build").run()
 
-        //then
+        then:
         testFile("build/resources/main/prod.resource").assertExists()
         testFile("build/classes/java/main/prod.resource").assertDoesNotExist()
 

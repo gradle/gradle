@@ -28,15 +28,19 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Comparator;
@@ -48,7 +52,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class DefaultProjectStateRegistry implements ProjectStateRegistry {
+public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closeable {
     private final WorkerLeaseService workerLeaseService;
     private final Object lock = new Object();
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
@@ -91,13 +95,14 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public void resetState(BuildState build) {
+    public void discardProjectsFor(BuildState build) {
         DefaultBuildProjectRegistry registry = projectsByBuild.get(build.getBuildIdentifier());
         if (registry != null) {
             for (ProjectStateImpl project : registry.projectsByPath.values()) {
                 projectsById.remove(project.identifier);
                 projectsByPath.remove(project.identityPath);
             }
+            CompositeStoppable.stoppable(registry.projectsByPath.values()).stop();
             registry.projectsByPath.clear();
         }
     }
@@ -107,9 +112,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         Path identityPath = owner.calculateIdentityPathForProject(projectPath);
         String name = descriptor.getName();
         ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(owner.getBuildIdentifier(), identityPath, projectPath, name);
-        IProjectFactory projectFactory = owner.getMutableModel().getServices().get(IProjectFactory.class);
-        StateTransitionControllerFactory stateTransitionControllerFactory = owner.getMutableModel().getServices().get(StateTransitionControllerFactory.class);
-        ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), projectIdentifier, descriptor, projectFactory, stateTransitionControllerFactory);
+        ServiceRegistry buildServices = owner.getMutableModel().getServices();
+        IProjectFactory projectFactory = buildServices.get(IProjectFactory.class);
+        StateTransitionControllerFactory stateTransitionControllerFactory = buildServices.get(StateTransitionControllerFactory.class);
+        ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), projectIdentifier, descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
         projectsByPath.put(identityPath, projectState);
         projectsById.put(projectIdentifier, projectState);
         projectRegistry.add(projectPath, projectState);
@@ -141,6 +147,17 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
+    public ProjectState stateFor(Path identityPath) {
+        synchronized (lock) {
+            ProjectStateImpl projectState = projectsByPath.get(identityPath);
+            if (projectState == null) {
+                throw new IllegalArgumentException(identityPath.getPath() + " not found.");
+            }
+            return projectState;
+        }
+    }
+
+    @Override
     public BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException {
         synchronized (lock) {
             BuildProjectRegistry registry = projectsByBuild.get(buildIdentifier);
@@ -162,6 +179,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     @Override
     public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
         return workerLeaseService.allowUncontrolledAccessToAnyProject(factory);
+    }
+
+    @Override
+    public void close() {
+        CompositeStoppable.stoppable(projectsByPath.values()).stop();
     }
 
     private static class DefaultBuildProjectRegistry implements BuildProjectRegistry {
@@ -218,7 +240,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
-    private class ProjectStateImpl implements ProjectState {
+    private class ProjectStateImpl implements ProjectState, Closeable {
         private final Path projectPath;
         private final String projectName;
         private final ProjectComponentIdentifier identifier;
@@ -231,6 +253,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         private final ResourceLock taskLock;
         private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
         private final ProjectLifecycleController controller;
+        private final Lazy<Integer> depth = Lazy.unsafe().of(() -> getParent() != null ? getParent().getDepth() + 1 : 0);
 
         ProjectStateImpl(
             BuildState owner,
@@ -240,7 +263,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             ProjectComponentIdentifier identifier,
             DefaultProjectDescriptor descriptor,
             IProjectFactory projectFactory,
-            StateTransitionControllerFactory stateTransitionControllerFactory
+            StateTransitionControllerFactory stateTransitionControllerFactory,
+            ServiceRegistry buildServices
         ) {
             this.owner = owner;
             this.identityPath = identityPath;
@@ -252,7 +276,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
             this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identityPath);
             this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identityPath);
-            this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory);
+            this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, buildServices);
         }
 
         @Override
@@ -324,6 +348,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public File getProjectDir() {
             return descriptor.getProjectDir();
+        }
+
+        @Override
+        public int getDepth() {
+            return depth.get();
         }
 
         @Override
@@ -427,6 +456,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue) {
             return new CalculatedModelValueImpl<>(this, workerLeaseService, initialValue);
+        }
+
+        @Override
+        public void close() {
+            controller.close();
         }
     }
 

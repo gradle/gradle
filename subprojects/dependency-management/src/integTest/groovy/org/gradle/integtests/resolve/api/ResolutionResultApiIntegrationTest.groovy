@@ -19,6 +19,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -31,6 +32,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
     The ResolutionResult API is also covered by the dependency report integration tests.
      */
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "selection reasons are described"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -83,6 +85,7 @@ baz:1.0 requested
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolution result API gives access to dependency reasons in case of conflict"() {
         given:
         mavenRepo.with {
@@ -138,6 +141,7 @@ baz:1.0 requested
         run "checkDeps"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolution result API gives access to dependency reasons in case of conflict and selection by rule"() {
         given:
         mavenRepo.with {
@@ -226,6 +230,7 @@ baz:1.0 requested
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "constraint are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -289,6 +294,7 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "direct dependency reasons are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -344,6 +350,7 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     void "expired cache entry doesn't break reading from cache"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -409,9 +416,9 @@ baz:1.0 requested
 
         then:
         noExceptionThrown()
-
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "each dependency is associated to its resolved variant"() {
         mavenRepo.module("org", "dep", "1.0").publish()
         mavenRepo.module("com", "foo", "1.0").publish()
@@ -449,8 +456,6 @@ baz:1.0 requested
                 testImplementation(testFixtures(project(":tool")))
                 testImplementation(testFixtures(project(":tool"))) // intentional duplication
             }
-
-
         """
         withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
 
@@ -480,6 +485,7 @@ testCompileClasspath
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "requested dependency attributes are reported on dependency result as desugared attributes"() {
         settingsFile << "include 'platform'"
         buildFile << """
@@ -494,8 +500,9 @@ testCompileClasspath
             }
 
             task checkDependencyAttributes {
+                def compileClasspath = configurations.compileClasspath
                 doLast {
-                    configurations.compileClasspath.incoming.resolutionResult.root.dependencies.each {
+                    compileClasspath.incoming.resolutionResult.root.dependencies.each {
                         def desugaredCategory = Attribute.of("org.gradle.category", String)
                         assert it.requested.attributes.getAttribute(desugaredCategory) == 'platform'
                     }
@@ -505,9 +512,9 @@ testCompileClasspath
 
         expect:
         succeeds 'checkDependencyAttributes'
-
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "reports duplicated dependencies in all variants"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -577,6 +584,7 @@ testRuntimeClasspath
 """)
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "reports if we try to get dependencies from a different variant"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -606,8 +614,9 @@ testRuntimeClasspath
             }
 
             task resolve {
+                def testCompileClasspath = configurations.testCompileClasspath
                 doLast {
-                    def result = configurations.testCompileClasspath.incoming.resolutionResult
+                    def result = testCompileClasspath.incoming.resolutionResult
                     def rootComponent = result.root
                     def childComponent = result.allComponents.find { it.toString() == 'project :producer' }
                     def childVariant = childComponent.variants[0]
@@ -628,6 +637,7 @@ testRuntimeClasspath
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12643")
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolved variant of a selected node shouldn't be null"() {
         buildFile << """
         apply plugin: 'java-library'
@@ -654,8 +664,9 @@ testRuntimeClasspath
         }
 
         task resolve {
+            def compileClasspath = configurations.compileClasspath
             doLast {
-                def result = configurations.compileClasspath.incoming.resolutionResult
+                def result = compileClasspath.incoming.resolutionResult
                 result.allDependencies {
                     assert it instanceof ResolvedDependencyResult
                     assert it.resolvedVariant != null
@@ -670,10 +681,14 @@ testRuntimeClasspath
     }
 
     private void withResolutionResultDumper(String... configurations) {
+        def confCapture = configurations.collect( configuration ->
+            "def $configuration = configurations.$configuration"
+        )
+
         def confList = configurations.collect { configuration ->
             """
                 // dump variant dependencies
-                def result_$configuration = configurations.${configuration}.incoming.resolutionResult
+                def result_$configuration = ${configuration}.incoming.resolutionResult
                 dump("$configuration", result_${configuration}.root, null, 0)
 
                 // check that configuration attributes are visible and desugared
@@ -689,6 +704,7 @@ testRuntimeClasspath
         buildFile << """
 
             task resolve {
+                ${confCapture.join('\n')}
                 doLast {
                     { -> ${confList.join('\n')} }()
                     println()

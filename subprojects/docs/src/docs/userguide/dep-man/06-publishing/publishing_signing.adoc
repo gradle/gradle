@@ -1,8 +1,6 @@
 [[publishing_maven:signing]]
 = Signing artifacts
 
-WARNING: The Signing Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module descriptors. In order to use it:
 
 1. Apply the Signing Plugin
@@ -13,8 +11,8 @@ Here's an example that configures the plugin to sign the `mavenJava` publication
 
 .Signing a publication
 ====
-include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=sign-publication]"]
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=sign-publication]"]
+include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=sign-publication]"]
 ====
 
 This will create a `Sign` task for each publication you specify and wire all `publish__PubName__PublicationTo__RepoName__Repository` tasks to depend on it. Thus, publishing any publication will automatically create and publish the signatures for its artifacts and metadata, as you can see from this output:

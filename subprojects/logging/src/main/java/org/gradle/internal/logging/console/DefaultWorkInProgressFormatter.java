@@ -61,8 +61,9 @@ public class DefaultWorkInProgressFormatter {
         // Don't write to the right-most column, as on some consoles the cursor will wrap to the next line and currently wrapping causes
         // layout weirdness
         int maxWidth;
-        if (consoleMetaData.getCols() > 0) {
-            maxWidth = consoleMetaData.getCols() - 1;
+        int cols = consoleMetaData.getCols();
+        if (cols > 0) {
+            maxWidth = cols - 1;
         } else {
             // Assume 80 wide. This is to minimize wrapping on console where we don't know the width (eg mintty)
             // It's not intended to be a correct solution, simply a work around

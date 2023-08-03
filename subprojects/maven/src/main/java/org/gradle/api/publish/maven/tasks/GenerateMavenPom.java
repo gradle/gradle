@@ -19,9 +19,7 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
@@ -29,6 +27,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 
@@ -46,28 +45,58 @@ import static org.gradle.internal.serialization.Transient.varOf;
 public abstract class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();
-    private final Transient.Var<ImmutableAttributes> compileScopeAttributes = varOf(ImmutableAttributes.EMPTY);
-    private final Transient.Var<ImmutableAttributes> runtimeScopeAttributes = varOf(ImmutableAttributes.EMPTY);
     private Object destination;
-    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(this::computeMavenPomSpec);
+    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
+        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
+    );
 
     @Inject
     protected FileResolver getFileResolver() {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Get the version range mapper.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
+     */
     @Inject
+    @Deprecated
     protected VersionRangeMapper getVersionRangeMapper() {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * The values set by this method are ignored.
+     *
+     * @deprecated This method will be removed in Gradle 9.0.
+     */
+    @Deprecated
     public GenerateMavenPom withCompileScopeAttributes(ImmutableAttributes compileScopeAttributes) {
-        this.compileScopeAttributes.set(compileScopeAttributes);
+
+        DeprecationLogger.deprecateMethod(GenerateMavenPom.class, "withCompileScopeAttributes(ImmutableAttributes)")
+            .withContext("This method was never intended for public use.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "generate_maven_pom_method_deprecations")
+            .nagUser();
+
         return this;
     }
 
+    /**
+     * The values set by this method are ignored.
+     *
+     * @deprecated This method will be removed in Gradle 9.0.
+     */
+    @Deprecated
     public GenerateMavenPom withRuntimeScopeAttributes(ImmutableAttributes runtimeScopeAttributes) {
-        this.runtimeScopeAttributes.set(runtimeScopeAttributes);
+
+        DeprecationLogger.deprecateMethod(GenerateMavenPom.class, "runtimeScopeAttributes(ImmutableAttributes)")
+            .withContext("This method was never intended for public use.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "generate_maven_pom_method_deprecations")
+            .nagUser();
+
         return this;
     }
 
@@ -118,50 +147,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
-        mavenPomSpec().writeTo(getDestination());
-    }
-
-    private MavenPomFileGenerator.MavenPomSpec mavenPomSpec() {
-        return mavenPomSpec.get();
-    }
-
-    private MavenPomFileGenerator.MavenPomSpec computeMavenPomSpec() {
-        MavenPomInternal pomInternal = (MavenPomInternal) getPom();
-
-        MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(
-            pomInternal.getProjectIdentity(),
-            getVersionRangeMapper(),
-            pomInternal.getVersionMappingStrategy(),
-            compileScopeAttributes.get(),
-            runtimeScopeAttributes.get(),
-            pomInternal.writeGradleMetadataMarker());
-        pomGenerator.configureFrom(pomInternal);
-
-        for (MavenDependency mavenDependency : pomInternal.getApiDependencyManagement()) {
-            pomGenerator.addApiDependencyManagement(mavenDependency);
-        }
-
-        for (MavenDependency mavenDependency : pomInternal.getRuntimeDependencyManagement()) {
-            pomGenerator.addRuntimeDependencyManagement(mavenDependency);
-        }
-
-        for (MavenDependency mavenDependency : pomInternal.getImportDependencyManagement()) {
-            pomGenerator.addImportDependencyManagement(mavenDependency);
-        }
-
-        for (MavenDependencyInternal runtimeDependency : pomInternal.getApiDependencies()) {
-            pomGenerator.addApiDependency(runtimeDependency);
-        }
-        for (MavenDependencyInternal runtimeDependency : pomInternal.getRuntimeDependencies()) {
-            pomGenerator.addRuntimeDependency(runtimeDependency);
-        }
-        for (MavenDependencyInternal optionalDependency : pomInternal.getOptionalDependencies()) {
-            pomGenerator.addOptionalDependency(optionalDependency);
-        }
-
-        pomGenerator.withXml(pomInternal.getXmlAction());
-
-        return pomGenerator.toSpec();
+        mavenPomSpec.get().writeTo(getDestination());
     }
 
 }

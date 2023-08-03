@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resource.local;
 
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -26,9 +27,11 @@ import java.net.URI;
 
 public class FileResourceConnector implements FileResourceRepository {
     private final FileSystem fileSystem;
+    private final FileResourceListener listener;
 
-    public FileResourceConnector(FileSystem fileSystem) {
+    public FileResourceConnector(FileSystem fileSystem, ListenerManager listenerManager) {
         this.fileSystem = fileSystem;
+        this.listener = listenerManager.getBroadcaster(FileResourceListener.class);
     }
 
     @Override
@@ -38,7 +41,7 @@ public class FileResourceConnector implements FileResourceRepository {
 
     @Override
     public LocalBinaryResource localResource(File file) {
-        return new LocalFileStandInExternalResource(file, fileSystem);
+        return new LocalFileStandInExternalResource(file, fileSystem, listener);
     }
 
     @Override
@@ -49,12 +52,12 @@ public class FileResourceConnector implements FileResourceRepository {
     @Override
     public LocallyAvailableExternalResource resource(ExternalResourceName location) {
         File localFile = getFile(location);
-        return new LocalFileStandInExternalResource(localFile, fileSystem);
+        return new LocalFileStandInExternalResource(localFile, fileSystem, listener);
     }
 
     @Override
     public LocallyAvailableExternalResource resource(File file) {
-        return new LocalFileStandInExternalResource(file, fileSystem);
+        return new LocalFileStandInExternalResource(file, fileSystem, listener);
     }
 
     @Override

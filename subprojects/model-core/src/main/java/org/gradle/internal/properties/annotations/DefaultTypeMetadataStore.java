@@ -19,6 +19,7 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -32,7 +33,6 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -166,7 +166,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 effectiveProperties.add(property);
             }
         }
-        return new DefaultTypeMetadata(effectiveProperties.build(), validationContext, propertyAnnotationHandlers);
+        return new DefaultTypeMetadata(publicType, effectiveProperties.build(), validationContext, propertyAnnotationHandlers);
     }
 
     private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
@@ -178,15 +178,18 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     }
 
     private static class DefaultTypeMetadata implements TypeMetadata {
+        private final Class<?> type;
         private final ImmutableSet<PropertyMetadata> propertiesMetadata;
         private final ReplayingTypeValidationContext validationProblems;
         private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers;
 
         DefaultTypeMetadata(
+            Class<?> type,
             ImmutableSet<PropertyMetadata> propertiesMetadata,
             ReplayingTypeValidationContext validationProblems,
             ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers
         ) {
+            this.type = type;
             this.propertiesMetadata = propertiesMetadata;
             this.validationProblems = validationProblems;
             this.annotationHandlers = annotationHandlers;
@@ -210,6 +213,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         @Override
         public PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata) {
             return annotationHandlers.get(propertyMetadata.getPropertyType());
+        }
+
+        @Override
+        public Class<?> getType() {
+            return type;
         }
     }
 
@@ -256,8 +264,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public Method getGetterMethod() {
-            return annotationMetadata.getGetter();
+        public TypeToken<?> getDeclaredType() {
+            return annotationMetadata.getDeclaredType();
+        }
+
+        @Nullable
+        @Override
+        public Object getPropertyValue(Object object) {
+            return annotationMetadata.getPropertyValue(object);
         }
 
         @Override

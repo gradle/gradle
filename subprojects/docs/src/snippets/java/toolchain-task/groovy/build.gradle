@@ -1,21 +1,15 @@
 import javax.inject.Inject;
 
+// tag::custom-toolchain-task-with-java[]
 abstract class CustomTaskUsingToolchains extends DefaultTask {
 
     @Nested
-    abstract Property<JavaLauncher> getLauncher()
+    abstract Property<JavaLauncher> getLauncher() // <1>
 
-    @Inject
     CustomTaskUsingToolchains() {
-        // Access the default toolchain
-        def toolchain = project.getExtensions().getByType(JavaPluginExtension.class).toolchain
-
-        // acquire a provider that returns the launcher for the toolchain
-        JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class)
-        Provider<JavaLauncher> defaultLauncher = service.launcherFor(toolchain);
-
-        // use it as our default for the property
-        launcher.convention(defaultLauncher);
+        def toolchain = project.extensions.getByType(JavaPluginExtension.class).toolchain // <2>
+        Provider<JavaLauncher> defaultLauncher = getJavaToolchainService().launcherFor(toolchain) // <3>
+        launcher.convention(defaultLauncher) // <4>
     }
 
     @TaskAction
@@ -23,22 +17,28 @@ abstract class CustomTaskUsingToolchains extends DefaultTask {
         println launcher.get().executablePath
         println launcher.get().metadata.installationPath
     }
-}
 
+    @Inject
+    protected abstract JavaToolchainService getJavaToolchainService()
+}
+// end::custom-toolchain-task-with-java[]
+
+// tag::custom-toolchain-task-with-java-usage[]
 plugins {
     id 'java'
 }
 
 java {
-    toolchain {
+    toolchain { // <1>
         languageVersion = JavaLanguageVersion.of(8)
     }
 }
 
-tasks.register('showDefaultToolchain', CustomTaskUsingToolchains)
+tasks.register('showDefaultToolchain', CustomTaskUsingToolchains) // <2>
 
 tasks.register('showCustomToolchain', CustomTaskUsingToolchains) {
-    launcher = javaToolchains.launcherFor {
+    launcher = javaToolchains.launcherFor { // <3>
         languageVersion = JavaLanguageVersion.of(17)
     }
 }
+// end::custom-toolchain-task-with-java-usage[]

@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -26,7 +25,6 @@ class IvyDynamicRevisionMultiRepoResolveIntegrationTest extends AbstractDependen
     }
 
     @Issue("GRADLE-2502")
-    @ToBeFixedForConfigurationCache
     def "can resolve dynamic version from different repositories"() {
         given:
         def repo1 = ivyRepo("ivyRepo1")
@@ -60,7 +58,10 @@ class IvyDynamicRevisionMultiRepoResolveIntegrationTest extends AbstractDependen
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1").byReason("didn't match version 1.2")
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1") {
+                    notRequested()
+                    byReason("didn't match version 1.2")
+                }
             }
         }
 

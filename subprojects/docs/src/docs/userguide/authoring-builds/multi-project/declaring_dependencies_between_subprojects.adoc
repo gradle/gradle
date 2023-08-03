@@ -26,30 +26,6 @@ As mentioned in <<declaring_dependencies.adoc#sub:project_dependencies,Project d
 [.multi-language-sample]
 =====
 .Project layout
-[source, groovy]
-----
-.
-├── buildSrc
-│   ...
-├── api
-│   ├── src
-│   │   └──...
-│   └── build.gradle
-├── services
-│   └── person-service
-│       ├── src
-│       │   └──...
-│       └── build.gradle
-├── shared
-│   ├── src
-│   │   └──...
-│   └── build.gradle
-└── settings.gradle
-----
-=====
-[.multi-language-sample]
-=====
-.Project layout
 [source, kotlin]
 ----
 .
@@ -71,19 +47,43 @@ As mentioned in <<declaring_dependencies.adoc#sub:project_dependencies,Project d
 └── settings.gradle.kts
 ----
 =====
+[.multi-language-sample]
+=====
+.Project layout
+[source, groovy]
+----
+.
+├── buildSrc
+│   ...
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle
+└── settings.gradle
+----
+=====
 ====
 
 We have the projects `shared`, `api` and `person-service`.
 The `person-service` project has a dependency on the other two projects.
 The `api` project has a dependency on the `shared` project.
 It has no build script and gets nothing injected by another build script.
-We use the `:` separator to define a project path.
+We use the `:` separator to define a <<intro_multi_project_builds#sec:project_path,project path>>.
 Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
 
 [[javadependencies_2]]
 ====
-include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[];buildSrc/src/main/groovy/myproject.java-conventions.gradle[];api/build.gradle[];shared/build.gradle[];services/person-service/build.gradle[]"]
 include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="settings.gradle.kts[];buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[];api/build.gradle.kts[];shared/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[];buildSrc/src/main/groovy/myproject.java-conventions.gradle[];api/build.gradle[];shared/build.gradle[];services/person-service/build.gradle[]"]
 ====
 
 Shared build logic is extracted into a _convention plugin_ that is applied in the subprojects' build scripts that also define project dependencies.
@@ -111,8 +111,8 @@ You can then map the task provider to its output file and Gradle will automatica
 
 .Task generating a property file containing build information
 ====
-include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/producer",files="build.gradle[]"]
 include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/producer",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/producer",files="build.gradle[]"]
 .buildSrc/src/main/java/BuildInfo.java
 [source, java]
 ----
@@ -125,8 +125,8 @@ Declaring a project dependency on the producing project takes care of creating t
 
 .Declaring a project dependency on the project producing the properties file
 ====
-include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/consumer",files="build.gradle[tags=producer-project-dependency]"]
 include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/consumer",files="build.gradle.kts[tags=producer-project-dependency]"]
+include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/consumer",files="build.gradle[tags=producer-project-dependency]"]
 ====
 
 In the example above, the consumer now declares a dependency on the outputs of the `producer` project.

@@ -27,15 +27,12 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DescribableAttributesSchema;
 import org.gradle.api.model.ObjectFactory;
 
@@ -92,7 +89,6 @@ public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
-        configureView(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
@@ -100,7 +96,6 @@ public abstract class JavaEcosystemSupport {
         attributesSchema.attributeDisambiguationPrecedence(
                 Category.CATEGORY_ATTRIBUTE,
                 Usage.USAGE_ATTRIBUTE,
-                CompileView.VIEW_ATTRIBUTE,
                 TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                 LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                 Bundling.BUNDLING_ATTRIBUTE,
@@ -110,14 +105,6 @@ public abstract class JavaEcosystemSupport {
 
     private static void configureConsumerDescriptors(DescribableAttributesSchema attributesSchema) {
         attributesSchema.addConsumerDescriber(new JavaEcosystemAttributesDescriber());
-    }
-
-    public static void configureDefaultTargetPlatform(HasAttributes configuration, int majorVersion) {
-        AttributeContainerInternal attributes = (AttributeContainerInternal) configuration.getAttributes();
-        // If nobody said anything about this variant's target platform, use whatever the convention says
-        if (!attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)) {
-            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, majorVersion);
-        }
     }
 
     private static void configureTargetPlatform(AttributesSchema attributesSchema) {
@@ -159,66 +146,6 @@ public abstract class JavaEcosystemSupport {
             actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         });
     }
-
-    private static void configureView(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<CompileView> viewSchema = attributesSchema.attribute(CompileView.VIEW_ATTRIBUTE);
-        viewSchema.getCompatibilityRules().add(CompileViewCompatibilityRules.class);
-        viewSchema.getDisambiguationRules().add(CompileViewDisambiguationRules.class, actionConfiguration -> {
-            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_API));
-            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_INTERNAL));
-        });
-    }
-
-    @VisibleForTesting
-    static class CompileViewDisambiguationRules implements AttributeDisambiguationRule<CompileView>, ReusableAction {
-
-        final CompileView javaApi;
-        final CompileView javaInternal;
-
-        @Inject
-        public CompileViewDisambiguationRules(
-                CompileView javaApi,
-                CompileView javaInternal) {
-            this.javaApi = javaApi;
-            this.javaInternal = javaInternal;
-        }
-
-        @Override
-        public void execute(MultipleCandidatesDetails<CompileView> details) {
-            Set<CompileView> candidateValues = details.getCandidateValues();
-            CompileView consumerValue = details.getConsumerValue();
-            if (consumerValue == null) {
-                if (candidateValues.contains(javaApi)) {
-                    // Use the api when nothing has been requested
-                    details.closestMatch(javaApi);
-                }
-            } else if (candidateValues.contains(consumerValue)) {
-                // Use what they requested, if available
-                details.closestMatch(consumerValue);
-            }
-        }
-    }
-
-    @VisibleForTesting
-    static class CompileViewCompatibilityRules implements AttributeCompatibilityRule<CompileView>, ReusableAction {
-
-        @Override
-        public void execute(CompatibilityCheckDetails<CompileView> details) {
-            CompileView consumerValue = details.getConsumerValue();
-            CompileView producerValue = details.getProducerValue();
-            if (consumerValue == null) {
-                // consumer didn't express any preferences, everything fits
-                details.compatible();
-                return;
-            }
-            // The API view is a subset of the internal view, so the internal view can fulfill
-            // a request for the API.
-            if (CompileView.JAVA_API.equals(consumerValue.getName()) && CompileView.JAVA_INTERNAL.equals(producerValue.getName())) {
-                details.compatible();
-            }
-        }
-    }
-
     @VisibleForTesting
     public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
         final Usage javaApi;

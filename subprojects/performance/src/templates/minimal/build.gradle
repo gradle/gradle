@@ -1,1 +1,1 @@
-project.buildDir = 'target'
+project.layout.buildDirectory = file('target')

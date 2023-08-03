@@ -13,7 +13,6 @@ val aggregate by configurations.creating {
 // Resolvable configuration to resolve the classes of all dependencies
 val classesPath by configurations.creating {
     isVisible = false
-    isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
@@ -26,7 +25,6 @@ val classesPath by configurations.creating {
 // A resolvable configuration to collect source code
 val sourcesPath by configurations.creating {
     isVisible = false
-    isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
@@ -38,7 +36,6 @@ val sourcesPath by configurations.creating {
 // A resolvable configuration to collect JaCoCo coverage data
 val coverageDataPath by configurations.creating {
     isVisible = false
-    isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
@@ -54,8 +51,8 @@ val codeCoverageReport by tasks.registering(JacocoReport::class) {
     executionData(coverageDataPath.incoming.artifactView { lenient(true) }.files.filter { it.exists() })
 
     reports {
-        html.required.set(true)
-        xml.required.set(true)
+        html.required = true
+        xml.required = true
     }
 }
 

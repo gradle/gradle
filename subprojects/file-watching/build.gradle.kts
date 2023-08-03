@@ -9,6 +9,7 @@ dependencies {
 
     implementation(project(":base-annotations"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":functional"))
 
     implementation(libs.guava)
     implementation(libs.nativePlatform)

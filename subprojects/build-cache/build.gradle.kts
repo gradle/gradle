@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":files"))
     implementation(project(":file-temp"))
+    implementation(project(":functional"))
     implementation(project(":native"))
     implementation(project(":persistent-cache"))
     implementation(project(":resources"))
@@ -23,6 +24,17 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
+    implementation(libs.h2Database) {
+        because("Used in BuildCacheNG")
+    }
+    implementation(libs.hikariCP) {
+        because("Used in BuildCacheNG")
+    }
+    implementation(libs.gson) {
+        because("Used in Build Cache NG: Cache manifest uses JSON format")
+    }
+    implementation(libs.commonsIo)
+
 
     jmhImplementation(platform(project(":distributions-dependencies")))
     jmhImplementation(libs.ant)

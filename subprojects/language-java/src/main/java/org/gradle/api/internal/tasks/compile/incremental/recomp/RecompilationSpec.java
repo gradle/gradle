@@ -98,5 +98,4 @@ public class RecompilationSpec {
     public void setFullRebuildCause(String description) {
         fullRebuildCause = description;
     }
-
 }

@@ -11,7 +11,7 @@ repositories {
 }
 
 tasks.compileJava {
-    options.javaModuleVersion.set(provider({ project.version as String }))
+    options.javaModuleVersion = provider({ version as String })
 }
 
 // tag::extraModuleInfo[]
@@ -41,6 +41,6 @@ dependencies {
 }
 
 application {
-    mainModule.set("org.gradle.sample.app")
-    mainClass.set("org.gradle.sample.app.Main")
+    mainModule = "org.gradle.sample.app"
+    mainClass = "org.gradle.sample.app.Main"
 }

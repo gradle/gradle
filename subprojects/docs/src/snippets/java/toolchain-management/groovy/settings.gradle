@@ -1,25 +1,28 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver' version '0.4.0'
+}
+
 import java.util.Optional
 import javax.inject.Inject
 
-apply plugin: AzulPlugin
-apply plugin: AdoptiumPlugin
+apply plugin: MadeUpPlugin
 
 // tag::toolchain-management[]
 toolchainManagement {
     jvm { // <1>
         javaRepositories {
-            repository('azul') { // <2>
-                resolverClass = AzulResolver
+            repository('foojay') { // <2>
+                resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver
+            }
+            repository('made_up') { // <3>
+                resolverClass = MadeUpResolver
                 credentials {
                     username "user"
                     password "password"
                 }
                 authentication {
                     digest(BasicAuthentication)
-                } // <3>
-            }
-            repository('adoptium') { // <4>
-                resolverClass = AdoptiumResolver
+                } // <4>
             }
         }
     }
@@ -28,49 +31,22 @@ toolchainManagement {
 
 rootProject.name = 'toolchain-management'
 
-abstract class AzulPlugin extends DummyPlugin {
-
-    AzulPlugin() {
-        super(AzulResolver.class)
-    }
-}
-
-abstract class AdoptiumPlugin extends DummyPlugin {
-
-    AdoptiumPlugin() {
-        super(AdoptiumResolver.class)
-    }
-}
-
-abstract class DummyPlugin implements Plugin<Settings> {
-
-    private final Class<JavaToolchainResolver> resolverClass;
+abstract class MadeUpPlugin implements Plugin<Settings> {
 
     @Inject
     protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
 
-    DummyPlugin(Class<JavaToolchainResolver> resolverClass) {
-        this.resolverClass = resolverClass
-    }
-
     void apply(Settings settings) {
-        settings.getPlugins().apply("jvm-toolchain-management");
+        settings.getPlugins().apply("jvm-toolchain-management")
 
-        JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
-        registry.register(resolverClass)
+        JavaToolchainResolverRegistry registry = getToolchainResolverRegistry()
+        registry.register(MadeUpResolver.class)
     }
 }
 
-abstract class AzulResolver implements JavaToolchainResolver {
+abstract class MadeUpResolver implements JavaToolchainResolver {
     @Override
     Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-        return Optional.empty();
-    }
-}
-
-abstract class AdoptiumResolver implements JavaToolchainResolver {
-    @Override
-    Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-        return Optional.empty();
+        return Optional.empty()
     }
 }

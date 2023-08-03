@@ -31,7 +31,7 @@ import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter
 import org.gradle.api.specs.Specs
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata
@@ -73,7 +73,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     private static boolean rule2Executed
 
     MetadataResolutionContext context = Mock()
-    def executor = new ComponentMetadataRuleExecutor(Stub(GlobalScopedCache), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
+    def executor = new ComponentMetadataRuleExecutor(Stub(GlobalScopedCacheBuilderFactory), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def stringInterner = SimpleMapInterner.notThreadSafe()
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()

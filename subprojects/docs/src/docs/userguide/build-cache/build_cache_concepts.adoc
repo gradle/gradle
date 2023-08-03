@@ -44,8 +44,8 @@ Having a task repeatably produce the same output is not enough if its inputs kee
 Such unstable inputs can be supplied directly to the task. Consider a version number that includes a timestamp being added to the jar file's manifest:
 
 ====
-include::sample[dir="snippets/buildCache/timestamp-in-manifest/groovy",files="build.gradle[tags=timestamp]"]
 include::sample[dir="snippets/buildCache/timestamp-in-manifest/kotlin",files="build.gradle.kts[tags=timestamp]"]
+include::sample[dir="snippets/buildCache/timestamp-in-manifest/groovy",files="build.gradle[tags=timestamp]"]
 ====
 
 In the above example the inputs for the `jar` task will be different for each build execution since this timestamp will continually change.
@@ -67,7 +67,7 @@ Having stable inputs is crucial for cacheable tasks.
 However, achieving byte for byte identical inputs for each task can be challenging.
 In some cases sanitizing the output of a task to remove unnecessary information can be a good approach, but this also means that a task's output can only be normalized for a single purpose.
 
-This is where <<more_about_tasks.adoc#sec:configure_input_normalization,input normalization>> comes into play.
+This is where <<incremental_build.adoc#sec:configure_input_normalization,input normalization>> comes into play.
 Input normalization is used by Gradle to determine if two task inputs are _essentially_ the same.
 Gradle uses normalized inputs when doing up-to-date checks and when determining if a cached result can be re-used instead of executing the task.
 As input normalization is declared by the task _consuming_ the data as input, different tasks can define different ways to normalize the same data.
@@ -112,12 +112,12 @@ For more information on compile avoidance see the <<java_plugin.adoc#sec:java_co
 Similar to compile avoidance, Gradle also understands the concept of a runtime classpath, and uses tailored input normalization to avoid running e.g. tests.
 For runtime classpaths Gradle inspects the contents of jar files and ignores the timestamps and order of the entries in the jar file.
 This means that a rebuilt jar file would be considered the same runtime classpath input.
-For details on what level of understanding Gradle has for detecting changes to classpaths and what is considered as a classpath see <<more_about_tasks.adoc#sec:task_input_using_classpath_annotations,this section>>.
+For details on what level of understanding Gradle has for detecting changes to classpaths and what is considered as a classpath see <<incremental_build.adoc#sec:task_input_using_classpath_annotations,this section>>.
 
 [[filter_runtime_classpath]]
 ===== Filtering runtime classpaths
 
-For a runtime classpath it is possible to provide better insights to Gradle which files are essential to the input by <<more_about_tasks.adoc#sec:configure_input_normalization,configuring input normalization>>.
+For a runtime classpath it is possible to provide better insights to Gradle which files are essential to the input by <<incremental_build.adoc#sec:configure_input_normalization,configuring input normalization>>.
 
 Given that you want to add a file `build-info.properties` to all your produced jar files which contains volatile information about the build, e.g. the timestamp when the build started or some ID to identify the CI job that published the artifact.
 This file is only used for auditing purposes, and has no effect on the outcome of running tests.
@@ -125,8 +125,8 @@ Nonetheless, this file is part of the runtime classpath for the `test` task. Sin
 To fix this you can ignore `build-info.properties` on any runtime classpath by adding the following configuration to the build script in the _consuming_ project:
 
 ====
-include::sample[dir="snippets/buildCache/normalization/groovy",files="build.gradle[tags=normalization]"]
 include::sample[dir="snippets/buildCache/normalization/kotlin",files="build.gradle.kts[tags=normalization]"]
+include::sample[dir="snippets/buildCache/normalization/groovy",files="build.gradle[tags=normalization]"]
 ====
 
 If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.
@@ -140,7 +140,7 @@ This will not change the runtime behavior of the `test` task -- i.e. any test is
 
 When two tasks write to the same output directory or output file, it is difficult for Gradle to determine which output belongs to which task.
 There are many edge cases, and executing the tasks in parallel cannot be done safely.
-For the same reason, Gradle cannot remove <<more_about_tasks.adoc#sec:stale_task_outputs,stale output files>> for these tasks.
+For the same reason, Gradle cannot remove <<incremental_build.adoc#sec:stale_task_outputs,stale output files>> for these tasks.
 Tasks that have discrete, non-overlapping outputs can always be handled in a safe fashion by Gradle.
 For the aforementioned reasons, task output caching is automatically disabled for tasks whose output directories overlap with another task.
 

@@ -4,8 +4,8 @@ This sample shows how to publish a Java library to a repository.
 The library has no dependencies and the build has minimal configuration.
 
 ====
-include::sample[dir="groovy",files="my-library/build.gradle[]"]
 include::sample[dir="kotlin",files="my-library/build.gradle.kts[]"]
+include::sample[dir="groovy",files="my-library/build.gradle[]"]
 ====
 
 To publish the library:
@@ -47,4 +47,4 @@ build/publishing-repository
 5 directories, 20 files
 ----
 
-For more information, see link:{userManualPath}/java_library_plugin.html[Java Library Plugin reference chapter].
+For more information, see link:{userManualPath}/publishing_setup.html[Publishing Libraries].

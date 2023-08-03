@@ -15,21 +15,24 @@
  */
 package org.gradle.language.nativeplatform
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
-@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
+@Requires([
+    UnitTestPreconditions.CanInstallExecutable,
+    UnitTestPreconditions.NotMacOs
+])
 class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
     @Rule public final Sample assembler = sample(testDirProvider, 'assembler')
@@ -96,7 +99,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def "objectiveC"() {
         given:
@@ -113,7 +116,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def "objectiveCpp"() {
         given:
@@ -149,7 +152,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         when:
         // To get rid of the deprecation, the sample under test could be split into two or otherwise refactored to use a single build file
         // Since this one uses Software Model + Windows, for now letting it stay with the deprecation
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
         executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
         run "helloResSharedLibrary"
 

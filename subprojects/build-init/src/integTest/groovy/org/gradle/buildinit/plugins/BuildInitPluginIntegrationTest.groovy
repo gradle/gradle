@@ -21,7 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
@@ -57,7 +57,9 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.buildFile.assertContents(
             allOf(
                 containsString("This is a general purpose Gradle build"),
-                containsString("Learn more about Gradle by exploring our samples at")))
+                containsString(documentationRegistry.getSampleForMessage())
+            )
+        )
 
         expect:
         succeeds 'properties'
@@ -81,7 +83,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.buildFile.assertContents(
             allOf(
                 containsString("This is a general purpose Gradle build"),
-                containsString("Learn more about Gradle by exploring our samples at"),
+                containsString(documentationRegistry.getSampleForMessage()),
                 containsString(BuildScriptBuilder.getIncubatingApisWarning())))
 
         expect:
@@ -174,7 +176,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         executer.usingSettingsFile(customSettings)
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: ${documentationRegistry.getDocumentationFor("upgrading_version_7", "configuring_custom_build_layout")}")
         runInitWith targetScriptDsl as BuildInitDsl
 
         then:
@@ -190,7 +193,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    def "pom conversion to groovy build scripts is triggered when pom and no gradle file found"() {
+    def "pom conversion to kotlin build scripts is triggered when pom and no gradle file found"() {
         given:
         pom()
 
@@ -198,7 +201,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         run('init')
 
         then:
-        pomValuesUsed(rootProjectDslFixtureFor(GROOVY))
+        pomValuesUsed(rootProjectDslFixtureFor(KOTLIN))
     }
 
     def "pom conversion to #scriptDsl build scripts not triggered when build type is specified"() {
@@ -244,8 +247,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         failure.assertHasCause("""The requested build script DSL 'some-unknown-dsl' is not supported. Supported DSLs:
-  - 'groovy'
-  - 'kotlin'""")
+  - 'kotlin'
+  - 'groovy'""")
     }
 
     def "gives decent error message when using unknown test framework"() {
@@ -294,7 +297,9 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                     groovy
                     kotlin
 
-     --incubating     Allow the generated build to use new features and APIs
+     --incubating     Allow the generated build to use new features and APIs.
+
+     --no-incubating     Disables option --incubating.
 
      --insecure-protocol     How to handle insecure URLs used for Maven Repositories.
                              Available values are:
@@ -308,6 +313,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
      --project-name     Set the project name.
 
      --split-project     Split functionality across multiple subprojects?
+
+     --no-split-project     Disables option --split-project.
 
      --test-framework     Set the test framework to be used.
                           Available values are:
@@ -343,8 +350,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         succeeds "init"
-        targetDir.file("settings.gradle").assertIsFile()
-        targetDir.file("build.gradle").assertIsFile()
+        targetDir.file("settings.gradle.kts").assertIsFile()
+        targetDir.file("build.gradle.kts").assertIsFile()
     }
 
     def "fails when initializing in a project directory of another build that contains a build script"() {
@@ -405,8 +412,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         succeeds "init"
         targetDir.file("gradlew").assertIsFile()
-        targetDir.file("settings.gradle").assertIsFile()
-        targetDir.file("build.gradle").assertIsFile()
+        targetDir.file("settings.gradle.kts").assertIsFile()
+        targetDir.file("build.gradle.kts").assertIsFile()
         targetDir.file(".gradle/gradle.properties").assertHasNotChangedSince(snapshot)
     }
 
@@ -420,8 +427,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         succeeds "init"
         targetDir.file("gradlew").assertIsFile()
-        targetDir.file("settings.gradle").assertIsFile()
-        targetDir.file("build.gradle").assertIsFile()
+        targetDir.file("settings.gradle.kts").assertIsFile()
+        targetDir.file("build.gradle.kts").assertIsFile()
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {

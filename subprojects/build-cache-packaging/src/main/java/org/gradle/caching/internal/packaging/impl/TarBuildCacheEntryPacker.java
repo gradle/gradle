@@ -32,6 +32,7 @@ import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.RelativePathSupplier;
+import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
@@ -48,6 +49,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.util.internal.PathTraversalChecker;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
@@ -90,24 +92,25 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private static final Charset ENCODING = StandardCharsets.UTF_8;
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern TREE_PATH = Pattern.compile("(missing-)?tree-([^/]+)(?:/(.*))?");
-    private static final int BUFFER_SIZE = 64 * 1024;
-    private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
     private final TarPackerFileSystemSupport fileSystemSupport;
     private final FilePermissionAccess filePermissionAccess;
     private final StreamHasher streamHasher;
     private final Interner<String> stringInterner;
+    private final BufferProvider bufferProvider;
 
     public TarBuildCacheEntryPacker(
         TarPackerFileSystemSupport fileSystemSupport,
         FilePermissionAccess filePermissionAccess,
         StreamHasher streamHasher,
-        Interner<String> stringInterner
+        Interner<String> stringInterner,
+        BufferProvider bufferProvider
     ) {
         this.fileSystemSupport = fileSystemSupport;
         this.filePermissionAccess = filePermissionAccess;
         this.streamHasher = streamHasher;
         this.stringInterner = stringInterner;
+        this.bufferProvider = bufferProvider;
     }
 
     @Override
@@ -128,7 +131,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
     }
 
-    private void packMetadata(OriginWriter writeMetadata, TarArchiveOutputStream tarOutput) throws IOException {
+    private static void packMetadata(OriginWriter writeMetadata, TarArchiveOutputStream tarOutput) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeMetadata.execute(output);
         createTarEntry(METADATA_PATH, output.size(), UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
@@ -151,7 +154,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private long packTree(String name, TreeType type, FileSystemSnapshot snapshots, TarArchiveOutputStream tarOutput) {
-        PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type, filePermissionAccess);
+        PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type);
         snapshots.accept(new RelativePathTracker(), packingVisitor);
         return packingVisitor.getPackedEntryCount();
     }
@@ -183,7 +186,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         AtomicLong entries = new AtomicLong();
         while (tarEntry != null) {
             entries.incrementAndGet();
-            String path = tarEntry.getName();
+            String path = safeEntryName(tarEntry);
 
             if (path.equals(METADATA_PATH)) {
                 // handle origin metadata
@@ -275,7 +278,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     @Nullable
     private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, FileSystemLocationSnapshot> snapshots, AtomicLong entries, File treeRoot, String treeName) throws IOException {
-        RelativePathParser parser = new RelativePathParser(rootEntry.getName());
+        RelativePathParser parser = new RelativePathParser(safeEntryName(rootEntry));
 
         DirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         builder.enterDirectory(DIRECT, stringInterner.intern(treeRoot.getAbsolutePath()), stringInterner.intern(treeRoot.getName()), INCLUDE_EMPTY_DIRS);
@@ -284,7 +287,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         while ((entry = input.getNextTarEntry()) != null) {
             boolean isDir = entry.isDirectory();
-            boolean outsideOfRoot = parser.nextPath(entry.getName(), isDir, builder::leaveDirectory);
+            boolean outsideOfRoot = parser.nextPath(safeEntryName(entry), isDir, builder::leaveDirectory);
             if (outsideOfRoot) {
                 break;
             }
@@ -310,6 +313,15 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         return entry;
     }
 
+    /**
+     * Returns a safe name for the name of a tar archive entry.
+     *
+     * @see PathTraversalChecker#safePathName(String)
+     */
+    private static String safeEntryName(TarArchiveEntry tarEntry) {
+        return PathTraversalChecker.safePathName(tarEntry.getName());
+    }
+
     private void chmodUnpackedFile(TarArchiveEntry entry, File file) {
         filePermissionAccess.chmod(file, entry.getMode() & UnixPermissions.PERM_MASK);
     }
@@ -330,21 +342,19 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
     }
 
-    private static class PackingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
+    private class PackingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
         private final TarArchiveOutputStream tarOutput;
         private final String treePath;
         private final String treeRoot;
-        private final FilePermissionAccess filePermissionAccess;
         private final TreeType type;
 
         private long packedEntryCount;
 
-        public PackingVisitor(TarArchiveOutputStream tarOutput, String treeName, TreeType type, FilePermissionAccess filePermissionAccess) {
+        public PackingVisitor(TarArchiveOutputStream tarOutput, String treeName, TreeType type) {
             this.tarOutput = tarOutput;
             this.treePath = "tree-" + escape(treeName);
             this.treeRoot = treePath + "/";
             this.type = type;
-            this.filePermissionAccess = filePermissionAccess;
         }
 
         @Override
@@ -431,7 +441,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             try {
                 createTarEntry(path, size, UnixPermissions.FILE_FLAG | mode, tarOutput);
                 try (FileInputStream input = new FileInputStream(inputFile)) {
-                    IOUtils.copyLarge(input, tarOutput, COPY_BUFFERS.get());
+                    IOUtils.copyLarge(input, tarOutput, bufferProvider.getBuffer());
                 }
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {

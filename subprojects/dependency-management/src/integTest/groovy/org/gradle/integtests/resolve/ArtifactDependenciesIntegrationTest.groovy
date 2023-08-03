@@ -15,11 +15,10 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -30,33 +29,146 @@ import static org.hamcrest.CoreMatchers.containsString
  * These tests should be migrated to live with the rest of the coverage over time.
  */
 @FluidDependenciesResolveTest
-class ArtifactDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTest {
+    public final resolve = new ResolveTestFixture(buildFile)
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    def setup() {
-        executer.requireOwnGradleUserHomeDir()
-    }
-
     void canHaveConfigurationHierarchy() {
-        expect:
-        executer.run()
+        given:
+        resolve.prepare {
+            config("compile")
+            config("runtime")
+        }
+
+        when:
+        run("checkCompile")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:projectA:1.2") {
+                    configuration("api")
+                    module("test:projectB:1.5") {
+                        artifact(name: "projectB-api")
+                    }
+                }
+            }
+        }
+
+        when:
+        run("checkRuntime")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:projectA:1.2") {
+                    configuration("api")
+                    configuration("default")
+                    module("test:projectB:1.5") {
+                        configuration("extraRuntime")
+                        artifact()
+                        artifact(name: "projectB-api")
+                        artifact(name: "projectB-extraRuntime")
+                    }
+                    module("test:projectB:1.5")
+                }
+                module("test:projectA:1.2")
+                module("test:projectB:1.5")
+            }
+        }
     }
 
     void dependencyReportWithConflicts() {
-        expect:
-        executer.run()
-        executer.withDependencyList().run()
+        given:
+        resolve.prepare {
+            config("evictedTransitive")
+            config("evictedDirect")
+            config("multiProject")
+        }
+
+        when:
+        run(":checkEvictedTransitive")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:projectA:1.2") {
+                    edge("test:projectB:1.5", "test:projectB:2.1.5")
+                }
+                module("test:projectB:2.1.5") {
+                    byConflictResolution("between versions 2.1.5 and 1.5")
+                }
+            }
+        }
+
+        when:
+        run(":checkEvictedDirect")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:projectA:2.0") {
+                    module("test:projectB:2.1.5") {
+                        byConflictResolution("between versions 2.1.5 and 1.5")
+                    }
+                }
+                edge("test:projectB:1.5", "test:projectB:2.1.5")
+            }
+        }
+
+        when:
+        run(":checkMultiProject")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("test:projectA:1.2", "test:projectA:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.2")
+                    module("test:projectB:2.1.5")
+                }
+                project(":subproject", "test:subproject:") {
+                    noArtifacts()
+                    module("test:projectA:2.0")
+                }
+            }
+        }
     }
 
-    void canHaveCycleInDependencyGraph() throws IOException {
-        expect:
-        executer.run()
+    void canHaveCycleInDependencyGraph() {
+        given:
+        resolve.prepare("compile")
+
+        when:
+        run(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:projectA:1.2") {
+                    module("test:projectB:1.5") {
+                        module("test:projectA:1.2")
+                    }
+                }
+            }
+        }
     }
 
-    void canUseDynamicVersions() throws IOException {
-        expect:
-        executer.run()
+    void canUseDynamicVersions() {
+        given:
+        resolve.prepare("compile")
+
+        when:
+        run(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("test:projectA:1.+", "test:projectA:1.2") {
+                    edge("test:projectB:latest.release", "test:projectB:1.5")
+                }
+            }
+        }
     }
 
     void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
@@ -67,7 +179,10 @@ subprojects {
     configurations {
         compile
     }
-    task listDeps { doLast { configurations.compile.each { } } }
+    task listDeps {
+        def files = configurations.compile
+        doLast { files.files }
+    }
 }
 project(':a') {
     repositories {
@@ -85,9 +200,9 @@ project(':b') {
 """
         repo.module('org.gradle.test', 'external1', '1.0').publish()
 
-        inTestDirectory().withTasks('a:listDeps').run()
-        def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
-        result.assertHasCause('Cannot resolve external dependency org.gradle.test:external1:1.0 because no repositories are defined.')
+        succeeds('a:listDeps')
+        fails('b:listDeps')
+        failure.assertHasCause('Cannot resolve external dependency org.gradle.test:external1:1.0 because no repositories are defined.')
     }
 
     void resolutionFailsForMissingArtifact() {
@@ -104,27 +219,36 @@ dependencies {
     missingExt "org.gradle.test:lib:1.0@zip"
     missingClassifier "org.gradle.test:lib:1.0:classifier1"
 }
-task listJar { doLast { configurations.compile.each { } } }
-task listMissingExt { doLast { configurations.missingExt.each { } } }
-task listMissingClassifier { doLast { configurations.missingClassifier.each { } } }
+task listJar {
+    def files = configurations.compile
+    doLast { files.each { } }
+}
+task listMissingExt {
+    def files = configurations.missingExt
+    doLast { files.each { } }
+}
+task listMissingClassifier {
+    def files = configurations.missingClassifier
+    doLast { files.each { } }
+}
 """
 
         def module = repo.module('org.gradle.test', 'lib', '1.0')
         module.publish()
 
-        inTestDirectory().withTasks('listJar').run()
+        succeeds('listJar')
 
-        def result = inTestDirectory().withTasks('listMissingExt').runWithFailure()
+        fails('listMissingExt')
 
-        result.assertHasCause("""Could not find lib-1.0.zip (org.gradle.test:lib:1.0).
+        failure.assertHasCause("""Could not find lib-1.0.zip (org.gradle.test:lib:1.0).
 Searched in the following locations:
     ${module.artifactFile(type: 'zip').toURL()}""")
 
         when:
-        result = inTestDirectory().withTasks('listMissingClassifier').runWithFailure()
+        fails('listMissingClassifier')
 
         then:
-        result.assertHasCause("""Could not find lib-1.0-classifier1.jar (org.gradle.test:lib:1.0).
+        failure.assertHasCause("""Could not find lib-1.0-classifier1.jar (org.gradle.test:lib:1.0).
 Searched in the following locations:
     ${module.artifactFile(classifier: 'classifier1').toURL()}""")
     }
@@ -142,7 +266,10 @@ subprojects {
     configurations {
         compile
     }
-    task listDeps { doLast { configurations.compile.each { } } }
+    task listDeps {
+        def files = configurations.compile
+        doLast { files.each { } }
+    }
 }
 project(':a') {
     repositories {
@@ -162,9 +289,9 @@ project(':b') {
 }
 """
 
-        inTestDirectory().withTasks('a:listDeps').run()
-        def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
-        result.assertThatCause(containsString('Could not find org.gradle.test:external1:1.0.'))
+        succeeds('a:listDeps')
+        fails('b:listDeps')
+        failure.assertThatCause(containsString('Could not find org.gradle.test:external1:1.0.'))
     }
 
     void artifactFilesPreserveFixedOrder() {
@@ -190,13 +317,14 @@ project(':b') {
                 compile "org:middle2:1.0", "org:middle1:1.0"
             }
             task test {
+                def files = configurations.compile
                 doLast {
-                    assert configurations.compile.files.collect { it.name } == ['middle2-1.0.jar', 'middle1-1.0.jar', 'leaf3-1.0.jar', 'leaf4-1.0.jar', 'leaf1-1.0.jar', 'leaf2-1.0.jar']
+                    assert files.collect { it.name } == ['middle2-1.0.jar', 'middle1-1.0.jar', 'leaf3-1.0.jar', 'leaf4-1.0.jar', 'leaf1-1.0.jar', 'leaf2-1.0.jar']
                 }
             }
         """
 
-        executer.withTasks("test").run()
+        succeeds("test")
     }
 
     void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
@@ -220,10 +348,19 @@ dependencies {
     compile "org.gradle.test:lib:1.0@zip"
     compile "org.gradle.test:dist:1.0"
 }
-task test {
-    doLast {
-        assert configurations.compile.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
-        def artifacts = configurations.compile.resolvedConfiguration.resolvedArtifacts as List
+
+abstract class CheckArtifacts extends DefaultTask {
+    @Internal
+    FileCollection files
+
+    @Internal
+    ArtifactCollection artifacts
+
+    @TaskAction
+    void test() {
+        assert this.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
+        def artifacts = this.artifacts.artifacts.collect { it.id.name }
+
         assert artifacts.size() == 4
         assert artifacts[0].name == 'lib'
         assert artifacts[0].type == 'jar'
@@ -243,20 +380,28 @@ task test {
         assert artifacts[3].classifier == null
     }
 }
+
+tasks.register("test", CheckArtifacts) {
+    files = configurations.compile.incoming.files
+    artifacts = configurations.compile.incoming.artifacts
+}
 """
 
-        inTestDirectory().withTasks('test').run()
+        succeeds('test')
     }
 
     @Issue("GRADLE-1567")
     void resolutionDifferentiatesBetweenArtifactsThatDifferOnlyInClassifier() {
         expect:
-        def module = repo.module('org.gradle.test', 'external1', '1.0')
-        module.artifact(classifier: 'classifier1')
-        module.artifact(classifier: 'classifier2')
-        module.publish()
+        def lib = repo.module('org.gradle.test', 'external1', '1.0')
+        lib.artifact(classifier: 'classifier1')
+        lib.artifact(classifier: 'classifier2')
+        lib.publish()
 
-        file('settings.gradle') << 'include "a", "b", "c"'
+        file('settings.gradle') << """
+            rootProject.name = "test"
+            include "a", "b", "c"
+        """
         file('build.gradle') << """
 subprojects {
     repositories {
@@ -289,9 +434,31 @@ project(':b') {
     }
 }
 """
+        resolve.prepare("compile")
 
-        inTestDirectory().withTasks('a:test').run()
-        inTestDirectory().withTasks('b:test').run()
+        when:
+        succeeds("a:checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":a", "test:a:") {
+                module("org.gradle.test:external1:1.0") {
+                    artifact(classifier: "classifier1")
+                }
+            }
+        }
+
+        when:
+        succeeds("b:checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                module("org.gradle.test:external1:1.0") {
+                    artifact(classifier: "classifier2")
+                }
+            }
+        }
     }
 
     @Issue("GRADLE-739")
@@ -330,23 +497,26 @@ dependencies {
     rawExtended 'org.gradle.test:external1:1.0:extendedClassifier'
 }
 
-def checkDeps(config, expectedDependencies) {
-    assert config.collect({ it.name }) as Set == expectedDependencies as Set
-}
-
 task test {
+    def base = configurations.base
+    def extendedWithOther = configurations.extendedWithOther
+    def extendedWithClassifier = configurations.extendedWithClassifier
+    def justDefault = configurations.justDefault
+    def justClassifier = configurations.justClassifier
+    def rawBase = configurations.rawBase
+    def rawExtended = configurations.rawExtended
     doLast {
-        checkDeps configurations.base, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar']
-        checkDeps configurations.extendedWithOther, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar', 'other-1.0.jar']
-        checkDeps configurations.extendedWithClassifier, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
-        checkDeps configurations.justDefault, ['external1-1.0.jar']
-        checkDeps configurations.justClassifier, ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
-        checkDeps configurations.rawBase, ['external1-1.0.jar']
-        checkDeps configurations.rawExtended, ['external1-1.0.jar', 'external1-1.0-extendedClassifier.jar']
+        assert base*.name == ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar']
+        assert extendedWithOther*.name == ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar', 'other-1.0.jar']
+        assert extendedWithClassifier*.name == ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+        assert justDefault*.name == ['external1-1.0.jar']
+        assert justClassifier*.name == ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+        assert rawBase*.name == ['external1-1.0.jar']
+        assert rawExtended*.name == ['external1-1.0.jar', 'external1-1.0-extendedClassifier.jar']
     }
 }
 """
-        inTestDirectory().withTasks('test').run()
+        succeeds('test')
     }
 
     @Issue("GRADLE-739")
@@ -378,20 +548,20 @@ dependencies {
     extendedWithType 'org.gradle.test:external1:1.0@txt'
 }
 
-def checkDeps(config, expectedDependencies) {
-    assert config.collect({ it.name }) as Set == expectedDependencies as Set
-}
-
 task test {
+    def base = configurations.base
+    def extended = configurations.extended
+    def extendedWithClassifier = configurations.extendedWithClassifier
+    def extendedWithType = configurations.extendedWithType
     doLast {
-        checkDeps configurations.base, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar']
-        checkDeps configurations.extended, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'other-1.0.jar']
-        checkDeps configurations.extendedWithClassifier, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
-        checkDeps configurations.extendedWithType, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'external1-1.0.txt']
+        assert base*.name == ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar']
+        assert extended*.name == ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'other-1.0.jar']
+        assert extendedWithClassifier*.name == ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+        assert extendedWithType*.name == ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'external1-1.0.txt']
     }
 }
 """
-        inTestDirectory().withTasks('test').run()
+        succeeds('test')
     }
 
     @Issue("GRADLE-739")
@@ -419,30 +589,30 @@ dependencies {
     extended2 'org.gradle.test:external1:1.0:classifier@bin'
 }
 
-def checkDeps(config, expectedDependencies) {
-    assert config.collect({ it.name }) as Set == expectedDependencies as Set
-}
-
 task test {
+    def base = configurations.base
+    def extended = configurations.extended
+    def extended2 = configurations.extended2
     doLast {
-        checkDeps configurations.base, ['external1-1.0.jar', 'external1-1.0.zip']
-        checkDeps configurations.extended, ['external1-1.0.jar', 'external1-1.0.zip', 'external1-1.0-classifier.jar']
-        checkDeps configurations.extended2, ['external1-1.0.jar', 'external1-1.0.zip', 'external1-1.0-classifier.bin']
+        assert base*.name == ['external1-1.0.jar', 'external1-1.0.zip']
+        assert extended*.name == ['external1-1.0.jar', 'external1-1.0.zip', 'external1-1.0-classifier.jar']
+        assert extended2*.name == ['external1-1.0.jar', 'external1-1.0.zip', 'external1-1.0-classifier.bin']
     }
 }
 """
-        inTestDirectory().withTasks('test').run()
+        succeeds('test')
     }
 
     void nonTransitiveDependenciesAreNotRetrieved() {
         expect:
         repo.module('org.gradle.test', 'one', '1.0').publish()
         repo.module('org.gradle.test', 'two', '1.0').publish()
-        def module = repo.module('org.gradle.test', 'external1', '1.0')
-        module.dependsOn('org.gradle.test', 'one', '1.0')
-        module.artifact(classifier: 'classifier')
-        module.publish()
+        def lib = repo.module('org.gradle.test', 'external1', '1.0')
+        lib.dependsOn('org.gradle.test', 'one', '1.0')
+        lib.artifact(classifier: 'classifier')
+        lib.publish()
 
+        file('settings.gradle') << "rootProject.name = 'test'"
         file('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
@@ -461,22 +631,72 @@ dependencies {
     mergedNonTransitive 'org.gradle.test:external1:1.0', {transitive = false }
     mergedNonTransitive 'org.gradle.test:external1:1.0:classifier', { transitive = false }
 }
-
-def checkDeps(config, expectedDependencies) {
-    assert config.collect({ it.name }) as Set == expectedDependencies as Set
-}
-
-task test {
-    doLast {
-        checkDeps configurations.transitive, ['external1-1.0.jar', 'one-1.0.jar']
-        checkDeps configurations.nonTransitive, ['external1-1.0.jar']
-        checkDeps configurations.extendedNonTransitive, ['external1-1.0.jar', 'two-1.0.jar']
-        checkDeps configurations.extendedBoth, ['external1-1.0.jar', 'one-1.0.jar']
-        checkDeps configurations.mergedNonTransitive, ['external1-1.0.jar', 'external1-1.0-classifier.jar']
-    }
-}
 """
-        inTestDirectory().withTasks('test').run()
+        resolve.prepare {
+            config("transitive")
+            config("nonTransitive")
+            config("extendedNonTransitive")
+            config("extendedBoth")
+            config("mergedNonTransitive")
+        }
+
+        when:
+        succeeds("checkTransitive")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle.test:external1:1.0") {
+                    module("org.gradle.test:one:1.0")
+                }
+            }
+        }
+
+        when:
+        succeeds("checkNonTransitive")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle.test:external1:1.0")
+            }
+        }
+
+        when:
+        succeeds("checkExtendedNonTransitive")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle.test:external1:1.0")
+                module("org.gradle.test:two:1.0")
+            }
+        }
+
+        when:
+        succeeds("checkExtendedBoth")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle.test:external1:1.0") {
+                    module("org.gradle.test:one:1.0")
+                }
+            }
+        }
+
+        when:
+        succeeds("checkMergedNonTransitive")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle.test:external1:1.0") {
+                    artifact()
+                    artifact(classifier: "classifier")
+                }
+            }
+        }
     }
 
     void "configuration transitive = false overrides dependency transitive flag"() {
@@ -498,13 +718,14 @@ dependencies {
 }
 
 task test {
+    def files = configurations.override
     doLast {
-        assert configurations.override.collect { it.name } == ['external1-1.0.jar']
+        assert files.collect { it.name } == ['external1-1.0.jar']
     }
 }
 """
 
-        inTestDirectory().withTasks('test').run()
+        succeeds('test')
     }
 
     /*
@@ -535,40 +756,44 @@ def checkDeps(config, expectedDependencies) {
 }
 
 task test {
+    def a = configurations.a
+    def b = configurations.b
     doLast {
-        checkDeps configurations.a, ['external1-1.0.jar']
-        checkDeps configurations.b, ['external1-1.0-withClassifier.jar', 'external1-1.0.jar']
+        assert a*.name == ['external1-1.0.jar']
+        assert b*.name == ['external1-1.0.jar', 'external1-1.0-withClassifier.jar']
     }
 }
 """
-        inTestDirectory().withTasks('test').run()
+        succeeds('test')
     }
 
     void projectCanDependOnItself() {
-        expect:
-        TestFile buildFile = file("build.gradle")
-        buildFile << '''
+        given:
+        file("settings.gradle") << "rootProject.name = 'test'"
+        file("build.gradle") << '''
+            group = 'org.test'
+            version = '1.2'
             configurations { compile; create('default') }
             dependencies { compile project(':') }
             task jar1(type: Jar) { destinationDirectory = buildDir; archiveBaseName = '1' }
             task jar2(type: Jar) { destinationDirectory = buildDir; archiveBaseName = '2' }
             artifacts { compile jar1; 'default' jar2 }
-            task listJars {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['2.jar']
-                }
-            }
 '''
+        resolve.prepare("compile")
 
-        inTestDirectory().withTasks("listJars").run()
+        when:
+        succeeds("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.2") {
+                project(":", "org.test:test:1.2")
+                artifact(name: '2', fileName: '2.jar')
+            }
+        }
     }
 
     def getRepo() {
         return maven(file('repo'))
     }
-
-    private GradleExecuter inTestDirectory() {
-        return inDirectory(testDirectory)
-    }
 }
-

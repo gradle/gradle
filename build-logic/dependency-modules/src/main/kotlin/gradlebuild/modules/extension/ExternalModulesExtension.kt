@@ -18,11 +18,11 @@ package gradlebuild.modules.extension
 import gradlebuild.modules.model.License
 
 
-abstract class ExternalModulesExtension {
+abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
-    val groovyVersion = "3.0.13"
+    val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.17"
     val configurationCacheReportVersion = "1.2"
-    val kotlinVersion = "1.7.22"
+    val kotlinVersion = "1.9.0"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -61,21 +61,23 @@ abstract class ExternalModulesExtension {
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val gradleEnterpriseTestAnnotation = "com.gradle:gradle-enterprise-testing-annotations"
-    val groovy = "org.codehaus.groovy:groovy"
-    val groovyAnt = "org.codehaus.groovy:groovy-ant"
-    val groovyAstbuilder = "org.codehaus.groovy:groovy-astbuilder"
-    val groovyConsole = "org.codehaus.groovy:groovy-console"
-    val groovyDateUtil = "org.codehaus.groovy:groovy-dateutil"
-    val groovyDatetime = "org.codehaus.groovy:groovy-datetime"
-    val groovyDoc = "org.codehaus.groovy:groovy-groovydoc"
-    val groovyJson = "org.codehaus.groovy:groovy-json"
-    val groovyNio = "org.codehaus.groovy:groovy-nio"
-    val groovySql = "org.codehaus.groovy:groovy-sql"
-    val groovyTemplates = "org.codehaus.groovy:groovy-templates"
-    val groovyTest = "org.codehaus.groovy:groovy-test"
-    val groovyXml = "org.codehaus.groovy:groovy-xml"
+    val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
+    val groovy = "$groovyGroup:groovy"
+    val groovyAnt = "$groovyGroup:groovy-ant"
+    val groovyAstbuilder = "$groovyGroup:groovy-astbuilder"
+    val groovyConsole = "$groovyGroup:groovy-console"
+    val groovyDateUtil = "$groovyGroup:groovy-dateutil"
+    val groovyDatetime = "$groovyGroup:groovy-datetime"
+    val groovyDoc = "$groovyGroup:groovy-groovydoc"
+    val groovyJson = "$groovyGroup:groovy-json"
+    val groovyNio = "$groovyGroup:groovy-nio"
+    val groovySql = "$groovyGroup:groovy-sql"
+    val groovyTemplates = "$groovyGroup:groovy-templates"
+    val groovyTest = "$groovyGroup:groovy-test"
+    val groovyXml = "$groovyGroup:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
+    val h2Database = "com.h2database:h2"
     val hamcrest = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
@@ -87,6 +89,7 @@ abstract class ExternalModulesExtension {
     val jakartaXmlBind = "jakarta.xml.bind:jakarta.xml.bind-api"
     val jansi = "org.fusesource.jansi:jansi"
     val jatl = "com.googlecode.jatl:jatl"
+    val javaPoet = "com.squareup:javapoet"
     val jaxbCore = "com.sun.xml.bind:jaxb-core"
     val jaxbImpl = "com.sun.xml.bind:jaxb-impl"
     val jcifs = "jcifs:jcifs"
@@ -143,6 +146,7 @@ abstract class ExternalModulesExtension {
     val bytebuddy = "net.bytebuddy:byte-buddy"
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
+    val compileTesting = "com.google.testing.compile:compile-testing"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
     val hikariCP = "com.zaxxer:HikariCP"
     val guice = "com.google.inject:guice"
@@ -202,6 +206,7 @@ abstract class ExternalModulesExtension {
         commonsLang to License.Apache2,
         commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
+        compileTesting to License.Apache2,
         configurationCacheReport to License.Apache2,
         fastutil to License.Apache2,
         gcs to License.Apache2,
@@ -214,6 +219,7 @@ abstract class ExternalModulesExtension {
         groovy to License.Apache2,
         gson to License.Apache2,
         guava to License.Apache2,
+        h2Database to License.EPL,
         hamcrest to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,
@@ -226,6 +232,7 @@ abstract class ExternalModulesExtension {
         jakartaXmlBind to License.EDL,
         jansi to License.Apache2,
         jatl to License.Apache2,
+        javaPoet to License.Apache2,
         jaxbCore to License.EDL,
         jaxbImpl to License.EDL,
         jcifs to License.LGPL21,

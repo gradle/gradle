@@ -23,35 +23,23 @@ import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
-import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
-import org.gradle.api.publish.ivy.internal.publication.DefaultIvyModuleDescriptorAuthor
-import org.gradle.api.publish.ivy.internal.publication.DefaultIvyModuleDescriptorDescription
-import org.gradle.api.publish.ivy.internal.publication.DefaultIvyModuleDescriptorLicense
-import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyModuleDescriptorSpec
+import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal
+import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-import javax.xml.namespace.QName
-
-import static org.gradle.util.TestUtil.objectFactory
-
 class IvyDescriptorFileGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
-
-    VersionMappingStrategyInternal versionMappingStrategy = Mock() {
-        findStrategyForVariant(_) >> Mock(VariantVersionMappingStrategyInternal)
-    }
-
-    def projectIdentity = new DefaultIvyPublicationIdentity("my-org", "my-name", "my-version")
-    IvyDescriptorFileGenerator generator = new IvyDescriptorFileGenerator(projectIdentity, false, versionMappingStrategy)
+    def descriptor = newDescriptor()
 
     def "writes correct prologue and schema declarations"() {
         expect:
@@ -63,7 +51,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes Gradle metadata marker"() {
         given:
-        generator = new IvyDescriptorFileGenerator(projectIdentity, markerPresent, versionMappingStrategy)
+        descriptor.getWriteGradleMetadataMarker().set(markerPresent)
 
         expect:
         ivyFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER) == markerPresent
@@ -91,9 +79,9 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "encodes coordinates for XML and unicode"() {
         when:
-        def projectIdentity = new DefaultIvyPublicationIdentity('org-ぴ₦ガき∆ç√∫', 'module-<tag attrib="value"/>-markup', 'version-&"')
-        generator = new IvyDescriptorFileGenerator(projectIdentity, false, null)
-
+        descriptor.coordinates.organisation.set('org-ぴ₦ガき∆ç√∫')
+        descriptor.coordinates.module.set('module-<tag attrib="value"/>-markup')
+        descriptor.coordinates.revision.set('version-&"')
 
         then:
         with (ivyXml) {
@@ -105,7 +93,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes supplied status"() {
         when:
-        generator.setStatus("my-status")
+        descriptor.status = "my-status"
 
         then:
         ivyXml.info.@status == "my-status"
@@ -113,24 +101,21 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes supplied branch"() {
         when:
-        generator.setBranch("someBranch")
+        descriptor.branch = "someBranch"
 
         then:
         ivyXml.info.@branch == "someBranch"
     }
 
     def "writes supplied licenses" () {
-        given:
-        def objectFactory = objectFactory()
-        def license1 = new DefaultIvyModuleDescriptorLicense(objectFactory)
-        license1.name.set("EPL v2.0")
-        def license2 = new DefaultIvyModuleDescriptorLicense(objectFactory)
-        license2.name.set("Apache v2.0")
-        license2.url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-
         when:
-        generator.addLicense(license1)
-        generator.addLicense(license2)
+        descriptor.license {
+            name = "EPL v2.0"
+        }
+        descriptor.license {
+            name = "Apache v2.0"
+            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
 
         then:
         with (ivyXml.info) {
@@ -143,17 +128,14 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     }
 
     def "writes supplied authors" () {
-        given:
-        def objectFactory = objectFactory()
-        def author1 = new DefaultIvyModuleDescriptorAuthor(objectFactory)
-        author1.name.set("Alice")
-        def author2 = new DefaultIvyModuleDescriptorAuthor(objectFactory)
-        author2.name.set("Bob")
-        author2.url.set("http://example.com/bob/")
-
         when:
-        generator.addAuthor(author1)
-        generator.addAuthor(author2)
+        descriptor.author {
+            name = "Alice"
+        }
+        descriptor.author {
+            name = "Bob"
+            url = "http://example.com/bob/"
+        }
 
         then:
         with (ivyXml.info) {
@@ -166,13 +148,11 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     }
 
     def "writes supplied description" () {
-        given:
-        def description = new DefaultIvyModuleDescriptorDescription(objectFactory())
-        description.text.set("Some lengthy description.")
-        description.homepage.set("http://example.com")
-
         when:
-        generator.description = description
+        descriptor.description {
+            text = "Some lengthy description."
+            homepage = "http://example.com"
+        }
 
         then:
         with (ivyXml) {
@@ -182,12 +162,10 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     }
 
     def "writes supplied description without text" () {
-        given:
-        def description = new DefaultIvyModuleDescriptorDescription(objectFactory())
-        description.homepage.set("http://example.com")
-
         when:
-        generator.description = description
+        descriptor.description {
+            homepage = "http://example.com"
+        }
 
         then:
         with (ivyXml) {
@@ -198,14 +176,15 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes supplied extra info elements" () {
         when:
-        generator.setExtraInfo([(ns('foo')): 'fooValue', (ns('bar')): 'barValue'])
+        descriptor.extraInfo("http://namespace/foo", "foo", "fooValue")
+        descriptor.extraInfo("http://namespace/bar", "bar", "barValue")
 
         then:
         ivyXml.info."foo".size() == 1
-        ivyXml.info."foo"[0].namespaceURI() == ns('foo').namespaceURI
+        ivyXml.info."foo"[0].namespaceURI() == "http://namespace/foo"
         ivyXml.info."foo"[0].text() == 'fooValue'
         ivyXml.info."bar".size() == 1
-        ivyXml.info."bar"[0].namespaceURI() == ns('bar').namespaceURI
+        ivyXml.info."bar"[0].namespaceURI() == "http://namespace/bar"
         ivyXml.info."bar"[0].text() == 'barValue'
     }
 
@@ -215,8 +194,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         def config2 = new DefaultIvyConfiguration("config2")
         config1.extend("foo")
         config1.extend("bar")
-        generator.addConfiguration(config1)
-        generator.addConfiguration(config2)
+        descriptor.configurations.set([config1, config2])
 
         then:
         with (ivyXml) {
@@ -234,12 +212,20 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes supplied publication artifacts"() {
         when:
-        def artifact1 = new FileBasedIvyArtifact(new File("foo.txt"), new DefaultIvyPublicationIdentity("org", "module", "rev"), DefaultTaskDependencyFactory.withNoAssociatedProject())
+        def coordinates1 = TestUtil.objectFactory().newInstance(IvyPublicationCoordinates)
+        coordinates1.organisation.set("org")
+        coordinates1.module.set("module")
+        coordinates1.revision.set("rev")
+        def artifact1 = new FileBasedIvyArtifact(new File("foo.txt"), coordinates1, DefaultTaskDependencyFactory.withNoAssociatedProject())
         artifact1.classifier = "classy"
-        def artifact2 = new FileBasedIvyArtifact(new File("foo"), new DefaultIvyPublicationIdentity("", "", ""), DefaultTaskDependencyFactory.withNoAssociatedProject())
+
+        def coordinates2 = TestUtil.objectFactory().newInstance(IvyPublicationCoordinates)
+        coordinates2.organisation.set("")
+        coordinates2.module.set("")
+        coordinates2.revision.set("")
+        def artifact2 = new FileBasedIvyArtifact(new File("foo"), coordinates2, DefaultTaskDependencyFactory.withNoAssociatedProject())
         artifact2.setConf("runtime")
-        generator.addArtifact(artifact1)
-        generator.addArtifact(artifact2)
+        descriptor.getArtifacts().set([artifact1, artifact2])
 
         then:
         includesMavenNamespace()
@@ -265,8 +251,9 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes supplied dependencies"() {
         when:
-        generator.addDependency(new DefaultIvyDependency('dep-group', 'dep-name-1', 'dep-version', "confMappingProject", true))
-        generator.addDependency(new DefaultIvyDependency('dep-group', 'dep-name-2', 'dep-version', null, true))
+        def dependency1 = new DefaultIvyDependency('dep-group', 'dep-name-1', 'dep-version', "confMappingProject", true, null, [] as Set, [] as Set)
+        def dependency2 = new DefaultIvyDependency('dep-group', 'dep-name-2', 'dep-version', "confMappingProject2", true, null, [] as Set, [] as Set)
+        descriptor.dependencies.set([dependency1, dependency2])
 
         then:
         with (ivyXml) {
@@ -281,7 +268,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                 it.@org == "dep-group"
                 it.@name == "dep-name-2"
                 it.@rev == "dep-version"
-                it.@conf.isEmpty()
+                it.@conf == "confMappingProject2"
             }
         }
     }
@@ -300,7 +287,8 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         artifact2.classifier >> "classy"
 
         and:
-        generator.addDependency(new DefaultIvyDependency('dep-group', 'dep-name', 'dep-version', "confMapping", true, [artifact1, artifact2]))
+        def dependency = new DefaultIvyDependency('dep-group', 'dep-name', 'dep-version', "confMapping", true, null, [artifact1, artifact2] as Set, [] as Set)
+        descriptor.dependencies.set([dependency])
 
         then:
         includesMavenNamespace()
@@ -342,10 +330,10 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         def exclude3 = Mock(ExcludeRule) {
             getModule() >> 'excludeModule3'
         }
-
+        def dependency = new DefaultIvyDependency('dep-group', 'dep-name-1', 'dep-version', "confMappingProject", true, null, [] as Set, [exclude1, exclude2, exclude3] as Set)
 
         when:
-        generator.addDependency(new DefaultIvyDependency('dep-group', 'dep-name-1', 'dep-version', "confMappingProject", true, [], [exclude1, exclude2, exclude3]))
+        descriptor.dependencies.set([dependency])
 
         then:
         with (ivyXml) {
@@ -369,12 +357,12 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "applies withXml actions"() {
         when:
-        generator.withXml(new Action<XmlProvider>() {
+        descriptor.withXml(new Action<XmlProvider>() {
             void execute(XmlProvider t) {
                 t.asNode().info[0].@revision = "3"
             }
         })
-        generator.withXml(new Action<XmlProvider>() {
+        descriptor.withXml(new Action<XmlProvider>() {
             void execute(XmlProvider t) {
                 t.asNode().info[0].appendNode("description", "custom-description-ぴ₦ガき∆ç√∫")
             }
@@ -395,17 +383,27 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 """))
     }
 
+    private IvyModuleDescriptorSpecInternal newDescriptor() {
+        IvyPublicationCoordinates publicationCoordinates = TestUtil.objectFactory().newInstance(IvyPublicationCoordinates)
+        publicationCoordinates.organisation.set("my-org")
+        publicationCoordinates.module.set("my-name")
+        publicationCoordinates.revision.set("my-version")
+
+        IvyModuleDescriptorSpecInternal descriptor = TestUtil.objectFactory()
+            .newInstance(DefaultIvyModuleDescriptorSpec, TestUtil.objectFactory(), publicationCoordinates)
+
+        descriptor.getWriteGradleMetadataMarker().set(true)
+
+        return descriptor
+    }
+
     private def getIvyXml() {
         return new XmlSlurper().parse(ivyFile);
     }
 
     private TestFile getIvyFile() {
         def ivyFile = testDirectoryProvider.testDirectory.file("ivy.xml")
-        generator.writeTo(ivyFile)
+        IvyDescriptorFileGenerator.generateSpec(descriptor).writeTo(ivyFile)
         return ivyFile
-    }
-
-    private QName ns(String name) {
-        return new QName("http://my.extra.info/${name}", name)
     }
 }

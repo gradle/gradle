@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))
+    implementation(project(":functional"))
     implementation(project(":base-services-groovy")) // for 'Specs'
     implementation(project(":file-collections"))
     implementation(project(":resources"))
@@ -32,7 +33,6 @@ dependencies {
     testImplementation(testFixtures(project(":platform-base")))
     testImplementation(testFixtures(project(":dependency-management")))
 
-    integTestImplementation(project(":ear"))
     integTestImplementation(libs.slf4jApi)
 
     integTestRuntimeOnly(project(":resources-s3"))
@@ -57,7 +57,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

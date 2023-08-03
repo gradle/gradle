@@ -88,13 +88,14 @@ You need to register the new attribute in the schema, add it to all JAR artifact
 
 .Artifact transform attribute setup
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-attribute-setup]"]
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-attribute-setup]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-attribute-setup]"]
 ====
 <1> Add the attribute to the schema
 <2> All JAR files are not minified
 <3> Request `minified=true` on all resolvable configurations
 <4> Add the dependencies which will be transformed
+<5> Add task that requires the transformed artifacts
 
 You can now see what happens when we run the `resolveRuntimeClasspath` task which resolves the `runtimeClasspath` configuration.
 Observe that Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.
@@ -142,8 +143,8 @@ It requests a directory for the unzipped classes by using `TransformOutputs.dir(
 
 .Artifact transform without parameters
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-unzip]"]
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-unzip]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-unzip]"]
 ====
 <1> Use `TransformParameters.None` if the transform does not use parameters
 <2> Inject the input artifact
@@ -155,7 +156,7 @@ In order to pass those parameters to the transform action, you need to define a 
 The type needs to implement the marker interface link:{javadocPath}/org/gradle/api/artifacts/transform/TransformParameters.html[TransformParameters].
 The parameters must be represented using <<custom_gradle_types.adoc#managed_properties,managed properties>> and the parameters type must be a <<custom_gradle_types.adoc#managed_types,managed type>>.
 You can use an interface or abstract class declaring the getters and Gradle will generate the implementation.
-All getters need to have proper input annotations, see the table in the section on <<more_about_tasks.adoc#table:incremental_build_annotations,incremental build>>.
+All getters need to have proper input annotations, see <<incremental_build.adoc#table:incremental_build_annotations,incremental build annotations>> table.
 
 You can find out more about implementing artifact transform parameters in <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>>.
 
@@ -166,8 +167,8 @@ The implementation of the `transform()` method requests a location for the minif
 
 .Minify transform implementation
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-minify]"]
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-minify]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-minify]"]
 ====
 <1> Declare the parameter type
 <2> Interface for the transform parameters
@@ -190,8 +191,8 @@ It also does not relocate packages contained in JAR files in an external classpa
 
 .Artifact transform for class relocation
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/groovy",files="build.gradle[tags=artifact-transform-relocate]"]
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/kotlin",files="build.gradle.kts[tags=artifact-transform-relocate]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/groovy",files="build.gradle[tags=artifact-transform-relocate]"]
 ====
 <1> Declare the transform cacheable
 <2> Interface for the transform parameters
@@ -218,8 +219,8 @@ You can do so by registering an artifact transform action of type `Unzip`, as sh
 
 .Artifact transform registration without parameters
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
 Another example is that you want to minify JARs by only keeping some `class` files from them.
@@ -227,8 +228,8 @@ Note the use of the `parameters {}` block to provide the classes to keep in the 
 
 .Artifact transform registration with parameters
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
 == Implementing incremental artifact transforms
@@ -243,8 +244,8 @@ Here is an example of an incremental transform that counts the lines of code in 
 
 .Artifact transform for lines of code counting
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-incremental/groovy",files="build.gradle[tags=artifact-transform-countloc]"]
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-incremental/kotlin",files="build.gradle.kts[tags=artifact-transform-countloc]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-incremental/groovy",files="build.gradle[tags=artifact-transform-countloc]"]
 ====
 <1> Inject `InputChanges`
 <2> Query for changes in the input artifact

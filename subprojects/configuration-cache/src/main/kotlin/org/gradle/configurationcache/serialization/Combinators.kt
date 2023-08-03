@@ -22,6 +22,7 @@ import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -276,6 +277,20 @@ suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T
 
 internal
 fun Encoder.writeClassPath(classPath: ClassPath) {
+    // Ensure that the proper type is going to be restored,
+    // because it is important for the equality checks.
+    if (classPath is TransformedClassPath) {
+        writeBoolean(true)
+        writeTransformedClassPath(classPath)
+    } else {
+        writeBoolean(false)
+        writeDefaultClassPath(classPath)
+    }
+}
+
+
+internal
+fun Encoder.writeDefaultClassPath(classPath: ClassPath) {
     writeCollection(classPath.asFiles) {
         writeFile(it)
     }
@@ -283,7 +298,27 @@ fun Encoder.writeClassPath(classPath: ClassPath) {
 
 
 internal
+fun Encoder.writeTransformedClassPath(classPath: TransformedClassPath) {
+    writeCollection(classPath.asFiles.zip(classPath.asTransformedFiles)) {
+        writeFile(it.first)
+        writeFile(it.second)
+    }
+}
+
+
+internal
 fun Decoder.readClassPath(): ClassPath {
+    val isTransformed = readBoolean()
+    return if (isTransformed) {
+        readTransformedClassPath()
+    } else {
+        readDefaultClassPath()
+    }
+}
+
+
+internal
+fun Decoder.readDefaultClassPath(): ClassPath {
     val size = readSmallInt()
     val builder = DefaultClassPath.builderWithExactSize(size)
     for (i in 0 until size) {
@@ -294,7 +329,18 @@ fun Decoder.readClassPath(): ClassPath {
 
 
 internal
-fun Encoder.writeFile(file: File?) {
+fun Decoder.readTransformedClassPath(): ClassPath {
+    val size = readSmallInt()
+    val builder = TransformedClassPath.builderWithExactSize(size)
+    for (i in 0 until size) {
+        builder.add(readFile(), readFile())
+    }
+    return builder.build()
+}
+
+
+internal
+fun Encoder.writeFile(file: File) {
     BaseSerializerFactory.FILE_SERIALIZER.write(this, file)
 }
 

@@ -86,7 +86,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
                 }, EnumSet.of(OperationType.TASK)).addProgressListener({ ProgressEvent event ->
                     resultsOfLastListener << (event as TaskProgressEvent)
                 }, EnumSet.of(OperationType.TASK))
-                collectOutputs(build)
                 build.run()
         }
 

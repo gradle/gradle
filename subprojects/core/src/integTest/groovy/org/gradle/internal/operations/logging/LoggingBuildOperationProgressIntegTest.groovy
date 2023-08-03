@@ -227,7 +227,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
     def "captures output from buildSrc"() {
         given:
         configureNestedBuild('buildSrc')
-        file('buildSrc/build.gradle') << "build.dependsOn 'foo'"
+        file('buildSrc/build.gradle') << "jar.dependsOn 'foo'"
         file("build.gradle") << ""
 
         when:

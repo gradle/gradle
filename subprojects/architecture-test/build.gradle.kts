@@ -1,5 +1,7 @@
+import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.PublicKotlinDslApi
 import gradlebuild.basics.flakyTestStrategy
 
 plugins {
@@ -17,6 +19,7 @@ dependencies {
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
     testImplementation(project(":core"))
+    testImplementation(libs.futureKotlin("stdlib"))
     testImplementation(libs.inject)
 
     testImplementation(libs.archunitJunit5)
@@ -32,24 +35,24 @@ val acceptedApiChangesFile = layout.projectDirectory.file("src/changes/accepted-
 val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
     group = "verification"
     description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
-    apiChangesFile.set(acceptedApiChangesFile)
+    apiChangesFile = acceptedApiChangesFile
 }
 
 val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.SortAcceptedApiChangesTask>("sortAcceptedApiChanges") {
     group = "verification"
     description = "Sort the accepted api changes file alphabetically"
-    apiChangesFile.set(acceptedApiChangesFile)
+    apiChangesFile = acceptedApiChangesFile
 }
 
 tasks.test {
     // Looks like loading all the classes requires more than the default 512M
-    maxHeapSize = "900M"
+    maxHeapSize = "1g"
 
     // Only use one fork, so freezing doesn't have concurrency issues
     maxParallelForks = 1
 
-    systemProperty("org.gradle.public.api.includes", PublicApi.includes.joinToString(":"))
-    systemProperty("org.gradle.public.api.excludes", PublicApi.excludes.joinToString(":"))
+    systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
+    systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
     jvmArgumentProviders.add(ArchUnitFreezeConfiguration(
         project.file("src/changes/archunit_store"),
         providers.gradleProperty("archunitRefreeze").map { true })
@@ -58,9 +61,9 @@ tasks.test {
     dependsOn(verifyAcceptedApiChangesOrdering)
     enabled = flakyTestStrategy !=  FlakyTestStrategy.ONLY
 
-    predictiveSelection {
+    extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
         // PTS doesn't work well with architecture tests which scan all classes
-        enabled.set(false)
+        enabled = false
     }
 }
 

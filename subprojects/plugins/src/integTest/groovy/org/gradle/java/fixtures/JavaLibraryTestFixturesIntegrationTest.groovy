@@ -16,7 +16,7 @@
 
 package org.gradle.java.fixtures
 
-class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaTestFixturesIntegrationTest {
+class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaProjectTestFixturesIntegrationTest {
     @Override
     String getPluginName() {
         'java-library'
@@ -34,7 +34,7 @@ class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaTestFixturesInt
         file("sub/build.gradle") << """
             apply plugin: 'java-test-fixtures'
             apply plugin: 'groovy'
-            
+
             dependencies {
                api(localGroovy())
                testFixturesApi(localGroovy())
@@ -43,7 +43,7 @@ class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaTestFixturesInt
         buildFile << """
             dependencies {
                 testImplementation(testFixtures(project(":sub")))
-            }           
+            }
         """
         addPersonDomainClass("sub", "groovy")
         addPersonTestFixture("sub", "groovy")

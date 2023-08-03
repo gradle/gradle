@@ -19,23 +19,23 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
+import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import java.util.List;
 import java.util.Set;
 
 class RootNode extends NodeState implements RootGraphNode {
     private final ResolveOptimizations resolveOptimizations;
-    private final List<? extends DependencyMetadata> generatedRootDependencies;
+    private final List<? extends DependencyMetadata> syntheticDependencies;
 
-    RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, VariantGraphResolveMetadata configuration) {
-        super(resultId, id, moduleRevision, resolveState, configuration, false);
+    RootNode(long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveState root) {
+        super(resultId, id, moduleRevision, resolveState, root, false);
         moduleRevision.setRoot();
         this.resolveOptimizations = resolveState.getResolveOptimizations();
-        this.generatedRootDependencies = resolveState.getGeneratedRootDependencies();
+        this.syntheticDependencies = syntheticDependencies;
     }
 
     @Override
@@ -58,8 +58,8 @@ class RootNode extends NodeState implements RootGraphNode {
     }
 
     @Override
-    public RootConfigurationMetadata getMetadata() {
-        return (RootConfigurationMetadata) super.getMetadata();
+    public LocalConfigurationGraphResolveMetadata getMetadata() {
+        return (LocalConfigurationGraphResolveMetadata) super.getMetadata();
     }
 
     @Override
@@ -70,13 +70,13 @@ class RootNode extends NodeState implements RootGraphNode {
     @Override
     protected List<? extends DependencyMetadata> getAllDependencies() {
         List<? extends DependencyMetadata> superDependencies = super.getAllDependencies();
-        if (generatedRootDependencies.isEmpty()) {
+        if (syntheticDependencies.isEmpty()) {
             return superDependencies;
         }
-        int expectedSize = superDependencies.size() + generatedRootDependencies.size();
+        int expectedSize = superDependencies.size() + syntheticDependencies.size();
         ImmutableList.Builder<DependencyMetadata> allDependencies = ImmutableList.builderWithExpectedSize(expectedSize);
         allDependencies.addAll(superDependencies);
-        allDependencies.addAll(generatedRootDependencies);
+        allDependencies.addAll(syntheticDependencies);
         return allDependencies.build();
     }
 }

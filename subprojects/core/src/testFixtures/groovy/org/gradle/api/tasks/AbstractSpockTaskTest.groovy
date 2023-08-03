@@ -26,9 +26,11 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
 import org.gradle.api.internal.project.taskfactory.TaskFactory
+import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.specs.Spec
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
 import org.gradle.internal.reflect.DirectInstantiator
@@ -41,6 +43,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "taskname"
 
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
+    def taskIdentityFactory = new TaskIdentityFactory(new ConfigurationCacheableIdFactory())
     def taskFactory = new AnnotationProcessingTaskFactory(DirectInstantiator.INSTANCE, taskClassInfoStore, new TaskFactory())
 
     abstract DefaultTask getTask()
@@ -54,7 +57,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def <T extends DefaultTask> T createTask(Class<T> type, ProjectInternal project, String name) {
-        Task task = new TaskInstantiator(taskFactory.createChild(project, TestUtil.instantiatorFactory().decoratingLenientScheme), project).create(name, type)
+        Task task = new TaskInstantiator(taskIdentityFactory, taskFactory.createChild(project, TestUtil.instantiatorFactory().decoratingLenientScheme), project).create(name, type)
         assert type.isAssignableFrom(task.getClass())
         return type.cast(task)
     }

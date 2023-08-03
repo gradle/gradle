@@ -19,8 +19,8 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
@@ -49,14 +49,14 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task state is not tracked.")
+        outputContains("Task is untracked because: For testing")
 
         when:
         run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task state is not tracked.")
+        outputContains("Task is untracked because: For testing")
     }
 
     def "fails when incremental task is marked as untracked"() {
@@ -103,7 +103,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task state is not tracked.")
+        outputContains("Task is untracked because: For testing")
     }
 
     def "untracked task is not cached"() {
@@ -176,7 +176,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         skipped(":mySubclassOfUntrackedTask")
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "untracked tasks can produce and consume unreadable content"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -201,7 +201,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         unreadableDir.setReadable(true)
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "tracked task producing unreadable content fails"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -224,14 +224,14 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer'. " +
             "Accessing unreadable inputs or outputs is not supported. " +
             "Declare the task as untracked by using Task.doNotTrackState(). " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            getDisableStateTrackingLink())
         failureHasCause("java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Requires(UnitTestPreconditions.UnixDerivative)
     def "tracked task producing named pipe fails"() {
         def rootDir = file("build/root")
         def namedPipe = rootDir.file("unreadable")
@@ -254,11 +254,11 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer'. " +
             "Accessing unreadable inputs or outputs is not supported. " +
             "Declare the task as untracked by using Task.doNotTrackState(). " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            getDisableStateTrackingLink())
         failureHasCause("java.io.IOException: Cannot snapshot ${namedPipe}: not a regular file")
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "tracked task consuming unreadable content fails"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -281,11 +281,15 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         failure.assertHasDocumentedCause("Cannot access input property 'inputDir' of task ':consumer'. " +
             "Accessing unreadable inputs or outputs is not supported. " +
             "Declare the task as untracked by using Task.doNotTrackState(). " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            getDisableStateTrackingLink())
         failureHasCause("java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)
+    }
+
+    def getDisableStateTrackingLink() {
+        documentationRegistry.getDocumentationRecommendationFor("information", "incremental_build", "disable-state-tracking")
     }
 
     def "does not clean up stale outputs for untracked tasks"() {

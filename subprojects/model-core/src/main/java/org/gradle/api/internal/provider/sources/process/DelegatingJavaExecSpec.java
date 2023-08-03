@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider.sources.process;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
@@ -244,6 +245,11 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     @Override
     default void setAllJvmArgs(Iterable<?> arguments) {
         getDelegate().setAllJvmArgs(arguments);
+    }
+
+    @Override
+    default ListProperty<String> getJvmArguments() {
+        return getDelegate().getJvmArguments();
     }
 
     @Override

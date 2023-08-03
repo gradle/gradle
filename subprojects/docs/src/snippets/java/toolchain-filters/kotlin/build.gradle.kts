@@ -10,8 +10,8 @@ if (testToolchain == "knownVendor") {
 // tag::toolchain-known-vendor[]
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.ADOPTIUM)
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.ADOPTIUM
     }
 }
 // end::toolchain-known-vendor[]
@@ -20,8 +20,8 @@ java {
 // tag::toolchain-matching-vendor[]
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.matching("customString"))
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.matching("customString")
     }
 }
 // end::toolchain-matching-vendor[]
@@ -30,9 +30,9 @@ java {
 // tag::toolchain-matching-implementation[]
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.IBM_SEMERU)
-        implementation.set(JvmImplementation.J9)
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.IBM
+        implementation = JvmImplementation.J9
     }
 }
 // end::toolchain-matching-implementation[]

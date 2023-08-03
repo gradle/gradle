@@ -20,6 +20,7 @@ import com.google.common.collect.Comparators
 import com.google.common.collect.ImmutableSortedMultiset
 import com.google.common.collect.Iterables
 import com.google.common.collect.Multiset
+import groovy.test.NotYetImplemented
 import groovy.transform.Canonical
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
@@ -180,7 +181,7 @@ allprojects {
                 configurations {
                     testImplementation {
                         extendsFrom implementation
-                        canBeResolved = true
+                        assert canBeResolved
                         canBeConsumed = false
                         attributes.attribute(color, 'blue')
                     }
@@ -368,7 +369,7 @@ project(':common') {
                 repositories {
                     maven { url = '${mavenHttpRepo.uri}' }
                 }
-                configurations.implementation.outgoing.variants {
+                configurations.outgoing.outgoing.variants {
                     additional {
                         attributes {
                             attribute(color, 'purple')
@@ -539,7 +540,7 @@ project(':common') {
                 implementation 'test:test3:1.5'
             }
 
-            def view = configurations.implementation.incoming.artifactView {
+            def view = configurations.resolver.incoming.artifactView {
                 attributes.attribute(color, 'green')
                 // NOTE: filter out the dependency to trigger the problem, so that the main thread, which holds the project lock, does not see and isolate the second transform while
                 // queuing the transforms for execution
@@ -676,7 +677,7 @@ project(':common') {
 
             allprojects {
                 configurations {
-                    implementation.outgoing.variants {
+                    outgoing.outgoing.variants {
                         one {
                             attributes.attribute(flavor, 'bland')
                             artifact(producer.output)
@@ -698,7 +699,7 @@ project(':common') {
                     }
                 }
 
-                def view = configurations.implementation.incoming.artifactView {
+                def view = configurations.resolver.incoming.artifactView {
                     attributes {
                         it.attribute(color, 'green')
                         it.attribute(flavor, 'tasty')
@@ -710,7 +711,7 @@ project(':common') {
                 }
 
                 task broken(type: ShowFilesTask) {
-                    inFiles.from(configurations.implementation)
+                    inFiles.from(configurations.resolver)
                 }
             }
 
@@ -1231,6 +1232,35 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
             singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
             singleStep('common.jar'),
             singleStep('lib.jar', 'common.jar', 'slf4j-api-1.7.25.jar'),
+        )
+    }
+
+    @NotYetImplemented
+    def "transform dependencies include multiple artifacts for the same output"() {
+        setupBuildWithSingleStep()
+        buildFile("""
+            project(":common") {
+                task secondProducer(type: FileProducer) {
+                    output = layout.buildDirectory.file("common2.jar")
+                    content = "common2"
+                }
+                artifacts {
+                    implementation secondProducer.output
+                }
+            }
+        """)
+
+        when:
+        run ":app:resolve"
+
+        then:
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar', 'common2.jar'), // Requested behavior: transforming common includes common2 as a dependency
+            singleStep('common2.jar', 'common.jar'), // Requested behavior: transforming common2 includes common as a dependency
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar', 'common2.jar'),
         )
     }
 

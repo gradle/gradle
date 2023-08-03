@@ -1,5 +1,6 @@
 useLogger(new CustomEventLogger())
 
+@SuppressWarnings("deprecation")
 class CustomEventLogger extends BuildAdapter implements TaskExecutionListener {
 
     void beforeExecute(Task task) {

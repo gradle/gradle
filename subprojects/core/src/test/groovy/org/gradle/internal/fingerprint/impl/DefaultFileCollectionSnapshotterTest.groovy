@@ -164,7 +164,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
 
             @Override
             File newTemporaryDirectory(String... path) {
-                return null
+                return tmpDir.createDir(path)
             }
 
             @Override

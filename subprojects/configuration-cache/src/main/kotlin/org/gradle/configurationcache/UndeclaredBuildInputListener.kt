@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.file.FileCollection
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scopes
 import java.io.File
@@ -33,7 +32,9 @@ interface UndeclaredBuildInputListener {
 
     fun fileOpened(file: File, consumer: String?)
 
-    fun fileCollectionObserved(fileCollection: FileCollection, consumer: String)
-
     fun fileObserved(file: File, consumer: String?)
+
+    fun fileSystemEntryObserved(file: File, consumer: String?)
+
+    fun directoryChildrenObserved(directory: File, consumer: String?)
 }

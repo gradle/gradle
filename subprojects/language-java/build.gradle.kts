@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":language-jvm"))
     implementation(project(":build-events"))
     implementation(project(":tooling-api"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
@@ -75,7 +76,7 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release.set(null as? Int)
+    options.release = null
     sourceCompatibility = "8"
     targetCompatibility = "8"
 }
@@ -90,5 +91,9 @@ packageCycles {
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
 
+integTest.usesJavadocCodeSnippets = true
 
-integTest.usesJavadocCodeSnippets.set(true)
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

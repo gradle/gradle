@@ -28,8 +28,10 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.cache.internal.TestCaches;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.impl.DefaultDeleter;
@@ -39,6 +41,7 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Time;
@@ -90,7 +93,7 @@ public class TestFiles {
     }
 
     public static FileResourceRepository fileRepository() {
-        return new FileResourceConnector(FILE_SYSTEM);
+        return new FileResourceConnector(FILE_SYSTEM, new DefaultListenerManager(Scopes.Build.class));
     }
 
     /**
@@ -142,10 +145,10 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir) {
-        return fileOperations(basedDir, null);
+        return fileOperations(basedDir, new DefaultTemporaryFileProvider(() -> new File(basedDir, "tmp")));
     }
 
-    public static FileOperations fileOperations(File basedDir, @Nullable TemporaryFileProvider temporaryFileProvider) {
+    public static FileOperations fileOperations(File basedDir, TemporaryFileProvider temporaryFileProvider) {
         FileResolver fileResolver = resolver(basedDir);
         FileSystem fileSystem = fileSystem();
 
@@ -159,10 +162,8 @@ public class TestFiles {
 
         return new DefaultFileOperations(
             fileResolver,
-            temporaryFileProvider,
             TestUtil.instantiatorFactory().inject(),
             directoryFileTreeFactory(),
-            streamHasher(),
             fileHasher(),
             resourceHandlerFactory,
             fileCollectionFactory(basedDir),
@@ -172,7 +173,9 @@ public class TestFiles {
             deleter(),
             documentationRegistry(),
             taskDependencyFactory(),
-            providerFactory());
+            providerFactory(),
+            TestCaches.decompressionCacheFactory(temporaryFileProvider.newTemporaryDirectory("cache-dir")),
+            null);
     }
 
     public static ApiTextResourceAdapter.Factory textResourceAdapterFactory(@Nullable TemporaryFileProvider temporaryFileProvider) {
@@ -277,4 +280,5 @@ public class TestFiles {
     public static TemporaryFileProvider tmpDirTemporaryFileProvider(File baseDir) {
         return new DefaultTemporaryFileProvider(() -> baseDir);
     }
+
 }

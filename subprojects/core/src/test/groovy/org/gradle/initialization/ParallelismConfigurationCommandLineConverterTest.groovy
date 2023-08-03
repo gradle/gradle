@@ -73,7 +73,7 @@ class ParallelismConfigurationCommandLineConverterTest extends Specification {
 
         then:
         Throwable t = thrown(CommandLineArgumentException)
-        t.message == "No argument was provided for command-line option '--max-workers'."
+        t.message == "No argument was provided for command-line option '--max-workers' with description: 'Configure the number of concurrent workers Gradle is allowed to use.'"
     }
 
     ParallelismConfiguration convert(String... args) {

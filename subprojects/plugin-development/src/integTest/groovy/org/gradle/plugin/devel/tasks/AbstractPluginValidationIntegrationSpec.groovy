@@ -518,13 +518,16 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     public String notANestedGetter() {
                         return "not-a-nested-getter";
                     }
+                    @Input
+                    public String getOther() {
+                        return "valid-nested-getter";
+                    }
                 }
 
                 @TaskAction
                 public void doStuff() { }
             }
         """
-
         expect:
         assertValidationFailsWith([
             error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('method').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
@@ -676,11 +679,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract TestFile source(String path)
 
-    static DocumentedProblem error(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+    static DocumentedProblem error(String message, String id = "incremental_build", String section = "") {
         new DocumentedProblem(message, ERROR, id, section)
     }
 
-    static DocumentedProblem warning(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+    static DocumentedProblem warning(String message, String id = "incremental_build", String section = "") {
         new DocumentedProblem(message, WARNING, id, section)
     }
 
@@ -695,6 +698,21 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         source("src/main/groovy/MyTask.groovy")
     }
 
+    TestFile getKotlinTaskSource() {
+        buildFile.delete()
+        buildKotlinFile << """
+            plugins {
+                id("java-gradle-plugin")
+                `kotlin-dsl`
+            }
+
+            repositories {
+                mavenCentral()
+            }
+        """
+        source("src/main/kotlin/MyTask.kt")
+    }
+
     static class DocumentedProblem {
         final String message
         final Severity severity
@@ -702,12 +720,12 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         final String section
         final boolean defaultDocLink
 
-        DocumentedProblem(String message, Severity severity, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+        DocumentedProblem(String message, Severity severity, String id = "incremental_build", String section = "") {
             this.message = message
             this.severity = severity
             this.id = id
             this.section = section
-            this.defaultDocLink = (id == "more_about_tasks") && (section == "sec:up_to_date_checks")
+            this.defaultDocLink = (id == "incremental_build") && (section == "")
         }
     }
 }

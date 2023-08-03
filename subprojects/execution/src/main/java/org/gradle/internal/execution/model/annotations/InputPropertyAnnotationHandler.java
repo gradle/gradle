@@ -31,9 +31,12 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
+import java.net.URL;
+import java.util.List;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
+import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public InputPropertyAnnotationHandler() {
@@ -53,13 +56,14 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validateUnsupportedInputPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
-        Class<?> valueType = propertyMetadata.getGetterMethod().getReturnType();
+        Class<?> valueType = propertyMetadata.getDeclaredType().getRawType();
         validateNotDirectoryType(propertyMetadata, validationContext, valueType);
         validateNotFileType(propertyMetadata, validationContext, valueType);
-        validateNotPrimitiveType(propertyMetadata, validationContext, valueType);
+        validateNotOptionalPrimitiveType(propertyMetadata, validationContext, valueType);
+        validateNotUrlType(propertyMetadata, validationContext);
     }
 
-    private void validateNotPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private static void validateNotOptionalPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
@@ -74,7 +78,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         }
     }
 
-    private void validateNotFileType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private static void validateNotFileType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (File.class.isAssignableFrom(valueType)
             || RegularFile.class.isAssignableFrom(valueType)
             || RegularFileProperty.class.isAssignableFrom(valueType)
@@ -94,7 +98,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         }
     }
 
-    private void validateNotDirectoryType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private static void validateNotDirectoryType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (Directory.class.isAssignableFrom(valueType)
             || DirectoryProperty.class.isAssignableFrom(valueType)) {
             validationContext.visitPropertyProblem(problem ->
@@ -105,6 +109,20 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                             .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                             .addPossibleSolution("Annotate with @InputDirectory for directories")
                             .documentedAt("validation_problems", "incorrect_use_of_input_annotation")
+            );
+        }
+    }
+    private static void validateNotUrlType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        List<Class<?>> valueTypes = unpackValueTypesOf(propertyMetadata);
+        if (valueTypes.stream().anyMatch(URL.class::isAssignableFrom)) {
+            validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
+                            .forProperty(propertyMetadata.getPropertyName())
+                            .reportAs(WARNING)
+                            .withDescription(() -> String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
+                            .happensBecause(() -> String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
+                            .addPossibleSolution("Use type 'java.net.URI' instead")
+                            .documentedAt("validation_problems", "unsupported_value_type")
             );
         }
     }

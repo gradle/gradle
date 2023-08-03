@@ -295,7 +295,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
-        def compileJava = project.tasks['compileCustomJava']
+        def compileJava = project.tasks['compileCustomJava'] as JavaCompile
         compileJava.options.annotationProcessorGeneratedSourcesDirectory = generatedSourcesDir
 
         then:
@@ -426,6 +426,16 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
         Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
+    }
+
+    def "configures destinationDirectory for jar tasks"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+        project.version = '1.0'
+
+        then:
+        def someJar = project.tasks.create('someJar', Jar)
+        someJar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 
     @Issue("gradle/gradle#8700")

@@ -94,11 +94,13 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
                         throw new IllegalStateException("parameters.outputFile is not set")
                     }
                     loggingOutput = objects.newInstance(InternalServices).loggingOutput
+                    println("ADDING " + this + " TO " + loggingOutput)
                     loggingOutput.addOutputEventListener(this)
                 }
 
                 @Override
                 synchronized void close() {
+                    println("REMOVING " + this + " FROM " + loggingOutput)
                     loggingOutput.removeOutputEventListener(this)
                 }
 
@@ -126,16 +128,19 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
 
             File outputFile = file("${fixtureData.toURI()}")
 
-            def services = gradle.services
-            def outputProgress = gradle.sharedServices.registerIfAbsent("outputProgress", OutputProgressService) {
-                parameters.outputFile.set(outputFile)
+            if (gradle.parent == null) {
+                // Only register the service for the root build
+                def services = gradle.services
+                def outputProgress = gradle.sharedServices.registerIfAbsent("outputProgress", OutputProgressService) {
+                    parameters.outputFile.set(outputFile)
+                }
+
+                // forces the service to be initialized immediately when configuration cache loads its cache
+                gradle.services.get(BuildEventListenerRegistryInternal).onOperationCompletion(outputProgress)
+
+                // forces the service to be initialized immediately
+                outputProgress.get()
             }
-
-            // forces the service to be initialized immediately when configuration cache loads its cache
-            gradle.services.get(BuildEventListenerRegistryInternal).onOperationCompletion(outputProgress)
-
-            // forces the service to be initialized immediately
-            outputProgress.get()
        """
     }
 

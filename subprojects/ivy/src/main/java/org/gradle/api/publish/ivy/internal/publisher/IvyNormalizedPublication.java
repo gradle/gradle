@@ -16,9 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.gradle.api.publish.internal.PublicationArtifactInternal;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.IvyArtifactSet;
 
 import java.io.File;
 import java.util.Set;
@@ -26,25 +25,23 @@ import java.util.Set;
 public class IvyNormalizedPublication {
 
     private final String name;
-    private final IvyPublicationIdentity projectIdentity;
     private final File ivyDescriptorFile;
     private final Set<IvyArtifact> allArtifacts;
-    private final IvyArtifactSet mainArtifacts;
+    private final ModuleVersionIdentifier coordinates;
 
-    public IvyNormalizedPublication(String name, IvyArtifactSet mainArtifacts, IvyPublicationIdentity projectIdentity, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
+    public IvyNormalizedPublication(String name, ModuleVersionIdentifier coordinates, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
         this.name = name;
-        this.projectIdentity = projectIdentity;
+        this.coordinates = coordinates;
         this.ivyDescriptorFile = ivyDescriptorFile;
         this.allArtifacts = allArtifacts;
-        this.mainArtifacts = mainArtifacts;
     }
 
     public String getName() {
         return name;
     }
 
-    public IvyPublicationIdentity getProjectIdentity() {
-        return projectIdentity;
+    public ModuleVersionIdentifier getCoordinates() {
+        return coordinates;
     }
 
     public File getIvyDescriptorFile() {
@@ -52,17 +49,6 @@ public class IvyNormalizedPublication {
     }
 
     public Set<IvyArtifact> getAllArtifacts() {
-        assertMainArtifactsPublishable();
         return allArtifacts;
-    }
-
-    private void assertMainArtifactsPublishable() {
-        mainArtifacts.all(artifact -> {
-            if (artifact.getClassifier() == null) {
-                if (!((PublicationArtifactInternal) artifact).shouldBePublished()) {
-                    throw new IllegalStateException("Artifact " + artifact.getFile().getName() + " wasn't produced by this build.");
-                }
-            }
-        });
     }
 }

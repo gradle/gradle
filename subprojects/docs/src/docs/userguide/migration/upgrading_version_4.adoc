@@ -34,7 +34,7 @@ image::deprecations.png[Deprecations View of a Gradle Build Scan]
 This is so that you can see any deprecation warnings that apply to your build.
 Gradle 5.x will generate (potentially less obvious) errors if you try to upgrade directly to it.
 +
-Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
 . Update your plugins.
 +
 Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed.
@@ -153,7 +153,7 @@ Tasks & properties::
  * Tasks configured and registered with the <<task_configuration_avoidance#sec:task_configuration_avoidance_migration_guidelines,task configuration avoidance>> APIs have more restrictions on the other methods that can be called from a configuration action.
  * The internal `@Option` and `@OptionValues` annotations — package `org.gradle.api.internal.tasks.options` — have been removed. Use the public link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[@OptionValues] annotations instead.
  * The `Task.deleteAllActions()` method has been removed with no replacement.
- * The `Task.dependsOnTaskDidWork()` method has been removed — use <<more_about_tasks#sec:up_to_date_checks,declared inputs and outputs>> instead.
+ * The `Task.dependsOnTaskDidWork()` method has been removed — use <<incremental_build.adoc#incremental_build,declared inputs and outputs>> instead.
  * The following properties and methods of `TaskInternal` have been removed — use task dependencies, task rules, reusable utility methods, or the <<custom_tasks.adoc#worker_api,Worker API>> in place of executing a task directly.
  ** `execute()`
  ** `executer`
@@ -219,7 +219,8 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
  * <<#rel4.10:aws_s3_permissions,Publishing to AWS S3 requires new permissions>>.
  * Both link:{javadocPath}/org/gradle/plugin/devel/tasks/PluginUnderTestMetadata.html[PluginUnderTestMetadata] and link:{javadocPath}/org/gradle/plugin/devel/tasks/GeneratePluginDescriptors.html[GeneratePluginDescriptors] — classes used by the <<java_gradle_plugin#java_gradle_plugin,Java Gradle Plugin Development Plugin>> — have been updated to use the Provider API.
 +
-Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set()] method to modify their values rather than using standard property assignment syntax, unless you are doing so in a Groovy build script. Standard property assignment still works in that one case.
+Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set()] method to modify their values rather than using standard property assignment syntax, unless you are doing so in a Groovy build script.
+Standard property assignment still works in that one case.
 
 [[changes_4.9]]
 == Upgrading from 4.8 and earlier
@@ -230,7 +231,8 @@ Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property
 
  * You can no longer use GPath syntax with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[tasks.withType()].
 +
-Use https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead. For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
+Use https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead.
+For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
 
 [[changes_4.8]]
 == Upgrading from 4.7 and earlier
@@ -248,7 +250,8 @@ Use https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Gro
  * <<#rel4.8:pom_wildcard_exclusions,Gradle now honors implicit wildcards in Maven POM exclusions>>.
  * The Kotlin DSL now respects JSR-305 package annotations.
 +
-This will lead to some types annotated according to JSR-305 being treated as nullable where they were treated as non-nullable before. This may lead to compilation errors in the build script. See https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4[the relevant Kotlin DSL release notes] for details.
+This will lead to some types annotated according to JSR-305 being treated as nullable where they were treated as non-nullable before.
+This may lead to compilation errors in the build script. See https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4[the relevant Kotlin DSL release notes] for details.
  * Error messages will be directed to standard error rather than standard output now, unless a console is attached to both standard output and standard error. This may affect tools that scrape a build's plain console output. Ignore this change if you're upgrading from an earlier version of Gradle.
 
 [[deprecations_4.8]]
@@ -283,7 +286,8 @@ Checkstyle configuration files in subprojects — the old by-convention location
 [[rel4.6:annotation_processor_configuration]]
  * You should not put annotation processors on the compile classpath or declare them with the `-processorpath` compiler argument.
 +
-They should be added to the `annotationProcessor` configuration instead. If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of a library you depend on), use the `-proc:none` compiler argument to ignore it.
+They should be added to the `annotationProcessor` configuration instead.
+If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of a library you depend on), use the `-proc:none` compiler argument to ignore it.
  * Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] in place of link:https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html[CompilerArgumentProvider].
 
 === Potential breaking changes
@@ -379,7 +383,8 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 
  * Non-Java projects that have a <<declaring_dependencies.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
 +
-To override this behavior, you can explicitly declare the configuration to use in the project dependency. For example: `project(path: ':myJavaProject', configuration: 'default')`.
+To override this behavior, you can explicitly declare the configuration to use in the project dependency.
+For example: `project(path: ':myJavaProject', configuration: 'default')`.
  * Default Zinc compiler upgraded from 0.3.13 to 0.3.15.
  * [Kotlin DSL] Base package renamed from `org.gradle.script.lang.kotlin` to `org.gradle.kotlin.dsl`.
 
@@ -405,7 +410,7 @@ Large projects may have to increase this setting on the relevant tasks, e.g. <<b
 The default tool versions of the following code quality plugins have been updated:
 
  * The http://checkstyle.sourceforge.net[Checkstyle Plugin] now uses http://checkstyle.sourceforge.net/releasenotes.html#Release_8.12[8.12] instead of 6.19 by default.
- * The http://codenarc.sourceforge.net[CodeNarc Plugin] now uses https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-121-aug-2018[1.2.1] instead of 1.1 by default.
+ * The https://codenarc.org/[CodeNarc Plugin] now uses https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-121-aug-2018[1.2.1] instead of 1.1 by default.
  * The https://www.jacoco.org/jacoco/[JaCoCo Plugin] now uses https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.2] instead of 0.8.1 by default.
  * The https://pmd.github.io/[PMD Plugin] now uses https://pmd.github.io/pmd-6.8.0/pmd_release_notes.html#30-september-2018---680[6.8.0] instead of 5.6.1 by default.
 +
@@ -461,16 +466,19 @@ Since Gradle 1.0, runtime-scoped dependencies have been included in the Java com
  * The compilation classpath is much larger than it needs to be, slowing down compilation.
  * The compilation classpath includes runtime-scoped files that do not impact compilation, resulting in unnecessary re-compilation when those files change.
 
-With this new behavior, the Java and Java Library plugins both honor the <<java_library_plugin.adoc#sec:java_library_separation,separation of compile and runtime scopes>>. This means that the compilation classpath only includes compile-scoped dependencies, while the runtime classpath adds the runtime-scoped dependencies as well. This is particularly useful if you develop and publish Java libraries with Gradle where the separation between `api` and `implementation` dependencies is reflected in the published scopes.
+With this new behavior, the Java and Java Library plugins both honor the <<java_library_plugin.adoc#sec:java_library_separation,separation of compile and runtime scopes>>. This means that the compilation classpath only includes compile-scoped dependencies, while the runtime classpath adds the runtime-scoped dependencies as well.
+This is particularly useful if you develop and publish Java libraries with Gradle where the separation between `api` and `implementation` dependencies is reflected in the published scopes.
 
 [[rel5.0:changes_to_default_task]]
 === [5.0] Changes to property factory methods on `DefaultTask`
 
 ==== Property factory methods on `DefaultTask` are now final
-The property factory methods such as `newInputFile()` are intended to be called from the constructor of a type that extends `DefaultTask`. These methods are now final to avoid subclasses overriding these methods and using state that is not initialized.
+The property factory methods such as `newInputFile()` are intended to be called from the constructor of a type that extends `DefaultTask`.
+These methods are now final to avoid subclasses overriding these methods and using state that is not initialized.
 
 ==== Inputs and outputs are not automatically registered
-The Property instances that are returned by these methods are no longer automatically registered as inputs or outputs of the task. The Property instances need to be declared as inputs or outputs in the usual ways, such as attaching annotations such as `@OutputFile` or using the runtime API to register the property.
+The Property instances that are returned by these methods are no longer automatically registered as inputs or outputs of the task.
+The Property instances need to be declared as inputs or outputs in the usual ways, such as attaching annotations such as `@OutputFile` or using the runtime API to register the property.
 
 For example, you could previously use the following syntax and have both outputFile instances registered as declared outputs:
 
@@ -562,7 +570,8 @@ Please remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`
 
 With this new behavior, if a plugin or a transitive dependency of a plugin found in the `gradlePluginPortal()` repository has no Maven POM it will fail to resolve.
 
-Artifacts published to a Maven repository without a POM should be fixed. If you encounter such artifacts, please ask the plugin or library author to publish a new version with proper metadata.
+Artifacts published to a Maven repository without a POM should be fixed.
+If you encounter such artifacts, please ask the plugin or library author to publish a new version with proper metadata.
 
 If you are stuck with a bad plugin, you can work around by re-enabling JARs as metadata source for the `gradlePluginPortal()` repository:
 
@@ -642,7 +651,8 @@ tasks.create("foo") {
 =====
 ====
 
-When converting this to use the new API, something surprising happens: `bar` doesn't exist.  The new API only executes configuration actions when necessary,
+When converting this to use the new API, something surprising happens: `bar` doesn't exist.
+The new API only executes configuration actions when necessary,
 so the `register()` for task `bar` only executes when `foo` is configured.
 
 ====
@@ -682,7 +692,9 @@ Please pass files and directories as arguments instead.
 [[rel4.10:aws_s3_permissions]]
 === [4.10] Publishing to AWS S3 requires new permissions
 
-The S3 repository transport protocol allows Gradle to publish artifacts to AWS S3 buckets. Starting with this release, every artifact uploaded to an S3 bucket will be equipped with the `bucket-owner-full-control` canned ACL. Make sure that the AWS account used to publish artifacts has the `s3:PutObjectAcl` and `s3:PutObjectVersionAcl` permissions, otherwise the upload will fail.
+The S3 repository transport protocol allows Gradle to publish artifacts to AWS S3 buckets.
+Starting with this release, every artifact uploaded to an S3 bucket will be equipped with the `bucket-owner-full-control` canned ACL.
+Make sure that the AWS account used to publish artifacts has the `s3:PutObjectAcl` and `s3:PutObjectVersionAcl` permissions, otherwise the upload will fail.
 
 [source,json]
 ----
@@ -708,14 +720,16 @@ See <<declaring_repositories.adoc#sub:s3_cross_account,AWS S3 Cross Account Acce
 [[rel4.9:lazy_task_creation]]
 === [4.9] Consider trying the lazy API for task creation and configuration
 
-Gradle 4.9 introduced a new way to create and configure tasks that works lazily. When you use this approach for tasks that are expensive to configure, or when you have many, many tasks, your build configuration time can drop significantly when those tasks don't run.
+Gradle 4.9 introduced a new way to create and configure tasks that works lazily.
+When you use this approach for tasks that are expensive to configure, or when you have many, many tasks, your build configuration time can drop significantly when those tasks don't run.
 
 You can learn more about lazily creating tasks in the <<task_configuration_avoidance#task_configuration_avoidance,Task Configuration Avoidance>> chapter. You can also read about the background to this new feature in https://blog.gradle.org/preview-avoiding-task-configuration-time[this blog post].
 
 [[rel4.8:switch_to_publishing_plugins]]
 === [4.8] Switch to the Maven Publish and Ivy Publish Plugins
 
-Now that the publishing plugins are stable, we recommend that you migrate from the legacy publishing mechanism for standard Java projects, i.e. those based on the <<java_plugin#java_plugin,Java Plugin>>. That includes projects that use any one of: <<java_library_plugin#java_library_plugin,Java Library Plugin>>, <<application_plugin#application_plugin,Application Plugin>> or <<war_plugin#war_plugin,War Plugin>>.
+Now that the publishing plugins are stable, we recommend that you migrate from the legacy publishing mechanism for standard Java projects, i.e. those based on the <<java_plugin#java_plugin,Java Plugin>>.
+That includes projects that use any one of: <<java_library_plugin#java_library_plugin,Java Library Plugin>>, <<application_plugin#application_plugin,Application Plugin>> or <<war_plugin#war_plugin,War Plugin>>.
 
 To use the new approach, simply replace any `upload<Conf>` configuration with a `publishing {}` block. See the <<publishing_setup.adoc#publishing_overview,publishing overview chapter>> for more information.
 
@@ -747,7 +761,9 @@ enableFeaturePreview("STABLE_PUBLISHING")
 =====
 ====
 
-We recommend doing a test run with a local repository to see whether all artifacts still have the expected coordinates. In most cases everything should work as before and you are done. However, your publishing block may rely on the implicit deferred configuration, particularly if it relies on values that may change during the configuration phase of the build.
+We recommend doing a test run with a local repository to see whether all artifacts still have the expected coordinates.
+In most cases everything should work as before and you are done.
+However, your publishing block may rely on the implicit deferred configuration, particularly if it relies on values that may change during the configuration phase of the build.
 
 For example, under the new behavior, the following logic assumes that `jar.archiveBaseName` doesn't change after `artifactId` is set:
 
@@ -887,14 +903,16 @@ tasks.wrapper {
 [[rel4.8:pom_wildcard_exclusions]]
 === [4.8] Gradle now honors implicit wildcards in Maven POM exclusions
 
-If an exclusion in a Maven POM was missing either a `groupId` or `artifactId`, Gradle used to ignore the exclusion. Now the missing elements are treated as implicit wildcards — e.g. `<groupId>*</groupId>` — which means that some of your dependencies may now be excluded where they weren't before.
+If an exclusion in a Maven POM was missing either a `groupId` or `artifactId`, Gradle used to ignore the exclusion.
+Now the missing elements are treated as implicit wildcards — e.g. `<groupId>*</groupId>` — which means that some of your dependencies may now be excluded where they weren't before.
 
 You will need to explicitly declare any missing dependencies that you need.
 
 [[rel4.7:plain_console_output]]
 === [4.7] Changes to the structure of Gradle's plain console output
 
-The plain console mode now formats output consistently with the rich console, which means that the output format has changed. For example:
+The plain console mode now formats output consistently with the rich console, which means that the output format has changed.
+For example:
 
  * The output produced by a given task is now grouped together, even when other tasks execute in parallel with it.
  * Task execution headers are printed with a "> Task" prefix.
@@ -905,7 +923,8 @@ This may break tools that scrape details from the plain console output.
 [[rel:4.6:native_task_api_changes]]
 === [4.6] Changes to the APIs of native tasks related to compilation, linking and installation
 
-Many tasks related to compiling, linking and installing native libraries and applications have been converted to the Provider API so that they support <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>. This conversion has introduced some breaking changes to the APIs of the tasks so that they match the conventions of the Provider API.
+Many tasks related to compiling, linking and installing native libraries and applications have been converted to the Provider API so that they support <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
+This conversion has introduced some breaking changes to the APIs of the tasks so that they match the conventions of the Provider API.
 
 The following tasks have been changed:
 
@@ -949,7 +968,8 @@ The following have also seen similar changes:
 [[rel4.6:visual_studio_single_solution]]
 === [4.6] Visual Studio integration only supports a single solution file for all components of a build
 
-link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioExtension.html[VisualStudioExtension] no longer has a `solutions` property. Instead, you configure a single solution via link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioRootExtension.html[VisualStudioRootExtension] in the root project, like so:
+link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioExtension.html[VisualStudioExtension] no longer has a `solutions` property.
+Instead, you configure a single solution via link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioRootExtension.html[VisualStudioRootExtension] in the root project, like so:
 
 ====
 [.multi-language-sample]
@@ -973,7 +993,8 @@ In addition, there are no longer individual tasks to generate the solution files
 [[rel4.5:http_build_cache_no_follow_redirects]]
 === [4.5] `HttpBuildCache` no longer follows redirects
 
-When connecting to an HTTP build cache backend via `HttpBuildCache`, Gradle does not follow redirects any more, treating them as errors instead. Getting a redirect from the build cache backend is mostly a configuration error — using an "http" URL instead of "https" for example — and has negative effects on performance.
+When connecting to an HTTP build cache backend via `HttpBuildCache`, Gradle does not follow redirects any more, treating them as errors instead.
+Getting a redirect from the build cache backend is mostly a configuration error — using an "http" URL instead of "https" for example — and has negative effects on performance.
 
 [[rel4.4:security_library_upgrades]]
 === [4.4] Third-party dependency upgrades

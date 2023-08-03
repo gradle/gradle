@@ -18,11 +18,9 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
-import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
-import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
+import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -31,7 +29,6 @@ import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FailingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
-import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
@@ -42,6 +39,8 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
+import org.gradle.configurationcache.serialization.readList
+import org.gradle.configurationcache.serialization.writeCollection
 import java.io.File
 
 
@@ -60,7 +59,7 @@ class FileCollectionCodec(
     suspend fun WriteContext.encodeContents(value: FileCollectionInternal) {
         val visitor = CollectingVisitor()
         value.visitStructure(visitor)
-        write(visitor.elements)
+        writeCollection(visitor.elements)
     }
 
     override suspend fun ReadContext.decode(): FileCollectionInternal {
@@ -72,25 +71,20 @@ class FileCollectionCodec(
     }
 
     suspend fun ReadContext.decodeContents(): FileCollectionInternal {
-        val contents = read()
-        return if (contents is Collection<*>) {
-            fileCollectionFactory.resolving(
-                contents.map { element ->
-                    when (element) {
-                        is File -> element
-                        is SubtractingFileCollectionSpec -> element.left.minus(element.right)
-                        is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
-                        is ProviderBackedFileCollectionSpec -> element.provider
-                        is FileTree -> element
-                        is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
-                        is BeanSpec -> element.bean
-                        else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
-                    }
+        return fileCollectionFactory.resolving(
+            readList().map { element ->
+                when (element) {
+                    is File -> element
+                    is SubtractingFileCollectionSpec -> element.left.minus(element.right)
+                    is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
+                    is ProviderBackedFileCollectionSpec -> element.provider
+                    is FileTree -> element
+                    is ResolutionBackedFileCollectionSpec -> artifactSetConverter.asFileCollection(element.displayName, element.lenient, element.elements)
+                    is BeanSpec -> element.bean
+                    else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                 }
-            )
-        } else {
-            fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))
-        }
+            }
+        )
     }
 }
 
@@ -108,8 +102,29 @@ class ProviderBackedFileCollectionSpec(val provider: ProviderInternal<*>)
 
 
 private
-class CollectingVisitor : FileCollectionStructureVisitor {
+class ResolutionBackedFileCollectionSpec(val displayName: String, val lenient: Boolean, val elements: List<Any>)
+
+
+private
+abstract class AbstractVisitor : FileCollectionStructureVisitor {
+    override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) =
+        unsupportedFileTree(fileTree)
+
+    override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) =
+        unsupportedFileTree(fileTree)
+
+    private
+    fun unsupportedFileTree(fileTree: FileTreeInternal): Nothing =
+        throw UnsupportedOperationException(
+            "Unexpected file tree '$fileTree' of type '${fileTree.javaClass}' found while serializing a file collection."
+        )
+}
+
+
+private
+class CollectingVisitor : AbstractVisitor() {
     val elements: MutableSet<Any> = mutableSetOf()
+
     override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean =
         when (fileCollection) {
             is SubtractingFileCollection -> {
@@ -146,17 +161,48 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                 false
             }
 
+            is ResolutionBackedFileCollection -> {
+                val displayName = fileCollection.resolutionHost.displayName
+                val lenient = fileCollection.isLenient
+                val nestedVisitor = ResolutionContentsCollectingVisitor(displayName, lenient)
+                fileCollection.visitStructure(nestedVisitor)
+                nestedVisitor.addElements(elements)
+                false
+            }
+
             else -> {
                 true
             }
         }
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType =
-        if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet || source is TransformedExternalArtifactSet) {
+        if (source is TransformedArtifactSet) {
+            // Should only be contained in a ResolutionBackedFileCollection
+            throw IllegalArgumentException("Found artifact set $source but was not expecting an artifact set")
+        } else {
+            FileCollectionStructureVisitor.VisitType.Visit
+        }
+
+    override fun visitCollection(source: FileCollectionInternal.Source, contents: MutableIterable<File>) {
+        elements.addAll(contents)
+    }
+}
+
+
+private
+class ResolutionContentsCollectingVisitor(
+    private val resolutionHostDisplayName: String,
+    private val lenient: Boolean
+) : AbstractVisitor() {
+    var containsTransforms = false
+    val elements: MutableSet<Any> = mutableSetOf()
+
+    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType =
+        if (source is TransformedArtifactSet) {
             // Represents artifact transform outputs. Visit the source rather than the files
             // Transforms may have inputs or parameters that are task outputs or other changing files
             // When this is not the case, we should run the transform now and write the result.
-            // However, currently it is not easy to determine whether or not this is the case so assume that all transforms
+            // However, currently it is not easy to determine whether this is the case so assume that all transforms
             // have changing inputs
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
@@ -164,45 +210,20 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         }
 
     override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
-        when (source) {
-            is TransformedProjectArtifactSet -> {
-                elements.add(source)
-            }
-
-            is LocalFileDependencyBackedArtifactSet -> {
-                elements.add(source)
-            }
-
-            is TransformedExternalArtifactSet -> {
-                elements.add(source)
-            }
-
-            else -> {
-                elements.addAll(contents)
-            }
+        if (source is TransformedArtifactSet) {
+            containsTransforms = true
+            elements.add(source)
+        } else {
+            elements.addAll(contents)
         }
     }
 
-    override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) =
-        unsupportedFileTree(fileTree)
-
-    override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) =
-        unsupportedFileTree(fileTree)
-
-    private
-    fun unsupportedFileTree(fileTree: FileTreeInternal): Nothing =
-        throw UnsupportedOperationException(
-            "Unexpected file tree '$fileTree' of type '${fileTree.javaClass}' found while serializing a file collection."
-        )
-}
-
-
-private
-class ErrorFileSet(private val error: BrokenValue) : MinimalFileSet {
-
-    override fun getDisplayName() =
-        "error-file-collection"
-
-    override fun getFiles() =
-        error.rethrow()
+    fun addElements(target: MutableSet<Any>) {
+        if (containsTransforms) {
+            target.add(ResolutionBackedFileCollectionSpec(resolutionHostDisplayName, lenient, elements.toList()))
+        } else {
+            // Contains a fixed set of files - can throw away this instance
+            target.addAll(elements)
+        }
+    }
 }

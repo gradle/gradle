@@ -18,12 +18,14 @@ package org.gradle.architecture.test;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -34,18 +36,18 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
+import org.gradle.test.precondition.Requires;
+import org.gradle.test.precondition.TestPrecondition;
 import org.gradle.util.EmptyStatement;
 import org.gradle.util.Matchers;
-import org.gradle.util.PreconditionVerifier;
-import org.gradle.util.Requires;
 import org.gradle.util.SetSystemProperties;
 import org.gradle.util.TestClassLoader;
-import org.gradle.util.TestPrecondition;
-import org.gradle.util.TestPreconditionExtension;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,16 +63,38 @@ import java.util.stream.Stream;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackages;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.stream.Collectors.toSet;
 
 public interface ArchUnitFixture {
+    DescribedPredicate<JavaClass> classes_not_written_in_kotlin = resideOutsideOfPackages("org.gradle.configurationcache..", "org.gradle.kotlin..")
+        .as("classes written in Java or Groovy");
+
+    DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<JavaClass>("not synthetic classes") {
+        @Override
+        public boolean test(JavaClass javaClass) {
+            return !javaClass.getModifiers().contains(JavaModifier.SYNTHETIC);
+        }
+    };
+
+    DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(classes_not_written_in_kotlin)
+        .as("written in Java or Groovy");
+
+    DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
+        .and(not(not_written_in_kotlin))
+        .and(modifier(PUBLIC))
+        .and(nameMatching(".+\\$[a-z_]+")) // Kotlin internal methods have `$kotlin_module_name` appended to their name
+        .as("Kotlin internal methods");
+
     DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
         .and(modifier(PUBLIC))
+        .and(not(kotlin_internal_methods))
         .as("public API methods");
 
     static ArchRule freeze(ArchRule rule) {
@@ -85,6 +109,22 @@ public interface ArchUnitFixture {
         return resideInAnyPackage("org.gradle..")
             .and(not(gradlePublicApi()))
             .as("Gradle Internal API");
+    }
+
+    static DescribedPredicate<JavaClass> inGradlePublicApiPackages() {
+        return new InGradlePublicApiPackages();
+    }
+
+    static DescribedPredicate<JavaClass> inTestFixturePackages() {
+        return resideInAnyPackage("org.gradle.test.fixtures..", "org.gradle.integtests.fixtures..", "org.gradle.architecture.test..")
+            .as("in test fixture packages");
+    }
+
+    static DescribedPredicate<JavaClass> inGradleInternalApiPackages() {
+        return resideInAnyPackage("org.gradle..")
+            .and(not(inGradlePublicApiPackages()))
+            .and(not(inTestFixturePackages()))
+            .as("in Gradle internal API packages");
     }
 
     DescribedPredicate<JavaClass> primitive = new DescribedPredicate<JavaClass>("primitive") {
@@ -124,6 +164,41 @@ public interface ArchUnitFixture {
         return new HaveOnlyArgumentsOrReturnTypesThatAre(types);
     }
 
+    static ArchCondition<JavaMethod> useJavaxAnnotationNullable() {
+        return new ArchCondition<JavaMethod>("use javax.annotation.Nullable") {
+            @Override
+            public void check(JavaMethod method, ConditionEvents events) {
+                // Check if method return type is annotated with the wrong Nullable
+                if (!method.isAnnotatedWith(Nullable.class)) {
+                    Set<JavaAnnotation<JavaMethod>> annotations = method.getAnnotations();
+                    Set<JavaAnnotation<JavaMethod>> nullableAnnotations = extractPossibleNullable(annotations);
+                    if (!nullableAnnotations.isEmpty()) {
+                        events.add(new SimpleConditionEvent(method, false, method.getFullName() + " is using forbidden Nullable annotations: " + nullableAnnotations.stream().map(a -> a.getType().getName()).collect(Collectors.joining(","))));
+                    } else {
+                        events.add(new SimpleConditionEvent(method, true, method.getFullName() + " is not using forbidden Nullable"));
+                    }
+                }
+
+                // Check if the method's parameters are annotated with the wrong Nullable
+                for (JavaParameter parameter : method.getParameters()) {
+                    if (!parameter.isAnnotatedWith(Nullable.class)) {
+                        Set<JavaAnnotation<JavaParameter>> annotations = parameter.getAnnotations();
+                        Set<JavaAnnotation<JavaParameter>> nullableAnnotations = extractPossibleNullable(annotations);
+                        if (!nullableAnnotations.isEmpty()) {
+                            events.add(new SimpleConditionEvent(method, false, "parameter " + parameter.getIndex() + " for " + method.getFullName() + " is using forbidden Nullable annotations: " + nullableAnnotations.stream().map(a -> a.getType().getName()).collect(Collectors.joining(","))));
+                        } else {
+                            events.add(new SimpleConditionEvent(method, true, method.getFullName() + " is not using forbidden Nullable"));
+                        }
+                    }
+                }
+            }
+
+            private <T extends HasDescription> Set<JavaAnnotation<T>> extractPossibleNullable(Set<JavaAnnotation<T>> annotations) {
+                return annotations.stream().filter(annotation -> annotation.getType().getName().endsWith("Nullable")).collect(toSet());
+            }
+        };
+    }
+
     static DescribedPredicate<JavaMember> annotatedMaybeInSupertypeWith(final Class<? extends Annotation> annotationType) {
         return annotatedMaybeInSupertypeWith(annotationType.getName());
     }
@@ -135,6 +210,17 @@ public interface ArchUnitFixture {
 
     static DescribedPredicate<JavaMember> annotatedMaybeInSupertypeWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return new AnnotatedMaybeInSupertypePredicate(predicate);
+    }
+
+    static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationType));
+    }
+
+    /**
+     * Either the class is directly annotated with the given annotation type or the class is in a package that is annotated with the given annotation type.
+     */
+    static DescribedPredicate<JavaClass> annotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return new AnnotatedOrInPackageAnnotatedPredicate(annotationType);
     }
 
     class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
@@ -199,10 +285,30 @@ public interface ArchUnitFixture {
         }
     }
 
-    class GradlePublicApi extends DescribedPredicate<JavaClass> {
+    class InGradlePublicApiPackages extends DescribedPredicate<JavaClass> {
         private static final PackageMatchers INCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.includes")));
         private static final PackageMatchers EXCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.excludes")));
-        private static final DescribedPredicate<JavaClass> TEST_FIXTURES = JavaClass.Predicates.belongToAnyOf(EmptyStatement.class, Matchers.class, PreconditionVerifier.class, Requires.class, SetSystemProperties.class, TestClassLoader.class, TestPrecondition.class, TestPreconditionExtension.class, UsesNativeServices.class, UsesNativeServicesExtension.class);
+
+        public InGradlePublicApiPackages() {
+            super("in Gradle public API packages");
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName());
+        }
+
+        private static Set<String> parsePackageMatcher(String packageList) {
+            return Arrays.stream(packageList.split(":"))
+                .map(include -> include.replace("**/", "..").replace("/**", "..").replace("/*", "").replace("/", "."))
+                .collect(toSet());
+        }
+    }
+
+    class GradlePublicApi extends DescribedPredicate<JavaClass> {
+        private static final DescribedPredicate<JavaClass> TEST_FIXTURES = JavaClass.Predicates.belongToAnyOf(EmptyStatement.class, Matchers.class, Requires.class, SetSystemProperties.class, TestClassLoader.class, TestPrecondition.class, UsesNativeServices.class, UsesNativeServicesExtension.class);
+
+        private final InGradlePublicApiPackages packages = new InGradlePublicApiPackages();
 
         public GradlePublicApi() {
             super("Gradle public API");
@@ -210,13 +316,7 @@ public interface ArchUnitFixture {
 
         @Override
         public boolean test(JavaClass input) {
-            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName()) && !TEST_FIXTURES.test(input) && input.getModifiers().contains(JavaModifier.PUBLIC);
-        }
-
-        private static Set<String> parsePackageMatcher(String packageList) {
-            return Arrays.stream(packageList.split(":"))
-                .map(include -> include.replace("**/", "..").replace("/**", "..").replace("/*", "").replace("/", "."))
-                .collect(toSet());
+            return packages.test(input) && !TEST_FIXTURES.test(input) && input.getModifiers().contains(JavaModifier.PUBLIC);
         }
     }
 
@@ -288,6 +388,20 @@ public interface ArchUnitFixture {
             } else {
                 return Optional.empty();
             }
+        }
+    }
+
+    class AnnotatedOrInPackageAnnotatedPredicate extends DescribedPredicate<JavaClass> {
+        private final Class<? extends Annotation> annotationType;
+
+        AnnotatedOrInPackageAnnotatedPredicate(Class<? extends Annotation> annotationType) {
+            super("annotated (directly or via its package) with @" + annotationType.getName());
+            this.annotationType = annotationType;
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
         }
     }
 }

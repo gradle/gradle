@@ -19,9 +19,9 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.file.Chmod;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
@@ -82,7 +82,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
                 GFileUtils.mkdirs(target.getParentFile());
                 copyFile(target);
             }
-            chmod.chmod(target, getMode());
+            chmod.chmod(target, getPermissions().toUnixNumeric());
             return true;
         } catch (Exception e) {
             throw new CopyFileElementException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
@@ -107,9 +107,13 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
 
     @Override
     public int getMode() {
-        return isDirectory()
-            ? FileSystem.DEFAULT_DIR_MODE
-            : FileSystem.DEFAULT_FILE_MODE;
+        return getPermissions().toUnixNumeric();
+    }
+
+    @Override
+    public FilePermissions getPermissions() {
+        return isDirectory() ? DefaultFilePermissions.DEFAULT_DIR_PERMISSIONS :
+            DefaultFilePermissions.DEFAULT_FILE_PERMISSIONS;
     }
 
     @Contextual

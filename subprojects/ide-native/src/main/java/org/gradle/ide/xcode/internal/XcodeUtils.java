@@ -17,7 +17,6 @@
 package org.gradle.ide.xcode.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Transformer;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
@@ -31,12 +30,7 @@ public class XcodeUtils {
     }
 
     public static String toSpaceSeparatedList(Iterable<File> it) {
-        return StringUtils.join(CollectionUtils.collect(it, new Transformer<String, File>() {
-            @Override
-            public String transform(File file) {
-                return quote(file.getAbsolutePath());
-            }
-        }), ' ');
+        return StringUtils.join(CollectionUtils.collect(it, file -> quote(file.getAbsolutePath())), ' ');
     }
 
     private static String quote(String value) {

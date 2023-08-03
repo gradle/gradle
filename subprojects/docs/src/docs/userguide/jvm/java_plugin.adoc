@@ -33,8 +33,8 @@ To use the Java plugin, include the following in your build script:
 
 .Using the Java plugin
 ====
-include::sample[dir="snippets/java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:java_tasks]]
@@ -113,7 +113,7 @@ Prepares the given source set's classes and resources for packaging and executio
 The Java plugin attaches some of its tasks to the lifecycle tasks defined by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>> — which the Java Plugin applies automatically — and it also adds a few other lifecycle tasks:
 
 `assemble`::
-_Depends on_: `jar`, and all other tasks that create artifacts attached to the `archives` configuration
+_Depends on_: `jar`
 +
 Aggregate task that assembles all the archives in the project. This task is added by the Base Plugin.
 
@@ -159,8 +159,6 @@ include::javaProjectTestLayout.adoc[]
 
 include::javaProjectGenericLayout.adoc[]
 
-[[sec:java_convention_properties]]
-
 [[sec:changing_java_project_layout]]
 === Changing the project layout
 
@@ -168,8 +166,8 @@ You configure the project layout by configuring the appropriate source set. This
 
 .Custom Java source layout
 ====
-include::sample[dir="snippets/java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
 include::sample[dir="snippets/java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
+include::sample[dir="snippets/java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
 ====
 
 [[source_sets]]
@@ -195,12 +193,12 @@ The name of the source set, used to identify it.
 The output files of the source set, containing its compiled classes and resources.
 
 `output.classesDirs` — (read-only) link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
-_Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
+_Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
 +
 The directories to generate the classes of this source set into. May contain directories for other JVM languages, e.g. _build/classes/kotlin/main_.
 
 `output.resourcesDir` — `File`::
-_Default value_: `$buildDir/resources/$name`, e.g. _build/resources/main_
+_Default value_: `layout.buildDirectory.dir("resources/$name")`, e.g. _build/resources/main_
 +
 The directory to generate the resources of this source set into.
 
@@ -228,7 +226,7 @@ _Default value_: `src/$name/java`, e.g. _src/main/java_
 The source directories containing the Java source files of this source set.  You can set this to any value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
 
 `java.destinationDirectory` — `DirectoryProperty`::
-_Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
+_Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
 +
 The directory to generate compiled Java sources into. You can set this to any value that is described in <<working_with_files.adoc#sec:single_file_paths,this section>>.
 
@@ -262,24 +260,24 @@ Adding a JAR containing the classes of a source set:
 
 .Assembling a JAR for a source set
 ====
-include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
 include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
 ====
 
 Generating Javadoc for a source set:
 
 .Generating the Javadoc for a source set
 ====
-include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
 include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
 ====
 
 Adding a test suite to run the tests in a source set:
 
 .Running tests in a source set
 ====
-include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=test]"]
 include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=test]"]
 ====
 
 [[sec:java_plugin_and_dependency_management]]
@@ -294,7 +292,12 @@ Tasks such as `compileJava` and `test` then use one or more of those configurati
 [NOTE]
 ====
 
-To find information on the `api` configuration, please consult the <<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
+For information on the `default` and `archives` configurations, please consult the
+<<base_plugin.adoc#sec:base_plugin_configurations,Base Plugin>> reference documentation.
+
+For information on the `api` or `compileOnlyApi` configurations, please consult the
+<<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and
+<<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
 
 ====
 
@@ -331,15 +334,8 @@ Runtime only dependencies for running tests.
 `testRuntimeClasspath` extends `testRuntimeOnly, testImplementation`::
 Runtime classpath for running tests. Used by task `test`.
 
-`archives`::
-Artifacts (e.g. jars) produced by this project. Used by Gradle to determine "default" tasks to execute when building.
-
-`default` extends `runtimeElements`::
-The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.
-
 The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
 
- * Gray text — the configuration is _deprecated_.
  * Green background — you can declare dependencies against the configuration.
  * Blue-gray background — the configuration is for consumption by tasks, not for you to declare dependencies.
  * Light blue background with monospace text — a task.
@@ -379,17 +375,28 @@ Runtime classpath contains elements of the implementation, as well as runtime on
 The Java plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[`java` extension] to the project.
 This allows to configure a number of Java related properties inside a dedicated DSL block.
 
-.Using the `java` extension
+.Using the `java` extension to configure a toolchain
 ====
-include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-extension]"]
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-extension]"]
 ====
+
+Below is the list of properties and DSL functions with short explanations available inside the `java` extension.
+
+=== Toolchain and compatibility
+
+`toolchain`::
+<<toolchains.adoc#toolchains, Java toolchain>> to be used by tasks using JVM tools, such as compilation and execution. Default value: build JVM toolchain.
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
-Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use.
+Java version compatibility to use when compiling Java source. Default value: language version of the toolchain from this extension. +
+_Note that using a <<toolchains.adoc#toolchains, toolchain>> is preferred to using a compatibility setting for most cases._
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
-Java version to generate classes for. Default value: `__sourceCompatibility__`.
+Java version to generate classes for. Default value: `__sourceCompatibility__`. +
+_Note that using a <<toolchains.adoc#toolchains, toolchain>> is preferred to using a compatibility setting for most cases._
+
+=== Packaging
 
 `withJavadocJar()`::
 Automatically packages Javadoc and creates a variant `javadocElements` with an artifact `-javadoc.jar`, which will be part of the publication.
@@ -403,13 +410,13 @@ Automatically packages source code and creates a variant `sourceElements` with a
 The name of the directory to generate reports into, relative to the build directory. Default value: `reports`
 
 `(read-only) File reportsDir`::
-The directory to generate reports into. Default value: `__buildDir__/__reporting.baseDir__`
+The directory to generate reports into. Default value: `__reporting.baseDirectory__`
 
 `String testResultsDirName`::
 The name of the directory to generate test result .xml files into, relative to the build directory. Default value: `test-results`
 
 `(read-only) File testResultsDir`::
-The directory to generate test result .xml files into. Default value: `__buildDir__/__testResultsDirName__`
+The directory to generate test result .xml files into. Default value: `layout.buildDirectory.dir(__testResultsDirName__)`
 
 `String testReportDirName`::
 The name of the directory to generate the test report into, relative to the reports directory. Default value: `tests`
@@ -421,22 +428,22 @@ The directory to generate the test report into. Default value: `__reportsDir__/t
 The name of the directory to generate libraries into, relative to the build directory. Default value: `libs`
 
 `(read-only) File libsDir`::
-The directory to generate libraries into. Default value: `__buildDir__/__libsDirName__`
+The directory to generate libraries into. Default value: `layout.buildDirectory.dir(__libsDirName__)`
 
 `String distsDirName`::
 The name of the directory to generate distributions into, relative to the build directory. Default value: `distributions`
 
 `(read-only) File distsDir`::
-The directory to generate distributions into. Default value: `__buildDir__/__distsDirName__`
+The directory to generate distributions into. Default value: `layout.buildDirectory.dir(__distsDirName__)`
 
 `String docsDirName`::
 The name of the directory to generate documentation into, relative to the build directory. Default value: `docs`
 
 `(read-only) File docsDir`::
-The directory to generate documentation into. Default value: `__buildDir__/__docsDirName__`
+The directory to generate documentation into. Default value: `layout.buildDirectory.dir(__docsDirName__)`
 
 `String dependencyCacheDirName`::
-The name of the directory to use to cache source dependency information, relative to the build directory. Default value: `dependency-cache`
+The name of the directory to cache source dependency information relative to the build directory. Default value: `dependency-cache`.
 
 === Other properties
 
@@ -449,6 +456,7 @@ The basename to use for archives, such as JAR or ZIP files. Default value: `__pr
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.
 
+[[sec:java_convention_properties]]
 == Convention properties (deprecated)
 
 The Java Plugin adds a number of convention properties to the project. You can use these properties in your build script as though they were properties of the project object.
@@ -763,8 +771,8 @@ Gradle ignores annotation processors on the compile classpath.
 
 .Declaring annotation processors
 ====
-include::sample[dir="snippets/java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
 include::sample[dir="snippets/java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
+include::sample[dir="snippets/java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
 ====
 
 == Variant aware selection

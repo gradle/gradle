@@ -27,8 +27,8 @@ To use the Maven Publish Plugin, include the following in your build script:
 
 .Applying the Maven Publish Plugin
 ====
-include::sample[dir="snippets/maven-publish/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/maven-publish/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/maven-publish/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 The Maven Publish Plugin uses an extension on the project named `publishing` of type link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]. This extension provides a container of named publications and a container of named repositories. The Maven Publish Plugin works with link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] publications and link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] repositories.
@@ -44,7 +44,7 @@ Creates a POM file for the publication named _PubName_, populating the known met
 Publishes the _PubName_ publication to the repository named _RepoName_. If you have a repository definition without an explicit name, _RepoName_ will be "Maven".
 
 `publish__PubName__PublicationToMavenLocal` — link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal]::
-Copies the _PubName_ publication to the local Maven cache — typically _$USER_HOME/.m2/repository_ — along with the publication's POM file and other metadata.
+Copies the _PubName_ publication to the local Maven cache — typically _<home directory of the current user>/.m2/repository_ — along with the publication's POM file and other metadata.
 
 `publish`::
 _Depends on_: All `publish__PubName__PublicationTo__RepoName__Repository` tasks
@@ -84,8 +84,8 @@ Overriding the default identity values is easy: simply specify the `groupId`, `a
 
 .Customizing the publication identity
 ====
-include::sample[dir="snippets/maven-publish/customize-identity/groovy/library",files="build.gradle[tags=customize-identity]"]
 include::sample[dir="snippets/maven-publish/customize-identity/kotlin/library",files="build.gradle.kts[tags=customize-identity]"]
+include::sample[dir="snippets/maven-publish/customize-identity/groovy/library",files="build.gradle[tags=customize-identity]"]
 ====
 
 [TIP]
@@ -104,8 +104,8 @@ The generated POM file can be customized before publishing. For example, when pu
 
 .Customizing the POM file
 ====
-include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=pom-customization]"]
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=pom-customization]"]
+include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=pom-customization]"]
 ====
 
 [[publishing_maven:resolved_dependencies]]
@@ -132,8 +132,8 @@ This is done by using the `versionMapping` DSL method which allows to configure 
 
 .Using resolved versions
 ====
-include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=versions-resolved]"]
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=versions-resolved]"]
+include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=versions-resolved]"]
 ====
 
 In the example above, Gradle will use the versions resolved on the `runtimeClasspath` for dependencies declared in `api`, which are mapped to the `compile` scope of Maven.
@@ -149,8 +149,8 @@ Here's a simple example of defining a publishing repository:
 
 .Declaring repositories to publish to
 ====
-include::sample[dir="snippets/maven-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
 include::sample[dir="snippets/maven-publish/quickstart/kotlin",files="build.gradle.kts[tags=repositories]"]
+include::sample[dir="snippets/maven-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
 ====
 
 The two main things you will want to configure are the repository's:
@@ -169,22 +169,22 @@ It is a common practice to publish snapshots and releases to different Maven rep
 
 .Configuring repository URL based on project version
 ====
-include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gradle[tags=repo-url-from-variable]"]
 include::sample[dir="snippets/maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=repo-url-from-variable]"]
+include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gradle[tags=repo-url-from-variable]"]
 ====
 
 Similarly, you can use a <<build_environment.adoc#build_environment, project or system property>> to decide which repository to publish to. The following example uses the release repository if the project property `release` is set, such as when a user runs `gradle -Prelease publish`:
 
 .Configuring repository URL based on project property
 ====
-include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gradle[tags=repo-url-from-project-property]"]
 include::sample[dir="snippets/maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=repo-url-from-project-property]"]
+include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gradle[tags=repo-url-from-project-property]"]
 ====
 
 [[publishing_maven:install]]
 == Publishing to Maven Local
 
-For integration with a local Maven installation, it is sometimes useful to publish the module into the Maven local repository (typically at _$USER_HOME/.m2/repository_), along with its POM file and other metadata. In Maven parlance, this is referred to as 'installing' the module.
+For integration with a local Maven installation, it is sometimes useful to publish the module into the Maven local repository (typically at _<home directory of the current user>/.m2/repository_), along with its POM file and other metadata. In Maven parlance, this is referred to as 'installing' the module.
 
 The Maven Publish Plugin makes this easy to do by automatically creating a link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal] task for each link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] in the `publishing.publications` container. The task name follows the pattern of `publish__PubName__PublicationToMavenLocal`. Each of these tasks is wired into the `publishToMavenLocal` aggregate task. You do not need to have `mavenLocal()` in your `publishing.repositories` section.
 
@@ -197,8 +197,8 @@ For this, a project adds an additional `MavenPublication` specifying a link:{gro
 
 .Specifying a relocation POM
 ====
-include::sample[dir="snippets/maven-publish/specify-relocation/groovy/library",files="build.gradle[tags=specify-relocation]"]
 include::sample[dir="snippets/maven-publish/specify-relocation/kotlin/library",files="build.gradle.kts[tags=specify-relocation]"]
+include::sample[dir="snippets/maven-publish/specify-relocation/groovy/library",files="build.gradle[tags=specify-relocation]"]
 ====
 
 Only the property which has changed needs to be specified under `relocation`, that is `artifactId` and / or `groupId`. All other properties are optional.
@@ -243,8 +243,8 @@ The following example demonstrates how to sign and publish a Java library includ
 
 .Publishing a Java library
 ====
-include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=all]"]
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=all]"]
 ====
 
 The result is that the following artifacts will be published:
@@ -256,7 +256,10 @@ The result is that the following artifacts will be published:
 
 The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
 
-WARNING: Note that the Signing plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
+[TIP]
+====
+`publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`. If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
+====
 
 [[publishing_maven:deferred_configuration]]
 == Removal of deferred configuration behavior
@@ -268,23 +271,6 @@ You may have some logic inside your publishing block or in a plugin that is depe
 For instance, the following logic assumes that the subprojects will be evaluated when the artifactId is set:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-subprojects {
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-                artifactId = jar.archiveBaseName
-            }
-        }
-    }
-}
-----
-=====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -302,12 +288,6 @@ subprojects {
 }
 ----
 =====
-====
-
-This kind of logic must now be wrapped in an `afterEvaluate {}` block.
-
-
-====
 [.multi-language-sample]
 =====
 .build.gradle
@@ -318,15 +298,19 @@ subprojects {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
-                afterEvaluate {
-                    artifactId = jar.archiveBaseName
-                }
+                artifactId = jar.archiveBaseName
             }
         }
     }
 }
 ----
 =====
+====
+
+This kind of logic must now be wrapped in an `afterEvaluate {}` block.
+
+
+====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -339,6 +323,25 @@ subprojects {
                 from(components["java"])
                 afterEvaluate {
                     artifactId = tasks.jar.get().archiveBaseName.get()
+                }
+            }
+        }
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+subprojects {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                afterEvaluate {
+                    artifactId = jar.archiveBaseName
                 }
             }
         }

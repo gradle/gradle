@@ -173,8 +173,8 @@ Attributes are _typed_. An attribute can be created via the `Attribute<T>.of` me
 
 .Define attributes
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=define_attribute]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=define_attribute]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=define_attribute]"]
 ====
 
 Attribute types support most Java primitive classes; such as `String` and `Integer`; Or anything extending `org.gradle.api.Named`.
@@ -182,24 +182,24 @@ Attributes must be declared in the _attribute schema_ found on the `dependencies
 
 .Registering attributes on the attributes schema
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=register-attributes]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=register-attributes]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=register-attributes]"]
 ====
 
 Then configurations can be configured to set values for attributes:
 
 .Setting attributes on configurations
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=attributes-on-configurations]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=attributes-on-configurations]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=attributes-on-configurations]"]
 ====
 
 For attributes which type extends `Named`, the value of the attribute **must** be created via the _object factory_:
 
 .Named attributes
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=named-attributes]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=named-attributes]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=named-attributes]"]
 ====
 
 == Attribute matching
@@ -226,7 +226,7 @@ Since multiple values for an attribute can be _compatible_, Gradle needs to choo
 
 This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule].
 
-Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
+Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema], which is a member of link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[DependencyHandler].
 [[sec:abm_algorithm]]
 === Variant attribute matching algorithm
 

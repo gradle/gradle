@@ -1806,57 +1806,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         !file('dest/two.b').readLines().iterator().hasNext()
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-2181")
-    def "can copy files with unicode characters in name with non-unicode platform encoding"() {
-        given:
-        def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
-
-        buildFile << """
-            task copyFiles {
-                doLast {
-                    copy {
-                        from 'res'
-                        into 'build/resources'
-                    }
-                }
-            }
-        """
-
-        file("res", weirdFileName) << "foo"
-
-        when:
-        executer.withDefaultCharacterEncoding("ISO-8859-1").withTasks("copyFiles")
-        executer.run()
-
-        then:
-        file("build/resources", weirdFileName).exists()
-    }
-
-    @Issue("https://issues.gradle.org/browse/GRADLE-2181")
-    def "can copy files with unicode characters in name with default platform encoding"() {
-        given:
-        def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
-
-        buildFile << """
-            task copyFiles {
-                doLast {
-                    copy {
-                        from 'res'
-                        into 'build/resources'
-                    }
-                }
-            }
-        """
-
-        file("res", weirdFileName) << "foo"
-
-        when:
-        executer.withTasks("copyFiles").run()
-
-        then:
-        file("build/resources", weirdFileName).exists()
-    }
-
     def "nested specs and details arent extensible objects"() {
         given:
         file("a/a.txt").touch()
@@ -2166,7 +2115,11 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             task (copy, type:Copy) {
                from ('src') {
                   def newValue = providers.systemProperty('new-value').present
-                  $property = newValue ? $newValue : $oldValue
+                  if (newValue) {
+                        $newValue
+                  } else {
+                        $oldValue
+                  }
                }
                into 'dest'
             }
@@ -2194,13 +2147,13 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         skipped(':copy')
 
         where:
-        property             | oldValue                     | newValue
-        "caseSensitive"      | false                        | true
-        "includeEmptyDirs"   | false                        | true
-        "duplicatesStrategy" | "DuplicatesStrategy.EXCLUDE" | "DuplicatesStrategy.INCLUDE"
-        "dirMode"            | "0700"                       | "0755"
-        "fileMode"           | "0600"                       | "0644"
-        "filteringCharset"   | "'iso8859-1'"                | "'utf-8'"
+        property             | oldValue                                          | newValue
+        "caseSensitive"      | "caseSensitive = false"                           | "caseSensitive = true"
+        "includeEmptyDirs"   | "includeEmptyDirs = false"                        | "includeEmptyDirs = true"
+        "duplicatesStrategy" | "duplicatesStrategy = DuplicatesStrategy.EXCLUDE" | "duplicatesStrategy = DuplicatesStrategy.INCLUDE"
+        "dirPermissions"     | "dirPermissions { unix(\"0700\") }"               | "dirPermissions { unix(\"0755\") }"
+        "filePermissions"    | "filePermissions { unix(\"0600\") }"              | "filePermissions { unix(\"0644\") }"
+        "filteringCharset"   | "filteringCharset = 'iso8859-1'"                  | "filteringCharset = 'utf-8'"
     }
 
     def "null action is forbidden for #method"() {

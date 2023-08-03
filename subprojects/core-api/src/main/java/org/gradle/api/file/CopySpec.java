@@ -336,7 +336,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec rename(Transformer<String, String> renamer);
+    CopySpec rename(Transformer<@org.jetbrains.annotations.Nullable String, String> renamer);
 
     /**
      * {@inheritDoc}
@@ -372,7 +372,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec filter(Transformer<String, String> transformer);
+    CopySpec filter(Transformer<@org.jetbrains.annotations.Nullable String, String> transformer);
 
     /**
      * {@inheritDoc}

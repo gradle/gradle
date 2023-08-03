@@ -36,10 +36,10 @@ The following source tree contains Java and Kotlin source files. Java source fil
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
+[source,kotlin]
 ----
 .
-├── build.gradle
+├── build.gradle.kts
 └── src
     └── main
         ├── java
@@ -50,10 +50,10 @@ The following source tree contains Java and Kotlin source files. Java source fil
 =====
 [.multi-language-sample]
 =====
-[source,kotlin]
+[source,groovy]
 ----
 .
-├── build.gradle.kts
+├── build.gradle
 └── src
     └── main
         ├── java
@@ -108,18 +108,6 @@ The following example shows a standard Gradle project layout:
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-.
-├── settings.gradle
-├── subproject-one
-│   └── build.gradle
-└── subproject-two
-    └── build.gradle
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 .
@@ -128,6 +116,18 @@ The following example shows a standard Gradle project layout:
 │   └── build.gradle.kts
 └── subproject-two
     └── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── settings.gradle
+├── subproject-one
+│   └── build.gradle
+└── subproject-two
+    └── build.gradle
 ----
 =====
 ====
@@ -148,8 +148,8 @@ It also provides direct access to the Gradle API. Additional dependencies can be
 
 .Custom buildSrc build script
 ====
-include::sample[dir="snippets/java/multiproject/groovy",files="buildSrc/build.gradle[]"]
 include::sample[dir="snippets/java/multiproject/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/java/multiproject/groovy",files="buildSrc/build.gradle[]"]
 ====
 
 A typical project including `buildSrc` has the following layout.
@@ -157,32 +157,6 @@ Any code under `buildSrc` should use a package similar to application code.
 Optionally, the `buildSrc` directory can host a build script if additional configuration is needed (e.g. to apply plugins or to declare dependencies).
 
 ====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-.
-├── buildSrc
-│   ├── build.gradle
-│   └── src
-│       ├── main
-│       │   └── java
-│       │       └── com
-│       │           └── enterprise
-│       │               ├── Deploy.java
-│       │               └── DeploymentPlugin.java
-│       └── test
-│           └── java
-│               └── com
-│                   └── enterprise
-│                       └── DeploymentPluginTest.java
-├── settings.gradle
-├── subprojecto-one
-│   └── build.gradle.kts
-└── subproject-two
-    └── build.gradle.kts
-----
-=====
 [.multi-language-sample]
 =====
 [source,kotlin]
@@ -209,6 +183,32 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
     └── build.gradle.kts
 ----
 =====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── buildSrc
+│   ├── build.gradle
+│   └── src
+│       ├── main
+│       │   └── java
+│       │       └── com
+│       │           └── enterprise
+│       │               ├── Deploy.java
+│       │               └── DeploymentPlugin.java
+│       └── test
+│           └── java
+│               └── com
+│                   └── enterprise
+│                       └── DeploymentPluginTest.java
+├── settings.gradle
+├── subproject-one
+│   └── build.gradle
+└── subproject-two
+    └── build.gradle
+----
+=====
 ====
 
 NOTE: A change in `buildSrc` causes the whole project to become out-of-date.
@@ -226,22 +226,9 @@ The `gradle.properties` helps with keeping properties separate from the build sc
 It's a good location for placing <<build_environment.adoc#sec:gradle_configuration_properties,properties that control the build environment>>.
 
 A typical project setup places the `gradle.properties` file in the root directory of the build.
-Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you want to it apply to all builds on your machine.
+Alternatively, the file can also live in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory if you want it to apply to all builds on your machine.
 
 ====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-.
-├── gradle.properties
-└── settings.gradle
-├── subproject-a
-│   └── build.gradle
-└── subproject-b
-    └── build.gradle
-----
-=====
 [.multi-language-sample]
 =====
 [source,kotlin]
@@ -255,11 +242,24 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
     └── build.gradle.kts
 ----
 =====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── gradle.properties
+└── settings.gradle
+├── subproject-a
+│   └── build.gradle
+└── subproject-b
+    └── build.gradle
+----
+=====
 ====
 
 == Avoid overlapping task outputs
 
-Tasks should define inputs and outputs to get the performance benefits of <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build functionality>>.
+Tasks should define inputs and outputs to get the performance benefits of <<incremental_build.adoc#incremental_build,incremental build functionality>>.
 When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
 
 Intermingling or overwriting output files produced by different tasks compromises up-to-date checking causing slower builds.

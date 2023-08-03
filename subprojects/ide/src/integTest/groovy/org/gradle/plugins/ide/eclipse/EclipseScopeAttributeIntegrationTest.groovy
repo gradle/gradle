@@ -16,9 +16,11 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Rule
+
+import static org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH
 
 class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpec {
 
@@ -190,7 +192,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
 
         then:
         EclipseClasspathFixture classpath = classpath('.')
-        classpath.output == 'bin/default'
+        classpath.output == DEFAULT_PROJECT_OUTPUT_PATH
         classpath.sourceDir('src/default/java').assertOutputLocation('bin/default_')
         classpath.sourceDir('src/default_/java').assertOutputLocation('bin/default__')
     }

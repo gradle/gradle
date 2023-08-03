@@ -22,8 +22,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class DistributionLocator {
-    private static final String RELEASE_REPOSITORY = "https://services.gradle.org/distributions";
-    private static final String SNAPSHOT_REPOSITORY = "https://services.gradle.org/distributions-snapshots";
+
+    private static final String SERVICES_GRADLE_BASE_URL_PROPERTY = "org.gradle.internal.services.base.url";
+    private static final String SERVICES_GRADLE_BASE_URL = "https://services.gradle.org";
+    private static final String RELEASE_REPOSITORY = "/distributions";
+    private static final String SNAPSHOT_REPOSITORY = "/distributions-snapshots";
+
+    public static String getBaseUrl() {
+        return System.getProperty(SERVICES_GRADLE_BASE_URL_PROPERTY, SERVICES_GRADLE_BASE_URL);
+    }
 
     public URI getDistributionFor(GradleVersion version) {
         return getDistributionFor(version, "bin");
@@ -35,14 +42,16 @@ public class DistributionLocator {
 
     private String getDistributionRepository(GradleVersion version) {
         if (version.isSnapshot()) {
-            return SNAPSHOT_REPOSITORY;
+            return getBaseUrl() + SNAPSHOT_REPOSITORY;
         } else {
-            return RELEASE_REPOSITORY;
+            return getBaseUrl() + RELEASE_REPOSITORY;
         }
     }
 
-    private URI getDistribution(String repositoryUrl, GradleVersion version, String archiveName,
-                                   String archiveClassifier) {
+    private URI getDistribution(
+        String repositoryUrl, GradleVersion version, String archiveName,
+        String archiveClassifier
+    ) {
         try {
             return new URI(repositoryUrl + "/" + archiveName + "-" + version.getVersion() + "-" + archiveClassifier + ".zip");
         } catch (URISyntaxException e) {

@@ -16,8 +16,8 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.hash.ChecksumService;
 
 import java.io.File;
@@ -25,10 +25,10 @@ import java.util.List;
 
 public class AbstractLocallyAvailableResourceFinder<C> implements LocallyAvailableResourceFinder<C> {
 
-    private final Transformer<Factory<List<File>>, C> producer;
+    private final InternalTransformer<Factory<List<File>>, C> producer;
     private final ChecksumService checksumService;
 
-    public AbstractLocallyAvailableResourceFinder(Transformer<Factory<List<File>>, C> producer, ChecksumService checksumService) {
+    public AbstractLocallyAvailableResourceFinder(InternalTransformer<Factory<List<File>>, C> producer, ChecksumService checksumService) {
         this.producer = producer;
         this.checksumService = checksumService;
     }

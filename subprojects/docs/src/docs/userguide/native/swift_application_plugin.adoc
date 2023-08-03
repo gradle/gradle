@@ -24,8 +24,8 @@ The Swift Application Plugin provides the tasks, configurations and conventions 
 
 .Applying the Swift Application Plugin
 ====
-include::sample[dir="snippets/swift/swiftApplication/groovy",files="build.gradle[tags=apply-plugin]"]
 include::sample[dir="snippets/swift/swiftApplication/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/swift/swiftApplication/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 [[sec:swift_application_build_variants]]
@@ -48,8 +48,8 @@ The target machine can be configured as follows:
 
 .Configure application target machines
 ====
-include::sample[dir="snippets/swift/swiftApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
 include::sample[dir="snippets/swift/swiftApplication/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/swift/swiftApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
 ====
 
 [[sec:swift_application_tasks]]
@@ -114,7 +114,7 @@ Aggregate tasks that perform a full build of the project.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `clean` - Delete::
-Deletes the build directory and everything in it, i.e. the path specified by the `Project.getBuildDir()` project property.
+Deletes the build directory and everything in it, i.e. the path specified by the `layout.buildDirectory` project property.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 [[sec:swift_application_dependency_management]]
@@ -195,7 +195,7 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 
 link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:macros[macros]:: []
 
-link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/main/__variant__`
+link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:objectFileDir[objectFileDir]:: `layout.buildDirectory.dir("obj/main/__$variant__")`
 
 link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:optimized[optimized]:: `false` for debug build type or `true` otherwise
 
@@ -217,7 +217,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:libs[libs]:: `configurations.nativeLink__Variant__`
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkedFile[linkedFile]:: `$buildDir/exe/main/__variant__/module`
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkedFile[linkedFile]:: `layout.buildDirectory.dir("exe/main/__$variant__/module")`
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkerArgs[linkerArgs]:: []
 

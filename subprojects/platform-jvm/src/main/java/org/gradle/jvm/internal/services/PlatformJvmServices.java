@@ -16,92 +16,33 @@
 
 package org.gradle.jvm.internal.services;
 
-import net.rubygrapefruit.platform.SystemInfo;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.cache.FileLockManager;
-import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
 import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
-import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
-import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
-import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary;
-import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
-import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
-import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
-import org.gradle.platform.internal.DefaultBuildPlatform;
-
-import java.util.List;
 
 public class PlatformJvmServices extends AbstractPluginServiceRegistry {
-
-    protected static class BuildServices {
-
-        protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
-            return objectFactory.newInstance(DefaultBuildPlatform.class, systemInfo, operatingSystem);
-        }
-
-        protected DefaultJavaToolchainResolverRegistry createJavaToolchainResolverRegistry(
-                Gradle gradle,
-                Instantiator instantiator,
-                ObjectFactory objectFactory,
-                ProviderFactory providerFactory,
-                AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-            return objectFactory.newInstance(DefaultJavaToolchainResolverRegistry.class, gradle, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
-        }
-
-        protected DefaultJvmToolchainManagement createToolchainManagement(ObjectFactory objectFactory, JavaToolchainResolverRegistry registry) {
-            return objectFactory.newInstance(DefaultJvmToolchainManagement.class, registry);
-        }
-
-        protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {
-            return objectFactory.newInstance(JdkCacheDirectory.class, homeDirProvider, operations, lockManager, detector);
-        }
-
-        protected JavaInstallationRegistry createJavaInstallationRegistry(ObjectFactory objectFactory, List<InstallationSupplier> suppliers, BuildOperationExecutor executor, OperatingSystem os) {
-            return objectFactory.newInstance(JavaInstallationRegistry.class, suppliers, executor, os);
-        }
-
-    }
-
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildServices());
         registerJavaInstallationSuppliers(registration);
         registerInvalidJavaInstallationsCacheInvalidator(registration);
     }
 
     private void registerJavaInstallationSuppliers(ServiceRegistration registration) {
         registration.add(AsdfInstallationSupplier.class);
-        registration.add(AutoInstalledInstallationSupplier.class);
         registration.add(CurrentInstallationSupplier.class);
         registration.add(EnvironmentVariableListInstallationSupplier.class);
         registration.add(IntellijInstallationSupplier.class);
@@ -112,16 +53,6 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(OsXInstallationSupplier.class);
         registration.add(SdkmanInstallationSupplier.class);
         registration.add(WindowsInstallationSupplier.class);
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(JavaToolchainFactory.class);
-        registration.add(DefaultJavaToolchainProvisioningService.class);
-        registration.add(AdoptOpenJdkRemoteBinary.class);
-        registration.add(SecureFileDownloader.class);
-        registration.add(JavaToolchainQueryService.class);
-        registration.add(DefaultJavaToolchainService.class);
     }
 
     private void registerInvalidJavaInstallationsCacheInvalidator(ServiceRegistration registration) {

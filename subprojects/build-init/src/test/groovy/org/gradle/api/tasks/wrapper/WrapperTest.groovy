@@ -18,28 +18,42 @@ package org.gradle.api.tasks.wrapper
 
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskPropertyTestUtils
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.GUtil
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.WrapUtil
 import org.gradle.wrapper.GradleWrapperMain
 import org.gradle.wrapper.WrapperExecutor
 
 class WrapperTest extends AbstractTaskTest {
+    private static final String RELEASE = "7.6"
+    private static final String RELEASE_CANDIDATE = "7.7-rc-5"
+    private static final String NIGHTLY = "8.1-20221207164726+0000"
+    private static final String RELEASE_NIGHTLY = "8.0-20221207164726+0000"
+    private static final String TARGET_WRAPPER_FINAL = "gradle/wrapper"
     private Wrapper wrapper
-    private String targetWrapperJarPath
     private TestFile expectedTargetWrapperJar
     private File expectedTargetWrapperProperties
 
+    def createVersionTextResource(String version) {
+        wrapper.getProject().getResources().text.fromString("""{ "version" : "${version}" }""")
+    }
+
     def setup() {
         wrapper = createTask(Wrapper.class)
+
+        def latest = createVersionTextResource(RELEASE)
+        def releaseCandidate = createVersionTextResource(RELEASE_CANDIDATE)
+        def nightly = createVersionTextResource(NIGHTLY)
+        def releaseNightly = createVersionTextResource(RELEASE_NIGHTLY)
+        wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly))
         wrapper.setGradleVersion("1.0")
-        targetWrapperJarPath = "gradle/wrapper"
         expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
-                targetWrapperJarPath + "/gradle-wrapper.jar")
+                TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
         expectedTargetWrapperProperties = new File(getProject().getProjectDir(),
-                targetWrapperJarPath + "/gradle-wrapper.properties")
-        new File(getProject().getProjectDir(), targetWrapperJarPath).mkdirs()
+                TARGET_WRAPPER_FINAL + "/gradle-wrapper.properties")
+        new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL).mkdirs()
         wrapper.setDistributionPath("somepath")
         wrapper.setDistributionSha256Sum("somehash")
     }
@@ -53,7 +67,7 @@ class WrapperTest extends AbstractTaskTest {
         wrapper = createTask(Wrapper.class)
 
         expect:
-        new File(getProject().getProjectDir(), "gradle/wrapper/gradle-wrapper.jar") == wrapper.getJarFile()
+        new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar") == wrapper.getJarFile()
         new File(getProject().getProjectDir(), "gradlew") == wrapper.getScriptFile()
         new File(getProject().getProjectDir(), "gradlew.bat") == wrapper.getBatchScript()
         GradleVersion.current().getVersion() == wrapper.getGradleVersion()
@@ -64,20 +78,20 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.getDistributionUrl() != null
         wrapper.getDistributionSha256Sum() == null
         !wrapper.getNetworkTimeout().isPresent()
+        wrapper.getValidateDistributionUrl()
     }
 
-    def "determines Windows script path from unix script path"() {
-        given:
-        wrapper.setScriptFile("build/gradle.sh")
-
-        expect:
-        getProject().file("build/gradle.bat") == wrapper.getBatchScript()
-
+    def "determines Windows script path from unix script path with #inName"() {
         when:
-        wrapper.setScriptFile("build/gradle-wrapper")
+        wrapper.setScriptFile("build/$inName")
 
         then:
-        getProject().file("build/gradle-wrapper.bat") == wrapper.getBatchScript()
+        getProject().file("build/$outName") == wrapper.getBatchScript()
+
+        where:
+        inName           | outName
+        "gradle.sh"      | "gradle.bat"
+        "gradle-wrapper" | "gradle-wrapper.bat"
     }
 
     def "determines properties file path from jar path"() {
@@ -88,28 +102,22 @@ class WrapperTest extends AbstractTaskTest {
         getProject().file("build/gradle-wrapper.properties") == wrapper.getPropertiesFile()
     }
 
-    def "downloads from release repository for release versions"() {
-        given:
-        wrapper.setGradleVersion("0.9.1")
+    def "downloads for '#version' from repository "() {
+        when:
+        wrapper.setGradleVersion(version)
 
-        expect:
-        "https://services.gradle.org/distributions/gradle-0.9.1-bin.zip" == wrapper.getDistributionUrl()
-    }
+        then:
+        "https://services.gradle.org/distributions$snapshot/gradle-$out-bin.zip" == wrapper.getDistributionUrl()
 
-    def "downloads from release repository for preview release versions"() {
-        given:
-        wrapper.setGradleVersion("1.0-milestone-1")
-
-        expect:
-        "https://services.gradle.org/distributions/gradle-1.0-milestone-1-bin.zip" == wrapper.getDistributionUrl()
-    }
-
-    def "downloads from snapshot repository for snapshot versions"() {
-        given:
-        wrapper.setGradleVersion("0.9.1-20101224110000+1100")
-
-        expect:
-        "https://services.gradle.org/distributions-snapshots/gradle-0.9.1-20101224110000+1100-bin.zip" == wrapper.getDistributionUrl()
+        where:
+        version                     | out                         | snapshot
+        "1.0-milestone-1"           | "1.0-milestone-1"           | ""
+        "0.9.1-20101224110000+1100" | "0.9.1-20101224110000+1100" | "-snapshots"
+        "0.9.1"                     | "0.9.1"                     | ""
+        "latest"                    | RELEASE                     | ""
+        "release-candidate"         | RELEASE_CANDIDATE           | ""
+        "nightly"                   | NIGHTLY                     | "-snapshots"
+        "release-nightly"           | RELEASE_NIGHTLY             | "-snapshots"
     }
 
     def "uses explicitly defined distribution url"() {
@@ -135,6 +143,14 @@ class WrapperTest extends AbstractTaskTest {
 
         expect:
         5000 == wrapper.getNetworkTimeout().get()
+    }
+
+    def "uses defined validateDistributionUrl value"() {
+        when:
+        wrapper.setValidateDistributionUrl(false)
+
+        then:
+        !wrapper.getValidateDistributionUrl().get()
     }
 
     def "execute with non extant wrapper jar parent directory"() {
@@ -166,11 +182,23 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == "6000"
     }
 
+    def "execute with validateDistributionUrl set"() {
+        given:
+        wrapper.setValidateDistributionUrl(false)
+
+        when:
+        execute(wrapper)
+        def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
+
+        then:
+        properties.getProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL) == "false"
+    }
+
     def "check inputs"() {
         expect:
         TaskPropertyTestUtils.getProperties(wrapper).keySet() == WrapUtil.toSet(
             "distributionBase", "distributionPath", "distributionUrl", "distributionSha256Sum",
-            "distributionType", "archiveBase", "archivePath", "gradleVersion", "networkTimeout")
+            "distributionType", "archiveBase", "archivePath", "gradleVersion", "networkTimeout", "validateDistributionUrl")
     }
 
     def "execute with extant wrapper jar parent directory and extant wrapper jar"() {

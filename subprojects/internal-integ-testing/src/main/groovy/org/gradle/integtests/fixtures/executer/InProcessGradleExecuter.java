@@ -23,8 +23,6 @@ import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -50,6 +48,8 @@ import org.gradle.internal.InternalListener;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.agents.AgentInitializer;
+import org.gradle.internal.agents.AgentUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
@@ -63,6 +63,7 @@ import org.gradle.internal.time.Time;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -133,6 +134,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     static {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
         loggingManager.start();
+
+        GLOBAL_SERVICES.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
     }
 
     public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
@@ -198,7 +201,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     private boolean isForkRequired() {
-        if (isDaemonExplicitlyRequired() || !getJavaHome().equals(Jvm.current().getJavaHome())) {
+        if (isDaemonExplicitlyRequired() || !getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
             return true;
         }
         File gradleProperties = new File(getWorkingDir(), "gradle.properties");
@@ -206,7 +209,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             Properties properties = GUtil.loadProperties(gradleProperties);
             return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
         }
-        return false;
+        boolean isInstrumentationEnabledForProcess = isAgentInstrumentationEnabled();
+        boolean differentInstrumentationRequested = getAllArgs().stream().anyMatch(
+            ("-D" + DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY + "=" + !isInstrumentationEnabledForProcess)::equals);
+        return differentInstrumentationRequested;
     }
 
     private <T extends ExecutionResult> T assertResult(T result) {
@@ -227,9 +233,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             GradleInvocation invocation = buildInvocation();
             JavaExecHandleBuilder builder = TestFiles.execFactory().newJavaExec();
             builder.workingDir(getWorkingDir());
-            builder.setExecutable(new File(getJavaHome(), "bin/java"));
+            builder.setExecutable(new File(getJavaHomeLocation(), "bin/java"));
             builder.classpath(getExecHandleFactoryClasspath());
             builder.jvmArgs(invocation.launcherJvmArgs);
+            // Apply the agent to the newly created daemon. The feature flag decides if it is going to be used.
+            for (File agent : cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles())) {
+                builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
+            }
             builder.environment(invocation.environmentVars);
 
             builder.getMainClass().set(Main.class.getName());
@@ -427,34 +437,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         return this;
     }
 
-    private static class BuildListenerImpl implements TaskExecutionGraphListener, InternalListener {
+    private static class BuildListenerImpl implements TaskExecutionListener, InternalListener {
         private final List<String> executedTasks = new CopyOnWriteArrayList<>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<>();
 
         @Override
-        public void graphPopulated(TaskExecutionGraph graph) {
-            List<Task> planned = new ArrayList<>(graph.getAllTasks());
-            graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
-        }
-    }
-
-    private static class TaskListenerImpl implements TaskExecutionListener, InternalListener {
-        private final List<Task> planned;
-        private final List<String> executedTasks;
-        private final Set<String> skippedTasks;
-
-        TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
-            this.planned = planned;
-            this.executedTasks = executedTasks;
-            this.skippedTasks = skippedTasks;
-        }
-
-        @Override
         public void beforeExecute(Task task) {
-            if (!planned.contains(task)) {
-                System.out.println("Warning: " + task + " was executed even though it is not part of the task plan!");
-            }
-
             String taskPath = path(task);
             executedTasks.add(taskPath);
         }

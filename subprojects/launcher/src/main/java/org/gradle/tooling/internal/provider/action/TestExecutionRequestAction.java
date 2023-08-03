@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.action;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions;
@@ -101,19 +100,9 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private static List<InternalJvmTestRequest> toProviderInternalJvmTestRequest(Collection<InternalJvmTestRequest> internalJvmTestRequests, Collection<String> testClassNames) {
         // handle consumer < 2.7
         if (internalJvmTestRequests.isEmpty()) {
-            return CollectionUtils.collect(testClassNames, new Transformer<InternalJvmTestRequest, String>() {
-                @Override
-                public InternalJvmTestRequest transform(String testClass) {
-                    return new ProviderInternalJvmTestRequest(testClass, null);
-                }
-            });
+            return CollectionUtils.collect(testClassNames, testClass -> new ProviderInternalJvmTestRequest(testClass, null));
         } else {
-            return CollectionUtils.collect(internalJvmTestRequests, new Transformer<InternalJvmTestRequest, InternalJvmTestRequest>() {
-                @Override
-                public InternalJvmTestRequest transform(InternalJvmTestRequest internalTestMethod) {
-                    return new ProviderInternalJvmTestRequest(internalTestMethod.getClassName(), internalTestMethod.getMethodName());
-                }
-            });
+            return CollectionUtils.collect(internalJvmTestRequests, internalTestMethod -> new ProviderInternalJvmTestRequest(internalTestMethod.getClassName(), internalTestMethod.getMethodName()));
         }
     }
 

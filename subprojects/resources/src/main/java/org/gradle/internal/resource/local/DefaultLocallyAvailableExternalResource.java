@@ -66,6 +66,11 @@ public class DefaultLocallyAvailableExternalResource implements LocallyAvailable
         return localFile.getFile();
     }
 
+    @Override
+    public boolean exists() {
+        return localFile.exists();
+    }
+
     @Nullable
     @Override
     public List<String> list() throws ResourceException {

@@ -6,6 +6,7 @@ description = "Plugins for integration with native projects in XCode and Visual 
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":base-ide-plugins"))
     implementation(project(":logging"))
     implementation(project(":core-api"))
     implementation(project(":model-core"))
@@ -46,4 +47,4 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-native"))
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

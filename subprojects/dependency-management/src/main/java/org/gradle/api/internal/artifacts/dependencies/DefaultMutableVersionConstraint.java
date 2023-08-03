@@ -34,7 +34,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     private final List<String> rejectedVersions = Lists.newArrayListWithExpectedSize(1);
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
-        this(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions());
+        this(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
     }
 
     public DefaultMutableVersionConstraint(String version) {
@@ -42,14 +42,15 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     }
 
     private DefaultMutableVersionConstraint(@Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion) {
-        this(preferredVersion, requiredVersion, strictVersion, Collections.emptyList());
+        this(preferredVersion, requiredVersion, strictVersion, Collections.emptyList(), null);
     }
 
-    private DefaultMutableVersionConstraint(@Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion, List<String> rejects) {
+    private DefaultMutableVersionConstraint(@Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion, List<String> rejects, @Nullable String branch) {
         updateVersions(preferredVersion, requiredVersion, strictVersion);
         for (String reject : rejects) {
             this.rejectedVersions.add(nullToEmpty(reject));
         }
+        this.branch = branch;
     }
 
     private void updateVersions(@Nullable String preferredVersion, @Nullable String requiredVersion, @Nullable String strictVersion) {

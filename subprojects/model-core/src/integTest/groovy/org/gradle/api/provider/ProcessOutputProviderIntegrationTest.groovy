@@ -89,10 +89,12 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
                 ${cmdToExecConfig(*testScript.commandLine)}
             }
 
-            println("exit value = " + execProvider.result.get().exitValue)
-            println(execProvider.standardOutput.asText.get())
-
-            task empty() {}
+            task empty() {
+                doLast {
+                    println("exit value = " + execProvider.result.get().exitValue)
+                    println(execProvider.standardOutput.asText.get())
+                }
+            }
         """
 
         when:

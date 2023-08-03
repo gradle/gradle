@@ -536,14 +536,13 @@ class CommandLineParserTest extends Specification {
     }
 
     def parseFailsWhenArgumentIsMissing() {
-        parser.option('a').hasArgument()
-
+        parser.option('a').hasArgument().hasDescription("No argument description.")
         when:
         parser.parse(['-a'])
 
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == 'No argument was provided for command-line option \'-a\'.'
+        e.message == 'No argument was provided for command-line option \'-a\' with description: \'No argument description.\''
     }
 
     def parseFailsWhenArgumentIsMissingFromEqualsForm() {
@@ -585,26 +584,26 @@ class CommandLineParserTest extends Specification {
     }
 
     def parseFailsWhenArgumentIsMissingAndAnotherOptionFollows() {
-        parser.option('a').hasArgument()
+        parser.option('a').hasArgument().hasDescription("No argument description.")
 
         when:
         parser.parse(['-a', '-b'])
 
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == 'No argument was provided for command-line option \'-a\'.'
+        e.message == 'No argument was provided for command-line option \'-a\' with description: \'No argument description.\''
     }
 
     def parseFailsWhenArgumentIsMissingAndOptionsAreCombined() {
         parser.option('a')
-        parser.option('b').hasArgument()
+        parser.option('b').hasArgument().hasDescription("No argument description.")
 
         when:
         parser.parse(['-ab'])
 
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == 'No argument was provided for command-line option \'-b\'.'
+        e.message == 'No argument was provided for command-line option \'-b\' with description: \'No argument description.\''
     }
 
     def parseFailsWhenAttachedArgumentIsProvidedForOptionWhichDoesNotTakeAnArgument() {
@@ -689,5 +688,25 @@ class CommandLineParserTest extends Specification {
 
         then:
         result.extraArguments == ['arg1', 'arg\ntwo']
+    }
+
+    def "group boolean opposite option pairs together"() {
+        parser.option('a-option').hasDescription('this is option --a-option')
+        parser.option('a-option-other').hasDescription('this is option --a-option-other')
+        parser.option('no-a-option').hasDescription('Disables option --a-option')
+        parser.option('c-option')
+        parser.option('no-c-option')
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr)
+        outstr.toString().readLines() == [
+            '--a-option        this is option --a-option',
+            '--no-a-option     Disables option --a-option',
+            '--a-option-other  this is option --a-option-other',
+            '--c-option',
+            '--no-c-option',
+            '--                Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+        ]
     }
 }

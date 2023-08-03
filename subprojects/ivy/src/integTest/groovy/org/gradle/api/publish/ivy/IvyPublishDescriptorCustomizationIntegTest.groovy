@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 
 import javax.xml.namespace.QName
@@ -50,7 +49,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "can customize descriptor xml during publication"() {
         when:
         succeeds 'publish'
@@ -115,7 +113,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can generate ivy.xml without publishing"() {
         given:
         def moduleName = module.module
@@ -137,7 +134,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         module.ivyFile.assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     def "produces sensible error when withXML fails"() {
         when:
         buildFile << """
@@ -161,7 +157,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }
 
-    @ToBeFixedForConfigurationCache
     def "produces sensible error when withXML modifies publication coordinates"() {
         when:
         buildFile << """
@@ -239,7 +234,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         "'http://my.extra.info'" | null
     }
 
-    @ToBeFixedForConfigurationCache
     def "withXml should not loose Gradle metadata marker"() {
         buildFile << """
             publishing {

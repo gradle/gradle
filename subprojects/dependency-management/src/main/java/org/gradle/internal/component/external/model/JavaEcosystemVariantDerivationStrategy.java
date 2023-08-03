@@ -96,7 +96,7 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
 
     private ImmutableCapabilities buildShadowPlatformCapability(ModuleComponentIdentifier componentId, boolean enforced) {
         return ImmutableCapabilities.of(Collections.singletonList(
-                new DefaultShadowedCapability(new ImmutableCapability(
+                new ShadowedImmutableCapability(new DefaultImmutableCapability(
                         componentId.getGroup(),
                         componentId.getModule(),
                         componentId.getVersion()

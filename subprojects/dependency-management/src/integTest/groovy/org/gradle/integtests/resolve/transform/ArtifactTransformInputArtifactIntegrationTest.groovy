@@ -27,7 +27,7 @@ import java.util.regex.Pattern
 class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
     def "transform does not execute when project artifact cannot be built"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -66,7 +66,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     // and so when the path changes the outputs are invalidated
     def "can attach #description to input artifact property with project artifact file but it has no effect when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -177,7 +177,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "can attach #description to input artifact property with project artifact directory but it has no effect when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction {
+        setupBuildWithColorTransform {
             produceDirs()
         }
         buildFile << """
@@ -310,7 +310,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "re-runs transform when input artifact file changes from file to missing"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -372,7 +372,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     def "inputs to the build cache key are reported when build cache logging is enabled"() {
         given:
         settingsFile << "include 'a', 'b'"
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -411,7 +411,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "honors @PathSensitive(NONE) on input artifact property for project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -490,7 +490,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "honors @PathSensitive(#sensitivity) to input artifact property for project artifact directory when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction {
+        setupBuildWithColorTransform {
             produceDirs()
         }
         buildFile << """
@@ -583,7 +583,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "honors @PathSensitive(#sensitivity) on input artifact property for project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -665,7 +665,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "honors content changes for @PathSensitive(NONE) on input artifact property for project artifact directory when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction {
+        setupBuildWithColorTransform {
             produceDirs()
         }
         buildFile << """
@@ -754,7 +754,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "honors @PathSensitive(NONE) on input artifact property for project artifact directory when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction {
+        setupBuildWithColorTransform {
             produceDirs()
         }
         buildFile << """
@@ -843,7 +843,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     def "can attach @PathSensitive(NONE) to input artifact property for external artifact"() {
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         def group1libv10 = mavenRepo.module("group1", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
         group1libv10.artifactFile.text = "lib"
         def group2libv10 = mavenRepo.module("group2", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
@@ -926,7 +926,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     def "can attach @PathSensitive(#sensitivity) to input artifact property for external artifact"() {
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         def lib1 = withColorVariants(mavenRepo.module("group1", "lib", "1.0")).publish()
         lib1.artifactFile.text = "lib"
         def lib2 = withColorVariants(mavenRepo.module("group2", "lib", "1.0")).publish()
@@ -1004,7 +1004,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "honors content changes with @#annotation on input artifact property with project artifact file when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction {
+        setupBuildWithColorTransform {
             produceJars()
         }
         buildFile << """
@@ -1103,7 +1103,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "honors @#annotation on input artifact property with project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction {
+        setupBuildWithColorTransform {
             produceJars()
         }
         buildFile << """
@@ -1203,7 +1203,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "honors runtime classpath normalization for input artifact"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction {
+        setupBuildWithColorTransform {
             produceJars()
         }
         buildFile << """
@@ -1255,7 +1255,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     @Issue("https://github.com/gradle/gradle/issues/19003")
     def "can transform an empty input artifact"() {
         settingsFile << "include 'a', 'b'"
-        setupBuildWithColorTransformAction {
+        setupBuildWithColorTransform {
             produceDirs()
         }
         buildFile << """

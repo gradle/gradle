@@ -43,7 +43,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             return o1.getName().compareTo(o2.getName());
         }
     };
-    private final Map<Class<?>, Serializer<?>> serializerMap = new ConcurrentSkipListMap<Class<?>, Serializer<?>>(CLASS_COMPARATOR);
+    private final Map<Class<?>, SerializerFactory<?>> serializerMap = new ConcurrentSkipListMap<Class<?>, SerializerFactory<?>>(CLASS_COMPARATOR);
 
     // We are using a ConcurrentHashMap here because:
     //   - We don't want to use a Set with CLASS_COMPARATOR, since that would treat two classes with the same name originating from different classloaders as identical, allowing only one in the Set.
@@ -61,8 +61,12 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
     }
 
     @Override
-    public <T> void register(Class<T> implementationType, Serializer<T> serializer) {
-        serializerMap.put(implementationType, serializer);
+    public <T> void register(Class<T> implementationType, final Serializer<T> serializer) {
+        registerWithFactory(implementationType, new InstanceBasedSerializerFactory<T>(serializer));
+    }
+
+    protected <T> void registerWithFactory(Class<T> implementationType, final SerializerFactory<T> serializerProvider) {
+        serializerMap.put(implementationType, serializerProvider);
     }
 
     @Override
@@ -87,8 +91,8 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
     @Override
     public <T> Serializer<T> build(Class<T> baseType) {
-        Map<Class<?>, Serializer<?>> matches = new LinkedHashMap<Class<?>, Serializer<?>>();
-        for (Map.Entry<Class<?>, Serializer<?>> entry : serializerMap.entrySet()) {
+        Map<Class<?>, SerializerFactory<?>> matches = new LinkedHashMap<Class<?>, SerializerFactory<?>>();
+        for (Map.Entry<Class<?>, SerializerFactory<?>> entry : serializerMap.entrySet()) {
             if (baseType.isAssignableFrom(entry.getKey())) {
                 matches.put(entry.getKey(), entry.getValue());
             }
@@ -103,7 +107,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             throw new IllegalArgumentException(String.format("Don't know how to serialize objects of type %s.", baseType.getName()));
         }
         if (matches.size() == 1 && matchingJavaSerialization.isEmpty()) {
-            return Cast.uncheckedNonnullCast(matches.values().iterator().next());
+            return Cast.uncheckedNonnullCast(matches.values().iterator().next().serializerInstance());
         }
         return new TaggedTypeSerializer<T>(matches, matchingJavaSerialization);
     }
@@ -127,12 +131,12 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         private final Map<Class<?>, TypeInfo> typeHierarchies = new HashMap<Class<?>, TypeInfo>();
         private final TypeInfo[] serializersByTag;
 
-        TaggedTypeSerializer(Map<Class<?>, Serializer<?>> serializerMap, Set<Class<?>> javaSerialization) {
+        TaggedTypeSerializer(Map<Class<?>, SerializerFactory<?>> serializerMap, Set<Class<?>> javaSerialization) {
             serializersByTag = new TypeInfo[2 + serializerMap.size()];
             serializersByTag[JAVA_TYPE] = JAVA_SERIALIZATION;
             int nextTag = 2;
-            for (Map.Entry<Class<?>, Serializer<?>> entry : serializerMap.entrySet()) {
-                add(nextTag, entry.getKey(), entry.getValue());
+            for (Map.Entry<Class<?>, SerializerFactory<?>> entry : serializerMap.entrySet()) {
+                add(nextTag, entry.getKey(), entry.getValue().serializerInstance());
                 nextTag++;
             }
             for (Class<?> type : javaSerialization) {
@@ -204,6 +208,29 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
         boolean matches(Class<?> baseType, Class<?> candidate);
 
+    }
+
+    /**
+     * Serializer wrapper, that allows specific instance to be created when they cannot be shared or reused.
+     *
+     * @param <S> The type supported by the serializer
+     */
+    protected interface SerializerFactory<S> {
+        Serializer<S> serializerInstance();
+    }
+
+    private static class InstanceBasedSerializerFactory<S> implements SerializerFactory<S> {
+
+        private final Serializer<S> instance;
+
+        private InstanceBasedSerializerFactory(Serializer<S> instance) {
+            this.instance = instance;
+        }
+
+        @Override
+        public Serializer<S> serializerInstance() {
+            return instance;
+        }
     }
 
     private static final class HierarchySerializerMatcher implements SerializerClassMatcherStrategy {

@@ -1,60 +1,74 @@
 [[dependency_management_in_gradle]]
-= Dependency management in Gradle
+= Dependency Management
 
-== What is dependency management?
+Software projects rarely work in isolation.
+Projects often rely on reusable functionality from libraries.
+Some projects organize unrelated functionality into separate parts of a modular system.
 
-Software projects rarely work in isolation. In most cases, a project relies on reusable functionality in the form of libraries or is broken up into individual components to compose a modularized system. Dependency management is a technique for declaring, resolving and using dependencies required by the project in an automated fashion.
+Dependency management is an automated technique for declaring, resolving, and using functionality required by a project.
 
-[NOTE]
+[TIP]
 ====
-For a general overview on the terms used throughout the user guide, refer to <<dependency_management_terminology.adoc#dependency_management_terminology,Dependency Management Terminology>>.
+For an overview of dependency management terms, see <<dependency_management_terminology.adoc#dependency_management_terminology,Dependency Management Terminology>>.
 ====
 
 [[sec:dependency-mgmt-in-gradle]]
-== Dependency management in Gradle
+== Dependency Management in Gradle
 
-Gradle has built-in support for dependency management and lives up to the task of fulfilling typical scenarios encountered in modern software projects.
-We’ll explore the main concepts with the help of an example project.
-The illustration below should give you an rough overview on all the moving parts.
-
-[.inset]
-.Dependency management big picture
+.Dependencies management at a glance
 image::dependency-management-resolution.png[]
 
-The example project builds Java source code.
-Some of the Java source files import classes from link:https://github.com/google/guava[Google Guava], a open-source library providing a wealth of utility functionality.
-In addition to Guava, the project needs the link:http://junit.org/junit5/[JUnit] libraries for compiling and executing test code.
+Gradle has built-in support for dependency management.
 
-Guava and JUnit represent the _dependencies_ of this project.
-A build script developer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes e.g. just for compilation of source code or for executing tests.
-In Gradle, the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scope of a dependency>> is called a _configuration_.
-For a full overview, see the reference material on <<declaring_dependencies.adoc#sec:dependency-types,dependency types>>.
+Let's explore the main concepts with the help of a theoretical but common project:
 
-Often times dependencies come in the form of <<dependency_management_terminology.adoc#sub:terminology_module,modules>>.
-You’ll need to tell Gradle where to find those modules so they can be consumed by the build.
-The location for storing modules is called a _repository_.
-By <<declaring_repositories.adoc#declaring-repositories,declaring repositories>> for a build, Gradle will know how to find and retrieve modules.
-Repositories can come in different forms: as local directory or a remote repository.
-The reference on <<declaring_repositories.adoc#sec:repository-types,repository types>> provides a broad coverage on this topic.
+* This project builds Java source code.
+* Some Java source files import classes from the link:https://github.com/google/guava[Google Guava] library.
+* This project uses link:http://junit.org/junit5/[JUnit] for testing.
 
-At runtime, Gradle will locate the declared dependencies if needed for operating a specific task.
-The dependencies might need to be downloaded from a remote repository, retrieved from a local directory or requires another project to be built in a multi-project setting.
-This process is called _dependency resolution_.
-You can find a detailed discussion in <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,How Gradle downloads dependencies>>.
+The Gradle build file might look as follows:
 
-Once resolved, the resolution mechanism <<dependency_resolution.adoc#sec:dependency_cache,stores the underlying files of a dependency in a local cache>>, also referred to as the _dependency cache_.
-Future builds reuse the files stored in the cache to avoid unnecessary network calls.
+.Gradle build file with dependencies
+====
+include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/groovy",files="build.gradle"]
+====
 
-Modules can provide additional metadata.
-Metadata is the data that describes the module in more detail e.g. the coordinates for finding it in a repository, information about the project, or its authors.
-As part of the metadata, a module can define that other modules are needed for it to work properly.
-For example, the JUnit 5 platform module also requires the platform commons module.
-Gradle automatically resolves those additional modules, so called _transitive dependencies_.
-If needed, you can <<dependency_constraints.adoc#dependency-constraints,customize the behavior the handling of transitive dependencies>> to your project's requirements.
+<1> *Here we define repositories for the project.*
 
-Projects with tens or hundreds of declared dependencies can easily suffer from dependency hell.
-Gradle provides sufficient tooling to visualize, navigate and analyze the dependency graph of a project either with the help of a link:https://scans.gradle.com/get-started[build scan] or built-in tasks.
-Learn more in <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Viewing and debugging dependencies>>.
+<2> *Here we declare remote and local repositories for dependency locations.*
++
+You can <<declaring_repositories.adoc#declaring-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_. +
+In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_. +
+During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
+Gradle then <<dependency_resolution.adoc#sec:dependency_cache,stores resolved dependencies in a local cache>> called the _dependency cache_.
+Subsequent builds use this cache to avoid unnecessary network calls and speed up the build process.
+
+<3> *Here we define dependencies used by the project.*
+
+<4> *Here we declare the specific dependency name and version within a scope.*
++
+You can add code to your Java project from an external library such as `com.google.common.base` (a Guava package) which becomes a _dependency_. +
+In this example, the theoretical project uses Guava version 31.1-jre and JUnit 4.13.2 as _dependencies_. +
+A build engineer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
+Gradle calls the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
+
+Repositories offer dependencies in multiple formats.
+For information about the formats supported by Gradle, see <<declaring_dependencies.adoc#sec:dependency-types,dependency types>>.
+
+Metadata describes dependencies.
+Some examples of metadata include:
+
+* coordinates for finding the dependency in a repository
+* information about the project that created the dependency
+* the authors of the dependency
+* other dependencies required for a dependency to work properly, known as _transitive dependencies_
+
+You can <<dependency_constraints.adoc#dependency-constraints,customize Gradle's handling of transitive dependencies>> based on the requirements of a project.
+
+Projects with hundreds of declared dependencies can be difficult to debug.
+Gradle provides tools to visualize and analyze a project's dependency graph (i.e. dependency tree).
+You can use a link:https://scans.gradle.com/get-started[Build Scan(TM)] or <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,built-in tasks>>.
 
 .Build scan dependencies report
 image::gradle-core-test-build-scan-dependencies.png[]

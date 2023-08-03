@@ -432,7 +432,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for configuration ':a:implementation'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
@@ -482,7 +482,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertResolutionFailure(':a:implementation')
+        failure.assertResolutionFailure(':a:resolver')
         failure.assertHasCause("Cannot query the parameters of an instance of TransformAction that takes no parameters.")
     }
 
@@ -524,7 +524,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for configuration ':a:implementation'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
@@ -576,7 +576,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for configuration ':a:implementation'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
@@ -796,7 +796,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -880,7 +880,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         def typeName = propertyType instanceof Class ? propertyType.name : propertyType.toString()
         buildFile << """
             project(':a') {
@@ -921,7 +921,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -958,7 +958,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {

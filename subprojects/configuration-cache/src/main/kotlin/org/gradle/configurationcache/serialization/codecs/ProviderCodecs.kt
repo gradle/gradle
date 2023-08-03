@@ -19,13 +19,15 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
+import org.gradle.api.flow.FlowAction
+import org.gradle.api.flow.FlowParameters
+import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
@@ -41,7 +43,13 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.flow.BuildWorkResultProvider
+import org.gradle.configurationcache.flow.RegisteredFlowAction
+import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.IsolateContext
+import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
@@ -51,6 +59,9 @@ import org.gradle.configurationcache.serialization.encodePreservingSharedIdentit
 import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.withDebugFrame
+import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.configurationcache.serialization.withPropertyTrace
 import org.gradle.internal.build.BuildStateRegistry
 
 
@@ -60,29 +71,20 @@ import org.gradle.internal.build.BuildStateRegistry
  */
 internal
 class FixedValueReplacingProviderCodec(
-    valueSourceProviderFactory: ValueSourceProviderFactory,
-    buildStateRegistry: BuildStateRegistry
+    valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
+    buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
+    flowProvidersCodec: Codec<BuildWorkResultProvider>,
 ) {
     private
     val providerWithChangingValueCodec = Bindings.of {
-        bind(ValueSourceProviderCodec(valueSourceProviderFactory))
-        bind(BuildServiceProviderCodec(buildStateRegistry))
+        bind(valueSourceProviderCodec)
+        bind(buildServiceProviderCodec)
+        bind(flowProvidersCodec)
         bind(BeanCodec)
     }.build()
 
     suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
-        val state = try {
-            value.calculateExecutionTimeValue()
-        } catch (e: Exception) {
-            logPropertyProblem("serialize", e) {
-                text("value ")
-                reference(value.toString())
-                text(" failed to unpack provider")
-            }
-            writeByte(0)
-            write(BrokenValue(e))
-            return
-        }
+        val state = value.calculateExecutionTimeValue()
         encodeValue(state)
     }
 
@@ -124,11 +126,6 @@ class FixedValueReplacingProviderCodec(
 
     suspend fun ReadContext.decodeValue(): ValueSupplier.ExecutionTimeValue<*> =
         when (readByte()) {
-            0.toByte() -> {
-                val value = read() as BrokenValue
-                ValueSupplier.ExecutionTimeValue.changingValue(DefaultProvider { value.rethrow() })
-            }
-
             1.toByte() -> ValueSupplier.ExecutionTimeValue.missing<Any>()
             2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
             3.toByte() -> {
@@ -141,6 +138,67 @@ class FixedValueReplacingProviderCodec(
             4.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue<Any>(providerWithChangingValueCodec.run { decode() }!!.uncheckedCast())
             else -> throw IllegalStateException("Unexpected provider value")
         }
+}
+
+
+internal
+class FlowProvidersCodec(
+    private val flowProviders: FlowProviders
+) : Codec<BuildWorkResultProvider> {
+
+    override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
+        if (isolate.owner !is IsolateOwner.OwnerFlowAction) {
+            logPropertyProblem("serialize") {
+                reference(BuildWorkResultProvider::class)
+                text(" can only be used as input to flow actions.")
+            }
+        }
+    }
+
+    override suspend fun ReadContext.decode(): BuildWorkResultProvider {
+        return flowProviders.buildWorkResult.uncheckedCast()
+    }
+}
+
+
+internal
+object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
+
+    override suspend fun WriteContext.encode(value: RegisteredFlowAction) {
+        val owner = verifiedIsolateOwner()
+        val flowActionClass = value.type
+        withDebugFrame({ flowActionClass.name }) {
+            writeClass(flowActionClass)
+            withFlowActionIsolate(flowActionClass, owner) {
+                write(value.parameters)
+            }
+        }
+    }
+
+    override suspend fun ReadContext.decode(): RegisteredFlowAction {
+        val flowActionClass = readClassOf<FlowAction<FlowParameters>>()
+        withFlowActionIsolate(flowActionClass, verifiedIsolateOwner()) {
+            return RegisteredFlowAction(flowActionClass, read()?.uncheckedCast())
+        }
+    }
+
+    private
+    inline fun <T : MutableIsolateContext, R> T.withFlowActionIsolate(flowActionClass: Class<*>, owner: IsolateOwner.OwnerFlowScope, block: T.() -> R): R {
+        withIsolate(IsolateOwner.OwnerFlowAction(owner)) {
+            withPropertyTrace(PropertyTrace.BuildLogicClass(flowActionClass.name)) {
+                return block()
+            }
+        }
+    }
+
+    private
+    fun IsolateContext.verifiedIsolateOwner(): IsolateOwner.OwnerFlowScope {
+        val owner = isolate.owner
+        require(owner is IsolateOwner.OwnerFlowScope) {
+            "Flow actions must belong to a Flow scope!"
+        }
+        return owner
+    }
 }
 
 
@@ -190,7 +248,7 @@ class BuildServiceProviderCodec(
             if (isResolved) {
                 val parameters = read() as BuildServiceParameters?
                 val maxUsages = readInt()
-                buildServiceRegistryOf(buildIdentifier).register(name, implementationType, parameters, maxUsages)
+                buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
             } else {
                 buildServiceRegistryOf(buildIdentifier).consume(name, implementationType)
             }

@@ -20,7 +20,7 @@ It uses toy examples to explain basic functionality of Gradle, which is helpful 
 Especially if you move to Gradle from other build tools like Ant and want to understand differences and advantages.
 
 However, to get started with a standard project setup, you don't even need to go into these concepts in detail.
-Instead, you can have a quick hands-on introduction, through our <<getting_started.adoc#try_gradle,step-by-step samples>>.
+Instead, you can have a quick hands-on introduction, through our <<introduction.adoc#getting_started,step-by-step tutorial>>.
 
 [[sec:projects_and_tasks]]
 == Projects, plugins and tasks
@@ -43,6 +43,11 @@ Still, to give you an idea of what a task is, we will look at defining some simp
 
 [[sec:hello_world]]
 == Hello world
+[.multi-language-text.lang-kotlin]
+You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle.kts` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface.adoc#command_line_interface,Command-Line Interface>>] We call this `build.gradle.kts` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
+
+[.multi-language-text.lang-kotlin]
+To try this out, create the following build script named `build.gradle.kts`.
 
 [.multi-language-text.lang-groovy]
 You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface.adoc#command_line_interface,Command-Line Interface>>] We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
@@ -50,16 +55,11 @@ You run a Gradle build using the `gradle` command. The `gradle` command looks fo
 [.multi-language-text.lang-groovy]
 To try this out, create the following build script named `build.gradle`.
 
-[.multi-language-text.lang-kotlin]
-You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle.kts` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface.adoc#command_line_interface,Command-Line Interface>>] We call this `build.gradle.kts` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
-
-[.multi-language-text.lang-kotlin]
-To try this out, create the following build script named `build.gradle.kts`.
 
 .Your first build script
 ====
-include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
 ====
 
 In a command-line shell, move to the containing directory and execute the build script with `gradle -q hello`:
@@ -92,8 +92,8 @@ Gradle's build scripts give you the full power of Groovy and Kotlin. As an appet
 
 .Using Groovy or Kotlin in Gradle's tasks
 ====
-include::sample[dir="snippets/tutorial/upper/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/upper/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/upper/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q upper`**
 ----
@@ -106,8 +106,8 @@ or
 
 .Using Groovy or Kotlin in Gradle's tasks
 ====
-include::sample[dir="snippets/tutorial/count/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/count/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/count/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q count`**
 ----
@@ -124,8 +124,8 @@ As you probably have guessed, you can declare tasks that depend on other tasks.
 
 .Declaration of task that depends on other task
 ====
-include::sample[dir="snippets/tutorial/intro/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/intro/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/intro/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q intro`**
 ----
@@ -138,8 +138,8 @@ To add a dependency, the corresponding task does not need to exist.
 
 .Lazy dependsOn - the other task does not exist (yet)
 ====
-include::sample[dir="snippets/tutorial/lazyDependsOn/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/lazyDependsOn/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/lazyDependsOn/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -159,8 +159,8 @@ For example, you can use it to register multiple tasks of the same type in a loo
 
 .Flexible registration of a task
 ====
-include::sample[dir="snippets/tutorial/dynamic/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/dynamic/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/dynamic/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q task1`**
 ----
@@ -179,8 +179,8 @@ Ant doesn't allow anything like this.
 
 .Accessing a task via API - adding a dependency
 ====
-include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q task0`**
 ----
@@ -193,8 +193,8 @@ Or you can add behavior to an existing task.
 
 .Accessing a task via API - adding behaviour
 ====
-include::sample[dir="snippets/tutorial/helloEnhanced/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/helloEnhanced/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/helloEnhanced/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q hello`**
 ----
@@ -212,8 +212,8 @@ Ant tasks are first-class citizens in Gradle. Gradle provides excellent integrat
 
 .Using AntBuilder to execute ant.loadfile target
 ====
-include::sample[dir="snippets/tutorial/antLoadfile/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/antLoadfile/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/antLoadfile/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q loadfile`**
 ----
@@ -231,8 +231,8 @@ Gradle scales in how you can organize your build logic. The first level of organ
 
 .Using methods to organize your build logic
 ====
-include::sample[dir="snippets/tutorial/antLoadfileWithMethod/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/antLoadfileWithMethod/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/antLoadfileWithMethod/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q loadfile`**
 ----
@@ -240,6 +240,8 @@ include::sample[dir="snippets/tutorial/antLoadfileWithMethod/kotlin", files="bui
 include::{snippetsPath}/tutorial/antLoadfileWithMethod/tests/antLoadfileWithMethod.out[]
 ----
 ====
+
+WARNING: Accessing top-level methods and variables is not yet compatible with the <<configuration_cache#config_cache:not_yet_implemented:accessing_top_level_at_execution,configuration cache>>.
 
 Later you will see that such methods can be shared among subprojects in multi-project builds. If your build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have devoted a whole chapter to this. See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>>.
 
@@ -250,8 +252,8 @@ Gradle allows you to define one or more default tasks that are executed if no ot
 
 .Defining a default task
 ====
-include::sample[dir="snippets/tutorial/defaultTasks/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/defaultTasks/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/defaultTasks/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q`**
 ----
@@ -272,8 +274,8 @@ If your build script needs to use external libraries, you can add them to the sc
 
 .Declaring external dependencies for the build script
 ====
-include::sample[dir="snippets/tutorial/externalDependency/groovy", files="build.gradle[tags=declare-classpath]"]
 include::sample[dir="snippets/tutorial/externalDependency/kotlin", files="build.gradle.kts[tags=declare-classpath]"]
+include::sample[dir="snippets/tutorial/externalDependency/groovy", files="build.gradle[tags=declare-classpath]"]
 ====
 
 The block passed to the `buildscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance.
@@ -285,8 +287,8 @@ Having declared the build script classpath, you can use the classes in your buil
 
 .A build script with external dependencies
 ====
-include::sample[dir="snippets/tutorial/externalDependency/groovy", files="build.gradle[tags=all]"]
 include::sample[dir="snippets/tutorial/externalDependency/kotlin", files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/tutorial/externalDependency/groovy", files="build.gradle[tags=all]"]
 
 .Output of **`gradle -q encode`**
 ----
@@ -298,6 +300,10 @@ include::{snippetsPath}/tutorial/externalDependency/tests/externalBuildDependenc
 For multi-project builds, the dependencies declared with a project's `buildscript()` method are available to the build scripts of all its sub-projects.
 
 Build script dependencies may be Gradle plugins. Please consult <<plugins.adoc#plugins,Using Gradle Plugins>> for more information on Gradle plugins.
+
+NOTE: Gradle instruments the bytecode on the build script classpath to provide backward compatibility and improved usability.
+Some libraries may fail integrity self-checks because of this.
+In this case, the use of such libraries should be <<configuration_cache#config_cache:requirements:bytecode_modifications_and_isolation,isolated>>.
 
 Every project automatically has a `buildEnvironment` task of type link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.html[BuildEnvironmentReportTask] that can be invoked to report on the resolution of the build script dependencies.
 

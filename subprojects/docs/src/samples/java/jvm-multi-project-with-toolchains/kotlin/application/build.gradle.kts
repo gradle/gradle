@@ -9,16 +9,16 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.gradle.sample.app.Main")
+    mainClass = "org.gradle.sample.app.Main"
 }
 
 // tag::customExec[]
-tasks.register<JavaExec>("runOn14") {
-    javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(14))
-    })
+tasks.register<JavaExec>("runOn17") {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set(application.mainClass)
+    mainClass = application.mainClass
 }
 // end::customExec[]

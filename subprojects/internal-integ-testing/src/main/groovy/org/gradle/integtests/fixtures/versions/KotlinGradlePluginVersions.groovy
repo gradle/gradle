@@ -16,18 +16,104 @@
 
 package org.gradle.integtests.fixtures.versions
 
+import org.gradle.api.JavaVersion
+import org.gradle.internal.Factory
+import org.gradle.util.internal.VersionNumber
+
+import static org.junit.Assume.assumeTrue
+
 /**
  * Kotlin Gradle Plugin Versions.
+ *
+ * See UpdateKotlinVersions.
  */
 class KotlinGradlePluginVersions {
 
-    // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-    private static final List<String> LATEST_VERSIONS = [
-        '1.6.10', '1.6.21',
-        '1.7.0', '1.7.10', "1.7.22"
+    static final List<String> LANGUAGE_VERSIONS = [
+        "1.4",
+        "1.5",
+        "1.6",
+        "1.7",
+        "1.8",
+        "1.9",
+        "2.0",
     ]
 
+    private final Factory<Properties> propertiesFactory
+    private Properties properties
+
+    KotlinGradlePluginVersions() {
+        this(new ClasspathVersionSource("kotlin-versions.properties", KotlinGradlePluginVersions.classLoader))
+    }
+
+    private KotlinGradlePluginVersions(Factory<Properties> propertiesFactory) {
+        this.propertiesFactory = propertiesFactory
+    }
+
+    private Properties loadedProperties() {
+        if (properties == null) {
+            properties = propertiesFactory.create()
+        }
+        return properties
+    }
+
+
     List<String> getLatests() {
-        return LATEST_VERSIONS
+        def versionList = loadedProperties().getProperty("latests")
+        return (versionList == null || versionList.empty) ? [] : versionList.split(",")
+    }
+
+    String getLatest() {
+        return latests.last()
+    }
+
+    List<String> getLatestsStable() {
+        return latests
+            .collect { VersionNumber.parse(it) }
+            .findAll { it.baseVersion == it }
+            .collect { it.toString() }
+    }
+
+    String getLatestStable() {
+        return latestsStable.last()
+    }
+
+    List<String> getLatestsStableOrRC() {
+        return latests.findAll {
+            def lowerCaseVersion = it.toLowerCase(Locale.US)
+            !lowerCaseVersion.contains('-m') && !(lowerCaseVersion.contains('-beta'))
+        }
+    }
+
+    String getLatestStableOrRC() {
+        return latestsStableOrRC.last()
+    }
+
+    private static final VersionNumber KOTLIN_1_8_0 = VersionNumber.parse('1.8.0')
+    private static final VersionNumber KOTLIN_1_9_0 = VersionNumber.parse('1.9.0')
+
+    static void assumeCurrentJavaVersionIsSupportedBy(String kotlinVersion) {
+        VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+        JavaVersion current = JavaVersion.current()
+        JavaVersion mini = getMinimumJavaVersionFor(kotlinVersionNumber)
+        assumeTrue("KGP $kotlinVersion minimum supported Java version is $mini, current is $current", current >= mini)
+        JavaVersion maxi = getMaximumJavaVersionFor(kotlinVersionNumber)
+        if (maxi != null) {
+            assumeTrue("KGP $kotlinVersion maximum supported Java version is $maxi, current is $current", current <= maxi)
+        }
+    }
+
+    static JavaVersion getMinimumJavaVersionFor(VersionNumber kotlinVersion) {
+        return JavaVersion.VERSION_1_8
+    }
+
+    private static JavaVersion getMaximumJavaVersionFor(VersionNumber kotlinVersion) {
+        if (kotlinVersion.baseVersion < KOTLIN_1_8_0) {
+            return JavaVersion.VERSION_18
+        }
+        if (kotlinVersion.baseVersion < KOTLIN_1_9_0) {
+            return JavaVersion.VERSION_19
+        }
+        return null
     }
 }

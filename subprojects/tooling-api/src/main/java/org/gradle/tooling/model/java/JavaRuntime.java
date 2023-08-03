@@ -26,7 +26,7 @@ import java.io.File;
  * @since 2.11
  */
 public interface JavaRuntime {
-    /***
+    /**
      * The Java version of the Java runtime installation.
      *
      * @return The Java version. Never returns {@code null}.

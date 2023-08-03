@@ -17,12 +17,14 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class SelfResolvingDependencyIntegrationTest extends AbstractDependencyResolutionTest {
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "can query file dependency for its files"() {
         buildFile << """
 allprojects {
-    configurations { 
+    configurations {
         compile
     }
 }
@@ -38,7 +40,7 @@ task verify {
     doLast {
         def dep = configurations.compile.dependencies.find { it instanceof FileCollectionDependency }
         println "files: " + dep.resolve().collect { it.name }
-        println "files-not-transitive: " + dep.resolve(false).collect { it.name } 
+        println "files-not-transitive: " + dep.resolve(false).collect { it.name }
         println "files-transitive: " + dep.resolve(true).collect { it.name }
     }
 }
@@ -54,6 +56,7 @@ task verify {
     }
 
     // This test documents existing behaviour rather than desired behaviour
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "can query project dependency for its files"() {
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
@@ -67,7 +70,7 @@ allprojects {
     repositories {
         maven { url '${mavenRepo.uri}' }
     }
-    configurations { 
+    configurations {
         compile
         create('default') { extendsFrom compile }
     }
@@ -112,7 +115,7 @@ task verify {
     doLast {
         def dep = configurations.compile.dependencies.find { it instanceof ProjectDependency }
         println "files: " + dep.resolve().collect { it.name }
-        println "files-not-transitive: " + dep.resolve(false).collect { it.name } 
+        println "files-not-transitive: " + dep.resolve(false).collect { it.name }
         println "files-transitive: " + dep.resolve(true).collect { it.name }
     }
 }

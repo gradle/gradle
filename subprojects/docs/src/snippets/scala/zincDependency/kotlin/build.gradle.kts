@@ -12,6 +12,6 @@ dependencies {
 
 // tag::zinc-dependency[]
 scala {
-    zincVersion.set("1.6.1")
+    zincVersion = "1.9.3"
 }
 // end::zinc-dependency[]

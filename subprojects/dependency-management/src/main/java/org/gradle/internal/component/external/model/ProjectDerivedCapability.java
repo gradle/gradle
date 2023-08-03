@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;

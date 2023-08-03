@@ -19,8 +19,8 @@ The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development 
 To get started add the following code to your _build.gradle_ file:
 
 ====
-include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
 include::sample[dir="snippets/plugins/customPlugin/kotlin/java-gradle-plugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
 ====
 
 By applying the plugin, necessary plugins are applied and relevant dependencies are added.
@@ -49,8 +49,8 @@ The end user of the task can now easily create multiple tasks of that type with 
 All the imperative, potentially complex logic is completely hidden in the custom task implementation.
 
 ====
-include::sample[dir="snippets/developingPlugins/customTask/groovy",files="build.gradle[tags=direct-task-register]"]
 include::sample[dir="snippets/developingPlugins/customTask/kotlin",files="build.gradle.kts[tags=direct-task-register]"]
+include::sample[dir="snippets/developingPlugins/customTask/groovy",files="build.gradle[tags=direct-task-register]"]
 ====
 
 == Benefiting from incremental tasks
@@ -58,7 +58,7 @@ include::sample[dir="snippets/developingPlugins/customTask/kotlin",files="build.
 Gradle uses declared inputs and outputs to determine if a task is up-to-date and needs to perform any work.
 If none of the inputs or outputs have changed, Gradle can skip that task.
 Gradle calls this mechanism incremental build support.
-The advantage of <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build support>> is that it can significantly improve the performance of a build.
+The advantage of <<incremental_build.adoc#incremental_build,incremental build support>> is that it can significantly improve the performance of a build.
 
 It’s very common for Gradle plugins to introduce custom task types.
 As a plugin author that means that you’ll have to annotate all properties of a task with input or output annotations.
@@ -86,8 +86,8 @@ For illustration let's consider the following extension provided by a plugin.
 In its current form it offers a "flat" list of properties for configuring the creation of a web site.
 
 ====
-include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build-flat.gradle[]"]
 include::sample[dir="snippets/developingPlugins/pluginExtension/kotlin",files="build-flat.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build-flat.gradle[]"]
 ====
 
 As the number of exposed properties grows, you might want to introduce a nested, more expressive structure.
@@ -95,8 +95,8 @@ The following code snippet adds a new configuration block named `customData` as 
 You might have noticed that it provides a stronger indication of what those properties mean.
 
 ====
-include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/developingPlugins/pluginExtension/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build.gradle[]"]
 ====
 
 It's fairly easy to implement the backing objects of such an extension.
@@ -118,14 +118,6 @@ The following example demonstrates the use of `Action` in an extension definitio
 include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[]
 ----
 
-=== Extensions vs. Conventions
-
-Some of the Gradle core plugins expose configurability with the help of a so-called link:{javadocPath}/org/gradle/api/plugins/Convention.html[Convention].
-`Convention` is the preceding concept of an extension and serves a similar purpose.
-The main difference between both concepts is that `Convention` does not allow for defining a namespace to model a DSL-like API making it hard to distinguish from the Gradle core DSL.
-Please avoid using the `Convention` concept when writing new plugins.
-The long term plan is to migrate all Gradle core plugins to use extensions and remove the `Convention` concept altogether.
-
 [[capturing_user_input_to_configure_plugin_runtime_behavior]]
 == Capturing user input to configure plugin runtime behavior
 
@@ -141,8 +133,8 @@ An extension captures user input through a custom DSL that fully blends into the
 The following example applies a plugin that exposes an extension with the name `binaryRepo` to capture a server URL:
 
 ====
-include::sample[dir="snippets/developingPlugins/customTask/groovy",files="build.gradle[tags=plugin-extension]"]
 include::sample[dir="snippets/developingPlugins/customTask/kotlin",files="build.gradle.kts[tags=plugin-extension]"]
+include::sample[dir="snippets/developingPlugins/customTask/groovy",files="build.gradle[tags=plugin-extension]"]
 ====
 
 Let's assume that you'll also want to do something with the value of `serverUrl` once captured.
@@ -190,8 +182,8 @@ Sometimes you might want to expose a way for users to define multiple, named dat
 Let's consider the following build script for illustration purposes.
 
 ====
-include::sample[dir="snippets/developingPlugins/namedDomainObjectContainer/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/developingPlugins/namedDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/namedDomainObjectContainer/groovy",files="build.gradle[]"]
 ====
 
 The DSL exposed by the plugin exposes a _container_ for defining a set of environments.
@@ -285,8 +277,8 @@ No problem...the plugin also exposes the custom configuration that can be used t
 Effectively, the default dependency is overwritten.
 
 ====
-include::sample[dir="snippets/developingPlugins/defaultDependency/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/developingPlugins/defaultDependency/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/defaultDependency/groovy",files="build.gradle[]"]
 ====
 
 You will find that this pattern works well for tasks that require an external dependency when the action of the task is actually executed.
@@ -310,8 +302,8 @@ The identifiers for plugins written as a class should be defined in the build sc
 For this, the `java-gradle-plugin` needs to be applied.
 
 ====
-include::sample[dir="snippets/developingPlugins/pluginIdentifier/groovy",files="buildSrc/build.gradle[]"]
 include::sample[dir="snippets/developingPlugins/pluginIdentifier/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/pluginIdentifier/groovy",files="buildSrc/build.gradle[]"]
 ====
 
 Note that identifiers for <<custom_plugins.adoc#sec:precompiled_plugins,precompiled script plugins>> are automatically registered based on the file name of the script plugin.
@@ -333,8 +325,8 @@ The following sample demonstrates how to add a variant that is compatible with G
 Note that only Gradle versions 7 or higher can be explicitly targeted by a variant, as support for this was only added in Gradle 7.
 
 ====
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=add-plugin-variant]"]
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=add-plugin-variant]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=add-plugin-variant]"]
 ====
 
 First, we declare a separate _source set_, and a _feature variant_ based on that, for our Gradle7 plugin variant.
@@ -371,6 +363,6 @@ This allows a multi-variant plugin that depends on other plugins to access their
 This snippet makes the <<#plugin-with-variants,plugin variant `gradle7` defined above>> consume the matching variants of its dependencies on other multi-variant plugins.
 
 ====
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=consume-plugin-variant]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
 ====

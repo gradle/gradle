@@ -98,6 +98,9 @@ public enum ArchitectureDescriptorBuilder {
         }
     },
 
+    ARM64_ON_X86("arm64", "bin/HostX86/arm64", "lib/arm64", "armasm64.exe"),
+    ARM64_ON_AMD64("arm64", "bin/Hostx64/arm64", "lib/arm64", "armasm64.exe"),
+
     // Host: x86
     // Target: arm
     LEGACY_ARM_ON_X86("arm", "bin/x86_arm", "lib/arm", "armasm.exe") {

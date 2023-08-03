@@ -22,11 +22,13 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.List;
 
-@NotThreadSafe
+/**
+ * A thread-safe and reusable serializer for {@link ComponentSelectionReason} if and only if the passed in
+ * {@link ComponentSelectionDescriptorFactory} is thread-safe and reusable.
+ */
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
     private final ComponentSelectionDescriptorSerializer componentSelectionDescriptorSerializer;

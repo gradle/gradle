@@ -18,7 +18,7 @@ abstract class MyCopyTask : DefaultTask() {
 // tag::fixed-reuse[]
 tasks.register<MyCopyTask>("someTask") {
     val projectDir = layout.projectDirectory
-    source.set(projectDir.dir("source"))
-    destination.set(projectDir.dir(providers.systemProperty("someDestination"))) // <1>
+    source = projectDir.dir("source")
+    destination = projectDir.dir(providers.systemProperty("someDestination")) // <1>
 }
 // end::fixed-reuse[]

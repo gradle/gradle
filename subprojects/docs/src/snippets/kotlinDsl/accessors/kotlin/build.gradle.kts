@@ -29,6 +29,7 @@ java {                                      // <4>
 tasks {
     test {                                  // <5>
         testLogging.showExceptions = true
+        useJUnit()
     }
 }
 // end::accessors[]

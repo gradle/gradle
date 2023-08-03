@@ -16,14 +16,14 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.hamcrest.CoreMatchers.containsString
 
 class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.MANDATORY_FILE_LOCKING)
+    @Requires(UnitTestPreconditions.MandatoryFileLockOnOpen)
     def "clean failure message indicates file"() {
         given:
         buildFile << """
@@ -69,12 +69,15 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
     def "can define 'default' and 'archives' configurations prior to applying plugin"() {
         buildFile << """
             configurations {
-                "default"
+                create("default")
                 archives
             }
             apply plugin: 'base'
-"""
+        """
+
         expect:
+        executer.expectDocumentedDeprecationWarning("The configuration default was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with this name. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        executer.expectDocumentedDeprecationWarning("The configuration archives was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with this name. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         succeeds "help"
     }
 
@@ -87,14 +90,13 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
                     archiveBaseName.set("myjar")
                 }
             }
-            task myJar(type: MyJar)
-            task assertCheck {
-                doLast {
-                    assert tasks.myJar.archiveBaseName.get() == "myjar"
+            task myJar(type: MyJar) {
+                doLast { task ->
+                    assert task.archiveBaseName.get() == "myjar"
                 }
             }
         """
         expect:
-        succeeds("assertCheck")
+        succeeds("myJar")
     }
 }

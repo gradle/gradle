@@ -17,13 +17,13 @@
 package org.gradle.nativeplatform.toolchain.internal.swift
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires(UnitTestPreconditions.NotWindows)
 class SwiftDepsHandlerTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

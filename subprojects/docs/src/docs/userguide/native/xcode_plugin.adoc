@@ -51,8 +51,8 @@ What exactly the `xcode` plugin generates depends on which other plugins are use
 
 .Applying the Xcode Plugin
 ====
-include::sample[dir="snippets/ide/xcode/groovy",files="build.gradle[tags=apply-plugin]"]
 include::sample[dir="snippets/ide/xcode/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/ide/xcode/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 [[sec:xcode_tasks]]

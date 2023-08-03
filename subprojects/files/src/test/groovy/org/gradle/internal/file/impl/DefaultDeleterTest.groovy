@@ -17,8 +17,9 @@ package org.gradle.internal.file.impl
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -77,7 +78,7 @@ class DefaultDeleterTest extends Specification {
         didWork
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "cleans symlinked target directory"() {
         def linked = tmpDir.createDir("linked")
         def content = linked.createFile("content.txt")
@@ -93,7 +94,7 @@ class DefaultDeleterTest extends Specification {
         content.assertDoesNotExist()
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "recreates target directory when symlink is found, leaving linked content untouched"() {
         def linked = tmpDir.createDir("linked")
         def content = linked.createFile("content.txt")
@@ -159,9 +160,8 @@ class DefaultDeleterTest extends Specification {
     }
 
     def "reports reasonable help message when failing to delete single #description"() {
-
         if (isSymlink) {
-            assumeTrue(TestPrecondition.SYMLINKS.isFulfilled())
+            assumeTrue(TestPrecondition.satisfied(UnitTestPreconditions.Symlinks))
         }
 
         given:

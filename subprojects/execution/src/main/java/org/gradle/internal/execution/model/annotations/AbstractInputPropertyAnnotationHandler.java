@@ -26,7 +26,6 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +63,7 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
                     problem.withId(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
                         .forProperty(propertyMetadata.getPropertyName())
                         .reportAs(ERROR)
-                        .withDescription(() -> String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getGetterMethod().getGenericReturnType()).getSimpleName()))
+                        .withDescription(() -> String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
                         .happensBecause(() -> String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
                     for (String possibleSolution : possibleSolutions) {
                         problem.addPossibleSolution(possibleSolution);
@@ -75,12 +74,11 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
         }
     }
 
-    private static List<Class<?>> unpackValueTypesOf(PropertyMetadata propertyMetadata) {
+    protected static List<Class<?>> unpackValueTypesOf(PropertyMetadata propertyMetadata) {
         List<Class<?>> unpackedValueTypes = new ArrayList<>();
-        Method getter = propertyMetadata.getGetterMethod();
-        Class<?> returnType = getter.getReturnType();
+        Class<?> returnType = propertyMetadata.getDeclaredType().getRawType();
         if (Provider.class.isAssignableFrom(returnType)) {
-            List<TypeOf<?>> typeArguments = TypeOf.typeOf(getter.getGenericReturnType()).getActualTypeArguments();
+            List<TypeOf<?>> typeArguments = TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getActualTypeArguments();
             for (TypeOf<?> typeArgument : typeArguments) {
                 unpackedValueTypes.add(typeArgument.getConcreteClass());
             }

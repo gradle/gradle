@@ -76,9 +76,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
 import java.net.ProxySelector;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -87,14 +85,13 @@ import java.util.concurrent.TimeUnit;
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
     private static final String HTTPS_PROTOCOLS = "https.protocols";
-    private static final int MAX_HTTP_CONNECTIONS = 20;
 
     /**
      * Determines the HTTPS protocols to support for the client.
      *
      * @implNote To support the Gradle embedded test runner, this method's return value should not be cached in a static field.
      */
-    private static String[] determineHttpsProtocols() {
+    private String[] determineHttpsProtocols() {
         /*
          * System property retrieval is executed within the constructor to support the Gradle embedded test runner.
          */
@@ -110,29 +107,29 @@ public class HttpClientConfigurer {
         }
     }
 
-    private static boolean jdkSupportsTLSProtocol(@SuppressWarnings("SameParameterValue") final String protocol) {
+    private boolean jdkSupportsTLSProtocol(@SuppressWarnings("SameParameterValue") final String protocol) {
         try {
-            for (String supportedProtocol : SSLContext.getDefault().getSupportedSSLParameters().getProtocols()) {
+            for (String supportedProtocol : httpSettings.getSslContextFactory().createSslContext().getSupportedSSLParameters().getProtocols()) {
                 if (protocol.equals(supportedProtocol)) {
                     return true;
                 }
             }
             return false;
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    static Collection<String> supportedTlsVersions() {
-        return Arrays.asList(determineHttpsProtocols());
+    Collection<String> supportedTlsVersions() {
+        return Arrays.asList(sslProtocols);
     }
 
     private final String[] sslProtocols;
     private final HttpSettings httpSettings;
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
-        this.sslProtocols = determineHttpsProtocols();
         this.httpSettings = httpSettings;
+        this.sslProtocols = determineHttpsProtocols();
     }
 
     public void configure(HttpClientBuilder builder) {
@@ -147,8 +144,8 @@ public class HttpClientConfigurer {
         configureSocketConfig(builder);
         configureRedirectStrategy(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
-        builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
-        builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
+        builder.setMaxConnTotal(httpSettings.getMaxConnTotal());
+        builder.setMaxConnPerRoute(httpSettings.getMaxConnPerRoute());
         builder.setConnectionTimeToLive(httpSettings.getTimeoutSettings().getIdleConnectionTimeoutMs(), TimeUnit.MILLISECONDS);
     }
 

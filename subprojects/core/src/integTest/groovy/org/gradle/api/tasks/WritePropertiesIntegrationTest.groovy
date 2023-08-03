@@ -17,7 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
+import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 import static org.gradle.util.internal.GUtil.loadProperties
 
 class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -30,7 +33,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "props"
+        runProps()
         then:
         file("output.properties").text == ""
     }
@@ -45,32 +48,49 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "props"
+        runProps()
         then:
         file("output.properties").text == normalize("""
             #Line comment
             """)
     }
 
-    def "simple properties are written sorted alphabetically"() {
+    private runProps() {
+        result = expectOutputDeprecation(executer.withTasks("props")).run()
+    }
+
+    private expectOutputDeprecation(GradleExecuter runWithTasks) {
+        runWithTasks.expectDocumentedDeprecationWarning("The WriteProperties.outputFile property has been deprecated. This is scheduled to be removed in Gradle 9.0." +
+            " Please use the destinationFile property instead. " +
+            String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.WriteProperties.html#org.gradle.api.tasks.WriteProperties:outputFile"))
+    }
+
+    def "simple properties are written sorted alphabetically with #outputProprertyName"() {
         given:
         buildFile << """
             task props(type: WriteProperties) {
                 properties = [one: "1", two: "2", three: "three"]
                 comment = "Line comment"
-                outputFile = file("output.properties")
+                $outputProprertyName = file("${outputProprertyName}.properties")
             }
         """
 
         when:
-        succeeds "props"
+
+        validation.curry(this).run()
+
         then:
-        file("output.properties").text == normalize("""
+        file("${outputProprertyName}.properties").text == normalize("""
             #Line comment
             one=1
             three=three
             two=2
             """)
+
+        where:
+        outputProprertyName | validation
+        "destinationFile"   | { s -> s.succeeds "props" }
+        "outputFile"        | { s -> s.runProps() }
     }
 
     def "unicode characters are escaped when #description"() {
@@ -85,7 +105,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "props"
+        runProps()
         then:
         file("output.properties").text == normalize("""
             #Es\\u0151 les\\u0151
@@ -110,7 +130,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "props"
+        runProps()
         then:
         // Note Properties always escape Unicode in comments for some reason
         file("output.properties").getText("utf-8") == normalize("""
@@ -131,7 +151,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "props"
+        runProps()
         then:
         file("output.properties").text == normalize("""
             #Line comment
@@ -146,7 +166,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task props(type: WriteProperties) {
                 property "someProp", $propValue
-                outputFile = file("output.properties")
+                destinationFile = file("output.properties")
             }
         """
         when:
@@ -166,7 +186,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         when:
-        succeeds "props"
+        runProps()
         then:
         loadProperties(file('output.properties'))['provided'] == '42'
     }

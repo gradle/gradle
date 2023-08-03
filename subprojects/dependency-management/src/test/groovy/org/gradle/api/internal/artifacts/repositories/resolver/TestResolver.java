@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.component.ArtifactType;
@@ -24,7 +25,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
@@ -35,8 +35,8 @@ import org.gradle.util.TestUtil;
 public class TestResolver extends ExternalResourceResolver<ModuleComponentResolveMetadata> {
     ExternalResourceArtifactResolver artifactResolver;
 
-    protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
-        super(name, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, metadataSources, metadataArtifactProvider, null, null, null, TestUtil.getChecksumService());
+    protected TestResolver(UrlRepositoryDescriptor descriptor, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
+        super(descriptor, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, metadataSources, metadataArtifactProvider, null, null, null, TestUtil.getChecksumService());
     }
 
     @Override
@@ -50,12 +50,7 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
     }
 
     @Override
-    protected void appendId(Hasher hasher) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getLocalAccess() {
         throw new UnsupportedOperationException();
     }
 
@@ -65,7 +60,7 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getRemoteAccess() {
         return new RemoteRepositoryAccess() {
 
             @Override

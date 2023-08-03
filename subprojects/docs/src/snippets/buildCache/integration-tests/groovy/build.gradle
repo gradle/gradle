@@ -2,7 +2,14 @@ plugins {
     id('java-library')
 }
 
-tasks.register("integTest", Test)
+sourceSets {
+    integTest
+}
+
+tasks.register("integTest", Test) {
+    classpath = sourceSets.integTest.runtimeClasspath
+    testClassesDirs = sourceSets.integTest.output.classesDirs
+}
 
 // tag::integTest[]
 tasks.named('integTest') {
@@ -20,38 +27,42 @@ tasks.named('integTest') {
 // end::distributionPathInput[]
 
 // tag::distributionDirInput[]
-class DistributionLocationProvider implements CommandLineArgumentProvider { // <1>
+abstract class DistributionLocationProvider implements CommandLineArgumentProvider {  // <1>
     @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)                                // <2>
-    File distribution
+    @PathSensitive(PathSensitivity.RELATIVE)  // <2>
+    abstract DirectoryProperty getDistribution()
 
     @Override
     Iterable<String> asArguments() {
-        ["-Ddistribution.location=${distribution.absolutePath}".toString()] // <3>
+        ["-Ddistribution.location=${distribution.get().asFile.absolutePath}"]  // <3>
     }
 }
 
 tasks.named('integTest') {
     jvmArgumentProviders.add(
-        new DistributionLocationProvider(distribution: layout.buildDirectory.dir('dist').get().asFile) // <4>
+        objects.newInstance(DistributionLocationProvider).tap {  // <4>
+            distribution = layout.buildDirectory.dir('dist')
+        }
     )
 }
 // end::distributionDirInput[]
 
 // tag::ignoreSystemProperties[]
-class CiEnvironmentProvider implements CommandLineArgumentProvider {
-    @Internal                                                        // <1>
-    String agentNumber = System.getenv().get("AGENT_NUMBER") ?: "1"
+abstract class CiEnvironmentProvider implements CommandLineArgumentProvider {
+    @Internal  // <1>
+    abstract Property<String> getAgentNumber()
 
     @Override
     Iterable<String> asArguments() {
-        ["-DagentNumber=${agentNumber}".toString()]                  // <2>
+        ["-DagentNumber=${agentNumber.get()}"]  // <2>
     }
 }
 
 tasks.named('integTest') {
     jvmArgumentProviders.add(
-        new CiEnvironmentProvider()                                  // <3>
+        objects.newInstance(CiEnvironmentProvider).tap {  // <3>
+            agentNumber = providers.environmentVariable("AGENT_NUMBER").orElse("1")
+        }
     )
 }
 // end::ignoreSystemProperties[]

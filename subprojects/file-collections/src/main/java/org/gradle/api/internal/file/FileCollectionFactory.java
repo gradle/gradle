@@ -21,8 +21,11 @@ import org.gradle.api.Buildable;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
@@ -42,6 +45,10 @@ public interface FileCollectionFactory {
      * Creates a copy of this factory that uses the given resolver to convert various types to File instances.
      */
     FileCollectionFactory withResolver(PathToFileResolver fileResolver);
+
+    FileCollectionFactory forChildScope(FileCollectionObservationListener listener);
+
+    FileCollectionFactory forChildScope(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost);
 
     /**
      * Creates a {@link FileCollection} with the given contents.

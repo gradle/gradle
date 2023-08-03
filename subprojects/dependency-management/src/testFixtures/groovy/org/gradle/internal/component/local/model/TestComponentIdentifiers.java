@@ -29,25 +29,25 @@ public class TestComponentIdentifiers {
         return newProjectId(":", projectPath);
     }
 
-    public static ProjectComponentIdentifier newProjectId(String buildName, String projectPath) {
+    public static ProjectComponentIdentifier newProjectId(String buildPath, String projectPath) {
         Path path = Path.path(projectPath);
         String name = path.getName();
         if (name == null) {
             name = "root";
         }
-        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(buildName), path, path, name);
+        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(buildPath)), path, path, name);
     }
 
     public static ProjectComponentSelector newSelector(String projectPath) {
         return newSelector(":", projectPath);
     }
 
-    public static ProjectComponentSelector newSelector(String buildName, String projectPath) {
+    public static ProjectComponentSelector newSelector(String buildPath, String projectPath) {
         Path path = Path.path(projectPath);
         String name = path.getName();
         if (name == null) {
             name = "root";
         }
-        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildName), path, path, name, ImmutableAttributes.EMPTY, Collections.emptyList());
+        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier(Path.path(buildPath)), path, path, name, ImmutableAttributes.EMPTY, Collections.emptyList());
     }
 }

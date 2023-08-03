@@ -22,7 +22,8 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
+import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
@@ -34,6 +35,8 @@ import org.gradle.util.Path;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
 public interface TaskInternal extends Task, Configurable<Task> {
 
     /**
@@ -48,7 +51,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
     boolean hasTaskActions();
 
     @Internal
-    DescribingAndSpec<? super TaskInternal> getOnlyIf();
+    Spec<? super TaskInternal> getOnlyIf();
 
     /**
      * Return the reason for not to track state.
@@ -107,6 +110,8 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     TaskRequiredServices getRequiredServices();
+
+    void acceptServiceReferences(Set<ServiceReferenceSpec> serviceReferences);
 
     /**
      * <p>Gets the shared resources required by this task.</p>

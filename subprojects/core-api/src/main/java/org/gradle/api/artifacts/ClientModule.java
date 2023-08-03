@@ -22,14 +22,19 @@ import java.util.Set;
  * artifact or you declare a module dependency that depends on a module descriptor in a repository. With
  * a client module you can declare a module dependency without the need of a module descriptor in a
  * remote repository.
+ *
+ * <p>Client modules dependencies are deprecated and will be removed in Gradle 9.0. Use component metadata rules instead.</p>
+ *
+ * @see org.gradle.api.artifacts.dsl.DependencyHandler
  */
+@Deprecated
 public interface ClientModule extends ExternalModuleDependency {
     /**
      * Add a dependency to the client module. Such a dependency is transitive dependency for the
      * project that has a dependency on the client module.
-     *  
+     *
      * @param dependency The dependency to add to the client module.
-     * @see #getDependencies() 
+     * @see #getDependencies()
      */
     void addDependency(ModuleDependency dependency);
 

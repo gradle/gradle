@@ -257,7 +257,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     public String getMainClassName() {
         DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
             .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
+            .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
 
@@ -268,7 +268,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     public void setMainClassName(@Nullable String mainClassName) {
         DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
             .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
+            .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
 

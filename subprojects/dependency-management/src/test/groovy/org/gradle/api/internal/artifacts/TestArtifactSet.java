@@ -66,10 +66,6 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
     }
 
     @Override
-    public void finalizeNow(boolean requireFiles) {
-    }
-
-    @Override
     public void visit(ArtifactVisitor visitor) {
         for (final ResolvedArtifact artifact : artifacts) {
             visitor.visitArtifact(variantName, variant, Collections.emptyList(), new Adapter(artifact));

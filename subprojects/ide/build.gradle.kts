@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":language-java"))
     implementation(project(":scala"))
     implementation(project(":ear"))
+    implementation(project(":war"))
     implementation(project(":tooling-api"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
@@ -39,8 +40,14 @@ dependencies {
     testFixturesApi(project(":logging")) {
         because("test fixtures export the ConsoleOutput class")
     }
+    testFixturesApi(project(":tooling-api")) {
+        because("test fixtures export the EclipseWorkspace and EclipseWorkspaceProject classes")
+    }
+    testFixturesImplementation(project(":dependency-management"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(libs.groovyXml)
+    testFixturesImplementation(libs.xmlunit)
 
     testImplementation(project(":dependency-management"))
     testImplementation(libs.xmlunit)
@@ -49,7 +56,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":language-groovy")))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(project(":distributions-jvm")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
@@ -68,5 +75,5 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/*")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true

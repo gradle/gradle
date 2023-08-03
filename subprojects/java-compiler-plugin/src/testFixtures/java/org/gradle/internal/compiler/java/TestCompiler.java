@@ -38,15 +38,18 @@ public class TestCompiler {
 
     private final File outputFolder;
     private final Function<File, Optional<String>> relativize;
+    private final Consumer<String> classBackupService;
     private final Consumer<Map<String, Set<String>>> classNameConsumer;
     private final ConstantDependentsConsumer constantDependentsConsumer;
 
     public TestCompiler(File outputFolder,
                         Function<File, Optional<String>> relativize,
+                        Consumer<String> classBackupService,
                         Consumer<Map<String, Set<String>>> classNamesConsumer,
                         ConstantDependentsConsumer constantDependentsConsumer) {
         this.outputFolder = outputFolder;
         this.relativize = relativize;
+        this.classBackupService = classBackupService;
         this.classNameConsumer = classNamesConsumer;
         this.constantDependentsConsumer = constantDependentsConsumer;
     }
@@ -58,7 +61,7 @@ public class TestCompiler {
         Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(sourceFiles);
         List<String> arguments = Arrays.asList("-d", outputFolder.getAbsolutePath());
         JavaCompiler.CompilationTask delegate = compiler.getTask(output, fileManager, null, arguments, null, compilationUnits);
-        IncrementalCompileTask task = new IncrementalCompileTask(delegate, relativize, classNameConsumer, constantDependentsConsumer::consumeAccessibleDependent, constantDependentsConsumer::consumePrivateDependent);
+        IncrementalCompileTask task = new IncrementalCompileTask(delegate, relativize, classBackupService, classNameConsumer, constantDependentsConsumer::consumeAccessibleDependent, constantDependentsConsumer::consumePrivateDependent);
         if (!task.call()) {
             throw new RuntimeException(output.toString());
         }

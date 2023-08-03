@@ -19,6 +19,7 @@ package org.gradle.api.services.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
@@ -29,22 +30,30 @@ import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nonnull;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 /**
  * A provider for build services that are registered or consumed.
  */
 @SuppressWarnings("rawtypes")
 public abstract class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
 
+    static <T> Class<T> getProvidedType(Provider<T> provider) {
+        return ((ProviderInternal<T>) provider).getType();
+    }
+
+    static BuildServiceProvider<?, ?> asBuildServiceProvider(Provider<? extends BuildService<?>> service) {
+        if (service instanceof BuildServiceProvider) {
+            return uncheckedCast(service);
+        }
+        throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
+    }
+
     public interface Listener {
         Listener EMPTY = provider -> {
         };
 
         void beforeGet(BuildServiceProvider<?, ?> provider);
-    }
-
-    @Override
-    public boolean calculatePresence(ValueConsumer consumer) {
-        return true;
     }
 
     @Override
@@ -77,6 +86,10 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
 
     public abstract String getName();
 
+    @Override
+    @Nonnull
+    public abstract Class<T> getType();
+
     /**
      * Returns the identifier for the build that owns this service.
      */
@@ -88,20 +101,28 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
      * This method does not distinguish between consumed/registered providers.
      */
     public static boolean isSameService(Provider<? extends BuildService<?>> thisProvider, Provider<? extends BuildService<?>> anotherProvider) {
-        if (!(thisProvider instanceof BuildServiceProvider && anotherProvider instanceof BuildServiceProvider)) {
-            return false;
-        }
         if (thisProvider == anotherProvider) {
             return true;
         }
-        BuildServiceProvider thisBuildServiceProvider = (BuildServiceProvider) thisProvider;
-        BuildServiceProvider otherBuildServiceProvider = (BuildServiceProvider) anotherProvider;
-        if (!thisBuildServiceProvider.getName().equals(otherBuildServiceProvider.getName())) {
+        if (!(thisProvider instanceof BuildServiceProvider && anotherProvider instanceof BuildServiceProvider)) {
             return false;
         }
-        if (thisBuildServiceProvider.getType() != otherBuildServiceProvider.getType()) {
+        BuildServiceProvider thisBuildServiceProvider = (BuildServiceProvider) thisProvider;
+        BuildServiceProvider otherBuildServiceProvider = (BuildServiceProvider) anotherProvider;
+        String thisName = thisBuildServiceProvider.getName();
+        String otherName = otherBuildServiceProvider.getName();
+        if (!thisName.isEmpty() && !otherName.isEmpty() && !thisName.equals(otherName)) {
+            return false;
+        }
+        if (!isCompatibleServiceType(thisBuildServiceProvider, otherBuildServiceProvider)) {
             return false;
         }
         return thisBuildServiceProvider.getBuildIdentifier().equals(otherBuildServiceProvider.getBuildIdentifier());
+    }
+
+    private static boolean isCompatibleServiceType(BuildServiceProvider thisBuildServiceProvider, BuildServiceProvider otherBuildServiceProvider) {
+        Class<?> otherType = otherBuildServiceProvider.getType();
+        Class<?> thisType = thisBuildServiceProvider.getType();
+        return otherType.isAssignableFrom(Cast.uncheckedCast(thisType));
     }
 }

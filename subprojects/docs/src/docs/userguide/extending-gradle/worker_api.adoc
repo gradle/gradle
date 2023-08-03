@@ -20,8 +20,8 @@ First, you'll need to create a custom task that generates MD5 hashes of a config
 In a new directory, create a `buildSrc/build.gradle(.kts)` file.
 
 ====
-include::sample[dir="snippets/workerApi/md5CustomTask/groovy",files="buildSrc/build.gradle[]"]
 include::sample[dir="snippets/workerApi/md5CustomTask/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/workerApi/md5CustomTask/groovy",files="buildSrc/build.gradle[]"]
 ====
 <1> Your custom task class will use https://commons.apache.org/proper/commons-codec/[Apache Commons Codec] to generate MD5 hashes.
 
@@ -45,8 +45,8 @@ include::{snippetsPath}/workerApi/md5CustomTask/groovy/buildSrc/src/main/java/Cr
 Next, create a `build.gradle(.kts)` that registers your new `CreateMD5` task.
 
 ====
-include::sample[dir="snippets/workerApi/md5CustomTask/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/workerApi/md5CustomTask/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/workerApi/md5CustomTask/groovy",files="build.gradle[]"]
 ====
 <1> Apply the `base` plugin so that you'll have a `clean` task to use to remove the output.
 <2> MD5 hash files will be written to `build/md5`.
@@ -90,6 +90,7 @@ include::{snippetsPath}/workerApi/md5CustomTask/tests/md5Task.out[]
 In the `build/md5` directory, you should now see corresponding files with an `md5` extension containing MD5 hashes of the files from the `src` directory.
 Notice that the task takes at least 9 seconds to run because it hashes each file one at a time (i.e. 3 files at ~3 seconds a piece).
 
+[[converting_to_worker_api]]
 == Converting to the Worker API
 
 Although this task processes each file in sequence, the processing of each file is independent of any other file.
@@ -161,8 +162,8 @@ First, you'll want to change the dependency in `buildSrc/build.gradle` to be `co
 This tells Gradle that it should use this dependency when building the classes, but should not put it on the build script classpath.
 
 ====
-include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/groovy",files="buildSrc/build.gradle[]"]
 include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/groovy",files="buildSrc/build.gradle[]"]
 ====
 
 Next, you'll want to change the `CreateMD5` task to allow the user to configure the version of the codec library that they want to use.
@@ -181,8 +182,8 @@ Next, you'll need to configure your build so that it has a repository to look up
 We'll also create a dependency to resolve our codec library from this repository.
 
 ====
-include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/groovy",files="build.gradle[]"]
 ====
 
 <1> Add a repository to resolve the codec library - this can be a different repository than the one used to build the `CreateMD5` task class.

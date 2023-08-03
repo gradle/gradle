@@ -27,7 +27,7 @@ import org.gradle.internal.snapshot.ValueSnapshot
 class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     def delegateResult = Mock(Result)
     def inputFingerprinter = Mock(InputFingerprinter)
-    def step = new IdentifyStep<>(delegate)
+    def step = new IdentifyStep<>(buildOperationExecutor, delegate)
 
 
     def "delegates with assigned workspace"() {

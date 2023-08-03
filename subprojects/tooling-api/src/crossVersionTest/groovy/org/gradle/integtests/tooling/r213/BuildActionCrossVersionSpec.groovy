@@ -16,12 +16,11 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.FetchBuildEnvironment
 import org.gradle.tooling.model.build.BuildEnvironment
 
-@TargetGradleVersion('>=2.13')
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "can use build action to retrieve BuildEnvironment model"() {
         given:

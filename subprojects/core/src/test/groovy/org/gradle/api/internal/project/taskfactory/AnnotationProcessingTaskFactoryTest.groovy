@@ -116,8 +116,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         { false },
         cacheFactory
     )
-    def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Optional, SkipWhenEmpty], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
-    def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver())
+    def propertyHandlers = services.getAll(PropertyAnnotationHandler)
+    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [Optional, SkipWhenEmpty], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
+    def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers)
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -927,7 +928,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
     private <T extends TaskInternal> T expectTaskCreated(final Class<T> type, final Object... params) {
         final String name = "task"
-        T task = AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<T>() {
+        def taskIdentity = TestTaskIdentities.create(name, type, project)
+        T task = AbstractTask.injectIntoNewInstance(project, taskIdentity, new Callable<T>() {
             T call() throws Exception {
                 if (params.length > 0) {
                     // TODO: This should be using objectFactory too because that more closely matches what the production code does.

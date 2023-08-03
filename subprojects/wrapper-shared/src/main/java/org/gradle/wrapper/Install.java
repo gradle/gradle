@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -34,13 +35,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import static java.lang.String.format;
-import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
+import static java.util.Collections.emptyList;
+import static org.gradle.util.internal.PathTraversalChecker.safePathName;
+import static org.gradle.wrapper.Download.safeUri;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
+    public static final String SHA_256 = ".sha256";
+    public static final int RETRIES = 3;
     private final Logger logger;
     private final IDownload download;
     private final PathAssembler pathAssembler;
@@ -54,7 +60,6 @@ public class Install {
 
     public File createDist(final WrapperConfiguration configuration) throws Exception {
         final URI distributionUrl = configuration.getDistribution();
-        final String distributionSha256Sum = configuration.getDistributionSha256Sum();
 
         final PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
         final File distDir = localDistribution.getDistributionDir();
@@ -73,34 +78,9 @@ public class Install {
                     markerFile.delete();
                 }
 
-                boolean needsDownload = !localZipFile.isFile();
-                URI safeDistributionUrl = Download.safeUri(distributionUrl);
+                fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
 
-                if (needsDownload) {
-                    File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
-                    tmpZipFile.delete();
-                    logger.log("Downloading " + safeDistributionUrl);
-                    download.download(distributionUrl, tmpZipFile);
-                    tmpZipFile.renameTo(localZipFile);
-                }
-
-                List<File> topLevelDirs = listDirs(distDir);
-                for (File dir : topLevelDirs) {
-                    logger.log("Deleting directory " + dir.getAbsolutePath());
-                    deleteDir(dir);
-                }
-
-                verifyDownloadChecksum(configuration.getDistribution().toString(), localZipFile, distributionSha256Sum);
-
-                try {
-                    unzip(localZipFile, distDir);
-                } catch (IOException e) {
-                    logger.log("Could not unzip " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath() + ".");
-                    logger.log("Reason: " + e.getMessage());
-                    throw e;
-                }
-
-                InstallCheck installCheck = verifyDistributionRoot(distDir, safeDistributionUrl.toString());
+                InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
                 if (installCheck.isVerified()) {
                     setExecutablePermissions(installCheck.gradleHome);
                     markerFile.createNewFile();
@@ -113,8 +93,89 @@ public class Install {
         });
     }
 
-    private String calculateSha256Sum(File file)
-        throws Exception {
+    private void fetchDistribution(File localZipFile, URI distributionUrl, File distDir, WrapperConfiguration configuration) throws Exception {
+        String distributionSha256Sum = configuration.getDistributionSha256Sum();
+        boolean failed = false;
+        int retries = RETRIES;
+        do {
+            try {
+                boolean needsDownload = !localZipFile.isFile() || failed;
+                if (needsDownload) {
+                    forceFetch(localZipFile, distributionUrl);
+                }
+
+                deleteLocalTopLevelDirs(distDir);
+
+                verifyDownloadChecksum(configuration.getDistribution().toASCIIString(), localZipFile, distributionSha256Sum);
+
+                unzipLocal(localZipFile, distDir);
+                failed = false;
+            } catch (ZipException e) {
+                if (retries >= RETRIES && distributionSha256Sum == null) {
+                    distributionSha256Sum = fetchDistributionSha256Sum(configuration, localZipFile);
+                }
+                failed = true;
+                retries--;
+                if(retries <= 0){
+                    throw new RuntimeException("Downloaded distribution file " + localZipFile + " is no valid zip file.");
+                }
+            }
+        } while (failed);
+    }
+
+
+    private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
+        URI distribution = configuration.getDistribution();
+        try {
+            URI distributionUrl = distribution.resolve(distribution.getPath() + SHA_256);
+            File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + SHA_256);
+
+            forceFetch(tmpZipFile, distributionUrl);
+
+            BufferedReader reader = new BufferedReader(new FileReader(tmpZipFile));
+            try {
+                return reader.readLine();
+            } finally {
+                reader.close();
+            }
+        } catch (Exception e) {
+            logger.log("Could not fetch hash for " + safeUri(distribution) + ".");
+            logger.log("Reason: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void unzipLocal(File localZipFile, File distDir) throws IOException {
+        try {
+            unzip(localZipFile, distDir);
+        } catch (IOException e) {
+            logger.log("Could not unzip " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath() + ".");
+            logger.log("Reason: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    private void deleteLocalTopLevelDirs(final File distDir) {
+        List<File> topLevelDirs = listDirs(distDir);
+        for (File dir : topLevelDirs) {
+            logger.log("Deleting directory " + dir.getAbsolutePath());
+            deleteDir(dir);
+        }
+    }
+
+    private void forceFetch(File localTargetFile, URI distributionUrl) throws Exception {
+        File tempDownloadFile = new File(localTargetFile.getParentFile(), localTargetFile.getName() + ".part");
+        tempDownloadFile.delete();
+
+        logger.log("Downloading " + safeUri(distributionUrl));
+        download.download(distributionUrl, tempDownloadFile);
+        if(localTargetFile.exists()) {
+            localTargetFile.delete();
+        }
+        tempDownloadFile.renameTo(localTargetFile);
+    }
+
+    static String calculateSha256Sum(File file) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         InputStream fis = new FileInputStream(file);
         try {
@@ -131,7 +192,7 @@ public class Install {
         }
 
         byte[] byteData = md.digest();
-        StringBuffer hexString = new StringBuffer();
+        StringBuilder hexString = new StringBuilder();
         for (int i = 0; i < byteData.length; i++) {
             String hex = Integer.toHexString(0xff & byteData[i]);
             if (hex.length() == 1) {
@@ -160,37 +221,42 @@ public class Install {
     }
 
     private void verifyDownloadChecksum(String sourceUrl, File localZipFile, String expectedSum) throws Exception {
-        if (expectedSum != null) {
-            // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
-            String actualSum = calculateSha256Sum(localZipFile);
-            if (!expectedSum.equals(actualSum)) {
-                localZipFile.delete();
-                String message = format("Verification of Gradle distribution failed!%n"
-                        + "%n"
-                        + "Your Gradle distribution may have been tampered with.%n"
-                        + "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n"
-                        + "%n"
-                        + " Distribution Url: %s%n"
-                        + "Download Location: %s%n"
-                        + "Expected checksum: '%s'%n"
-                        + "  Actual checksum: '%s'%n",
-                    sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum
-                );
-                throw new RuntimeException(message);
-            }
+        if (expectedSum == null) {
+            return;
         }
+        // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
+        String actualSum = calculateSha256Sum(localZipFile);
+        if (expectedSum.equals(actualSum)) {
+            return;
+        }
+
+        localZipFile.delete();
+        String message = format("Verification of Gradle distribution failed!%n" +
+                "%n" +
+                "Your Gradle distribution may have been tampered with.%n" +
+                "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n" +
+                "%n" +
+                " Distribution Url: %s%n" +
+                "Download Location: %s%n" +
+                "Expected checksum: '%s'%n" +
+                "  Actual checksum: '%s'%n",
+            sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum);
+        throw new RuntimeException(message);
     }
 
     private List<File> listDirs(File distDir) {
+        if (!distDir.exists()) {
+            return emptyList();
+        }
+        File[] files = distDir.listFiles();
+        if (files == null) {
+            return emptyList();
+        }
+
         List<File> dirs = new ArrayList<File>();
-        if (distDir.exists()) {
-            File[] files = distDir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        dirs.add(file);
-                    }
-                }
+        for (File file : files) {
+            if (file.isDirectory()) {
+                dirs.add(file);
             }
         }
         return dirs;
@@ -255,7 +321,7 @@ public class Install {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
-                File destFile = new File(dest, safeZipEntryName(entry.getName()));
+                File destFile = new File(dest, safePathName(entry.getName()));
                 if (entry.isDirectory()) {
                     destFile.mkdirs();
                     continue;

@@ -1,8 +1,7 @@
 package projects
 
-import common.VersionedSettingsBranch
 import common.hiddenArtifactDestination
-import common.toCapitalized
+import common.uuidPrefix
 import configurations.BaseGradleBuildType
 import configurations.DocsTestProject
 import configurations.DocsTestTrigger
@@ -13,6 +12,7 @@ import configurations.PerformanceTest
 import configurations.PerformanceTestsPass
 import configurations.SmokeTests
 import configurations.buildReportTab
+import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import model.CIBuildModel
@@ -35,7 +35,7 @@ class StageProject(
     previousPerformanceTestPasses: List<PerformanceTestsPass>
 ) : Project({
     this.id("${model.projectId}_Stage_${stage.stageName.id}")
-    this.uuid = "${VersionedSettingsBranch.fromDslContext().branchName.toCapitalized()}_${model.projectId}_Stage_${stage.stageName.uuid}"
+    this.uuid = "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stage.stageName.uuid}"
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 }) {
@@ -68,7 +68,7 @@ class StageProject(
 
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
         val topLevelFunctionalTests = topLevelCoverage
-            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage, enableTestDistribution = false) }
+            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
         topLevelFunctionalTests.forEach(this::buildType)
 
         val functionalTestProjects = allCoverage.map { testCoverage -> FunctionalTestProject(model, functionalTestBucketProvider, testCoverage, stage) }

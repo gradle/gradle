@@ -24,8 +24,8 @@ The {cpp} Application Plugin provides the tasks, configurations and conventions 
 
 .Applying the {cpp} Application Plugin
 ====
-include::sample[dir="snippets/cpp/cppApplication/groovy",files="build.gradle[tags=apply-plugin]"]
 include::sample[dir="snippets/cpp/cppApplication/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/cpp/cppApplication/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 [[sec:cpp_application_build_variants]]
@@ -48,8 +48,8 @@ The target machine can be configured as follows:
 
 .Configure application target machines
 ====
-include::sample[dir="snippets/cpp/cppApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
 include::sample[dir="snippets/cpp/cppApplication/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/cpp/cppApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
 ====
 
 [[sec:cpp_application_tasks]]
@@ -114,7 +114,7 @@ Aggregate tasks that perform a full build of the project.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `clean` - Delete::
-Deletes the build directory and everything in it, i.e. the path specified by the `Project.getBuildDir()` project property.
+Deletes the build directory and everything in it, i.e. the path specified by the `layout.buildDirectory` project property.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 [[sec:cpp_application_dependency_management]]
@@ -198,7 +198,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:macros[macros]:: [:]
 
-link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/main/__variant__`
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `layout.buildDirectory.dir("obj/main/__$variant__")`
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:optimized[optimized]:: `false` for debug build type or `true` otherwise
 
@@ -224,7 +224,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:libs[libs]:: `configurations.nativeLink__Variant__`
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkedFile[linkedFile]:: `$buildDir/exe/main/__variant__/baseName` (*nix) or `$buildDir\exe\main{backslash}__variant__\baseName.exe` (Windows)
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkedFile[linkedFile]:: `layout.buildDirectory.dir("exe/main/__$variant__/baseName")` (*nix) or `layout.buildDirectory.dir("exe\main{backslash}__$variant__\baseName.exe")` (Windows)
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkerArgs[linkerArgs]:: []
 

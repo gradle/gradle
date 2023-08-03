@@ -52,7 +52,7 @@ sourceSets {
 
 // tag::custom-report-dirs[]
 reporting.baseDir = file("my-reports")
-project.setProperty("testResultsDirName", "$buildDir/my-test-results")
+java.testResultsDir = layout.buildDirectory.dir("my-test-results")
 
 tasks.register("showDirs") {
     val rootDir = project.rootDir

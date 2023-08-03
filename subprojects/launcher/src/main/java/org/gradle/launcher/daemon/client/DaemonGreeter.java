@@ -39,21 +39,18 @@ public class DaemonGreeter {
         }
         String[] lines = output.split("\n");
         //Assuming that the diagnostics were printed out to the last line. It's not bullet-proof but seems to be doing fine.
-        String lastLine = lines[lines.length-1];
+        String lastLine = lines[lines.length - 1];
         return startupCommunication.readDiagnostics(lastLine);
     }
 
     private String prepareMessage(String output, List<String> startupArgs) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(DaemonMessages.UNABLE_TO_START_DAEMON);
-        sb.append("\nThis problem might be caused by incorrect configuration of the daemon.");
-        sb.append("\nFor example, an unrecognized jvm option is used.");
-        sb.append("\nPlease refer to the User Manual chapter on the daemon at ");
-        sb.append(documentationRegistry.getDocumentationFor("gradle_daemon"));
-        sb.append("\nProcess command line: ").append(Joiner.on(" ").join(startupArgs));
-        sb.append("\nPlease read the following process output to find out more:");
-        sb.append("\n-----------------------\n");
-        sb.append(output);
-        return sb.toString();
+        return DaemonMessages.UNABLE_TO_START_DAEMON +
+            "\nThis problem might be caused by incorrect configuration of the daemon." +
+            "\nFor example, an unrecognized jvm option is used." +
+            documentationRegistry.getDocumentationRecommendationFor("details on the daemon", "gradle_daemon") +
+            "\nProcess command line: " + Joiner.on(" ").join(startupArgs) +
+            "\nPlease read the following process output to find out more:" +
+            "\n-----------------------\n" +
+            output;
     }
 }

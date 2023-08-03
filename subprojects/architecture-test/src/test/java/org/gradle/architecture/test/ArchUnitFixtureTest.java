@@ -23,6 +23,12 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import org.gradle.api.NonNullApi;
+import org.gradlebuild.AbstractClass;
+import org.gradlebuild.AllowedMethodTypesClass;
+import org.gradlebuild.ConcreteClass;
+import org.gradlebuild.Interface;
+import org.gradlebuild.WrongNullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -39,6 +45,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyP
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ArchUnitFixtureTest {
     @Test
@@ -114,7 +121,42 @@ public class ArchUnitFixtureTest {
     public void reports_non_abstract_classes() {
         ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstract(), ConcreteClass.class);
         assertThat(event.isViolation()).isTrue();
-        assertThat(String.join(" ", event.getDescriptionLines())).isEqualTo("org.gradle.architecture.test.ArchUnitFixtureTest$ConcreteClass is not abstract");
+        assertThat(eventDescription(event)).isEqualTo("org.gradlebuild.ConcreteClass is not abstract");
+    }
+
+    @Test
+    public void checks_for_nullable_annotation() {
+        ConditionEvents events = checkMethodCondition(ArchUnitFixture.useJavaxAnnotationNullable(), WrongNullable.class);
+        assertTrue(events.containViolation());
+        assertThat(events.getViolating().size()).isEqualTo(2);
+        List<String> descriptions = events.getViolating().stream().map(ArchUnitFixtureTest::eventDescription).collect(Collectors.toList());
+        assertThat(descriptions).containsExactlyInAnyOrder(
+                "org.gradlebuild.WrongNullable.returnsNull() is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable",
+                "parameter 0 for org.gradlebuild.WrongNullable.acceptsNull(java.lang.String) is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable"
+        );
+    }
+
+    @Test
+    public void checks_for_annotation_presence() {
+        ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class);
+        assertNoViolation(checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.OwnNonNullApi.class));
+        ConditionEvent event = checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi.class);
+        assertTrue(event.isViolation());
+        assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi");
+        // Cannot test on-package (not on the class) annotation, due to `ClasFileImporter` limitations
+    }
+
+    private static String eventDescription(ConditionEvent event) {
+        return String.join(" ", event.getDescriptionLines());
+    }
+
+    private ConditionEvents checkMethodCondition(ArchCondition<JavaMethod> archCondition, Class<?> clazz) {
+        JavaClass javaClass = new ClassFileImporter().importClass(clazz);
+        CollectingConditionEvents events = new CollectingConditionEvents();
+        for (JavaMethod method : javaClass.getAllMethods()) {
+            archCondition.check(method, events);
+        }
+        return events;
     }
 
     private ConditionEvent checkClassCondition(ArchCondition<JavaClass> archCondition, Class<?> clazz) {
@@ -123,28 +165,6 @@ public class ArchUnitFixtureTest {
         archCondition.check(javaClass, events);
         assertThat(events.getAllEvents()).hasSize(1);
         return events.getAllEvents().iterator().next();
-    }
-
-    interface Interface {
-
-    }
-    static abstract class AbstractClass {
-
-    }
-    static class ConcreteClass {
-
-    }
-
-    @SuppressWarnings({ "unused", "checkstyle:LeftCurly" })
-    static class AllowedMethodTypesClass {
-        public void validMethod(String arg1, String arg2) {}
-        public File invalidReturnType(String arg1, String arg2) { return null; }
-        public void invalidParameterType(String arg1, File arg2) {}
-        public <T extends File> void invalidTypeParameterBoundType(String arg1, String arg2) {}
-        public List<? extends File> invalidTypeParameterInReturnType(String arg1, String arg2) { return null; }
-        public String[] validArrayTypeParameterInReturnType(String arg1, String arg2) { return null; }
-        public File[] invalidArrayTypeParameterInReturnType(String arg1, String arg2) { return null; }
-        public void invalidTypeParameterInParameterType(String arg1, List<File> arg2) { }
     }
 
     @Nonnull

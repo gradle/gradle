@@ -114,9 +114,10 @@ tasks.register('packageFiles2', Zip) {
 
 // tag::adhoc-destroyable-task[]
 tasks.register('removeTempDir') {
-    destroyables.register(layout.projectDirectory.dir('tmpDir'))
+    def tempDir = layout.projectDirectory.dir('tmpDir')
+    destroyables.register(tempDir)
     doLast {
-        delete(layout.projectDirectory.dir('tmpDir'))
+        tempDir.asFile.deleteDir()
     }
 }
 // end::adhoc-destroyable-task[]

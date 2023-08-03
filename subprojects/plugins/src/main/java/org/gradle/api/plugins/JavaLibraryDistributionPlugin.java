@@ -21,6 +21,8 @@ import org.gradle.api.Project;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 
 /**
  * A {@link Plugin} which package a Java project as a distribution including the JAR and runtime dependencies.
@@ -35,13 +37,14 @@ public abstract class JavaLibraryDistributionPlugin implements Plugin<Project> {
 
         DistributionContainer distributionContainer = (DistributionContainer)project.getExtensions().getByName("distributions");
         distributionContainer.named(DistributionPlugin.MAIN_DISTRIBUTION_NAME).configure(dist -> {
+            JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
             CopySpec childSpec = project.copySpec();
-            childSpec.from(project.getTasks().named(JavaPlugin.JAR_TASK_NAME));
+            childSpec.from(mainFeature.getJarTask());
             childSpec.from(project.file("src/dist"));
 
             CopySpec libSpec = project.copySpec();
             libSpec.into("lib");
-            libSpec.from(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+            libSpec.from(mainFeature.getRuntimeClasspathConfiguration());
 
             childSpec.with(libSpec);
             dist.getContents().with(childSpec);

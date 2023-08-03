@@ -27,7 +27,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer
 class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
     private val problems: ProblemsListener
 ) : AbstractInjectedClasspathInstrumentationStrategy() {
-    override fun whenAgentPresent(): CachedClasspathTransformer.StandardTransform {
+    override fun whenThirdPartyAgentPresent(): CachedClasspathTransformer.StandardTransform {
         // Report a problem and instrument anyway
         problems.onProblem(
             PropertyProblem(

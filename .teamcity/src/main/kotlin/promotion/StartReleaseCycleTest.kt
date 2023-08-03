@@ -38,7 +38,7 @@ object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = gradlePromotio
             }
         }
 
-        val enableTriggers = VersionedSettingsBranch.fromDslContext().enableTriggers
+        val enableTriggers = VersionedSettingsBranch.fromDslContext().enableVcsTriggers
         triggers {
             vcs {
                 branchFilter = "+:master"

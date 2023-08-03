@@ -33,8 +33,8 @@ This rule implementation can be neatly encapsulated in a corporate plugin, and s
 
 .Using a custom versioning scheme
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
 ====
 
 [[sec:denying_version]]
@@ -51,8 +51,8 @@ This means that the 'newest' conflict resolution strategy would still select ver
 
 .Example: Blacklisting a version with a replacement
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=denying_version]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
 ====
 
 [NOTE]
@@ -93,8 +93,8 @@ This enables organisations to include the information about module replacement i
 
 .Declaring a module replacement
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
 ====
 
 For more examples and detailed API, refer to the DSL reference for link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html[ComponentMetadataHandler].
@@ -142,8 +142,8 @@ The module to be replaced can be declared with or without a version specified.
 
 .Substituting a module with a project
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/kotlin",files="build.gradle.kts[tags=module_to_project_substitution]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
 ====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
@@ -159,8 +159,8 @@ The module to be used as a replacement must be declared with a version specified
 
 .Substituting a project with a module
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
 ====
 
 When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build.
@@ -176,8 +176,8 @@ The following example uses a dependency substitution rule to replace any module 
 
 .Conditionally substituting a dependency
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/groovy/consumer",files="build.gradle[tags=project_substitution]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/kotlin/consumer",files="build.gradle.kts[tags=project_substitution]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/groovy/consumer",files="build.gradle[tags=project_substitution]"]
 ====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
@@ -202,8 +202,8 @@ This means that the library you are consuming declared something like this:
 
 .An incorrect dependency on a platform
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
 ====
 
 The `platform` keyword is actually a short-hand notation for a _dependency with attributes_.
@@ -213,8 +213,8 @@ This can be done by using a substitution rule:
 
 .Substitute a platform dependency with a regular dependency
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule]"]
 ====
 
 The same rule _without_ the `platform` keyword would try to substitute _regular dependencies_ with a regular dependency, which is not what you want, so it's important to understand that the substitution rules apply on a _dependency specification_: it matches the requested dependency (`substitute XXX`) with a substitute (`using YYY`).
@@ -224,8 +224,8 @@ The following rule is _strictly equivalent_ to the rule above:
 
 .Substitute a platform dependency with a regular dependency using the variant notation
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule_alternative]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule_alternative]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule_alternative]"]
 ====
 
 Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[Substitution DSL API docs] for a complete reference of the variant substitution API.
@@ -246,8 +246,8 @@ You can achieve this by using the following dependency substitution rule:
 
 .Substitute a dependency with its test fixtures
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
 ====
 
 Capabilities which are declared in a substitution rule on the requested dependency constitute part of the dependency match specification, and therefore dependencies which do _not_ require the capabilities will not be matched.
@@ -271,8 +271,8 @@ However, in order to help bridging the two models, Gradle provides means to chan
 
 .Dependencies which will lead to a resolution error
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="consumer/build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="consumer/build.gradle[tags=dependencies]"]
 ====
 
 In the example above, the first level dependency on `quasar` makes us think that Gradle would resolve `quasar-core-0.8.0.jar` but it's not the case: the build would fail with this message:
@@ -290,8 +290,8 @@ That's because there's a dependency on another project, `lib`, which itself depe
 
 .A "classified" dependency
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
 ====
 
 What happens is that Gradle would perform conflict resolution between `quasar-core` 0.8.0 and `quasar-core` 0.7.10.
@@ -301,8 +301,8 @@ To fix this problem, you can ask Gradle to resolve both dependencies _without cl
 
 .A resolution rule to disable selection of a classifier
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule]"]
 ====
 
 This rule effectively replaces any dependency on `quasar-core` found in the graph with a dependency without classifier.
@@ -325,8 +325,8 @@ As a result only the main artifact will be resolved for the declared dependency.
 
 .Disabling transitive dependency resolution for a declared dependency
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForDependency/kotlin",files="build.gradle.kts[tags=transitive-per-dependency]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
 ====
 
 [NOTE]
@@ -340,8 +340,8 @@ For more information, see link:{javadocPath}/org/gradle/api/artifacts/Configurat
 
 .Disabling transitive dependency resolution on the configuration-level
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
 ====
 
 == Changing configuration dependencies prior to resolution
@@ -351,8 +351,8 @@ The `withDependencies` method permits dependencies to be added, removed or modif
 
 .Modifying dependencies on a configuration
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
 ====
 
 [[sec:configuration_defaults]]
@@ -364,8 +364,8 @@ By specifying default dependencies, the plugin can use a default version of the 
 
 .Specifying default dependencies on a configuration
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
 ====
 
 == Excluding a dependency from a configuration completely
@@ -375,8 +375,8 @@ This will automatically exclude the transitive dependency for all dependencies d
 
 .Excluding transitive dependency for a particular configuration
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
 ====
 
 == Matching dependencies to repositories
@@ -401,6 +401,6 @@ It is not available for Maven repositories, or custom Ivy `DependencyResolver` i
 
 .Enabling dynamic resolve mode
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
 ====

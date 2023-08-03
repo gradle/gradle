@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.api.NonNullApi;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.internal.VersionNumber;
 
@@ -25,33 +27,56 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@NonNullApi
 public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSdkInstall {
     private final File binDir;
+    private final SystemInfo systemInfo;
 
-    public WindowsKitSdkInstall(File baseDir, VersionNumber version, File binDir, String name) {
+    public WindowsKitSdkInstall(File baseDir, VersionNumber version, File binDir, String name, SystemInfo systemInfo) {
         super(baseDir, version, name);
         this.binDir = binDir;
+        this.systemInfo = systemInfo;
     }
 
     @Override
     public WindowsSdk forPlatform(final NativePlatformInternal platform) {
-        if (platform.getArchitecture().isAmd64()) {
-            return new WindowsKitBackedSdk("x64");
+        String host;
+        switch (systemInfo.getArchitecture()) {
+            case i386:
+                host = "x86";
+                break;
+            case amd64:
+                host = "x64";
+                break;
+            case aarch64:
+                host = "arm64";
+                break;
+            default:
+                throw new UnsupportedOperationException(String.format("Unsupported host for %s", toString()));
         }
-        if (platform.getArchitecture().isArm()) {
-            return new WindowsKitBackedSdk("arm");
+
+        if (platform.getArchitecture().isAmd64()) {
+            return new WindowsKitBackedSdk("x64", host);
+        }
+        if (platform.getArchitecture().isArm64()) {
+            return new WindowsKitBackedSdk("arm64", host);
+        }
+        if (platform.getArchitecture().isArm32()) {
+            return new WindowsKitBackedSdk("arm", host);
         }
         if (platform.getArchitecture().isI386()) {
-            return new WindowsKitBackedSdk("x86");
+            return new WindowsKitBackedSdk("x86", host);
         }
         throw new UnsupportedOperationException(String.format("Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
     private class WindowsKitBackedSdk implements WindowsSdk {
         private final String platformDirName;
+        private final String hostDirName;
 
-        WindowsKitBackedSdk(String platformDirName) {
+        WindowsKitBackedSdk(String platformDirName, String hostDirName) {
             this.platformDirName = platformDirName;
+            this.hostDirName = hostDirName;
         }
 
         @Override
@@ -79,7 +104,7 @@ public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSd
 
         @Override
         public File getResourceCompiler() {
-            return new File(getBinDir(), "rc.exe");
+            return new File(getHostBinDir(), "rc.exe");
         }
 
         @Override
@@ -94,6 +119,10 @@ public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSd
 
         private File getBinDir() {
             return new File(binDir, platformDirName);
+        }
+
+        private File getHostBinDir() {
+            return new File(binDir, hostDirName);
         }
     }
 }

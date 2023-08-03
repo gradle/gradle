@@ -17,10 +17,10 @@ package org.gradle.internal.nativeintegration.processenvironment
 
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -47,13 +47,13 @@ class ProcessEnvironmentTest extends Specification {
         System.getenv("TEST_ENV_2") == null
     }
 
-    @Requires(TestPrecondition.WORKING_DIR)
+    @Requires(UnitTestPreconditions.WorkingDir)
     def "can get working directory of current process"() {
         expect:
         env.processDir.canonicalFile == new File('.').canonicalFile
     }
 
-    @Requires(TestPrecondition.WORKING_DIR)
+    @Requires(UnitTestPreconditions.WorkingDir)
     def "can get set working directory of current process"() {
         File originalDir = new File(System.getProperty("user.dir"))
 

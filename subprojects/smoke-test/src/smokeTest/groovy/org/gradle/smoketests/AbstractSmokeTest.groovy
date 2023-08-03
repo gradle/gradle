@@ -21,7 +21,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
@@ -47,10 +46,8 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
-    protected static final String AGP_NO_CC_ITERATION_MATCHER = ".*agp=4\\..*"
 
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
-    protected static final String KGP_NO_CC_ITERATION_MATCHER = ".*(kotlin=1\\.3\\.|kotlin=1\\.4\\.[01]).*"
 
     static class TestedVersions {
         /**
@@ -58,59 +55,57 @@ abstract class AbstractSmokeTest extends Specification {
          * @see BuildScanPluginSmokeTest
          */
 
+        // https://plugins.gradle.org/plugin/biz.aQute.bnd
+        static bnd = "6.4.0"
+
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
-        static nebulaDependencyRecommender = "12.0.0"
+        static nebulaDependencyRecommender = "12.2.0"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin
-        static nebulaPluginPlugin = "20.0.0"
+        static nebulaPluginPlugin = "20.8.1"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "17.7.1"
+        static nebulaLint = "18.1.0"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
-        static ideaExt = "1.1.6"
+        static ideaExt = "1.1.7"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("13.1.0")
+        static nebulaDependencyLock = Versions.of("13.2.2")
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
-        static nebulaResolutionRules = "10.0.0"
+        static nebulaResolutionRules = "10.2.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("7.0.0", "7.1.2")
+        static shadow = Versions.of("8.1.1")
 
-        // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
-        static asciidoctor = Versions.of("3.3.2")
+        // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
+        static asciidoctor = Versions.of("3.3.2", "4.0.0-alpha.1")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "5.0.12"
+        static spotbugs = "5.0.14"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "8.0.0"
-
-        // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
-        static tomcat = "2.7.0"
+        static docker = "9.3.1"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.14.RELEASE"
+        static springDependencyManagement = "1.1.0"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.7.3"
+        static springBoot = "3.1.1"
 
         // https://developer.android.com/studio/releases/build-tools
-        static androidTools = "30.0.2"
+        static androidTools = "34.0.0"
+
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of(*AGP_VERSIONS.getLatestsFromMinorPlusNightly("4.0"))
+        static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-        static kotlin = Versions.of(*KOTLIN_VERSIONS.latests.findAll {
-            def lowerCaseVersion = it.toLowerCase(Locale.US)
-            !lowerCaseVersion.contains('-m') && !(lowerCaseVersion.contains('-beta'))
-        })
+        static kotlin = Versions.of(*KOTLIN_VERSIONS.latests)
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.0.9", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "3.1.1", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
             [version: "4.0.3", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
@@ -118,79 +113,87 @@ abstract class AbstractSmokeTest extends Specification {
         static grgit = "4.1.1"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.42.0"
+        static gradleVersions = "0.47.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.12"
+        static playframework = "0.13"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-        static errorProne = "2.0.2"
+        static errorProne = "3.1.0"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.19"
+        static protobufPlugin = "0.9.3"
 
-        static protobufTools = "3.21.5"
+        // https://central.sonatype.com/artifact/com.google.protobuf/protobuf-java/4.0.0-rc-2/versions
+        static protobufTools = "3.23.4"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
-        static testRetryPlugin = "1.5.0"
-
-        // https://plugins.gradle.org/plugin/com.jfrog.artifactory
-        static artifactoryPlugin = "4.29.0"
-        static artifactoryRepoOSSVersion = "6.16.0"
+        static testRetryPlugin = "1.5.3"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "6.5.1"
+        static aspectj = "8.1.0"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
-        static undercouchDownload = Versions.of("5.1.2")
+        static undercouchDownload = Versions.of("5.4.0")
 
         // https://github.com/micronaut-projects/micronaut-gradle-plugin/releases
-        static micronaut = Versions.of("2.0.6")
+        static micronaut = "3.7.10"
 
         // https://plugins.gradle.org/plugin/com.gorylenko.gradle-git-properties
         static gradleGitProperties = Versions.of("2.4.1")
 
         // https://plugins.gradle.org/plugin/org.flywaydb.flyway
-        static flyway = Versions.of("9.2.2")
+        static flyway = Versions.of("9.20.0")
 
         // https://plugins.gradle.org/plugin/net.ltgt.apt
         static apt = Versions.of("0.21")
 
         // https://plugins.gradle.org/plugin/io.gitlab.arturbosch.detekt
-        static detekt = Versions.of("1.21.0")
+        static detekt = Versions.of("1.23.0")
 
         // https://plugins.gradle.org/plugin/com.diffplug.spotless
-        static spotless = Versions.of("6.10.0")
+        static spotless = Versions.of("6.19.0")
 
         // https://plugins.gradle.org/plugin/com.google.cloud.tools.jib
-        static jib = Versions.of("3.3.0")
+        static jib = Versions.of("3.3.2")
 
         // https://plugins.gradle.org/plugin/io.freefair.lombok
-        static lombok = Versions.of("6.5.1")
-
-        // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
-        // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.22")
+        static lombok = Versions.of("8.1.0")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
         // https://plugins.gradle.org/plugin/com.moowork.node
         static node = Versions.of("1.3.1")
 
-        // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
-        static ktlint = Versions.of("11.0.0")
-
         // https://plugins.gradle.org/plugin/com.github.node-gradle.node
-        static newNode = Versions.of("3.4.0")
+        static newNode = Versions.of("5.0.0")
 
-        // https://github.com/davidmc24/gradle-avro-plugin
-        static avro = Versions.of("1.3.0")
+        // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
+        static ktlint = Versions.of("11.5.0")
+
+        // https://github.com/davidmc24/gradle-avro-plugin/releases
+        static avro = Versions.of("1.7.1")
 
         // https://plugins.gradle.org/plugin/io.spring.nohttp
-        static nohttp = Versions.of("0.0.10")
+        static nohttp = Versions.of("0.0.11")
 
         // https://plugins.gradle.org/plugin/org.jenkins-ci.jpi
-        static jenkinsJpi = Versions.of("0.44.0")
+        static jenkinsJpi = Versions.of("0.49.0")
+
+        // https://mvnrepository.com/artifact/com.guardsquare/proguard-gradle
+        static proguardGradle = "7.3.2"
+
+        // https://plugins.gradle.org/plugin/com.palantir.consistent-versions
+        static palantirConsistentVersions = "2.12.0"
+
+        // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
+        static teamCityGradlePluginRef = "v0.35"
+
+        // https://github.com/jenkinsci/gradle-plugin/releases
+        static jenkinsGradlePluginRef = "gradle-2.8.2"
+
+        // https://github.com/gradle/gradle-enterprise-bamboo-plugin/releases
+        static bambooGradlePluginRef = "gradle-enterprise-bamboo-plugin-1.1.2"
     }
 
     static class Versions implements Iterable<String> {
@@ -199,23 +202,6 @@ abstract class AbstractSmokeTest extends Specification {
         }
 
         final List<String> versions
-
-        String latest() {
-            versions.last()
-        }
-
-        String latestStable() {
-            versions.reverse().find { version ->
-                !version.containsIgnoreCase("rc") &&
-                !version.containsIgnoreCase("beta") &&
-                !version.containsIgnoreCase("alpha") &&
-                !version.containsIgnoreCase("milestone")
-            }
-        }
-
-        String latestStartsWith(String prefix) {
-            return versions.reverse().find { it.startsWith(prefix) }
-        }
 
         private Versions(String... given) {
             versions = Arrays.asList(given)
@@ -276,7 +262,6 @@ abstract class AbstractSmokeTest extends Specification {
             parameters += [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
                 "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxProblems".toString(),
-                "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true".toString(),
                 "-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()
             ]
             if (maxProblems > 0) {
@@ -348,9 +333,6 @@ abstract class AbstractSmokeTest extends Specification {
         if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             extraArgs += ["-I", init.canonicalPath]
-        }
-        if (agpVersion.startsWith("7.2") && JavaVersion.current().java9Compatible) {
-            runner = runner.withJvmArguments('--add-opens', 'java.logging/java.util.logging=ALL-UNNAMED')
         }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
     }

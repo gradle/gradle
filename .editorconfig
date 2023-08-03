@@ -24,3 +24,6 @@ indent_size = 2
 
 [gradle/verification-metadata.xml]
 indent_size = 3
+
+[subprojects/launcher/src/main/resources/release-features.txt]
+insert_final_newline = false

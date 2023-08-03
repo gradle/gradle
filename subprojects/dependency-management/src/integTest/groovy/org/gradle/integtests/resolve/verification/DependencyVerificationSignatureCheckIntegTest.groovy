@@ -21,7 +21,6 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
@@ -32,7 +31,7 @@ import java.util.concurrent.TimeUnit
 import static org.gradle.security.fixtures.SigningFixtures.getValidPublicKeyLongIdHexString
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 import static org.gradle.security.fixtures.SigningFixtures.validPublicKeyHexString
-import static org.gradle.security.internal.SecuritySupport.toLongIdHexString
+import static org.gradle.security.internal.SecuritySupport.toHexString
 
 class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVerificationIntegrationTest {
 
@@ -42,34 +41,6 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
             verifySignatures()
             addTrustedKey("org:foo:1.0", validPublicKeyHexString)
             addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
-        }
-
-        given:
-        javaLibrary()
-        uncheckedModule("org", "foo", "1.0") {
-            withSignature {
-                signAsciiArmored(it)
-            }
-        }
-        buildFile << """
-            dependencies {
-                implementation "org:foo:1.0"
-            }
-        """
-
-        when:
-        serveValidKey()
-
-        then:
-        succeeds ":compileJava"
-    }
-
-    def "doesn't need checksums if signature is verified and trust using long id"() {
-        createMetadataFile {
-            keyServer(keyServerFixture.uri)
-            verifySignatures()
-            addTrustedKey("org:foo:1.0", validPublicKeyLongIdHexString)
-            addTrustedKey("org:foo:1.0", validPublicKeyLongIdHexString, "pom", "pom")
         }
 
         given:
@@ -131,9 +102,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
@@ -178,15 +147,11 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can verify signature for artifacts downloaded in a previous build (stop in between = #stopInBetween)"() {
         given:
         terseConsoleOutput(false)
@@ -228,7 +193,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         stopInBetween << [false, true]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can verify classified artifacts downloaded in previous builds (stop in between = #stopInBetween)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -269,7 +233,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0-classy.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
 
         where:
         stopInBetween << [false, true]
@@ -316,10 +280,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -405,10 +366,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -465,10 +423,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -513,12 +468,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -531,8 +483,8 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", trustedKey)
-            addTrustedKey("org:foo:1.0", trustedKey, "pom", "pom")
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
 
         given:
@@ -558,16 +510,8 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
   - On artifact foo-1.0-classy.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
-        where:
-        trustedKey << [
-            validPublicKeyHexString,
-            validPublicKeyLongIdHexString
-        ]
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
+        assertConfigCacheDiscarded()
     }
 
     def "reasonable error message if key server fails to answer (terse output=#terse)"() {
@@ -609,10 +553,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -621,7 +562,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         def keyring = newKeyRing()
         def secondServer = new KeyServer(temporaryFolder.createDir("keyserver-${UUID.randomUUID()}"))
         secondServer.registerPublicKey(keyring.publicKey)
-        def pkId = toLongIdHexString(keyring.publicKey.keyID)
+        def pkId = toHexString(keyring.publicKey.fingerprint)
         secondServer.start()
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -692,12 +633,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -740,10 +678,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "publish keys"
         keyServerFixture.withDefaultSigningKey()
         fails ":compileJava"
@@ -761,10 +696,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "refreshes the keys"
         succeeds ":compileJava", "--refresh-keys"
 
@@ -808,10 +740,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "publish keys"
         keyServerFixture.withDefaultSigningKey()
         fails ":compileJava", "-Dorg.gradle.internal.test.clockoffset=${TimeUnit.HOURS.toMillis(23)}"
@@ -824,10 +753,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "24 hours passed"
         succeeds ":compileJava", "-Dorg.gradle.internal.test.clockoffset=${TimeUnit.HOURS.toMillis(24) + TimeUnit.MINUTES.toMillis(5)}"
 
@@ -865,10 +791,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "ignore key"
         replaceMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -885,10 +808,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.pom (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata."""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "doesn't ignore key anymore"
         replaceMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -901,10 +821,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
 """
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "ignore key only for artifact"
         replaceMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -919,15 +836,12 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata."""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
     }
 
 
     // This test exercises the fact that the signature cache is aware
     // of changes of the artifact
-    @ToBeFixedForConfigurationCache
     def "can detect tampered file between builds (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -980,7 +894,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "caching takes trusted keys into account (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -1022,12 +935,12 @@ This can indicate that a dependency has been compromised. Please carefully verif
         assertVerificationError(terse) {
             whenTerse """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
         }
 
         where:
@@ -1073,10 +986,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1120,10 +1030,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1168,10 +1075,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1221,10 +1125,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
 
@@ -1275,10 +1176,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1320,10 +1218,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.""")
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         enableVerifySignatures << [true, false]
     }
@@ -1331,7 +1226,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "passes verification if an artifact is signed with multiple keys and one of them is ignored"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
-        def pkId = toLongIdHexString(keyring.publicKey.keyID)
+        def pkId = toHexString(keyring.publicKey.fingerprint)
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
@@ -1405,12 +1300,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
       - Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
       - Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1486,10 +1378,8 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
-            if (GradleContextualExecuter.isConfigCache()) {
-                failure.assertOutputContains("Configuration cache entry discarded.")
-            }
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
+            assertConfigCacheDiscarded()
         }
 
         where:
@@ -1499,7 +1389,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     def "can read public keys from #keyRingFormat keyring"() {
         // key will not be published on the server fixture but available locally
         def keyring = newKeyRing()
-        def pkId = toLongIdHexString(keyring.publicKey.keyID)
+        def pkId = toHexString(keyring.publicKey.fingerprint)
 
         createMetadataFile {
             disableKeyServers()
@@ -1579,6 +1469,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         terse << [true, false]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Artifact Query API")
     def "dependency verification should work correctly with artifact queries"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -1666,12 +1557,9 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/19663")
     def "fails when disabling reaching out to key servers after previous successful build and no key rings file"() {
         given:
@@ -1718,11 +1606,10 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/18440")
     def "fails on a bad verification file change after previous successful build when key servers are disabled"() {
         def keyring = newKeyRing()
-        def pkId = toLongIdHexString(keyring.publicKey.keyID)
+        def pkId = toHexString(keyring.publicKey.fingerprint)
 
         createMetadataFile {
             disableKeyServers()
@@ -1804,6 +1691,82 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         succeeds ":compileJava"
+    }
+
+    def "fails verification if a per artifact trusted key is not a fingerprint"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        // We need to manually replace the key in the XML, as 'createMetadataFile' will already fail if we use a non-fingerprint ID
+        def longId = validPublicKeyHexString.substring(validPublicKeyHexString.length() - 16)
+        file("gradle/verification-metadata.xml").replace(validPublicKeyHexString, longId)
+
+        given:
+        terseConsoleOutput(terse)
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        assertConfigCacheDiscarded()
+        failureCauseContains("An error happened meanwhile verifying 'org:foo:1.0'")
+        failureCauseContains("The following trusted GPG IDs are not in a minimum 160-bit fingerprint format")
+        failureCauseContains("'${longId}'")
+
+        where:
+        terse << [true, false]
+    }
+
+    def "fails verification if a globally trusted key is not a fingerprint"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyTrustedKey(validPublicKeyHexString, "org", "foo", "1.0", "foo-1.0-classified.jar", false)
+        }
+
+        // We need to manually replace the key in the XML, as 'createMetadataFile' will already fail if we use a non-fingerprint ID
+        def longId = validPublicKeyHexString.substring(validPublicKeyHexString.length() - 16)
+        file("gradle/verification-metadata.xml").replace(validPublicKeyHexString, longId)
+
+        given:
+        terseConsoleOutput(terse)
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        assertConfigCacheDiscarded()
+        failureCauseContains("The following trusted GPG IDs are not in a minimum 160-bit fingerprint format")
+        failureCauseContains("'${longId}'")
+
+        where:
+        terse << [true, false]
     }
 
     private static void tamperWithFile(File file) {

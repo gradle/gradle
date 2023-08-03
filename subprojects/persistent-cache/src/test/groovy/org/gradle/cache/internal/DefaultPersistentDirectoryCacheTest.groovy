@@ -17,7 +17,7 @@ package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CacheCleanup
+import org.gradle.cache.CacheCleanupStrategy
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
@@ -38,7 +38,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
     }
     def lockManager = new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler())
     def initializationAction = Mock(Action)
-    def cacheCleanup = Stub(CacheCleanup)
+    def cacheCleanup = Stub(CacheCleanupStrategy)
     def progressLoggerFactory = Stub(ProgressLoggerFactory)
 
     def properties = ['prop': 'value', 'prop2': 'other-value']

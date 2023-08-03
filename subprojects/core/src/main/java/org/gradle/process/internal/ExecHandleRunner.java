@@ -19,6 +19,8 @@ package org.gradle.process.internal;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
@@ -36,16 +38,21 @@ public class ExecHandleRunner implements Runnable {
     private Process process;
     private boolean aborted;
     private final StreamsHandler streamsHandler;
+    private volatile BuildOperationRef associatedBuildOperation;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor) {
-        this.processLauncher = processLauncher;
-        this.executor = executor;
+    public ExecHandleRunner(
+        DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor,
+        BuildOperationRef associatedBuildOperation
+    ) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
-        this.streamsHandler = streamsHandler;
-        this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
+        this.streamsHandler = streamsHandler;
+        this.processLauncher = processLauncher;
+        this.executor = executor;
+        this.associatedBuildOperation = associatedBuildOperation;
+        this.processBuilderFactory = new ProcessBuilderFactory();
     }
 
     public void abortProcess() {
@@ -67,25 +74,42 @@ public class ExecHandleRunner implements Runnable {
 
     @Override
     public void run() {
+        // Split the `with` operation so that the `associatedBuildOperation` can be discarded when we wait in `process.waitFor()`
         try {
-            startProcess();
+            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                startProcess();
 
-            execHandle.started();
+                execHandle.started();
 
-            LOGGER.debug("waiting until streams are handled...");
-            streamsHandler.start();
+                LOGGER.debug("waiting until streams are handled...");
+                streamsHandler.start();
+            });
 
             if (execHandle.isDaemon()) {
-                streamsHandler.stop();
-                detached();
+                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                    streamsHandler.stop();
+                    detached();
+                });
             } else {
                 int exitValue = process.waitFor();
-                streamsHandler.stop();
-                completed(exitValue);
+                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                    streamsHandler.stop();
+                    completed(exitValue);
+                });
             }
         } catch (Throwable t) {
-            execHandle.failed(t);
+            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                execHandle.failed(t);
+            });
         }
+    }
+
+    /**
+     * Remove any context associated with tracking the startup of this process.
+     */
+    public void removeStartupContext() {
+        this.associatedBuildOperation = null;
+        streamsHandler.removeStartupContext();
     }
 
     private void startProcess() {

@@ -46,8 +46,8 @@ abstract class BundleTask extends NpmTask {
 
     BundleTask() {
         args.addAll("run", "bundle")
-        bundle.set(projectLayout.buildDirectory.file("bundle.js"))
-        scripts.set(projectLayout.projectDirectory.dir("scripts"))
+        bundle = projectLayout.buildDirectory.file("bundle.js")
+        scripts = projectLayout.projectDirectory.dir("scripts")
         configFiles.from(projectLayout.projectDirectory.file("package.json"))
         configFiles.from(projectLayout.projectDirectory.file("package-lock.json"))
     }

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.junit.Assume
 import spock.lang.Issue
 
+import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import static org.hamcrest.core.IsNull.notNullValue
 
@@ -41,7 +42,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation 'org.scala-lang:scala-library:2.11.12'
+                implementation "${scalaDependency(version.toString())}"
             }
 
             tasks.withType(ScalaCompile) {
@@ -72,14 +73,23 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
     }
 
-    def compilesScalaCodeIncrementally() {
-        setup:
+    def "compiles Scala code incrementally"() {
+        file("src/main/scala/Person.scala") << """class Person(val name: String = "foo", val age: Int = 1)"""
+        file("src/main/scala/House.scala") << """class House(val owner: Person = new Person())"""
+        file("src/main/scala/Other.scala") << """class Other"""
+        file("src/main/scala/Other2.scala") << """class Other2"""
+
         def person = scalaClassFile("Person.class")
         def house = scalaClassFile("House.class")
         def other = scalaClassFile("Other.class")
         // We need an additional file since if >50% of files is changed everything gets recompiled
         def other2 = scalaClassFile("Other2.class")
+
+        when:
         run("compileScala")
+
+        then:
+        executedAndNotSkipped(":compileScala")
 
         when:
         file("src/main/scala/Person.scala").delete()
@@ -88,6 +98,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         run("compileScala")
 
         then:
+        executedAndNotSkipped(":compileScala")
         classHash(person) != old(classHash(person))
         classHash(house) != old(classHash(house))
         classHash(other) == old(classHash(other))
@@ -95,8 +106,23 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other2.lastModified() == old(other2.lastModified())
     }
 
-    def compilesJavaCodeIncrementally() {
-        setup:
+    def "compiles Java code incrementally"() {
+        file("src/main/scala/Person.java") << """
+            public class Person {
+                private final String name;
+                public Person(String name) { this.name = name; }
+                public String getName() { return name; }
+            }
+        """
+        file("src/main/scala/House.java") << """
+            public class House {
+                private final Person owner;
+                public House(Person owner) { this.owner = owner; }
+                public Person getOwner() { return owner; }
+            }
+        """
+        file("src/main/scala/Other.java") << """public class Other {}"""
+
         def person = scalaClassFile("Person.class")
         def house = scalaClassFile("House.class")
         def other = scalaClassFile("Other.class")
@@ -114,17 +140,36 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other.lastModified() == old(other.lastModified())
     }
 
-    def compilesIncrementallyAcrossProjectBoundaries() {
-        setup:
-        def person = file("prj1/build/classes/scala/main/Person.class")
-        def house = file("prj2/build/classes/scala/main/House.class")
-        def other = file("prj2/build/classes/scala/main/Other.class")
+    def "compiles Scala incrementally across project boundaries"() {
+        file("settings.gradle") << """include 'a', 'b'"""
+        // overwrite the build file from setup
+        file("build.gradle").text = """
+            subprojects {
+                apply plugin: 'scala'
+                ${mavenCentralRepository()}
+                dependencies {
+                    implementation "${scalaDependency(version.toString())}"
+                }
+            }
+            project(":b") {
+                dependencies {
+                    implementation project(":a")
+                }
+            }
+        """
+        file("a/src/main/scala/Person.scala") << """class Person(val name: String = "foo", val age: Int = 1)"""
+        file("b/src/main/scala/House.scala") << """class House(val owner: Person = new Person())"""
+        file("b/src/main/scala/Other.scala") << """class Other"""
+
+        def person = file("a/build/classes/scala/main/Person.class")
+        def house = file("b/build/classes/scala/main/House.class")
+        def other = file("b/build/classes/scala/main/Other.class")
         args("-PscalaVersion=$version")
         run("compileScala")
 
         when:
-        file("prj1/src/main/scala/Person.scala").delete()
-        file("prj1/src/main/scala/Person.scala") << "class Person"
+        file("a/src/main/scala/Person.scala").delete()
+        file("a/src/main/scala/Person.scala") << "class Person"
         args("-PscalaVersion=$version") // each run clears args (argh!)
         run("compileScala")
 
@@ -132,10 +177,21 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         classHash(person) != old(classHash(person))
         classHash(house) != old(classHash(house))
         other.lastModified() == old(other.lastModified())
-
     }
 
-    def compilesAllScalaCodeWhenForced() {
+    def "recompiles all Scala code when forced"() {
+        file("src/main/scala/Person.scala") << """class Person(val name: String = "foo", val age: Int = 1)"""
+        file("src/main/scala/House.scala") << """class House(val owner: Person = new Person())"""
+        file("src/main/scala/Other.scala") << """class Other"""
+
+        file("build.gradle") << """
+            tasks.withType(ScalaCompile) {
+                scalaCompileOptions.with {
+                    force = true
+                }
+            }
+        """
+
         setup:
         def person = scalaClassFile("Person.class")
         def house = scalaClassFile("House.class")
@@ -154,19 +210,10 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other.lastModified() != old(other.lastModified())
     }
 
-    @Issue("gradle/gradle#13535")
+    @Issue("https://github.com/gradle/gradle/issues/13535")
     def doNotPropagateWorkerClasspathToCompilationClasspath() {
-        given:
         // scala 2.12 is used because for 2.13 this particular case is ok
-        file("build.gradle") << """
-            apply plugin: 'scala'
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                implementation 'org.scala-lang:scala-library:2.12.11'
-            }
-        """
+        Assume.assumeTrue(versionNumber.major == 2 && versionNumber.minor == 12)
 
         file("src/main/scala/ScalaXml.scala") << """
             import scala.xml.Text
@@ -182,5 +229,4 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         fails("compileScala")
         result.assertHasErrorOutput("object xml is not a member of package scala")
     }
-
 }

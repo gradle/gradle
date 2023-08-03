@@ -19,7 +19,9 @@ import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.plugins.signing.signatory.SignatorySupport;
+import org.gradle.process.ExecOperations;
 
+import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -30,13 +32,14 @@ import java.util.List;
 
 /**
  * Signatory that uses the gnupg cli program.
+ *
  * @since 4.5
  */
 public class GnupgSignatory extends SignatorySupport {
 
     private static final Logger LOG = Logging.getLogger(GnupgSignatory.class);
 
-    private final Project project;
+    private final ExecOperations execOperations;
     private final String name;
 
     private final String executable;
@@ -46,8 +49,13 @@ public class GnupgSignatory extends SignatorySupport {
     private final String keyName;
     private final String passphrase;
 
+    interface Services {
+        @Inject
+        ExecOperations getExecOperations();
+    }
+
     public GnupgSignatory(Project project, String name, GnupgSettings settings) {
-        this.project = project;
+        this.execOperations = project.getObjects().newInstance(Services.class).getExecOperations();
         this.name = name;
         this.executable = settings.getExecutable();
         this.useLegacyGpg = settings.getUseLegacyGpg();
@@ -66,7 +74,7 @@ public class GnupgSignatory extends SignatorySupport {
     public void sign(final InputStream input, final OutputStream output) {
         final List<String> arguments = buildArgumentList();
         LOG.info("Invoking {} with arguments: {}", executable, arguments);
-        project.exec(spec -> {
+        execOperations.exec(spec -> {
                 spec.setExecutable(executable);
                 spec.setArgs(arguments);
                 spec.setStandardInput(prepareStdin(input));
@@ -76,7 +84,7 @@ public class GnupgSignatory extends SignatorySupport {
     }
 
     private InputStream prepareStdin(InputStream input) {
-        if (passphrase!=null) {
+        if (passphrase != null) {
             return new SequenceInputStream(new ByteArrayInputStream((passphrase + "\n").getBytes()), input);
         } else {
             return input;

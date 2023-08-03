@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -99,5 +100,17 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
         def result = fails()
         result.assertHasDescription("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("Cannot run Project.afterEvaluate(Action) when the project is already evaluated.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4823")
+    def "evaluationDependsOn deep project forces evaluation of parents"() {
+        given:
+        settingsFile << "include(':a', ':b:c')"
+        file("a/build.gradle") << "evaluationDependsOn(':b:c')"
+        file("b/build.gradle") << "plugins { id('org.gradle.hello-world') version '0.2' apply false }"
+        file("b/c/build.gradle") << "import org.gradle.plugin.HelloWorldTask"
+
+        expect:
+        succeeds 'help'
     }
 }

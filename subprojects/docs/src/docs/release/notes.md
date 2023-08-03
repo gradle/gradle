@@ -2,37 +2,13 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!--
+<!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
- The list is rendered as is, so use commas after each contributor's name, and a period at the end.
+ THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-
-[Andrei Nevedomskii](https://github.com/monosoul),
-[Björn Kautler](https://github.com/Vampire),
-[Clara Guerrero](https://github.com/cguerreros),
-[David Marin](https://github.com/dmarin),
-[Denis Buzmakov](https://github.com/bacecek),
-[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
-[Dzmitry Neviadomski](https://github.com/nevack),
-[Eliezer Graber](https://github.com/eygraber),
-[Fedor Ihnatkevich](https://github.com/Jeffset),
-[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
-[Guruprasad Bagade](https://github.com/prasad-333),
-[Herbert von Broeuschmeul](https://github.com/HvB),
-[Matthew Haughton](https://github.com/3flex),
-[Michael Torres](https://github.com/torresmi),
-[Pankaj Kumar](https://github.com/p1729),
-[Ricardo Jiang](https://github.com/RicardoJiang),
-[Siddardha Bezawada](https://github.com/SidB3),
-[Stephen Topley](https://github.com/stopley),
-[Victor Maldonado](https://github.com/vmmaldonadoz),
-[Vinay Potluri](https://github.com/vinaypotluri),
-[Jeff Gaston](https://github.com/mathjeff),
-[David Morris](https://github.com/codefish1).
 
 ## Upgrade instructions
 
@@ -40,7 +16,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
@@ -74,80 +50,7 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-#### Warning modes `all` and `fail` are more verbose
 
-Warning modes that are supposed to print all warnings were printing only one for each specific warning message.
-If there were two warnings with the same message, but originating from different steps of the build process (i.e. different stack traces), only one of them was printed. 
-Now one gets printed for each combination of message and stack trace.
-
-#### PMD and CodeNarc tasks execute in parallel by default
-The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
-
-In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
-
-#### CodeNarc Plugin automatically detects appropriate version for current Groovy runtime
-
-The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
-Gradle still currently ships with Groovy 3.
-To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
-You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
-
-#### Introduced `projectInternalView()` dependency for test suites with access to project internals
-The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
-supports depending on the internal view of the current project at compile-time.
-Previously it was only possible to depend on the current project's API. This allows
-test suites to access project internals that are not declared on
-the `api` or `compileOnlyApi` configurations. This functionality can be useful when
-testing internal classes that use dependencies which are not exposed as part of a
-project's API, like those declared on the `implementation` and `compileOnly` configurations.
-
-For example, the following snippet uses the new `projectInternalView()` API to define a
-test suite with access to project internals:
-
-```kotlin
-testing {
-    suites {
-        val unitLikeTestSuite by registering(JvmTestSuite::class) {
-            useJUnitJupiter()
-            dependencies {
-                implementation(projectInternalView())
-            }
-        }
-    }
-}
-```
-
-#### Dependency verification metadata improvements
-
-The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
-
-- the `trust` xml node under `trusted-artifacts`
-- the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
-
-#### Dependency verification CLI improvements
-
-You can now use the `export-keys` flag to export all already trusted keys:
-
-```asciidoc
-./gradlew --export-keys
-```
-
-For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
-
-#### Updated the Kotlin DSL to Kotlin API Level 1.7
-
-Previously, the Kotlin DSL used Kotlin API level 1.4.
-Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.7.
-This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
-
-Highlights include:
-
-- exhaustive `when` statements
-- improved type inference
-- stable inline classes
-- improved sealed types hierarchies
-
-For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_7).
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -161,46 +64,23 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-### Promoted features in the Tooling API
-
-- The `GradleConnector.disconnect()` method is now considered stable.
-
-### Promoted features in the antlr plugin
-
-- The `AntlrSourceDirectorySet` interface is now considered stable.
-
-### Promoted features in the ear plugin
-
-- The `Ear.getAppDirectory()` method is now considered stable.
-
-### Promoted features in the eclipse plugin
-
-- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
-
-### Promoted features in the groovy plugin
-
-The following type and method are now considered stable:
-- `GroovySourceDirectorySet`
-- `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
-
-### Promoted features in the scala plugin
-
-- The `ScalaSourceDirectorySet` interface is now considered stable.
-
-### Promoted features in the war plugin
-
-- The `War.getWebAppDirectory()` method is now considered stable.
-
-### Promoted features in the `Settings` API
-
-- The methods `Settings.dependencyResolutionManagement(Action)`  and `Settings.getDependencyResolutionManagement()` are now considered stable.
-  - All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
+
+<!--
+This section will be populated automatically
+-->
 
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
+
+<!--
+This section will be populated automatically
+-->
 
 ## External contributions
 

@@ -20,8 +20,8 @@ import org.apache.commons.io.IOUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.util.GradleVersion
-import org.gradle.util.PreconditionVerifier
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Shared
@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 149
+    protected static final THIRD_PARTY_LIB_COUNT = 151
 
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
@@ -50,14 +50,22 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        43
+        45
     }
 
     /**
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        46
+        50
+    }
+
+    /**
+     * Change this whenever you add or remove subprojects for distribution java agents (lib/agents).
+     * @return
+     */
+    int getAgentJarsCount() {
+        1
     }
 
     /**
@@ -68,7 +76,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     int getLibJarsCount() {
-        coreLibJarsCount + packagedPluginsJarCount + thirdPartyLibJarsCount
+        coreLibJarsCount + packagedPluginsJarCount + agentJarsCount + thirdPartyLibJarsCount
     }
 
     def "distribution size should not exceed a certain number"() {
@@ -79,9 +87,9 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         size <= getMaxDistributionSizeBytes()
     }
 
-    def "no duplicate entries"() {
+    def "no duplicate jar entries in distribution"() {
         given:
-        def entriesByPath = zipEntries.findAll { !it.name.contains('/META-INF/services/') }.groupBy { it.name }
+        def entriesByPath = zipEntries.groupBy { it.name }
         def dupes = entriesByPath.findAll { it.value.size() > 1 }
 
         when:
@@ -191,6 +199,9 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-java-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-groovy-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-enterprise-${baseVersion}.jar"))
+
+        // Agents
+        assertIsGradleJar(contentsDir.file("lib/agents/gradle-instrumentation-agent-${baseVersion}.jar"))
 
         // Docs
         contentsDir.file('README').assertIsFile()

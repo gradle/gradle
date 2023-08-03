@@ -46,9 +46,9 @@ You can use the command line switches shown in <<#logLevelCommandLineOptions, Lo
 [%header%autowidth,compact]
 |===
 | Option | Outputs Log Levels
-| no logging options | LIFECYCLE and higher
 | `-q` or `--quiet` | QUIET and higher
 | `-w` or `--warn` | WARN and higher
+| no logging options | LIFECYCLE and higher
 | `-i` or `--info` | INFO and higher
 | `-d` or `--debug` | DEBUG and higher (that is, all log messages)
 |===
@@ -101,32 +101,32 @@ A simple option for logging in your build file is to write messages to standard 
 
 .Using stdout to write log messages
 ====
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-println]"]
 include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-println]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-println]"]
 ====
 
 Gradle also provides a `logger` property to a build script, which is an instance of link:{javadocPath}/org/gradle/api/logging/Logger.html[Logger]. This interface extends the SLF4J `Logger` interface and adds a few Gradle specific methods to it. Below is an example of how this is used in the build script:
 
 .Writing your own log messages
 ====
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-logger]"]
 include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-logger]"]
 ====
 
 Use the link:https://www.slf4j.org/manual.html#typical_usage[typical SLF4J pattern] to replace a placeholder with an actual value as part of the log message.
 
 .Writing a log message with placeholder
 ====
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-logger-placeholder]"]
 include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger-placeholder]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-logger-placeholder]"]
 ====
 
 You can also hook into Gradle's logging system from within other classes used in the build (classes from the `buildSrc` directory for example). Simply use an SLF4J logger. You can use this logger the same way as you use the provided logger in the build script.
 
 .Using SLF4J to write log messages
 ====
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-slf4j]"]
 include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-slf4j]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-slf4j]"]
 ====
 
 [[sec:external_tools]]
@@ -138,46 +138,52 @@ There are many tools out there which still use standard output for logging. By d
 
 .Configuring standard output capture
 ====
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=capture-stdout]"]
 include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=capture-stdout]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=capture-stdout]"]
 ====
 
 To change the log level for standard out or error during task execution, tasks also provide a link:{javadocPath}/org/gradle/api/logging/LoggingManager.html[LoggingManager].
 
 .Configuring standard output capture for a task
 ====
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=task-capture-stdout]"]
 include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=task-capture-stdout]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=task-capture-stdout]"]
 ====
 
 Gradle also provides integration with the Java Util Logging, Jakarta Commons Logging and Log4j logging toolkits. Any log messages which your build classes write using these logging toolkits will be redirected to Gradle's logging system.
 
 [[sec:changing_what_gradle_logs]]
 == Changing what Gradle logs
+[WARNING]
+====
+The <<configuration_cache.adoc#config_cache,configuration cache>> limits the ability to customize Gradle's logging UI.
+The custom logger can only implement <<configuration_cache.adoc#config_cache:requirements:build_listeners,supported listener interfaces>>.
+These interfaces do not receive events when the configuration cache entry is reused, because the whole configuration phase is skipped.
+====
 
 You can replace much of Gradle's logging UI with your own. You might do this, for example, if you want to customize the UI in some way - to log more or less information, or to change the formatting. You replace the logging using the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:useLogger(java.lang.Object)[Gradle.useLogger(java.lang.Object)] method. This is accessible from a build script, or an init script, or via the embedding API. Note that this completely disables Gradle's default output. Below is an example init script which changes how task execution and build completion is logged.
 
 .Customizing what Gradle logs
 ====
-include::sample[dir="snippets/initScripts/customLogger/groovy",files="customLogger.init.gradle[]"]
 include::sample[dir="snippets/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+include::sample[dir="snippets/initScripts/customLogger/groovy",files="customLogger.init.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle -I customLogger.init.gradle build
-include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
-----
 [.multi-language-text.lang-kotlin]
 ----
 $ gradle -I customLogger.init.gradle.kts build
 include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
 ----
+[.multi-language-text.lang-groovy]
+----
+$ gradle -I customLogger.init.gradle build
+include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
+----
 
-Your logger can implement any of the listener interfaces listed below. When you register a logger, only the logging for the interfaces that it implements is replaced. Logging for the other interfaces is left untouched. You can find out more about the listener interfaces in <<build_lifecycle.adoc#build_lifecycle_events,Build lifecycle events>>.
+Your logger can implement any of the listener interfaces listed below. When you register a logger, only the logging for the interfaces that it implements is replaced. Logging for the other interfaces is left untouched. You can find out more about the listener interfaces in <<build_lifecycle.adoc#sec:build_phases,Build lifecycle events>>.
 
-* link:{javadocPath}/org/gradle/BuildListener.html[BuildListener]
+* link:{javadocPath}/org/gradle/BuildListener.html[BuildListener]footnote:config_cache_incompat[Not compatible with the configuration cache.]
 * link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener]
 * link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html[TaskExecutionGraphListener]
-* link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener]
-* link:{javadocPath}/org/gradle/api/execution/TaskActionListener.html[TaskActionListener]
+* link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener]footnote:config_cache_incompat[]
+* link:{javadocPath}/org/gradle/api/execution/TaskActionListener.html[TaskActionListener]footnote:config_cache_incompat[]

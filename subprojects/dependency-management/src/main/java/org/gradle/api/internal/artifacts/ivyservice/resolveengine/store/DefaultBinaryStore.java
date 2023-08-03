@@ -106,6 +106,10 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
         return file.length();
     }
 
+    public boolean isInUse() {
+        return offset != -1;
+    }
+
     private static class SimpleBinaryData implements BinaryStore.BinaryData {
         private final long offset;
         private final File inputFile;

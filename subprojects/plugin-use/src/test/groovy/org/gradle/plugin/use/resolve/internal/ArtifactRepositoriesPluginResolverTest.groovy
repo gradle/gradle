@@ -16,11 +16,13 @@
 
 package org.gradle.plugin.use.resolve.internal
 
+import org.gradle.api.artifacts.ArtifactCollection
+import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.groovy.scripts.TextResourceScriptSource
@@ -39,14 +41,20 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
     def repositories = Mock(RepositoryHandler) {
         iterator() >> [repository].iterator()
     }
-    def resolvedConfiguration = Mock(ResolvedConfiguration) {
-        hasError() >> false
+    def artifactCollection = Mock(ArtifactCollection) {
+        getFailures() >> []
+    }
+    def artifactView = Mock(ArtifactView) {
+        getArtifacts() >> artifactCollection
+    }
+    def incoming = Mock(ResolvableDependencies) {
+        artifactView { } >> artifactView
     }
     def configuration = Mock(Configuration) {
-        getResolvedConfiguration() >> resolvedConfiguration
         setTransitive(false) >> {}
+        getIncoming() >> incoming
     }
-    def configurations = Mock(ConfigurationContainer) {
+    def configurations = Mock(RoleBasedConfigurationContainerInternal) {
         detachedConfiguration(_) >> configuration
     }
 

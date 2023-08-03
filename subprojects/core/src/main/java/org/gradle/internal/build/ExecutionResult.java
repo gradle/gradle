@@ -52,6 +52,11 @@ public abstract class ExecutionResult<T> {
     public abstract RuntimeException getFailure();
 
     /**
+     * Returns a single exception object that contains all failures in this result, or null if the operation was successful.
+     */
+    public abstract RuntimeException getFailureOrNull();
+
+    /**
      * Returns the value or rethrows the failures of this result.
      */
     public abstract T getValueOrRethrow();
@@ -82,6 +87,15 @@ public abstract class ExecutionResult<T> {
 
     public static ExecutionResult<Void> succeeded() {
         return SUCCESS;
+    }
+
+    public static ExecutionResult<Void> maybeFailing(Runnable action) {
+        try {
+            action.run();
+            return SUCCESS;
+        } catch (Throwable t) {
+            return failed(t);
+        }
     }
 
     public static <T> ExecutionResult<T> failed(Throwable failure) {
@@ -150,6 +164,11 @@ public abstract class ExecutionResult<T> {
         }
 
         @Override
+        public RuntimeException getFailureOrNull() {
+            return null;
+        }
+
+        @Override
         public RuntimeException getFailure() {
             throw new IllegalArgumentException("Cannot get the failure of a successful result.");
         }
@@ -181,6 +200,11 @@ public abstract class ExecutionResult<T> {
         @Override
         public List<Throwable> getFailures() {
             return failures;
+        }
+
+        @Override
+        public RuntimeException getFailureOrNull() {
+            return getFailure();
         }
 
         @Override

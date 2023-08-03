@@ -28,7 +28,7 @@ import spock.lang.Specification
 class TaskNodeFactoryTest extends Specification {
     def gradle = Stub(GradleInternal)
     def project = Stub(ProjectInternal)
-    def graph
+    TaskNodeFactory factory
     def a = task('a')
     def b = task('b')
     def c = task('c')
@@ -39,7 +39,7 @@ class TaskNodeFactoryTest extends Specification {
         project.gradle >> gradle
         project.pluginManager >> Stub(PluginManagerInternal)
 
-        graph = new TaskNodeFactory(gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor(), Stub(ExecutionNodeAccessHierarchies))
+        factory = new TaskNodeFactory(gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor(), Stub(ExecutionNodeAccessHierarchies))
     }
 
     private TaskInternal task(String name) {
@@ -52,7 +52,7 @@ class TaskNodeFactoryTest extends Specification {
 
     void 'can create a node for a task'() {
         when:
-        def node = graph.getOrCreateNode(a)
+        def node = factory.getOrCreateNode(a)
 
         then:
         !node.inKnownState
@@ -66,29 +66,29 @@ class TaskNodeFactoryTest extends Specification {
 
     void 'caches node for a given task'() {
         when:
-        def node = graph.getOrCreateNode(a)
+        def node = factory.getOrCreateNode(a)
 
         then:
-        graph.getOrCreateNode(a).is(node)
+        factory.getOrCreateNode(a).is(node)
     }
 
     void 'can add multiple nodes'() {
         when:
-        graph.getOrCreateNode(a)
-        graph.getOrCreateNode(b)
+        factory.getOrCreateNode(a)
+        factory.getOrCreateNode(b)
 
         then:
-        graph.tasks == [a, b] as Set
+        factory.tasks == [a, b] as Set
     }
 
-    void 'clear'() {
+    void 'reset state'() {
         when:
-        graph.getOrCreateNode(a)
-        graph.getOrCreateNode(b)
-        graph.getOrCreateNode(c)
-        graph.clear()
+        factory.getOrCreateNode(a)
+        factory.getOrCreateNode(b)
+        factory.getOrCreateNode(c)
+        factory.resetState()
 
         then:
-        !graph.tasks
+        !factory.tasks
     }
 }

@@ -128,7 +128,10 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         run ':checkDeps'
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:module:${requested}", 'org.test:module:1.1')
+                edge("org.test:module:${requested}", 'org.test:module:1.1') {
+                    byReason("rejection: version 1.3:   - Attribute 'quality' didn't match. Requested 'qa', was: 'rc'")
+                    byReason("rejection: version 1.2:   - Attribute 'quality' didn't match. Requested 'qa', was: 'rc'")
+                }
             }
         }
 
@@ -197,7 +200,10 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         run ':checkDeps'
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:module:${requested}", 'org.test:module:1.1')
+                edge("org.test:module:${requested}", 'org.test:module:1.1') {
+                    byReason("rejection: version 1.3:   - Attribute 'quality' didn't match. Requested 'qa', was: 'rc'")
+                    byReason("rejection: version 1.2:   - Attribute 'quality' didn't match. Requested 'qa', was: 'rc'")
+                }
             }
         }
 

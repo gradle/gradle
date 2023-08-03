@@ -72,7 +72,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def startBusyDaemon() {
         def daemonNum = daemonCounter++
-        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], DaemonParameters.Priority.NORMAL)
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], false, DaemonParameters.Priority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Busy))
         return new DaemonStartupInfo(daemonNum.toString(), null, null);
@@ -80,7 +80,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def startIdleDaemon() {
         def daemonNum = daemonCounter++
-        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], DaemonParameters.Priority.NORMAL)
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], false, DaemonParameters.Priority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Idle))
     }

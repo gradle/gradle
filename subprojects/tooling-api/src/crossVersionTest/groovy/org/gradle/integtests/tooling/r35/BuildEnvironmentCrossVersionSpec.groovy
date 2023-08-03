@@ -19,17 +19,17 @@ package org.gradle.integtests.tooling.r35
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=3.5")
     @TargetGradleVersion(">=3.5")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "old versions can mutate environment on JDK < 9"() {
         given:
         toolingApi.requireDaemons() //cannot be run in embedded mode

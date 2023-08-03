@@ -2,7 +2,7 @@
 Configuration cache problems found in this build.
 
 1 problem was found storing the configuration cache.
-- Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.
+- Build file 'build.gradle': line 6: invocation of 'Task.project' at execution time is unsupported.
   See https://docs.gradle.org/0.0.0/userguide/configuration_cache.html#config_cache:requirements:use_project_during_execution
 
 See the complete report at file:///home/user/gradle/samples/build/reports/configuration-cache/<hash>/configuration-cache-report.html
@@ -12,8 +12,7 @@ See the complete report at file:///home/user/gradle/samples/build/reports/config
 > Run with --stacktrace option to get the stack trace.
 > Run with --info or --debug option to get more log output.
 > Run with --scan to get full insights.
-
-* Get more help at https://help.gradle.org
+> Get more help at https://help.gradle.org.
 
 BUILD FAILED in 0s
 1 actionable task: 1 executed

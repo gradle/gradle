@@ -74,7 +74,7 @@ $ gradle <task> --daemon
 This flag overrides any settings that disable the Daemon in your project or user `gradle.properties` files.
 
 To enable the Daemon by default in older Gradle versions, add the following setting to the
-`gradle.properties` file in the project root or your Gradle user home:
+`gradle.properties` file in the project root or your Gradle User Home:
 
 ====
 .gradle.properties
@@ -96,7 +96,7 @@ To disable the Daemon for a single build, pass the `--no-daemon` flag when you r
 ====
 [listing.terminal]
 ----
-$ gradle <task> --nodaemon
+$ gradle <task> --no-daemon
 ----
 ====
 
@@ -127,7 +127,7 @@ mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.propert
 
 There are two recommended ways to disable the Daemon globally across an environment:
 
-* add `org.gradle.daemon=false` to the `<GRADLE_USER_HOME>/gradle.properties` file
+* add `org.gradle.daemon=false` to the `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`/gradle.properties` file
 * add the flag `-Dorg.gradle.daemon=false` to the `GRADLE_OPTS` environment variable
 
 [[sec:stopping_an_existing_daemon]]
@@ -165,7 +165,7 @@ There's no need to enable it for your environment.
 
 We recommend using the Daemon for both developer machines and Continuous Integration servers.
 
-[[compatibility]]
+[[deamon_compatibility]]
 == Compatibility
 
 Gradle starts a new Daemon if no idle or compatible Daemons exist.
@@ -278,7 +278,7 @@ org.gradle.daemon.performance.enable-monitoring=false
 === Why is there more than one Daemon process on my machine?
 
 Gradle starts a new Daemon process for your build if no idle Daemon exists with a compatible configuration.
-For more information about compability, see <<gradle_daemon.adoc#compatibility,Compatibility>>.
+For more information about compability, see <<gradle_daemon.adoc#deamon_compatibility,Compatibility>>.
 
 [[sec:how_much_memory_does_the_daemon_use_and_can_i_give_it_more]]
 === How much memory does the Daemon use and can I give it more?

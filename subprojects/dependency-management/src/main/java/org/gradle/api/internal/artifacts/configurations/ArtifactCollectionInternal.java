@@ -20,5 +20,9 @@ import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 
 public interface ArtifactCollectionInternal extends ArtifactCollection {
+    ResolutionHost getResolutionHost();
+
+    boolean isLenient();
+
     void visitArtifacts(ArtifactVisitor visitor);
 }

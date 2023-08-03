@@ -16,25 +16,21 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
-import org.gradle.configuration.internal.UserCodeApplicationContext
-import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.location
-import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.PropertyProblem
 
 
 /** Reports all usages of the tracked TaskDependency APIs as problems using the [problems] listener.
  * Also checks which tasks in the API return value come from the other projects and tracks the projects coupling using the [coupledProjectsListener]. */
+internal
 class ReportingTaskDependencyUsageTracker(
     private val referrer: ProjectInternal,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val problems: ProblemsListener,
-    private val userCodeContext: UserCodeApplicationContext
+    private val problemFactory: ProblemFactory
 ) : TaskDependencyUsageTracker {
     override fun onTaskDependencyUsage(taskDependencies: Set<Task>) {
         checkForCoupledProjects(taskDependencies)
@@ -51,13 +47,13 @@ class ReportingTaskDependencyUsageTracker(
 
     private
     fun reportProjectIsolationProblemOnApiUsage() {
-        val location = userCodeContext.location(null)
-        val message = StructuredMessage.build {
+        val problem = problemFactory.problem {
             text("Project ")
             reference(referrer.identityPath.toString())
             text(" cannot access task dependencies directly")
         }
-        val exception = InvalidUserCodeException(message.toString().capitalized())
-        problems.onProblem(PropertyProblem(location, message, exception, null))
+            .exception()
+            .build()
+        problems.onProblem(problem)
     }
 }

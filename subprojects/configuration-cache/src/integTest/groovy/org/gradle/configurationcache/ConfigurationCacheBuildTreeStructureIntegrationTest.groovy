@@ -59,6 +59,7 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             include 'a', 'b', 'c'
             include 'a:b'
             project(':a:b').projectDir = file('custom')
+            project(':c').buildFileName = 'custom.gradle.kts'
         """
         defineTaskInSettings(settingsFile)
 
@@ -70,20 +71,9 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             it.details.buildPath == ":"
         }
         with(fixture.only(LoadProjectsBuildOperationType)) {
-            result.rootProject.name == 'thing'
-            result.rootProject.path == ':'
-            result.rootProject.children.size() == 3 // All projects are created when storing
-            with(result.rootProject.children.first() as Map<String, Object>) {
-                name == 'a'
-                path == ':a'
-                projectDir == file('a').absolutePath
-                with(children.first()) {
-                    name == 'b'
-                    path == ':a:b'
-                    projectDir == file('custom').absolutePath
-                    children.empty
-                }
-            }
+            details.buildPath == ":"
+            result.buildPath == ":"
+            checkProjects(result.rootProject)
         }
         with(fixture.progress(BuildIdentifiedProgressDetails)) {
             size() == 1
@@ -92,21 +82,8 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
         with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
             size() == 1
             with(first()) {
-                details.rootProject.name == 'thing'
-                details.rootProject.path == ':'
-                details.rootProject.projectDir == testDirectory.absolutePath
-                details.rootProject.children.size() == 3
-                with(details.rootProject.children.first() as Map<String, Object>) {
-                    name == 'a'
-                    path == ':a'
-                    projectDir == file('a').absolutePath
-                    with(children.first()) {
-                        name == 'b'
-                        path == ':a:b'
-                        projectDir == file('custom').absolutePath
-                        children.empty
-                    }
-                }
+                details.buildPath == ":"
+                checkProjects(details.rootProject)
             }
         }
 
@@ -127,21 +104,8 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
         with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
             size() == 1
             with(first()) {
-                details.rootProject.name == 'thing'
-                details.rootProject.path == ':'
-                details.rootProject.projectDir == testDirectory.absolutePath
-                details.rootProject.children.size() == 3
-                with(details.rootProject.children.first() as Map<String, Object>) {
-                    name == 'a'
-                    path == ':a'
-                    projectDir == file('a').absolutePath
-                    children.size() == 1
-                    with(children.first() as Map<String, Object>) {
-                        name == 'b'
-                        path == ':a:b'
-                        projectDir == file('custom').absolutePath
-                    }
-                }
+                details.buildPath == ":"
+                checkProjects(details.rootProject)
             }
         }
 
@@ -151,6 +115,31 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
         [":thing"]     | [':']
         [":a:thing"]   | [':', ':a']
         [":a:b:thing"] | [':', ':a', ':a:b']
+    }
+
+    void checkProjects(def rootProject) {
+        assert rootProject.name == 'thing'
+        assert rootProject.path == ':'
+        assert rootProject.projectDir == testDirectory.absolutePath
+        assert rootProject.buildFile == buildFile.absolutePath
+        assert rootProject.children.size() == 3 // All projects are created when storing
+        with(rootProject.children.first() as Map<String, Object>) {
+            assert name == 'a'
+            assert path == ':a'
+            assert projectDir == file('a').absolutePath
+            assert buildFile == file('a/build.gradle').absolutePath
+            with(children.first()) {
+                assert name == 'b'
+                assert path == ':a:b'
+                assert projectDir == file('custom').absolutePath
+                assert buildFile == file('custom/build.gradle').absolutePath
+                assert children.empty
+            }
+        }
+        with(rootProject.children[2] as Map<String, Object>) {
+            assert name == 'c'
+            assert buildFile == file('c/custom.gradle.kts').absolutePath
+        }
     }
 
     def "restores only projects that have work scheduled when buildSrc present"() {
@@ -296,19 +285,19 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             size() == 3
             it.find { it.details.buildPath == ":" }
             it.find { it.details.buildPath == ":include" }
-            it.find { it.details.buildPath == ":inner-include" }
+            it.find { it.details.buildPath == ":include:inner-include" }
         }
         with(fixture.all(LoadProjectsBuildOperationType)) {
             size() == 3
             it.find { it.details.buildPath == ":" }
             it.find { it.details.buildPath == ":include" }
-            it.find { it.details.buildPath == ":inner-include" }
+            it.find { it.details.buildPath == ":include:inner-include" }
         }
         with(fixture.progress(BuildIdentifiedProgressDetails)) {
             size() == 3
             it.find { it.details.buildPath == ":" }
             it.find { it.details.buildPath == ":include" }
-            it.find { it.details.buildPath == ":inner-include" }
+            it.find { it.details.buildPath == ":include:inner-include" }
         }
         with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
             size() == 3
@@ -318,7 +307,7 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             with(it.find { it.details.buildPath == ":include" }) {
                 details.rootProject.children.size() == 1
             }
-            with(it.find { it.details.buildPath == ":inner-include" }) {
+            with(it.find { it.details.buildPath == ":include:inner-include" }) {
                 details.rootProject.children.size() == 1
             }
         }
@@ -335,7 +324,7 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             size() == 3
             it.find { it.details.buildPath == ":" }
             it.find { it.details.buildPath == ":include" }
-            it.find { it.details.buildPath == ":inner-include" }
+            it.find { it.details.buildPath == ":include:inner-include" }
         }
         with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
             size() == 3
@@ -345,18 +334,18 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             with(it.find { it.details.buildPath == ":include" }) {
                 details.rootProject.children.size() == 1
             }
-            with(it.find { it.details.buildPath == ":inner-include" }) {
+            with(it.find { it.details.buildPath == ":include:inner-include" }) {
                 details.rootProject.children.size() == 1
             }
         }
 
         where:
-        task                         | projects                                        | builds
-        ":thing"                     | [':']                                           | [':']
-        ":child:thing"               | [':', ':child']                                 | [':']
-        ":include:thing"             | [':', ':include']                               | [':', ':include']
-        ":include:child:thing"       | [':', ':include', ':include:child']             | [':', ':include']
-        ":inner-include:thing"       | [':', ':inner-include']                         | [':', ':inner-include']
-        ":inner-include:child:thing" | [':', ':inner-include', ':inner-include:child'] | [':', ':inner-include']
+        task                                 | projects                                                        | builds
+        ":thing"                             | [':']                                                           | [':']
+        ":child:thing"                       | [':', ':child']                                                 | [':']
+        ":include:thing"                     | [':', ':include']                                               | [':', ':include']
+        ":include:child:thing"               | [':', ':include', ':include:child']                             | [':', ':include']
+        ":include:inner-include:thing"       | [':', ':include:inner-include']                                 | [':', ':include:inner-include']
+        ":include:inner-include:child:thing" | [':', ':include:inner-include', ':include:inner-include:child'] | [':', ':include:inner-include']
     }
 }

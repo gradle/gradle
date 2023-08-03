@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -39,7 +40,7 @@ public class StartParamsValidatingActionExecuter implements BuildActionExecuter<
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         StartParameter startParameter = action.getStartParameter();
         @SuppressWarnings("deprecation")
-        File customBuildFile = startParameter.getBuildFile();
+        File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
         if (customBuildFile != null) {
             validateIsFileAndExists(customBuildFile, "build file");
         }
@@ -52,7 +53,7 @@ public class StartParamsValidatingActionExecuter implements BuildActionExecuter<
             }
         }
         @SuppressWarnings("deprecation")
-        File customSettingsFile = startParameter.getSettingsFile();
+        File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
         if (customSettingsFile != null) {
             validateIsFileAndExists(customSettingsFile, "settings file");
         }

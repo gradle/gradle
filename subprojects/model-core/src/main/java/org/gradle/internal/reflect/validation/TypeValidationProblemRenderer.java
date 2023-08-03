@@ -15,13 +15,15 @@
  */
 package org.gradle.internal.reflect.validation;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.problems.Solution;
 
 import java.util.List;
+
+import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
 
@@ -40,35 +42,38 @@ public class TypeValidationProblemRenderer {
 
     public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getWhere()) + maybeAppendDot(problem.getShortDescription()));
+        formatter.node(introductionFor(problem.getWhere()) + endLineWithDot(problem.getShortDescription()));
         problem.getWhy().ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + StringUtils.capitalize(maybeAppendDot(reason)));
+            formatter.node("Reason: " + capitalize(endLineWithDot(reason)));
         });
         if (renderSolutions) {
-            List<Solution> possibleSolutions = problem.getPossibleSolutions();
-            int solutionCount = possibleSolutions.size();
-            if (solutionCount > 0) {
-                formatter.blankLine();
-                if (solutionCount == 1) {
-                    formatter.node("Possible solution: " + StringUtils.capitalize(maybeAppendDot(possibleSolutions.get(0).getShortDescription())));
-                } else {
-                    formatter.node("Possible solutions");
-                    formatter.startNumberedChildren();
-                    possibleSolutions.forEach(solution ->
-                        formatter.node(StringUtils.capitalize(maybeAppendDot(solution.getShortDescription())))
-                    );
-                    formatter.endChildren();
-                }
-            }
+            renderSolutions(formatter, problem.getPossibleSolutions());
         }
         if (renderDocLink) {
             problem.getDocumentationLink().ifPresent(docLink -> {
                 formatter.blankLine();
-                formatter.node("Please refer to ").append(docLink).append(" for more details about this problem.");
+                formatter.node(docLink);
             });
         }
         return formatter.toString();
+    }
+
+    public static void renderSolutions(TreeFormatter formatter, List<Solution> possibleSolutions) {
+        int solutionCount = possibleSolutions.size();
+        if (solutionCount > 0) {
+            formatter.blankLine();
+            if (solutionCount == 1) {
+                formatter.node("Possible solution: " + capitalize(endLineWithDot(possibleSolutions.get(0).getShortDescription())));
+            } else {
+                formatter.node("Possible solutions");
+                formatter.startNumberedChildren();
+                possibleSolutions.forEach(solution ->
+                    formatter.node(capitalize(endLineWithDot(solution.getShortDescription())))
+                );
+                formatter.endChildren();
+            }
+        }
     }
 
     /**
@@ -94,8 +99,8 @@ public class TypeValidationProblemRenderer {
             } else {
                 builder.append("Type '");
             }
-            builder.append(ModelType.of(rootType).getName());
-            builder.append("' ");
+            builder.append(ModelType.of(rootType).getName())
+                .append("' ");
         }
         String property = location.getPropertyName().orElse(null);
         if (property != null) {
@@ -112,8 +117,8 @@ public class TypeValidationProblemRenderer {
                 builder.append(parentProperty);
                 builder.append('.');
             });
-            builder.append(property);
-            builder.append("' ");
+            builder.append(property)
+                .append("' ");
         }
         return builder.toString();
     }
@@ -125,12 +130,4 @@ public class TypeValidationProblemRenderer {
     private static boolean shouldRenderType(Class<?> clazz) {
         return !("org.gradle.api.DefaultTask".equals(clazz.getName()));
     }
-
-    private static String maybeAppendDot(String txt) {
-        if (txt.endsWith(".") || txt.endsWith("\n")) {
-            return txt;
-        }
-        return txt + ".";
-    }
-
 }

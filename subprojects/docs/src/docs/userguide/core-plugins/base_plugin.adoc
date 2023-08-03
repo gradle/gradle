@@ -23,15 +23,15 @@ The Base Plugin provides some tasks and conventions that are common to most buil
 
 .Applying the Base Plugin
 ====
-include::sample[dir="snippets/base/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
 include::sample[dir="snippets/base/basePlugin/kotlin",files="build.gradle.kts[tags=apply-base-plugin]"]
+include::sample[dir="snippets/base/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
 ====
 
 [[sec:base_tasks]]
 == Task
 
 `clean` — `Delete`::
-Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:buildDir[Project.getBuildDir()] project property.
+Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html#org.gradle.api.file.ProjectLayout:buildDirectory[layout.buildDirectory] project property.
 
 `check` — _lifecycle task_::
 Plugins and build authors should attach their verification tasks, such as ones that run tests, to this lifecycle task using `check.dependsOn(__task__)`.
@@ -45,10 +45,10 @@ _Depends on_: `check`, `assemble`
 Intended to build everything, including running all tests, producing the production artifacts and generating documentation. You will probably rarely attach concrete tasks directly to `build` as `assemble` and `check` are typically more appropriate.
 
 `build__Configuration__` — task rule::
-Assembles those artifacts attached to the named configuration. For example, `buildArchives` will execute any task that is required to create any artifact attached to the `archives` configuration.
+Assembles those artifacts attached to the named configuration. For example, `buildRuntimeElements` will execute any task that is required to create any artifact attached to the `runtimeElements` configuration.
 
 `clean__Task__` — task rule::
-Removes the <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
+Removes the <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
 
 
 [[sec:base_plugin_configurations]]
@@ -57,14 +57,18 @@ Removes the <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>> of
 The Base Plugin adds no <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations for dependencies>>, but it does add the following configurations:
 
 `default`::
-A fallback configuration used by consumer projects. Let's say you have project B with a <<declaring_dependencies.adoc#sub:project_dependencies,project dependency>> on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
+A fallback configuration used when dependency resolution is performed without request attributes.
 +
-*New builds and plugins should not be using the `default` configuration!* It remains for the reason of backwards compatibility.
+*New builds and plugins should not be using the `default` configuration!*
+It remains solely for backwards compatibility.
+Dependency resolution should be performed with request attributes.
 
 `archives`::
-A standard configuration for the production artifacts of a project.
-
-Note that the `assemble` task generates all artifacts that are attached to the `archives` configuration.
+All artifacts defined on the `archives` configuration are automatically built by the `assemble` task.
++
+*New builds and plugins should not be using the `archives` configuration!*
+It remains solely for backwards compatibility.
+Instead, task dependencies should be declared directly on the `assemble` task.
 
 [[sec:base_plugin_extension]]
 == Contributed extensions
@@ -74,17 +78,17 @@ This allows to configure the following properties inside a dedicated DSL block.
 
 .Using the `base` extension
 ====
-include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build.gradle[tags=base-plugin-config]"]
 include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build.gradle.kts[tags=base-plugin-config]"]
+include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build.gradle[tags=base-plugin-config]"]
 ====
 
 `archivesName` — default: `$project.name`::
 Provides the default link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveBaseName[AbstractArchiveTask.getArchiveBaseName()] for archive tasks.
 
-`distsDirectory` — default: `$buildDir/distributions`::
+`distsDirectory` — default: `layout.buildDirectory.dir("distributions")`::
 Default name of the directory in which distribution archives, i.e. non-JARs, are created.
 
-`libsDirectory` — default: `$buildDir/libs`::
+`libsDirectory` — default: `layout.buildDirectory.dir("libs")`::
 Default name of the directory in which library archives, i.e. JARs, are created.
 
 The plugin also provides default values for the following properties on any task that extends link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]:

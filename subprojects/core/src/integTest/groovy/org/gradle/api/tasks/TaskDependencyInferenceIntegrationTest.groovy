@@ -606,7 +606,8 @@ The following types/formats are supported:
                 out2 = file("file2.txt")
             }
             tasks.register("b", InputFileTask) {
-                inFile = provider.map { project.layout.projectDir.file(it.out1.absolutePath) }
+                def projectLayout = project.layout
+                inFile = provider.map { projectLayout.projectDir.file(it.out1.absolutePath) }
                 outFile = file("out.txt")
             }
         """

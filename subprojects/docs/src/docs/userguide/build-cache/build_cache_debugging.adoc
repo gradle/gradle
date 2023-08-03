@@ -196,26 +196,7 @@ Build cache key for task ':compileJava' is 8ebf682168823f662b9be34d27afdf77
 The log shows e.g. which source files constitute the `stableSources` for the `compileJava` task.
 To find the actual differences between two builds you need to resort to matching up and comparing those hashes yourself.
 
-Luckily, you do not have to capture this data yourself - the build scan plugin already takes care of this for you.
-Gradle Enterprise has the necessary data to diagnose the cache miss when comparing two build scans, and will show you the properties that caused a different cache key to be generated.
-
-[.screenshot]
-image::build-cache/adjacent-builds-input-comparison.png[]
-
-There are three ways to compare builds in Gradle Enterprise.
-
-1. Use the scan list to find the scans to compare, selecting them by clicking the respective image:build-cache/compare-small.svg[compare,role="inline-icon",width="30"] or image:build-cache/compare-small-b.svg[compare b,role="inline-icon",width="30"] icon.
-2. From a scan that you wish to compare with another, click the image:build-cache/compare-small.svg[compare,role="inline-icon",width="30"] icon at the top of the scan, then select the second scan by clicking the  image:build-cache/compare-small-b.svg[compare b,role="inline-icon",width="30"] icon from the list of scans.
-3. Click the image:build-cache/previous-next-scan.svg[workspace,role="inline-icon", width="22"] icon in the header of a build scan to show previous and subsequent build scans of the same workspace, then click the image:build-cache/compare-small-b.svg[compare b,role="inline-icon",width="30"] icon next to the build you want to compare.
-
-[.screenshot]
-image::build-cache/adjacent-build-comparison.png[]
-
-It is also possible that task output caching for a cacheable task was disabled.
-When this happens the reason why caching was disabled for the task is reported on the info log level and in the build scan:
-
-[.screenshot]
-image::build-cache/caching-disabled.png[]
+TIP: link:https://docs.gradle.com/enterprise/tutorials/task-inputs-comparison/[Gradle Enterprise] already takes care of this for you; it lets you quickly diagnose a cache miss with the Build Scan(TM) Comparison tool.
 
 [[diagnosing_cache_miss]]
 == Diagnosing the reasons for a cache miss
@@ -226,7 +207,7 @@ Since you were expecting more tasks to be cached, you should be able to pinpoint
 Before diving into how to find out why one task has not been loaded from the cache we should first look into which task caused the cache misses.
 There is a cascade effect which causes dependent tasks to be executed if one of the tasks earlier in the build is not loaded from the cache and has different outputs.
 Therefore, you should locate the first cacheable task which was executed and continue investigating from there.
-This can be done from the timeline view in a build scan or from the task input comparison directly:
+This can be done from the timeline view in a Build Scan(TM):
 
 [.screenshot]
 image::build-cache/first-non-cached-task.png[]
@@ -268,13 +249,13 @@ Instead, all the tests for the sub-project have been executed.
 Since we have the cascading effect when we have cache misses, we need to find the task which caused the caching chain to fail.
 This can easily be done by filtering for all cacheable tasks which have been executed and then select the first one.
 In our case, it turns out that the tests for the sub-project `internal-testing` were executed even though there was no code change to this project.
-We start the input property comparison in Gradle Enterprise and see that the property `classpath` changed. This means that some file on the runtime classpath actually did change.
+This means that the property `classpath` changed and some file on the runtime classpath actually did change.
 Looking deeper into this, we actually see that the inputs for the task `processResources` changed in that project, too.
 Finally, we find this in our build file:
 
 ====
-include::sample[dir="snippets/buildCache/normalization/groovy",files="build.gradle[tags=versionInfo]"]
 include::sample[dir="snippets/buildCache/normalization/kotlin",files="build.gradle.kts[tags=versionInfo]"]
+include::sample[dir="snippets/buildCache/normalization/groovy",files="build.gradle[tags=versionInfo]"]
 ====
 
 Since properties files stored by Java's `Properties.store` method contain a timestamp, this will cause a change to the runtime classpath every time the build runs.

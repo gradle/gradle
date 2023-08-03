@@ -10,8 +10,8 @@ The Test Report Aggregation plugin does not currently work with the ``com.androi
 ====
 
 ====
-include::sample[dir="groovy",files="application/build.gradle[]"]
 include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="groovy",files="application/build.gradle[]"]
 ====
 
 The `application` project requires no additional configuration if the `jvm-test-suite` plugin is present.

@@ -49,16 +49,16 @@ To implement a custom task class, you extend link:{groovyDslPath}/org.gradle.api
 
 .Defining a custom task
 ====
-include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=define-task]"]
 include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[tags=define-task]"]
+include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=define-task]"]
 ====
 
 This task doesn't do anything useful, so let's add some behaviour. To do so, we add a method to the task and mark it with the link:{javadocPath}/org/gradle/api/tasks/TaskAction.html[TaskAction] annotation. Gradle will call the method when the task executes. You don't have to use a method to define the behaviour for the task. You could, for instance, call `doFirst()` or `doLast()` with a closure in the task constructor to add behaviour.
 
 .A hello world task
 ====
-include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=add-action]"]
 include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[tags=add-action]"]
+include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=add-action]"]
 ====
 
 .Output of **`gradle -q hello`**
@@ -73,8 +73,8 @@ Here we add a `greeting` property, and set the value when we declare the `greeti
 
 .A customizable hello world task
 ====
-include::sample[dir="snippets/tasks/customTaskWithProperty/groovy",files="build.gradle[tags=add-property]"]
 include::sample[dir="snippets/tasks/customTaskWithProperty/kotlin",files="build.gradle.kts[tags=add-property]"]
+include::sample[dir="snippets/tasks/customTaskWithProperty/groovy",files="build.gradle[tags=add-property]"]
 ====
 
 .Output of **`gradle -q hello greeting`**
@@ -91,8 +91,8 @@ Now we will move our task to a standalone project, so we can publish it and shar
 
 .A build for a custom task
 ====
-include::sample[dir="snippets/base/customExternalTask/groovy/task",files="build.gradle[tags=external-task-build]"]
 include::sample[dir="snippets/base/customExternalTask/kotlin/task",files="build.gradle.kts[tags=external-task-build]"]
+include::sample[dir="snippets/base/customExternalTask/groovy/task",files="build.gradle[tags=external-task-build]"]
 ====
 
 
@@ -113,8 +113,8 @@ To use a task class in a build script, you need to add the class to the build sc
 
 .Using a custom task in another project
 ====
-include::sample[dir="snippets/base/customExternalTask/groovy/consumer",files="build.gradle[tags=use-task]"]
 include::sample[dir="snippets/base/customExternalTask/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
+include::sample[dir="snippets/base/customExternalTask/groovy/consumer",files="build.gradle[tags=use-task]"]
 ====
 
 [[sec:writing_tests_for_your_task_class]]
@@ -133,7 +133,7 @@ include::{snippetsPath}/base/customExternalTask/groovy/task/src/test/groovy/org/
 [[incremental_tasks]]
 == Incremental tasks
 
-With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see <<more_about_tasks.adoc#sec:up_to_date_checks,Incremental Builds>>).
+With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see <<incremental_build.adoc#incremental_build,Incremental Build>>).
 However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs.
 This can be particularly useful for a transformer task that converts input files to output files on a 1:1 basis.
 
@@ -171,8 +171,8 @@ You can also see how the action deletes a target file if the corresponding input
 [[taskDefinition]]
 .Defining an incremental task action
 ====
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
 ====
 
 
@@ -217,8 +217,8 @@ In this case, all inputs will be considered added, as shown here:
 [[ex:incremental_task_definition]]
 .Running the incremental task for the first time
 ====
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
 
 .Build layout
 ----
@@ -253,8 +253,8 @@ The following example modifies the content of one file and adds another before r
 
 .Running the incremental task with updated input files
 ====
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
 
 .Output of `gradle -q updateInputs incrementalReverse`
 ----
@@ -271,8 +271,8 @@ The following example removes one of the existing files before executing the inc
 
 .Running the incremental task with an input file removed
 ====
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
 
 .Output of `gradle -q removeInput incrementalReverse`
 ----
@@ -287,8 +287,8 @@ The following example removes just one of the output files from the build direct
 
 .Running the incremental task with an output file removed
 ====
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
 
 .Output of `gradle -q removeOutput incrementalReverse`
 ----
@@ -362,8 +362,8 @@ Getting back to the previous example, the build script creates a task instance o
 
 .Using a command line option
 ====
-include::sample[dir="snippets/tasks/commandLineOption-stringOption/groovy",files="build.gradle[tags=task]"]
 include::sample[dir="snippets/tasks/commandLineOption-stringOption/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/tasks/commandLineOption-stringOption/groovy",files="build.gradle[tags=task]"]
 ====
 
 .Output of **`gradle -q verifyUrl --url=http://www.google.com/`**
@@ -378,7 +378,7 @@ include::{snippetsPath}/tasks/commandLineOption-stringOption/tests/taskCommandLi
 Gradle limits the set of data types that can be used for declaring command line options. The use on the command line differ per type.
 
 `boolean`, `Boolean`, `Property<Boolean>`::
-Describes an option with the value `true` or `false`. Passing the option on the command line treats the value as `true`. For example `--enabled` equates to `true`. The absence of the option uses the default value of the property.
+Describes an option with the value `true` or `false`. Passing the option on the command line treats the value as `true`, for example `--foo` equates to `true`. The absence of the option uses the default value of the property. For each boolean option, an opposite option is created automatically. For example, `--no-foo` is created for the provided option `--foo` and `--bar` is created for `--no-bar`. Options whose name starts with `--no` are disable options and set the option value to `false`. An opposite option is only created if no option with the same name already exists for the task.
 
 `String`, `Property<String>`::
 Describes an option with an arbitrary String value. Passing the option on the command line also requires a value e.g. `--container-id=2x94held` or `--container-id 2x94held`.
@@ -415,7 +415,7 @@ include::{snippetsPath}/tasks/commandLineOption-optionValues/groovy/buildSrc/src
 [[sec:listing_task_options]]
 === Listing command line options
 
-Command line options using the annotations link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues] are self-documenting. You will see <<#sec:declaring_task_option,declared options>> and their <<#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order.
+Command line options using the annotations link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues] are self-documenting. You will see <<#sec:declaring_task_option,declared options>> and their <<#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order, except for boolean disable options which appear following the enable option.
 
 === Example: Listing available values for option
 
@@ -460,8 +460,8 @@ The implementation is a class that extends link:{javadocPath}/org/gradle/workers
 
 .Defining the unit of work parameters and implementation
 ====
-include::sample[dir="snippets/workerApi/noIsolation/groovy",files="build.gradle[tags=unit-of-work]"]
 include::sample[dir="snippets/workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=unit-of-work]"]
+include::sample[dir="snippets/workerApi/noIsolation/groovy",files="build.gradle[tags=unit-of-work]"]
 ====
 
 A `WorkAction` implementation can inject services that provide capabilities during work execution, such as the link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations] service in the example above.  See <<custom_gradle_types.adoc#service_injection,Service Injection>> for further information on injecting service types.
@@ -470,8 +470,8 @@ In order to submit the unit of work, it is necessary to first acquire the link:{
 
 .Submitting a unit of work for execution
 ====
-include::sample[dir="snippets/workerApi/noIsolation/groovy",files="build.gradle[tags=task-implementation]"]
 include::sample[dir="snippets/workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=task-implementation]"]
+include::sample[dir="snippets/workerApi/noIsolation/groovy",files="build.gradle[tags=task-implementation]"]
 ====
 
 Once all of the work for a task action has been submitted, it is safe to exit the task action. The work will be executed asynchronously and in parallel (up to the setting of `max-workers`). Of course, any tasks that are dependent on this task (and any subsequent task actions of this task) will not begin executing until all of the asynchronous work completes. However, other independent tasks that have no relationship to this task can begin executing immediately.
@@ -489,8 +489,8 @@ Note that Gradle will only begin running other independent tasks in parallel whe
 
 .Waiting for asynchronous work to complete
 ====
-include::sample[dir="snippets/workerApi/waitForCompletion/groovy",files="build.gradle[tags=wait-for-completion]"]
 include::sample[dir="snippets/workerApi/waitForCompletion/kotlin",files="build.gradle.kts[tags=wait-for-completion]"]
+include::sample[dir="snippets/workerApi/waitForCompletion/groovy",files="build.gradle[tags=wait-for-completion]"]
 ====
 
 [[isolation-modes]]
@@ -514,8 +514,8 @@ When using `processIsolation()`, gradle will start a long-lived _Worker Daemon_ 
 
 .Submitting an item of work to run in a worker daemon
 ====
-include::sample[dir="snippets/workerApi/workerDaemon/groovy",files="build.gradle[tags=worker-daemon]"]
 include::sample[dir="snippets/workerApi/workerDaemon/kotlin",files="build.gradle.kts[tags=worker-daemon]"]
+include::sample[dir="snippets/workerApi/workerDaemon/groovy",files="build.gradle[tags=worker-daemon]"]
 ====
 
 When a unit of work for a Worker Daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists. If so, it will send the unit of work to the idle daemon, marking it as busy. If not, it will start a new daemon. When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through link:{javadocPath}/org/gradle/workers/ProcessWorkerSpec.html#forkOptions-org.gradle.api.Action-[ProcessWorkerSpec.forkOptions(org.gradle.api.Action)].

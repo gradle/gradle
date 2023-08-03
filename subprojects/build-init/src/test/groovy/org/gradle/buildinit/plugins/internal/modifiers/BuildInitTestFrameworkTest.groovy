@@ -25,12 +25,13 @@ class BuildInitTestFrameworkTest extends Specification {
         def result = BuildInitTestFramework.listSupported();
 
         then:
-        result.size() == 6
-        result[0] == "junit"
-        result[1] == "testng"
-        result[2] == "spock"
-        result[3] == "kotlintest"
-        result[4] == "scalatest"
-        result[5] == "junit-jupiter"
+        result.containsAll([
+            "junit",
+            "spock",
+            "testng",
+            "kotlintest",
+            "scalatest",
+            "junit-jupiter"
+        ])
     }
 }

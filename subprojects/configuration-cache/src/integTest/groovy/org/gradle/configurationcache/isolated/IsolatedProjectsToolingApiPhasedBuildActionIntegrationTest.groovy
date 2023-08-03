@@ -103,7 +103,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":b")
+            modelsReused(":a", ":b", ":buildSrc")
         }
         outputContains("creating model for root project 'root'")
     }
@@ -125,7 +125,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         when:
         executer.withArguments(ENABLE_CLI)
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            // Empty list means "run tasks defined by build logic or default task"
+            // Empty list means "run tasks defined by build logic or default tasks"
             forTasks([])
         }
 

@@ -200,6 +200,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "apply false"                          | BASE_MESSAGE
         2          | "id 'foo' apply"                       | BASE_MESSAGE
         2          | "id 'foo' apply('foo')"                | NEED_SINGLE_BOOLEAN
+        2          | "apply plugin: 'java'"                 | NEED_SINGLE_BOOLEAN
         2          | "id null"                              | NEED_LITERAL_STRING
         2          | "id 'foo' version null"                | NEED_INTERPOLATED_STRING
         2          | "file('foo')" /* script api */         | BASE_MESSAGE

@@ -46,7 +46,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         }
     }
 
-    def "does not invalidate configuration cache entry when dynamic version information has not expired (#scenario)"() {
+    def "does not invalidate configuration cache entry when dynamic version information has not expired"() {
         given:
         RepoFixture defaultRepo = new RepoFixture(remoteRepo)
         List<RepoFixture> repos = scenario == DynamicVersionScenario.SINGLE_REPO
@@ -118,7 +118,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         scenario << DynamicVersionScenario.values()
     }
 
-    def "invalidates configuration cache entry when dynamic version information has expired (#scenario)"() {
+    def "invalidates configuration cache entry when dynamic version information has expired"() {
         given:
         RepoFixture defaultRepo = new RepoFixture(remoteRepo)
         List<RepoFixture> repos = scenario == DynamicVersionScenario.SINGLE_REPO
@@ -371,7 +371,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
     }
 
     // This documents current behaviour, rather than desired behaviour. The contents of the artifact does not affect the contents of the task graph and so should not be treated as an input
-    def "reports changes to artifact in #repo.displayName"() {
+    def "reports changes to artifact in file repository"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
         buildFile << """
@@ -412,6 +412,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         configurationCacheRun("resolve1", "resolve2")
 
         then:
+        // This should be a cache hit
         configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.metadataLocation}' has changed.")
         outputContains("result = [lib1-2.1.jar]")
@@ -430,7 +431,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         new MavenLocalRepo() | _
     }
 
-    def "reports changes to metadata in #repo.displayName"() {
+    def "reports changes to metadata in file repository"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
         buildFile << """
@@ -489,7 +490,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         new MavenLocalRepo() | _
     }
 
-    def "reports changes to matching versions in #repo.displayName"() {
+    def "reports changes to matching versions in file repository"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
         buildFile << """
@@ -531,7 +532,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.versionMetadataLocation}' has changed.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because ${repo.newVersionInvalidatedResource} has changed.")
         outputContains("result = [lib1-2.5.jar, lib2-4.0.jar]")
 
         when:
@@ -544,8 +545,85 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         where:
         repo                | _
         new MavenFileRepo() | _
-        // TODO - Ivy file repos + dynamic versions ignores changes
+        new IvyFileRepo()   | _
         // Maven local does not support dynamic versions
+    }
+
+    def "reports changes to matching snapshot versions in file repository"() {
+        repo.setup(this)
+        repo.publishSnapshot(this)
+        taskTypeLogsInputFileCollectionContent()
+        buildFile << """
+            configurations {
+                resolve1
+                resolve2
+            }
+            dependencies {
+                resolve1 'thing:lib1:2.0-SNAPSHOT'
+                resolve2 'thing:lib1:2.0-SNAPSHOT'
+            }
+
+            task resolve1(type: ShowFilesTask) {
+                inFiles.from(configurations.resolve1)
+            }
+            task resolve2(type: ShowFilesTask) {
+                inFiles.from(configurations.resolve2)
+            }
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("resolve1", "resolve2")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("result = [lib1-${repo.snapshotVersion}.jar, lib2-4.0.jar]")
+
+        when:
+        configurationCacheRun("resolve1", "resolve2")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("result = [lib1-${repo.snapshotVersion}.jar, lib2-4.0.jar]")
+
+        when:
+        repo.publishNewSnapshot(this)
+        configurationCacheRun("resolve1", "resolve2")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because ${repo.newSnapshotInvalidatedResource} has changed.")
+        outputContains("result = [lib1-${repo.newSnapshotVersion}.jar, lib2-4.1.jar]")
+
+        when:
+        configurationCacheRun("resolve1", "resolve2")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("result = [lib1-${repo.newSnapshotVersion}.jar, lib2-4.1.jar]")
+
+        where:
+        repo                 | _
+        new MavenFileRepo()  | _
+        new MavenLocalRepo() | _
+    }
+
+    def "disables configuration cache when --export-keys is used"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("help", "--export-keys")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("Calculating task graph as configuration cache cannot be reused due to --export-keys")
     }
 
     def "invalidates configuration cache when dependency lock file changes"() {
@@ -602,7 +680,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         run("resolve1", "--write-locks", "--refresh-dependencies")
 
         then:
-        noExceptionThrown()
+        outputContains("result = [lib-1.4.jar]")
 
         when:
         configurationCacheRun("resolve1")
@@ -630,16 +708,107 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib-1.4.jar]")
     }
 
-    abstract class FileRepoSetup {
-        abstract String getDisplayName()
+    def "invalidates cache when verification file changes"() {
+        server.start()
+        def v3 = remoteRepo.module("thing", "lib", "1.3").publish()
+        v3.allowAll()
 
-        abstract String getProblemDisplayName()
+        taskTypeLogsInputFileCollectionContent()
+        buildFile << """
+            configurations {
+                implementation
+            }
+
+            repositories { maven { url = '${remoteRepo.uri}' } }
+
+            dependencies {
+                implementation 'thing:lib:1.3'
+            }
+
+            task resolve1(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
+            }
+        """
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun("resolve1", "--write-verification-metadata", "sha256")
+
+        then:
+        def verificationFile = file("gradle/verification-metadata.xml")
+        verificationFile.isFile()
+
+        // TODO - get a false cache miss here because the content of the metadata file changes during the previous build
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.".replace('/', File.separator))
+
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        verificationFile.replace('<sha256 value="9e44491880e9ca23ab209f9b2e31cf2a7d26cd33841aea9a490c1b8c9bbf27e5"', '<sha256 value="12345"')
+        configurationCacheFails("resolve1")
+
+        then:
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.".replace('/', File.separator))
+        failure.assertHasCause("Dependency verification failed for configuration ':implementation'")
+        configurationCache.assertStateStoreFailed()
+
+        when:
+        verificationFile.replace('<sha256 value="12345"', '<sha256 value="9e44491880e9ca23ab209f9b2e31cf2a7d26cd33841aea9a490c1b8c9bbf27e5"')
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        verificationFile.delete()
+        configurationCacheRun("resolve1")
+
+        then:
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.".replace('/', File.separator))
+        configurationCache.assertStateStored()
+    }
+
+    abstract class FileRepoSetup {
+        @Override
+        String toString() {
+            return getClass().simpleName
+        }
 
         String getVersionMetadataLocation() {
             return 'maven-repo/thing/lib1/maven-metadata.xml'.replace('/', File.separator)
         }
 
         abstract String getMetadataLocation()
+
+        abstract String getNewVersionInvalidatedResource()
 
         abstract void setup(AbstractIntegrationSpec owner)
 
@@ -650,20 +819,27 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         abstract void publishNewVersion(AbstractIntegrationSpec owner)
     }
 
-    class MavenFileRepo extends FileRepoSetup {
-        @Override
-        String getDisplayName() {
-            return "Maven file repository"
-        }
+    abstract class MavenRepoSetup extends FileRepoSetup {
+        abstract String getSnapshotVersion()
 
-        @Override
-        String getProblemDisplayName() {
-            return 'maven'
-        }
+        abstract String getNewSnapshotInvalidatedResource()
 
+        abstract String getNewSnapshotVersion()
+
+        abstract void publishSnapshot(AbstractIntegrationSpec owner)
+
+        abstract void publishNewSnapshot(AbstractIntegrationSpec owner)
+    }
+
+    class MavenFileRepo extends MavenRepoSetup {
         @Override
         String getMetadataLocation() {
             return 'maven-repo/thing/lib1/2.1/lib1-2.1.pom'.replace('/', File.separator)
+        }
+
+        @Override
+        String getNewVersionInvalidatedResource() {
+            return "file '$versionMetadataLocation'"
         }
 
         @Override
@@ -702,22 +878,50 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 mavenRepo.module("thing", "lib1", "2.5").dependsOn(dep).publish()
             }
         }
+
+        @Override
+        String getSnapshotVersion() {
+            return "2.0-20100101.120001-1"
+        }
+
+        @Override
+        String getNewSnapshotInvalidatedResource() {
+            return "file 'maven-repo/thing/lib1/2.0-SNAPSHOT/maven-metadata.xml'".replace('/', File.separator)
+        }
+
+        @Override
+        String getNewSnapshotVersion() {
+            return "2.0-20100101.120002-2"
+        }
+
+        @Override
+        void publishSnapshot(AbstractIntegrationSpec owner) {
+            owner.with {
+                def dep = mavenRepo.module("thing", "lib2", "4.0").publish()
+                mavenRepo.module("thing", "lib1", "2.0-SNAPSHOT").dependsOn(dep).publish()
+            }
+        }
+
+        @Override
+        void publishNewSnapshot(AbstractIntegrationSpec owner) {
+            owner.with {
+                def dep = mavenRepo.module("thing", "lib2", "4.1").publish()
+                def module = mavenRepo.module("thing", "lib1", "2.0-SNAPSHOT").dependsOn(dep)
+                module.publishCount++
+                module.publish()
+            }
+        }
     }
 
     class IvyFileRepo extends FileRepoSetup {
         @Override
-        String getDisplayName() {
-            return "Ivy file repository"
-        }
-
-        @Override
-        String getProblemDisplayName() {
-            return 'ivy'
-        }
-
-        @Override
         String getMetadataLocation() {
             return 'ivy-repo/thing/lib1/2.1/ivy-2.1.xml'.replace('/', File.separator)
+        }
+
+        @Override
+        String getNewVersionInvalidatedResource() {
+            return "directory 'ivy-repo/thing/lib1'".replace('/', File.separator)
         }
 
         @Override
@@ -758,20 +962,15 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         }
     }
 
-    class MavenLocalRepo extends FileRepoSetup {
-        @Override
-        String getDisplayName() {
-            return "Maven local repository"
-        }
-
-        @Override
-        String getProblemDisplayName() {
-            return 'MavenLocal'
-        }
-
+    class MavenLocalRepo extends MavenRepoSetup {
         @Override
         String getMetadataLocation() {
             return 'maven_home/.m2/repository/thing/lib1/2.1/lib1-2.1.pom'.replace('/', File.separator)
+        }
+
+        @Override
+        String getNewVersionInvalidatedResource() {
+            throw new UnsupportedOperationException()
         }
 
         @Override
@@ -810,6 +1009,39 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 m2.execute(executer)
                 def dep = m2.mavenRepo().module("thing", "lib2", "4.0").publish()
                 m2.mavenRepo().module("thing", "lib1", "2.5").dependsOn(dep).publish()
+            }
+        }
+
+        @Override
+        String getSnapshotVersion() {
+            return "2.0-SNAPSHOT"
+        }
+
+        @Override
+        String getNewSnapshotVersion() {
+            return snapshotVersion
+        }
+
+        @Override
+        String getNewSnapshotInvalidatedResource() {
+            return "file 'maven_home/.m2/repository/thing/lib1/2.0-SNAPSHOT/lib1-2.0-SNAPSHOT.pom'".replace('/', File.separator)
+        }
+
+        @Override
+        void publishSnapshot(AbstractIntegrationSpec owner) {
+            owner.with {
+                m2.execute(executer)
+                def dep = m2.mavenRepo().module("thing", "lib2", "4.0").publish()
+                m2.mavenRepo().module("thing", "lib1", "2.0-SNAPSHOT").dependsOn(dep).publish()
+            }
+        }
+
+        @Override
+        void publishNewSnapshot(AbstractIntegrationSpec owner) {
+            owner.with {
+                m2.execute(executer)
+                def dep = m2.mavenRepo().module("thing", "lib2", "4.1").publish()
+                m2.mavenRepo().module("thing", "lib1", "2.0-SNAPSHOT").dependsOn(dep).publish()
             }
         }
     }

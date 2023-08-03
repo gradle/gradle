@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.plugins;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
@@ -23,14 +24,17 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.attributes.Usage;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.MissingValueException;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
@@ -40,8 +44,6 @@ import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publication.WritableMavenProjectIdentity;
-import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
@@ -124,9 +126,9 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
 
         mavenPublications.all(publication -> {
             createGenerateMetadataTask(tasks, publication, mavenPublications, buildDirectory);
-            createGeneratePomTask(tasks, publication, buildDirectory, project);
+            createGeneratePomTask(tasks, publication, buildDirectory);
             createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
-            createPublishTasksForEachMavenRepo(tasks, publishLifecycleTask, publication, repositories);
+            createPublishTasksForEachMavenRepo(project, tasks, publishLifecycleTask, publication, repositories);
         });
     }
 
@@ -134,7 +136,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         return "publishAllPublicationsTo" + capitalize(repository.getName()) + "Repository";
     }
 
-    private void createPublishTasksForEachMavenRepo(final TaskContainer tasks, final TaskProvider<Task> publishLifecycleTask, final MavenPublicationInternal publication, final NamedDomainObjectList<MavenArtifactRepository> repositories) {
+    private void createPublishTasksForEachMavenRepo(final Project project, final TaskContainer tasks, final TaskProvider<Task> publishLifecycleTask, final MavenPublicationInternal publication, final NamedDomainObjectList<MavenArtifactRepository> repositories) {
         final String publicationName = publication.getName();
         repositories.all(repository -> {
             final String repositoryName = repository.getName();
@@ -144,10 +146,49 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
                 publishTask.setRepository(repository);
                 publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
+                project.getGradle().getTaskGraph().whenReady(graph -> {
+                    if (graph.hasTask(publishTask)) {
+                        validateCredentialsSetup(project, publishTask);
+                    }
+                });
             });
+
             publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));
             tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
         });
+    }
+
+    private static void validateCredentialsSetup(Project project, PublishToMavenRepository publishToMavenRepository) {
+        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) publishToMavenRepository.getRepository();
+        Credentials creds;
+        try {
+            creds = repository.getConfiguredCredentials().getOrNull();
+        } catch (Exception e) {
+            // In case of exception, we assume compatibility as this will fail later as well
+            creds = null;
+        }
+        if (creds != null && !isUsingCredentialsProvider((ProjectInternal) project, repository.getName(), creds)) {
+            publishToMavenRepository.notCompatibleWithConfigurationCache("Publishing to a repository without a credentials provider is not yet supported for the configuration cache");
+        }
+    }
+
+    private static boolean isUsingCredentialsProvider(ProjectInternal project, String identity, Credentials toCheck) {
+        ProviderFactory providerFactory = project.getServices().get(ProviderFactory.class);
+        Credentials referenceCredentials;
+        try {
+            Provider<? extends Credentials> credentialsProvider;
+            try {
+                credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
+            } catch (IllegalArgumentException e) {
+                // some possibilities are invalid repository names and invalid credential types
+                // either way, this is not the place to validate that
+                return false;
+            }
+            referenceCredentials = credentialsProvider.get();
+        } catch (MissingValueException e) {
+            return false;
+        }
+        return EqualsBuilder.reflectionEquals(toCheck, referenceCredentials);
     }
 
     private void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {
@@ -162,7 +203,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         publishLocalLifecycleTask.configure(task -> task.dependsOn(installTaskName));
     }
 
-    private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir, final Project project) {
+    private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generatePomFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateMavenPom> generatorTask = tasks.register(descriptorTaskName, GenerateMavenPom.class, generatePomTask -> {
@@ -172,13 +213,6 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             if (generatePomTask.getDestination() == null) {
                 generatePomTask.setDestination(buildDir.file("publications/" + publication.getName() + "/pom-default.xml"));
             }
-            project.getPluginManager().withPlugin("org.gradle.java", plugin -> {
-                // If the Java plugin is applied, we want to express that the "compile" and "runtime" variants
-                // are mapped to some attributes, which can be used in the version mapping strategy.
-                // This is only required for POM publication, because the variants have _implicit_ attributes that we want explicit for matching
-                generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API)))
-                        .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME)));
-            });
         });
         publication.setPomGenerator(generatorTask);
     }
@@ -211,25 +245,15 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
 
         @Override
         public MavenPublication create(final String name) {
-            MutableMavenProjectIdentity projectIdentity = createProjectIdentity();
             NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             return objectFactory.newInstance(
                     DefaultMavenPublication.class,
                     name,
-                    projectIdentity,
+                    dependencyMetaDataProvider,
                     artifactNotationParser,
                     versionMappingStrategy
             );
-        }
-
-        private MutableMavenProjectIdentity createProjectIdentity() {
-            final Module module = dependencyMetaDataProvider.getModule();
-            MutableMavenProjectIdentity projectIdentity = new WritableMavenProjectIdentity(objectFactory);
-            projectIdentity.getGroupId().set(providerFactory.provider(module::getGroup));
-            projectIdentity.getArtifactId().set(providerFactory.provider(module::getName));
-            projectIdentity.getVersion().set(providerFactory.provider(module::getVersion));
-            return projectIdentity;
         }
     }
 

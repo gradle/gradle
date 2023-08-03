@@ -496,6 +496,10 @@ class DefaultVisualStudioLocatorTest extends Specification {
         "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | ARM_ON_X86
         "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | ARM_ON_AMD64
         "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | ARM_ON_X86
+
+        "32-bit" | SystemInfo.Architecture.i386  | "arm64"        | false          | ARM64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm64"        | true           | ARM64_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm64"        | false          | ARM64_ON_X86
     }
 
     def vs2017Dir(String name) {
@@ -546,7 +550,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
             X86_ON_X86,
             ARM_ON_X86,
             ARM_ON_AMD64,
-            ARM_ON_X86
+            ARM_ON_X86,
+            ARM64_ON_AMD64,
+            ARM64_ON_X86
         ]}
         return dir
     }
@@ -570,7 +576,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
             LEGACY_ARM_ON_AMD64,
             AMD64_ON_AMD64,
             X86_ON_AMD64,
-            ARM_ON_AMD64
+            ARM_ON_AMD64,
+            ARM64_ON_AMD64
         ]
     }
 

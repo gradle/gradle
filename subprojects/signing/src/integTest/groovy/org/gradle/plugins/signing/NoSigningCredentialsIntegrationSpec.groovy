@@ -15,8 +15,6 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
 
     def setup() {
@@ -24,7 +22,6 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         executer.withArguments("-info")
     }
 
-    @ToBeFixedForConfigurationCache
     def "trying to perform a signing operation without a signatory produces reasonable error"() {
         when:
         buildFile << """

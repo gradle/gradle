@@ -91,7 +91,7 @@ class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = 
 
             localGradle {
                 name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-                tasks = "clean sanityCheck test"
+                tasks = "clean sanityCheck test " + if (bundleGroovy4) "--dry-run" else ""
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                 gradleParams = defaultParameters
             }

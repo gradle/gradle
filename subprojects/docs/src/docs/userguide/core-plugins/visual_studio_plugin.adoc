@@ -41,8 +41,8 @@ What exactly the `visual-studio` plugin generates depends on which other plugins
 
 .Applying the Visual Studio Plugin
 ====
-include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=apply-plugin]"]
 include::sample[dir="snippets/ide/visualStudio/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 The Visual Studio Plugin adds a number of tasks to your project.
@@ -137,8 +137,8 @@ The location of the generated solution can be configured on the root project:
 
 .Change the generated solution file location
 ====
-include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=configure-solution-location]"]
 include::sample[dir="snippets/ide/visualStudio/kotlin",files="build.gradle.kts[tags=configure-solution-location]"]
+include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=configure-solution-location]"]
 ====
 
 [[sec:visual_studio_configure_project_location]]
@@ -148,6 +148,6 @@ The location of the generated project files can be configured on any project:
 
 .Change the generated project files location
 ====
-include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=configure-project-and-filters-location]"]
 include::sample[dir="snippets/ide/visualStudio/kotlin",files="build.gradle.kts[tags=configure-project-and-filters-location]"]
+include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=configure-project-and-filters-location]"]
 ====

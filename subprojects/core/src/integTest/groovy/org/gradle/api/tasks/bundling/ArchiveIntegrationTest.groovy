@@ -923,7 +923,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                         fcd.relativePath = new RelativePath(!fcd.isDirectory(), fcd.relativePath.segments.drop(1))
                     }
                 }
-                into buildDir
+                into file("build/output")
             }
         """
 
@@ -931,7 +931,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run "copy"
 
         then:
-        file("build").assertHasDescendants(expectedDescendants)
+        file("build/output").assertHasDescendants(expectedDescendants)
 
         where:
         includeEmptyDirs | expectedDescendants
@@ -939,7 +939,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         false            | ["file2.txt", "file3.txt"]
     }
 
-    @Issue("")
     def "zipTree tracks task dependencies"() {
         given:
         buildFile """

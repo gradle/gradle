@@ -66,8 +66,8 @@ The following code illustrates how to declare a feature named `mongodbSupport`:
 
 .Declaring a feature variant
 ====
-include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=register_variant]"]
 include::sample[dir="snippets/java-feature-variant/producer/kotlin",files="build.gradle.kts[tags=register_variant]"]
+include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=register_variant]"]
 ====
 
 Gradle will automatically setup a number of things for you, in a very similar way to how the <<java_library_plugin#java_library_plugin,Java Library Plugin>> sets up configurations:
@@ -81,8 +81,8 @@ Most users will only need to care about the first two configurations, to declare
 
 .Declaring dependencies of a feature
 ====
-include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=variant_dependencies]"]
 include::sample[dir="snippets/java-feature-variant/producer/kotlin",files="build.gradle.kts[tags=variant_dependencies]"]
+include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=variant_dependencies]"]
 ====
 
 [NOTE]
@@ -100,7 +100,7 @@ If you choose the capability name yourself or add more capabilities to a variant
 In the previous example, we're declaring a feature variant which uses the _main source set_.
 This is a typical use case in the Java ecosystem, where it's, for whatever reason, not possible to split the sources of a project into different subprojects or different source sets.
 Gradle will therefore declare the configurations as described, but will also setup the compile classpath and runtime classpath of the _main source set_ so that it extends from the feature configuration.
-Said differently, this allows you to declare the dependencies specific to a feature in their own "bucket", but everything is still compiled as a single source set.
+Said differently, this allows you to declare the dependencies specific to a feature in their own dependency scope, but everything is still compiled as a single source set.
 There will also be a single artifact (the component Jar) including support for all features.
 
 However, it is often preferred to have a _separate source set_ for a feature. Gradle will then perform a similar mapping, but will _not_ make the compile and runtime classpath of the main component extend from the dependencies of the registered features.
@@ -108,8 +108,8 @@ It will also, by convention, create a `Jar` task to bundle the classes built fro
 
 .Declaring a feature variant using a separate source set
 ====
-include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=register_variant,register_variant2]"]
 include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/kotlin",files="build.gradle.kts[tags=register_variant,register_variant2]"]
+include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=register_variant,register_variant2]"]
 ====
 
 [[sec::publishing_feature_variants]]
@@ -129,8 +129,8 @@ The Java Plugin (or Java Library Plugin) will take care of registering the addit
 
 .Publishing a component with feature variants
 ====
-include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=plugins,publishing]"]
 include::sample[dir="snippets/java-feature-variant/producer/kotlin",files="build.gradle.kts[tags=plugins,publishing]"]
+include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=plugins,publishing]"]
 ====
 
 [[sub:javadoc_sources_features_variants]]
@@ -141,8 +141,8 @@ This however only makes sense when using a source set other than the main one.
 
 .Producing javadoc and sources JARs for feature variants
 ====
-include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=register_variant_extra_jars]"]
 include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/kotlin",files="build.gradle.kts[tags=register_variant_extra_jars]"]
+include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=register_variant_extra_jars]"]
 ====
 
 [[sec::consuming_feature_variants]]
@@ -163,16 +163,16 @@ For example, if a producer declares a "MySQL support" feature like this:
 
 .A library declaring a feature to support MySQL
 ====
-include::sample[dir="snippets/java-feature-variant/requiring-features/groovy/producer",files="build.gradle[tags=producer]"]
 include::sample[dir="snippets/java-feature-variant/requiring-features/kotlin/producer",files="build.gradle.kts[tags=producer]"]
+include::sample[dir="snippets/java-feature-variant/requiring-features/groovy/producer",files="build.gradle[tags=producer]"]
 ====
 
 Then the consumer can declare a dependency on the MySQL support feature by doing this:
 
 .Consuming specific features in a multi-project build
 ====
-include::sample[dir="snippets/java-feature-variant/requiring-features/groovy/consumer",files="build.gradle[tags=consumer]"]
 include::sample[dir="snippets/java-feature-variant/requiring-features/kotlin/consumer",files="build.gradle.kts[tags=consumer]"]
+include::sample[dir="snippets/java-feature-variant/requiring-features/groovy/consumer",files="build.gradle[tags=consumer]"]
 ====
 
 This will automatically bring the `mysql-connector-java` dependency on the runtime classpath.
@@ -182,8 +182,8 @@ Similarly, if an external library with feature variants was published with {meta
 
 .Consuming specific features from an external repository
 ====
-include::sample[dir="snippets/java-feature-variant/requiring-features-external/groovy/project",files="build.gradle[tags=consumer]"]
 include::sample[dir="snippets/java-feature-variant/requiring-features-external/kotlin/project",files="build.gradle.kts[tags=consumer]"]
+include::sample[dir="snippets/java-feature-variant/requiring-features-external/groovy/project",files="build.gradle[tags=consumer]"]
 ====
 
 
@@ -201,8 +201,8 @@ Not allowed should directly translate to "provide the same capability", so there
 
 .A producer of multiple features that are mutually exclusive
 ====
-include::sample[dir="snippets/java-feature-variant/incompatible-variants/groovy/producer",files="build.gradle[tags=producer]"]
 include::sample[dir="snippets/java-feature-variant/incompatible-variants/kotlin/producer",files="build.gradle.kts[tags=producer]"]
+include::sample[dir="snippets/java-feature-variant/incompatible-variants/groovy/producer",files="build.gradle[tags=producer]"]
 ====
 
 Here, the producer declares 3 variants, one for each database runtime support:
@@ -215,8 +215,8 @@ Then if the consumer tries to get both the `postgres-support` and `mysql-support
 
 .A consumer trying to use 2 incompatible variants at the same time
 ====
-include::sample[dir="snippets/java-feature-variant/incompatible-variants/groovy/consumer",files="build.gradle[tags=consumer]"]
 include::sample[dir="snippets/java-feature-variant/incompatible-variants/kotlin/consumer",files="build.gradle.kts[tags=consumer]"]
+include::sample[dir="snippets/java-feature-variant/incompatible-variants/groovy/consumer",files="build.gradle[tags=consumer]"]
 ====
 
 Dependency resolution would fail with the following error:

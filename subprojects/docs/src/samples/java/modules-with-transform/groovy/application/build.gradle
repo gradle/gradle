@@ -30,7 +30,7 @@ extraJavaModuleInfo {
 // end::extraModuleInfo[]
 
 tasks.named('compileJava') {
-    options.javaModuleVersion = provider { project.version }
+    options.javaModuleVersion = provider { version }
 }
 
 dependencies {

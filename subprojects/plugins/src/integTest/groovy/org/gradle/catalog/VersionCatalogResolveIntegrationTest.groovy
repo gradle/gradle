@@ -35,8 +35,9 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
             version = '1.0'
 
             task checkDeps {
+                def runtimeClasspath = configurations.runtimeClasspath
                 doLast {
-                    println("Resolved: \${configurations.runtimeClasspath.files.name.join(', ')}")
+                    println("Resolved: \${runtimeClasspath.files.name.join(', ')}")
                 }
             }
         """

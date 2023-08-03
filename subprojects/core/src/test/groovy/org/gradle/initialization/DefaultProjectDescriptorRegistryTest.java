@@ -35,17 +35,17 @@ public class DefaultProjectDescriptorRegistryTest {
 
     @Test
     public void addProjectDescriptor() {
+        // Project is added as a side effect
         DefaultProjectDescriptor rootProject = new DefaultProjectDescriptor(null, "testName", TEST_DIR, registry, FILE_RESOLVER);
 
-        registry.addProject(rootProject);
         assertSame(rootProject, registry.getProject(rootProject.getPath()));
         assertSame(rootProject, registry.getProject(rootProject.getProjectDir()));
     }
 
     @Test
     public void changeProjectDescriptorPath() {
+        // Project is added as a side effect
         DefaultProjectDescriptor project = new DefaultProjectDescriptor(null, "name", TEST_DIR, registry, FILE_RESOLVER);
-        registry.addProject(project);
 
         registry.changeDescriptorPath(Path.path(":"), Path.path(":newPath"));
         assertThat(registry.getRootProject(), nullValue());

@@ -17,13 +17,12 @@
 package org.gradle.integtests.resource.s3.ivy
 
 import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.Requires
 
-@Requires({ S3IntegrationTestPrecondition.fulfilled })
+@Requires(IntegTestPreconditions.CanPublishToS3)
 class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)
@@ -32,12 +31,12 @@ class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to an S3 Ivy repository"() {
         given:
         def ivyRepo = server.remoteIvyRepo
 
         settingsFile << 'rootProject.name = "publishS3Test"'
+        configureRepositoryKeys("someKey", "someSecret", "ivy")
         buildFile << """
 apply plugin: 'java'
 apply plugin: 'ivy-publish'
@@ -49,10 +48,7 @@ publishing {
     repositories {
         ivy {
             url "${ivyRepo.uri}"
-            credentials(AwsCredentials) {
-                accessKey "someKey"
-                secretKey "someSecret"
-            }
+            credentials(AwsCredentials)
         }
     }
     publications {

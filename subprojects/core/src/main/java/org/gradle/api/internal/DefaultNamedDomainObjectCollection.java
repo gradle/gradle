@@ -40,6 +40,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
@@ -775,7 +776,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Nullable
-    protected NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
+    private NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
         NamedDomainObjectProvider<? extends T> provider = searchForDomainObject(name);
         // Run the rules and try to find something again.
         if (provider == null) {
@@ -895,6 +896,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public void configure(final Action<? super I> action) {
             assertMutable("NamedDomainObjectProvider.configure(Action)");
+
+            if (action == Actions.doNothing()) {
+                return;
+            }
+
             Action<? super I> wrappedAction = withMutationDisabled(action);
             Action<? super I> decoratedAction = getEventRegister().getDecorator().decorate(wrappedAction);
 

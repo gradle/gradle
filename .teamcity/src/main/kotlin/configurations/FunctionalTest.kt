@@ -1,13 +1,43 @@
 package configurations
 
+import com.alibaba.fastjson.JSONObject
+import com.alibaba.fastjson.annotation.JSONField
 import common.functionalTestExtraParameters
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.parallelTests
 import model.CIBuildModel
 import model.Stage
 import model.StageName
 import model.TestCoverage
 
 const val functionalTestTag = "FunctionalTest"
+
+sealed class ParallelizationMethod {
+    open val extraBuildParameters: String
+        @JSONField(serialize = false)
+        get() = ""
+
+    val name: String = this::class.simpleName!!
+
+    object None : ParallelizationMethod()
+    object TestDistribution : ParallelizationMethod() {
+        override val extraBuildParameters: String = "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%"
+    }
+
+    class TeamCityParallelTests(val numberOfBatches: Int) : ParallelizationMethod()
+
+    companion object {
+        fun fromJson(jsonObject: JSONObject): ParallelizationMethod {
+            val methodJsonObject = jsonObject.getJSONObject("parallelizationMethod") ?: return None
+            return when (methodJsonObject.getString("name")) {
+                null -> None
+                TestDistribution::class.simpleName -> TestDistribution
+                TeamCityParallelTests::class.simpleName -> TeamCityParallelTests(methodJsonObject.getIntValue("numberOfBatches"))
+                else -> throw IllegalArgumentException("Unknown parallelization method")
+            }
+        }
+    }
+}
 
 class FunctionalTest(
     model: CIBuildModel,
@@ -16,7 +46,7 @@ class FunctionalTest(
     description: String,
     val testCoverage: TestCoverage,
     stage: Stage,
-    enableTestDistribution: Boolean,
+    parallelizationMethod: ParallelizationMethod = ParallelizationMethod.None,
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
     maxParallelForks: String = "%maxParallelForks%",
@@ -28,18 +58,31 @@ class FunctionalTest(
     this.id(id)
     val testTasks = getTestTaskName(testCoverage, subprojects)
 
+    val assembledExtraParameters = mutableListOf(
+        functionalTestExtraParameters(functionalTestTag, testCoverage.os, testCoverage.arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name),
+        "-PflakyTests=${determineFlakyTestStrategy(stage)}",
+        extraParameters,
+        parallelizationMethod.extraBuildParameters
+    ).filter { it.isNotBlank() }.joinToString(separator = " ")
+
+    if (parallelizationMethod is ParallelizationMethod.TeamCityParallelTests && parallelizationMethod.numberOfBatches > 1) {
+        params {
+            param("env.TEAMCITY_PARALLEL_TESTS_ENABLED", "1")
+        }
+        features {
+            parallelTests {
+                this.numberOfBatches = parallelizationMethod.numberOfBatches
+            }
+        }
+    }
+
     applyTestDefaults(
         model, this, testTasks,
         dependsOnQuickFeedbackLinux = !testCoverage.withoutDependencies && stage.stageName > StageName.PULL_REQUEST_FEEDBACK,
         os = testCoverage.os,
         buildJvm = testCoverage.buildJvm,
         arch = testCoverage.arch,
-        extraParameters = (
-            listOf(functionalTestExtraParameters(functionalTestTag, testCoverage.os, testCoverage.arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)) +
-                (if (enableTestDistribution) "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%" else "") +
-                "-PflakyTests=${determineFlakyTestStrategy(stage)}" +
-                extraParameters
-            ).filter { it.isNotBlank() }.joinToString(separator = " "),
+        extraParameters = assembledExtraParameters,
         timeout = testCoverage.testType.timeout,
         maxParallelForks = testCoverage.testType.maxParallelForks.toString(),
         extraSteps = extraBuildSteps,

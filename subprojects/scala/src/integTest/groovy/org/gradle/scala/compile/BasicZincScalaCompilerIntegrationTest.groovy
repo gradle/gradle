@@ -21,9 +21,10 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
+import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
 abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
     @Rule
@@ -36,7 +37,6 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
     }
 
     def compileGoodCode() {
-        given:
         goodCode()
 
         expect:
@@ -45,25 +45,30 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
     }
 
     def compileBadCode() {
-        given:
         badCode()
 
         expect:
         fails("compileScala")
-        result.assertHasErrorOutput("type mismatch")
-        scalaClassFile("").assertHasDescendants()
+        file("build/classes/scala/main").assertIsEmptyDir()
+
+        if (versionNumber.major >= 3) {
+            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:4:28: Found:    (42 : Int)\nRequired: String")
+        } else {
+            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:4:28: type mismatch;\n found   : Int(42)\n required: String")
+        }
     }
 
     def useCompilerPluginIfDefined() {
+        // https://docs.scala-lang.org/scala3/guides/migration/plugin-kind-projector.html
+        Assume.assumeTrue(
+            VersionNumber.parse("2.12.14") <= versionNumber && versionNumber < VersionNumber.parse("2.13.0") ||
+                VersionNumber.parse("2.13.6") <= versionNumber && versionNumber < VersionNumber.parse("3.0.0")
+        )
+
         given:
         file("build.gradle") << """
-            apply plugin: 'scala'
-
-            ${mavenCentralRepository()}
-
             dependencies {
-                implementation 'org.scala-lang:scala-library:2.13.6'
-                scalaCompilerPlugins "org.typelevel:kind-projector_2.13.1:0.13.2"
+                scalaCompilerPlugins "org.typelevel:kind-projector_$version:0.13.2"
             }
         """
 
@@ -71,7 +76,8 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
             object KingProjectorTest {
                 class A[X[_]]
                 new A[Map[Int, *]] // this expression requires kind projector
-            }"""
+            }
+        """
 
         expect:
         succeeds("compileScala")
@@ -124,19 +130,21 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
     }
 
     def compileBadCodeWithoutFailing() {
-        given:
         badCode()
 
-        and:
-        buildFile <<
-            """
-compileScala.scalaCompileOptions.failOnError = false
-"""
+        buildFile << """
+            compileScala.scalaCompileOptions.failOnError = false
+        """
 
         expect:
         succeeds("compileScala")
-        result.assertHasErrorOutput("type mismatch")
-        scalaClassFile("").assertHasDescendants()
+        file("build/classes/scala/main").assertIsEmptyDir()
+
+        if (versionNumber.major >= 3) {
+            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:4:28: Found:    (42 : Int)\nRequired: String")
+        } else {
+            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:4:28: type mismatch;\n found   : Int(42)\n required: String")
+        }
     }
 
     def compileWithSpecifiedEncoding() {
@@ -144,12 +152,11 @@ compileScala.scalaCompileOptions.failOnError = false
         goodCodeEncodedWith("ISO8859_7")
 
         and:
-        buildFile <<
-            """
-apply plugin: "application"
-application.mainClass = "Main"
-compileScala.scalaCompileOptions.encoding = "ISO8859_7"
-"""
+        buildFile << """
+            apply plugin: "application"
+            application.mainClass = "Main"
+            compileScala.scalaCompileOptions.encoding = "ISO8859_7"
+        """
 
         expect:
         succeeds("run")
@@ -169,11 +176,15 @@ compileScala.scalaCompileOptions.encoding = "ISO8859_7"
         fullDebug.debugIncludesLineNumbers
         fullDebug.debugIncludesLocalVariables
 
+        // Scala 3 does not support `-g` option configured via `scalaCompileOptions.debugLevel`
+        if (versionNumber.major >= 3) {
+            return
+        }
+
         when:
-        buildFile <<
-            """
-compileScala.scalaCompileOptions.debugLevel = "line"
-"""
+        buildFile << """
+            compileScala.scalaCompileOptions.debugLevel = "line"
+        """
         run("compileScala")
 
         then:
@@ -188,10 +199,9 @@ compileScala.scalaCompileOptions.debugLevel = "line"
         }
 
         when:
-        buildFile <<
-            """
-compileScala.scalaCompileOptions.debugLevel = "none"
-"""
+        buildFile << """
+            compileScala.scalaCompileOptions.debugLevel = "none"
+        """
         run("compileScala")
 
         then:
@@ -201,59 +211,54 @@ compileScala.scalaCompileOptions.debugLevel = "none"
         !noDebug.debugIncludesLocalVariables
     }
 
-
     def buildScript() {
         """
-apply plugin: "scala"
+            apply plugin: "scala"
 
-repositories {
-    ${mavenCentralRepositoryDefinition()}
-}
+            ${mavenCentralRepository()}
 
-dependencies {
-    implementation "org.scala-lang:scala-library:$version"
-}
-"""
+            dependencies {
+                implementation "${scalaDependency(version.toString())}"
+            }
+        """
     }
 
     def goodCode() {
-        file("src/main/scala/compile/test/Person.scala") <<
-            """
-package compile.test
+        file("src/main/scala/compile/test/Person.scala") << """
+            package compile.test
 
-/**
-* A person.
-* Can live in a house.
-* Has a name and an age.
-*/
-class Person(val name: String, val age: Int) {
-    def hello(): List[Int] = List(3, 1, 2)
-}
-"""
-        file("src/main/scala/compile/test/Person2.scala") <<
-            """
-package compile.test
+            /**
+            * A person.
+            * Can live in a house.
+            * Has a name and an age.
+            */
+            class Person(val name: String, val age: Int) {
+                def hello(): List[Int] = List(3, 1, 2)
+            }
+        """.stripIndent()
 
-class Person2(name: String, age: Int) extends Person(name, age) {
-}
-"""
+        file("src/main/scala/compile/test/Person2.scala") << """
+            package compile.test
+
+            class Person2(name: String, age: Int) extends Person(name, age) {
+            }
+        """.stripIndent()
     }
 
     def goodCodeEncodedWith(String encoding) {
-        def code =
-            """
-import java.io.{FileOutputStream, File, OutputStreamWriter}
+        def code = """
+            import java.io.{FileOutputStream, File, OutputStreamWriter}
 
-object Main {
-    def main(args: Array[String]): Unit = {
-        // Some lowercase greek letters
-        val content = "\u03b1\u03b2\u03b3"
-        val writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), "utf-8")
-        writer.write(content)
-        writer.close()
-    }
-}
-"""
+            object Main {
+                def main(args: Array[String]): Unit = {
+                    // Some lowercase greek letters
+                    val content = "\u03b1\u03b2\u03b3"
+                    val writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), "utf-8")
+                    writer.write(content)
+                    writer.close()
+                }
+            }
+        """.stripIndent()
         def file = file("src/main/scala/Main.scala")
         file.parentFile.mkdirs()
         file.withWriter(encoding) { writer ->
@@ -266,25 +271,21 @@ object Main {
     }
 
     def badCode() {
-        file("src/main/scala/compile/test/Person.scala") <<
-            """
-package compile.test
+        file("src/main/scala/compile/test/Person.scala") << """package compile.test
 
 class Person(val name: String, val age: Int) {
     def hello() : String = 42
-}
-"""
+}"""
     }
 
     def goodCodeUsingJavaInterface() {
-        file("src/main/scala/compile/test/Demo.scala") <<
-            """
-package compile.test
+        file("src/main/scala/compile/test/Demo.scala") << """
+            package compile.test
 
-object Demo {
-  MyInterface.helloWorld();
-}
-"""
+            object Demo {
+              MyInterface.helloWorld();
+            }
+        """.stripIndent()
     }
 
 

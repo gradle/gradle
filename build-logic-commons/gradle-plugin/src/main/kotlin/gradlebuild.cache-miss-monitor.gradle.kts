@@ -61,7 +61,7 @@ fun Task.isCompileCacheMissMonitoredTask() = isMonitoredCompileTask() && !projec
 
 fun Project.isAsciidoctorCacheMissTask() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
 
-fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !isKotlinJsIrLink() 
+fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !isKotlinJsIrLink()
 
 fun Task.isClasspathManifest() = this.javaClass.simpleName.startsWith("ClasspathManifest")
 
@@ -89,13 +89,16 @@ fun Project.isExpectedCompileCacheMiss() =
 // 2. Gradleception which re-builds Gradle with a new Gradle version
 // 3. buildScanPerformance test, which doesn't depend on compileAll
 // 4. buildScanPerformance test, which doesn't depend on compileAll
-// 5. BuildCommitDistribution may build a commit which is not built before
+// 5. Compile All for the experimental build cache NG
+// 6. BuildCommitDistribution may build a commit which is not built before
     isInBuild(
         "Check_CompileAllBuild",
         "Component_GradlePlugin_Performance_PerformanceLatestMaster",
         "Component_GradlePlugin_Performance_PerformanceLatestReleased",
         "Check_Gradleception",
-        "Check_GradleceptionWithGroovy4"
+        "Check_GradleceptionWithGroovy4",
+        "CompileAllBuild_BuildCacheNG",
+        "CompileAllBuild_NGRemote"
     ) || isBuildCommitDistribution
 
 val Project.isBuildCommitDistribution: Boolean

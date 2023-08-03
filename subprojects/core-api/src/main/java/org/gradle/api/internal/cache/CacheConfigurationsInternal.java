@@ -17,27 +17,39 @@
 package org.gradle.api.internal.cache;
 
 import org.gradle.api.cache.CacheConfigurations;
-import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
-import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
 
-public interface CacheConfigurationsInternal extends CacheConfigurations, CleanupActionDecorator, MonitoredCleanupActionDecorator {
+public interface CacheConfigurationsInternal extends CacheConfigurations {
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS = 30;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS = 7;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES = 30;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES = 7;
 
-    void setReleasedWrappers(CacheResourceConfiguration releasedWrappers);
-    void setSnapshotWrappers(CacheResourceConfiguration snapshotWrappers);
-    void setDownloadedResources(CacheResourceConfiguration downloadedResources);
-    void setCreatedResources(CacheResourceConfiguration createdResources);
-    void setCleanup(Property<Cleanup> cleanup);
+    @Override
+    CacheResourceConfigurationInternal getReleasedWrappers();
+    @Override
+    CacheResourceConfigurationInternal getSnapshotWrappers();
+    @Override
+    CacheResourceConfigurationInternal getDownloadedResources();
+    @Override
+    CacheResourceConfigurationInternal getCreatedResources();
 
-    void finalizeConfigurations();
+    @Override
+    Property<Cleanup> getCleanup();
 
     Provider<CleanupFrequency> getCleanupFrequency();
+
+    void finalizeConfiguration(Gradle gradle);
+
+    /**
+     * Synchronizes the property values of the provided cache configurations with those of this cache configuration
+     * by setting the provided configuration's properties to be backed by the properties of this configuration.
+     */
+    void synchronize(CacheConfigurationsInternal cacheConfigurationsInternal);
+
+    void setCleanupHasBeenConfigured(boolean hasBeenConfigured);
 }

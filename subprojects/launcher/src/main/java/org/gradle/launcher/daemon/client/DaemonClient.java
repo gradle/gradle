@@ -27,7 +27,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -168,8 +167,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         } catch (DaemonInitialConnectException e) {
             // This means we could not connect to the daemon we just started.  fail and don't try again
             throw new NoUsableDaemonFoundException("A new daemon was started but could not be connected to: " +
-                "pid=" + connection.getDaemon() + ", address= " + connection.getDaemon().getAddress() + ". " +
-                Documentation.userManual("troubleshooting", "network_connection").consultDocumentationMessage(),
+                "pid=" + connection.getDaemon() + ", address= " + connection.getDaemon().getAddress() + ".",
                 accumulatedExceptions);
         } finally {
             connection.stop();
@@ -206,7 +204,14 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
 
         LOGGER.debug("Received result {} from daemon {} (build should be done).", result, connection.getDaemon());
 
-        connection.dispatch(new Finished());
+        // If we get an error here, it means the daemon has already closed the connection.  This might occur because the
+        // client is slow to send the Finished message, or because the daemon has expired for some reason.  Whatever the reason,
+        // this is not important to the client at this point, so we just log it and continue.
+        try {
+            connection.dispatch(new Finished());
+        } catch (DaemonConnectionException e) {
+            LOGGER.debug("Could not send finished message to the daemon.", e);
+        }
 
         if (result instanceof Failure) {
             Throwable failure = ((Failure) result).getValue();

@@ -17,11 +17,13 @@
 package org.gradle.internal
 
 import org.gradle.api.Action
-import org.gradle.api.Transformer
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
-import static Actions.*
+import static org.gradle.internal.Actions.composite
+import static org.gradle.internal.Actions.doNothing
+import static org.gradle.internal.Actions.filter
+import static org.gradle.internal.Actions.toAction
 
 class ActionsTest extends Specification {
 
@@ -42,22 +44,6 @@ class ActionsTest extends Specification {
 
         then:
         notThrown(Throwable)
-    }
-
-    def "transform before"() {
-        given:
-        def action = Mock(Action)
-
-        when:
-        transformBefore(action, new Transformer<Integer, String>() {
-            Integer transform(String original) {
-                Integer.parseInt(original, 10) * 2
-            }
-
-        }).execute("1")
-
-        then:
-        1 * action.execute(2)
     }
 
     def "composite actions"() {
@@ -82,23 +68,6 @@ class ActionsTest extends Specification {
         composite() == composite()
         composite() != composite(actions[0])
         composite(actions[0]) != composite()
-    }
-
-    def "cast before"() {
-        given:
-        def action = Mock(Action)
-
-        when:
-        castBefore(Integer, action).execute("1")
-
-        then:
-        def e = thrown(ClassCastException)
-
-        when:
-        castBefore(CharSequence, action).execute("1")
-
-        then:
-        1 * action.execute("1")
     }
 
     def "adapting runnables"() {

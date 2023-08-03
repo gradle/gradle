@@ -18,30 +18,18 @@ package org.gradle.initialization.exception
 import org.gradle.api.GradleScriptException
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.tasks.TaskExecutionException
-import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.ClassLoaderScopeId
-import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
+import org.gradle.internal.Describables
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.problems.Location
+import org.gradle.problems.ProblemDiagnostics
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import spock.lang.Specification
 
 class DefaultExceptionAnalyserTest extends Specification {
-
-    private final ClassLoaderScopeRegistryListenerManager listenerManager = Mock(ClassLoaderScopeRegistryListenerManager.class)
-    private final StackTraceElement element = new StackTraceElement("class", "method", "filename", 7)
-    private final StackTraceElement callerElement = new StackTraceElement("class", "method", "filename", 11)
-    private final StackTraceElement otherElement = new StackTraceElement("class", "method", "otherfile", 11)
-    private final StackTraceElement elementWithNoSourceFile = new StackTraceElement("class", "method", null, 11)
-    private final StackTraceElement elementWithNoLineNumber = new StackTraceElement("class", "method", "filename", -1)
-    private final ScriptSource source = Mock(ScriptSource.class)
-
-    def setup() {
-        source.getFileName() >> "filename"
-        source.getDisplayName() >> "build file filename"
-    }
+    private final ProblemDiagnosticsFactory diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
 
     def 'wraps original exception when it is not a contextual exception'() {
         given:
@@ -96,13 +84,13 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.reportableCauses == [cause]
     }
 
-    def 'adds location info from deepest stack frame with matching source file and line information'() {
-        given:
+    def 'adds location info from stack trace'() {
         def failure = new ContextualException()
-        failure.setStackTrace([elementWithNoSourceFile, elementWithNoLineNumber, otherElement, element, callerElement] as StackTraceElement[])
         def analyser = analyser()
         def result = []
-        notifyAnalyser(analyser, source)
+
+        given:
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -111,19 +99,20 @@ class DefaultExceptionAnalyserTest extends Specification {
         result.size() == 1
         def transformedFailure = result[0]
         transformedFailure instanceof LocationAwareException
-        transformedFailure.sourceDisplayName == source.displayName
+        transformedFailure.sourceDisplayName == "<source>"
         transformedFailure.lineNumber == 7
     }
 
     def 'adds location info from deepest cause'() {
-        given:
         def cause = new RuntimeException()
         def failure = new ContextualException(new RuntimeException(cause))
-        failure.setStackTrace([otherElement, callerElement] as StackTraceElement[])
-        cause.setStackTrace([element, otherElement, callerElement] as StackTraceElement[])
+
         def analyser = analyser()
         def result = []
-        notifyAnalyser(analyser, source)
+
+        given:
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", 12)
+        _ * diagnosticsFactory.forException(cause) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -132,14 +121,16 @@ class DefaultExceptionAnalyserTest extends Specification {
         result.size() == 1
         def transformedFailure = result[0]
         transformedFailure instanceof LocationAwareException
-        transformedFailure.sourceDisplayName == source.displayName
+        transformedFailure.sourceDisplayName == "<source>"
         transformedFailure.lineNumber == 7
     }
 
     def 'does not add location when location cannot be determined'() {
-        given:
         def failure = new ContextualException()
         def result = []
+
+        given:
+        _ * diagnosticsFactory.forException(failure) >> Mock(ProblemDiagnostics)
 
         when:
         analyser().collectFailures(failure, result)
@@ -175,7 +166,6 @@ class DefaultExceptionAnalyserTest extends Specification {
         def failure = locationAwareException(null)
         def analyser = analyser()
         def result = []
-        notifyAnalyser(analyser, source)
 
         when:
         analyser.collectFailures(failure, result)
@@ -247,12 +237,13 @@ class DefaultExceptionAnalyserTest extends Specification {
     }
 
     def 'wraps arbitrary failure with location information'() {
-        given:
         def failure = new RuntimeException()
-        failure.setStackTrace([element, otherElement, callerElement] as StackTraceElement[])
+
         def analyser = analyser()
-        notifyAnalyser(analyser, source)
         def result = []
+
+        given:
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -261,7 +252,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         result.size() == 1
         def transformedFailure = result[0]
         transformedFailure instanceof LocationAwareException
-        transformedFailure.sourceDisplayName == source.displayName
+        transformedFailure.sourceDisplayName == "<source>"
         transformedFailure.lineNumber == 7
         transformedFailure.cause.is(failure)
     }
@@ -326,30 +317,21 @@ class DefaultExceptionAnalyserTest extends Specification {
         failure.causes == [otherFailure1, otherFailure2]
     }
 
-    def 'removes self as listener on close'() {
-        def analyser = analyser()
-
-        when:
-        analyser.close()
-
-        then:
-        1 * listenerManager.remove(analyser)
-    }
-
     private Throwable locationAwareException(final Throwable cause) {
         final Throwable failure = Mock(TestException.class)
         failure.getCause() >> cause
-        failure.getStackTrace() >> ([element] as StackTraceElement[])
         return failure
     }
 
-    private void notifyAnalyser(DefaultExceptionAnalyser analyser, final ScriptSource source) {
-        analyser.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId), new ClassLoaderScopeOrigin.Script(source.fileName, source.displayName))
+    private ProblemDiagnostics location(String longDisplayName, int line) {
+        def location = new Location(Describables.of(longDisplayName), Describables.of("short"), line)
+        return Stub(ProblemDiagnostics) {
+            getLocation() >> location
+        }
     }
 
     private DefaultExceptionAnalyser analyser() {
-        1 * listenerManager.add(_ as DefaultExceptionAnalyser)
-        return new DefaultExceptionAnalyser(listenerManager)
+        return new DefaultExceptionAnalyser(diagnosticsFactory)
     }
 
     @Contextual

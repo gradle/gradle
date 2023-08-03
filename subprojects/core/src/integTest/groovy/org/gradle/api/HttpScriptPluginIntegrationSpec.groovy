@@ -16,39 +16,14 @@
 package org.gradle.api
 
 import org.gradle.api.resources.TextResourceFactory
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.deprecation.Documentation
-import org.gradle.test.fixtures.keystore.TestKeyStore
-import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.test.matchers.UserAgentMatcher
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GUtil
 import spock.lang.Issue
 
 import static org.junit.Assert.fail
 
-class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
-    @org.junit.Rule
-    HttpServer server = new HttpServer()
-    @org.junit.Rule
-    TestResources resources = new TestResources(temporaryFolder)
-
-    def setup() {
-        settingsFile << "rootProject.name = 'project'"
-        server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
-        server.start()
-        executer.requireOwnGradleUserHomeDir()
-    }
-
-    private void applyTrustStore() {
-        def keyStore = TestKeyStore.init(resources.dir)
-        keyStore.enableSslWithServerCert(server)
-        keyStore.configureServerCert(executer)
-    }
-
+class HttpScriptPluginIntegrationSpec extends AbstractHttpScriptPluginIntegrationSpec {
     def "can apply script via http"() {
         when:
         def script = file('external.gradle')
@@ -89,12 +64,10 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 """
 
         then:
-        ExecutionFailure failure = fails(":help")
-        failure.assertHasCause("Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. " +
-            "The provided URI '${server.uri("/external.gradle")}' uses an insecure protocol (HTTP). " +
-            "Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")' to fix this. " +
-            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
-        )
+        fails(":help")
+            .assertHasCause("Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. The provided URI '${server.uri("/external.gradle")}' uses an insecure protocol (HTTP).")
+            .assertHasResolution("Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")'.")
+            .assertHasResolution(Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage())
     }
 
     def "does not complain when applying script plugin via http using text resource"() {
@@ -229,57 +202,6 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not read script '$url'")
     }
 
-    def "uses encoding specified by http server"() {
-        given:
-        executer.withDefaultCharacterEncoding("UTF-8")
-
-        and:
-        def scriptFile = file("script-encoding.gradle")
-        scriptFile.setText("""
-task check {
-    doLast {
-        assert java.nio.charset.Charset.defaultCharset().name() == "UTF-8"
-        // embed a euro character in the text - this is encoded differently in ISO-8859-15 and UTF-8
-        assert '\u20AC'.charAt(0) == 0x20AC
-    }
-}
-""", "ISO-8859-15")
-        assert scriptFile.getText("ISO-8859-15") != scriptFile.getText("UTF-8")
-        server.expectGet('/script.gradle', scriptFile).contentType("text/plain; charset=ISO-8859-15")
-
-        and:
-        buildFile << "apply from: '${server.uri}/script.gradle'"
-
-        expect:
-        succeeds 'check'
-    }
-
-    def "assumes utf-8 encoding when none specified by http server"() {
-        given:
-        applyTrustStore()
-        executer.withDefaultCharacterEncoding("ISO-8859-15")
-
-        and:
-        def scriptFile = file("script-assumed-encoding.gradle")
-        scriptFile.setText("""
-task check {
-    doLast {
-        assert java.nio.charset.Charset.defaultCharset().name() == "ISO-8859-15"
-        // embed a euro character in the text - this is encoded differently in ISO-8859-15 and UTF-8
-        assert '\u20AC'.charAt(0) == 0x20AC
-    }
-}
-""", "UTF-8")
-        assert scriptFile.getText("ISO-8859-15") != scriptFile.getText("UTF-8")
-        server.expectGet('/script.gradle', scriptFile).contentType("text/plain")
-
-        and:
-        buildFile << "apply from: '${server.uri}/script.gradle'"
-
-        expect:
-        succeeds 'check'
-    }
-
     def "will not download cached #source resource when run with --offline"() {
         given:
         def scriptName = "script-offline.gradle"
@@ -399,7 +321,6 @@ task check {
         output.count('loaded external script') == 4
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expects script evaluation")
     def "will refresh cached value on subsequent build invocation"() {
         given:
         def scriptName = "script-cached.gradle"

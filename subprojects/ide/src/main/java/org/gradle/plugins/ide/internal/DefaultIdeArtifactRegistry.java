@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -93,14 +92,12 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
             public List<FileCollection> call() {
                 return CollectionUtils.collect(
                     getIdeProjects(type),
-                    new Transformer<FileCollection, Reference<?>>() {
-                        @Override
-                        public FileCollection transform(Reference<?> result) {
-                            ConfigurableFileCollection singleton = fileOperations.configurableFiles(result.get().getFile());
-                            singleton.builtBy(result.get().getGeneratorTasks());
-                            return singleton;
-                        }
-                    });
+                    result -> {
+                        ConfigurableFileCollection singleton = fileOperations.configurableFiles(result.get().getFile());
+                        singleton.builtBy(result.get().getGeneratorTasks());
+                        return singleton;
+                    }
+                );
             }
         });
     }

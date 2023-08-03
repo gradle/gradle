@@ -81,4 +81,15 @@ public interface CacheConfigurations {
      */
     Property<Cleanup> getCleanup();
 
+    /**
+     * Configures how caches should be marked, if at all.
+     *
+     * <p>
+     * By default, caches are marked using {@link MarkingStrategy#CACHEDIR_TAG}.
+     * </p>
+     *
+     * @since 8.1
+     */
+    Property<MarkingStrategy> getMarkingStrategy();
+
 }

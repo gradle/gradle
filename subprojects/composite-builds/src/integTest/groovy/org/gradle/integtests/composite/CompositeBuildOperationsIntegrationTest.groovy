@@ -22,14 +22,22 @@ import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.junit.Assume
 
 import java.util.regex.Pattern
 
+import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator
+
 class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+    private static final Pattern RUN_MAIN_TASKS = Pattern.compile("Run main tasks")
     BuildTestFile buildB
 
     def setup() {
@@ -48,7 +56,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         dependency 'org.test:buildB:1.0'
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar"
@@ -64,6 +72,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
     }
 
+    // Also covered by tests in configuration cache project
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "generates build lifecycle operations for included builds with #display"() {
         given:
         dependency "org.test:${dependencyName}:1.0"
@@ -71,7 +81,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         buildB.settingsFile << settings << "\n"
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar"
@@ -116,7 +126,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[1].details.buildPath == ":buildB"
         taskGraphOps[1].parentId == treeTaskGraphOps[0].id
 
-        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        def runMainTasks = operations.first(RUN_MAIN_TASKS)
         runMainTasks.parentId == root.id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
@@ -141,6 +151,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         "rootProject.name='someLib'" | "someLib"      | "configured root project name"
     }
 
+    // Also covered by tests in configuration cache project
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "generates build lifecycle operations for multiple included builds"() {
         given:
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
@@ -156,7 +168,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         dependency buildB, "org.test:buildC:1.0"
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar", ":buildC:jar"
@@ -194,6 +206,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[2].parentId == treeTaskGraphOps[0].id
     }
 
+    // Also covered by tests in configuration cache project
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "generates build lifecycle operations for multiple included builds used as buildscript dependencies"() {
         given:
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
@@ -204,18 +218,18 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
             """
         }
         includedBuilds << buildC
-        buildA.buildFile.text = """
+        buildA.buildFile.prepend("""
             buildscript {
                 dependencies {
                     classpath 'org.test:buildB:1.0'
                     classpath 'org.test:buildC:1.0'
                 }
             }
-        """ + buildA.buildFile.text
+        """)
         dependency buildB, "org.test:buildC:1.0"
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar", ":buildC:jar"
@@ -257,19 +271,21 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[2].parentId == treeTaskGraphOps[1].id
     }
 
+    // Also covered by tests in configuration cache project
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
         given:
-        buildA.buildFile.text = """
+        buildA.buildFile.prepend("""
             buildscript {
                 dependencies {
                     classpath 'org.test:b1:1.0'
                 }
             }
-        """ + buildA.buildFile.text
+        """)
         dependency "org.test:b2:1.0"
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:b1:jar", ":buildB:b2:jar"
@@ -322,7 +338,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[2].details.buildPath == ":buildB"
         taskGraphOps[2].parentId == treeTaskGraphOps[1].id
 
-        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        def runMainTasks = operations.first(RUN_MAIN_TASKS)
         runMainTasks.parentId == root.id
 
         // Tasks are run for buildB multiple times, once for buildscript dependency and again for production dependency
@@ -344,6 +360,146 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
         graphNotifyOps[1].details.buildPath == ":"
         graphNotifyOps[1].parentId == treeTaskGraphOps[1].id
+    }
+
+    def "generates finish build tree lifecycle operation for included builds without build finished operations"() {
+        given:
+        def buildC = multiProjectBuild("buildC", ["someLib"]) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                }
+            """
+        }
+        includedBuilds << buildC
+        buildA.buildFile.prepend("""
+            buildscript {
+                dependencies {
+                    classpath 'org.test:buildB:1.0'
+                    classpath 'org.test:buildC:1.0'
+                }
+            }
+        """)
+        dependency buildB, "org.test:buildC:1.0"
+
+        when:
+        execute(buildA, ":jar")
+
+        then:
+        executed ":buildB:jar", ":buildC:jar"
+
+        and:
+        operations.only(FinishRootBuildTreeBuildOperationType)
+    }
+
+    def "generates finish build tree lifecycle operation for included builds with #description"() {
+        if (GradleContextualExecuter.configCache) {
+            Assume.assumeFalse(description == "buildFinished")
+        }
+        given:
+        def buildC = multiProjectBuild("buildC", ["someLib"]) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                }
+            """ << registration("buildC")
+        }
+        includedBuilds << buildC
+        buildA.buildFile.prepend("""
+            buildscript {
+                dependencies {
+                    classpath 'org.test:buildB:1.0'
+                    classpath 'org.test:buildC:1.0'
+                }
+            }
+        """)
+        buildA.buildFile << registration("buildA")
+        dependency buildB, "org.test:buildC:1.0"
+        buildB.buildFile << registration("buildB")
+
+        when:
+        execute(buildA, ":jar")
+
+        then:
+        executed ":buildB:jar", ":buildC:jar"
+
+        and:
+        def buildFinished = operations.only(FinishRootBuildTreeBuildOperationType)
+        buildFinished.progress.size() == 3
+        buildFinished.progress.details.spans.text.flatten() ==~ ["buildA", "buildB", "buildC"].collect { "$message $it${getPlatformLineSeparator()}".toString() }
+
+        where:
+        description     | registration                                                          | message
+        "buildFinished" | CompositeBuildOperationsIntegrationTest.&buildFinishedRegistrationFor | "buildFinished from"
+        "flow actions"  | CompositeBuildOperationsIntegrationTest.&flowActionRegistrationFor    | "flowAction from"
+    }
+
+    def "build tree finished operation happens even when configuration fails"() {
+        buildA.buildFile.text = """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:buildB:1.0'
+                }
+            }
+        """ + buildA.buildFile.text
+        buildB.file("src/main/java/Broken.java").text = "class Does not compile {}"
+        when:
+        fails(buildA, ":jar")
+
+        then:
+        executed ":buildB:compileJava"
+
+        operations.none(RUN_MAIN_TASKS)
+        operations.only(FinishRootBuildTreeBuildOperationType)
+    }
+
+    def "generates finish build tree lifecycle operation for empty project"() {
+        given:
+        includedBuilds.clear()
+        buildA.buildFile.text = ""
+
+        when:
+        execute(buildA, "help")
+
+        then:
+        executed ":help"
+
+        and:
+        operations.only(FinishRootBuildTreeBuildOperationType)
+    }
+
+    static String getFlowActionClass() {
+        """
+            abstract class LogBuild implements FlowAction<LogBuild.Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input
+                    Property<String> getBuildName()
+                }
+
+                @Override
+                void execute(Parameters parameters) {
+                    println "flowAction from \${parameters.buildName.get()}"
+                }
+            }
+        """
+    }
+
+    static String buildFinishedRegistrationFor(String buildName) {
+        """
+            gradle.buildFinished {
+                println "buildFinished from $buildName"
+            }
+        """
+    }
+
+    static String flowActionRegistrationFor(String buildName) {
+        flowActionClass + """
+            def flowScope = gradle.services.get(FlowScope)
+            def flowProviders = gradle.services.get(FlowProviders)
+            flowScope.always(LogBuild) {
+                parameters.buildName = flowProviders.buildWorkResult.map { result -> "$buildName" }
+            }
+        """
     }
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {

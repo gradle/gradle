@@ -36,14 +36,16 @@ class HttpClientConfigurerTest extends Specification {
     HttpProxySettings proxySettings = Mock()
     HttpProxySettings secureProxySettings = Mock()
     HttpTimeoutSettings timeoutSettings = Mock()
+    SslContextFactory sslContextFactory = Mock() {
+        createSslContext() >> SSLContexts.createDefault()
+    }
     HttpSettings httpSettings = Mock() {
         getProxySettings() >> proxySettings
         getSecureProxySettings() >> secureProxySettings
         getTimeoutSettings() >> timeoutSettings
+        getSslContextFactory() >> sslContextFactory
     }
-    SslContextFactory sslContextFactory = Mock() {
-        createSslContext() >> SSLContexts.createDefault()
-    }
+
     HttpClientConfigurer configurer = new HttpClientConfigurer(httpSettings)
 
     def setup() {

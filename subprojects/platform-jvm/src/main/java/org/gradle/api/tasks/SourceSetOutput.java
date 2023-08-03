@@ -87,7 +87,7 @@ public interface SourceSetOutput extends FileCollection {
     /**
      * Returns the directories containing compiled classes.
      *
-     * @return The classes directories. Never returns null.
+     * @return The classes directories. This value may safely be cast to a {@link org.gradle.api.file.ConfigurableFileCollection}.
      * @since 4.0
      */
     FileCollection getClassesDirs();

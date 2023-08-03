@@ -21,6 +21,7 @@ import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheDebugOption
 
 import static org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.GradleEnvironment
+import static org.gradle.configurationcache.fingerprint.ProjectSpecificFingerprint.ProjectFingerprint
 
 class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -54,8 +55,10 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
 
         then: "fingerprint frame events are logged"
         def events = collectOutputEvents()
-        events.contains([profile: "fingerprint", type: "O", "frame": GradleEnvironment.name])
-        events.contains([profile: "fingerprint", type: "C", "frame": GradleEnvironment.name])
+        events.contains([profile: "build fingerprint", type: "O", "frame": GradleEnvironment.name])
+        events.contains([profile: "build fingerprint", type: "C", "frame": GradleEnvironment.name])
+        events.contains([profile: "project fingerprint", type: "O", "frame": ProjectFingerprint.name])
+        events.contains([profile: "project fingerprint", type: "C", "frame": ProjectFingerprint.name])
 
         and: "Gradle and Work Graph events are logged"
         events.contains([profile: "build ':' state", type: "O", frame: "Gradle"])

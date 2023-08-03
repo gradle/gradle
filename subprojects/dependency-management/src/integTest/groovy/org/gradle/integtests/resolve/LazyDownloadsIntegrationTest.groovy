@@ -66,15 +66,16 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("graph")
     }
 
-    def "downloads only the metadata when resolved artifacts are queried"() {
+    def "downloads only the metadata when resolved dependencies are queried"() {
         given:
         buildFile << """
             task artifacts {
+                def result = configurations.compile.incoming.resolutionResult.rootComponent
                 doLast {
-                    println configurations.compile.resolvedConfiguration.resolvedArtifacts
+                    println result.get().dependents
                 }
             }
-"""
+        """
 
         when:
         module.pom.expectGet()
@@ -84,13 +85,14 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("artifacts")
     }
 
-    def "downloads only the metadata on failure to resolve the graph - #expression"() {
+    def "downloads only the metadata on failure to resolve the graph as files"() {
         given:
         buildFile << """
             task artifacts {
-                def files = configurations.compile
+                def compile = configurations.compile
                 doLast {
-                    files*.name
+                    // cause resolution
+                    compile.files*.name
                 }
             }
 """
@@ -103,12 +105,27 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         fails("artifacts")
         failure.assertResolutionFailure(":compile")
         failure.assertHasCause("Could not resolve test:test:1.0.")
+    }
 
-        where:
-        expression                                | _
-        "files"                                   | _
-        "fileCollection { true }"                 | _
-        "resolvedConfiguration.resolvedArtifacts" | _
-        "incoming.artifacts"                      | _
+    def "downloads only the metadata on failure to resolve the graph as artifact collection"() {
+        given:
+        buildFile << """
+            task artifacts {
+                def result = configurations.compile.incoming.artifacts
+                doLast {
+                    // cause resolution
+                    result*.id
+                }
+            }
+"""
+
+        when:
+        module.pom.expectGetUnauthorized()
+        module2.pom.expectGet()
+
+        then:
+        fails("artifacts")
+        failure.assertResolutionFailure(":compile")
+        failure.assertHasCause("Could not resolve test:test:1.0.")
     }
 }

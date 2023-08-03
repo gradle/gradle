@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.test.fixtures.ivy.IvyFileRepository
@@ -26,7 +25,6 @@ import spock.lang.Issue
 public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
 
     @Issue("GRADLE-2456")
-    @ToBeFixedForConfigurationCache
     def "generates SHA1 file with leading zeros"() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
@@ -66,7 +64,6 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
         shaOneFile.text == "00e14c6ef59816760e2c9b5a57157e8ac9de4012"
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/5136")
     void "doesn't publish if main artifact is missing"() {
         settingsFile << 'rootProject.name = "test"'
@@ -113,7 +110,6 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause("Artifact test-1.0.jar wasn't produced by this build.")
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/5136")
     void "doesn't publish stale files"() {
         IvyFileModule publishedModule

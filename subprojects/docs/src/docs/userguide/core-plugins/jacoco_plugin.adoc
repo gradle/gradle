@@ -26,12 +26,12 @@ To get started, apply the JaCoCo plugin to the project you want to calculate cod
 
 .Applying the JaCoCo plugin
 ====
-include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=apply-plugin]"]
 include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 If the Java plugin is also applied to your project, a new task named `jacocoTestReport` is created.
-By default, a HTML report is generated at `__$buildDir__/reports/jacoco/test`.
+By default, a HTML report is generated at `layout.buildDirectory.dir("reports/jacoco/test")`.
 
 [NOTE]
 ====
@@ -44,8 +44,8 @@ Depending on your usecases, you may want to always generate the `jacocoTestRepor
 
 .Define dependencies between code coverage reports and test execution
 ====
-include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=testtask-dependency]"]
 include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=testtask-dependency]"]
+include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=testtask-dependency]"]
 ====
 
 [[sec:configuring_the_jacoco_plugin]]
@@ -55,15 +55,15 @@ The JaCoCo plugin adds a project extension named `jacoco` of type link:{groovyDs
 
 .Configuring JaCoCo plugin settings
 ====
-include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=jacoco-configuration]"]
 include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=jacoco-configuration]"]
+include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=jacoco-configuration]"]
 ====
 
 .Gradle defaults for JaCoCo properties
 [%header%autowidth,compact]
 |===
 | Property | Gradle default
-| reportsDirectory | `__$buildDir__/reports/jacoco`
+| reportsDirectory | `layout.buildDirectory.dir("reports/jacoco")`
 |===
 
 
@@ -74,8 +74,8 @@ The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[Jacoc
 
 .Configuring test task
 ====
-include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=report-configuration]"]
 include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=report-configuration]"]
+include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=report-configuration]"]
 ====
 image::jacocoHtmlReport.png[JaCoCo HTML report,903,277]
 
@@ -96,8 +96,8 @@ Code coverage requirements can be specified for a project as a whole, for indivi
 
 .Configuring violation rules
 ====
-include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=violation-rules-configuration]"]
 include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=violation-rules-configuration]"]
+include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=violation-rules-configuration]"]
 ====
 
 
@@ -110,8 +110,8 @@ The JaCoCo plugin adds a link:{groovyDslPath}/org.gradle.testing.jacoco.plugins.
 
 .Configuring test task
 ====
-include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=testtask-configuration]"]
 include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=testtask-configuration]"]
+include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=testtask-configuration]"]
 ====
 
 [NOTE]
@@ -124,8 +124,8 @@ This ensures that no stale coverage data is present in the execution data.
 
 .JaCoCo task extension default values
 ====
-include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=testtask-configuration-defaults]"]
 include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=testtask-configuration-defaults]"]
+include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=testtask-configuration-defaults]"]
 ====
 
 While all tasks of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] are automatically enhanced to provide coverage information when the `java` plugin has been applied, any task that implements link:{javadocPath}/org/gradle/process/JavaForkOptions.html[JavaForkOptions] can be enhanced by the JaCoCo plugin. That is, any task that forks Java processes can be used to generate coverage information.
@@ -134,8 +134,8 @@ For example you can configure your build to generate code coverage using the `ap
 
 .Using application plugin to generate code coverage data
 ====
-include::sample[dir="snippets/testing/jacoco-application/groovy",files="build.gradle[tags=application-configuration]"]
 include::sample[dir="snippets/testing/jacoco-application/kotlin",files="build.gradle.kts[tags=application-configuration]"]
+include::sample[dir="snippets/testing/jacoco-application/groovy",files="build.gradle[tags=application-configuration]"]
 ====
 
 

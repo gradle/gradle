@@ -18,6 +18,7 @@ package org.gradle.internal.extensibility
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -94,5 +95,20 @@ class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
         "Top-level call" | "container.foo.prop()"
         "Inside Project.configure" | "configure(container.foo) { prop() }"
         "Inside NDOC.configure" | "container.configure { foo { prop() } }"
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/23111')
+    def "can configure dynamic property without call method"() {
+        buildFile << """
+            task test {
+                doLast {
+                    ant { echo(message: 'hello world!') }
+                }
+            }
+        """
+
+        expect:
+        args('--stacktrace')
+        succeeds("test")
     }
 }

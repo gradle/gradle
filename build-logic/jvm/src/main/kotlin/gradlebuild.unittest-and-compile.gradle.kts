@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
+import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionExtension
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
+import com.gradle.enterprise.gradleplugin.testretry.retry
+import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
 import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.accessors.kotlin
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionPartitionSecond
@@ -41,10 +45,9 @@ plugins {
     idea // Need to apply the idea plugin, so the extended configuration is taken into account on sync
     id("gradlebuild.module-identity")
     id("gradlebuild.dependency-modules")
-    id("org.gradle.test-retry")
 }
 
-extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", tasks)
+extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", project, tasks)
 
 removeTeamcityTempProperty()
 addDependencies()
@@ -58,12 +61,13 @@ tasks.registerCITestDistributionLifecycleTasks()
 
 fun configureCompile() {
     java.toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.ADOPTIUM)
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.ADOPTIUM
     }
 
     tasks.withType<JavaCompile>().configureEach {
         configureCompileTask(options)
+        options.compilerArgs.add("-parameters")
     }
     tasks.withType<GroovyCompile>().configureEach {
         groovyOptions.encoding = "utf-8"
@@ -96,11 +100,16 @@ fun configureSourcesVariant() {
         main.groovy.srcDirs.forEach {
             outgoing.artifact(it)
         }
+        pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+            main.kotlin.srcDirs.forEach {
+                outgoing.artifact(it)
+            }
+        }
     }
 }
 
 fun configureCompileTask(options: CompileOptions) {
-    options.release.set(8)
+    options.release = 8
     options.encoding = "utf-8"
     options.isIncremental = true
     options.isFork = true
@@ -114,7 +123,7 @@ fun configureClasspathManifestGeneration() {
     val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
         this.runtimeClasspath.from(runtimeClasspath)
         this.externalDependencies.from(runtimeClasspath.fileCollection { it is ExternalDependency })
-        this.manifestFile.set(moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() })
+        this.manifestFile = moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() }
     }
     sourceSets.main.get().output.dir(classpathManifest.map { it.manifestFile.get().asFile.parentFile })
 }
@@ -169,8 +178,8 @@ fun addCompileAllTask() {
 
 fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {
-        archiveBaseName.set(moduleIdentity.baseName)
-        archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
+        archiveBaseName = moduleIdentity.baseName
+        archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
         manifest.attributes(mapOf(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle", Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }))
     }
 }
@@ -203,10 +212,10 @@ fun Test.configureFlakyTest() {
 fun Test.configureJvmForTest() {
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
-        languageVersion.set(jvmVersionForTest())
-        vendor.set(project.testJavaVendor.orNull)
+        languageVersion = jvmVersionForTest()
+        vendor = project.testJavaVendor.orNull
     }
-    javaLauncher.set(launcher)
+    javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {
         if (isUnitTest() || usesEmbeddedExecuter()) {
             jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
@@ -261,13 +270,11 @@ fun configureTests() {
         configureJvmForTest()
         addOsAsInputs()
 
-        val testName = name
-
         if (BuildEnvironment.isCiServer) {
             configureRerun()
             retry {
                 maxRetries.convention(determineMaxRetries())
-                maxFailures.set(determineMaxFailures())
+                maxFailures = determineMaxFailures()
             }
             doFirst {
                 logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
@@ -278,23 +285,18 @@ fun configureTests() {
         configureSpock()
         configureFlakyTest()
 
-        distribution {
+        extensions.findByType<TestDistributionExtension>()?.apply {
             this as TestDistributionExtensionInternal
             // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-            server.set(uri("https://ge-td-dogfooding.grdev.net"))
-        }
+            server = uri("https://ge-td-dogfooding.grdev.net")
 
-        if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
-            println("Remote test distribution has been enabled for $testName")
-
-            distribution {
-                this as TestDistributionExtensionInternal
-                enabled.set(true)
+            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
+                enabled = true
                 project.maxTestDistributionPartitionSecond?.apply {
-                    preferredMaxDuration.set(Duration.ofSeconds(this))
+                    preferredMaxDuration = Duration.ofSeconds(this)
                 }
                 // No limit; use all available executors
-                distribution.maxRemoteExecutors.set(if (project.isPerformanceProject()) 0 else null)
+                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else null
 
                 // Test distribution annotation-class filters
                 // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
@@ -307,12 +309,12 @@ fun configureTests() {
 
                 if (BuildEnvironment.isCiServer) {
                     when {
-                        OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux", "gbt-dogfooding"))
-                        OperatingSystem.current().isWindows -> requirements.set(listOf("os=windows", "gbt-dogfooding"))
-                        OperatingSystem.current().isMacOsX -> requirements.set(listOf("os=macos", "gbt-dogfooding"))
+                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", "gbt-dogfooding")
+                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", "gbt-dogfooding")
+                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", "gbt-dogfooding")
                     }
                 } else {
-                    requirements.set(listOf("gbt-dogfooding"))
+                    requirements = listOf("gbt-dogfooding")
                 }
             }
         }
@@ -321,8 +323,9 @@ fun configureTests() {
             // GitHub actions for contributor PRs uses public build scan instance
             // in this case we need to explicitly configure the PTS server
             // Don't move this line into the lambda as it may cause config cache problems
-            (predictiveSelection as PredictiveTestSelectionExtensionInternal).server.set(uri("https://ge.gradle.org"))
-            predictiveSelection {
+            extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
+                this as PredictiveTestSelectionExtensionInternal
+                server = uri("https://ge.gradle.org")
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }

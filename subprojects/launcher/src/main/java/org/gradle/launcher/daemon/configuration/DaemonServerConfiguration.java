@@ -34,4 +34,6 @@ public interface DaemonServerConfiguration {
     DaemonParameters.Priority getPriority();
 
     boolean isSingleUse();
+
+    boolean isInstrumentationAgentAllowed();
 }

@@ -220,7 +220,9 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         run ':checkDeps'
         resolve.expectGraph {
             root(":", ":test:") {
-                edge('org.test:module:[1.0,2.0)', 'org.test:module:1.1')
+                edge('org.test:module:[1.0,2.0)', 'org.test:module:1.1') {
+                    byReason("rejection: version 1.2:   - Attribute 'quality' didn't match. Requested 'qa', was: 'low'")
+                }
             }
         }
 
@@ -444,7 +446,15 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge('org:test:[1,)', "org:test:$selected")
+                edge('org:test:[1,)', "org:test:$selected") {
+                    if (status == 'release') {
+                        byReason("rejection: version 5:   - Attribute 'org.gradle.status' didn't match. Requested 'release', was: 'integration'")
+                    } else if (status == 'milestone') {
+                        byReason("rejection: version 5:   - Attribute 'org.gradle.status' didn't match. Requested 'milestone', was: 'integration'")
+                        byReason("rejection: version 4:   - Attribute 'org.gradle.status' didn't match. Requested 'milestone', was: 'release'")
+                        byReason("rejection: version 3:   - Attribute 'org.gradle.status' didn't match. Requested 'milestone', was: 'integration'")
+                    }
+                }
             }
         }
 

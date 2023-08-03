@@ -16,31 +16,45 @@
 
 package org.gradle.internal.classpath;
 
+import kotlin.io.FilesKt;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
+import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
+import org.gradle.internal.classpath.intercept.CallSiteDecorator;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
+import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
 
 public class Instrumented {
     private static final Listener NO_OP = new Listener() {
@@ -77,7 +91,11 @@ public class Instrumented {
         }
 
         @Override
-        public void fileCollectionObserved(FileCollection fileCollection, String consumer) {
+        public void fileSystemEntryObserved(File file, String consumer) {
+        }
+
+        @Override
+        public void directoryContentObserved(File file, String consumer) {
         }
     };
 
@@ -91,28 +109,77 @@ public class Instrumented {
         setListener(NO_OP);
     }
 
-    private static final CallInterceptorsSet CALL_INTERCEPTORS = new CallInterceptorsSet(
-        new SystemGetPropertyInterceptor(),
-        new SystemSetPropertyInterceptor(),
-        new SystemGetPropertiesInterceptor(),
-        new SystemSetPropertiesInterceptor(),
-        new SystemClearPropertyInterceptor(),
-        new IntegerGetIntegerInterceptor(),
-        new LongGetLongInterceptor(),
-        new BooleanGetBooleanInterceptor(),
-        new SystemGetenvInterceptor(),
-        new RuntimeExecInterceptor(),
-        new ProcessGroovyMethodsExecuteInterceptor(),
-        new ProcessBuilderStartInterceptor(),
-        new ProcessBuilderStartPipelineInterceptor(),
-        new FileInputStreamConstructorInterceptor());
+    /**
+     * This API follows the requirements in {@link GroovyCallInterceptorsProvisionTools}.
+     * @deprecated This should not be called from the sources.
+     */
+    @SuppressWarnings("unused")
+    @Deprecated
+    public static List<CallInterceptor> getCallInterceptors() {
+        return Arrays.asList(
+            new SystemGetPropertyInterceptor(),
+            new SystemSetPropertyInterceptor(),
+            new SystemGetPropertiesInterceptor(),
+            new SystemSetPropertiesInterceptor(),
+            new SystemClearPropertyInterceptor(),
+            new IntegerGetIntegerInterceptor(),
+            new LongGetLongInterceptor(),
+            new BooleanGetBooleanInterceptor(),
+            new SystemGetenvInterceptor(),
+            new RuntimeExecInterceptor(),
+            new ProcessGroovyMethodsExecuteInterceptor(),
+            new ProcessBuilderStartInterceptor(),
+            new ProcessBuilderStartPipelineInterceptor()
+        );
+    }
 
+    private static volatile CallSiteDecorator currentCallDecorator = new CallInterceptorsSet(
+        GroovyCallInterceptorsProvisionTools.getInterceptorsFromProvider(GroovyCallInterceptorsProvider.DEFAULT).stream()
+    );
+
+    @NonNullApi
+    private static final class InterceptorResolverImpl implements CallInterceptorResolver {
+        @Nullable
+        @Override
+        public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
+            CallSiteDecorator currentDecorator = currentCallDecorator;
+            if (currentDecorator instanceof CallInterceptorResolver) {
+                return ((CallInterceptorResolver) currentDecorator).resolveCallInterceptor(scope);
+            }
+            return null;
+        }
+
+        @Override
+        public boolean isAwareOfCallSiteName(String name) {
+            CallSiteDecorator currentDecorator = currentCallDecorator;
+            if (currentDecorator instanceof CallInterceptorResolver) {
+                return ((CallInterceptorResolver) currentDecorator).isAwareOfCallSiteName(name);
+            }
+            return false;
+        }
+    }
+
+    public static final CallInterceptorResolver INTERCEPTOR_RESOLVER = new InterceptorResolverImpl();
+
+    // TODO: We can support getting the interceptors in the instrumented code from different locations, not just `Instrumented.currentCallDecorator`,
+    //       so that replacing the call interceptors for tests would instead work by embedding a different location
+    //       than this one in the instrumented code. Doing that adds much more complexity in the instrumentation.
+    @NonNullApi
+    public static class GroovyCallInterceptorInternalTesting {
+        static CallSiteDecorator getCurrentGroovyCallSiteDecorator() {
+            return currentCallDecorator;
+        }
+
+        static void setCurrentGroovyCallSiteDecorator(CallSiteDecorator interceptorsSet) {
+            currentCallDecorator = interceptorsSet;
+        }
+    }
 
     // Called by generated code
     @SuppressWarnings("unused")
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
-            array.array[callSite.getIndex()] = CALL_INTERCEPTORS.maybeDecorateGroovyCallSite(callSite);
+            array.array[callSite.getIndex()] = currentCallDecorator.maybeDecorateGroovyCallSite(callSite);
         }
     }
 
@@ -130,7 +197,7 @@ public class Instrumented {
      * @see IndyInterface
      */
     public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return CALL_INTERCEPTORS.maybeDecorateIndyCallSite(
+        return currentCallDecorator.maybeDecorateIndyCallSite(
             IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 
@@ -330,6 +397,83 @@ public class Instrumented {
         return builder.start();
     }
 
+    public static void fileSystemEntryObserved(File file, String consumer) {
+        listener().fileSystemEntryObserved(file, consumer);
+    }
+
+    public static boolean fileExists(File file, String consumer) {
+        fileSystemEntryObserved(file, consumer);
+        return file.exists();
+    }
+
+    public static boolean fileIsFile(File file, String consumer) {
+        fileSystemEntryObserved(file, consumer);
+        return file.isFile();
+    }
+
+    public static boolean fileIsDirectory(File file, String consumer) {
+        fileSystemEntryObserved(file, consumer);
+        return file.isDirectory();
+    }
+
+    public static void directoryContentObserved(File file, String consumer) {
+        listener().directoryContentObserved(file, consumer);
+    }
+
+    public static File[] fileListFiles(File file, String consumer) {
+        directoryContentObserved(file, consumer);
+        return file.listFiles();
+    }
+
+    public static File[] fileListFiles(File file, FileFilter fileFilter, String consumer) {
+        directoryContentObserved(file, consumer);
+        return file.listFiles(fileFilter);
+    }
+
+    public static File[] fileListFiles(File file, FilenameFilter fileFilter, String consumer) {
+        directoryContentObserved(file, consumer);
+        return file.listFiles(fileFilter);
+    }
+
+    public static String kotlinIoFilesKtReadText(File receiver, Charset charset, String consumer) {
+        listener().fileOpened(receiver, consumer);
+        return FilesKt.readText(receiver, charset);
+    }
+
+    public static String kotlinIoFilesKtReadTextDefault(File receiver, Charset charset, int defaultMask, Object defaultMarker, String consumer) throws Throwable {
+        listener().fileOpened(receiver, consumer);
+        return (String) FILESKT_READ_TEXT_DEFAULT.get().invokeExact(receiver, charset, defaultMask, defaultMarker);
+    }
+
+    private static final Lazy<MethodHandle> FILESKT_READ_TEXT_DEFAULT =
+        lazyKotlinStaticDefaultHandle(FilesKt.class, "readText", String.class, File.class, Charset.class);
+
+    public static String filesReadString(Path file, String consumer) throws Throwable {
+        listener().fileOpened(file.toFile(), consumer);
+        return (String) FILES_READ_STRING_PATH.get().invokeExact(file);
+    }
+
+    public static String filesReadString(Path file, Charset charset, String consumer) throws Throwable {
+        FileUtils.tryReportFileOpened(file, consumer);
+        return (String) FILES_READ_STRING_PATH_CHARSET.get().invokeExact(file, charset);
+    }
+
+    // These are initialized lazily, as we may be running a Java version < 11 which does not have the APIs.
+    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH =
+        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class)));
+    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH_CHARSET =
+        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class, Charset.class)));
+
+    public static String groovyFileGetText(File file, String consumer) throws IOException {
+        listener().fileOpened(file, consumer);
+        return ResourceGroovyMethods.getText(file);
+    }
+
+    public static String groovyFileGetText(File file, String charset, String consumer) throws IOException {
+        listener().fileOpened(file, consumer);
+        return ResourceGroovyMethods.getText(file, charset);
+    }
+
     @SuppressWarnings("unchecked")
     public static List<Process> startPipeline(List<ProcessBuilder> pipeline, String consumer) throws IOException {
         try {
@@ -352,10 +496,6 @@ public class Instrumented {
                 throw new RuntimeException("Unexpected exception thrown by ProcessBuilder.startPipeline", e);
             }
         }
-    }
-
-    public static void fileCollectionObserved(FileCollection fileCollection, String consumer) {
-        listener().fileCollectionObserved(fileCollection, consumer);
     }
 
     public static void fileObserved(File file, String consumer) {
@@ -483,10 +623,9 @@ public class Instrumented {
 
         void fileObserved(File file, String consumer);
 
-        /**
-         * Invoked when configuration logic observes the given file collection.
-         */
-        void fileCollectionObserved(FileCollection inputs, String consumer);
+        void fileSystemEntryObserved(File file, String consumer);
+
+        void directoryContentObserved(File file, String consumer);
     }
 
     /**
@@ -666,7 +805,7 @@ public class Instrumented {
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             int argsCount = invocation.getArgsCount();
             if (1 <= argsCount && argsCount <= 3) {
                 Optional<Process> result = tryCallExec(invocation.getReceiver(), invocation.getArgument(0), invocation.getOptionalArgument(1), invocation.getOptionalArgument(2), consumer);
@@ -710,7 +849,7 @@ public class Instrumented {
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             // Static calls have Class<ProcessGroovyMethods> as a receiver, command as a first argument, optional arguments follow.
             // "Extension" calls have command as a receiver and optional arguments as arguments.
             boolean isStaticCall = invocation.getReceiver().equals(ProcessGroovyMethods.class);
@@ -777,7 +916,7 @@ public class Instrumented {
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();
             if (receiver instanceof ProcessBuilder) {
                 return start((ProcessBuilder) receiver, consumer);
@@ -801,33 +940,6 @@ public class Instrumented {
                 return startPipeline((List<ProcessBuilder>) invocation.getArgument(0), consumer);
             }
             return invocation.callOriginal();
-        }
-    }
-
-    /**
-     * The interceptor for {@link FileInputStream#FileInputStream(File)} and {@link FileInputStream#FileInputStream(String)}.
-     */
-    private static class FileInputStreamConstructorInterceptor extends CallInterceptor {
-        public FileInputStreamConstructorInterceptor() {
-            super(InterceptScope.constructorsOf(FileInputStream.class));
-        }
-
-        @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-            if (invocation.getArgsCount() == 1) {
-                Object argument = invocation.getArgument(0);
-                if (argument instanceof CharSequence) {
-                    String path = convertToString(argument);
-                    fileOpened(path, consumer);
-                    return new FileInputStream(path);
-                } else if (argument instanceof File) {
-                    File file = (File) argument;
-                    fileOpened(file, consumer);
-                    return new FileInputStream(file);
-                }
-            }
-            return invocation.callOriginal();
-
         }
     }
 }

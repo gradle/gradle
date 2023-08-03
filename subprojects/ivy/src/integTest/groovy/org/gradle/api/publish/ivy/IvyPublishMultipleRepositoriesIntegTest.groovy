@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -36,7 +35,6 @@ class IvyPublishMultipleRepositoriesIntegTest extends AbstractIvyPublishIntegTes
     IvyFileRepository repo2 = new IvyFileRepository(file("repo2"))
     IvyModule repo2Module = repo2.module(org, moduleName, rev)
 
-    @ToBeFixedForConfigurationCache
     def "can publish to different repositories"() {
         given:
         settingsFile << 'rootProject.name = "publish"'

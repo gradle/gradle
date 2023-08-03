@@ -49,23 +49,23 @@ If the absolute path represents a tool being used it probably makes sense to tra
 For example, if you are using tools in your `Test` task called `integTest` which depend on the contents of the `LANG` variable you should do this:
 
 ====
-include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=environment]"]
 include::sample[dir="snippets/buildCache/integration-tests/kotlin",files="build.gradle.kts[tags=environment]"]
+include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=environment]"]
 ====
 
 If you add conditional logic to distinguish CI builds from local development builds, you have to ensure that this does not break the loading of task outputs from CI onto developer machines.
 For example, the following setup would break caching of `Test` tasks, since Gradle always detects the differences in custom task actions.
 
 ====
-include::sample[dir="snippets/buildCache/conditional-action/groovy",files="build.gradle[tags=conditionalAction]"]
 include::sample[dir="snippets/buildCache/conditional-action/kotlin",files="build.gradle.kts[tags=conditionalAction]"]
+include::sample[dir="snippets/buildCache/conditional-action/groovy",files="build.gradle[tags=conditionalAction]"]
 ====
 
 You should always add the action unconditionally:
 
 ====
-include::sample[dir="snippets/buildCache/conditional-action/groovy",files="build.gradle[tags=unconditionalAction]"]
 include::sample[dir="snippets/buildCache/conditional-action/kotlin",files="build.gradle.kts[tags=unconditionalAction]"]
+include::sample[dir="snippets/buildCache/conditional-action/groovy",files="build.gradle[tags=unconditionalAction]"]
 ====
 
 This way, the task has the same custom action on CI and on developer builds and its outputs can be re-used if the remaining inputs are the same.
@@ -104,11 +104,11 @@ as an input for compilation and test execution.
 
 
 If you use different JVM vendors for compiling or running Java we strongly suggest that you add the vendor as an input to the corresponding tasks.
-This can be achieved by using the <<more_about_tasks.adoc#sec:task_input_output_runtime_api,runtime API>> as shown in the following snippet.
+This can be achieved by using the <<incremental_build.adoc#sec:task_input_output_runtime_api,runtime API>> as shown in the following snippet.
 
 ====
-include::sample[dir="snippets/buildCache/java-version-tracking/groovy",files="build.gradle[tags=trackVendor]"]
 include::sample[dir="snippets/buildCache/java-version-tracking/kotlin",files="build.gradle.kts[tags=trackVendor]"]
+include::sample[dir="snippets/buildCache/java-version-tracking/groovy",files="build.gradle[tags=trackVendor]"]
 ====
 
 With respect to tracking the Java minor version there are different competing aspects: developers having cache hits and "perfect" results on CI.
@@ -162,15 +162,15 @@ Instead of using `doFirst` for modifying the inputs consider using a separate ta
 E.g., instead of doing
 
 ====
-include::sample[dir="snippets/buildCache/custom-action/groovy",files="build.gradle[tags=customAction]"]
 include::sample[dir="snippets/buildCache/custom-action/kotlin",files="build.gradle.kts[tags=customAction]"]
+include::sample[dir="snippets/buildCache/custom-action/groovy",files="build.gradle[tags=customAction]"]
 ====
 
 do
 
 ====
-include::sample[dir="snippets/buildCache/configure-task/groovy",files="build.gradle[tags=configureTask]"]
 include::sample[dir="snippets/buildCache/configure-task/kotlin",files="build.gradle.kts[tags=configureTask]"]
+include::sample[dir="snippets/buildCache/configure-task/groovy",files="build.gradle[tags=configureTask]"]
 ====
 
 WARNING: Note that configuring a task from other task is not supported when using the <<configuration_cache.adoc#config_cache:requirements:task_access,configuration cache>>.
@@ -238,8 +238,8 @@ For tar and zip files Gradle can be configured to create <<working_with_files.ad
 This is done by configuring e.g. the `Zip` task via the following snippet.
 
 ====
-include::sample[dir="snippets/buildCache/reproducible-archives/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/buildCache/reproducible-archives/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/buildCache/reproducible-archives/groovy",files="build.gradle[]"]
 ====
 
 Another way to make the outputs repeatable is to activate caching for a task with non-repeatable outputs.

@@ -16,8 +16,8 @@
 
 package org.gradle.initialization.buildsrc
 
-import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,24 +27,20 @@ class BuildSrcUpdateFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
-    def launcher = Stub(BuildTreeLifecycleController)
+    def controller = Stub(BuildTreeLifecycleController)
     def listener = Stub(BuildSrcBuildListenerFactory.Listener)
     def listenerFactory = Mock(BuildSrcBuildListenerFactory)
-    def cachedClasspathTransformer = Mock(CachedClasspathTransformer)
-    def factory = new BuildSrcUpdateFactory(launcher, listenerFactory, cachedClasspathTransformer)
+    def factory = new BuildSrcUpdateFactory(listenerFactory)
 
     def "creates classpath"() {
-        listener.getRuntimeClasspath() >> [new File("dummy")]
+        def classpath = DefaultClassPath.of(new File("dummy"))
+        listener.getRuntimeClasspath() >> classpath
 
         when:
-        def classpath = factory.create()
+        def result = factory.create(controller)
 
         then:
         1 * listenerFactory.create() >> listener
-        1 * cachedClasspathTransformer.transform(_, _) >> { arguments ->
-            arguments[0]
-        }
-
-        classpath.asFiles == [new File("dummy")]
+        result == classpath
     }
 }

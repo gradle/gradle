@@ -16,7 +16,8 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.cache.CacheRepository
+
+import org.gradle.cache.UnscopedCacheBuilderFactory
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.process.internal.worker.WorkerProcessFactory
@@ -31,7 +32,7 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuo
         def idFileName = "build/${service}.id"
         def idFile = file(idFileName).createFile()
         buildFile << """
-            import ${CacheRepository.name}
+            import ${UnscopedCacheBuilderFactory.name}
             import ${WorkerProcessClassPathProvider.name}
             import ${WorkerProcessFactory.name}
 
@@ -66,7 +67,7 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuo
         where:
         service                          | _
         "WorkerProcessFactory"           | _
-        "CacheRepository"                | _
+        "UnscopedCacheBuilderFactory"    | _
         "WorkerProcessClassPathProvider" | _
     }
 }

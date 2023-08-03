@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
     def util = new AutoTestedSamplesUtil()
@@ -23,6 +25,10 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
     void runSamplesFrom(String dir) {
         util.findSamples(dir) { file, sample, tagSuffix ->
             println "Found sample: ${sample.split("\n")[0]} (...) in $file"
+            if (tagSuffix.contains('WithoutCC') && GradleContextualExecuter.configCache) {
+                println 'Skipping sample tagged WithoutCC'
+                return
+            }
             def buildFile = testFile('build.gradle')
             def settingsFile = testFile('settings.gradle')
             def fileToTest = tagSuffix.contains('Settings') ? settingsFile : buildFile

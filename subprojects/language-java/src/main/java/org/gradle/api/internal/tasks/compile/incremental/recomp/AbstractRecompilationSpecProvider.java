@@ -42,6 +42,10 @@ import java.util.Map;
 import java.util.Set;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
+
+    private static final String MODULE_INFO_CLASS_NAME = "module-info";
+    private static final String PACKAGE_INFO_CLASS_NAME = "package-info";
+
     private final Deleter deleter;
     private final FileOperations fileOperations;
     private final FileTree sourceTree;
@@ -76,6 +80,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
         Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
         processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
+        addModuleInfoToCompile(recompilationSpec, sourceFileClassNameConverter);
 
         return recompilationSpec;
     }
@@ -185,7 +190,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
     private static void processTypesToReprocess(Set<String> typesToReprocess, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         for (String typeToReprocess : typesToReprocess) {
-            if (typeToReprocess.endsWith("package-info") || typeToReprocess.equals("module-info")) {
+            if (typeToReprocess.endsWith(PACKAGE_INFO_CLASS_NAME) || typeToReprocess.equals(MODULE_INFO_CLASS_NAME)) {
                 // Fixes: https://github.com/gradle/gradle/issues/17572
                 // package-info classes cannot be passed as classes to reprocess to the Java compiler.
                 // Therefore, we need to recompile them every time anything changes if they are processed by an aggregating annotation processor.
@@ -197,11 +202,21 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         }
     }
 
+    private static void addModuleInfoToCompile(RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        Set<String> moduleInfoSources = sourceFileClassNameConverter.getRelativeSourcePathsThatExist(MODULE_INFO_CLASS_NAME);
+        if (!moduleInfoSources.isEmpty()) {
+            // Always recompile module-info.java if present.
+            // This solves case for incremental compilation where some package was deleted and exported in module-info, but compilation doesn't fail.
+            spec.addClassToCompile(MODULE_INFO_CLASS_NAME);
+            spec.addSourcePaths(moduleInfoSources);
+        }
+    }
+
     @Override
     public CompileTransaction initCompilationSpecAndTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
             spec.setSourceFiles(ImmutableSet.of());
-            spec.setClasses(Collections.emptySet());
+            spec.setClassesToProcess(Collections.emptySet());
             return new CompileTransaction(spec, fileOperations.patternSet(), ImmutableMap.of(), fileOperations, deleter);
         }
 
@@ -212,6 +227,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
+        spec.setClassesToCompile(recompilationSpec.getClassesToCompile());
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
         return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
@@ -245,7 +261,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     private static void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         Set<String> classesToProcess = new HashSet<>(recompilationSpec.getClassesToProcess());
         classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
-        spec.setClasses(classesToProcess);
+        spec.setClassesToProcess(classesToProcess);
     }
 
     private static void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {

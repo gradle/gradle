@@ -19,9 +19,11 @@ package org.gradle.language.swift.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
@@ -84,7 +86,7 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        final ConfigurationContainer configurations = project.getConfigurations();
+        final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         final ObjectFactory objectFactory = project.getObjects();
         final ProviderFactory providers = project.getProviders();
 
@@ -146,12 +148,11 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
 
             library.getBinaries().whenElementKnown(SwiftSharedLibrary.class, sharedLibrary -> {
                 Names names = ((ComponentWithNames) sharedLibrary).getNames();
-                Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
+                @SuppressWarnings("deprecation") Configuration apiElements = configurations.migratingUnlocked(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
                 // TODO This should actually extend from the api dependencies, but since Swift currently
                 // requires all dependencies to be treated like api dependencies (with transitivity) we just
                 // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
                 apiElements.extendsFrom(((DefaultSwiftSharedLibrary) sharedLibrary).getImplementationDependencies());
-                apiElements.setCanBeResolved(false);
                 apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
                 apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
                 apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
@@ -162,12 +163,11 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
 
             library.getBinaries().whenElementKnown(SwiftStaticLibrary.class, staticLibrary -> {
                 Names names = ((ComponentWithNames) staticLibrary).getNames();
-                Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
+                @SuppressWarnings("deprecation") Configuration apiElements = configurations.migratingUnlocked(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
                 // TODO This should actually extend from the api dependencies, but since Swift currently
                 // requires all dependencies to be treated like api dependencies (with transitivity) we just
                 // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
                 apiElements.extendsFrom(((DefaultSwiftStaticLibrary) staticLibrary).getImplementationDependencies());
-                apiElements.setCanBeResolved(false);
                 apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
                 apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
                 apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());

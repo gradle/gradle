@@ -18,20 +18,15 @@ package org.gradle.configurationcache
 
 import groovy.lang.Closure
 import org.gradle.api.Action
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.execution.TaskExecutionGraphListener
-import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.location
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.Node
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
@@ -41,13 +36,14 @@ import java.util.Objects
 import java.util.function.Consumer
 
 
+internal
 class CrossProjectConfigurationReportingTaskExecutionGraph(
     taskGraph: TaskExecutionGraphInternal,
     private val referrerProject: ProjectInternal,
     private val problems: ProblemsListener,
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val userCodeContext: UserCodeApplicationContext
+    private val problemFactory: ProblemFactory
 ) : TaskExecutionGraphInternal {
 
     private
@@ -155,18 +151,15 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     private
     fun reportProjectIsolationProblem(requestPath: String?) {
-        val location = userCodeContext.location(null)
-        val message = StructuredMessage.build {
+        val problem = problemFactory.problem {
             text("Project ")
             reference(referrerProject.identityPath.toString())
             text(" cannot access the tasks in the task graph that were created by other projects")
-        }
-        val exception = InvalidUserCodeException(
+        }.exception { message ->
             // As the exception message is not used for grouping, we can safely add the exact task name to it:
-            message.toString().capitalized() +
-                if (requestPath != null) "; tried to access '$requestPath'" else '"'
-        )
-        problems.onProblem(PropertyProblem(location, message, exception, null))
+            message.capitalized() + if (requestPath != null) "; tried to access '$requestPath'" else '"'
+        }.build()
+        problems.onProblem(problem)
     }
 
     private
@@ -215,13 +208,13 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     override fun size(): Int = delegate.size()
 
     @Deprecated("Deprecated in Java")
-    override fun addTaskExecutionListener(listener: TaskExecutionListener) {
+    override fun addTaskExecutionListener(@Suppress("DEPRECATION") listener: org.gradle.api.execution.TaskExecutionListener) {
         @Suppress("DEPRECATION")
         delegate.addTaskExecutionListener(listener)
     }
 
     @Deprecated("Deprecated in Java")
-    override fun removeTaskExecutionListener(listener: TaskExecutionListener) {
+    override fun removeTaskExecutionListener(@Suppress("DEPRECATION") listener: org.gradle.api.execution.TaskExecutionListener) {
         @Suppress("DEPRECATION")
         delegate.removeTaskExecutionListener(listener)
     }
@@ -251,4 +244,8 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     }
 
     // endregion
+
+    override fun resetState() {
+        throw UnsupportedOperationException()
+    }
 }

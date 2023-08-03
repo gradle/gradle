@@ -32,12 +32,17 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * A serializer for {@link ResolvedComponentResult} that is not thread-safe and not reusable.
+ */
+@NotThreadSafe
 public class ResolvedComponentResultSerializer implements Serializer<ResolvedComponentResult> {
     private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
     private final Serializer<ComponentIdentifier> componentIdSerializer;
@@ -85,7 +90,7 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
         moduleVersionIdSerializer.write(encoder, component.getModuleVersion());
         componentIdSerializer.write(encoder, component.getId());
         componentSelectionReasonSerializer.write(encoder, component.getSelectionReason());
-        List<ResolvedVariantResult> allVariants = ((ResolvedComponentResultInternal) component).getAllVariants();
+        List<ResolvedVariantResult> allVariants = ((ResolvedComponentResultInternal) component).getAvailableVariants();
         Set<ResolvedVariantResult> resolvedVariants = new HashSet<>(component.getVariants());
         encoder.writeSmallInt(allVariants.size());
         for (ResolvedVariantResult variant : allVariants) {

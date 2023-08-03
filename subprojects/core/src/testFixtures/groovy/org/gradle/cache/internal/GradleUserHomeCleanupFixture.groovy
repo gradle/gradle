@@ -23,6 +23,8 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.JarUtils
 import org.gradle.util.internal.DefaultGradleVersion
 
+import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
@@ -63,12 +65,16 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
     void disableCacheCleanupViaProperty() {
         gradleUserHomeDir.mkdirs()
         new File(gradleUserHomeDir, 'gradle.properties') << """
-            ${GradleUserHomeCacheCleanupActionDecorator.CACHE_CLEANUP_PROPERTY}=false
+            ${LegacyCacheCleanupEnablement.CACHE_CLEANUP_PROPERTY}=false
         """.stripIndent()
     }
 
     void disableCacheCleanupViaDsl() {
         setCleanupInterval("DISABLED")
+    }
+
+    void explicitlyEnableCacheCleanupViaDsl() {
+        setCleanupInterval("DEFAULT")
     }
 
     void disableCacheCleanup(CleanupMethod method) {
@@ -77,6 +83,10 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
                 disableCacheCleanupViaProperty()
                 break
             case CleanupMethod.DSL:
+                disableCacheCleanupViaDsl()
+                break
+            case CleanupMethod.BOTH:
+                disableCacheCleanupViaProperty()
                 disableCacheCleanupViaDsl()
                 break
             default:
@@ -118,7 +128,7 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
         new File(initDir, "cache-settings.gradle") << """
             beforeSettings { settings ->
                 settings.caches {
-                    ${resources}.removeUnusedEntriesAfterDays = ${days}
+                    ${resources} { removeUnusedEntriesAfterDays = ${days} }
                 }
             }
         """
@@ -127,11 +137,100 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
     abstract TestFile getGradleUserHomeDir()
 
     enum CleanupMethod {
-        PROPERTY, DSL
+        PROPERTY("legacy property only", true),
+        DSL("DSL only", false),
+        BOTH("both legacy property and DSL", false)
+
+        final String description
+        final boolean deprecationExpected
+
+        CleanupMethod(String description, boolean deprecationExpected) {
+            this.description = description
+            this.deprecationExpected = deprecationExpected
+        }
 
         @Override
         String toString() {
-            return super.toString().toLowerCase()
+            return description
+        }
+
+        void maybeExpectDeprecationWarning(executer) {
+            if (deprecationExpected) {
+                executer.expectDocumentedDeprecationWarning(
+                    "Disabling Gradle user home cache cleanup with the 'org.gradle.cache.cleanup' property has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 9.0. " +
+                        "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#disabling_user_home_cache_cleanup"
+                )
+            }
+        }
+    }
+
+    GradleDistDirs versionedDistDirs(String version, MarkerFileType lastUsed, String customDistName) {
+        def distVersion = GradleVersion.version(version)
+        return new GradleDistDirs(
+            createVersionSpecificCacheDir(distVersion, lastUsed),
+            createDistributionChecksumDir(distVersion).parentFile,
+            createCustomDistributionChecksumDir(customDistName, distVersion).parentFile
+        )
+    }
+
+    static class GradleDistDirs {
+        private final TestFile cacheDir
+        private final TestFile distDir
+        private final TestFile customDistDir
+
+        GradleDistDirs(TestFile cacheDir, TestFile distDir, TestFile customDistDir) {
+            this.cacheDir = cacheDir
+            this.distDir = distDir
+            this.customDistDir = customDistDir
+        }
+
+        void assertAllDirsExist() {
+            cacheDir.assertExists()
+            distDir.assertExists()
+            customDistDir.assertExists()
+        }
+
+        void assertAllDirsDoNotExist() {
+            cacheDir.assertDoesNotExist()
+            distDir.assertDoesNotExist()
+            customDistDir.assertDoesNotExist()
+        }
+    }
+
+    static enum DistType {
+        RELEASED() {
+            @Override
+            String version(String baseVersion) {
+                return baseVersion
+            }
+
+            @Override
+            String alternateVersion(String baseVersion) {
+                throw new UnsupportedOperationException()
+            }
+        },
+        SNAPSHOT() {
+            def formatter = new SimpleDateFormat("yyyyMMddHHmmssZ")
+            def now = Instant.now()
+
+            @Override
+            String version(String baseVersion) {
+                return baseVersion + '-' + formatter.format(Date.from(now))
+            }
+
+            @Override
+            String alternateVersion(String baseVersion) {
+                return baseVersion + '-' + formatter.format(Date.from(now.plusSeconds(60)))
+            }
+        }
+
+        abstract String version(String baseVersion)
+        abstract String alternateVersion(String baseVersion)
+
+        @Override
+        String toString() {
+            return name().toLowerCase()
         }
     }
 }

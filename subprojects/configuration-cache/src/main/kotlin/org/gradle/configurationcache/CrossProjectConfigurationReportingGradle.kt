@@ -35,17 +35,18 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.Path
 import java.io.File
 import java.util.Objects
@@ -232,6 +233,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getPluginManager(): PluginManagerInternal =
         delegate.pluginManager
 
+    override fun getExtensions(): ExtensionContainer =
+        delegate.extensions
+
     override fun getGradleVersion(): String =
         delegate.gradleVersion
 
@@ -303,8 +307,8 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getSettings(): SettingsInternal =
         delegate.settings
 
-    override fun setSettings(settings: SettingsInternal) {
-        delegate.settings = settings
+    override fun attachSettings(settings: SettingsState?) {
+        delegate.attachSettings(settings)
     }
 
     override fun setDefaultProject(defaultProject: ProjectInternal) {
@@ -320,9 +324,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun getServices(): ServiceRegistry =
         delegate.services
-
-    override fun getServiceRegistryFactory(): ServiceRegistryFactory =
-        delegate.serviceRegistryFactory
 
     override fun setClassLoaderScope(classLoaderScope: Supplier<out ClassLoaderScope>) {
         delegate.setClassLoaderScope(classLoaderScope)

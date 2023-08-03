@@ -42,7 +42,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
                     outputFile.text = "done"
                 }
             }
-"""
+        """
         def cacheDir = file("task-output-cache")
         settingsFile << """
             buildCache {
@@ -110,7 +110,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> writingOperations(ProgressEvents pushToCacheEvents) {
         def pushTaskOperation = pushToCacheEvents.operation("Task :cacheable")
-        def writingOperations = pushTaskOperation.children.findAll {
+        def writingOperations = pushTaskOperation.descendants {
             it.descriptor.displayName =~ /Store entry .+ in (local|remote) build cache/ ||
                 it.descriptor.displayName =~ /Pack build cache entry .+/
         }
@@ -122,7 +122,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> readingOperations(ProgressEvents pullFromCacheResults) {
         def pullTaskOperation = pullFromCacheResults.operation("Task :cacheable")
-        def pullOperations = pullTaskOperation.children.findAll {
+        def pullOperations = pullTaskOperation.descendants {
             it.descriptor.displayName =~ /Load entry .+ from (local|remote) build cache/ ||
                 it.descriptor.displayName =~ /Unpack build cache entry .+/
         }

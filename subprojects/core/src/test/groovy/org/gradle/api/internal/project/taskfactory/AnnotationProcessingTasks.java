@@ -292,7 +292,6 @@ public class AnnotationProcessingTasks {
             this.outputFiles = outputFiles;
         }
 
-        @SuppressWarnings("deprecation")
         @OutputFiles
         public List<File> getOutputFiles() {
             return outputFiles;
@@ -300,7 +299,7 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskWithBridgeMethod extends TaskWithAction implements WithProperty<SpecificProperty> {
-        @org.gradle.api.tasks.Nested
+        @Nested
         private SpecificProperty nestedProperty = new SpecificProperty();
         public int traversedOutputsCount;
 
@@ -310,14 +309,14 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public interface WithProperty<T extends PropertyContainer> {
+    public interface WithProperty<T extends PropertyContainer<?>> {
         T getNestedProperty();
     }
     public interface PropertyContainer<T extends SomeProperty> {}
     public static class SpecificProperty extends SomePropertyContainer<SomeProperty> {}
     public static class SomeProperty {}
 
-    public static abstract class SomePropertyContainer<T extends SomeProperty> implements PropertyContainer {
+    public static abstract class SomePropertyContainer<T extends SomeProperty> implements PropertyContainer<T> {
         @OutputFile
         public File getSomeOutputFile() {
             return new File("hello");
@@ -326,16 +325,16 @@ public class AnnotationProcessingTasks {
 
     public static class TaskWithOptionalOutputFile extends TaskWithAction {
         @OutputFile
-        @org.gradle.api.tasks.Optional
+        @Optional
         public File getOutputFile() {
             return null;
         }
     }
 
     public static class TaskWithOptionalOutputFiles extends TaskWithAction {
-        @SuppressWarnings("deprecation")
+
         @OutputFiles
-        @org.gradle.api.tasks.Optional
+        @Optional
         public List<File> getOutputFiles() {
             return null;
         }
@@ -363,7 +362,6 @@ public class AnnotationProcessingTasks {
             this.outputDirs = outputDirs;
         }
 
-        @SuppressWarnings("deprecation")
         @OutputDirectories
         public List<File> getOutputDirs() {
             return outputDirs;
@@ -372,16 +370,16 @@ public class AnnotationProcessingTasks {
 
     public static class TaskWithOptionalOutputDir extends TaskWithAction {
         @OutputDirectory
-        @org.gradle.api.tasks.Optional
+        @Optional
         public File getOutputDir() {
             return null;
         }
     }
 
     public static class TaskWithOptionalOutputDirs extends TaskWithAction {
-        @SuppressWarnings("deprecation")
+
         @OutputDirectories
-        @org.gradle.api.tasks.Optional
+        @Optional
         public File getOutputDirs() {
             return null;
         }
@@ -421,7 +419,7 @@ public class AnnotationProcessingTasks {
 
     public static class TaskWithOptionalInputFile extends TaskWithAction {
         @InputFile
-        @org.gradle.api.tasks.Optional
+        @Optional
         public File getInputFile() {
             return null;
         }
@@ -541,7 +539,7 @@ public class AnnotationProcessingTasks {
         }
 
         @Nested
-        @org.gradle.api.tasks.Optional
+        @Optional
         public Bean getBean() {
             return bean;
         }
@@ -551,7 +549,7 @@ public class AnnotationProcessingTasks {
         Bean2 bean = new Bean2();
 
         @Nested
-        @org.gradle.api.tasks.Optional
+        @Optional
         public Bean getBean() {
             return null;
         }

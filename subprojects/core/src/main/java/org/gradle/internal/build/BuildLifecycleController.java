@@ -124,7 +124,17 @@ public interface BuildLifecycleController {
     /**
      * Restarts the lifecycle of this build.
      */
-    void resetState();
+    void resetModel();
+
+    /**
+     * Runs whatever work is required prior to discarding the model for this build. This is called prior to calling {@link #resetModel()}.
+     */
+    ExecutionResult<Void> beforeModelReset();
+
+    /**
+     * Runs whatever work is required prior to discarding the model for this build. This is called at the end of the build, after {@link #finishBuild(Throwable)}.
+     */
+    ExecutionResult<Void> beforeModelDiscarded(boolean failed);
 
     interface WorkGraphBuilder {
         /**

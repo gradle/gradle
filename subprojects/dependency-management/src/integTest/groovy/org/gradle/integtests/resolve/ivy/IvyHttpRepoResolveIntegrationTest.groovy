@@ -16,8 +16,8 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -25,13 +25,20 @@ import org.junit.Rule
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
 class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
-
+    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+    ResolveFailureTestFixture failedResolve = new ResolveFailureTestFixture(buildFile, "compile")
     @Rule
     RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
     @Override
     RepositoryServer getServer() {
         return server
+    }
+
+    def setup() {
+        settingsFile """
+            rootProject.name = 'test'
+        """
     }
 
     void "fails when configured with AwsCredentials"() {
@@ -53,33 +60,29 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
             }
             configurations { compile }
             dependencies { compile 'org.group.name:projectA:1.2' }
-            task retrieve(type: Sync) {
-                from configurations.compile
-                into 'libs'
-            }
         """
+        failedResolve.prepare()
 
         when:
 
-        fails 'retrieve'
+        fails 'checkDeps'
         then:
-        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failedResolve.assertFailurePresent(failure)
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve org.group.name:projectA:1.2.")
         failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
     }
 
-    @ToBeFixedForConfigurationCache
     void "can resolve and cache dependencies with missing status and publication date"() {
         given:
-        def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
-        module.withXml({
+        def dep = server.remoteIvyRepo.module('group', 'projectA', '1.2')
+        dep.withXml({
             def infoAttribs = asNode().info[0].attributes()
             infoAttribs.remove("status")
             infoAttribs.remove("publication")
         }).publish()
 
-        println module.ivyFile.text
+        println dep.ivyFile.text
 
         and:
         buildFile << """
@@ -91,29 +94,37 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
             }
             configurations { compile }
             dependencies { compile 'group:projectA:1.2' }
-            task listJars {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-                }
-            }
         """
+        resolve.prepare()
+
+        and:
+        dep.ivy.expectDownload()
+        dep.jar.expectDownload()
+
         when:
-        module.ivy.expectDownload()
-        module.jar.expectDownload()
+        run 'checkDeps'
 
         then:
-        succeeds 'listJars'
-        progressLogger.downloadProgressLogged(module.ivy.uri)
-        progressLogger.downloadProgressLogged(module.jar.uri)
+        progressLogger.downloadProgressLogged(dep.ivy.uri)
+        progressLogger.downloadProgressLogged(dep.jar.uri)
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("group:projectA:1.2")
+            }
+        }
 
         when:
         server.resetExpectations()
+        run 'checkDeps'
 
         then:
-        succeeds 'listJars'
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("group:projectA:1.2")
+            }
+        }
     }
 
-    @ToBeFixedForConfigurationCache
     void "skip subsequent Ivy repositories on timeout and recovers for later resolution"() {
         given:
         executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
@@ -140,19 +151,15 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
             dependencies {
                 compile 'group:projectA:1.0'
             }
-            task listJars {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar']
-                }
-            }
         """
+        resolve.prepare()
 
         when:
         // Timeout connecting to repo1: do not continue search to repo2
         module1.ivy.expectGetBlocking()
 
         then:
-        fails 'listJars'
+        fails 'checkDeps'
         failureHasCause("Could not resolve group:projectA:1.0")
         failureHasCause("Could not GET '$repo1.uri/group/projectA/1.0/ivy-1.0.xml'")
         failureHasCause('Read timed out')
@@ -164,7 +171,12 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         module2.jar.expectDownload()
 
         then:
-        succeeds('listJars')
+        succeeds('checkDeps')
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("group:projectA:1.0")
+            }
+        }
     }
 
     /**
@@ -191,18 +203,14 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
                 compile 'group3::1.0-SNAPSHOT'
                 compile 'group:name'
             }
-            task resolve {
-                doLast {
-                    assert configurations.compile.resolve()
-                }
-            }
         """
+        failedResolve.prepare()
 
         when:
-        fails 'resolve'
+        fails 'checkDeps'
 
         then:
-
+        failedResolve.assertFailurePresent(failure)
         failure.assertHasCause('Could not find :name1:1.0.')
         failure.assertHasCause('Could not find any matches for :name2:[1.0, 2.0] as no versions of :name2 are available.')
         failure.assertHasCause('Could not find :name3:1.0-SNAPSHOT.')

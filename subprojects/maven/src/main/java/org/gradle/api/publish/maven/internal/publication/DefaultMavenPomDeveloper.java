@@ -23,6 +23,8 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.maven.MavenPomContributor;
 import org.gradle.api.publish.maven.MavenPomDeveloper;
 
+import javax.inject.Inject;
+
 public class DefaultMavenPomDeveloper implements MavenPomDeveloper, MavenPomContributor {
 
     private final Property<String> id;
@@ -35,6 +37,7 @@ public class DefaultMavenPomDeveloper implements MavenPomDeveloper, MavenPomCont
     private final Property<String> timezone;
     private final MapProperty<String, String> properties;
 
+    @Inject
     public DefaultMavenPomDeveloper(ObjectFactory objectFactory) {
         id = objectFactory.property(String.class);
         name = objectFactory.property(String.class);

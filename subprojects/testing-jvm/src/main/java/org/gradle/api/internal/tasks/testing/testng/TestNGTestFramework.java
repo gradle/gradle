@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFilter;
@@ -33,7 +34,6 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -45,6 +45,7 @@ public class TestNGTestFramework implements TestFramework {
     private final ObjectFactory objects;
     private final Factory<File> testTaskTemporaryDir;
     private final DirectoryReport htmlReport;
+    private final Provider<Boolean> dryRun;
 
     public TestNGTestFramework(final Test testTask, DefaultTestFilter filter, ObjectFactory objects) {
         this(
@@ -52,17 +53,19 @@ public class TestNGTestFramework implements TestFramework {
             objects,
             testTask.getTemporaryDirFactory(),
             testTask.getReports().getHtml(),
-            objects.newInstance(TestNGOptions.class)
+            objects.newInstance(TestNGOptions.class),
+            testTask.getDryRun()
         );
     }
 
-    private TestNGTestFramework(DefaultTestFilter filter, ObjectFactory objects, Factory<File> testTaskTemporaryDir, DirectoryReport htmlReport, TestNGOptions options) {
+    private TestNGTestFramework(DefaultTestFilter filter, ObjectFactory objects, Factory<File> testTaskTemporaryDir, DirectoryReport htmlReport, TestNGOptions options, Provider<Boolean> dryRun) {
         this.filter = filter;
         this.objects = objects;
         this.testTaskTemporaryDir = testTaskTemporaryDir;
         this.htmlReport = htmlReport;
         this.options = options;
         this.detector = new TestNGDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
+        this.dryRun = dryRun;
 
         conventionMapOutputDirectory(options, htmlReport);
     }
@@ -87,8 +90,8 @@ public class TestNGTestFramework implements TestFramework {
             objects,
             testTaskTemporaryDir,
             htmlReport,
-            copiedOptions
-        );
+            copiedOptions,
+            dryRun);
     }
 
     @Override
@@ -98,27 +101,17 @@ public class TestNGTestFramework implements TestFramework {
         return new TestNgTestClassProcessorFactory(this.options.getOutputDirectory(), spec, suiteFiles);
     }
 
-    private static TestNGSpec toSpec(TestNGOptions options, DefaultTestFilter filter) {
+    private TestNGSpec toSpec(TestNGOptions options, DefaultTestFilter filter) {
         return new TestNGSpec(filter.toSpec(),
             options.getSuiteName(), options.getTestName(), options.getParallel(), options.getThreadCount(),
             options.getUseDefaultListeners(), options.getIncludeGroups(), options.getExcludeGroups(), options.getListeners(),
-            options.getConfigFailurePolicy(), options.getPreserveOrder(), options.getGroupByInstances()
+            options.getConfigFailurePolicy(), options.getPreserveOrder(), options.getGroupByInstances(), dryRun.get()
         );
     }
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return workerProcessBuilder -> workerProcessBuilder.sharedPackages("org.testng");
-    }
-
-    @Override
-    public List<String> getTestWorkerApplicationClasses() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<String> getTestWorkerApplicationModules() {
-        return Collections.emptyList();
     }
 
     @Override

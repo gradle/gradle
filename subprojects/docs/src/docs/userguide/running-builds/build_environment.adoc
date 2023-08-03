@@ -24,7 +24,7 @@ When configuring Gradle behavior you can use these methods, listed in order of h
 
 * <<command_line_interface.adoc#command_line_interface, Command-line flags>> such as `--build-cache`. These have precedence over properties and environment variables.
 * <<#sec:gradle_system_properties, System properties>> such as `systemProp.http.proxyHost=somehost.org` stored in a `gradle.properties` file in a root project directory.
-* <<#sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project directory or in the `GRADLE_USER_HOME`.
+* <<#sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project directory or in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
 * <<#sec:gradle_environment_variables, Environment variables>> such as `GRADLE_OPTS` sourced by the environment that executes Gradle.
 
 Aside from configuring Gradle behavior you can configure the build using the same mechanisms and reading the environment from the build logic.
@@ -37,11 +37,11 @@ Gradle provides several options that make it easy to configure the Java process 
 The final configuration taken into account by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files. If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
 * command line, as set using `-D`.
-* `gradle.properties` in `GRADLE_USER_HOME` directory.
+* `gradle.properties` in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory.
 * `gradle.properties` in the project's directory, then its parent project's directory up to the build's root directory.
 * `gradle.properties` in Gradle installation directory.
 
-Note that the location of the Gradle user home may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
+Note that the location of the Gradle User Home may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
 
 The following properties can be used to configure the Gradle build environment:
 
@@ -52,6 +52,21 @@ _By default, the build cache is *not* enabled._
 `org.gradle.caching.debug=(true,false)`::
 When set to true, individual input property hashes and the build cache key for each task are logged on the console. Learn more about <<build_cache.adoc#sec:task_output_caching, task output caching>>.
 _Default is `false`._
+
+`org.gradle.configuration-cache=(true,false)`::
+Enables <<configuration_cache.adoc#config_cache:usage:enable, configuration caching>>. Gradle will try to reuse the build configuration from previous builds.
+_Default is `false`._
+
+`org.gradle.configuration-cache.problems=(fail,warn)`::
+Configures how the configuration cache <<configuration_cache.adoc#config_cache:usage:ignore_problems, handles problems>>.
+Set to `warn` to report problems without failing the build.
+Set to `fail` to report problems and fail the build if there are any problems.
+_Default is `fail`._
+
+`org.gradle.configuration-cache.max-problems=(# of problems)`::
+
+Configures the <<configuration_cache.adoc#config_cache:usage:max_problems, maximum number of configuration cache problems>> allowed as warnings until Gradle fails the build.
+_Default is `512`._
 
 `org.gradle.configureondemand=(true,false)`::
 Enables incubating <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
@@ -101,7 +116,7 @@ _A reasonable default is derived from your environment (`JAVA_HOME` or the path 
 
 `org.gradle.jvmargs=(JVM arguments)`::
 Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance. This does not affect the JVM settings for the Gradle client VM.
-_The default is `-Xmx512m "-XX:MaxMetaspaceSize=256m"`._
+_The default is `-Xmx512m "-XX:MaxMetaspaceSize=384m"`._
 
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. See <<logging.adoc#sec:choosing_a_log_level,Choosing a log level>>.
@@ -154,23 +169,23 @@ include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="gradle.pr
 
 .Reading Gradle properties at configuration time
 ====
-include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="settings.gradle[tags=gradle-properties];build.gradle[tags=gradle-properties]"]
 include::sample[dir="snippets/tutorial/gradleProperties/kotlin",files="settings.gradle.kts[tags=gradle-properties];build.gradle.kts[tags=gradle-properties]"]
+include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="settings.gradle[tags=gradle-properties];build.gradle[tags=gradle-properties]"]
 ====
-
-[.multi-language-text.lang-groovy]
-Note that if a Gradle property has a dot in its name, using the dynamic Groovy names is not possible.
-You have to use the API or the dynamic array notation instead.
 
 [.multi-language-text.lang-kotlin]
 The link:https://kotlinlang.org/docs/delegated-properties.html[Kotlin delegated properties] are part of the Gradle Kotlin DSL.
 You need to explicitly specify the type as `String`.
 If you need to branch depending on the presence of the property, you can also use `String?` and check for `null`.
 
+[.multi-language-text.lang-groovy]
+Note that if a Gradle property has a dot in its name, using the dynamic Groovy names is not possible.
+You have to use the API or the dynamic array notation instead.
+
 .Reading Gradle properties for consumption at execution time
 ====
-include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="build.gradle[tags=gradle-properties-task-inputs]"]
 include::sample[dir="snippets/tutorial/gradleProperties/kotlin",files="build.gradle.kts[tags=gradle-properties-task-inputs]"]
+include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="build.gradle[tags=gradle-properties-task-inputs]"]
 ====
 
 .Setting Gradle properties from the command line
@@ -185,8 +200,8 @@ The earliest Gradle properties can be read in initialization scripts is on `sett
 
 .Reading Gradle properties from initialization scripts
 ====
-include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="init.gradle[tags=gradle-properties]"]
 include::sample[dir="snippets/tutorial/gradleProperties/kotlin",files="init.gradle.kts[tags=gradle-properties]"]
+include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="init.gradle[tags=gradle-properties]"]
 ====
 
 Properties declared in a `gradle.properties` file present in a subproject directory are only available to that project and its children.
@@ -213,7 +228,7 @@ Specify user name to download Gradle distributions from servers using HTTP Basic
 `gradle.wrapperPassword=(mypassword)`::
 Specify password for downloading a Gradle distribution using the Gradle wrapper.
 `gradle.user.home=(path to directory)`::
-Specify the Gradle user home directory.
+Specify the Gradle User Home directory.
 `https.protocols`::
 Specify the supported TLS versions in a comma separated format. For example: `TLSv1.2,TLSv1.3`.
 
@@ -228,14 +243,14 @@ include::sample[dir="snippets/tutorial/systemProperties/groovy",files="gradle.pr
 
 .Reading System properties at configuration time
 ====
-include::sample[dir="snippets/tutorial/systemProperties/groovy",files="init.gradle[];settings.gradle[];build.gradle[tags=system-properties]"]
 include::sample[dir="snippets/tutorial/systemProperties/kotlin",files="init.gradle.kts[];settings.gradle.kts[];build.gradle.kts[tags=system-properties]"]
+include::sample[dir="snippets/tutorial/systemProperties/groovy",files="init.gradle[];settings.gradle[];build.gradle[tags=system-properties]"]
 ====
 
 .Reading System properties for consumption at execution time
 ====
-include::sample[dir="snippets/tutorial/systemProperties/groovy",files="build.gradle[tags=system-properties-task-inputs]"]
 include::sample[dir="snippets/tutorial/systemProperties/kotlin",files="build.gradle.kts[tags=system-properties-task-inputs]"]
+include::sample[dir="snippets/tutorial/systemProperties/groovy",files="build.gradle[tags=system-properties-task-inputs]"]
 ====
 
 .Setting System properties from the command line
@@ -253,8 +268,8 @@ The following environment variables are available for the `gradle` command. Note
 `GRADLE_OPTS`::
 Specifies JVM arguments to use when starting the Gradle client VM. The client VM only handles command line input/output, so it is rare that one would need to change its VM options.
 The actual build is run by the Gradle daemon, which is not affected by this environment variable.
-`GRADLE_USER_HOME`::
-Specifies the Gradle user home directory (which defaults to `$USER_HOME/.gradle` if not set).
+`<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`::
+Specifies the Gradle User Home directory (which defaults to `<home directory of the current user>/.gradle` if not set).
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM. This VM is also used for the daemon, unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
 
@@ -262,14 +277,14 @@ The following examples demonstrate how to use environment variables.
 
 .Reading environment variables at configuration time
 ====
-include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="init.gradle[];settings.gradle[];build.gradle[tags=configuration]"]
 include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="init.gradle.kts[];settings.gradle.kts[];build.gradle.kts[tags=configuration]"]
+include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="init.gradle[];settings.gradle[];build.gradle[tags=configuration]"]
 ====
 
 .Reading environment variables for consumption at execution time
 ====
-include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="build.gradle[tags=execution]"]
 include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="build.gradle.kts[tags=execution]"]
+include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="build.gradle[tags=execution]"]
 ====
 
 
@@ -308,23 +323,23 @@ The following examples demonstrate how to use project properties.
 
 .Reading project properties at configuration time
 ====
-include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=configuration]"]
 include::sample[dir="snippets/tutorial/projectProperties/kotlin",files="build.gradle.kts[tags=configuration]"]
+include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=configuration]"]
 ====
-
-[.multi-language-text.lang-groovy]
-Note that if a Project property has a dot in its name, using the dynamic Groovy names is not possible.
-You have to use the API or the dynamic array notation instead.
 
 [.multi-language-text.lang-kotlin]
 The link:https://kotlinlang.org/docs/delegated-properties.html[Kotlin delegated properties] are part of the Gradle Kotlin DSL.
 You need to explicitly specify the type as `String`.
 If you need to branch depending on the presence of the property, you can also use `String?` and check for `null`.
 
+[.multi-language-text.lang-groovy]
+Note that if a Project property has a dot in its name, using the dynamic Groovy names is not possible.
+You have to use the API or the dynamic array notation instead.
+
 .Reading project properties for consumption at execution time
 ====
-include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=execution]"]
 include::sample[dir="snippets/tutorial/projectProperties/kotlin",files="build.gradle.kts[tags=execution]"]
+include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=execution]"]
 ====
 
 [NOTE]
@@ -339,7 +354,7 @@ You should check for existence of optional project properties before you access 
 
 You can adjust JVM options for Gradle in the following ways:
 
-The `org.gradle.jvmargs` Gradle property controls the VM running the build. It defaults to `-Xmx512m "-XX:MaxMetaspaceSize=256m"`
+The `org.gradle.jvmargs` Gradle property controls the VM running the build. It defaults to `-Xmx512m "-XX:MaxMetaspaceSize=384m"`
 
 .Changing JVM settings for the build VM
 ====
@@ -367,10 +382,10 @@ Otherwise the client VM will fork a new VM to run the actual build in order to h
 Certain tasks, like the `test` task, also fork additional JVM processes. You can configure these through the tasks themselves.
 They all use `-Xmx512m` by default.
 
-.Set Java compile options for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] tasks
+.Set compile options for Java compilation tasks
 ====
-include::sample[dir="snippets/buildEnvironment/javaCompileOptions/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/buildEnvironment/javaCompileOptions/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/buildEnvironment/javaCompileOptions/groovy",files="build.gradle[]"]
 ====
 
 See other examples in the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] API documentation and <<java_testing.adoc#sec:test_execution, test execution in the Java plugin reference>>.
@@ -389,8 +404,8 @@ Suppose you'd like to ensure release builds are only triggered by CI. A simple w
 
 .Prevent releasing outside of CI
 ====
-include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
 ----
 $ gradle performRelease -PisCI=true --quiet
 include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]

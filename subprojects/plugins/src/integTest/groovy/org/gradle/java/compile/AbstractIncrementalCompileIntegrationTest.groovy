@@ -19,6 +19,7 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.internal.jvm.Jvm
 
 abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
     abstract CompiledLanguage getLanguage()
@@ -34,7 +35,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         file("src/main/${language.name}/Test.${language.name}") << 'public class Test{}'
         buildFile << """
             apply plugin: '${language.name}'
-            sourceCompatibility = 1.7
+            java.sourceCompatibility = '${Jvm.current().javaVersion.previous()}'
             ${language.compileTaskName}.options.debug = true
             ${language.compileTaskName}.options.incremental = true
             ${language.projectGroovyDependencies()}
@@ -47,7 +48,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         executedAndNotSkipped ":${language.compileTaskName}"
 
         when:
-        buildFile << 'sourceCompatibility = 1.8\n'
+        buildFile << "java.sourceCompatibility = '${Jvm.current().javaVersion}'\n"
         succeeds ":${language.compileTaskName}"
 
         then:

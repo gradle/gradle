@@ -26,6 +26,7 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -35,6 +36,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     private final FileCollection files;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
+    @Inject
     public DefaultMavenArtifactSet(
         String publicationName,
         NotationParser<Object, MavenArtifact> mavenArtifactParser,
