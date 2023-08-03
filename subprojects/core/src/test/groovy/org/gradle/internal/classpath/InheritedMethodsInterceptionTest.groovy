@@ -26,6 +26,8 @@ import static java.util.function.Predicate.isEqual
 import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
 import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider
 import static org.gradle.internal.classpath.InstrumentedClasses.nestedClassesOf
+import static org.gradle.internal.classpath.JvmBytecodeInterceptorSet.*
+
 /**
  * See {@link BasicCallInterceptionTest} for a basic example
  */
@@ -37,7 +39,7 @@ class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
 
     @Override
     protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
-        return { [BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS] }
+        return new ClassLoaderSourceJvmBytecodeInterceptorSet(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
     @Override

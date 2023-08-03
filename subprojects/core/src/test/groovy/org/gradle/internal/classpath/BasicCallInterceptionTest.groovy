@@ -22,7 +22,6 @@ import groovy.transform.stc.SimpleType
 import java.util.function.Predicate
 
 import static java.util.function.Predicate.isEqual
-import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS
 import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
 import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider
 import static org.gradle.internal.classpath.InstrumentedClasses.nestedClassesOf
@@ -32,6 +31,7 @@ import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTes
 import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVararg
 import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithArray
 import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithNullItem
+import static org.gradle.internal.classpath.JvmBytecodeInterceptorSet.*
 
 class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
     @Override
@@ -41,7 +41,7 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
 
     @Override
     protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
-        return JvmBytecodeInterceptorSet.DEFAULT + { [JVM_BYTECODE_GENERATED_CLASS] }
+        return DEFAULT + new ClassLoaderSourceJvmBytecodeInterceptorSet(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
     @Override
