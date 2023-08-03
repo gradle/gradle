@@ -65,6 +65,13 @@ public abstract class JvmVendorSpec {
     public static final JvmVendorSpec IBM_SEMERU = IBM;
 
     /**
+     * A constant for using <a href="https://www.jetbrains.com/jetbrains-runtime">JetBrains Runtime</a> as the JVM vendor.
+     *
+     * @since 8.3
+     */
+    public static final JvmVendorSpec JETBRAINS = matching(KnownJvmVendor.JETBRAINS);
+
+    /**
      * A constant for using <a href="https://www.microsoft.com/openjdk">Microsoft OpenJDK</a> as the JVM vendor.
      *
      * @since 7.3
