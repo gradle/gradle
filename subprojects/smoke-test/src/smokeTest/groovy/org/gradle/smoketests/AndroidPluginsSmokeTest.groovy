@@ -109,7 +109,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
-            expectBuildIdentifierNameDeprecation()
+            expectBuildIdentifierNameDeprecation(agpVersion)
             expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
         }.build()
@@ -181,7 +181,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner.deprecations(AndroidDeprecations) {
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectBuildIdentifierNameDeprecation()
+            expectBuildIdentifierNameDeprecation(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation(agpVersion)
                 expectProjectConventionDeprecationWarning(agpVersion)
