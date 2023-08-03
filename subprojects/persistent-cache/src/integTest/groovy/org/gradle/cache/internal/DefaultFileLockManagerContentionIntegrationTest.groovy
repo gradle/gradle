@@ -43,11 +43,6 @@ import static org.gradle.util.internal.TextUtil.escapeString
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
     def addressFactory = new InetAddressFactory()
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     FileLockContentionHandler receivingFileLockContentionHandler
     DatagramSocket receivingSocket
     FileLock receivingLock

@@ -47,11 +47,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
-
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
     def setup() {
         expectReindentedValidationMessage()
         settingsFile << """

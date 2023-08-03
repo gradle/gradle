@@ -44,11 +44,6 @@ class ConcurrentBuildsIncrementalBuildIntegrationTest extends AbstractIntegratio
         server.start()
     }
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     private void prepareTransformTask() {
         buildFile << '''
 public class TransformerTask extends DefaultTask {

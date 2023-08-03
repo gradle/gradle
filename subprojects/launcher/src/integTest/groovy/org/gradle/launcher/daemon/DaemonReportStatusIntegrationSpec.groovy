@@ -27,11 +27,6 @@ import org.junit.Rule
 class DaemonReportStatusIntegrationSpec extends DaemonIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     def "shows default message if no daemons are running"() {
         when:
         def out = executer.withArgument("--status").run().normalizedOutput
