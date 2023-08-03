@@ -136,12 +136,12 @@ public class Instrumented {
         );
     }
 
-    private static final AtomicBoolean interceptorsLoaded = new AtomicBoolean();
+    private static final AtomicBoolean INTERCEPTORS_LOADED = new AtomicBoolean();
     private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
     private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
 
     public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
-        if (interceptorsLoaded.getAndSet(true)) {
+        if (INTERCEPTORS_LOADED.getAndSet(true)) {
             throw new IllegalStateException("Call interceptors already loaded");
         }
 
