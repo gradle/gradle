@@ -93,28 +93,23 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         )
     }
 
-    void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion) {
+    void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, String fixedVersion = '8.0.0') {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         runner.expectLegacyDeprecationWarningIf(
-            agpVersionNumber < VersionNumber.parse("8.0.0-rc01"),
+            agpVersionNumber.baseVersion < VersionNumber.parse(fixedVersion),
             getBuildIdentifierIsCurrentBuildDeprecationMessage()
         )
     }
 
-    void expectBuildIdentifierIsCurrentBuildDeprecation() {
-        runner.expectDeprecationWarning(
-            getBuildIdentifierIsCurrentBuildDeprecationMessage(),
-            "https://issuetracker.google.com/issues/279306626"
-        )
-    }
-
-    void expectBuildIdentifierNameDeprecation() {
-        runner.expectDeprecationWarning(
+    void expectBuildIdentifierNameDeprecation(String agpVersion) {
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        runner.expectLegacyDeprecationWarningIf(
+            agpVersionNumber.baseVersion < VersionNumber.parse("8.2.0"),
             "The BuildIdentifier.getName() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use getBuildPath() to get a unique identifier for the build. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-            "https://issuetracker.google.com/issues/279306626"
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
         )
     }
 
