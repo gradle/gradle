@@ -67,8 +67,9 @@ public abstract class JvmVendorSpec {
     /**
      * A constant for using <a href="https://www.jetbrains.com/jetbrains-runtime">JetBrains Runtime</a> as the JVM vendor.
      *
-     * @since 8.3
+     * @since 8.4
      */
+    @Incubating
     public static final JvmVendorSpec JETBRAINS = matching(KnownJvmVendor.JETBRAINS);
 
     /**
