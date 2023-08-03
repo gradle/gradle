@@ -16,23 +16,9 @@
 
 package org.gradle.internal.instrumentation.api.declarations;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 public class InterceptorDeclaration {
     public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE = "org.gradle.internal.classpath.generated.InterceptorDeclaration_ConfigCacheJvmBytecode";
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE = "org.gradle.internal.classpath.generated.InterceptorDeclaration_ConfigCacheGroovyInterceptors";
     public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesJvmBytecode";
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesGroovyInterceptors";
-
-    public static final List<String> JVM_BYTECODE_GENERATED_CLASS_NAMES = Collections.unmodifiableList(Arrays.asList(
-        JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE,
-        JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
-    ));
-
-    public static final List<String> GROOVY_INTERCEPTORS_GENERATED_CLASS_NAMES = Collections.unmodifiableList(Arrays.asList(
-        GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE,
-        GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
-    ));
 }
