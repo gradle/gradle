@@ -46,7 +46,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
 
         then:
-        virtualMemory instanceof OsMemoryCategory.Available
+        virtualMemory instanceof OsMemoryStatusAspect.Available
     }
 
 
@@ -56,6 +56,6 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
 
         then:
-        virtualMemory instanceof OsMemoryCategory.Unavailable
+        virtualMemory instanceof OsMemoryStatusAspect.Unavailable
     }
 }

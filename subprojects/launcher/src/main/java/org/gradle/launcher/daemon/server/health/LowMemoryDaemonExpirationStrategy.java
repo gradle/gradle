@@ -22,7 +22,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-import org.gradle.process.internal.health.memory.OsMemoryCategory;
+import org.gradle.process.internal.health.memory.OsMemoryStatusAspect;
 import org.gradle.process.internal.health.memory.OsMemoryStatus;
 import org.gradle.process.internal.health.memory.OsMemoryStatusListener;
 
@@ -65,9 +65,9 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
                 if (result != null) {
                     return result;
                 }
-                OsMemoryCategory virtualMemory = memoryStatus.getVirtualMemory();
-                if (virtualMemory instanceof OsMemoryCategory.Available) {
-                    result = checkExpiry((OsMemoryCategory.Available) virtualMemory, virtualMemoryThresholdInBytes);
+                OsMemoryStatusAspect virtualMemory = memoryStatus.getVirtualMemory();
+                if (virtualMemory instanceof OsMemoryStatusAspect.Available) {
+                    result = checkExpiry((OsMemoryStatusAspect.Available) virtualMemory, virtualMemoryThresholdInBytes);
                     if (result != null) {
                         return result;
                     }
@@ -81,7 +81,7 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
     }
 
     @Nullable
-    private DaemonExpirationResult checkExpiry(OsMemoryCategory.Available memory, long memoryThresholdInBytes) {
+    private DaemonExpirationResult checkExpiry(OsMemoryStatusAspect.Available memory, long memoryThresholdInBytes) {
         long freeMem = memory.getFree();
         if (freeMem < memoryThresholdInBytes) {
             LOGGER.info("after free system {} memory ({}) fell below threshold of {}", memory.getName(), NumberUtil.formatBytes(freeMem), NumberUtil.formatBytes(memoryThresholdInBytes));
@@ -101,9 +101,9 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
         try {
             this.memoryStatus = newStatus;
             this.physicalMemoryThresholdInBytes = normalizeThreshold((long) (memoryStatus.getPhysicalMemory().getTotal() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
-            OsMemoryCategory virtualMemory = memoryStatus.getVirtualMemory();
-            if (virtualMemory instanceof OsMemoryCategory.Available) {
-                this.virtualMemoryThresholdInBytes = normalizeThreshold((long) (((OsMemoryCategory.Available) virtualMemory).getTotal() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
+            OsMemoryStatusAspect virtualMemory = memoryStatus.getVirtualMemory();
+            if (virtualMemory instanceof OsMemoryStatusAspect.Available) {
+                this.virtualMemoryThresholdInBytes = normalizeThreshold((long) (((OsMemoryStatusAspect.Available) virtualMemory).getTotal() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
             }
         } finally {
             lock.unlock();

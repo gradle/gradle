@@ -19,10 +19,10 @@ package org.gradle.process.internal.health.memory;
 import org.gradle.api.NonNullApi;
 
 @NonNullApi
-public class DefaultUnavailableOsMemoryCategory implements OsMemoryCategory.Unavailable {
+public class DefaultUnavailableOsMemoryStatusAspect implements OsMemoryStatusAspect.Unavailable {
     private final String name;
 
-    public DefaultUnavailableOsMemoryCategory(String name) {
+    public DefaultUnavailableOsMemoryStatusAspect(String name) {
         if (name == null) {
             throw new IllegalArgumentException("name cannot be null");
         }
@@ -42,7 +42,7 @@ public class DefaultUnavailableOsMemoryCategory implements OsMemoryCategory.Unav
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultUnavailableOsMemoryCategory that = (DefaultUnavailableOsMemoryCategory) o;
+        DefaultUnavailableOsMemoryStatusAspect that = (DefaultUnavailableOsMemoryStatusAspect) o;
         return name.equals(that.name);
     }
 

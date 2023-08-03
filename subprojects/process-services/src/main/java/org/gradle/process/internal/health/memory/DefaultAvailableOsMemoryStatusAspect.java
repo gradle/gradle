@@ -21,12 +21,12 @@ import org.gradle.api.NonNullApi;
 import java.util.Arrays;
 
 @NonNullApi
-public class DefaultAvailableOsMemoryCategory implements OsMemoryCategory.Available {
+public class DefaultAvailableOsMemoryStatusAspect implements OsMemoryStatusAspect.Available {
     private final String name;
     private final long total;
     private final long free;
 
-    public DefaultAvailableOsMemoryCategory(String name, long total, long free) {
+    public DefaultAvailableOsMemoryStatusAspect(String name, long total, long free) {
         if (name == null) {
             throw new IllegalArgumentException("name cannot be null");
         }
@@ -64,7 +64,7 @@ public class DefaultAvailableOsMemoryCategory implements OsMemoryCategory.Availa
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultAvailableOsMemoryCategory that = (DefaultAvailableOsMemoryCategory) o;
+        DefaultAvailableOsMemoryStatusAspect that = (DefaultAvailableOsMemoryStatusAspect) o;
         return total == that.total && free == that.free && name.equals(that.name);
     }
 

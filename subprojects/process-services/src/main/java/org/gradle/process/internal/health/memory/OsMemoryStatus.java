@@ -25,12 +25,12 @@ public interface OsMemoryStatus {
      *
      * @return the physical memory information
      */
-    OsMemoryCategory.Available getPhysicalMemory();
+    OsMemoryStatusAspect.Available getPhysicalMemory();
 
     /**
      * Get the virtual memory information.
      *
      * @return the virtual memory information
      */
-    OsMemoryCategory getVirtualMemory();
+    OsMemoryStatusAspect getVirtualMemory();
 }

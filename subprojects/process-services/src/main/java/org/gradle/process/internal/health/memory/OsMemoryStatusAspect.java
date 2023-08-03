@@ -23,7 +23,7 @@ import org.gradle.api.NonNullApi;
  * Memory status information, usually either physical or virtual.
  */
 @NonNullApi
-public interface OsMemoryCategory extends Named {
+public interface OsMemoryStatusAspect extends Named {
     /**
      * Get the name of this category.
      *
@@ -36,7 +36,7 @@ public interface OsMemoryCategory extends Named {
      * Represents available memory information.
      */
     @NonNullApi
-    interface Available extends OsMemoryCategory {
+    interface Available extends OsMemoryStatusAspect {
         /**
          * Get the total memory of this category in bytes.
          *
@@ -61,5 +61,5 @@ public interface OsMemoryCategory extends Named {
      * </p>
      */
     @NonNullApi
-    interface Unavailable extends OsMemoryCategory {}
+    interface Unavailable extends OsMemoryStatusAspect {}
 }

@@ -17,8 +17,8 @@
 package org.gradle.process.internal.health.memory;
 
 public class OsMemoryStatusSnapshot implements OsMemoryStatus {
-    private final OsMemoryCategory.Available physicalMemory;
-    private final OsMemoryCategory virtualMemory;
+    private final OsMemoryStatusAspect.Available physicalMemory;
+    private final OsMemoryStatusAspect virtualMemory;
 
     /**
      * Create a new snapshot with unknown virtual memory.
@@ -28,8 +28,8 @@ public class OsMemoryStatusSnapshot implements OsMemoryStatus {
      */
     public OsMemoryStatusSnapshot(long totalPhysicalMemory, long freePhysicalMemory) {
         this(
-            new DefaultAvailableOsMemoryCategory("physical", totalPhysicalMemory, freePhysicalMemory),
-            new DefaultUnavailableOsMemoryCategory("virtual")
+            new DefaultAvailableOsMemoryStatusAspect("physical", totalPhysicalMemory, freePhysicalMemory),
+            new DefaultUnavailableOsMemoryStatusAspect("virtual")
         );
     }
 
@@ -45,23 +45,23 @@ public class OsMemoryStatusSnapshot implements OsMemoryStatus {
         long totalPhysicalMemory, long freePhysicalMemory, long totalVirtualMemory, long freeVirtualMemory
     ) {
         this(
-            new DefaultAvailableOsMemoryCategory("physical", totalPhysicalMemory, freePhysicalMemory),
-            new DefaultAvailableOsMemoryCategory("virtual", totalVirtualMemory, freeVirtualMemory)
+            new DefaultAvailableOsMemoryStatusAspect("physical", totalPhysicalMemory, freePhysicalMemory),
+            new DefaultAvailableOsMemoryStatusAspect("virtual", totalVirtualMemory, freeVirtualMemory)
         );
     }
 
-    private OsMemoryStatusSnapshot(OsMemoryCategory.Available physicalMemory, OsMemoryCategory virtualMemory) {
+    private OsMemoryStatusSnapshot(OsMemoryStatusAspect.Available physicalMemory, OsMemoryStatusAspect virtualMemory) {
         this.physicalMemory = physicalMemory;
         this.virtualMemory = virtualMemory;
     }
 
     @Override
-    public OsMemoryCategory.Available getPhysicalMemory() {
+    public OsMemoryStatusAspect.Available getPhysicalMemory() {
         return physicalMemory;
     }
 
     @Override
-    public OsMemoryCategory getVirtualMemory() {
+    public OsMemoryStatusAspect getVirtualMemory() {
         return virtualMemory;
     }
 
