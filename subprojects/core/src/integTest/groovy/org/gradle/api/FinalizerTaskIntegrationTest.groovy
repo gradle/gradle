@@ -40,7 +40,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         '''
     }
 
-
     @Issue("https://github.com/gradle/gradle/issues/21542")
     def "finalizer can depend on a task that it finalizes"() {
         given:

@@ -47,6 +47,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
+
     def setup() {
         expectReindentedValidationMessage()
         settingsFile << """
