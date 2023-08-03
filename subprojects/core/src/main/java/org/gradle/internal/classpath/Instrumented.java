@@ -142,15 +142,14 @@ public class Instrumented {
 
     public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
         if (interceptorsLoaded.getAndSet(true)) {
-            ClassLoaderSourceGroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
-            GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
-            currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
-
-            ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader);
-            currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
-        } else {
             throw new IllegalStateException("Call interceptors already loaded");
         }
+
+        ClassLoaderSourceGroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
+        GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
+        currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
+        ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader);
+        currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
     }
 
     public static JvmBytecodeInterceptorSet getJvmBytecodeInterceptors() {
