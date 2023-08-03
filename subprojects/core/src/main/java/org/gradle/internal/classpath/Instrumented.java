@@ -142,7 +142,7 @@ public class Instrumented {
 
     public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
         if (INTERCEPTORS_LOADED.getAndSet(true)) {
-            throw new IllegalStateException("Call interceptors already loaded");
+            return;
         }
 
         ClassLoaderSourceGroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
