@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import spock.lang.Issue
 
 /**
- * Tests for the tooliing API, which check fetching models and running actions using different
+ * Tests for the tooling API, which check fetching models and running actions using different
  * combinations of versions of the TAPI and Gradle.
  *
  * Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0, so
@@ -30,8 +30,8 @@ import spock.lang.Issue
  *
  * In addition, in version 6.6 the deprecated {@code DependencySubstitutions#with(ComponentSelector)} method
  * was removed, to be replaced by {@code #using(ComponentSelector)} so there are 2 versions of tests
- * present using either of those methods - pre and post Gradle 6.6.  And when the TAPI or Gradel versions
- * are overriden on the method level, you have to be sure to copy the lower bound down to the method level
+ * present using either of those methods - pre and post Gradle 6.6.  And when the TAPI or Gradle versions
+ * are overridden on the method level, you have to be sure to copy the lower bound down to the method level
  * when setting a new upper bound, otherwise the lower bound is lifted, as the method level annotations
  * replace the class level ones.
  */
