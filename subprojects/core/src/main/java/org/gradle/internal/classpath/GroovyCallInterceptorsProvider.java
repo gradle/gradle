@@ -42,6 +42,42 @@ public interface GroovyCallInterceptorsProvider {
     }
 
     @NonNullApi
+    class ClassLoaderSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
+
+        private final Lazy<List<CallInterceptor>> interceptors;
+
+        public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader) {
+            this(classLoader, "org.gradle");
+        }
+
+        @VisibleForTesting
+        public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader, String forPackage) {
+            this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClassLoader(classLoader, forPackage));
+        }
+
+        private static List<CallInterceptor> getInterceptorsFromClassLoader(ClassLoader classLoader, String forPackage) {
+            ImmutableList.Builder<CallInterceptor> interceptors = ImmutableList.builder();
+            for(CallInterceptor interceptor : ServiceLoader.load(CallInterceptor.class, classLoader)) {
+                if (interceptor.getClass().getPackage().getName().startsWith(forPackage)) {
+                    interceptors.add(interceptor);
+                }
+            }
+            return interceptors.build();
+        }
+
+        @Override
+        public List<CallInterceptor> getCallInterceptors() {
+            return interceptors.get();
+        }
+    }
+
+    /**
+     * Use {@link ClassLoaderSourceGroovyCallInterceptorsProvider} instead that loads classes via SPI.
+     * Kept to support old case where we loaded a class directly.
+     */
+    @NonNullApi
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     class ClassSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
         private final Lazy<List<CallInterceptor>> interceptors;
@@ -83,36 +119,6 @@ public interface GroovyCallInterceptorsProvider {
             } catch (InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
-        }
-    }
-
-    @NonNullApi
-    class ClassLoaderSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
-
-        private final Lazy<List<CallInterceptor>> interceptors;
-
-        public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader) {
-            this(classLoader, "org.gradle");
-        }
-
-        @VisibleForTesting
-        public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader, String forPackage) {
-            this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClassLoader(classLoader, forPackage));
-        }
-
-        private static List<CallInterceptor> getInterceptorsFromClassLoader(ClassLoader classLoader, String forPackage) {
-            ImmutableList.Builder<CallInterceptor> interceptors = ImmutableList.builder();
-            for(CallInterceptor interceptor : ServiceLoader.load(CallInterceptor.class, classLoader)) {
-                if (interceptor.getClass().getPackage().getName().startsWith(forPackage)) {
-                    interceptors.add(interceptor);
-                }
-            }
-            return interceptors.build();
-        }
-
-        @Override
-        public List<CallInterceptor> getCallInterceptors() {
-            return interceptors.get();
         }
     }
 
