@@ -17,16 +17,16 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.lazy.Lazy;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,14 +44,15 @@ public interface GroovyCallInterceptorsProvider {
     @NonNullApi
     class ClassSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
-        private final String className;
+        private final Lazy<List<CallInterceptor>> interceptors;
 
         public ClassSourceGroovyCallInterceptorsProvider(String className) {
-            this.className = className;
+            this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClass(className));
         }
+
         @Override
         public List<CallInterceptor> getCallInterceptors() {
-            return getInterceptorsFromClass(className);
+            return interceptors.get();
         }
 
         private static List<CallInterceptor> getInterceptorsFromClass(String className) {
@@ -66,6 +67,7 @@ public interface GroovyCallInterceptorsProvider {
          * @param interceptorsProviderClass the class providing the Groovy call interceptors.
          * It must have a method that follows the pattern: {@code public static List<CallInterceptor> getCallInterceptors()}
          */
+        @SuppressWarnings("unchecked")
         private static List<CallInterceptor> getInterceptorsFromClass(Class<?> interceptorsProviderClass) {
             Method getCallInterceptors;
             try {
@@ -74,24 +76,20 @@ public interface GroovyCallInterceptorsProvider {
                 throw new IllegalArgumentException("The provider class does not have the expected getCallInterceptors method", e);
             }
 
-            List<CallInterceptor> result;
             try {
-                result = Cast.uncheckedNonnullCast(getCallInterceptors.invoke(null));
+                return ImmutableList.copyOf((List<CallInterceptor>) Cast.uncheckedNonnullCast(getCallInterceptors.invoke(null)));
             } catch (IllegalAccessException e) {
                 throw new IllegalArgumentException("Cannot access the getCallInterceptors method in the provider class", e);
             } catch (InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
-
-            return result;
         }
     }
 
     @NonNullApi
     class ClassLoaderSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
-        private final ClassLoader classLoader;
-        private final Predicate<CallInterceptor> filter;
+        private final Lazy<List<CallInterceptor>> interceptors;
 
         public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader) {
             this(classLoader, "org.gradle");
@@ -99,19 +97,22 @@ public interface GroovyCallInterceptorsProvider {
 
         @VisibleForTesting
         public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader, String forPackage) {
-            this.classLoader = classLoader;
-            this.filter = callInterceptor -> callInterceptor.getClass().getPackage().getName().startsWith(forPackage);
+            this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClassLoader(classLoader, forPackage));
+        }
+
+        private static List<CallInterceptor> getInterceptorsFromClassLoader(ClassLoader classLoader, String forPackage) {
+            ImmutableList.Builder<CallInterceptor> interceptors = ImmutableList.builder();
+            for(CallInterceptor interceptor : ServiceLoader.load(CallInterceptor.class, classLoader)) {
+                if (interceptor.getClass().getPackage().getName().startsWith(forPackage)) {
+                    interceptors.add(interceptor);
+                }
+            }
+            return interceptors.build();
         }
 
         @Override
         public List<CallInterceptor> getCallInterceptors() {
-            List<CallInterceptor> interceptors = new ArrayList<>();
-            for(CallInterceptor interceptor : ServiceLoader.load(CallInterceptor.class, classLoader)) {
-                if (filter.test(interceptor)) {
-                    interceptors.add(interceptor);
-                }
-            }
-            return interceptors;
+            return interceptors.get();
         }
     }
 

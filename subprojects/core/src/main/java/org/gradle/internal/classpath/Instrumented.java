@@ -145,7 +145,7 @@ public class Instrumented {
             return;
         }
 
-        ClassLoaderSourceGroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
+        GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
         GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
         currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
         ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader);

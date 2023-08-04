@@ -17,14 +17,14 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.lazy.Lazy;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,6 +36,7 @@ import static org.gradle.internal.jvm.inspection.JavaInstallationRegistry.distin
  */
 @NonNullApi
 public interface JvmBytecodeInterceptorSet {
+
     JvmBytecodeInterceptorSet DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet.class.getClassLoader());
 
     List<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData);
@@ -46,8 +47,8 @@ public interface JvmBytecodeInterceptorSet {
 
     @NonNullApi
     class ClassLoaderSourceJvmBytecodeInterceptorSet implements JvmBytecodeInterceptorSet {
-        private final ClassLoader classLoader;
-        private final Predicate<JvmBytecodeCallInterceptor> filter;
+
+        private final Lazy<List<JvmBytecodeCallInterceptor.Factory>> factories;
 
         public ClassLoaderSourceJvmBytecodeInterceptorSet(ClassLoader classLoader) {
             this(classLoader, "org.gradle");
@@ -55,20 +56,26 @@ public interface JvmBytecodeInterceptorSet {
 
         @VisibleForTesting
         public ClassLoaderSourceJvmBytecodeInterceptorSet(ClassLoader classLoader, String forPackage) {
-            this.classLoader = classLoader;
-            this.filter = callInterceptor -> callInterceptor.getClass().getPackage().getName().startsWith(forPackage);
+            this.factories = Lazy.locking().of(() -> loadFactories(classLoader, forPackage));
+        }
+
+        private static List<JvmBytecodeCallInterceptor.Factory> loadFactories(ClassLoader classLoader, String forPackage) {
+            ImmutableList.Builder<JvmBytecodeCallInterceptor.Factory> factories = ImmutableList.builder();
+            for (JvmBytecodeCallInterceptor.Factory factory : ServiceLoader.load(JvmBytecodeCallInterceptor.Factory.class, classLoader)) {
+                if (factory.getClass().getPackage().getName().startsWith(forPackage)) {
+                    factories.add(factory);
+                }
+            }
+            return factories.build();
         }
 
         @Override
         public List<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData) {
-            List<JvmBytecodeCallInterceptor> interceptors = new ArrayList<>();
-            for (JvmBytecodeCallInterceptor.Factory factory : ServiceLoader.load(JvmBytecodeCallInterceptor.Factory.class, classLoader)) {
-                JvmBytecodeCallInterceptor interceptor = factory.create(methodVisitor, classData);
-                if (filter.test(interceptor)) {
-                    interceptors.add(interceptor);
-                }
+            ImmutableList.Builder<JvmBytecodeCallInterceptor> interceptors = ImmutableList.builder();
+            for (JvmBytecodeCallInterceptor.Factory factory : factories.get()) {
+                interceptors.add(factory.create(methodVisitor, classData));
             }
-            return interceptors;
+            return interceptors.build();
         }
     }
 
