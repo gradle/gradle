@@ -229,6 +229,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param listener The listener to add.
      */
     public void addTestListener(TestListener listener) {
+        assertNotExecuting();
+        addListener(listener);
+    }
+
+    private void addListener(TestListener listener) {
         testListenerBroadcaster.add(listener);
     }
 
@@ -238,7 +243,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param listener The listener to add.
      */
     public void addTestOutputListener(TestOutputListener listener) {
+        assertNotExecuting();
+        addOutputListener(listener);
+    }
+
+    private void addOutputListener(TestOutputListener listener) {
         testOutputListenerBroadcaster.add(listener);
+    }
+
+    private void assertNotExecuting() {
+        if (getState().getExecuting()) {
+            throw new IllegalStateException("Listener cannot be added at execution time.");
+        }
     }
 
     /**
@@ -249,6 +265,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param listener The listener to remove.
      */
     public void removeTestListener(TestListener listener) {
+        assertNotExecuting();
         testListenerBroadcaster.remove(listener);
     }
 
@@ -260,6 +277,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param listener The listener to remove.
      */
     public void removeTestOutputListener(TestOutputListener listener) {
+        assertNotExecuting();
         testOutputListenerBroadcaster.remove(listener);
     }
 
@@ -418,8 +436,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
         TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
-        addTestListener(eventLogger);
-        addTestOutputListener(eventLogger);
+        addListener(eventLogger);
+        addOutputListener(eventLogger);
 
         TestExecutionSpec executionSpec = createTestExecutionSpec();
 
@@ -439,11 +457,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestOutputStore.Writer outputWriter = testOutputStore.writer();
         TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
 
-        addTestListener(testReportDataCollector);
-        addTestOutputListener(testReportDataCollector);
+        addListener(testReportDataCollector);
+        addOutputListener(testReportDataCollector);
 
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
-        addTestListener(testCountLogger);
+        addListener(testCountLogger);
 
         getTestListenerInternalBroadcaster().add(new TestListenerAdapter(testListenerBroadcaster.getSource(), getTestOutputListenerBroadcaster().getSource()));
 
