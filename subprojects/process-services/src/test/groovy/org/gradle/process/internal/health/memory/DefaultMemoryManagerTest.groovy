@@ -211,8 +211,8 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
     }
 
     private static class TestOsMemoryInfo implements OsMemoryInfo {
-        long totalMemory = -1
-        long freeMemory = -1
+        long totalMemory = 0
+        long freeMemory = 0
 
         @Override
         OsMemoryStatus getOsSnapshot() {
