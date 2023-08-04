@@ -21,11 +21,6 @@ import org.gradle.testing.junit.AbstractJUnitTestFailureIntegrationTest
 abstract class AbstractJUnit4TestFailureIntegrationTest extends AbstractJUnitTestFailureIntegrationTest {
 
     @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
-    @Override
     void writeBrokenRunnerOrExtension(String className) {
         file("src/test/java/org/gradle/${className}.java") << """
             package org.gradle;

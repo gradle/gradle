@@ -26,11 +26,6 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer httpServer = new BlockingHttpServer()
     @Rule GitHttpRepository repo = new GitHttpRepository(httpServer, "test", temporaryFolder.getTestDirectory())
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     def setup() {
         httpServer.start()
 

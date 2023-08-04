@@ -23,11 +23,6 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
 class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     def "compile task is loaded from cache"() {
         buildFile << """
             apply plugin: "java"

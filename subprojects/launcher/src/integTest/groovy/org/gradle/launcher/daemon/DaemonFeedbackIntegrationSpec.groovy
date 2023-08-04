@@ -32,11 +32,6 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 @LeaksFileHandles
 class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     def "daemon keeps logging to the file even if the build is stopped"() {
         given:
         file("build.gradle") << """

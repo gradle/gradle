@@ -22,10 +22,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.configurationcache.serialization.codecs.ClosureCodec
 
 class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
 
     def "from-cache build fails when task action closure reads a project property"() {
         given:

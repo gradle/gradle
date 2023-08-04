@@ -31,11 +31,6 @@ import spock.lang.Timeout
 
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "reasonable failure message when --max-workers=#value"() {
         given:

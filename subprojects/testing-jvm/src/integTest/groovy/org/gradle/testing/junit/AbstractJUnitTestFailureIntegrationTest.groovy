@@ -38,11 +38,6 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
     abstract Matcher<? super String>[] getBrokenBeforeAndAfterMatchers()
     abstract boolean hasStableInitializationErrors()
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     def "reports and breaks build when tests fail"() {
         given:
         file('src/test/java/org/gradle/BrokenAfter.java') << """

@@ -84,11 +84,6 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "fails when build is configured to use Java #jdk.javaVersion"() {
         given:
