@@ -375,6 +375,7 @@ Sorting is done based on the following rules:
 .. GRAAL_VM
 .. HEWLETT_PACKARD
 .. IBM
+.. JETBRAINS
 .. MICROSOFT
 .. ORACLE
 .. SAP

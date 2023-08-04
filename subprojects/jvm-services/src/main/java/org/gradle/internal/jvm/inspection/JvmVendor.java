@@ -30,6 +30,7 @@ public interface JvmVendor {
         GRAAL_VM("graalvm community", "GraalVM Community"),
         HEWLETT_PACKARD("hewlett-packard", "HP-UX"),
         IBM("ibm", "ibm|international business machines corporation", "IBM"),
+        JETBRAINS("jetbrains", "JetBrains s.r.o"),
         MICROSOFT("microsoft", "Microsoft"),
         ORACLE("oracle", "Oracle"),
         SAP("sap se", "SAP SapMachine"),
