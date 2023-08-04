@@ -167,7 +167,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                 .undocumented()
                 .noLocation()
                 .severity(Severity.ERROR)
-                .message("Copy task %s failed", getPath())
+                .message("Copy task '%s' failed", getPath())
                 .type("CopyTaskFailed")
                 .group(ProblemGroup.TASK_EXECUTION_ID)
                 .cause(e)
