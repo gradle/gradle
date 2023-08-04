@@ -27,9 +27,9 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
@@ -43,6 +43,9 @@ import org.gradle.api.internal.file.copy.CopySpecResolver;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -66,6 +69,11 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 @NonNullApi
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
+
+    @Inject
+    protected Problems getProblemsService() {
+        throw new UnsupportedOperationException();
+    }
 
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
@@ -150,8 +158,21 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     protected void copy() {
         CopyActionExecuter copyActionExecuter = createCopyActionExecuter();
         CopyAction copyAction = createCopyAction();
-        WorkResult didWork = copyActionExecuter.execute(rootSpec, copyAction);
-        setDidWork(didWork.getDidWork());
+        try {
+            WorkResult didWork = copyActionExecuter.execute(rootSpec, copyAction);
+            setDidWork(didWork.getDidWork());
+        } catch (Exception e) {
+            throw getProblemsService()
+                .createProblemBuilder()
+                .undocumented()
+                .noLocation()
+                .severity(Severity.ERROR)
+                .message("Copy task %s failed", getPath())
+                .type("CopyTaskFailed")
+                .group(ProblemGroup.TASK_EXECUTION_ID)
+                .cause(e)
+                .throwIt();
+        }
     }
 
     protected CopyActionExecuter createCopyActionExecuter() {

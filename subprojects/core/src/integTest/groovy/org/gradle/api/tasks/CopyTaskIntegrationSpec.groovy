@@ -366,6 +366,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "useful help message when property cannot be expanded"() {
+        enableProblemsApiCheck()
+
         given:
         buildFile << """
             task copy (type: Copy) {

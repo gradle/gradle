@@ -100,6 +100,12 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
+    public UnTypedProblemBuilder message(String message, Object... args) {
+        this.message = String.format(message, args);
+        return this;
+    }
+
+    @Override
     public ProblemBuilderWithoutMessage severity(Severity severity) {
         this.severity = severity;
         return this;

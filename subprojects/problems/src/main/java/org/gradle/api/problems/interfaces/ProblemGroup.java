@@ -34,6 +34,8 @@ public abstract class ProblemGroup {
 //    public static final ProblemGroup VERSION_CATALOG = new PredefinedProblemGroup(VERSION_CATALOG_ID);
     public static final String TYPE_VALIDATION_ID = "type_validation";
 //    public static final ProblemGroup TYPE_VALIDATION = new PredefinedProblemGroup(TYPE_VALIDATION_ID);
+    public static final String TASK_EXECUTION_ID = "task_execution";
+
 
     private final String id;
 

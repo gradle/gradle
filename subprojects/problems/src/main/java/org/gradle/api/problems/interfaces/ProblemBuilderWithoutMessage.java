@@ -26,4 +26,5 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface ProblemBuilderWithoutMessage {
     UnTypedProblemBuilder message(String message);
+    UnTypedProblemBuilder message(String message, Object... args);
 }

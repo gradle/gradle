@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static org.gradle.api.problems.interfaces.ProblemGroup.DEPRECATION_ID;
 import static org.gradle.api.problems.interfaces.ProblemGroup.GENERIC_ID;
+import static org.gradle.api.problems.interfaces.ProblemGroup.TASK_EXECUTION_ID;
 import static org.gradle.api.problems.interfaces.ProblemGroup.TYPE_VALIDATION_ID;
 import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG_ID;
 import static org.gradle.api.problems.interfaces.Severity.ERROR;
@@ -43,6 +44,7 @@ public class DefaultProblems extends Problems {
         addPredfinedGroup(TYPE_VALIDATION_ID);
         addPredfinedGroup(DEPRECATION_ID);
         addPredfinedGroup(VERSION_CATALOG_ID);
+        addPredfinedGroup(TASK_EXECUTION_ID);
     }
 
     private void addPredfinedGroup(String genericId) {
