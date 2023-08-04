@@ -82,11 +82,6 @@ The currently configured max heap space is '512 MiB' and the configured max meta
 ${COMMON_HINT}""")
     }
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     def "expires daemon immediately when garbage collector is thrashing"() {
         given:
         if (JavaVersion.current().isJava9Compatible() && GradleContextualExecuter.isConfigCache()) {

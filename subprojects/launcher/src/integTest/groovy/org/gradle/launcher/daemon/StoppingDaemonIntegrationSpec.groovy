@@ -30,11 +30,6 @@ class StoppingDaemonIntegrationSpec extends DaemonIntegrationSpec {
 
     private static final String UNBLOCK = 'unblock'
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     def setup() {
         server.start()
     }

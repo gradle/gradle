@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-
+import org.gradle.api.problems.interfaces.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 /**
@@ -112,7 +112,7 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
                     .annotatedType('java.lang.String')
                     .reason('Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input')
                     .includeLink()
-        }, WARNING)
+        }, Severity.WARNING)
     }
 
     protected static class KotlinDeprecations extends BaseDeprecations implements WithKotlinDeprecations {

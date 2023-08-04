@@ -28,11 +28,6 @@ import org.gradle.util.GradleVersion
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         prepareWrapper()

@@ -24,11 +24,6 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
     @Rule
     public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 
-    @Override
-    def setupBuildOperationFixture() {
-        //disable because of a test that is incompatible with the build operation fixture
-    }
-
     def setup() {
         blockingServer.start()
 
