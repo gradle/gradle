@@ -56,6 +56,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry.getGroovyCallDecorator;
 import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
 
@@ -102,6 +103,33 @@ public class Instrumented {
         }
     };
 
+    @NonNullApi
+    public static class CallInterceptorRegistry {
+        private static final AtomicBoolean INTERCEPTORS_LOADED = new AtomicBoolean();
+        private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
+        private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
+
+        public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
+            if (INTERCEPTORS_LOADED.getAndSet(true)) {
+                return;
+            }
+
+            GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
+            GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
+            currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
+            ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader);
+            currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
+        }
+
+        public static CallSiteDecorator getGroovyCallDecorator() {
+            return currentGroovyCallDecorator;
+        }
+
+        public static JvmBytecodeInterceptorSet getJvmBytecodeInterceptors() {
+            return currentJvmBytecodeInterceptors;
+        }
+    }
+
     private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
 
     public static void setListener(Listener listener) {
@@ -136,32 +164,12 @@ public class Instrumented {
         );
     }
 
-    private static final AtomicBoolean INTERCEPTORS_LOADED = new AtomicBoolean();
-    private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
-    private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
-
-    public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
-        if (INTERCEPTORS_LOADED.getAndSet(true)) {
-            return;
-        }
-
-        GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
-        GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
-        currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
-        ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader);
-        currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
-    }
-
-    public static JvmBytecodeInterceptorSet getJvmBytecodeInterceptors() {
-        return currentJvmBytecodeInterceptors;
-    }
-
     @NonNullApi
     private static final class InterceptorResolverImpl implements CallInterceptorResolver {
         @Nullable
         @Override
         public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
-            CallSiteDecorator currentDecorator = currentGroovyCallDecorator;
+            CallSiteDecorator currentDecorator = getGroovyCallDecorator();
             if (currentDecorator instanceof CallInterceptorResolver) {
                 return ((CallInterceptorResolver) currentDecorator).resolveCallInterceptor(scope);
             }
@@ -170,7 +178,7 @@ public class Instrumented {
 
         @Override
         public boolean isAwareOfCallSiteName(String name) {
-            CallSiteDecorator currentDecorator = currentGroovyCallDecorator;
+            CallSiteDecorator currentDecorator = getGroovyCallDecorator();
             if (currentDecorator instanceof CallInterceptorResolver) {
                 return ((CallInterceptorResolver) currentDecorator).isAwareOfCallSiteName(name);
             }
@@ -186,11 +194,11 @@ public class Instrumented {
     @NonNullApi
     public static class GroovyCallInterceptorInternalTesting {
         static CallSiteDecorator getCurrentGroovyCallSiteDecorator() {
-            return currentGroovyCallDecorator;
+            return getGroovyCallDecorator();
         }
 
         static void setCurrentGroovyCallSiteDecorator(CallSiteDecorator interceptorsSet) {
-            currentGroovyCallDecorator = interceptorsSet;
+            CallInterceptorRegistry.currentGroovyCallDecorator = interceptorsSet;
         }
     }
 
@@ -198,7 +206,7 @@ public class Instrumented {
     @SuppressWarnings("unused")
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
-            array.array[callSite.getIndex()] = currentGroovyCallDecorator.maybeDecorateGroovyCallSite(callSite);
+            array.array[callSite.getIndex()] = getGroovyCallDecorator().maybeDecorateGroovyCallSite(callSite);
         }
     }
 
@@ -216,7 +224,7 @@ public class Instrumented {
      * @see IndyInterface
      */
     public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return currentGroovyCallDecorator.maybeDecorateIndyCallSite(
+        return getGroovyCallDecorator().maybeDecorateIndyCallSite(
             IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 

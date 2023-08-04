@@ -18,7 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classpath.Instrumented;
+import org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
@@ -39,7 +39,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         this.apiAndPluginsClassLoader = restrictTo(gradleApiSpec, pluginsClassLoader);
 
         // Load instrumentation classes from Plugin class loader for instrumentation
-        Instrumented.loadCallInterceptors(pluginsClassLoader);
+        CallInterceptorRegistry.loadCallInterceptors(pluginsClassLoader);
     }
 
     private ClassLoader restrictToGradleApi(ClassLoader classLoader) {

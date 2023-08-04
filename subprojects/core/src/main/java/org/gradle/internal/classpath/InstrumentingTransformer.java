@@ -21,6 +21,7 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
@@ -171,7 +172,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     }
 
     public InstrumentingTransformer() {
-        this(Instrumented.getJvmBytecodeInterceptors());
+        this(CallInterceptorRegistry.getJvmBytecodeInterceptors());
     }
 
     /**
