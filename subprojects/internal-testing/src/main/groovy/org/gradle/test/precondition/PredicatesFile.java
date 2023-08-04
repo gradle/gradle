@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class PredicatesFile {
@@ -68,7 +69,7 @@ public class PredicatesFile {
                     .map(String::trim)
                     // Prefix the package with the implicit name of the predicates
                     .map(name -> PREDICATE_PACKAGE_PREFIX + name)
-                    .collect(Collectors.toSet())
+                    .collect(Collectors.toCollection(TreeSet::new))
                 ).collect(Collectors.toSet());
         } catch (IOException e) {
             throw new RuntimeException("Error parsing resource " + resource, e);
