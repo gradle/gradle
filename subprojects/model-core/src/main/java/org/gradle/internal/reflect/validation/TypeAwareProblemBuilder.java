@@ -17,12 +17,12 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
 
 import javax.annotation.Nullable;
 
 @NonNullApi
-public interface TypeAwareProblemBuilder extends UndocumentedProblemBuilder {
+public interface TypeAwareProblemBuilder extends ProblemBuilderDefiningDocumentation {
     TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached);
 
     TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage();

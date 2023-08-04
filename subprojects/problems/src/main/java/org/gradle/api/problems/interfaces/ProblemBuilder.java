@@ -27,12 +27,12 @@ import javax.annotation.Nullable;
  *
  * before this can be used the following interfaces must be used in order:
  * <ul>
- *     <li>{@link UndocumentedProblemBuilder}
- *     <li>{@link UnlocatedProblemBuilder}
- *     <li>{@link ProblemBuilderWithoutSeverity}
- *     <li>{@link ProblemBuilderWithoutMessage}
- *     <li>{@link UnTypedProblemBuilder}
- *     <li>{@link UngroupedProblemBuilder}
+ *     <li>{@link ProblemBuilderDefiningDocumentation}
+ *     <li>{@link ProblemBuilderDefiningLocation}
+ *     <li>{@link ProblemBuilderDefiningSeverity}
+ *     <li>{@link ProblemBuilderDefiningMessage}
+ *     <li>{@link ProblemBuilderDefiningType}
+ *     <li>{@link ProblemBuilderDefiningGroup}
  * </ul>
  *
  * An example of how to use the builder:

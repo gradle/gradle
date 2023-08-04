@@ -18,8 +18,8 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import java.util.Collection;
@@ -49,7 +49,7 @@ public class DefaultProblems extends Problems {
         problemGroups.put(genericId, new PredefinedProblemGroup(genericId));
     }
 
-    public UndocumentedProblemBuilder createProblemBuilder() {
+    public ProblemBuilderDefiningDocumentation createProblemBuilder() {
         return new DefaultProblemBuilder(this, buildOperationProgressEventEmitter);
     }
 

@@ -22,14 +22,14 @@ import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemBuilderWithoutMessage;
-import org.gradle.api.problems.interfaces.ProblemBuilderWithoutSeverity;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningGroup;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLocation;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningSeverity;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningType;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
-import org.gradle.api.problems.interfaces.UnTypedProblemBuilder;
-import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
-import org.gradle.api.problems.interfaces.UngroupedProblemBuilder;
-import org.gradle.api.problems.interfaces.UnlocatedProblemBuilder;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import javax.annotation.Nullable;
@@ -45,12 +45,12 @@ import java.util.Map;
  */
 @Incubating
 public class DefaultProblemBuilder implements ProblemBuilder,
-    UndocumentedProblemBuilder,
-    UnlocatedProblemBuilder,
-    UngroupedProblemBuilder,
-    ProblemBuilderWithoutMessage,
-    ProblemBuilderWithoutSeverity,
-    UnTypedProblemBuilder {
+    ProblemBuilderDefiningDocumentation,
+    ProblemBuilderDefiningLocation,
+    ProblemBuilderDefiningGroup,
+    ProblemBuilderDefiningMessage,
+    ProblemBuilderDefiningSeverity,
+    ProblemBuilderDefiningType {
 
     private ProblemGroup problemGroup;
     private String message;
@@ -94,24 +94,24 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public UnTypedProblemBuilder message(String message) {
+    public ProblemBuilderDefiningType message(String message) {
         this.message = message;
         return this;
     }
 
     @Override
-    public ProblemBuilderWithoutMessage severity(Severity severity) {
+    public ProblemBuilderDefiningMessage severity(Severity severity) {
         this.severity = severity;
         return this;
     }
 
-    public ProblemBuilderWithoutSeverity location(String path, Integer line) {
+    public ProblemBuilderDefiningSeverity location(String path, Integer line) {
         this.path = path;
         this.line = line;
         return this;
     }
 
-    public ProblemBuilderWithoutSeverity location(String path, Integer line, Integer column) {
+    public ProblemBuilderDefiningSeverity location(String path, Integer line, Integer column) {
         this.path = path;
         this.line = line;
         this.column = column;
@@ -119,7 +119,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderWithoutSeverity noLocation() {
+    public ProblemBuilderDefiningSeverity noLocation() {
         this.noLocation = true;
         return this;
     }
@@ -129,18 +129,18 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public UnlocatedProblemBuilder documentedAt(DocLink doc) {
+    public ProblemBuilderDefiningLocation documentedAt(DocLink doc) {
         this.documentationUrl = doc;
         return this;
     }
 
     @Override
-    public UnlocatedProblemBuilder undocumented() {
+    public ProblemBuilderDefiningLocation undocumented() {
         this.explicitlyUndocumented = true;
         return this;
     }
 
-    public UngroupedProblemBuilder type(String problemType) {
+    public ProblemBuilderDefiningGroup type(String problemType) {
         this.problemType = problemType;
         return this;
     }

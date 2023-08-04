@@ -20,8 +20,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.ProblemBuilderWithoutSeverity;
-import org.gradle.api.problems.interfaces.UnlocatedProblemBuilder;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLocation;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningSeverity;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -84,7 +84,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if(problemsService != null){
-            UnlocatedProblemBuilder genericDeprecation = problemsService.createProblemBuilder()//DEPRECATION, usage.formattedMessage(), WARNING, "generic_deprecation")
+            ProblemBuilderDefiningLocation genericDeprecation = problemsService.createProblemBuilder()//DEPRECATION, usage.formattedMessage(), WARNING, "generic_deprecation")
                 .documentedAt(usage.getDocumentationUrl());
             addPossibleLocation(diagnostics, genericDeprecation)
                 .severity(WARNING)
@@ -96,7 +96,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }
 
-    private static ProblemBuilderWithoutSeverity addPossibleLocation(ProblemDiagnostics diagnostics, UnlocatedProblemBuilder genericDeprecation) {
+    private static ProblemBuilderDefiningSeverity addPossibleLocation(ProblemDiagnostics diagnostics, ProblemBuilderDefiningLocation genericDeprecation) {
         Location location = diagnostics.getLocation();
         if (location == null) {
             return genericDeprecation.noLocation();

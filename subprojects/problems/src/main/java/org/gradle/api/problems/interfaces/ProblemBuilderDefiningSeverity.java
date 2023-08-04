@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface UngroupedProblemBuilder {
-    ProblemBuilder group(ProblemGroup group);
-    ProblemBuilder group(String group);
+public interface ProblemBuilderDefiningSeverity {
+    ProblemBuilderDefiningMessage severity(Severity severity);
 }

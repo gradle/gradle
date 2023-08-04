@@ -24,8 +24,8 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface UndocumentedProblemBuilder {
-    UnlocatedProblemBuilder documentedAt(DocLink doc);
+public interface ProblemBuilderDefiningDocumentation {
+    ProblemBuilderDefiningLocation documentedAt(DocLink doc);
 
-    UnlocatedProblemBuilder undocumented();
+    ProblemBuilderDefiningLocation undocumented();
 }

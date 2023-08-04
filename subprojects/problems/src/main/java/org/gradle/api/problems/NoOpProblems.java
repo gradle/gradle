@@ -18,8 +18,8 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -32,7 +32,7 @@ import java.util.Collection;
 @Incubating
 class NoOpProblems extends Problems {
     @Override
-    public UndocumentedProblemBuilder createProblemBuilder() {
+    public ProblemBuilderDefiningDocumentation createProblemBuilder() {
         return null;
     }
 

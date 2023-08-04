@@ -24,10 +24,6 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface UnlocatedProblemBuilder {
-    ProblemBuilderWithoutSeverity location(String path, Integer line);
-
-    ProblemBuilderWithoutSeverity location(String path, Integer line, Integer column);
-
-    ProblemBuilderWithoutSeverity noLocation();
+public interface ProblemBuilderDefiningMessage {
+    ProblemBuilderDefiningType message(String message);
 }

@@ -24,6 +24,6 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderWithoutMessage {
-    UnTypedProblemBuilder message(String message);
+public interface ProblemBuilderDefiningType {
+    ProblemBuilderDefiningGroup type(String problemType);
 }

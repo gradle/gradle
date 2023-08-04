@@ -19,8 +19,8 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.UndocumentedProblemBuilder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -40,7 +40,7 @@ public abstract class Problems {
 
     private static Problems problemsService = new NoOpProblems();
 
-    abstract public UndocumentedProblemBuilder createProblemBuilder();
+    abstract public ProblemBuilderDefiningDocumentation createProblemBuilder();
 
     abstract public void collectError(Throwable failure);
 
@@ -63,7 +63,7 @@ public abstract class Problems {
     protected static void collect(Problem problem) {
         problemsService.collectError(problem);
     }
-    protected static UndocumentedProblemBuilder create() {
+    protected static ProblemBuilderDefiningDocumentation create() {
         return problemsService.createProblemBuilder();
     }
     protected static RuntimeException throwing(ProblemBuilder problem, RuntimeException cause) {

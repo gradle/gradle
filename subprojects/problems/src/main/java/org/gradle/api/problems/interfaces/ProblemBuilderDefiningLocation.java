@@ -24,6 +24,10 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderWithoutSeverity {
-    ProblemBuilderWithoutMessage severity(Severity severity);
+public interface ProblemBuilderDefiningLocation {
+    ProblemBuilderDefiningSeverity location(String path, Integer line);
+
+    ProblemBuilderDefiningSeverity location(String path, Integer line, Integer column);
+
+    ProblemBuilderDefiningSeverity noLocation();
 }

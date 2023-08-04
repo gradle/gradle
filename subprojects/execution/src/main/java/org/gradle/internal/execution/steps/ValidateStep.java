@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilderWithoutMessage;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.MutableReference;
@@ -160,7 +160,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         }
     }
 
-    private ProblemBuilderWithoutMessage configureImplementationValidationProblem(TypeAwareProblemBuilder problem) {
+    private ProblemBuilderDefiningMessage configureImplementationValidationProblem(TypeAwareProblemBuilder problem) {
         return problem
             .typeIsIrrelevantInErrorMessage()
             .documentedAt(userManual("validation_problems", "implementation_unknown"))
