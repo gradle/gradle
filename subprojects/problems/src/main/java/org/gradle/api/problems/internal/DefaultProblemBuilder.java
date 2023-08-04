@@ -94,8 +94,8 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningType message(String message) {
-        this.message = message;
+    public ProblemBuilderDefiningType message(String message, Object... args) {
+        this.message = String.format(message, args);
         return this;
     }
 
