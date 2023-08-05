@@ -56,7 +56,7 @@ is the build of the link:https://github.com/gradle/gradle[Gradle Build Tool] its
 [[sec:convention_plugins_vs_cross_configuration]]
 == Cross project configuration
 
-Another, discouraged, way to share build logic between subproject is _cross project configuration_ via the `subprojects {}` and `allprojects {}` DSL constructs.
+Another, discouraged, way to share build logic between subprojects is _cross project configuration_ via the `subprojects {}` and `allprojects {}` DSL constructs.
 With cross configuration, build logic can be injected into a subproject and this is not obvious when looking at the subproject's
 build script, making it harder to understand the logic of a particular subproject.
 In the long run, cross configuration usually grows complex with more and more conditional logic and a higher maintenance burden.
