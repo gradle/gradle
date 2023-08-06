@@ -50,6 +50,7 @@ plugins {
 
 val serverUrl = "https://ge.gradle.org"
 val gitCommitName = "gitCommitId"
+val gitBranchCustomValueName = "gitBranchName"
 val tcBuildTypeName = "tcBuildType"
 
 // We can not use plugin {} because this is registered by a settings plugin.
@@ -97,6 +98,9 @@ fun Project.extractCiData() {
             whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
                 value(tcBuildTypeName, buildType)
                 link("Build Type Scans", customValueSearchUrl(mapOf(tcBuildTypeName to buildType)))
+            }
+            whenEnvIsSet("BUILD_BRANCH") { gitBranchName ->
+                link("Scans On Branch $gitBranchName", customValueSearchUrl(mapOf(gitBranchCustomValueName to gitBranchName)))
             }
         }
     }
