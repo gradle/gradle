@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
@@ -54,6 +55,11 @@ class NoOpProblems extends Problems {
     @Nullable
     @Override
     public ProblemGroup getProblemGroup(String groupId) {
+        return null;
+    }
+
+    @Override
+    public RuntimeException throwing(Action<ProblemBuilderDefiningDocumentation> action) {
         return null;
     }
 

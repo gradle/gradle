@@ -16,12 +16,14 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -50,6 +52,11 @@ public class DefaultProblems extends Problems {
     }
 
     public ProblemBuilderDefiningDocumentation createProblemBuilder() {
+        return createProblemBuilderInternal();
+    }
+
+    @Nonnull
+    private DefaultProblemBuilder createProblemBuilderInternal() {
         return new DefaultProblemBuilder(this, buildOperationProgressEventEmitter);
     }
 
@@ -93,5 +100,12 @@ public class DefaultProblems extends Problems {
     public ProblemGroup registerProblemGroup(ProblemGroup typeId) {
         problemGroups.put(typeId.getId(), typeId);
         return typeId;
+    }
+
+    @Override
+    public RuntimeException throwing(Action<ProblemBuilderDefiningDocumentation> action) {
+        DefaultProblemBuilder problemBuilder = createProblemBuilderInternal();
+        action.execute(problemBuilder);
+        throw problemBuilder.throwIt();
     }
 }

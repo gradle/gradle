@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
@@ -51,32 +52,40 @@ public abstract class Problems {
 
     abstract public @Nullable ProblemGroup getProblemGroup(String groupId);
 
+    abstract public RuntimeException throwing(Action<ProblemBuilderDefiningDocumentation> action);
+
     abstract public ProblemGroup registerProblemGroup(String typeId);
+
     abstract public ProblemGroup registerProblemGroup(ProblemGroup typeId);
 
     protected static void collect(Throwable failure) {
         problemsService.collectError(failure);
     }
-    public static void init(Problems problemsService){
+
+    public static void init(Problems problemsService) {
         Problems.problemsService = problemsService;
     }
+
     protected static void collect(Problem problem) {
         problemsService.collectError(problem);
     }
+
     protected static ProblemBuilderDefiningDocumentation create() {
         return problemsService.createProblemBuilder();
     }
+
     protected static RuntimeException throwing(ProblemBuilder problem, RuntimeException cause) {
         problem.cause(cause);
         return throwing(singleton(problem.build()), cause);
     }
+
     protected static RuntimeException throwing(Collection<Problem> problems, RuntimeException cause) {
         collect(problems);
         throw cause;
     }
 
     protected static void collect(Collection<Problem> problems) {
-            problemsService.collectErrors(problems);
+        problemsService.collectErrors(problems);
     }
 
 }
