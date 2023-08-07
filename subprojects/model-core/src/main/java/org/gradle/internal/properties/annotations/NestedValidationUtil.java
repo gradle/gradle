@@ -69,7 +69,7 @@ public class NestedValidationUtil  {
     }
 
     private static boolean isKotlinStdlib(Class<?> type) {
-        return type.getName().startsWith("kotlin.") || type.getName().startsWith("kotlinx.");
+        return type.getName().startsWith("kotlin.");
     }
 
     private static boolean isGString(Class<?> type) {

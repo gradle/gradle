@@ -1015,18 +1015,34 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         'String'           | '"abc"'                    | 'java.lang.String'
     }
 
-    private static String namedBeanClass() {
-        """
-            class NamedBean implements Named {
-                @Internal final String name
-                @Input final String value
+    @Issue("https://github.com/gradle/gradle/issues/26018")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested Kotlin #type from kotlinx package is validated without warning"() {
+        testDirectory.file("buildSrc/src/main/java/kotlinx/NestedBean.java") << """
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
 
-                NamedBean(name, value) {
-                    this.name = name
-                    this.value = value
-                }
+            public interface NestedBean {
+                @Input
+                @Optional
+                public Property<String> getValue();
             }
         """
+
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                abstract NestedBean getMyKotlinx()
+
+                @TaskAction
+                void execute() { }
+            }
+
+            tasks.register("customTask", CustomTask) { }
+        """
+
+        expect:
+        succeeds("customTask")
     }
 
     @ValidationTestFor(
@@ -1336,4 +1352,17 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         """
     }
 
+    private static String namedBeanClass() {
+        """
+            class NamedBean implements Named {
+                @Internal final String name
+                @Input final String value
+
+                NamedBean(name, value) {
+                    this.name = name
+                    this.value = value
+                }
+            }
+        """
+    }
 }
