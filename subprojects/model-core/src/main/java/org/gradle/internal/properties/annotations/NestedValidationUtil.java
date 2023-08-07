@@ -52,7 +52,7 @@ public class NestedValidationUtil  {
         String propertyName,
         Class<?> beanType
     ) {
-        Optional<String> unsupportedReason = isSupportedType(beanType);
+        Optional<String> unsupportedReason = getUnsupportedReason(beanType);
         unsupportedReason.ifPresent(reason -> validationContext.visitPropertyProblem(problem ->
             problem.withId(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
                 .reportAs(WARNING)
@@ -65,7 +65,7 @@ public class NestedValidationUtil  {
         ));
     }
 
-    private static Optional<String> isSupportedType(Class<?> type) {
+    private static Optional<String> getUnsupportedReason(Class<?> type) {
         if (type.getName().startsWith("java.") || type.getName().startsWith("javax.")) {
             return Optional.of("Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types");
         } else if (type.getName().startsWith("kotlin.")) {
