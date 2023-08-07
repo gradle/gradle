@@ -93,7 +93,7 @@ public class ClasspathWalker {
         }
     }
 
-    private static class ZipClasspathEntry implements ClasspathEntryVisitor.Entry {
+    public static class ZipClasspathEntry implements ClasspathEntryVisitor.Entry {
         private final ZipEntry entry;
 
         public ZipClasspathEntry(ZipEntry entry) {
