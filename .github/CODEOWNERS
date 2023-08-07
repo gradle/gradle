@@ -117,7 +117,7 @@ subprojects/internal-testing/               @gradle/bt-developer-productivity
 .github/workflows/gitstream.yml     @tresat
 
 # Architecture council
-.github/CODEOWNERS @gradle/bt-architecture-council
+.github/CODEOWNERS @gradle/bt-architecture-council @tresat
 
 # IDE Experience team
 platforms/ide/                    @gradle/bt-ide-experience
