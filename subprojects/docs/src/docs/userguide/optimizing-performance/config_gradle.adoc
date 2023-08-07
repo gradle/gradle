@@ -1,0 +1,84 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[config_gradle]]
+== Configuring Gradle
+
+[[sec:configuring_jvm_memory]]
+== Configuring JVM memory
+
+The `org.gradle.jvmargs` Gradle property controls the VM running the build.
+It defaults to `-Xmx512m "-XX:MaxMetaspaceSize=384m"`
+
+You can adjust JVM options for Gradle in the following ways.
+
+*Option 1:* Changing JVM settings for the build VM:
+====
+----
+org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+----
+====
+
+The `JAVA_OPTS` environment variable controls the command line client, which is only used to display console output. It defaults to `-Xmx64m`
+
+*Option 2:* Changing JVM settings for the client VM:
+====
+----
+JAVA_OPTS="-Xmx64m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+----
+====
+
+[NOTE]
+====
+There is one case where the client VM can also serve as the build VM:
+
+If you deactivate the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> and the client VM has the same settings as required for the build VM, the client VM will run the build directly.
+
+Otherwise, the client VM will fork a new VM to run the actual build in order to honor the different settings.
+====
+
+Certain tasks, like the `test` task, also fork additional JVM processes.
+You can configure these through the tasks themselves.
+They use `-Xmx512m` by default.
+
+*Example 1:* Set compile options for Java compilation tasks:
+====
+include::sample[dir="snippets/buildEnvironment/javaCompileOptions/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/buildEnvironment/javaCompileOptions/groovy",files="build.gradle[]"]
+====
+
+See other examples in the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] API documentation and <<java_testing.adoc#sec:test_execution, test execution in the Java plugin reference>>.
+
+link:https://scans.gradle.com[Build scans] will tell you information about the JVM that executed the build when you use the `--scan` option:
+
+[caption= "Build Environment in build scans",link=https://scans.gradle.com/s/sample/cpp-parallel/infrastructure]
+image::build-scan-infrastructure.png[Build Environment in Build Scan]
+
+[[sec:configuring_task_using_project_properties]]
+== Configuring a task using project properties
+
+It is possible to change the behavior of a task based on project properties specified at invocation time.
+
+Suppose you would like to ensure release builds are only triggered by CI.
+A simple way to do this is using the `isCI` project property.
+
+*Example 1:* Prevent releasing outside of CI:
+====
+include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+----
+$ gradle performRelease -PisCI=true --quiet
+include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
+----
+====
