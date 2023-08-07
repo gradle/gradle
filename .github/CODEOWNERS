@@ -51,13 +51,14 @@ platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-kotlin-ds
 platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-dsl-maintainers
 
 # Core automation platform (core/runtime)
-
 subprojects/installation-beacon             @gradle/bt-core-runtime-maintainers
 
 # Gradle Enterprise integration
-platforms/enterprise                        @gradle/bt-build-scan @gradle/ge-build-insights
-platforms/enterprise/enterprise/            @gradle/bt-build-scan @gradle/ge-testing @gradle/ge-build-insights @ldaley
-platforms/enterprise/enterprise-logging/    @gradle/bt-build-scan @gradle/ge-build-insights @gradle/ge-testing
+platforms/enterprise                                    @gradle/bt-build-scan @gradle/ge-build-insights
+platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/ge-testing @gradle/ge-build-insights @ldaley
+platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/ge-build-insights @gradle/ge-testing
+platforms/enterprise/enterprise-operations/             @gradle/bt-build-scan
+platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 
 # JVM platform
 platforms/jvm/                              @gradle/bt-jvm
@@ -116,7 +117,7 @@ subprojects/internal-testing/               @gradle/bt-developer-productivity
 .github/workflows/gitstream.yml     @tresat
 
 # Architecture council
-.github/CODEOWNERS @gradle/bt-architecture-council
+.github/CODEOWNERS @gradle/bt-architecture-council @tresat
 
 # IDE Experience team
 platforms/ide/                    @gradle/bt-ide-experience
