@@ -25,6 +25,7 @@ Learn the basics of project dependencies and Gradle's dependency management.
 - Use a Build Scan to analyze dependencies
 - Update project dependencies
 - Understand transitive dependencies
+- Adding a version catalog
 ****
 
 [[part3_begin]]
@@ -119,7 +120,7 @@ compileClasspath - Compile classpath for source set 'main'.
 
 The output clearly depicts that `com.google.guava:guava:31.1-jre` has a dependency on `com.google.guava:failureaccess:1.0.1`.
 
-== Step 3. Viewing Dependencies in a Build Scan®
+== Step 4. Viewing Dependencies in a Build Scan®
 To view dependencies using a https://scans.gradle.com/[Build Scan], run the build task with an optional `--scan` flag.
 
 In the `tutorial` directory, enter the command below and follow the prompt to accept the terms:
@@ -165,8 +166,7 @@ image::tutorial/build-scan-trans-dependencies.png[]
 There are several transitive dependencies under `junit` and `guava`.
 For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:31.1-jre` dependency.
 
-
-== Step 4. Updating Project Dependencies
+== Step 5. Updating Project Dependencies
 Adding and changing dependencies is done in the build file.
 
 Let's change the `junit` version and look at how this affects the dependency tree.
@@ -202,39 +202,48 @@ compileClasspath - Compile classpath for source set 'main'.
 
 It is clear the `guava` dependency has been updated to version `30.0` and the transitive dependencies have changed as well.
 
-== Step 4. Adding a Version Catalog
-Declare all direct dependencies used in central location
-Just declare modules, not dependency configurations
-Reference catalog in subproject build files
-Can also specify plugin versions
+== Step 6. Adding a Version Catalog
+A version catalog is used to declare all direct dependencies of a project in a central location.
 
-Declare all direct dependencies used in central location
-gradle/libs.versions.toml
-Only declare modules, not dependency configurations
-Reference catalog in subproject build files
+It is created in `gradle/libs.versions.toml` and referenced in subproject build files.
 
+First, create the `libs.versions.toml` file in the `gradle` directory.
+
+Then, add the following lines to this new file:
 ----
 [versions]
-json = "20220924"
-guice = "5.1.0"
-checker-qual = "3.28.0"
+junitVer = "5.9.1"
+guavaVer = "31.1-jre"
 
 [libraries]
-json = { module = "org.json:json", version.ref = "json" }
-guava = { module = "com.google.guava:guava", version = { strictly = "[28.0-jre, 30.0-jre]", prefer="29.0-jre" } }
-guava-constraints = { module = "com.google.guava:guava", version = { strictly = "[28.0-jre, 28.5-jre]" } }
-guice = { module = "com.google.inject:guice", version.ref = "guice" }
-checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-qual" }
-
-[bundles]
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitVer" }
+guava = { module = "com.google.guava:guava", version.ref = "guavaVer" }
 ----
 
+In your `app/build.gradle.kts` file, update the dependency block accordingly:
 ----
 dependencies {
-    api(libs.guava)
-    implementation(libs.guice)
+    testImplementation(libs.junit)
+    implementation(libs.guava)
 }
 ----
+
+Finally, make sure everything is working using the `run` task, either in your terminal or IDE:
+----
+./gradlew run
+
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+
+> Task :app:run
+Hello World!
+----
+
+A version catalog provides a number of advantages over declaring the dependencies directly in build scripts:
+
+- Gradle generates type-safe accessors from the catalog so that you can easily add dependencies with autocompletion in the IDE.
+- It is a central place to declare a version of a dependency so that any changes apply to every subproject.
 
 [.text-right]
 **Next Step:** <<part4_gradle_plugins#part4_begin,Applying Plugins>> >>
