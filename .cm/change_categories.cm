@@ -188,7 +188,12 @@ platforms:
   - kotlin_dsl:
     name: 'kotlin_dsl'
     subprojects:
-      - 'platforms/core-configuration/'
+      - 'platforms/core-configuration/kotlin-dsl/'
+      - 'platforms/core-configuration/kotlin-dsl-integ-tests/'
+      - 'platforms/core-configuration/kotlin-dsl-plugins/'
+      - 'platforms/core-configuration/kotlin-dsl-provider-plugins/'
+      - 'platforms/core-configuration/kotlin-dsl-tooling-builders/'
+      - 'platforms/core-configuration/kotlin-dsl-tooling-models/'
       - 'build-logic/kotlin-dsl/'
       - 'subprojects/docs/src/snippets/kotlinDsl/'
   - release_coordination:
