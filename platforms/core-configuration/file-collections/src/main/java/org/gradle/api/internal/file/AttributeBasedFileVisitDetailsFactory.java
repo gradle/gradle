@@ -65,8 +65,8 @@ public class AttributeBasedFileVisitDetailsFactory {
             SymbolicLinkDetails linkDetails = null;
             boolean preserveLink = false;
             if (Files.isSymbolicLink(path)) {
-                linkDetails = new DefaultSymbolicLinkDetails(path);
-                preserveLink = linksStrategy.shouldBePreserved(linkDetails);
+                linkDetails = new DefaultSymbolicLinkDetails(path, relativePath);
+                preserveLink = linksStrategy.shouldBePreserved(linkDetails, relativePath.getPathString());
             }
             if (attrs.isDirectory() && OperatingSystem.current() == OperatingSystem.WINDOWS) {
                 // Workaround for https://github.com/gradle/gradle/issues/11577
@@ -120,8 +120,8 @@ public class AttributeBasedFileVisitDetailsFactory {
         SymbolicLinkDetails linkDetails = null;
         boolean preserveLink = false;
         if (Files.isSymbolicLink(path)) { //TODO: optimize to have only one call to shouldBePreserved/isSymbolicLink
-            linkDetails = new DefaultSymbolicLinkDetails(path);
-            preserveLink = linksStrategy.shouldBePreserved(linkDetails);
+            linkDetails = new DefaultSymbolicLinkDetails(path, parentPath);
+            preserveLink = linksStrategy.shouldBePreserved(linkDetails, parentPath.getPathString() + "/" + path.getFileName().toString()); //FIXME: refactor path hint
         }
         boolean isDirectory = attrs != null && attrs.isDirectory() && !preserveLink;
         RelativePath relativePath = parentPath.append(!isDirectory, path.getFileName().toString());

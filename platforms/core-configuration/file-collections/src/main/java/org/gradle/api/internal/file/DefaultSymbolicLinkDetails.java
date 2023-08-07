@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.SymbolicLinkDetails;
 
 import java.io.IOException;
@@ -27,23 +28,36 @@ import java.nio.file.Path;
 public class DefaultSymbolicLinkDetails implements SymbolicLinkDetails {
     private final Path target;
     private final Path absoluteTarget;
+    private final boolean isRelative;
 
-    public DefaultSymbolicLinkDetails(Path path) {
+    public DefaultSymbolicLinkDetails(Path path, RelativePath relativePath) {
         try {
             target = Files.readSymbolicLink(path);
         } catch (IOException e) {
             throw new GradleException(String.format("Couldn't read symbolic link '%s'.", path), e);
         }
-        if (!target.isAbsolute()) {
-            absoluteTarget = path.getParent().resolve(target);
-        } else {
+        if (target.isAbsolute()) {
             absoluteTarget = target;
+            isRelative = false;
+        } else {
+            absoluteTarget = path.getParent().resolve(target).normalize();
+            isRelative = isRelativeToRoot(path, absoluteTarget, relativePath);
         }
     }
 
+    private boolean isRelativeToRoot(Path path, Path absoluteTarget, RelativePath relativePath) { //TOOD: optimize
+        // "/q/a/root/b/c/d" and "root/b/c/d"
+        // "/q/target/some" vs "/q/a/root/er/target/some"
+        Path rootAbsolutePath = path;
+        for (String __ : relativePath.getSegments()) {
+            rootAbsolutePath = rootAbsolutePath.getParent();
+        }
+        return absoluteTarget.startsWith(rootAbsolutePath);
+    }
+
     @Override
-    public boolean isAbsolute() {
-        return target.isAbsolute();
+    public boolean isRelative() {
+        return isRelative;
     }
 
     @Override

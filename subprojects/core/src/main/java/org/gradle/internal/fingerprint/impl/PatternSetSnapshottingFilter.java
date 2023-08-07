@@ -255,7 +255,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         @Override
         public SymbolicLinkDetails getSymbolicLinkDetails() {
             if (Files.isSymbolicLink(path)) {
-                return new DefaultSymbolicLinkDetails(path);
+                return new DefaultSymbolicLinkDetails(path, getRelativePath());
             } else {
                 return null;
             }

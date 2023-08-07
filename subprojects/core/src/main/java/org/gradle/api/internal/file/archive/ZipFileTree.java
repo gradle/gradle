@@ -106,7 +106,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
                     if (entry.isUnixSymlink()) {
                         linkDetails = new SymbolicLinkDetailsImpl(entry, zip);
                     }
-                    boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails);
+                    boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails, entry.getName());
                     DetailsImpl details = new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod, linkDetails, preserveLink);
                     if (entry.isDirectory()) {
                         visitor.visitDir(details);
@@ -224,8 +224,8 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public boolean isAbsolute() {
-            return getTarget().startsWith("/");
+        public boolean isRelative() {
+            return !getTarget().startsWith("/"); //FIXME: check properly
         }
 
         @Override

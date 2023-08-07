@@ -20,67 +20,62 @@ import org.gradle.api.GradleException;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Objects;
 
-public class LinksStrategy implements Serializable {
+public interface LinksStrategy extends Serializable {
     /**
      * Do not preserve any symlinks. This is the default.
      */
-    public static final LinksStrategy NONE = new LinksStrategy();
+    LinksStrategy NONE = new LinksStrategy() {};
     /**
      * Preserve relative symlinks.
      */
-    public static final LinksStrategy RELATIVE = new LinksStrategy(false, true, false);
+    LinksStrategy RELATIVE = new LinksStrategy() {
+        @Override
+        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+            if (linkDetails == null) {
+                return false;
+            }
+            if (!linkDetails.isRelative()) {
+                throw new GradleException(String.format("Links strategy is set to RELATIVE, but a symlink pointing outside was visited: %s pointing to %s.", originalPath, linkDetails.getTarget()));
+            }
+            return true;
+        }
+    };
     /**
      * Preserve all symlinks, even if they point to non-existent paths.
      */
-    public static final LinksStrategy ALL = new LinksStrategy(true, true, true);
+    LinksStrategy ALL = new LinksStrategy() {
+        @Override
+        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+            return linkDetails != null;
+        }
 
-    private final boolean preserveAbsolute;
-    private final boolean preserveRelative;
-    private final boolean preserveBroken;
-
-    public LinksStrategy() {
-        this.preserveAbsolute = false;
-        this.preserveRelative = false;
-        this.preserveBroken = false;
-    }
-
-    public LinksStrategy(boolean preserveAbsolute, boolean preserveRelative, boolean preserveBroken) {
-        this.preserveAbsolute = preserveAbsolute;
-        this.preserveRelative = preserveRelative;
-        this.preserveBroken = preserveBroken;
-    }
-
-    //TODO: convert to spec may be?
-    public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails) {
-        if (linkDetails == null) {
+        @Override
+        public void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+            // do nothing
+        }
+    };
+    /**
+     * Throw an error if a symlink is visited.
+     */
+    LinksStrategy ERROR = new LinksStrategy() {
+        @Override
+        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+            if (linkDetails != null) {
+                throw new GradleException(String.format("Links strategy is set to ERROR, but a symlink was visited: %s pointing to %s.", originalPath, linkDetails.getTarget()));
+            }
             return false;
         }
-        boolean isAbsolute = linkDetails.isAbsolute();
-        return (isAbsolute && preserveAbsolute) || (!isAbsolute && preserveRelative);
+    };
+
+    default boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+        return false;
     }
 
-    public void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
-        if (linkDetails != null && !preserveBroken && !linkDetails.targetExists()) {
+    default void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+        if (linkDetails != null && !linkDetails.targetExists()) {
             throw new GradleException(String.format("Couldn't follow symbolic link '%s'.", originalPath));
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        LinksStrategy that = (LinksStrategy) o;
-        return preserveAbsolute == that.preserveAbsolute && preserveRelative == that.preserveRelative && preserveBroken == that.preserveBroken;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(preserveAbsolute, preserveRelative, preserveBroken);
-    }
 }

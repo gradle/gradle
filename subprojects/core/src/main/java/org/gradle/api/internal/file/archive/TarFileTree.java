@@ -121,7 +121,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
             if (entry.isSymbolicLink()) {
                 linkDetails = new SymbolicLinkDetailsImpl(tar);
             }
-            boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails);
+            boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails, entry.getName());
             DetailsImpl details = new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod, linkDetails, preserveLink);
             if (entry.isDirectory()) {
                 visitor.visitDir(details);
@@ -283,8 +283,8 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public boolean isAbsolute() {
-            return getTarget().startsWith("/");
+        public boolean isRelative() {
+            return !getTarget().startsWith("/"); //FIXME: check properly
         }
 
         @Override

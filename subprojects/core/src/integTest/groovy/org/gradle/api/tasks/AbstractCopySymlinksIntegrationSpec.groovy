@@ -73,6 +73,46 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         null                     | "isCopy"         | "full copy"
     }
 
+    def "symlinked files should be reported as error if preserveLinks is ERROR"() {
+        given:
+        def originalFile = inputDirectory.createFile("original.txt") << "some text"
+        def link = inputDirectory.file("link").createLink(originalFile.getRelativePathFromBase())
+
+        buildKotlinFile << constructBuildScript(
+            """
+            preserveLinks = LinksStrategy.ERROR
+            from("${inputDirectory.name}")
+            """
+        )
+
+        when:
+        def failure = fails(mainTask)
+
+        then:
+        failure.assertHasCause("Links strategy is set to ERROR, but a symlink was visited: /${link.name} pointing to ${originalFile.getRelativePathFromBase()}.")
+    }
+
+    def "symlinked files should be reported as error if preserveLinks is RELATIVE and points to a path outside the copy root"() {
+        given:
+        def externalFile = inputDirectory.createFile("original.txt") << "some text"
+        def root = inputDirectory.createDir("root")
+        def originalFile = root.createFile("original.txt") << "other text"
+        def link = root.file("link").createLink("../${externalFile.name}")
+
+        buildKotlinFile << constructBuildScript(
+            """
+            preserveLinks = LinksStrategy.RELATIVE
+            from("${inputDirectory.name}")
+            """
+        )
+
+        when:
+        def failure = fails(mainTask)
+
+        then:
+        failure.assertHasCause("Links strategy is set to RELATIVE, but a symlink pointing outside was visited: ${root.name}/${link.name} pointing to ../${externalFile.name}.")
+    }
+
     def "symlinked directories should be copied as #hint if preserveLinks=#preserveLinks"() {
         given:
         def original = inputDirectory.createDir("original")

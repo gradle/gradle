@@ -21,5 +21,5 @@ public interface SymbolicLinkDetails {
 
     boolean targetExists();
 
-    boolean isAbsolute();
+    boolean isRelative();
 }
