@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
@@ -45,6 +46,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
+import org.gradle.api.component.VariantMatchingFailureInterpreter;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
@@ -56,6 +58,7 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.DefaultVariantMatchingFailureInterpreter;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -83,6 +86,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
+    private final ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> variantMatchingFailureInterpreters;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
                                     DependencyFactoryInternal dependencyFactory,
@@ -110,6 +114,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         this.platformSupport = platformSupport;
         configureSchema();
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
+
+        this.variantMatchingFailureInterpreters = objects.polymorphicDomainObjectContainer(VariantMatchingFailureInterpreter.class);
+        variantMatchingFailureInterpreters.registerBinding(VariantMatchingFailureInterpreter.class, DefaultVariantMatchingFailureInterpreter.class);
     }
 
     @Override
@@ -420,6 +427,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         });
     }
 
+    @Override
+    public ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
+        return variantMatchingFailureInterpreters;
+    }
+
     private Category toCategory(String category) {
         return objects.named(Category.class, category);
     }
@@ -468,4 +480,5 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             this.artifactType = artifactType;
         }
     }
+
 }

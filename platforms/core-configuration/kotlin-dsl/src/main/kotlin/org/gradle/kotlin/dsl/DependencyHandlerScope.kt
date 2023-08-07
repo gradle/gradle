@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer
 import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
@@ -25,6 +26,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.component.VariantMatchingFailureInterpreter
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate
@@ -52,6 +54,8 @@ private constructor(
     override fun constraints(configureAction: Action<in DependencyConstraintHandler>) {
         super.constraints(configureAction)
     }
+
+    override fun getMatchingFailureInterpreters(): ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> = dependencies.matchingFailureInterpreters
 
     /**
      * Configures dependency constraint for this project.

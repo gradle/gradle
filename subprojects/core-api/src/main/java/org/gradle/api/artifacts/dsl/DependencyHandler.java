@@ -17,6 +17,8 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -26,6 +28,7 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.component.VariantMatchingFailureInterpreter;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
@@ -694,4 +697,11 @@ public interface DependencyHandler extends ExtensionAware {
         return testFixtures(dependencyProviderConvertible.asProvider());
     }
 
+    /**
+     * The source sets container.
+     *
+     * @since 8.4
+     */
+    @Incubating
+    ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters();
 }
