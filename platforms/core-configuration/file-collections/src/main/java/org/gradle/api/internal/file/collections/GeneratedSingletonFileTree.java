@@ -28,6 +28,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.util.internal.GFileUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -117,11 +118,13 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
         private long lastModified;
         private long size;
         private File file;
+        private final Chmod chmod;
 
         public FileVisitDetailsImpl(String fileName, Action<OutputStream> generator, Chmod chmod) {
             super(chmod);
             this.fileName = fileName;
             this.generator = generator;
+            this.chmod = chmod;
         }
 
         @Override
@@ -140,7 +143,10 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
                 file = createFileInstance(fileName);
                 if (!file.exists()) {
                     fileGenerationListener.execute(file);
-                    copyTo(file);
+
+                    GFileUtils.mkdirs(file.getParentFile());
+                    updateFileOnlyWhenGeneratedContentChanges();
+                    chmod.chmod(file, getPermissions().toUnixNumeric());
                 } else {
                     updateFileOnlyWhenGeneratedContentChanges();
                 }

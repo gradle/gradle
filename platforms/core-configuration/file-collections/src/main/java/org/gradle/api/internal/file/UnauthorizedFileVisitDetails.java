@@ -70,6 +70,7 @@ public class UnauthorizedFileVisitDetails implements FileVisitDetails {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public boolean copyTo(File target) {
         throw new UnsupportedOperationException();
     }

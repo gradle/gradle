@@ -107,6 +107,7 @@ public class SingleFileTreeElementMatcher {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public boolean copyTo(File target) {
             throw new UnsupportedOperationException("Copy to not supported for filters");
         }

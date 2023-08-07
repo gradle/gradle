@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.file.Chmod;
 import org.gradle.util.internal.GFileUtils;
@@ -73,7 +74,9 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public boolean copyTo(File target) {
+        logDeprecation();
         validateTimeStamps();
         try {
             if (isDirectory()) {
@@ -121,5 +124,12 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         public CopyFileElementException(String message, Throwable cause) {
             super(message, cause);
         }
+    }
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateMethod(AbstractFileTreeElement.class, "copyTo(File)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "to be done")
+            .nagUser();
     }
 }

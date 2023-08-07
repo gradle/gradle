@@ -124,6 +124,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public boolean copyTo(File target) {
             throw new UnsupportedOperationException("Copy to not supported for filters");
         }
@@ -219,6 +220,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public boolean copyTo(File target) {
             throw new UnsupportedOperationException("Copy to not supported for filters");
         }

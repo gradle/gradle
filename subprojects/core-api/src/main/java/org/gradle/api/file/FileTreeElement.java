@@ -76,7 +76,9 @@ public interface FileTreeElement {
      *
      * @param target the target file.
      * @return true if this file was copied, false if it was up-to-date
+     * @deprecated to be removed in 9.0. Use FileCopyDetails.copyTo(OutputStream) instead.
      */
+    @Deprecated
     boolean copyTo(File target);
 
     /**
