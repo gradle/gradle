@@ -36,7 +36,7 @@ Learn the basics of project dependencies and Gradle's dependency management.
 == Step 1. Understanding Project Dependencies
 Gradle provides excellent support for dependency management and automation.
 
-Let's take another look at our build script (the `gradle.build` file), specifically the following section:
+Let's take another look at our build script (the `gradle.build.kts` file), specifically the following section:
 [source]
 ----
 repositories {
@@ -55,11 +55,12 @@ dependencies {
 
 Some key concepts in Gradle dependency management include:
 
-Repositories :: The source of dependencies - `mavenCentral()` +
+*Repositories* - The source of dependencies -> `mavenCentral()`
+
 https://mvnrepository.com/repos/central[Maven Central] is a collection of jar files, plugins, and libraries provided by the Maven community and backed by https://central.sonatype.org/[Sonatype^].
 It is the de-facto public artifact store for Java and is used by many build systems.
-Dependencies :: Dependencies declared via configuration types - `junit` and `guava` +
-https://mvnrepository.com/artifact/junit/junit[JUnit] is a unit testing framework and https://mvnrepository.com/artifact/com.google.guava/guava[Guava] is a suite of libraries from Google.
+
+*Dependencies* - Dependencies declared via configuration types -> https://mvnrepository.com/artifact/junit/junit[`junit`] and https://mvnrepository.com/artifact/com.google.guava/guava[`guava`] +
 
 Gradle needs specific information to find a dependency.
 Let's look at `com.google.guava:guava:31.1-jre` and `junit:junit:4.13.2`; they are broken down as follows:
@@ -119,7 +120,7 @@ compileClasspath - Compile classpath for source set 'main'.
 The output clearly depicts that `com.google.guava:guava:31.1-jre` has a dependency on `com.google.guava:failureaccess:1.0.1`.
 
 == Step 3. Viewing Dependencies in a Build Scan®
-To view dependencies using a Build Scan, run the build task with an optional `--scan` flag.
+To view dependencies using a https://scans.gradle.com/[Build Scan], run the build task with an optional `--scan` flag.
 
 In the `tutorial` directory, enter the command below and follow the prompt to accept the terms:
 [source]
@@ -200,6 +201,40 @@ compileClasspath - Compile classpath for source set 'main'.
 ----
 
 It is clear the `guava` dependency has been updated to version `30.0` and the transitive dependencies have changed as well.
+
+== Step 4. Adding a Version Catalog
+Declare all direct dependencies used in central location
+Just declare modules, not dependency configurations
+Reference catalog in subproject build files
+Can also specify plugin versions
+
+Declare all direct dependencies used in central location
+gradle/libs.versions.toml
+Only declare modules, not dependency configurations
+Reference catalog in subproject build files
+
+----
+[versions]
+json = "20220924"
+guice = "5.1.0"
+checker-qual = "3.28.0"
+
+[libraries]
+json = { module = "org.json:json", version.ref = "json" }
+guava = { module = "com.google.guava:guava", version = { strictly = "[28.0-jre, 30.0-jre]", prefer="29.0-jre" } }
+guava-constraints = { module = "com.google.guava:guava", version = { strictly = "[28.0-jre, 28.5-jre]" } }
+guice = { module = "com.google.inject:guice", version.ref = "guice" }
+checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-qual" }
+
+[bundles]
+----
+
+----
+dependencies {
+    api(libs.guava)
+    implementation(libs.guice)
+}
+----
 
 [.text-right]
 **Next Step:** <<part4_gradle_plugins#part4_begin,Applying Plugins>> >>

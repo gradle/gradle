@@ -76,7 +76,7 @@ TIP: You can obtain more information in the task listing using the `--all` optio
 In <<part1_gradle_init.adoc#part1_begin,part 1>> of the tutorial, we ran the `build` task using the `./gradlew build` command.
 
 == Step 2. Understanding Tasks
-We've listed the tasks available when the project is initialized.
+We've listed the tasks available when the project is initialized, but what if we want to create our own tasks?
 
 Gradle provides many _built-in_ tasks that developers can use to enhance build scripts.
 
@@ -190,7 +190,7 @@ $ ./gradlew jar
 > Task :app:classes
 > Task :app:jar
 ----
-As expected, the `compile` task is a dependency of the `jar` task and executed first.
+As expected, the `compileJava` task is a dependency of the `jar` task and executed first.
 Once the task finishes, an `app.jar` file is created in your `tutorial/app/build/libs/` folder.
 
 Invoke the `run` task and check the output:
