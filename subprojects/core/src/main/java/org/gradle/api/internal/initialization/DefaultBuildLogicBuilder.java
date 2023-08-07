@@ -51,11 +51,11 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     }
 
     @Override
-    public ClassPath resolveClassPath(Configuration classpathConfiguration) {
+    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler) {
         return buildQueue.build(
             currentBuild,
             taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
-            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration)
+            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, dependencyHandler)
         );
     }
 
