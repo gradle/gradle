@@ -153,7 +153,7 @@ The local Gradle Build Cache is located at:
 
 Gradle will periodically clean up the local build cache directory by removing entries that have not been used recently to conserve disk space.
 
-== Step 5. Understanding Remote Caching
+== Step 4. Understanding Remote Caching
 In addition to the local build cache present on a developer's machine, Gradle can make use of remote build caches which can be used by multiple developers.
 
 The idea of a remote cache is to share commonly built task outputs across remote builds to improve build times.
