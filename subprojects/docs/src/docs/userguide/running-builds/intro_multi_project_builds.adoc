@@ -15,13 +15,45 @@
 [[intro_multi_project_builds]]
 = Multi-Project Builds
 
-While occasional small projects and monolithic applications may contain a single build file and source tree, it's often more common for a project to have been split into smaller, interdependent modules.
-The word "interdependent" is vital in this case, so you typically want to link the many modules together through a single build.
+While some small projects and monolithic applications may contain a single build file and source tree, it is often more common for a project to have been split into smaller, interdependent modules.
+The word "interdependent" is vital in this case as you typically want to link the many modules together through a single build.
 
 Gradle supports this scenario through _multi-project_ builds.
-This section of the manual is an introduction to running multi-project builds.
 
-For details about authoring _multi-project_ builds, consult the <<multi_project_builds#multi_project_builds,Authoring Multi-Project Builds section of the User Manual>>.
+[[sec:project_structure]]
+== Multi-Project structure
+
+A Gradle multi-project build should have a root project with multiple subprojects.
+
+image::multi-project-structure.png[]
+
+The directory structure should look as follows:
+
+----
+├── .gradle
+│   └── ⋮
+├── gradle
+│   └── wrapper
+├── gradlew
+├── gradlew.bat
+├── settings.gradle.kts  // <1>
+├── subproject-one
+│   └── build.gradle.kts // <2>
+└── subproject-two
+    └── build.gradle.kts // <2>
+----
+<1> The `settings.gradle.kts` file should include all subprojects.
+<2> Each subproject should have its own `build.gradle.kts` file.
+
+[[sec:project_standard]]
+== Multi-Project standards
+
+The Gradle community has two standards for multi-project build structures:
+
+- **<<organizing_gradle_projects.adoc#sec:build_sources,Multi-Project Builds using buildSrc>>** - where `buildSrc` is a subproject-like directory at the Gradle project root, which contains all the build logic.
+- **<<composite_builds.adoc#composite_builds,Composite Builds>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root, which contains all the build logic.
+
+image::multi-project-standards.png[]
 
 [[sec:project_path]]
 == Project path
@@ -34,7 +66,8 @@ The rest of a project path is a colon-separated sequence of project names, where
 You can see the project paths when running `gradle projects` shown <<sec:identifying_project_structure,below>>.
 
 Project paths usually reflect the filesystem layout, but there are exceptions.
-Most notably for composite builds.
+Most notably for <<composite_builds#defining_composite_builds,composite builds>>.
+
 See how to declare <<declaring_dependencies_between_subprojects#declaring_dependencies_between_subprojects, dependencies between subprojects>> using `include` and how to <<composite_builds#defining_composite_builds,create composite builds>> with `includeBuild`.
 
 [[sec:identifying_project_structure]]

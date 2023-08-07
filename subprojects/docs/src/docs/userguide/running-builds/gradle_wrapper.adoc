@@ -20,7 +20,6 @@ The **recommended way to execute any Gradle build** is with the help of the Grad
 The Wrapper is a script that invokes a declared version of Gradle, downloading it beforehand if necessary.
 As a result, developers can get up and running with a Gradle project quickly.
 
-.The Wrapper workflow
 image::wrapper-workflow.png[]
 
 In a nutshell, you gain the following benefits:
