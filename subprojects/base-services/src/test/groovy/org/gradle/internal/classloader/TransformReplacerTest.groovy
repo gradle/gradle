@@ -18,6 +18,7 @@ package org.gradle.internal.classloader
 
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
+import org.gradle.internal.classloader.TransformReplacer.MarkerResource
 import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -97,7 +98,7 @@ class TransformReplacerTest extends Specification {
             }
 
             entry("Foo.class", INSTRUMENTED_CLASS)
-            entry(TransformReplacer.MARKER_RESOURCE_NAME, "true")
+            entry(MarkerResource.RESOURCE_NAME, MarkerResource.TRANSFORMED.asBytes())
         }
 
         TransformedClassPath cp = classPath((original): transformed)
@@ -124,7 +125,7 @@ class TransformReplacerTest extends Specification {
             }
 
             entry("Foo.class", INSTRUMENTED_CLASS)
-            entry(TransformReplacer.MARKER_RESOURCE_NAME, "true")
+            entry(MarkerResource.RESOURCE_NAME, MarkerResource.TRANSFORMED.asBytes())
 
             versionedEntry(currentJvmMajor, "Foo.class", INSTRUMENTED_VERSIONED_CLASS)
         }
@@ -153,10 +154,10 @@ class TransformReplacerTest extends Specification {
             }
 
             entry("Foo.class", INSTRUMENTED_CLASS)
-            entry(TransformReplacer.MARKER_RESOURCE_NAME, "true")
+            entry(MarkerResource.RESOURCE_NAME, MarkerResource.TRANSFORMED.asBytes())
 
             versionedEntry(currentJvmMajor, "Foo.class", INSTRUMENTED_VERSIONED_CLASS)
-            versionedEntry(currentJvmMajor + 1, TransformReplacer.MARKER_RESOURCE_NAME, "false")
+            versionedEntry(currentJvmMajor + 1, MarkerResource.RESOURCE_NAME, MarkerResource.NOT_TRANSFORMED.asBytes())
         }
 
         TransformedClassPath cp = classPath((original): transformed)
@@ -212,9 +213,9 @@ class TransformReplacerTest extends Specification {
             }
 
             entry("Foo.class", INSTRUMENTED_CLASS)
-            entry(TransformReplacer.MARKER_RESOURCE_NAME, "true")
+            entry(MarkerResource.RESOURCE_NAME, MarkerResource.TRANSFORMED.asBytes())
 
-            versionedEntry(currentJvmMajor, TransformReplacer.MARKER_RESOURCE_NAME, "false")
+            versionedEntry(currentJvmMajor, MarkerResource.RESOURCE_NAME, MarkerResource.NOT_TRANSFORMED.asBytes())
         }
 
         TransformedClassPath cp = classPath((original): transformed)

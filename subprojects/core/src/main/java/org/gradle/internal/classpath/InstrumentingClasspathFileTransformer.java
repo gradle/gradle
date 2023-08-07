@@ -26,7 +26,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
-import org.gradle.internal.classloader.TransformReplacer;
+import org.gradle.internal.classloader.TransformReplacer.MarkerResource;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
@@ -46,7 +46,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.OptionalInt;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -470,10 +469,10 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
             if (isMultiReleaseJar) {
                 // Put marker resource into a multi-release JAR so the classloader can recognize that it tries to load non-instrumented classes.
                 // Root directory is always supported. Every Java version before lowestUnsupportedVersion should also load from root.
-                builder.put(TransformReplacer.MARKER_RESOURCE_NAME, "true".getBytes(StandardCharsets.UTF_8));
+                builder.put(MarkerResource.RESOURCE_NAME, MarkerResource.TRANSFORMED.asBytes());
                 if (hasUnsupportedVersionInJar()) {
                     // Every Java version starting from lowestUnsupportedVersion should see this jar as unsupported.
-                    builder.put(JarUtil.toVersionedPath(lowestUnsupportedVersionInJar, TransformReplacer.MARKER_RESOURCE_NAME), "false".getBytes(StandardCharsets.UTF_8));
+                    builder.put(JarUtil.toVersionedPath(lowestUnsupportedVersionInJar, MarkerResource.RESOURCE_NAME), MarkerResource.NOT_TRANSFORMED.asBytes());
                 }
             }
         }

@@ -44,8 +44,6 @@ import java.util.jar.JarFile;
  * This class is thread-safe.
  */
 public class TransformReplacer implements Closeable {
-    public static final String MARKER_RESOURCE_NAME = TransformReplacer.class.getName() + ".transformed";
-
     private static final Loader SKIP_INSTRUMENTATION = new Loader();
     private final ConcurrentMap<ProtectionDomain, Loader> loaders;
     private final TransformedClassPath classPath;
@@ -217,15 +215,58 @@ public class TransformReplacer implements Closeable {
     }
 
     private static boolean isTransformed(JarFile jarFile) throws IOException {
-        JarEntry entry = jarFile.getJarEntry(MARKER_RESOURCE_NAME);
+        JarEntry entry = jarFile.getJarEntry(MarkerResource.RESOURCE_NAME);
         if (entry != null) {
             InputStream in = jarFile.getInputStream(entry);
             try {
-                return "true".equals(StreamByteBuffer.of(in).readAsString("UTF-8"));
+                return MarkerResource.TRANSFORMED.equals(MarkerResource.readFromStream(in));
             } finally {
                 in.close();
             }
         }
         return false;
+    }
+
+    /**
+     * Transformed Multi-Release JARs intended for loading with the TransformReplacer must contain a special resource file named {@code RESOURCE_NAME} and with the body {@code TRANSFORMED.asBytes()}.
+     * If some versioned directories of the JAR haven't been processed, then these directories must contain presiding (overriding) resource with the same name but with
+     * {@code NOT_TRANSFORMED.asBytes()} as body.
+     * <p>
+     * TransformReplacer throws upon opening a JAR file if the current JVM loads the NOT_TRANSFORMED marker resource from the JAR.
+     * TransformReplacer throws upon opening a multi-release JAR without the marker resource.
+     */
+    public enum MarkerResource {
+        // The transformed marker resource is an empty file to reduce archive size in the most common case.
+        TRANSFORMED(new byte[0]),
+        // Not transformed marker resource is a 1-byte file with a single "N" symbol.
+        NOT_TRANSFORMED(new byte[]{'N'});
+
+        public static final String RESOURCE_NAME = TransformReplacer.class.getName() + ".transformed";
+
+        private final byte[] markerBody;
+
+        MarkerResource(byte[] markerBody) {
+            this.markerBody = markerBody;
+        }
+
+        /**
+         * Reads the contents of the MarkerResource and returns the appropriate constant.
+         *
+         * @param in the stream to read from
+         * @return the corresponding marker resource
+         * @throws IOException if reading fails
+         */
+        public static MarkerResource readFromStream(InputStream in) throws IOException {
+            int readByte = in.read();
+            if (readByte < 0) {
+                return TRANSFORMED;
+            }
+            // Be lenient - any non-empty file means the JAR isn't transformed.
+            return NOT_TRANSFORMED;
+        }
+
+        public byte[] asBytes() {
+            return markerBody;
+        }
     }
 }

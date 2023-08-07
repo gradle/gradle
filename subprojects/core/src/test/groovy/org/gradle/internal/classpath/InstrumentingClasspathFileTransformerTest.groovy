@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.FileLockManager
 import org.gradle.internal.Pair
 import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.internal.classloader.TransformReplacer.MarkerResource
 import org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.Policy
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
@@ -32,9 +33,9 @@ import org.junit.Rule
 import org.objectweb.asm.ClassVisitor
 import spock.lang.Specification
 
+import java.nio.charset.StandardCharsets
 import java.util.jar.JarFile
 
-import static org.gradle.internal.classloader.TransformReplacer.MARKER_RESOURCE_NAME
 import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent
 import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader
 import static org.gradle.util.JarUtils.jar
@@ -226,7 +227,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
 
         expect:
         with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())), false)) {
-            assertNotContainsFile(MARKER_RESOURCE_NAME)
+            assertNotContainsFile(MarkerResource.RESOURCE_NAME)
         }
     }
 
@@ -243,10 +244,10 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
 
         expect:
         with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
-            assertFileContent(MARKER_RESOURCE_NAME, "true")
+            assertFileContent(MarkerResource.RESOURCE_NAME, instrumentedMarker())
 
             9..AsmConstants.MAX_SUPPORTED_JAVA_VERSION.each {
-                assertNotContainsVersioned(it, MARKER_RESOURCE_NAME)
+                assertNotContainsVersioned(it, MarkerResource.RESOURCE_NAME)
             }
         }
     }
@@ -265,10 +266,10 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
 
         expect:
         with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
-            assertFileContent(MARKER_RESOURCE_NAME, "true")
-            assertVersionedContent(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MARKER_RESOURCE_NAME, "false")
+            assertFileContent(MarkerResource.RESOURCE_NAME, instrumentedMarker())
+            assertVersionedContent(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MarkerResource.RESOURCE_NAME, notInstrumentedMarker())
 
-            assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2, MARKER_RESOURCE_NAME)
+            assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2, MarkerResource.RESOURCE_NAME)
         }
     }
 
@@ -285,8 +286,8 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
 
         expect:
         with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
-            assertFileContent(MARKER_RESOURCE_NAME, "true")
-            assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MARKER_RESOURCE_NAME)
+            assertFileContent(MarkerResource.RESOURCE_NAME, instrumentedMarker())
+            assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MarkerResource.RESOURCE_NAME)
         }
     }
 
@@ -315,5 +316,17 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
 
     private JarTestFixture jarFixture(File transformedJar, boolean expectManifest = true) {
         return new JarTestFixture(transformedJar, 'UTF-8', null, expectManifest)
+    }
+
+    private static String instrumentedMarker() {
+        return markerBodyAsString(MarkerResource.TRANSFORMED)
+    }
+
+    private static String notInstrumentedMarker() {
+        return markerBodyAsString(MarkerResource.NOT_TRANSFORMED)
+    }
+
+    private static String markerBodyAsString(MarkerResource resource) {
+        return new String(resource.asBytes(), StandardCharsets.US_ASCII)
     }
 }
