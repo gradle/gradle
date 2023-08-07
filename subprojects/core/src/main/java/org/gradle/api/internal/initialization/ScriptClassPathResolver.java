@@ -32,5 +32,5 @@ public interface ScriptClassPathResolver {
      */
     void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler);
 
-    ClassPath resolveClassPath(Configuration classpath);
+    ClassPath resolveClassPath(Configuration classpath, DependencyHandler dependencyHandler);
 }

@@ -26,5 +26,5 @@ public interface BuildLogicBuilder {
 
     void prepareClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler);
 
-    ClassPath resolveClassPath(Configuration classpathConfiguration);
+    ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler);
 }
