@@ -43,7 +43,7 @@ public class ClasspathBuilder {
     private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
-    ClasspathBuilder(final TemporaryFileProvider temporaryFileProvider) {
+    public ClasspathBuilder(final TemporaryFileProvider temporaryFileProvider) {
         this.temporaryFileProvider = temporaryFileProvider;
     }
 

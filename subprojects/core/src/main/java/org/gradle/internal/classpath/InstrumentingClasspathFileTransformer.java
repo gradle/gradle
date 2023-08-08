@@ -138,6 +138,6 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     }
 
     private String decorateDestinationFileName(File source, String dest, InstrumentingTypeRegistry typeRegistry) {
-        return jarTransformFactory.createTransformer(source, this.transform, typeRegistry).decorateDestinationFileName(dest);
+        return classpathElementTransformFactory.createTransformer(source, this.transform, typeRegistry).decorateDestinationFileName(dest);
     }
 }

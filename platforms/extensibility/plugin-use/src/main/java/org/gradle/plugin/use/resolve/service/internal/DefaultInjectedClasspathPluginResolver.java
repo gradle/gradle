@@ -26,7 +26,6 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
@@ -45,7 +44,7 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
 
     public DefaultInjectedClasspathPluginResolver(ClassLoaderScope parentScope, CachedClasspathTransformer classpathTransformer, PluginInspector pluginInspector, ClassPath injectedClasspath, InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
         this.injectedClasspath = injectedClasspath;
-        ClassPath cachedClassPath = TransformedClassPath.handleInstrumentingArtifactTransform(classpathTransformer.transform(injectedClasspath, instrumentationStrategy.getTransform()));
+        ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, instrumentationStrategy.getTransform());
         this.pluginRegistry = new DefaultPluginRegistry(pluginInspector,
             parentScope.createChild("injected-plugin", null)
                 .local(cachedClassPath)
