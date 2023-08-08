@@ -33,7 +33,6 @@ import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
@@ -285,7 +284,7 @@ class StandardKotlinScriptEvaluator(
             className: String,
             accessorsClassPath: ClassPath
         ): CompiledScript {
-            val instrumentedClasses = TransformedClassPath.handleInstrumentingArtifactTransform(cachedClasspathTransformer.transform(DefaultClassPath.of(location), BuildLogic))
+            val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), BuildLogic)
             val classpath = instrumentedClasses.plus(accessorsClassPath)
             return ScopeBackedCompiledScript(classLoaderScope, childScopeId, origin, classpath, className)
         }

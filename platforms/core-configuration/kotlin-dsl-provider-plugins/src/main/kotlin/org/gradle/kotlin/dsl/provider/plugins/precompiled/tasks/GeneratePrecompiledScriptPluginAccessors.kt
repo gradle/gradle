@@ -44,7 +44,6 @@ import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
@@ -411,10 +410,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun buildLogicClassPath(): ClassPath =
-        TransformedClassPath.handleInstrumentingArtifactTransform(services.get<CachedClasspathTransformer>().transform(
+        services.get<CachedClasspathTransformer>().transform(
             DefaultClassPath.of(runtimeClassPathFiles),
             CachedClasspathTransformer.StandardTransform.BuildLogic
-        ))
+        )
 
     private
     fun uniqueTempDirectory() =

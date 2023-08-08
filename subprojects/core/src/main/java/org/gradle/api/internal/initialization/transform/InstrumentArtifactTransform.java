@@ -16,47 +16,44 @@
 
 package org.gradle.api.internal.initialization.transform;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.archive.ZipEntry;
-import org.gradle.api.internal.file.archive.ZipInput;
-import org.gradle.api.internal.file.archive.impl.FileZipInput;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.Pair;
-import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.InstrumentingTransformer;
+import org.gradle.internal.classpath.TransformedClassPath;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
+import org.gradle.internal.file.Stat;
 
-import java.io.BufferedOutputStream;
+import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 
 import static org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform.InstrumentArtifactTransformParameters;
 
+@CacheableTransform
 public abstract class InstrumentArtifactTransform implements TransformAction<InstrumentArtifactTransformParameters> {
-
-    private static final int BUFFER_SIZE = 8192;
 
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
         @InputFiles
+        @PathSensitive(PathSensitivity.NAME_ONLY)
         ConfigurableFileCollection getClassHierarchy();
     }
+
+    @Inject
+    public abstract ObjectFactory getObjects();
 
     @InputArtifact
     @PathSensitive(PathSensitivity.NAME_ONLY)
@@ -68,32 +65,33 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
 
     @Override
     public void transform(TransformOutputs outputs) {
-        File outputFile = outputs.file(getInput().get().getAsFile().getName() + "-instrumented.jar");
+        if (!getInputAsFile().exists()) {
+            // Don't instrument files that don't exist, these could be files added to classpath via files()
+            return;
+        }
 
-        InstrumentingTransformer transformer = new InstrumentingTransformer();
-        File jarFile = getInputAsFile();
-        try (ZipArchiveOutputStream outputStream = new ZipArchiveOutputStream(new BufferedOutputStream(Files.newOutputStream(outputFile.toPath()), BUFFER_SIZE))) {
-            outputStream.setLevel(0);
-            try (ZipInput entries = FileZipInput.create(jarFile)) {
-                for (ZipEntry entry : entries) {
-                    if (entry.isDirectory()) {
-                        continue;
-                    } else if (!entry.getName().endsWith(".class")) {
-                        ClasspathWalker.ZipClasspathEntry classEntry = new ClasspathWalker.ZipClasspathEntry(entry);
-                        new ClasspathBuilder.ZipEntryBuilder(outputStream).put(classEntry.getPath().getPathString(), entry.getContent(), classEntry.getCompressionMethod());
-                        continue;
-                    }
-                    ClasspathWalker.ZipClasspathEntry classEntry = new ClasspathWalker.ZipClasspathEntry(entry);
-                    ClassReader reader = new ClassReader(classEntry.getContent());
-                    ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                    Pair<RelativePath, ClassVisitor> chain = transformer.apply(classEntry, classWriter, new ClassData(reader, InstrumentingTypeRegistry.EMPTY));
-                    reader.accept(chain.right, 0);
-                    byte[] bytes = classWriter.toByteArray();
-                    new ClasspathBuilder.ZipEntryBuilder(outputStream).put(chain.left.getPathString(), bytes, classEntry.getCompressionMethod());
-                }
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        // TransformedClassPath.handleInstrumentingArtifactTransform depends on the order and this naming, we should make it more resilient in the future
+        String instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
+        InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
+        File outputFile = outputs.file(instrumentedJarName);
+        outputs.file(getInput());
+
+        ClasspathElementTransformFactoryForAgent transformFactory = instrumentationServices.getTransformFactory();
+        ClasspathElementTransform transform = transformFactory.createTransformer(getInputAsFile(), new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
+        transform.transform(outputFile);
+    }
+
+    static class InstrumentationServices {
+
+        private final ClasspathElementTransformFactoryForAgent transformFactory;
+
+        @Inject
+        public InstrumentationServices(Stat stat, TemporaryFileProvider temporaryFileProvider) {
+            this.transformFactory = new ClasspathElementTransformFactoryForAgent(new ClasspathBuilder(temporaryFileProvider), new ClasspathWalker(stat));
+        }
+
+        public ClasspathElementTransformFactoryForAgent getTransformFactory() {
+            return transformFactory;
         }
     }
 }
