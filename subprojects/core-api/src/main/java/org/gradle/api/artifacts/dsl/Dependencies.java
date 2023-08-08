@@ -16,8 +16,8 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -120,10 +120,10 @@ public interface Dependencies {
     ObjectFactory getObjectFactory();
 
     /**
-     * The source sets container.
+     * TODO: Document
      *
      * @since 8.4
      */
     @Incubating
-    ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters();
+    NamedDomainObjectList<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters();
 }

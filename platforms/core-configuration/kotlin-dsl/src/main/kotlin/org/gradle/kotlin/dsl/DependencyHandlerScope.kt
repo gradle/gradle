@@ -17,8 +17,8 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer
 import org.gradle.api.Incubating
+import org.gradle.api.NamedDomainObjectList
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -55,7 +55,7 @@ private constructor(
         super.constraints(configureAction)
     }
 
-    override fun getMatchingFailureInterpreters(): ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> = dependencies.matchingFailureInterpreters
+    override fun getMatchingFailureInterpreters(): NamedDomainObjectList<VariantMatchingFailureInterpreter> = dependencies.matchingFailureInterpreters
 
     /**
      * Configures dependency constraint for this project.

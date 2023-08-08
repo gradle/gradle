@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -58,7 +58,6 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.DefaultVariantMatchingFailureInterpreter;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -86,7 +85,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
-    private final ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> variantMatchingFailureInterpreters;
+    private final NamedDomainObjectList<VariantMatchingFailureInterpreter> variantMatchingFailureInterpreters;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
                                     DependencyFactoryInternal dependencyFactory,
@@ -115,8 +114,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         configureSchema();
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
 
-        this.variantMatchingFailureInterpreters = objects.polymorphicDomainObjectContainer(VariantMatchingFailureInterpreter.class);
-        variantMatchingFailureInterpreters.registerBinding(VariantMatchingFailureInterpreter.class, DefaultVariantMatchingFailureInterpreter.class);
+        this.variantMatchingFailureInterpreters = objects.namedDomainObjectList(VariantMatchingFailureInterpreter.class);
     }
 
     @Override
@@ -428,7 +426,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    public ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
+    public NamedDomainObjectList<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
         return variantMatchingFailureInterpreters;
     }
 

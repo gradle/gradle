@@ -33,4 +33,9 @@ public interface VariantMatchingFailureInterpreter extends Named {
     default Optional<String> process(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
         return Optional.empty(); // default is failure to process
     }
+
+    @Override
+    default String getName() {
+        return "unspecified";
+    }
 }

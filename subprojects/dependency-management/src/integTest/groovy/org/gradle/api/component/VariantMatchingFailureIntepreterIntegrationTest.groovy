@@ -21,44 +21,40 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegrationSpec {
     def "can register a failure interpreter"() {
         buildFile << """
-            //${defineCustomVariantFailureInterpreterClass()}
+            ${defineCustomVariantFailureInterpreterClass()}
 
             dependencies {
-                matchingFailureInterpreters {
-                    eagerInterpreter(MyVariantMatchingFailureInterpreter)
-                    lazyInterpreter(MyVariantMatchingFailureInterpreter)
-                }
+                matchingFailureInterpreters.add(new MyVariantMatchingFailureInterpreter())
             }
 
-            assert dependencies.matchingFailureInterpreters.eagerInterpreter instanceof VariantMatchingFailureInterpreter
-            assert dependencies.matchingFailureInterpreters.lazyInterpreter instanceof VariantMatchingFailureInterpreter
+            assert dependencies.matchingFailureInterpreters.size() == 1
+            assert dependencies.matchingFailureInterpreters[0] instanceof MyVariantMatchingFailureInterpreter
         """
 
         expect:
         succeeds "help"
     }
 
-    def "can register a failure interpreter for a test suite"() {
+    def "can register a failure interpreter via a test suite"() {
         buildFile << """
             plugins {
                 id 'java-library'
             }
 
-            //${defineCustomVariantFailureInterpreterClass()}
+            ${defineCustomVariantFailureInterpreterClass()}
 
             testing {
                 suites {
                     mySuite(JvmTestSuite) {
                         dependencies {
-                            matchingFailureInterpreters {
-                                myInterpreter(MyVariantMatchingFailureInterpreter)
-                            }
+                            matchingFailureInterpreters.add(new MyVariantMatchingFailureInterpreter())
                         }
                     }
                 }
             }
 
-            assert testing.suites.mySuite.dependencies.matchingFailureInterpreters.myInterpreter instanceof VariantMatchingFailureInterpreter
+            assert dependencies.matchingFailureInterpreters.size() == 1
+            assert dependencies.matchingFailureInterpreters[0] instanceof MyVariantMatchingFailureInterpreter
         """
 
         expect:
@@ -67,7 +63,7 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
 
     private String defineCustomVariantFailureInterpreterClass() {
         return """
-            abstract class MyVariantMatchingFailureInterpreter implements VariantMatchingFailureInterpreter {
+            class MyVariantMatchingFailureInterpreter implements VariantMatchingFailureInterpreter {
                 @Override
                 java.util.Optional<String> process(String producerDisplayName, org.gradle.api.attributes.HasAttributes requested, List<? extends org.gradle.api.attributes.HasAttributes> candidates) {
                     return java.util.Optional.of("Matched!")

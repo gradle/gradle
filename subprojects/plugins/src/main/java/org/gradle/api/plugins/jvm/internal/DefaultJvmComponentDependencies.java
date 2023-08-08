@@ -16,11 +16,10 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
-import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.component.VariantMatchingFailureInterpreter;
-import org.gradle.internal.component.DefaultVariantMatchingFailureInterpreter;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 
 import javax.inject.Inject;
 
@@ -29,7 +28,6 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     private final DependencyAdder compileOnly;
     private final DependencyAdder runtimeOnly;
     private final DependencyAdder annotationProcessor;
-    private final ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> variantMatchingFailureInterpreters;
 
     @Inject
     public DefaultJvmComponentDependencies(DependencyAdder implementation, DependencyAdder compileOnly, DependencyAdder runtimeOnly, DependencyAdder annotationProcessor) {
@@ -37,9 +35,6 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
         this.compileOnly = compileOnly;
         this.runtimeOnly = runtimeOnly;
         this.annotationProcessor = annotationProcessor;
-
-        this.variantMatchingFailureInterpreters = getObjectFactory().polymorphicDomainObjectContainer(VariantMatchingFailureInterpreter.class);
-        variantMatchingFailureInterpreters.registerBinding(VariantMatchingFailureInterpreter.class, DefaultVariantMatchingFailureInterpreter.class);
     }
 
     @Override
@@ -63,7 +58,7 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     }
 
     @Override
-    public ExtensiblePolymorphicDomainObjectContainer<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
-        return variantMatchingFailureInterpreters;
+    public NamedDomainObjectList<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
+        return getProject().getDependencies().getMatchingFailureInterpreters();
     }
 }
