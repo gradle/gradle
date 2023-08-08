@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -156,7 +157,11 @@ public class DefaultDeleter implements Deleter {
     }
 
     protected boolean deleteFile(File file) {
-        return file.delete() && !file.exists();
+        try {
+            return Files.deleteIfExists(file.toPath()) && !file.exists();
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private boolean tryHardToDelete(File file) {
