@@ -23,7 +23,7 @@ Configuring a proxy (for downloading dependencies, for example) is done via stan
 These properties can be set directly in the build script.
 For example, setting the HTTP proxy host would be done with `System.setProperty('http.proxyHost', 'www.somehost.org')`.
 
-Alternatively, the properties can be <<#sec:gradle_configuration_properties,specified in `gradle.properties`>>.
+Alternatively, the properties can be <<build_environment.adoc#sec:gradle_configuration_properties,specified in `gradle.properties`>>.
 
 *Example 1:* Configuring an HTTP proxy using `gradle.properties`:
 ====

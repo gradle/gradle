@@ -731,7 +731,7 @@ Sets a <<build_environment.adoc#sec:gradle_system_properties,system property>> o
 Specifies an <<init_scripts.adoc#init_scripts,initialization script>>.
 
 `-P`, `--project-prop`::
-Sets a <<build_environment.adoc#sec:project_properties,project property>> of the root project, for example `-Pmyprop=myvalue`.
+Sets a <<project_properties.adoc#sec:project_properties,project property>> of the root project, for example `-Pmyprop=myvalue`.
 
 `-Dorg.gradle.jvmargs`::
 Set JVM arguments.

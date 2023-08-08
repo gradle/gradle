@@ -440,7 +440,7 @@ Sometimes you will want to make use of an Ant task directly from your Gradle bui
 If that's the case, you can easily set those properties via the `ant` object, as described in the <<ant#sec:ant_properties,Using Ant from Gradle>> chapter.
 ====
 
-Gradle does use something similar in the form of <<build_environment#sec:project_properties,project properties>>, which are a reasonable way to parameterize a build.
+Gradle does use something similar in the form of <<project_properties.adoc#sec:project_properties,project properties>>, which are a reasonable way to parameterize a build.
 These can be set from the command line, in the <<build_environment#sec:gradle_configuration_properties,`gradle.properties` file>>, or via specially named system properties and environment variables.
 
 If you have existing Ant properties files, you can copy their contents into the project's `gradle.properties` file.

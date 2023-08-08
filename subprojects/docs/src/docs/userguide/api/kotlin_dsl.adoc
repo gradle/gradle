@@ -611,7 +611,7 @@ include::sample[dir="snippets/kotlinDsl/containers-scope/kotlin",files="build.gr
 [[kotdsl:properties]]
 == Working with runtime properties
 
-Gradle has two main sources of properties that are defined at runtime: <<build_environment#sec:project_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
+Gradle has two main sources of properties that are defined at runtime: <<project_properties.adoc#sec:project_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
 The Kotlin DSL provides specific syntax for working with these types of properties, which we look at in the following sections.
 
 === Project properties

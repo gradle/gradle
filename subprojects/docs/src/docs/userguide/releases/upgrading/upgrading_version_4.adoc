@@ -399,10 +399,10 @@ This may affect builds running directly inside the client VM using `--no-daemon`
 We discourage the use of `--no-daemon`, but if you must use it, you can increase the available memory using the `GRADLE_OPTS` environment variable.
 
 The Gradle daemon now starts with 512MB of heap instead of 1GB.
-Large projects may have to increase this setting using the <<build_environment.adoc#sec:configuring_jvm_memory,`org.gradle.jvmargs`>> property.
+Large projects may have to increase this setting using the <<config_gradle.adoc#sec:configuring_jvm_memory,`org.gradle.jvmargs`>> property.
 
 All workers, including compilers and test executors, now start with 512MB of heap. The previous default was 1/4th of physical memory.
-Large projects may have to increase this setting on the relevant tasks, e.g. <<build_environment.adoc#sec:configuring_jvm_memory,`JavaCompile`>> or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[`Test`].
+Large projects may have to increase this setting on the relevant tasks, e.g. <<config_gradle.adoc#sec:configuring_jvm_memory,`JavaCompile`>> or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[`Test`].
 
 [[rel5.0:default_tool_versions]]
 === [5.0] New default versions for code quality plugins

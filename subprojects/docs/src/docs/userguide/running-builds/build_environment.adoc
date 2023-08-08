@@ -224,7 +224,7 @@ _Default is derived from your environment (`JAVA_HOME` or the path to `java`) if
 
 `org.gradle.jvmargs=(JVM arguments)`::
 Specifies the JVM arguments used for the Gradle Daemon.
-The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
+The setting is particularly useful for <<config_gradle.adoc#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
 This does not affect the JVM settings for the Gradle client VM.
 +
 _Default is `-Xmx512m "-XX:MaxMetaspaceSize=384m"`._
