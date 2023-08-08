@@ -16,9 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -61,15 +61,15 @@ public class DefaultProblems extends Problems {
     }
 
 
-    public void collectError(Throwable failure) {
+    public void collectError(RuntimeException failure) {
         new DefaultProblemBuilder(this, buildOperationProgressEventEmitter)
             .undocumented()
             .noLocation()
-            .severity(ERROR)
             .message(failure.getMessage())
             .type("generic_exception")
             .group(GENERIC_ID)
-            .cause(failure)
+            .severity(ERROR)
+            .withException(failure)
             .report();
     }
 
@@ -103,9 +103,17 @@ public class DefaultProblems extends Problems {
     }
 
     @Override
-    public RuntimeException throwing(Action<ProblemBuilderDefiningDocumentation> action) {
-        DefaultProblemBuilder problemBuilder = createProblemBuilderInternal();
-        action.execute(problemBuilder);
+    public RuntimeException throwing(ProblemConfigurator action) {
+        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilderInternal();
+        throw action.apply(defaultProblemBuilder)
+            .throwIt();
+    }
+
+    @Override
+    public RuntimeException rethrowing(RuntimeException e, ProblemConfigurator action) {
+        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilderInternal();
+        ProblemBuilder problemBuilder = action.apply(defaultProblemBuilder);
+        problemBuilder.withException(e);
         throw problemBuilder.throwIt();
     }
 }

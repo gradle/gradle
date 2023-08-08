@@ -236,10 +236,10 @@ public class TomlCatalogFileParser {
         return problemServiceSupplier.get().createProblemBuilder()
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
-            .severity(ERROR)
             .message(message)
             .type(catalogProblemId.name())
-            .group(ProblemGroup.VERSION_CATALOG_ID);
+            .group(ProblemGroup.VERSION_CATALOG_ID)
+            .severity(ERROR);
     }
 
 

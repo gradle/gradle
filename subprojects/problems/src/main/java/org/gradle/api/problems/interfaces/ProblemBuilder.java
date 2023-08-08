@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
  * <ul>
  *     <li>{@link ProblemBuilderDefiningDocumentation}
  *     <li>{@link ProblemBuilderDefiningLocation}
- *     <li>{@link ProblemBuilderDefiningSeverity}
  *     <li>{@link ProblemBuilderDefiningMessage}
  *     <li>{@link ProblemBuilderDefiningType}
  *     <li>{@link ProblemBuilderDefiningGroup}
@@ -50,14 +49,19 @@ import javax.annotation.Nullable;
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilder{
+public interface ProblemBuilder {
 
     ProblemBuilder description(String description);
+
     ProblemBuilder solution(@Nullable String solution);
 
     ProblemBuilder cause(Throwable cause);
 
     ProblemBuilder withMetadata(String key, String value);
+
+    ProblemBuilder withException(RuntimeException e);
+
+    ProblemBuilder severity(Severity severity);
 
     Problem build();
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
@@ -38,7 +37,7 @@ class NoOpProblems extends Problems {
     }
 
     @Override
-    public void collectError(Throwable failure) {
+    public void collectError(RuntimeException failure) {
 
     }
 
@@ -59,7 +58,12 @@ class NoOpProblems extends Problems {
     }
 
     @Override
-    public RuntimeException throwing(Action<ProblemBuilderDefiningDocumentation> action) {
+    public RuntimeException throwing(ProblemConfigurator action) {
+        return null;
+    }
+
+    @Override
+    public RuntimeException rethrowing(RuntimeException e, ProblemConfigurator action) {
         return null;
     }
 

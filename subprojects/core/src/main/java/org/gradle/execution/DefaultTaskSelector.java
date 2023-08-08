@@ -102,11 +102,11 @@ public class DefaultTaskSelector implements TaskSelector {
         throw getProblemService().throwing(builder ->
             builder.undocumented()
                 .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
-                .severity(Severity.ERROR)
                 .message(message)
                 .type("task_selection")
                 .group(ProblemGroup.GENERIC_ID)
-                .cause(new TaskSelectionException(message))
+                .severity(Severity.ERROR)
+                .withException(new TaskSelectionException(message)) // this instead of cause
         );
     }
 
