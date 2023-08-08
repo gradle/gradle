@@ -141,7 +141,7 @@ Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so i
 
 [IMPORTANT]
 ====
-This feature is currently *_incubating_* and not enabled by default. This feature has the following limitations:
+This feature has the following limitations:
 
 * The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
 * Your build and the plugins you depend on might require changes to fulfill the <<configuration_cache#config_cache:requirements, requirements>>.

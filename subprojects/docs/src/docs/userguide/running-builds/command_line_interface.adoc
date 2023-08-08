@@ -386,6 +386,7 @@ This will give you a link to a web-based report, where you can find <<viewing_de
 
 image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
+[[sec:listing_project_dependencies]]
 === Listing project dependencies
 Running the `dependencies` task gives you a list of the dependencies of the selected project, broken down by configuration. For each configuration, the direct and transitive dependencies of that configuration are shown in a tree.
 

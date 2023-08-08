@@ -18,30 +18,29 @@ package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
-import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 
 import java.util.List;
-import java.util.Set;
 
 public interface IvyModuleDescriptorSpecInternal extends IvyModuleDescriptorSpec {
 
-    IvyPublicationIdentity getProjectIdentity();
+    IvyPublicationCoordinates getCoordinates();
 
     SetProperty<IvyConfiguration> getConfigurations();
 
-    Set<IvyArtifact> getArtifacts();
+    SetProperty<IvyArtifact> getArtifacts();
 
-    SetProperty<IvyDependencyInternal> getDependencies();
+    SetProperty<IvyDependency> getDependencies();
 
     SetProperty<IvyExcludeRule> getGlobalExcludes();
 
@@ -53,7 +52,5 @@ public interface IvyModuleDescriptorSpecInternal extends IvyModuleDescriptorSpec
 
     IvyModuleDescriptorDescription getDescription();
 
-    VersionMappingStrategyInternal getVersionMappingStrategy();
-
-    boolean writeGradleMetadataMarker();
+    Property<Boolean> getWriteGradleMetadataMarker();
 }

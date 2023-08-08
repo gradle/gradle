@@ -28,6 +28,7 @@ import net.rubygrapefruit.platform.file.Files;
 import net.rubygrapefruit.platform.file.PosixFiles;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import net.rubygrapefruit.platform.memory.Memory;
+import net.rubygrapefruit.platform.memory.WindowsMemory;
 import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
@@ -330,6 +331,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             }
         }
         return notAvailable(Memory.class);
+    }
+
+    protected WindowsMemory createWindowsMemory() {
+        if (useNativeIntegrations) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(WindowsMemory.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform windows memory integration is not available. Continuing with fallback.");
+            }
+        }
+        return notAvailable(WindowsMemory.class);
     }
 
     protected ProcessLauncher createProcessLauncher() {

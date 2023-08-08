@@ -35,11 +35,4 @@ public interface SoftwareComponentInternal extends SoftwareComponent {
      * This method and {@link UsageContext} should both be deprecated in favor of a new public API.
      */
     Set<? extends UsageContext> getUsages();
-
-    /**
-     * Finalize the component to avoid GMM later modification.
-     *
-     * @see <a href="https://github.com/gradle/gradle/issues/20581">Issue</a>
-     */
-    default void finalizeValue() {}
 }

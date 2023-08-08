@@ -72,7 +72,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             return ClassPath.EMPTY;
         }
         for (ScriptClassPathInitializer initializer : initializers) {
-            initializer.execute(classpathConfiguration);
+            initializer.initialize(classpathConfiguration);
         }
         ArtifactView view = classpathConfiguration.getIncoming().artifactView(config -> {
             config.componentFilter(componentId -> {

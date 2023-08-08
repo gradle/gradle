@@ -27,6 +27,8 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
             delegate = new NativeOsMemoryInfo();
         } else if (operatingSystem.isLinux()) {
             delegate = getLinuxDelegate();
+        } else if (operatingSystem.isWindows()) {
+            delegate = new WindowsOsMemoryInfo();
         } else {
             delegate = new MBeanOsMemoryInfo();
         }
@@ -51,8 +53,8 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
             return cGroupDelegate;
         }
 
-        long cGroupFreeMemory = cGroupSnapshot.getFreePhysicalMemory();
-        long memInfoFreeMemory = memInfoSnapshot.getFreePhysicalMemory();
+        long cGroupFreeMemory = cGroupSnapshot.getPhysicalMemory().getFree();
+        long memInfoFreeMemory = memInfoSnapshot.getPhysicalMemory().getFree();
 
         return cGroupFreeMemory > memInfoFreeMemory ? memInfoDelegate : cGroupDelegate;
     }

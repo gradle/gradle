@@ -36,7 +36,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     private final Map<Configuration, ConfigurationVariantMapping> variants = Maps.newLinkedHashMapWithExpectedSize(4);
     private final Instantiator instantiator;
 
-    private boolean finalized = false;
+    private Set<UsageContext> cachedVariants;
 
     public DefaultAdhocSoftwareComponent(String componentName, Instantiator instantiator) {
         this.componentName = componentName;
@@ -50,13 +50,13 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
-        checkNotFinalized();
+        checkNotObserved();
         variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator));
     }
 
     @Override
     public void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
-        checkNotFinalized();
+        checkNotObserved();
         if (!variants.containsKey(outgoingConfiguration)) {
             throw new InvalidUserDataException("Variant for configuration " + outgoingConfiguration.getName() + " does not exist in component " + componentName);
         }
@@ -65,24 +65,28 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
-        for (ConfigurationVariantMapping variant : variants.values()) {
-            variant.collectVariants(builder);
+        if (cachedVariants == null) {
+            ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
+            for (ConfigurationVariantMapping variant : variants.values()) {
+                variant.collectVariants(builder);
+            }
+            cachedVariants = builder.build();
         }
-        return builder.build();
+
+        return cachedVariants;
     }
 
     protected boolean isRegisteredAsLegacyVariant(Configuration outgoingConfiguration) {
         return variants.containsKey(outgoingConfiguration);
     }
 
-    @Override
-    public void finalizeValue() {
-        finalized = true;
-    }
-
-    protected void checkNotFinalized() {
-        if (finalized) {
+    /**
+     * Ensure this component cannot be modified after observation.
+     *
+     * @see <a href="https://github.com/gradle/gradle/issues/20581">issue</a>
+     */
+    protected void checkNotObserved() {
+        if (cachedVariants != null) {
             DeprecationLogger.deprecateBehaviour("Gradle Module Metadata is modified after an eagerly populated publication.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "gmm_modification_after_publication_populated")

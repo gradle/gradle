@@ -27,7 +27,7 @@ import org.gradle.util.internal.VersionNumber
             : "$it:indy"
     }
 })
-class InvokeDynamicGroovyCompilerSpec extends ApiGroovyCompilerIntegrationSpec {
+class InvokeDynamicGroovyCompilerSpec extends AbstractApiGroovyCompilerIntegrationSpec {
     def canEnableAndDisableInvokeDynamicOptimization() {
         when:
         run("sanityCheck")
