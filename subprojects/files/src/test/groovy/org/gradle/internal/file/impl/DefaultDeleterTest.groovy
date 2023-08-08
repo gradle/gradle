@@ -23,7 +23,6 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
 import java.util.function.Function
 
@@ -383,14 +382,12 @@ class DefaultDeleterTest extends Specification {
                 false
             ) {
                 @Override
-                protected boolean deleteFile(File file) throws IOException {
+                protected boolean deleteFile(File file) {
                     switch (deletionAction.apply(file)) {
                         case DeletionAction.FAILURE:
                             return false
                         case DeletionAction.CONTINUE:
                             return super.deleteFile(file)
-                        case DeletionAction.EXCEPTION:
-                            throw new DirectoryNotEmptyException(file.toString())
                         default:
                             throw new AssertionError()
                     }
