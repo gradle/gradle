@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization.transform;
 
 import com.google.common.io.Files;
+import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
@@ -35,6 +36,7 @@ import java.nio.charset.StandardCharsets;
  * TODO: This class has similar implementation in build-logic/packaging/src/main/kotlin/gradlebuild/instrumentation/transforms/CollectDirectClassSuperTypesTransform.kt.
  *  We could reuse the same class at some point.
  */
+@CacheableTransform
 public abstract class CollectDirectClassSuperTypesTransform implements TransformAction<TransformParameters.None> {
 
     private static final String DIRECT_SUPER_TYPES_FILE = "direct-super-types.properties";
@@ -48,7 +50,6 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
     }
 
     public void transform(TransformOutputs outputs) {
-        System.out.println("Hello from " + CollectDirectClassSuperTypesTransform.class.getSimpleName());
         try {
             File file = outputs.file(DIRECT_SUPER_TYPES_FILE);
             Files.write((getInputAsFile().getName() + ": test.class").getBytes(StandardCharsets.UTF_8), file);

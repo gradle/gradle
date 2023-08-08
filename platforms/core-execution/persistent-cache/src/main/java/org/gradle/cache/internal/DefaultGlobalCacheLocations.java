@@ -21,19 +21,28 @@ import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.file.FileHierarchySet;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultGlobalCacheLocations implements GlobalCacheLocations {
     private final FileHierarchySet globalCacheRoots;
+    private final List<File> globalCaches;
 
     public DefaultGlobalCacheLocations(List<GlobalCache> globalCaches) {
         FileHierarchySet globalCacheRoots = FileHierarchySet.empty();
+        List<File> globalCachesList = new ArrayList<>();
         for (GlobalCache globalCache : globalCaches) {
             for (File file : globalCache.getGlobalCacheRoots()) {
                 globalCacheRoots = globalCacheRoots.plus(file);
+                globalCachesList.add(file);
             }
         }
+        this.globalCaches = globalCachesList;
         this.globalCacheRoots = globalCacheRoots;
+    }
+
+    public List<File> getGlobalCacheRoots() {
+        return globalCaches;
     }
 
     @Override
