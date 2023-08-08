@@ -31,8 +31,10 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
@@ -110,21 +112,20 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         extension.getSourceRoots().getFiles()
             .forEach(
                 file -> {
-                    String path = file.getAbsolutePath();
                     DokkaSourceLinkSpec sourceLinkSpec = project.getObjects().newInstance(DokkaSourceLinkSpec.class);
                     sourceLinkSpec.getLocalDirectory().set(file);
                     String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project).getGitCommitId().get();
-                    sourceLinkSpec.getRemoteUrl().set(toUri(path, commitId));
+                    sourceLinkSpec.getRemoteUrl().set(toUri(project.getRootDir(), file, commitId));
                     sourceLinkSpec.getRemoteLineSuffix().set("#L");
                     spec.getSourceLinks().add(sourceLinkSpec);
                 }
             );
     }
 
-    private static URI toUri(String path, String commitId) {
+    private static URI toUri(File projectRootDir, File file, String commitId) {
         try {
-            String location = path.contains("subprojects") ? path.substring(path.indexOf("subprojects")) : path.substring(path.indexOf("platforms"));
-            return new URI("https://github.com/gradle/gradle/blob/" + commitId + "/" + location);
+            Path relativeLocation = projectRootDir.toPath().relativize(file.toPath());
+            return new URI("https://github.com/gradle/gradle/blob/" + commitId + "/" + relativeLocation);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
