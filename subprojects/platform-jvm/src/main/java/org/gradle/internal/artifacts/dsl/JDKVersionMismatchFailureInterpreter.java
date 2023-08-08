@@ -14,28 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.internal.artifacts.dsl;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter;
 
 import java.util.List;
 import java.util.Optional;
 
-/**
- * TODO: describe
- *
- * @since 8.4
- */
-@Incubating
-public interface VariantMatchingFailureInterpreter extends Named {
-    default Optional<String> process(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
-        return Optional.empty(); // default is failure to process
-    }
-
+public class JDKVersionMismatchFailureInterpreter implements VariantMatchingFailureInterpreter {
     @Override
-    default String getName() {
-        return "unspecified";
+    public Optional<String> process(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
+        return Optional.of("JDK ISSUE");
     }
 }

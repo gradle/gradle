@@ -21,14 +21,28 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegrationSpec {
     def "can register a failure interpreter"() {
         buildFile << """
-            ${defineCustomVariantFailureInterpreterClass()}
+            ${defineCustomInterpreter()}
 
             dependencies {
-                matchingFailureInterpreters.add(new MyVariantMatchingFailureInterpreter())
+                matchingFailureInterpreters.add(new TestVariantMatchingFailureInterpreter())
             }
 
             assert dependencies.matchingFailureInterpreters.size() == 1
-            assert dependencies.matchingFailureInterpreters[0] instanceof MyVariantMatchingFailureInterpreter
+            assert dependencies.matchingFailureInterpreters[0] instanceof TestVariantMatchingFailureInterpreter
+        """
+
+        expect:
+        succeeds "help"
+    }
+
+    def "default JDK mismatch failure interpreter is automatically added by plugin"() {
+        buildFile << """
+            plugins {
+                id 'java-base'
+            }
+
+            assert dependencies.matchingFailureInterpreters.size() == 1
+            assert dependencies.matchingFailureInterpreters[0] instanceof org.gradle.internal.artifacts.dsl.JDKVersionMismatchFailureInterpreter
         """
 
         expect:
@@ -41,32 +55,33 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
                 id 'java-library'
             }
 
-            ${defineCustomVariantFailureInterpreterClass()}
+            ${defineCustomInterpreter()}
 
             testing {
                 suites {
                     mySuite(JvmTestSuite) {
                         dependencies {
-                            matchingFailureInterpreters.add(new MyVariantMatchingFailureInterpreter())
+                            matchingFailureInterpreters.add(new TestVariantMatchingFailureInterpreter())
                         }
                     }
                 }
             }
 
-            assert dependencies.matchingFailureInterpreters.size() == 1
-            assert dependencies.matchingFailureInterpreters[0] instanceof MyVariantMatchingFailureInterpreter
+            assert dependencies.matchingFailureInterpreters.size() == 2
+            assert dependencies.matchingFailureInterpreters[0] instanceof org.gradle.internal.artifacts.dsl.JDKVersionMismatchFailureInterpreter
+            assert dependencies.matchingFailureInterpreters[1] instanceof TestVariantMatchingFailureInterpreter
         """
 
         expect:
         succeeds "help"
     }
 
-    private String defineCustomVariantFailureInterpreterClass() {
+    private String defineCustomInterpreter() {
         return """
-            class MyVariantMatchingFailureInterpreter implements VariantMatchingFailureInterpreter {
+            class TestVariantMatchingFailureInterpreter implements VariantMatchingFailureInterpreter {
                 @Override
                 java.util.Optional<String> process(String producerDisplayName, org.gradle.api.attributes.HasAttributes requested, List<? extends org.gradle.api.attributes.HasAttributes> candidates) {
-                    return java.util.Optional.of("Matched!")
+                    return java.util.Optional.of("Test matcher always matches!")
                 }
             }
         """

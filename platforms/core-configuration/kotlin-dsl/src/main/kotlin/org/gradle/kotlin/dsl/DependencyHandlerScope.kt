@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.component.VariantMatchingFailureInterpreter
+import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate

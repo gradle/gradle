@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.component.VariantMatchingFailureInterpreter;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;

@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component;
+@NonNullApi
+package org.gradle.internal.artifacts.dsl;
 
-import org.gradle.api.component.VariantMatchingFailureInterpreter;
-
-public abstract class DefaultVariantMatchingFailureInterpreter implements VariantMatchingFailureInterpreter {
-
-}
+import org.gradle.api.NonNullApi;
