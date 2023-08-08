@@ -18,7 +18,6 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -34,6 +33,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -703,5 +703,5 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 8.4
      */
     @Incubating
-    NamedDomainObjectList<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters();
+    List<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters();
 }

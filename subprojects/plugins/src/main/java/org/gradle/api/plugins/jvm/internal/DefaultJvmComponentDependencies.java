@@ -16,12 +16,12 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.component.VariantMatchingFailureInterpreter;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 
 import javax.inject.Inject;
+import java.util.List;
 
 public abstract class DefaultJvmComponentDependencies implements JvmComponentDependencies {
     private final DependencyAdder implementation;
@@ -58,7 +58,7 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     }
 
     @Override
-    public NamedDomainObjectList<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
+    public List<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
         return getProject().getDependencies().getMatchingFailureInterpreters();
     }
 }

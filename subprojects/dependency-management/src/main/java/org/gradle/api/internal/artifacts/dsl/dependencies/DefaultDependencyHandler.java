@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -66,6 +65,8 @@ import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
@@ -85,7 +86,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
-    private final NamedDomainObjectList<VariantMatchingFailureInterpreter> variantMatchingFailureInterpreters;
+    private final List<VariantMatchingFailureInterpreter> variantMatchingFailureInterpreters;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
                                     DependencyFactoryInternal dependencyFactory,
@@ -114,7 +115,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         configureSchema();
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
 
-        this.variantMatchingFailureInterpreters = objects.namedDomainObjectList(VariantMatchingFailureInterpreter.class);
+        this.variantMatchingFailureInterpreters = new ArrayList<>();
     }
 
     @Override
@@ -426,7 +427,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    public NamedDomainObjectList<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
+    public List<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
         return variantMatchingFailureInterpreters;
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -26,6 +25,7 @@ import org.gradle.api.component.VariantMatchingFailureInterpreter;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.List;
 
 /**
  * Universal APIs that are available for all {@code dependencies} blocks.
@@ -125,5 +125,5 @@ public interface Dependencies {
      * @since 8.4
      */
     @Incubating
-    NamedDomainObjectList<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters();
+    List<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters();
 }
