@@ -102,10 +102,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             }
         );
 
-        ArtifactView hierarchyCollectedView = artifactView(classpathConfiguration, config -> {
-            config.componentFilter(DefaultScriptClassPathResolver::removeGradleApi);
-            config.attributes(it -> it.attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true));
-        });
+        ArtifactView hierarchyCollectedView = artifactView(classpathConfiguration, config -> config.attributes(it -> it.attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true)));
         dependencyHandler.registerTransform(
             CollectDirectClassSuperTypesTransform.class,
             spec -> {
@@ -129,13 +126,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static ArtifactView artifactView(Configuration configuration, Action<? super ArtifactView.ViewConfiguration> configAction) {
         return configuration.getIncoming().artifactView(config -> {
             configAction.execute(config);
-            config.componentFilter(componentId -> {
-                if (componentId instanceof OpaqueComponentIdentifier) {
-                    DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-                    return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
-                }
-                return true;
-            });
+            config.componentFilter(DefaultScriptClassPathResolver::removeGradleApi);
         });
     }
 }
