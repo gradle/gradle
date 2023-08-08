@@ -45,7 +45,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * Enables fine-tuning module details (*.iml file) of the IDEA plugin.
  * <p>
  * Example of use with a blend of most possible properties.
- * Typically you don't have to configure this model directly because Gradle configures it for you.
+ * Typically, you don't have to configure this model directly because Gradle configures it for you.
  *
  * <pre class='autoTested'>
  * plugins {
@@ -109,6 +109,9 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  *     //and hate reading sources :)
  *     downloadSources = false
+ *
+ *     //Override the default Gradle Libs repository default which is set to "https://repo.gradle.org/gradle/list/libs-releases
+ *     gradleLibsRepoOverride = "https://myorg.mavenreposiotory.org"
  *   }
  * }
  * </pre>
@@ -193,6 +196,8 @@ public abstract class IdeaModule {
     private PathFactory pathFactory;
     private boolean offline;
     private Map<String, Iterable<File>> singleEntryLibraries;
+    private String gradleLibsRepoOverride;
+
 
     @Inject
     public IdeaModule(Project project, IdeaModuleIml iml) {
@@ -211,7 +216,7 @@ public abstract class IdeaModule {
      * Configures module name, that is the name of the *.iml file.
      * <p>
      * It's <b>optional</b> because the task should configure it correctly for you.
-     * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b> to make
+     * By default, it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b> to make
      * sure the module name is unique in the scope of a multi-module build.
      * The 'uniqueness' of a module name is required for correct import into IDEA and the task will make sure the name
      * is unique.
@@ -578,6 +583,14 @@ public abstract class IdeaModule {
         this.singleEntryLibraries = singleEntryLibraries;
     }
 
+    public String getGradleLibsRepoOverride() {
+        return gradleLibsRepoOverride;
+    }
+
+    public void setGradleLibsRepoOverride(String gradleLibsRepoOverride) {
+        this.gradleLibsRepoOverride = gradleLibsRepoOverride;
+    }
+
     /**
      * Enables advanced configuration like tinkering with the output XML or affecting the way existing *.iml content is merged with gradle build information.
      * <p>
@@ -623,7 +636,7 @@ public abstract class IdeaModule {
     public Set<Dependency> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()));
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver(), gradleLibsRepoOverride));
         return ideaDependenciesProvider.provide(this);
     }
 

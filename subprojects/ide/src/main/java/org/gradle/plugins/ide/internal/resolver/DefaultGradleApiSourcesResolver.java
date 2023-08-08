@@ -40,9 +40,11 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+?)?)-(\\d.+?)\\.jar");
 
     private final DetachedResolver resolver;
+    private final String gradleLibsRepoOverride;
 
-    public DefaultGradleApiSourcesResolver(DetachedResolver resolver) {
+    public DefaultGradleApiSourcesResolver(DetachedResolver resolver, String gradleLibsRepoOverride) {
         this.resolver = resolver;
+        this.gradleLibsRepoOverride = gradleLibsRepoOverride;
         addGradleLibsRepository();
     }
 
@@ -80,8 +82,13 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         });
     }
 
-    private static String gradleLibsRepoUrl() {
-        String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
-        return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
+    private String gradleLibsRepoUrl() {
+        if(gradleLibsRepoOverride != null) {
+            return gradleLibsRepoOverride;
+        } else {
+            String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
+            return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
+        }
+
     }
 }

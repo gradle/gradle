@@ -94,6 +94,9 @@ import java.util.Set;
  *
  *     //customizing which dependencies should be marked as test on the project's classpath
  *     testConfigurations = [configurations.testCompileClasspath, configurations.testRuntimeClasspath]
+ *
+ *     //Override the default Gradle Libs repository default which is set to "https://repo.gradle.org/gradle/list/libs-releases
+ *     gradleLibsRepoOverride = "https://myorg.mavenreposiotory.org"
  *   }
  * }
  * </pre>
@@ -159,6 +162,8 @@ public abstract class EclipseClasspath {
     private boolean projectDependenciesOnly;
 
     private List<File> classFolders;
+
+    private String gradleLibsRepoOverride;
 
     private final org.gradle.api.Project project;
 
@@ -311,6 +316,14 @@ public abstract class EclipseClasspath {
         this.classFolders = classFolders;
     }
 
+    public String getGradleLibsRepoOverride() {
+        return gradleLibsRepoOverride;
+    }
+
+    public void setGradleLibsRepoOverride(String gradleLibsRepoOverride) {
+        this.gradleLibsRepoOverride = gradleLibsRepoOverride;
+    }
+
     public org.gradle.api.Project getProject() {
         return project;
     }
@@ -357,7 +370,7 @@ public abstract class EclipseClasspath {
     public List<ClasspathEntry> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), EclipseClassPathUtil.isInferModulePath(this.project));
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver(), gradleLibsRepoOverride), EclipseClassPathUtil.isInferModulePath(this.project));
         return classpathFactory.createEntries();
     }
 
@@ -423,4 +436,5 @@ public abstract class EclipseClasspath {
     public SetProperty<Configuration> getTestConfigurations() {
         return testConfigurations;
     }
+
 }
