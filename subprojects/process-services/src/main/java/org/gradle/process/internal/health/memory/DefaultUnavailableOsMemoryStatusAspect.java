@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.model;
+package org.gradle.process.internal.health.memory;
 
-import org.objectweb.asm.Type;
+import org.gradle.api.NonNullApi;
 
-import java.util.Objects;
+@NonNullApi
+public class DefaultUnavailableOsMemoryStatusAspect implements OsMemoryStatusAspect.Unavailable {
+    private final String name;
 
-public class CallableOwnerInfo {
-    private final Type type;
-    private final boolean interceptSubtypes;
-
-    public CallableOwnerInfo(Type type, boolean interceptSubtypes) {
-        this.type = type;
-        this.interceptSubtypes = interceptSubtypes;
+    public DefaultUnavailableOsMemoryStatusAspect(String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("name cannot be null");
+        }
+        this.name = name;
     }
 
-    public Type getType() {
-        return type;
-    }
-
-    public boolean isInterceptSubtypes() {
-        return interceptSubtypes;
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -45,12 +42,17 @@ public class CallableOwnerInfo {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        CallableOwnerInfo that = (CallableOwnerInfo) o;
-        return interceptSubtypes == that.interceptSubtypes && Objects.equals(type, that.type);
+        DefaultUnavailableOsMemoryStatusAspect that = (DefaultUnavailableOsMemoryStatusAspect) o;
+        return name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, interceptSubtypes);
+        return name.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "UnavailableMemory[" + name + ']';
     }
 }

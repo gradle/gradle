@@ -25,6 +25,13 @@ public interface LocalConfigurationMetadata extends ConfigurationMetadata, Local
     @Override
     ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
 
-    LocalConfigurationMetadata copy(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer);
+    /**
+     * Returns a copy of this configuration metadata, except with all artifacts transformed by the given transformer.
+     *
+     * @param artifactTransformer A transformer applied to all artifacts and sub-variant artifacts.
+     *
+     * @return A copy of this metadata, with the given transformer applied to all artifacts.
+     */
+    LocalConfigurationMetadata copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer);
 
 }

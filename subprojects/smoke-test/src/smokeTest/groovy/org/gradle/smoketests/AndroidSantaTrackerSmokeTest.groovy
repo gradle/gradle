@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scripts.DefaultScriptFileResolver
+import org.gradle.util.internal.VersionNumber
 
 import java.util.jar.JarOutputStream
 
@@ -84,8 +85,8 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        // TODO - this is here because AGP >=7.4 reads build/generated/source/kapt/debug at configuration time
-        if (agpVersion.startsWith('7.3')) {
+        // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
+        if (agpVersion.startsWith('7.3') || VersionNumber.parse(agpVersion) >= VersionNumber.parse('8.1.0')) {
             assertConfigurationCacheStateLoaded()
         } else {
             assertConfigurationCacheStateStored()
@@ -119,9 +120,9 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
-            expectBuildIdentifierIsCurrentBuildDeprecation()
+            expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion, '8.2.0')
             if (agpVersion.startsWith('7.')) {
-                expectBuildIdentifierNameDeprecation()
+                expectBuildIdentifierNameDeprecation(agpVersion)
             }
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
         }
@@ -153,7 +154,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TESTED_AGP_VERSIONS.findAll { !it.startsWith("4.") }
+        agpVersion << TESTED_AGP_VERSIONS
     }
 }
 

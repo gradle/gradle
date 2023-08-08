@@ -174,7 +174,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
                 return null;
             }
             if (artifactTransformer != null) {
-                md = md.copy(artifactTransformer);
+                md = md.copyWithTransformedArtifacts(artifactTransformer);
             }
             allConfigurations.put(name, md);
         }

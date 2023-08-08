@@ -25,16 +25,16 @@ class CGroupMemoryInfoTest extends Specification {
         def snapshot = new CGroupMemoryInfo().getOsSnapshotFromCgroup(mbsToBytesAsString(800), mbsToBytesAsString(1024))
 
         expect:
-        snapshot.totalPhysicalMemory == mbsToBytes(1024)
-        snapshot.freePhysicalMemory == mbsToBytes(224)
+        snapshot.physicalMemory.total == mbsToBytes(1024)
+        snapshot.physicalMemory.free == mbsToBytes(224)
     }
 
     def "negative free memory returns zero"() {
         def snapshot = new CGroupMemoryInfo().getOsSnapshotFromCgroup(mbsToBytesAsString(1024), mbsToBytesAsString(512))
 
         expect:
-        snapshot.totalPhysicalMemory == mbsToBytes(512)
-        snapshot.freePhysicalMemory == 0
+        snapshot.physicalMemory.total == mbsToBytes(512)
+        snapshot.physicalMemory.free == 0
     }
 
     def "throws unsupported operation exception when non-numeric values are provided"() {

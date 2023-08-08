@@ -24,57 +24,38 @@ import spock.lang.Specification
 @UsesNativeServices
 class DefaultOsMemoryInfoIntegrationTest extends Specification {
 
-    @Requires(UnitTestPreconditions.Windows)
-    def "gets OS total memory on a Windows system"() {
+    def "gets OS total memory on any system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getTotal()
+
+        then:
+        notThrown UnsupportedOperationException
+    }
+
+    def "gets OS free memory on any system"() {
+        when:
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getFree()
 
         then:
         notThrown UnsupportedOperationException
     }
 
     @Requires(UnitTestPreconditions.Windows)
-    def "gets OS free memory on a Windows system"() {
+    def "gets OS virtual memory on a Windows system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
+        def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
 
         then:
-        notThrown UnsupportedOperationException
+        virtualMemory instanceof OsMemoryStatusAspect.Available
     }
 
-    @Requires(UnitTestPreconditions.Linux)
-    def "gets OS total memory on a Linux system"() {
+
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "reports unknown OS virtual memory on a non-Windows system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
+        def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
 
         then:
-        notThrown UnsupportedOperationException
-    }
-
-    @Requires(UnitTestPreconditions.Linux)
-    def "gets OS free memory on a Linux system"() {
-        when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
-
-        then:
-        notThrown UnsupportedOperationException
-    }
-
-    @Requires(UnitTestPreconditions.MacOs)
-    def "gets OS total memory on a MacOS system"() {
-        when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
-
-        then:
-        notThrown UnsupportedOperationException
-    }
-
-    @Requires(UnitTestPreconditions.MacOs)
-    def "gets OS free memory on a MacOS system"() {
-        when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
-
-        then:
-        notThrown UnsupportedOperationException
+        virtualMemory instanceof OsMemoryStatusAspect.Unavailable
     }
 }
