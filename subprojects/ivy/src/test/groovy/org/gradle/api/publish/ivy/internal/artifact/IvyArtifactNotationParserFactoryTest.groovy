@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.provider.Provider
 import org.gradle.api.publish.ivy.IvyArtifact
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Zip
@@ -56,9 +56,8 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         def fileResolver = Stub(FileResolver) {
             asNotationParser() >> fileNotationParser
         }
-        def identity = Stub(IvyPublicationIdentity) {
-            getModule() >> 'pub-name'
-        }
+        def identity = TestUtil.objectFactory().newInstance(IvyPublicationCoordinates)
+        identity.getModule().set('pub-name')
         parser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, identity, TestFiles.taskDependencyFactory()).create()
     }
 

@@ -22,6 +22,12 @@ It also displays information about dependency conflict resolution.
 The `dependencies` task can be especially helpful for issues related to transitive dependencies.
 Your build file lists direct dependencies, but the `dependencies` task can help you understand which transitive dependencies resolve during your build.
 
+[NOTE]
+====
+Graph of dependencies <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declared in the `buildscript` `classpath` configuration>>
+can be rendered using <<command_line_interface.adoc#sec:listing_project_dependencies, task `buildEnvironment`>>.
+====
+
 === Output Annotations
 
 The `dependencies` task marks dependency trees with the following annotations:

@@ -25,6 +25,7 @@ import org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.Polic
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 import org.gradle.internal.hash.Hasher
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -219,7 +220,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
     }
 
     private InstrumentingClasspathFileTransformer transformerWithPolicy(Policy policy) {
-        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, policy, new NoOpTransformer(), gradleCoreInstrumentingRegistry)
+        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, FileSystemLocationSnapshot::getHash, policy, new NoOpTransformer(), gradleCoreInstrumentingRegistry)
     }
 
     private static class NoOpTransformer implements CachedClasspathTransformer.Transform {

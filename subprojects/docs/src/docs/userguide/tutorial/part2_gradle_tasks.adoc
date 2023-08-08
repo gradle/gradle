@@ -22,8 +22,8 @@ Learn the basics of Gradle tasks by running one and looking at its output.
 
 - See available tasks
 - Run a task and inspect the results
-- Understand default and typed tasks
-- Explore custom tasks
+- Understand tasks
+- Explore task dependencies
 ****
 
 [[part2_begin]]
@@ -76,23 +76,33 @@ TIP: You can obtain more information in the task listing using the `--all` optio
 In <<part1_gradle_init.adoc#part1_begin,part 1>> of the tutorial, we ran the `build` task using the `./gradlew build` command.
 
 == Step 2. Understanding Tasks
-We've listed the tasks available when the project is initialized.
-However, users can create custom tasks that perform some specific work.
+We've listed the tasks available when the project is initialized, but what if we want to create our own tasks?
 
-Custom task code is typically available in the `build.gradle.kts` file, or it can come as part of a custom plugin. We will learn more about plugins in <<part4_gradle_plugins#part4_begin,part 4>> of the tutorial.
+Gradle provides many _built-in_ tasks that developers can use to enhance build scripts.
 
-Here is an example `Hello World` task:
+This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task.
+
 [source]
 ----
-tasks.register("welcome"){
-    doLast {
-        println("Welcome to Gradle")
-    }
+tasks.register("copyTask",Copy) {
+    from("source")
+    into("target")
+    include("*.war")
 }
 ----
 
-This custom task, if added to `build.gradle.kts` file in the `app` subproject directory, would be executed using the command `./gradlew :app:welcome`.
+This task, if added to `build.gradle.kts` file in the `app` subproject directory, would be executed using the command `./gradlew :app:copyTask`.
 
+Popular built-in tasks include:
+
+- **Copy** - `Copy` is useful to copy files around.
+- **Delete** -  `Delete` is useful to delete files and directories.
+- **Exec** - `Exec` is useful to execute arbitrary O/S commands.
+- **Zip** - `Zip` is useful to bundle files.
+
+Many more are included in the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-delete/index.html[DSL documentation].
+
+== Step 3. Understanding Dependencies Between Tasks
 Many times, a task requires another task to run first.
 If task B uses the output of task A, then task A must complete before task B begins.
 
@@ -117,7 +127,7 @@ In this case, `hello` prints before `greet`. The output is `Hello! How are you?`
 Task execution order is automatically determined by Gradle, taking into account explicit and implicit task dependencies.
 If there is no dependency between tasks, Gradle enables users to request a specific execution order.
 
-== Step 3. Viewing Tasks in the IDE
+== Step 4. Viewing Tasks in the IDE
 Project tasks are also available in IntelliJ.
 The project should be open following <<part1_gradle_init.adoc#part1_begin,part 1>> of the tutorial.
 
@@ -125,7 +135,7 @@ On the right-hand side of your window, open the `Gradle` pane:
 
 image::tutorial/intellij-idea-tasks.png[]
 
-== Step 4. Running Tasks in the IDE
+== Step 5. Running Tasks in the IDE
 You can run a Gradle task via IntelliJ by double-clicking that task in the pane.
 
 Double-click **tutorial > app > build > build**.
@@ -140,29 +150,67 @@ BUILD SUCCESSFUL in 966ms
 3:18:24 AM: Execution finished 'build'.
 ----
 
-== Step 5. Running Tasks in the Terminal
-The `jar` task can be used to create an executable JAR file of the App.
-
+== Step 6. Running Tasks in the Terminal
 Run the following command in your terminal:
+[source]
+----
+$ ./gradlew build
+----
+----
+> Task :app:compileJava
+> Task :app:processResources
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava
+> Task :app:processTestResources
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:build
+----
+The `build` task uses the source code and its dependencies to build the app.
+As seen in the output, the `build` task compiles, assembles, tests, and checks the code.
+
+The tasks are printed in order of execution.
+The `jar` tasks is a dependency of the `build` task.
+
+The `jar` task creates an executable JAR file of the app.
+Let's run it by itself:
 [source]
 ----
 $ ./gradlew jar
 ----
-
-Once the build finishes, an `app.jar` file is created in your `tutorial/app/build/libs/` folder.
+----
+> Task :app:compileJava
+> Task :app:processResources
+> Task :app:classes
+> Task :app:jar
+----
+As expected, the `compileJava` task is a dependency of the `jar` task and executed first.
+Once the task finishes, an `app.jar` file is created in your `tutorial/app/build/libs/` folder.
 
 Invoke the `run` task and check the output:
 [source]
 ----
 $ ./gradlew run
+----
+----
+> Task :app:compileJava
+> Task :app:processResources
+> Task :app:classes
 
 > Task :app:run
 Hello World!
 
-BUILD SUCCESSFUL in 436ms
+BUILD SUCCESSFUL in 325ms
 ----
 
-Take a moment and read the Java source code in `tutorial/app/src/main/java/com.gradle.tutorial/App.java`:
+The `run` task executes the code in `tutorial/app/src/main/java/com.gradle.tutorial/App.java`.
+The Java code in `App.java` simply prints "Hello World" to the screen:
 [source,java]
 ----
 public class App {
@@ -174,31 +222,6 @@ public class App {
     }
 }
 ----
-== Step 6. Understanding Typed Tasks
-Gradle tasks are typed.
-
-This example shows a task of type `Copy`:
-[source]
-----
-tasks.register("copyTask",Copy) {
-    from("source")
-    into("target")
-    include("*.war")
-}
-----
-
-This task copies `*.war` files from the `source` directory to the `target` directory.
-
-Popular tasks types include:
-
-- **Copy** - `Copy` is useful to copy files around.
-- **Delete** -  `Delete` is useful to delete files and directories.
-- **Exec** - `Exec` is useful to execute arbitrary O/S commands.
-- **Zip** - `Zip` is useful to bundle files.
-
-Many more types are included in the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-delete/index.html[DSL documentation].
-
-To view a task type, use the command `gradlew help --task <TASK_NAME>`.
 
 [.text-right]
-**Next Step:** <<part3_gradle_dep_man#part3_begin,Understanding Dependencies>> >>
+**Next Step:** <<part3_gradle_dep_man#part3_begin,Dependency Management>> >>

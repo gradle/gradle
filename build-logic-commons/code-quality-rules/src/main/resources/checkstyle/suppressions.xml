@@ -87,6 +87,10 @@
     <suppress checks="Javadoc.*"
               files=".*[/\\]javascript[/\\].+"/>
 
+    <!-- These packages are duplicated in ide and ide-plugins, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]ide[/\\]ide-plugins[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]plugins[/\\]ide[/\\]eclipse[/\\][^/\\]+"/>
+
     <!-- Protocol types may only define constants in interfaces -->
     <suppress checks="InterfaceIsTypeCheck"
               files=".*[/\\]tooling-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]tooling[/\\]internal[/\\]protocol.+"/>

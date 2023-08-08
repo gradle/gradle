@@ -21,6 +21,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 @NonNullApi
+@FunctionalInterface
 public interface ClasspathFileHasher {
     HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot);
 }

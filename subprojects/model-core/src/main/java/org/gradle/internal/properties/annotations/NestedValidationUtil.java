@@ -22,6 +22,7 @@ import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.problems.interfaces.ProblemGroup.TYPE_VALIDATION_ID;
@@ -53,7 +54,7 @@ public class NestedValidationUtil  {
         String propertyName,
         Class<?> beanType
     ) {
-        if (!isSupportedType(beanType)) {
+        getUnsupportedReason(beanType).ifPresent(reason ->
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
@@ -63,26 +64,24 @@ public class NestedValidationUtil  {
                     .message("with nested type '" + beanType.getName() + "' is not supported")
                     .type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED.name())
                     .group(TYPE_VALIDATION_ID)
-                    .description("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input")
-                    .solution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input")
-            );
+                    .description(reason)
+                    .solution("Use a different input annotation if type is not a bean")
+                    .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types")
+            )
+        );
+    }
+
+
+    private static Optional<String> getUnsupportedReason(Class<?> type) {
+        if (type.getName().startsWith("java.") || type.getName().startsWith("javax.")) {
+            return Optional.of("Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types");
+        } else if (type.getName().startsWith("kotlin.")) {
+            return Optional.of("Type is in 'kotlin.*' package that is reserved for Kotlin stdlib types");
+        } else if (type.getName().startsWith("groovy.lang.GString")) {
+            return Optional.of("Groovy's GString type is not supported as a nested type");
+        } else {
+            return Optional.empty();
         }
-    }
-
-    private static boolean isJavaSE(Class<?> type) {
-        return type.getName().startsWith("java.") || type.getName().startsWith("javax.");
-    }
-
-    private static boolean isKotlinStdlib(Class<?> type) {
-        return type.getName().startsWith("kotlin.") || type.getName().startsWith("kotlinx.");
-    }
-
-    private static boolean isGString(Class<?> type) {
-        return type.getName().startsWith("groovy.lang.GString");
-    }
-
-    private static boolean isSupportedType(Class<?> type) {
-        return !isJavaSE(type) && !isKotlinStdlib(type) && !isGString(type);
     }
 
     /**

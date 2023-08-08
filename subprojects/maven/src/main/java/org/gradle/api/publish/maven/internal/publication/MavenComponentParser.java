@@ -68,8 +68,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Encapsulates all logic required to map the dependencies declared in a {@link SoftwareComponentInternal}
- * to a representation compatible with a Maven POM.
+ * Encapsulates all logic required to extract data from a {@link SoftwareComponentInternal} in order to
+ * transform it to a representation compatible with Maven.
  */
 public class MavenComponentParser {
     @VisibleForTesting
@@ -116,8 +116,6 @@ public class MavenComponentParser {
     }
 
     public Set<MavenArtifact> parseArtifacts(SoftwareComponentInternal component) {
-        component.finalizeValue();
-
         // TODO Artifact names should be determined by the source variant. We shouldn't
         //      blindly "pass-through" the artifact file name.
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
@@ -137,7 +135,6 @@ public class MavenComponentParser {
         ModuleVersionIdentifier coordinates,
         VersionMappingStrategyInternal versionMappingStrategy
     ) {
-        component.finalizeValue();
         MavenPublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
         Set<PublishedDependency> seenDependencies = Sets.newHashSet();

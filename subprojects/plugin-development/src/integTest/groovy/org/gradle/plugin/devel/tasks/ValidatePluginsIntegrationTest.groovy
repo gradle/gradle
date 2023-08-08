@@ -19,18 +19,12 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.BuildException
-import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.problems.ProblemEvent
 import spock.lang.Issue
 
-import static org.gradle.tooling.events.OperationType.PROBLEMS
 import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assume.assumeNotNull
@@ -42,8 +36,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             apply plugin: "java-gradle-plugin"
         """
     }
-
-//    def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     String iterableSymbol = '.*'
 
@@ -1039,8 +1031,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
+        def reason = "Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types."
         assertValidationFailsWith([
-            warning(nestedTypeUnsupported { type("MyTask").property("my$typeName").annotatedType(className) },
+            warning(nestedTypeUnsupported { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
                 'validation_problems', 'unsupported_nested_type'),
         ])
 
@@ -1127,14 +1120,14 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            warning(nestedTypeUnsupported { type("MyTask").property("my$typeName").annotatedType(className) },
+            warning(nestedTypeUnsupported { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
                 'validation_problems', 'unsupported_nested_type'),
         ])
 
         where:
-        typeName           | producer                   | className
-        'DeprecationLevel' | 'DeprecationLevel.WARNING' | 'kotlin.DeprecationLevel'
-        'String'           | '"abc"'                    | 'java.lang.String'
+        typeName           | producer                   | className                 | reason
+        'DeprecationLevel' | 'DeprecationLevel.WARNING' | 'kotlin.DeprecationLevel' | "Type is in 'kotlin.*' package that is reserved for Kotlin stdlib types."
+        'String'           | '"abc"'                    | 'java.lang.String'        | "Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types."
     }
 
     def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {

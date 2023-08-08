@@ -17,6 +17,10 @@
 package org.gradle.internal.instrumentation.extensions.property
 
 import com.google.testing.compile.Compilation
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.provider.views.ListPropertyListView
+import org.gradle.api.internal.provider.views.MapPropertyMapView
+import org.gradle.api.internal.provider.views.SetPropertySetView
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
 
 import static com.google.testing.compile.CompilationSubject.assertThat
@@ -99,13 +103,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                              _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_incremental", "(Lorg/gradle/test/Task;)Z");
                              return true;
                          }
-                     }
-                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
-                      if (name.equals("setIncremental") && descriptor.equals("(Z)Lorg/gradle/test/Task;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                        if (name.equals("setIncremental") && descriptor.equals("(Z)Lorg/gradle/test/Task;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
                              _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_incremental", "(Lorg/gradle/test/Task;Z)Lorg/gradle/test/Task;");
                              return true;
                          }
-                     }
+                    }
                     return false;
                 }
             }
@@ -155,16 +157,19 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         Compilation compilation = compile(givenSource)
 
         then:
+        boolean hasSuppressWarnings = originalType in ["List", "Map", "Set"]
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            ${fullImport ? "import $fullImport;" : ""}
+            ${imports.collect { "import $it.name;" }.join("\n")}
             import org.gradle.test.Task;
 
             public class Task_Adapter {
+                ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_property(Task self) {
-                    return self.getProperty()$getCall;
+                    return $getCall;
                 }
 
+                ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static void access_set_property(Task self, $originalType arg0) {
                     self.getProperty()$setCall;
                 }
@@ -176,17 +181,18 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .hasSourceEquivalentTo(generatedClass)
 
         where:
-        upgradedType                  | originalType     | getCall                    | setCall            | fullImport
-        "Property<Integer>"           | "int"            | ".getOrElse(0)"            | ".set(arg0)"       | ""
-        "Property<Boolean>"           | "boolean"        | ".getOrElse(false)"        | ".set(arg0)"       | ""
-        "Property<Long>"              | "long"           | ".getOrElse(0L)"           | ".set(arg0)"       | ""
-        "Property<Integer>"           | "Integer"        | ".getOrElse(null)"         | ".set(arg0)"       | "java.lang.Integer"
-        "Property<String>"            | "String"         | ".getOrElse(null)"         | ".set(arg0)"       | "java.lang.String"
-        "ListProperty<String>"        | "List"           | ".getOrElse(null)"         | ".set(arg0)"       | "java.util.List"
-        "MapProperty<String, String>" | "Map"            | ".getOrElse(null)"         | ".set(arg0)"       | "java.util.Map"
-        "RegularFileProperty"         | "File"           | ".getAsFile().getOrNull()" | ".fileValue(arg0)" | "java.io.File"
-        "DirectoryProperty"           | "File"           | ".getAsFile().getOrNull()" | ".fileValue(arg0)" | "java.io.File"
-        "ConfigurableFileCollection"  | "FileCollection" | ""                         | ".setFrom(arg0)"   | "org.gradle.api.file.FileCollection"
+        upgradedType                  | originalType     | getCall                                          | setCall            | imports
+        "Property<Integer>"           | "int"            | "self.getProperty().getOrElse(0)"                | ".set(arg0)"       | []
+        "Property<Boolean>"           | "boolean"        | "self.getProperty().getOrElse(false)"            | ".set(arg0)"       | []
+        "Property<Long>"              | "long"           | "self.getProperty().getOrElse(0L)"               | ".set(arg0)"       | []
+        "Property<Integer>"           | "Integer"        | "self.getProperty().getOrElse(null)"             | ".set(arg0)"       | [Integer]
+        "Property<String>"            | "String"         | "self.getProperty().getOrElse(null)"             | ".set(arg0)"       | [String]
+        "ListProperty<String>"        | "List"           | "new ListPropertyListView<>(self.getProperty())" | ".set(arg0)"       | [SuppressWarnings, List, ListPropertyListView]
+        "MapProperty<String, String>" | "Map"            | "new MapPropertyMapView<>(self.getProperty())"   | ".set(arg0)"       | [SuppressWarnings, Map, MapPropertyMapView]
+        "SetProperty<String>"         | "Set"            | "new SetPropertySetView<>(self.getProperty())"   | ".set(arg0)"       | [SuppressWarnings, Set, SetPropertySetView]
+        "RegularFileProperty"         | "File"           | "self.getProperty().getAsFile().getOrNull()"     | ".fileValue(arg0)" | [File]
+        "DirectoryProperty"           | "File"           | "self.getProperty().getAsFile().getOrNull()"     | ".fileValue(arg0)" | [File]
+        "ConfigurableFileCollection"  | "FileCollection" | "self.getProperty()"                             | ".setFrom(arg0)"   | [FileCollection]
     }
 
     def "should correctly generate interceptor when property name contains get"() {
@@ -220,9 +226,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                              _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_targetCompatibility", "(Lorg/gradle/test/Task;)Ljava/lang/String;");
                              return true;
                          }
-                    }
-                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
-                       if (name.equals("setTargetCompatibility") && descriptor.equals("(Ljava/lang/String;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                         if (name.equals("setTargetCompatibility") && descriptor.equals("(Ljava/lang/String;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_targetCompatibility", "(Lorg/gradle/test/Task;Ljava/lang/String;)V");
                            return true;
                        }

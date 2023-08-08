@@ -68,10 +68,6 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION)
     }
 
-    void maybeExpectGUtilDeprecation() {
-        runner.maybeExpectLegacyDeprecationWarning(GUTIL_DEPRECATION)
-    }
-
     void expectConfigUtilDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(
             versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIG_UTIL),
@@ -97,38 +93,30 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         )
     }
 
-    void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion) {
+    void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, String fixedVersion = '8.0.0') {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         runner.expectLegacyDeprecationWarningIf(
-            agpVersionNumber < VersionNumber.parse("8.0.0-rc01"),
+            agpVersionNumber.baseVersion < VersionNumber.parse(fixedVersion),
             getBuildIdentifierIsCurrentBuildDeprecationMessage()
         )
     }
 
-    void expectBuildIdentifierIsCurrentBuildDeprecation() {
-        runner.expectDeprecationWarning(
-            getBuildIdentifierIsCurrentBuildDeprecationMessage(),
-            "https://issuetracker.google.com/issues/279306626"
-        )
-    }
-
-    void expectBuildIdentifierNameDeprecation() {
-        runner.expectDeprecationWarning(
+    void expectBuildIdentifierNameDeprecation(String agpVersion) {
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        runner.expectLegacyDeprecationWarningIf(
+            agpVersionNumber.baseVersion < VersionNumber.parse("8.2.0"),
             "The BuildIdentifier.getName() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use getBuildPath() to get a unique identifier for the build. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-            "https://issuetracker.google.com/issues/279306626"
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
         )
     }
 
     void maybeExpectOrgGradleUtilGUtilDeprecation(String agpVersion) {
         runner.maybeExpectLegacyDeprecationWarningIf(
             VersionNumber.parse(agpVersion) < VersionNumber.parse("7.5"),
-            "The org.gradle.util.GUtil type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "${DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_7", "org_gradle_util_reports_deprecations")}"
+            GUTIL_DEPRECATION
         )
     }
 }
