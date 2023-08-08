@@ -165,9 +165,8 @@ public class DefaultDeleter implements Deleter {
         }
 
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
-        // It mentions that there is a bug in the Windows JDK implementations that this is a valid
-        // workaround for. I've been unable to find a definitive reference to this bug.
-        // The thinking is that if this is good enough for Ant, it's good enough for us.
+        // This was introduced in Ant by https://github.com/apache/ant/commit/ececc5c3e332b97f962b94a475408606433ee0e6
+        // This is a workaround for https://bz.apache.org/bugzilla/show_bug.cgi?id=45786
         if (runGcOnFailedDelete) {
             System.gc();
         }
