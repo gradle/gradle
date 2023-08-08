@@ -445,8 +445,8 @@ trait ValidationMessageChecker {
     String nestedTypeUnsupported(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(NestedTypeUnsupported, "unsupported_nested_type", spec)
         config.description("with nested type '${config.annotatedType}' is not supported.")
-            .reason("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.")
-            .solution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input.")
+            .solution("Use a different input annotation if type is not a bean.")
+            .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types.")
             .render()
     }
 
