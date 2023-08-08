@@ -201,7 +201,7 @@ class DefaultDeleterTest extends Specification {
         deleter = FileTime.deleterWithDeletionAction() { file ->
             if (file.canonicalFile == nonDeletable.canonicalFile) {
                 failedAttempts++
-                return DeletionAction.EXCEPTION
+                return DeletionAction.FAILURE
             }
             return DeletionAction.CONTINUE
         }
@@ -343,7 +343,7 @@ class DefaultDeleterTest extends Specification {
         }
 
         when:
-        deleter.deleteRecursively(targetDir)
+        deleter .deleteRecursively(targetDir)
 
         then: 'nothing gets deleted'
         targetDir.assertIsDir()
@@ -415,6 +415,6 @@ class DefaultDeleterTest extends Specification {
     }
 
     private static enum DeletionAction {
-        FAILURE, CONTINUE, EXCEPTION
+        FAILURE, CONTINUE
     }
 }

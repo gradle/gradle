@@ -22,9 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -158,48 +155,37 @@ public class DefaultDeleter implements Deleter {
         return file.isDirectory() && (handling.shouldFollowLinkedDirectory() || !isSymlink.test(file));
     }
 
-    protected boolean deleteFile(File file) throws IOException {
-        Path path = file.toPath();
-        return Files.deleteIfExists(path) && !Files.exists(path);
+    protected boolean deleteFile(File file) {
+        return file.delete() && !file.exists();
     }
 
     private boolean tryHardToDelete(File file) {
-        boolean result = false;
-        try {
-            result = deleteFile(file);
-        } catch (DirectoryNotEmptyException exception) {
-
-            // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
-            // It mentions that there is a bug in the Windows JDK implementations that this is a valid
-            // workaround for. I've been unable to find a definitive reference to this bug.
-            // The thinking is that if this is good enough for Ant, it's good enough for us.
-            if (runGcOnFailedDelete) {
-                System.gc();
-            }
-            int failedAttempts = 1;
-            while (failedAttempts < EMPTY_DIRECTORY_DELETION_ATTEMPTS) {
-                try {
-                    Thread.sleep(DELETE_RETRY_SLEEP_MILLIS);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                }
-                try {
-                    result = deleteFile(file);
-                } catch (DirectoryNotEmptyException ex) {
-                    failedAttempts++;
-                    continue;
-                } catch (IOException ex) {
-                    return false;
-                }
-                break;
-            }
-            if (failedAttempts >= EMPTY_DIRECTORY_DELETION_ATTEMPTS) {
-                return false;
-            }
-        } catch (IOException exception) {
-            return false;
+        if (deleteFile(file)) {
+            return true;
         }
-        return result;
+
+        // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
+        // It mentions that there is a bug in the Windows JDK implementations that this is a valid
+        // workaround for. I've been unable to find a definitive reference to this bug.
+        // The thinking is that if this is good enough for Ant, it's good enough for us.
+        if (runGcOnFailedDelete) {
+            System.gc();
+        }
+
+        int failedAttempts = 1;
+        while (failedAttempts < EMPTY_DIRECTORY_DELETION_ATTEMPTS) {
+            try {
+                Thread.sleep(DELETE_RETRY_SLEEP_MILLIS);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            if (deleteFile(file)) {
+                return true;
+            } else {
+                failedAttempts++;
+            }
+        }
+        return false;
     }
 
     private void throwWithHelpMessage(long startTime, File file, Handling handling, Collection<String> failedPaths, boolean more) throws IOException {
