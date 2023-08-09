@@ -32,7 +32,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -702,5 +701,5 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 8.4
      */
     @Incubating
-    List<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters();
+    void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter);
 }

@@ -113,6 +113,7 @@ import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.event.ListenerManager;
@@ -405,7 +406,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                   VariantTransformRegistry variantTransformRegistry,
                                                   ArtifactTypeRegistry artifactTypeRegistry,
                                                   ObjectFactory objects,
-                                                  PlatformSupport platformSupport) {
+                                                  PlatformSupport platformSupport,
+                                                  VariantSelectionFailureProcessor failureProcessor) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                 configurationContainer,
                 dependencyFactory,
@@ -418,7 +420,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 variantTransformRegistry,
                 artifactTypeRegistry,
                 objects,
-                platformSupport);
+                platformSupport,
+                failureProcessor);
         }
 
         DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyLockingProvider dependencyLockingProvider) {
@@ -485,6 +488,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
+        VariantSelectionFailureProcessor createVariantSelectionFailureProcessor() {
+            return new VariantSelectionFailureProcessor();
+        }
+
         ConfigurationResolver createDependencyResolver(
             ArtifactDependencyResolver artifactDependencyResolver,
             RepositoriesSupplier repositoriesSupplier,
@@ -509,7 +516,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             WorkerLeaseService workerLeaseService,
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
-            SelectedVariantSerializer selectedVariantSerializer
+            SelectedVariantSerializer selectedVariantSerializer,
+            VariantSelectionFailureProcessor failureProcessor
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 artifactDependencyResolver,
@@ -526,7 +534,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     ),
                     attributesSchema,
                     attributesFactory,
-                    transformedVariantFactory
+                    transformedVariantFactory,
+                    failureProcessor
                 ),
                 moduleIdentifierFactory,
                 buildOperationExecutor,

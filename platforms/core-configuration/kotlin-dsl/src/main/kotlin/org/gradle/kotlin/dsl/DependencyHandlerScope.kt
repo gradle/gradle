@@ -54,7 +54,9 @@ private constructor(
         super.constraints(configureAction)
     }
 
-    override fun getMatchingFailureInterpreters(): List<VariantMatchingFailureInterpreter> = dependencies.matchingFailureInterpreters
+    override fun addVariantMatchingFailureInterpreter(interpreter: VariantMatchingFailureInterpreter) {
+        dependencies.addVariantMatchingFailureInterpreter(interpreter)
+    }
 
     /**
      * Configures dependency constraint for this project.

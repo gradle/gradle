@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 
 import javax.inject.Inject;
-import java.util.List;
 
 public abstract class DefaultJvmComponentDependencies implements JvmComponentDependencies {
     private final DependencyAdder implementation;
@@ -58,7 +57,7 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     }
 
     @Override
-    public List<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
-        return getProject().getDependencies().getMatchingFailureInterpreters();
+    public void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter) {
+        getProject().getDependencies().addVariantMatchingFailureInterpreter(interpreter);
     }
 }

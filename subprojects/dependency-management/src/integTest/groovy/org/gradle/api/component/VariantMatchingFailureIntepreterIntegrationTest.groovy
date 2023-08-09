@@ -17,22 +17,24 @@
 package org.gradle.api.component
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.intellij.lang.annotations.Language
 
 class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegrationSpec {
     def "can register a failure interpreter"() {
         buildFile << """
             ${defineCustomInterpreter()}
+            ${setupAmbiguousVariantSelectionFailure()}
 
             dependencies {
-                matchingFailureInterpreters.add(new TestVariantMatchingFailureInterpreter())
+                addVariantMatchingFailureInterpreter(new TestVariantMatchingFailureInterpreter())
             }
 
-            assert dependencies.matchingFailureInterpreters.size() == 1
-            assert dependencies.matchingFailureInterpreters[0] instanceof TestVariantMatchingFailureInterpreter
+            configurations.consumer.incoming.files.each { println it }
         """
 
         expect:
-        succeeds "help"
+        fails "help", "outgoingVariants", "resolvableConfigurations"
+        errorOutput.contains("Could not resolve all files for configuration ':consumer'.")
     }
 
     def "default JDK mismatch failure interpreter is automatically added by plugin"() {
@@ -41,12 +43,31 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
                 id 'java-base'
             }
 
-            assert dependencies.matchingFailureInterpreters.size() == 1
-            assert dependencies.matchingFailureInterpreters[0] instanceof org.gradle.internal.artifacts.dsl.JDKVersionMismatchFailureInterpreter
+            ${setupAmbiguousVariantSelectionFailure()}
+
+            configurations.consumer.incoming.files.each { println it }
         """
 
         expect:
-        succeeds "help"
+        fails "help", "outgoingVariants", "resolvableConfigurations"
+        errorOutput.contains("Could not resolve all files for configuration ':consumer'.")
+    }
+
+    def "can register a failure interpreter with the java library plugin applied"() {
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${defineCustomInterpreter()}
+            ${setupAmbiguousVariantSelectionFailure()}
+
+            configurations.consumer.incoming.files.each { println it }
+        """
+
+        expect:
+        fails "help", "outgoingVariants", "resolvableConfigurations"
+        errorOutput.contains("Could not resolve all files for configuration ':consumer'.")
     }
 
     def "can register a failure interpreter via a test suite"() {
@@ -56,26 +77,66 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
             }
 
             ${defineCustomInterpreter()}
+            ${setupAmbiguousVariantSelectionFailure()}
 
             testing {
                 suites {
                     mySuite(JvmTestSuite) {
                         dependencies {
-                            matchingFailureInterpreters.add(new TestVariantMatchingFailureInterpreter())
+                            addVariantMatchingFailureInterpreter(new TestVariantMatchingFailureInterpreter())
                         }
                     }
                 }
             }
 
-            assert dependencies.matchingFailureInterpreters.size() == 2
-            assert dependencies.matchingFailureInterpreters[0] instanceof org.gradle.internal.artifacts.dsl.JDKVersionMismatchFailureInterpreter
-            assert dependencies.matchingFailureInterpreters[1] instanceof TestVariantMatchingFailureInterpreter
+            configurations.consumer.incoming.files.each { println it }
         """
 
         expect:
-        succeeds "help"
+        fails "help", "outgoingVariants", "resolvableConfigurations"
+        errorOutput.contains("Could not resolve all files for configuration ':consumer'.")
     }
 
+    @Language("Groovy")
+    private String setupAmbiguousVariantSelectionFailure() {
+        return """
+            def color = Attribute.of('color', String)
+            def shape = Attribute.of('shape', String)
+
+            configurations {
+                producer1 {
+                    setCanBeConsumed(true)
+                    attributes.attribute color, 'blue'
+                    attributes.attribute shape, 'round'
+                    outgoing {
+                        artifact file('a1.jar')
+                    }
+                }
+                producer2 {
+                    setCanBeConsumed(true)
+                    attributes.attribute color, 'blue'
+                    attributes.attribute shape, 'square'
+                    outgoing {
+                        artifact file('a2.jar')
+                    }
+                }
+                consumer {
+                    setCanBeConsumed(false)
+                    setCanBeResolved(true)
+                    attributes.attribute color, 'blue'
+
+                    // Ensure that the variants added by the `java-library` plugin do not match and aren't considered in Step 1 of variant matching
+                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                }
+            }
+
+            dependencies {
+                consumer project(":")
+            }
+        """
+    }
+
+    @Language("JAVA")
     private String defineCustomInterpreter() {
         return """
             class TestVariantMatchingFailureInterpreter implements VariantMatchingFailureInterpreter {

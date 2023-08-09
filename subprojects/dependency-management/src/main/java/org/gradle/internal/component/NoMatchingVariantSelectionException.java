@@ -16,35 +16,8 @@
 
 package org.gradle.internal.component;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.util.Collection;
-import java.util.List;
-
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForIncompatibility;
-
 public class NoMatchingVariantSelectionException extends VariantSelectionException {
-    public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> candidates, AttributeMatcher matcher, AttributeDescriber describer) {
-        super(format(producerDisplayName, consumer, candidates, matcher, describer), producerDisplayName, consumer, candidates);
-    }
-
-    private static String format(String producerDisplayName,
-                                 AttributeContainerInternal consumer,
-                                 Collection<? extends ResolvedVariant> candidates,
-                                 AttributeMatcher matcher, AttributeDescriber describer) {
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node("No variants of " + style(StyledTextOutput.Style.Info, producerDisplayName) + " match the consumer attributes");
-        formatter.startChildren();
-        for (ResolvedVariant variant : candidates) {
-            formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable(), describer);
-        }
-        formatter.endChildren();
-        return formatter.toString();
+    public NoMatchingVariantSelectionException(String message) {
+        super(message);
     }
 }

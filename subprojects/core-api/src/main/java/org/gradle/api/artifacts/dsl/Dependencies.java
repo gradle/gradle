@@ -24,7 +24,6 @@ import org.gradle.api.model.ObjectFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.List;
 
 /**
  * Universal APIs that are available for all {@code dependencies} blocks.
@@ -124,5 +123,5 @@ public interface Dependencies {
      * @since 8.4
      */
     @Incubating
-    List<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters();
+    void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter);
 }

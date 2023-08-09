@@ -36,6 +36,7 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.ExternalModuleDependencyVariantSpec;
+import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
@@ -45,7 +46,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
-import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
@@ -57,6 +57,7 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -65,8 +66,6 @@ import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
@@ -86,7 +85,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
-    private final List<VariantMatchingFailureInterpreter> variantMatchingFailureInterpreters;
+    private final VariantSelectionFailureProcessor failureProcessor;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
                                     DependencyFactoryInternal dependencyFactory,
@@ -99,7 +98,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                                     VariantTransformRegistry transforms,
                                     Factory<ArtifactTypeContainer> artifactTypeContainer,
                                     ObjectFactory objects,
-                                    PlatformSupport platformSupport) {
+                                    PlatformSupport platformSupport,
+                                    VariantSelectionFailureProcessor failureProcessor) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
@@ -112,10 +112,10 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         this.artifactTypeContainer = artifactTypeContainer;
         this.objects = objects;
         this.platformSupport = platformSupport;
+        this.failureProcessor = failureProcessor;
         configureSchema();
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
 
-        this.variantMatchingFailureInterpreters = new ArrayList<>();
     }
 
     @Override
@@ -427,8 +427,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    public List<VariantMatchingFailureInterpreter> getMatchingFailureInterpreters() {
-        return variantMatchingFailureInterpreters;
+    public void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter) {
+        failureProcessor.registerFailureInterpreter(interpreter);
     }
 
     private Category toCategory(String category) {

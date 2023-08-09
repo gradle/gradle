@@ -17,6 +17,6 @@ package org.gradle.internal.component;
 
 public class IncompatibleVariantsSelectionException extends VariantSelectionException {
     public IncompatibleVariantsSelectionException(String message) {
-        super(message, null);
+        super(message);
     }
 }

@@ -20,20 +20,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.AmbiguousVariantSelectionException;
-import org.gradle.internal.component.NoMatchingVariantSelectionException;
 import org.gradle.internal.component.VariantSelectionException;
+import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.model.DescriberSelector;
@@ -56,6 +53,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final boolean ignoreWhenNoMatches;
     private final boolean selectFromAllVariants;
     private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
+    private final VariantSelectionFailureProcessor failureProcessor;
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -65,7 +63,8 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         ImmutableAttributes requested,
         boolean ignoreWhenNoMatches,
         boolean selectFromAllVariants,
-        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory
+        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
+        VariantSelectionFailureProcessor failureProcessor
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
@@ -75,6 +74,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.selectFromAllVariants = selectFromAllVariants;
         this.dependenciesResolverFactory = dependenciesResolverFactory;
+        this.failureProcessor = failureProcessor;
     }
 
     @Override
@@ -101,9 +101,9 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         try {
             return doSelect(producer, ignoreWhenNoMatches, factory, AttributeMatchingExplanationBuilder.logging());
         } catch (VariantSelectionException t) {
-            return new BrokenResolvedArtifactSet(t);
+            return failureProcessor.unknownSelectionFailure(t);
         } catch (Exception t) {
-            return new BrokenResolvedArtifactSet(VariantSelectionException.selectionFailed(producer, t));
+            return failureProcessor.unknownSelectionFailure(producer, t);
         }
     }
 
@@ -126,8 +126,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             matches = matcher.matches(variants, componentRequested, newExpBuilder);
 
             Set<ResolvedVariant> discarded = Cast.uncheckedCast(newExpBuilder.discarded);
-            AttributeDescriber describer = DescriberSelector.selectDescriber(componentRequested, schema);
-            throw new AmbiguousVariantSelectionException(describer, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded);
+            throw failureProcessor.ambiguousVariantSelectionFailure(producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -144,14 +143,14 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw new AmbiguousTransformException(producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousTransformationFailure(producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
         }
 
         if (ignoreWhenNoMatches) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
+        throw failureProcessor.noMatchingVariantsSelectionFailure(producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
     }
 
     /**
