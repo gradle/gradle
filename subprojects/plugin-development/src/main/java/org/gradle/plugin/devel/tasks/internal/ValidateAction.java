@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
@@ -55,7 +54,6 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import static org.gradle.api.problems.interfaces.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
@@ -196,19 +194,6 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 throw new java.io.UncheckedIOException(ex);
             }
         }
-    }
-
-    private static List<String> toProblemMessages(Map<String, Boolean> problems) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        for (Map.Entry<String, Boolean> entry : problems.entrySet()) {
-            String problem = entry.getKey();
-            Boolean error = entry.getValue();
-            builder.add(String.format("%s: %s",
-                Boolean.TRUE.equals(error) ? "Error" : "Warning",
-                problem
-            ));
-        }
-        return builder.build();
     }
 
     private static class TaskNameCollectorVisitor extends ClassVisitor {
