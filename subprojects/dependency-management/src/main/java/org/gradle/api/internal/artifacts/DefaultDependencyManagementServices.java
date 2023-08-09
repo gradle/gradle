@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -108,6 +107,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -250,7 +250,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 FileCollectionFactory fileCollectionFactory,
                 FileLookup fileLookup,
                 ServiceRegistry internalServices,
-                DocumentationRegistry documentationRegistry
+                Problems problems
         ) {
             return new DefaultTransformRegistrationFactory(
                 buildOperationExecutor,
@@ -265,7 +265,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 parameterScheme,
                 actionScheme,
                 internalServices,
-                documentationRegistry
+                problems
             );
         }
 

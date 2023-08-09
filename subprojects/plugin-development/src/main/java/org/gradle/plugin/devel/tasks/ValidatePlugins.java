@@ -16,12 +16,14 @@
 
 package org.gradle.plugin.devel.tasks;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -41,12 +43,19 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
+import org.gradle.plugin.devel.tasks.internal.ValidationProblemSerialization;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.stream.Stream;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -99,24 +108,27 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<String> problemMessages = parseMessageList(Files.readAllLines(getOutputFile().get().getAsFile().toPath()));
+        List<DefaultProblem> problemMessages = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
 
+        Problems problems = getServices().get(Problems.class);
+        Stream<String> messages = ValidationProblemSerialization.toMessages(problemMessages).sorted();
         if (problemMessages.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (getFailOnWarning().get() || problemMessages.stream().anyMatch(line -> line.startsWith("Error:"))) {
+            if (getFailOnWarning().get() || problemMessages.stream().anyMatch(problem -> problem.getSeverity() == ERROR)) {
                 if (getIgnoreFailures().get()) {
                     getLogger().warn("Plugin validation finished with errors. {} {}",
                         annotateTaskPropertiesDoc(),
-                        toMessageList(problemMessages));
+                        messages.collect(joining()));
                 } else {
-                    throw WorkValidationException.forProblems(problemMessages)
+                    problems.collectErrors(problemMessages.stream().map(Problem.class::cast).collect(toList()));
+                    throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
                         .getWithExplanation(annotateTaskPropertiesDoc());
                 }
             } else {
                 getLogger().warn("Plugin validation finished with warnings:{}",
-                    toMessageList(problemMessages));
+                    messages.collect(joining()));
             }
         }
     }
@@ -125,32 +137,8 @@ public abstract class ValidatePlugins extends DefaultTask {
         return getDocumentationRegistry().getDocumentationRecommendationFor("on how to annotate task properties", "incremental_build", "sec:task_input_output_annotations");
     }
 
-    private static List<String> parseMessageList(List<String> lines) {
-        List<String> list = Lists.newArrayList();
-        StringBuilder sb = new StringBuilder();
-        for (String line : lines) {
-            if (line.equals(ValidateAction.PROBLEM_SEPARATOR)) {
-                list.add(sb.toString());
-                sb.setLength(0);
-            } else {
-                if (sb.length() > 0) {
-                    sb.append("\n");
-                }
-                sb.append(line);
-            }
-        }
-        if (sb.length() > 0) {
-            list.add(sb.toString());
-        }
-        return list;
-    }
-
-    private static CharSequence toMessageList(List<String> problemMessages) {
-        StringBuilder builder = new StringBuilder();
-        for (String problemMessage : problemMessages) {
-            builder.append(String.format("%n  - %s", problemMessage));
-        }
-        return builder;
+    private static CharSequence toMessageList(List<DefaultProblem> problems) {
+        return ValidationProblemSerialization.toMessages(problems).collect(joining());
     }
 
     /**

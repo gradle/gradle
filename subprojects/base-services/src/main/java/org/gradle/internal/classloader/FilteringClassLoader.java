@@ -19,6 +19,7 @@ package org.gradle.internal.classloader;
 import org.gradle.internal.util.Trie;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -105,6 +106,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         return cl;
     }
 
+    @Nullable
     @SuppressWarnings("deprecation")
     @Override
     protected Package getPackage(String name) {

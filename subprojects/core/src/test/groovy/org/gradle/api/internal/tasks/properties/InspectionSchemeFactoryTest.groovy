@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiationScheme
@@ -63,7 +64,7 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(Mock(Problems), false)
         metadata.visitValidationFailures(null, validationContext)
 
         then:
@@ -89,7 +90,7 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(Mock(Problems), false)
         metadata.visitValidationFailures(null, validationContext)
 
         then:

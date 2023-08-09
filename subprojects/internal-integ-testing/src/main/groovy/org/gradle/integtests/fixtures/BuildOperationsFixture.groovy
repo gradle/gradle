@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures
 
-
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -32,12 +31,13 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
     private BuildOperationTreeFixture tree
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
-        String path = projectDir.testDirectory.file("operations").absolutePath
+        String path = projectDir.testDirectory.file("/operations").absolutePath
         executer.beforeExecute {
             executer.withArgument("-D$BuildOperationTrace.SYSPROP=$path")
-        }
-        executer.afterExecute {
-            tree = new BuildOperationTreeFixture(BuildOperationTrace.read(path))
+
+            executer.afterExecute {
+                tree = new BuildOperationTreeFixture(BuildOperationTrace.read(path))
+            }
         }
     }
 

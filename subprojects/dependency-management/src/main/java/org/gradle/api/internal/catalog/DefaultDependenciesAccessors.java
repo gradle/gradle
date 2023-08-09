@@ -39,6 +39,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.initialization.DefaultProjectDescriptor;
@@ -111,6 +112,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private ClassPath sources = DefaultClassPath.of();
     private ClassPath classes = DefaultClassPath.of();
 
+    @Inject
     public DefaultDependenciesAccessors(ClassPathRegistry registry,
                                         DependenciesAccessorsWorkspaceProvider workspace,
                                         DefaultProjectDependencyFactory projectDependencyFactory,
@@ -130,6 +132,11 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         this.inputFingerprinter = inputFingerprinter;
         this.attributesFactory = attributesFactory;
         this.capabilityNotationParser = capabilityNotationParser;
+    }
+
+    @Inject
+    protected Problems getProblemService() {
+        throw new UnsupportedOperationException("not implemented");
     }
 
     @Override
@@ -404,8 +411,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         protected List<ClassSource> getClassSources() {
             return Arrays.asList(
-                new DependenciesAccessorClassSource(model.getName(), model),
-                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model)
+                new DependenciesAccessorClassSource(model.getName(), model, getProblemService()),
+                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, getProblemService())
             );
         }
 
@@ -483,10 +490,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private final String name;
         private final DefaultVersionCatalog model;
+        private final Problems problemService;
 
-        private DependenciesAccessorClassSource(String name, DefaultVersionCatalog model) {
+        private DependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemService) {
             this.name = name;
             this.model = model;
+            this.problemService = problemService;
         }
 
         @Override
@@ -502,7 +511,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName());
+            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemService);
             return writer.toString();
         }
     }
@@ -510,10 +519,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private static class PluginsBlockDependenciesAccessorClassSource implements ClassSource {
         private final String name;
         private final DefaultVersionCatalog model;
+        private final Problems problemService;
 
-        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model) {
+        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemService) {
             this.name = name;
             this.model = model;
+            this.problemService = problemService;
         }
 
         @Override
@@ -529,7 +540,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName());
+            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemService);
             return writer.toString();
         }
     }

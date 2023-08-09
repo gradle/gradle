@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
+
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType

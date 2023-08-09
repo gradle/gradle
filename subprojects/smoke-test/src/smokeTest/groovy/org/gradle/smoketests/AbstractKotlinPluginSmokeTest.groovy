@@ -16,10 +16,9 @@
 
 package org.gradle.smoketests
 
-
+import org.gradle.api.problems.interfaces.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING
 /**
  * Base class for smoke tests for Kotlin and Kotlin Multiplatform plugins.
  */
@@ -114,7 +113,7 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
                     .annotatedType('java.lang.String')
                     .reason("Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types.")
                     .includeLink()
-        }, WARNING)
+        }, Severity.WARNING)
     }
 
     protected static class KotlinDeprecations extends BaseDeprecations implements WithKotlinDeprecations {

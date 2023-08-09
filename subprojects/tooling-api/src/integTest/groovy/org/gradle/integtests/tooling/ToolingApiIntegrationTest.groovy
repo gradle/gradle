@@ -202,7 +202,8 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
-        toolingApi.withConnector { it.useGradleVersion(otherVersion.version.version)
+        toolingApi.withConnector {
+            it.useGradleVersion(otherVersion.version.version)
         }
         GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 

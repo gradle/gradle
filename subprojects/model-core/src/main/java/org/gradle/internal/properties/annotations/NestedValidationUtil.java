@@ -18,13 +18,15 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
+import static org.gradle.api.problems.interfaces.ProblemGroup.TYPE_VALIDATION_ID;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
  * Utility methods for validating {@link org.gradle.api.tasks.Nested} properties.
@@ -52,18 +54,23 @@ public class NestedValidationUtil  {
         String propertyName,
         Class<?> beanType
     ) {
-        Optional<String> unsupportedReason = getUnsupportedReason(beanType);
-        unsupportedReason.ifPresent(reason -> validationContext.visitPropertyProblem(problem ->
-            problem.withId(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
-                .reportAs(WARNING)
-                .forProperty(propertyName)
-                .withDescription(() -> "with nested type '" + beanType.getName() + "' is not supported")
-                .happensBecause(reason)
-                .addPossibleSolution("Use a different input annotation if type is not a bean")
-                .addPossibleSolution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types")
-                .documentedAt("validation_problems", "unsupported_nested_type")
-        ));
+        getUnsupportedReason(beanType).ifPresent(reason ->
+            validationContext.visitPropertyProblem(problem ->
+                problem
+                    .forProperty(propertyName)
+                    .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
+                    .noLocation()
+                    .severity(Severity.WARNING)
+                    .message("with nested type '" + beanType.getName() + "' is not supported")
+                    .type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED.name())
+                    .group(TYPE_VALIDATION_ID)
+                    .description(reason)
+                    .solution("Use a different input annotation if type is not a bean")
+                    .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types")
+            )
+        );
     }
+
 
     private static Optional<String> getUnsupportedReason(Class<?> type) {
         if (type.getName().startsWith("java.") || type.getName().startsWith("javax.")) {
@@ -91,13 +98,16 @@ public class NestedValidationUtil  {
     ) {
         if (!SUPPORTED_KEY_TYPES.contains(keyType)) {
             validationContext.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
-                    .reportAs(WARNING)
+                problem
                     .forProperty(propertyName)
-                    .withDescription(() -> "where key of nested map is of type '" + keyType.getName() + "'")
-                    .happensBecause("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
-                    .addPossibleSolution("Change type of key to one of the following types: " + getSupportedKeyTypes())
-                    .documentedAt("validation_problems", "unsupported_key_type_of_nested_map")
+                    .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
+                    .noLocation()
+                    .severity(Severity.WARNING)
+                    .message("where key of nested map is of type '" + keyType.getName() + "'")
+                    .type(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE.name())
+                    .group(TYPE_VALIDATION_ID)
+                    .description("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
+                    .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())
             );
         }
     }

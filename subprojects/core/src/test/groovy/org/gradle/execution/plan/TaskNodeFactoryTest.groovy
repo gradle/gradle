@@ -16,11 +16,12 @@
 
 package org.gradle.execution.plan
 
-import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.problems.Problems
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
@@ -39,7 +40,7 @@ class TaskNodeFactoryTest extends Specification {
         project.gradle >> gradle
         project.pluginManager >> Stub(PluginManagerInternal)
 
-        factory = new TaskNodeFactory(gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor(), Stub(ExecutionNodeAccessHierarchies))
+        factory = new TaskNodeFactory(gradle, Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor(), Stub(ExecutionNodeAccessHierarchies), Stub(Problems))
     }
 
     private TaskInternal task(String name) {

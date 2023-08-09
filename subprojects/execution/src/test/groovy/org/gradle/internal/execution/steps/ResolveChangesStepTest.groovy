@@ -18,12 +18,12 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.api.problems.interfaces.Problem
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.internal.reflect.validation.TypeValidationProblem
 
 class ResolveChangesStepTest extends StepSpec<CachingContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
@@ -106,7 +106,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
-        _ * context.validationProblems >> ImmutableList.of(Mock(TypeValidationProblem))
+        _ * context.validationProblems >> ImmutableList.of(Mock(Problem))
         _ * context.previousExecutionState >> Optional.empty()
         0 * _
     }

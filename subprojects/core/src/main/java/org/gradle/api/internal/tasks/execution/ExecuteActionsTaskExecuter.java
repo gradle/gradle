@@ -117,7 +117,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             task,
             context,
             emitLegacySnapshottingOperations,
-
             actionListener,
             asyncWorkTracker,
             buildOperationExecutor,

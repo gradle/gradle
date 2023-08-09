@@ -66,6 +66,10 @@ public interface InternalBuildProgressListener {
      * The constant for build phase operations.
      */
     String BUILD_PHASE = "BUILD_PHASE";
+    /**
+     * The constant for problems events.
+     */
+    String PROBLEMS = "PROBLEMS";
 
     /**
      * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.

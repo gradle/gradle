@@ -18,6 +18,7 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -51,18 +52,18 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     SetSystemProperties systemProperties = new SetSystemProperties()
     final problemStream = Mock(ProblemStream)
     final diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
+
     final handler = new LoggingDeprecatedFeatureHandler()
     final Clock clock = Mock(Clock)
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
     final BuildOperationProgressEventEmitter progressBroadcaster = new DefaultBuildOperationProgressEventEmitter(
-        clock, currentBuildOperationRef, buildOperationListener
-    )
+        clock, currentBuildOperationRef, buildOperationListener)
 
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream
         _ * diagnosticsFactory.newUnlimitedStream() >> problemStream
-        handler.init(diagnosticsFactory, WarningMode.All, progressBroadcaster)
+        handler.init(diagnosticsFactory, WarningMode.All, progressBroadcaster, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
     }
 
     def 'logs each deprecation warning only once'() {
@@ -202,8 +203,11 @@ feature1 removal""")
     }
 
     def "no warnings should be displayed in #type"() {
+        given:
+        useStackTrace()
+
         when:
-        handler.init(diagnosticsFactory, type, progressBroadcaster)
+        handler.init(diagnosticsFactory, type, progressBroadcaster, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
         then:
