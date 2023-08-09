@@ -78,6 +78,11 @@ public class ValidationProblemSerialization {
 
     }
 
+    /**
+     * A type adapter for {@link Throwable} that supports serializing and deserializing {@link Throwable} instances to JSON using GSON.
+     * <p>
+     * from <a href="https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j.jsonrpc/src/main/java/org/eclipse/lsp4j/jsonrpc/json/adapters/ThrowableTypeAdapter.java">here</a>
+     */
     public static class ThrowableTypeAdapter extends TypeAdapter<Throwable> {
         private final TypeToken<Throwable> typeToken;
 
