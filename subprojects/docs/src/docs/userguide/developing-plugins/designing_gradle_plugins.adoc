@@ -174,5 +174,6 @@ include::{snippetsPath}/developingPlugins/externalLibraries/tests/buildEnvironme
 It’s important to understand that a Gradle plugin does not run in its own, isolated classloader.
 In turn those dependencies might conflict with other versions of the same library being resolved from other plugins and might lead to unexpected runtime behavior.
 When writing Gradle plugins consider if you really need a specific library or if you could just implement a simple method yourself.
-A future version of Gradle will introduce proper classpath isolation for plugins.
+
+For logic that is executed as part of task execution, use the <<worker_api.adoc#tasks_parallel_worker, Worker API>> that allows you to isolate libraries.
 
