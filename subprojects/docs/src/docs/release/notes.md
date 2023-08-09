@@ -65,7 +65,7 @@ java {
 
 ### Links to GitHub sources in Kotlin DSL Reference
 
-The Kotlin DSL Reference guide now also contains links to the source code of all Kotlin and Java types, functions and properties.
+The Kotlin DSL Reference guide now contains links to the source code of all Kotlin and Java types, functions and properties.
 The links point to GitHub and are specific to the version of the code the guide is documenting.
 
 <img alt="source links in kotlin reference"
