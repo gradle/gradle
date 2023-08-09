@@ -124,7 +124,7 @@ class TestFailureSpecification extends ToolingApiSpecification {
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof TestFinishEvent) {
-                TestOperationResult result = ((TestFinishEvent) event).getResult();
+                TestOperationResult result = ((TestFinishEvent) event).getResult()
                 if (result instanceof TestFailureResult) {
                     failures += ((TestFailureResult) result).failures
                 }
