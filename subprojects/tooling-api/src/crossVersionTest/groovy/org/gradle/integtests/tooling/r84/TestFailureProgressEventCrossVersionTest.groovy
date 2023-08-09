@@ -50,7 +50,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         def collector = new TestFailureEventCollector()
 
         when:
-        def failures = runTestTaskWithFailureCollection(collector)
+        runTestTaskWithFailureCollection(collector)
 
         then:
         thrown(BuildException)
