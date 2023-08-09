@@ -79,7 +79,7 @@ public class DocumentationRegistry {
     }
 
     public String getDocumentationRecommendationFor(String topic, DocLink docLink) {
-        String url = docLink.documentationUrl();
+        String url = docLink.url();
         return getRecommendationString(topic, url == null ? "<N/A>" : url);
     }
 

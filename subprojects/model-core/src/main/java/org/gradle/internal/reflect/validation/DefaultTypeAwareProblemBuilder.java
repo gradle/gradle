@@ -39,7 +39,7 @@ public class DefaultTypeAwareProblemBuilder extends DefaultProblemBuilder implem
     }
 
     @Override
-    public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
+    public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) {
         if (classWithAnnotationAttached != null) {
             withMetadata(TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
         }
@@ -69,7 +69,7 @@ public class DefaultTypeAwareProblemBuilder extends DefaultProblemBuilder implem
 
     private String getParentProperty(String parentProperty) {
         String existingParentProperty = additionalMetadata.get(PARENT_PROPERTY_NAME);
-        if(existingParentProperty == null) {
+        if (existingParentProperty == null) {
             return parentProperty;
         }
         return existingParentProperty + "." + parentProperty;

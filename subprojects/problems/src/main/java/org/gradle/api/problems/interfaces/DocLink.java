@@ -29,8 +29,12 @@ import javax.annotation.Nullable;
 @Incubating
 public interface DocLink {
     @Nullable
-    String documentationUrl();
+    String url();
 
+    /**
+     * A message that tells the user to consult the documentation.
+     * There are currently 2 different messages used for this, hence this method.
+     */
     @Nullable
     String consultDocumentationMessage();
 }

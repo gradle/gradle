@@ -30,10 +30,10 @@ class DeprecatedFeatureUsageTest extends Specification {
         featureUsage.formattedMessage() == expected
 
         where:
-        summary   | removalDetails   | advice   | contextualAdvice   | documentationReference                 | expected
-        "summary" | "removalDetails" | null     | null               | Documentation.NO_DOCUMENTATION         | "summary removalDetails"
-        "summary" | "removalDetails" | "advice" | null               | Documentation.NO_DOCUMENTATION         | "summary removalDetails advice"
-        "summary" | "removalDetails" | "advice" | "contextualAdvice" | Documentation.NO_DOCUMENTATION         | "summary removalDetails contextualAdvice advice"
+        summary   | removalDetails   | advice   | contextualAdvice   | documentationReference                       | expected
+        "summary" | "removalDetails" | null     | null               | Documentation.NO_DOCUMENTATION               | "summary removalDetails"
+        "summary" | "removalDetails" | "advice" | null               | Documentation.NO_DOCUMENTATION               | "summary removalDetails advice"
+        "summary" | "removalDetails" | "advice" | "contextualAdvice" | Documentation.NO_DOCUMENTATION               | "summary removalDetails contextualAdvice advice"
         "summary" | "removalDetails" | "advice" | "contextualAdvice" | Documentation.userManual("userguide", "bar") | "summary removalDetails contextualAdvice advice ${new DocumentationRegistry().getDocumentationRecommendationFor("information", "userguide", "bar")}"
     }
 
@@ -42,7 +42,7 @@ class DeprecatedFeatureUsageTest extends Specification {
         def featureUsage = new DeprecatedFeatureUsage("summary", "removalDetails", "advice", "contextualAdvice", documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass())
 
         expect:
-        featureUsage.getDocumentationUrl().documentationUrl() == expected
+        featureUsage.getDocumentationUrl().url() == expected
 
         where:
         documentationReference                 | expected
