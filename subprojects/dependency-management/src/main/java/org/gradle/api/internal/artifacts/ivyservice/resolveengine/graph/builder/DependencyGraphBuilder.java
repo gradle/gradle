@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -47,9 +48,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleVariantsSelectionException;
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
@@ -89,7 +87,6 @@ public class DependencyGraphBuilder {
     private final AttributeDesugaring attributeDesugaring;
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
-    private final LocalComponentGraphResolveStateFactory resolveStateFactory;
     private final ComponentIdGenerator idGenerator;
     private final VersionParser versionParser;
     private final ResolutionConflictTracker conflictTracker;
@@ -111,7 +108,6 @@ public class DependencyGraphBuilder {
                                   AttributeDesugaring attributeDesugaring,
                                   VersionSelectorScheme versionSelectorScheme,
                                   Comparator<Version> versionComparator,
-                                  LocalComponentGraphResolveStateFactory resolveStateFactory,
                                   ComponentIdGenerator idGenerator,
                                   VersionParser versionParser) {
         this.idResolver = componentIdResolver;
@@ -128,22 +124,20 @@ public class DependencyGraphBuilder {
         this.attributeDesugaring = attributeDesugaring;
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
-        this.resolveStateFactory = resolveStateFactory;
         this.idGenerator = idGenerator;
         this.versionParser = versionParser;
         this.conflictTracker = new ResolutionConflictTracker(moduleConflictHandler, capabilitiesConflictHandler);
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor, boolean includeSyntheticDependencies) {
-        LocalComponentMetadata metadata = resolveContext.toRootComponentMetaData();
-        LocalComponentGraphResolveState rootState = resolveStateFactory.stateFor(metadata);
+        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
 
         int graphSize = resolveContext.getEstimatedGraphSize();
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
 
         List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ? resolveContext.getSyntheticDependencies() : Collections.emptyList();
 
-        ResolveState resolveState = new ResolveState(idGenerator, rootState, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, attributeDesugaring, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies, conflictTracker);
+        ResolveState resolveState = new ResolveState(idGenerator, rootComponent, idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, attributeDesugaring, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies, conflictTracker);
 
         traverseGraph(resolveState);
 

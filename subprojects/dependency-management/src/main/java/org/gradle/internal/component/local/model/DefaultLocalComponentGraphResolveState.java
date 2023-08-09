@@ -103,6 +103,12 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
+    public void reevaluate() {
+        configurations.clear();
+        getArtifactMetadata().reevaluate();
+    }
+
+    @Override
     public ModuleVersionIdentifier getModuleVersionId() {
         return getMetadata().getModuleVersionId();
     }
