@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.failure.mappers;
 
-import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.ThrowableToTestFailureMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 
 import java.util.Arrays;
@@ -27,9 +27,9 @@ import java.util.List;
 /**
  * Maps {@code junit.framework.ComparisonFailure} or {@code org.junit.ComparisonFailure} to {@link TestFailure}.
  * <p>
- * See {@link FailureMapper} for more details about failure mapping.
+ * See {@link TestFailureMapper} for more details about failure mapping.
  */
-public class JUnitComparisonFailureMapper extends FailureMapper {
+public class JUnitComparisonTestFailureMapper extends TestFailureMapper {
     @Override
     protected List<String> getSupportedClassNames() {
         return Arrays.asList(
@@ -39,7 +39,7 @@ public class JUnitComparisonFailureMapper extends FailureMapper {
     }
 
     @Override
-    public TestFailure map(Throwable throwable, RootAssertionToFailureMapper rootMapper) throws Exception {
+    public TestFailure map(Throwable throwable, ThrowableToTestFailureMapper rootMapper) throws Exception {
         String expectedValue = invokeMethod(throwable, "getExpected", String.class);
         String actualValue = invokeMethod(throwable, "getActual", String.class);
 

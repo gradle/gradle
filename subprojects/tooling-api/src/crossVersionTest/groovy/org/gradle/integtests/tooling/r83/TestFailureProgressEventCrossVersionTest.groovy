@@ -17,59 +17,27 @@
 package org.gradle.integtests.tooling.r83
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TestFailureSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.FileComparisonTestAssertionFailure
-import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.test.TestFailureResult
-import org.gradle.tooling.events.test.TestFinishEvent
-import org.gradle.tooling.events.test.TestOperationResult
 import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure
 
 @ToolingApiVersion(">=8.3")
 @TargetGradleVersion(">=8.3")
-class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
+class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification {
 
-    ProgressEventCollector progressEventCollector
-
-    def setup() {
-        // Avoid mixing JUnit dependencies with the ones from the JVM running this test
-        // For example, when using PTS/TD for running this test, the JUnit Platform Launcher classes from the GE plugin take precedence
-        toolingApi.requireDaemons()
-        progressEventCollector = new ProgressEventCollector()
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
-                testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
-                testImplementation 'org.opentest4j:opentest4j:1.3.0-RC2'
-            }
-
-            test {
-                useJUnitPlatform()
-            }
-        """
-    }
-
-    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 5 tests"() {
+    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 5"() {
+        setupJUnit5()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
 
             import org.junit.jupiter.api.Test;
             import org.opentest4j.MultipleFailuresError;
-
             import java.util.Arrays;
 
             public class JUnitJupiterTest {
-
                 @Test
                 void testingFileComparisonFailure() {
                     throw new MultipleFailuresError("Multiple errors detected", Arrays.asList(
@@ -80,23 +48,62 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
                 }
             }
         '''
+        def collector = new TestFailureEventCollector()
 
         when:
-        runTestTaskWithFailureCollection()
+        runTestTaskWithFailureCollection(collector)
 
         then:
         thrown(BuildException)
-        failures.size() == 1
-        failures[0] instanceof DefaultTestAssertionFailure
+        collector.failures.size() == 1
+        collector.failures[0] instanceof DefaultTestAssertionFailure
 
-        DefaultTestAssertionFailure f = failures[0]
-        f.causes.size() == 3
-        f.causes.eachWithIndex { Failure entry, int i ->
+        DefaultTestAssertionFailure failure = collector.failures[0] as DefaultTestAssertionFailure
+        failure.causes.size() == 3
+        failure.causes.eachWithIndex { Failure entry, int i ->
             assert entry.message == "Exception ${i + 1}"
         }
     }
 
-    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 5 tests"() {
+    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 4"() {
+        setupJUnit4()
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.Test;
+            import org.opentest4j.MultipleFailuresError;
+            import java.util.Arrays;
+
+            public class JUnitJupiterTest {
+                @Test
+                public void testingFileComparisonFailure() {
+                    throw new MultipleFailuresError("Multiple errors detected", Arrays.asList(
+                            new Exception("Exception 1"),
+                            new Exception("Exception 2"),
+                            new Exception("Exception 3")
+                    ));
+                }
+            }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+        collector.failures.size() == 1
+        collector.failures[0] instanceof DefaultTestAssertionFailure
+
+        DefaultTestAssertionFailure failure = collector.failures[0] as DefaultTestAssertionFailure
+        failure.causes.size() == 3
+        failure.causes.eachWithIndex { Failure entry, int i ->
+            assert entry.message == "Exception ${i + 1}"
+        }
+    }
+
+    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 5"() {
+        setupJUnit5()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
 
@@ -105,7 +112,6 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             import org.opentest4j.FileInfo;
 
             public class JUnitJupiterTest {
-
                  @Test
                  void testingFileComparisonFailure() {
                     FileInfo from = new FileInfo("/path/from", new byte[]{ 0x0 });
@@ -114,46 +120,55 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
                 }
             }
         '''
+        def collector = new TestFailureEventCollector()
 
         when:
-        runTestTaskWithFailureCollection()
+        runTestTaskWithFailureCollection(collector)
 
         then:
         thrown(BuildException)
-        failures.size() == 1
-        failures[0] instanceof FileComparisonTestAssertionFailure
-        FileComparisonTestAssertionFailure f = failures[0]
-        f.expected == '/path/from'
-        f.actual == '/path/to'
-        f.expectedContent == new byte[]{0x0}
-        f.actualContent == new byte[]{0x1}
+        collector.failures.size() == 1
+        collector.failures[0] instanceof FileComparisonTestAssertionFailure
+
+        FileComparisonTestAssertionFailure failure = collector.failures[0] as FileComparisonTestAssertionFailure
+        failure.expected == '/path/from'
+        failure.actual == '/path/to'
+        failure.expectedContent == new byte[]{0x0}
+        failure.actualContent == new byte[]{0x1}
     }
 
-    List<Failure> getFailures() {
-        progressEventCollector.failures
-    }
+    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 4"() {
+        setupJUnit4()
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
 
-    private def runTestTaskWithFailureCollection() {
-        withConnection { connection ->
-            connection.newBuild()
-                .addProgressListener(progressEventCollector)
-                .forTasks('test')
-                .run()
-        }
-    }
+            import org.junit.Test;
+            import org.opentest4j.AssertionFailedError;
+            import org.opentest4j.FileInfo;
 
-    private static class ProgressEventCollector implements ProgressListener {
-
-        public List<Failure> failures = []
-
-        @Override
-        void statusChanged(ProgressEvent event) {
-            if (event instanceof TestFinishEvent) {
-                TestOperationResult result = ((TestFinishEvent) event).getResult();
-                if (result instanceof TestFailureResult) {
-                    failures += ((TestFailureResult) result).failures
+            public class JUnitJupiterTest {
+                 @Test
+                 public void testingFileComparisonFailure() {
+                    FileInfo from = new FileInfo("/path/from", new byte[]{ 0x0 });
+                    FileInfo to = new FileInfo("/path/to", new byte[]{ 0x1 });
+                    throw new AssertionFailedError("Different files detected",  from, to);
                 }
             }
-        }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+        collector.failures.size() == 1
+        collector.failures[0] instanceof FileComparisonTestAssertionFailure
+
+        FileComparisonTestAssertionFailure failure = collector.failures[0] as FileComparisonTestAssertionFailure
+        failure.expected == '/path/from'
+        failure.actual == '/path/to'
+        failure.expectedContent == new byte[]{0x0}
+        failure.actualContent == new byte[]{0x1}
     }
 }

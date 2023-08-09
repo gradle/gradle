@@ -30,7 +30,7 @@ import org.gradle.api.tasks.testing.TestFailure;
  * @see org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestExecutionListener
  */
 @NonNullApi
-public interface RootAssertionToFailureMapper {
+public interface ThrowableToTestFailureMapper {
 
     TestFailure createFailure(Throwable throwable);
 

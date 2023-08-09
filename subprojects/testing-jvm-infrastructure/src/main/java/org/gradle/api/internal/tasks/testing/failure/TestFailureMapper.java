@@ -30,7 +30,7 @@ import java.util.List;
  * Instead, they should rely completely on reflection.
  */
 @NonNullApi
-public abstract class FailureMapper {
+public abstract class TestFailureMapper {
 
     /**
      * Decides whether this mapper supports the given {@link Throwable}.
@@ -71,11 +71,11 @@ public abstract class FailureMapper {
      * If needed, {@code rootMapper} can be used to recursively map inner failures by platform-specific means.
      *
      * @param throwable the {@link Throwable} to be mapped
-     * @param rootMapper the {@link RootAssertionToFailureMapper} to be used to recursively map inner failures.
+     * @param rootMapper the {@link ThrowableToTestFailureMapper} to be used to recursively map inner failures.
      * @return a {@link TestFailure} representing the given {@link Throwable}
      * @throws Exception if an error occurs while mapping the {@link Throwable}
      */
-    public abstract TestFailure map(Throwable throwable, RootAssertionToFailureMapper rootMapper) throws Exception;
+    public abstract TestFailure map(Throwable throwable, ThrowableToTestFailureMapper rootMapper) throws Exception;
 
     /**
      * Utility method to invoke a method on an object by reflective means.
