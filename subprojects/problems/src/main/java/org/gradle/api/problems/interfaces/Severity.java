@@ -27,11 +27,9 @@ import org.gradle.api.Incubating;
 public enum Severity {
     WARNING("Warning"),
     ERROR("Error");
-
     private final String displayName;
 
     Severity(String displayName) {
-
         this.displayName = displayName;
     }
 
@@ -39,6 +37,7 @@ public enum Severity {
     public String toString() {
         return displayName;
     }
+
     public boolean isWarning() {
         return this == WARNING;
     }

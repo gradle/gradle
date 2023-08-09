@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
- * Prototype Problems API.
+ * No-op implementation of {@link Problems}.
  *
  * @since 8.4
  */

@@ -15,9 +15,8 @@
  */
 
 /**
- * Represents some chunk of work.
+ * Probles API interfaces.
  */
-
 @NonNullApi
 package org.gradle.api.problems.interfaces;
 
