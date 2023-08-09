@@ -111,7 +111,7 @@ public abstract class ValidatePlugins extends DefaultTask {
         List<DefaultProblem> problemMessages = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
 
         Problems problems = getServices().get(Problems.class);
-        Stream<String> messages = ValidationProblemSerialization.toMessages(problemMessages).sorted();
+        Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problemMessages).sorted();
         if (problemMessages.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
@@ -138,7 +138,7 @@ public abstract class ValidatePlugins extends DefaultTask {
     }
 
     private static CharSequence toMessageList(List<DefaultProblem> problems) {
-        return ValidationProblemSerialization.toMessages(problems).collect(joining());
+        return ValidationProblemSerialization.toPlainMessage(problems).collect(joining());
     }
 
     /**

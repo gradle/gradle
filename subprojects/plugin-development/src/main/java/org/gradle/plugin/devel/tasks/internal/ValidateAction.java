@@ -73,8 +73,6 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     }
 
-    //    @Inject
-//    protected abstract Problems getProblemsService();
     @Override
     public void execute() {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -118,7 +116,6 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 }
             }
         });
-//        List<String> problemMessages = toProblemMessages(taskValidationProblems);
         storeResults(taskValidationProblems, params.getOutputFile());
     }
 
