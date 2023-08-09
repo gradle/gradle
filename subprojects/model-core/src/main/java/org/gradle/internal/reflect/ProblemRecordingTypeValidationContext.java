@@ -65,7 +65,7 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         problemBuilder.withAnnotationType(rootType);
         pluginId()
             .map(PluginId::getId)
-            .ifPresent(id -> problemBuilder.withMetadata(PLUGIN_ID, id));
+            .ifPresent(id -> problemBuilder.additionalData(PLUGIN_ID, id));
         recordProblem(problemBuilder.build());
     }
 

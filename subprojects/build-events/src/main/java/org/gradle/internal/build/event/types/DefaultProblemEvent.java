@@ -38,7 +38,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
     private Integer column;
     private String path;
     private String problemType;
-    private Map<String, String> additionalMetaData;
+    private Map<String, String> additionalData;
 
     public DefaultProblemEvent(
         InternalProblemDescriptor descriptor,
@@ -53,7 +53,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         List<String> solutions,
         @Nullable Throwable cause,
         String problemType,
-        Map<String, String> additionalMetaData
+        Map<String, String> additionalData
     ) {
         super(System.currentTimeMillis(), descriptor);
         this.problemId = problemId;
@@ -67,7 +67,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         this.solutions = solutions;
         this.cause = cause;
         this.problemType = problemType;
-        this.additionalMetaData = additionalMetaData;
+        this.additionalData = additionalData;
     }
 
 
@@ -137,7 +137,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         return problemType;
     }
 
-    public Map<String, String> getAdditionalMetaData() {
-        return additionalMetaData;
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
     }
 }

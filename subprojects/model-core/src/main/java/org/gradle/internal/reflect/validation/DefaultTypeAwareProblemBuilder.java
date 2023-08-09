@@ -41,20 +41,20 @@ public class DefaultTypeAwareProblemBuilder extends DefaultProblemBuilder implem
     @Override
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
         if (classWithAnnotationAttached != null) {
-            withMetadata(TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
+            additionalData(TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
         }
         return this;
     }
 
     @Override
     public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage() {
-        withMetadata(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString());
+        additionalData(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString());
         return this;
     }
 
     @Override
     public TypeAwareProblemBuilder forProperty(String propertyName) {
-        withMetadata(PROPERTY_NAME, propertyName);
+        additionalData(PROPERTY_NAME, propertyName);
         return this;
     }
 
@@ -63,7 +63,7 @@ public class DefaultTypeAwareProblemBuilder extends DefaultProblemBuilder implem
         if (parentProperty == null) {
             return this;
         }
-        withMetadata(PARENT_PROPERTY_NAME, getParentProperty(parentProperty));
+        additionalData(PARENT_PROPERTY_NAME, getParentProperty(parentProperty));
         return this;
     }
 

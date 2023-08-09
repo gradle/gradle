@@ -59,7 +59,7 @@ public class TypeValidationProblemRenderer {
 
     public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getAdditionalMetadata()) + endLineWithDot(problem.getMessage()));
+        formatter.node(introductionFor(problem.getAdditionalData()) + endLineWithDot(problem.getMessage()));
         ofNullable(problem.getDescription()).ifPresent(reason -> {
             formatter.blankLine();
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDescription())));

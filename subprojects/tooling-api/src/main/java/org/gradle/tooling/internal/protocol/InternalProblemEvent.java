@@ -58,5 +58,5 @@ public interface InternalProblemEvent extends InternalProgressEvent {
 
     String getProblemType();
 
-    Map<String, String> getAdditionalMetaData();
+    Map<String, String> getAdditionalData();
 }

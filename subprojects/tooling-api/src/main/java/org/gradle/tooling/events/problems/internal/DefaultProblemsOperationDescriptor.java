@@ -42,7 +42,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     private final String documentationLink;
     private final Throwable cause;
     private final String problemType;
-    private Map<String, String> additionalMetaData;
+    private Map<String, String> additionalData;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
@@ -58,7 +58,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         @Nullable String documentationLink,
         @Nullable Throwable cause,
         String problemType,
-        Map<String, String> additionalMetaData
+        Map<String, String> additionalData
     ) {
         super(internalDescriptor, parent);
         this.problemGroup = problemId;
@@ -72,7 +72,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         this.documentationLink = documentationLink;
         this.cause = cause;
         this.problemType = problemType;
-        this.additionalMetaData = additionalMetaData;
+        this.additionalData = additionalData;
     }
 
     @Override
@@ -137,7 +137,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     }
 
     @Override
-    public Map<String, String> getAdditionalMetaData() {
-        return additionalMetaData;
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
     }
 }
