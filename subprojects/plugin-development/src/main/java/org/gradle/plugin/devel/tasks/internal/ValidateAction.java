@@ -73,7 +73,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     }
 
-//    @Inject
+    //    @Inject
 //    protected abstract Problems getProblemsService();
     @Override
     public void execute() {
@@ -172,10 +172,10 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                         .withAnnotationType(topLevelBean)
                         .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                         .noLocation()
-                        .severity(WARNING)
                         .message("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                         .type(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
+                        .severity(WARNING)
                         .description("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                         .solution("Add " + disableCachingAnnotation + "(because = ...)")
                         .solution("Add " + cacheableAnnotation);

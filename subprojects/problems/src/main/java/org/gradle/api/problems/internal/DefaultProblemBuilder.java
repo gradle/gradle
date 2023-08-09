@@ -26,17 +26,20 @@ import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningGroup;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningSeverity;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningType;
 import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.api.problems.interfaces.Severity.ERROR;
 
 /**
  * Builder for problems.
@@ -49,7 +52,6 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningGroup,
     ProblemBuilderDefiningMessage,
-    ProblemBuilderDefiningSeverity,
     ProblemBuilderDefiningType {
 
     private ProblemGroup problemGroup;
@@ -67,9 +69,10 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     private boolean explicitlyUndocumented = false;
     private List<String> solution;
     private Throwable cause;
+    private RuntimeException exception;
     protected final Map<String, String> additionalMetadata = new HashMap<>();
 
-    public DefaultProblemBuilder(Problems problemsService, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+    public DefaultProblemBuilder(@Nullable Problems problemsService, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
         this.problemsService = problemsService;
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
     }
@@ -83,7 +86,6 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     @Override
     public ProblemBuilder group(String group) {
         if (problemsService != null) {
-
             ProblemGroup existingGroup = problemsService.getProblemGroup(group);
             if (existingGroup == null) {
                 throw new GradleException("Problem group " + group + " does not exist, either use existing group or register a new one");
@@ -100,18 +102,18 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningMessage severity(Severity severity) {
+    public ProblemBuilder severity(Severity severity) {
         this.severity = severity;
         return this;
     }
 
-    public ProblemBuilderDefiningSeverity location(String path, Integer line) {
+    public ProblemBuilderDefiningMessage location(String path, Integer line) {
         this.path = path;
         this.line = line;
         return this;
     }
 
-    public ProblemBuilderDefiningSeverity location(String path, Integer line, Integer column) {
+    public ProblemBuilderDefiningMessage location(String path, Integer line, Integer column) {
         this.path = path;
         this.line = line;
         this.column = column;
@@ -119,7 +121,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningSeverity noLocation() {
+    public ProblemBuilderDefiningMessage noLocation() {
         this.noLocation = true;
         return this;
     }
@@ -163,7 +165,18 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
+    @Override
+    public ProblemBuilder withException(RuntimeException e) {
+        this.exception = e;
+        return this;
+    }
+
     public Problem build() {
+        return buildInternal(null);
+    }
+
+    @Nonnull
+    private DefaultProblem buildInternal(@Nullable Severity severity) {
         if (!explicitlyUndocumented && documentationUrl == null) {
             throw new IllegalStateException("Problem is not documented: " + message);
         }
@@ -181,14 +194,35 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return new DefaultProblem(
             problemGroup,
             message,
-            severity,
-            path == null ? null : new DefaultProblemLocation(path, line, column),
+            getSeverity(severity),
+            getProblemLocation(),
             documentationUrl,
             description,
             solution,
-            cause,
+            exception,
             problemType,
             additionalMetadata);
+    }
+
+
+    @Nullable
+    private ProblemLocation getProblemLocation() {
+        return path == null ? null : new DefaultProblemLocation(path, line, column);
+    }
+
+    @Nonnull
+    private Severity getSeverity(@Nullable Severity severity) {
+        if (severity != null) {
+            return severity;
+        }
+        return getSeverity();
+    }
+
+    private Severity getSeverity() {
+        if (this.severity == null) {
+            return Severity.WARNING;
+        }
+        return this.severity;
     }
 
     public void report() {
@@ -197,24 +231,16 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     public RuntimeException throwIt() {
-        throw throwError(build());
+        throw throwError(exception, buildInternal(ERROR));
     }
 
-    public RuntimeException throwError(Problem problem) {
-        Throwable t = problem.getCause();
-        if (t instanceof InterruptedException) {
-            report(problem);
-            Thread.currentThread().interrupt();
-        }
-        if (t instanceof RuntimeException) {
-            report(problem);
-            throw (RuntimeException) t;
-        }
-        if (t instanceof Error) {
-            report(problem);
-            throw (Error) t;
-        }
-        throw new GradleExceptionWithProblem(problem);
+    private RuntimeException throwError(RuntimeException exception, DefaultProblem problem) {
+        throw throwError(exception, (Problem) problem);
+    }
+
+    public RuntimeException throwError(RuntimeException exception, Problem problem) {
+        report(problem);
+        throw exception;
     }
 
     private void report(Problem problem) {

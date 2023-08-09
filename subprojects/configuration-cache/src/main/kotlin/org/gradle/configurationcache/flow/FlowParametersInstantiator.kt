@@ -74,14 +74,16 @@ class FlowParametersInstantiator(
                     taskDependencies.visitDependencies(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
-                                problems.add(problemsService.createProblemBuilder()
-                                    .undocumented()
-                                    .noLocation()
-                                    .severity(Severity.ERROR)
-                                    .message("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
-                                    .type("validation_type")
-                                    .group(ProblemGroup.TYPE_VALIDATION_ID)
-                                    .build())
+                                problems.add(
+                                    problemsService.createProblemBuilder()
+                                        .undocumented()
+                                        .noLocation()
+                                        .message("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
+                                        .type("validation_type")
+                                        .group(ProblemGroup.TYPE_VALIDATION_ID)
+                                        .severity(Severity.ERROR)
+                                        .build()
+                                )
 //                                problems.put(
 //                                    "Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.",
 //                                    Severity.ERROR

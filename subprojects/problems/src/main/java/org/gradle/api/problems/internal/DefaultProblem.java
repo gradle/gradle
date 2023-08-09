@@ -43,8 +43,10 @@ public class DefaultProblem implements Problem {
     private String problemType;
     private Map<String, String> additionalMetadata;
 
-    public DefaultProblem(ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl,
-                          @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType, Map<String, String> additionalMetadata) {
+    public DefaultProblem(
+        ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl,
+        @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType, Map<String, String> additionalMetadata
+    ) {
         this.problemGroup = problemGroup;
         this.message = message;
         this.severity = severity;
@@ -57,8 +59,9 @@ public class DefaultProblem implements Problem {
         this.additionalMetadata = additionalMetadata;
     }
 
-    public DefaultProblem(){
+    public DefaultProblem() {
     }
+
     @Override
     public ProblemGroup getProblemGroup() {
         return problemGroup;
@@ -110,7 +113,7 @@ public class DefaultProblem implements Problem {
         return additionalMetadata;
     }
 
-    private static boolean equals(@Nullable  Object a, @Nullable Object b) {
+    private static boolean equals(@Nullable Object a, @Nullable Object b) {
         return (a == b) || (a != null && a.equals(b));
     }
 
@@ -137,5 +140,9 @@ public class DefaultProblem implements Problem {
     @Override
     public int hashCode() {
         return Arrays.hashCode(new Object[]{problemGroup, message, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
+    }
+
+    public void setSeverity(Severity severity) {
+        this.severity = severity;
     }
 }

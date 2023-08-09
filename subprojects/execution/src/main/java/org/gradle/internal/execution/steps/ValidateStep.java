@@ -142,6 +142,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description(unknownImplSnapshot.getReasonDescription())
                     .solution(unknownImplSnapshot.getSolutionDescription())
+                    .severity(ERROR)
             );
         }
     }
@@ -156,6 +157,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .description(unknownImplSnapshot.getReasonDescription())
                     .solution(unknownImplSnapshot.getSolutionDescription())
+                    .severity(ERROR)
             );
         }
     }
@@ -164,17 +166,16 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         return problem
             .typeIsIrrelevantInErrorMessage()
             .documentedAt(userManual("validation_problems", "implementation_unknown"))
-            .noLocation()
-            .severity(ERROR);
+            .noLocation();
     }
 
     protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<Problem> validationErrors) {
         Set<String> uniqueErrors = validationErrors.stream()
-                .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                .collect(toImmutableSet());
+            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+            .collect(toImmutableSet());
         throw WorkValidationException.forProblems(uniqueErrors)
-                .withSummaryForContext(work.getDisplayName(), validationContext)
-                .get();
+            .withSummaryForContext(work.getDisplayName(), validationContext)
+            .get();
     }
 
     public interface ValidationWarningRecorder {

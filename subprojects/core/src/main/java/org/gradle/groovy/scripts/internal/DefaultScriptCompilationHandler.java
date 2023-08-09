@@ -172,7 +172,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Inject
-    protected Problems getProblemService(){
+    protected Problems getProblemService() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -217,11 +217,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         throw getProblemService().createProblemBuilder()
             .undocumented()
             .location(source.getFileName(), lineNumber)
-            .severity(Severity.ERROR)
             .message(message)
             .type("script_compilation_failed")
             .group(ProblemGroup.GENERIC_ID)
-            .cause(new ScriptCompilationException(message, e, source, lineNumber))
+            .severity(Severity.ERROR)
+            .withException(new ScriptCompilationException(message, e, source, lineNumber))
             .throwIt();
     }
 

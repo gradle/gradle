@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
@@ -25,6 +24,7 @@ import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
@@ -39,11 +39,38 @@ import static java.util.Collections.singleton;
 @ServiceScope(Scope.Global.class)
 public abstract class Problems {
 
+    /**
+     * A function that can be used to specify a {@link Problem} using a {@link ProblemBuilder}.
+     * <p>
+     * Usage example:
+     *
+     * <pre>
+     * throw getProblemService().throwing(builder -&gt;
+     *        builder.undocumented()
+     *            .location(...)
+     *            .message(message)
+     *            .type("task_selection")
+     *            .group(ProblemGroup.GENERIC_ID)
+     *            .severity(Severity.ERROR)
+     *            .withException(new TaskSelectionException(message)));
+     * </pre>
+     *
+     * Using this instead of an {@link org.gradle.api.Action} forces the user to specify all required properties of a {@link Problem}.
+     *
+     * @since 8.4
+     */
+    @Incubating
+    public interface ProblemSpec {
+
+        @Nonnull
+        ProblemBuilder apply(ProblemBuilderDefiningDocumentation builder);
+    }
+
     private static Problems problemsService = new NoOpProblems();
 
     abstract public ProblemBuilderDefiningDocumentation createProblemBuilder();
 
-    abstract public void collectError(Throwable failure);
+    abstract public void collectError(RuntimeException failure);
 
 
     abstract public void collectError(Problem problem);
@@ -52,13 +79,15 @@ public abstract class Problems {
 
     abstract public @Nullable ProblemGroup getProblemGroup(String groupId);
 
-    abstract public RuntimeException throwing(Action<ProblemBuilderDefiningDocumentation> action);
+    abstract public RuntimeException throwing(ProblemSpec action);
+
+    abstract public RuntimeException rethrowing(RuntimeException e, ProblemSpec action);
 
     abstract public ProblemGroup registerProblemGroup(String typeId);
 
     abstract public ProblemGroup registerProblemGroup(ProblemGroup typeId);
 
-    protected static void collect(Throwable failure) {
+    protected static void collect(RuntimeException failure) {
         problemsService.collectError(failure);
     }
 
