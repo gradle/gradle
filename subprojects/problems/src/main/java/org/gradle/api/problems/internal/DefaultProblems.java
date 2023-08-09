@@ -103,14 +103,14 @@ public class DefaultProblems extends Problems {
     }
 
     @Override
-    public RuntimeException throwing(ProblemConfigurator action) {
+    public RuntimeException throwing(ProblemSpec action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilderInternal();
         throw action.apply(defaultProblemBuilder)
             .throwIt();
     }
 
     @Override
-    public RuntimeException rethrowing(RuntimeException e, ProblemConfigurator action) {
+    public RuntimeException rethrowing(RuntimeException e, ProblemSpec action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilderInternal();
         ProblemBuilder problemBuilder = action.apply(defaultProblemBuilder);
         problemBuilder.withException(e);

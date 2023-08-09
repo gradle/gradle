@@ -58,12 +58,12 @@ class NoOpProblems extends Problems {
     }
 
     @Override
-    public RuntimeException throwing(ProblemConfigurator action) {
+    public RuntimeException throwing(ProblemSpec action) {
         return null;
     }
 
     @Override
-    public RuntimeException rethrowing(RuntimeException e, ProblemConfigurator action) {
+    public RuntimeException rethrowing(RuntimeException e, ProblemSpec action) {
         return null;
     }
 

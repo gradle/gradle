@@ -40,14 +40,28 @@ import static java.util.Collections.singleton;
 public abstract class Problems {
 
     /**
-     * A function that can be used to configure a {@link ProblemBuilder}.
+     * A function that can be used to specify a {@link Problem} using a {@link ProblemBuilder}.
+     * <p>
+     * Usage example:
+     *
+     * <pre>
+     * throw getProblemService().throwing(builder -&gt;
+     *        builder.undocumented()
+     *            .location(...)
+     *            .message(message)
+     *            .type("task_selection")
+     *            .group(ProblemGroup.GENERIC_ID)
+     *            .severity(Severity.ERROR)
+     *            .withException(new TaskSelectionException(message)));
+     * </pre>
+     *
+     * Using this instead of an {@link org.gradle.api.Action} forces the user to specify all required properties of a {@link Problem}.
      *
      * @since 8.4
      */
     @Incubating
-    public interface ProblemConfigurator {
+    public interface ProblemSpec {
 
-        @Incubating
         @Nonnull
         ProblemBuilder apply(ProblemBuilderDefiningDocumentation builder);
     }
@@ -65,9 +79,9 @@ public abstract class Problems {
 
     abstract public @Nullable ProblemGroup getProblemGroup(String groupId);
 
-    abstract public RuntimeException throwing(ProblemConfigurator action);
+    abstract public RuntimeException throwing(ProblemSpec action);
 
-    abstract public RuntimeException rethrowing(RuntimeException e, ProblemConfigurator action);
+    abstract public RuntimeException rethrowing(RuntimeException e, ProblemSpec action);
 
     abstract public ProblemGroup registerProblemGroup(String typeId);
 
