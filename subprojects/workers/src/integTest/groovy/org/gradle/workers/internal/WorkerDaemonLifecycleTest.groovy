@@ -166,8 +166,6 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
 
         when:
         args("--info")
-        // force persistent compiler daemons, until Windows has them enabled by default again
-        executer.withArgument("-Dorg.gradle.internal.java.compile.daemon.keepAlive=${KeepAliveMode.DAEMON.name()}")
         succeeds "compileJava", "runInWorker"
 
         then:
