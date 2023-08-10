@@ -23,11 +23,17 @@ import javax.annotation.Nullable;
 
 /**
  * A link to a documentation page.
+ * <p>
+ * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
  *
  * @since 8.4
  */
 @Incubating
 public interface DocLink {
+
+    /**
+     * The URL to the documentation page.
+     */
     @Nullable
     String url();
 

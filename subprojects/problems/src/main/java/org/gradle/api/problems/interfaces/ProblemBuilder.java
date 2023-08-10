@@ -39,10 +39,10 @@ import javax.annotation.Nullable;
  *  <problemService>.createProblemBuilder()
  *          .undocumented()
  *          .noLocation()
- *          .severity(Severity.ERROR)
  *          .message("test problem")
  *          .type(ValidationProblemId.TEST_PROBLEM.name())
  *          .group(ProblemGroup.TYPE_VALIDATION)
+ *          .severity(Severity.ERROR)
  *          .description("this is a test")
  *  }</pre>
  *
