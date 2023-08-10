@@ -25,8 +25,6 @@ dependencies {
     testImplementation(libs.asm)
     testImplementation(libs.asmCommons)
     testImplementation(testFixtures(project(":logging")))
-    testImplementation(project(":problems"))
-    testImplementation(project(":build-operations"))
 
     testFixturesImplementation(project(":base-services"))
 
