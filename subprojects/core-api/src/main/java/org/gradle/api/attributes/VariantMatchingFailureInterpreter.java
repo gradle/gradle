@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.dsl;
+package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.attributes.HasAttributes;
 
 import java.util.List;
 import java.util.Optional;

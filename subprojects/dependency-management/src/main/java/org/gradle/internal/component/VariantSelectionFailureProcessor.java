@@ -17,9 +17,9 @@
 package org.gradle.internal.component;
 
 import com.google.common.collect.Ordering;
-import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.VariantMatchingFailureInterpreter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;

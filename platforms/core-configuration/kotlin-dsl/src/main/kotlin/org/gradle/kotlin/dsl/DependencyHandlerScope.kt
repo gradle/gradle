@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate
@@ -52,10 +51,6 @@ private constructor(
     @Deprecated(replaceWith = ReplaceWith("constraints"), message = "This method (and the deprecation annotation) is required to ensure that the correct delegate is used and a constraint (versus a dependency) is applied.  We attempted to remove this method in Gradle 8.0, but found it is still necessary.  See: https://github.com/gradle/gradle/pull/22823", level = DeprecationLevel.HIDDEN)
     override fun constraints(configureAction: Action<in DependencyConstraintHandler>) {
         super.constraints(configureAction)
-    }
-
-    override fun addVariantMatchingFailureInterpreter(interpreter: VariantMatchingFailureInterpreter) {
-        dependencies.addVariantMatchingFailureInterpreter(interpreter)
     }
 
     /**

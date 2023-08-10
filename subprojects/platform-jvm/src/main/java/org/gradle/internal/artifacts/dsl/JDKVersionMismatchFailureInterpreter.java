@@ -17,7 +17,7 @@
 package org.gradle.internal.artifacts.dsl;
 
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter;
+import org.gradle.api.attributes.VariantMatchingFailureInterpreter;
 
 import java.util.List;
 import java.util.Optional;

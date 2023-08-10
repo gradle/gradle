@@ -105,4 +105,12 @@ public interface AttributesSchema {
      */
     @Incubating
     List<Attribute<?>> getAttributeDisambiguationPrecedence();
+
+    /**
+     * TODO: Document
+     *
+     * @since 8.4
+     */
+    @Incubating
+    void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter);
 }

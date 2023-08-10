@@ -116,12 +116,4 @@ public interface Dependencies {
      */
     @Inject
     ObjectFactory getObjectFactory();
-
-    /**
-     * TODO: Document
-     *
-     * @since 8.4
-     */
-    @Incubating
-    void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter);
 }

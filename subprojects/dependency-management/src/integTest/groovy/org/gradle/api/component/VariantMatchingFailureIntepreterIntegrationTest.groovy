@@ -17,60 +17,71 @@
 package org.gradle.api.component
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.intellij.lang.annotations.Language
+import org.gradle.test.fixtures.dsl.GradleDsl
+
+import static org.gradle.test.fixtures.dsl.GradleDsl.*
 
 class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegrationSpec {
-    def "can register a failure interpreter"() {
-        buildFile << """
-            ${defineCustomInterpreter()}
-            ${setupAmbiguousVariantSelectionFailure()}
+    def "can register a failure interpreter using #dsl"() {
+        (dsl == GROOVY ? buildFile : buildKotlinFile) << """
+            ${defineCustomInterpreter(dsl)}
+            ${addCustomInterpreter(dsl)}
 
-            dependencies {
-                addVariantMatchingFailureInterpreter(new TestVariantMatchingFailureInterpreter())
-            }
+            ${setupAmbiguousVariantSelectionFailure(dsl)}
 
-            configurations.consumer.incoming.files.each { println it }
+            ${forceConsumerResolution(dsl)}
         """
 
         expect:
         fails "help", "outgoingVariants", "resolvableConfigurations"
         errorOutput.contains("Could not resolve all files for configuration ':consumer'.")
+
+        where:
+        dsl << [GROOVY, KOTLIN]
     }
 
-    def "default JDK mismatch failure interpreter is automatically added by plugin"() {
-        buildFile << """
+    def "default JDK mismatch failure interpreter is automatically added by plugin using #dsl"() {
+        (dsl == GROOVY ? buildFile : buildKotlinFile) << """
             plugins {
-                id 'java-base'
+                id("java-base")
             }
 
-            ${setupAmbiguousVariantSelectionFailure()}
+            ${setupAmbiguousVariantSelectionFailure(dsl)}
 
-            configurations.consumer.incoming.files.each { println it }
+            ${forceConsumerResolution(dsl)}
         """
 
         expect:
         fails "help", "outgoingVariants", "resolvableConfigurations"
         errorOutput.contains("Could not resolve all files for configuration ':consumer'.")
+
+        where:
+        dsl << [GROOVY, KOTLIN]
     }
 
     def "can register a failure interpreter with the java library plugin applied"() {
-        buildFile << """
+        (dsl == GROOVY ? buildFile : buildKotlinFile) << """
             plugins {
-                id 'java-library'
+                id("java-base")
             }
 
-            ${defineCustomInterpreter()}
-            ${setupAmbiguousVariantSelectionFailure()}
+            ${defineCustomInterpreter(dsl)}
+            ${addCustomInterpreter(dsl)}
 
-            configurations.consumer.incoming.files.each { println it }
+            ${setupAmbiguousVariantSelectionFailure(dsl)}
+
+            ${forceConsumerResolution(dsl)}
         """
 
         expect:
         fails "help", "outgoingVariants", "resolvableConfigurations"
         errorOutput.contains("Could not resolve all files for configuration ':consumer'.")
+
+        where:
+        dsl << [GROOVY, KOTLIN]
     }
 
-    def "can register a failure interpreter via a test suite"() {
+    def "can NOT register a failure interpreter via a test suite"() {
         buildFile << """
             plugins {
                 id 'java-library'
@@ -82,7 +93,7 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
             testing {
                 suites {
                     mySuite(JvmTestSuite) {
-                        dependencies {
+                        dependencies.attributesSchema {
                             addVariantMatchingFailureInterpreter(new TestVariantMatchingFailureInterpreter())
                         }
                     }
@@ -93,58 +104,130 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
         """
 
         expect:
-        fails "help", "outgoingVariants", "resolvableConfigurations"
-        errorOutput.contains("Could not resolve all files for configuration ':consumer'.")
+        fails "help"
+        errorOutput.contains("Could not find method attributesSchema()")
+        errorOutput.contains("on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies")
     }
 
-    @Language("Groovy")
-    private String setupAmbiguousVariantSelectionFailure() {
-        return """
-            def color = Attribute.of('color', String)
-            def shape = Attribute.of('shape', String)
+    private String setupAmbiguousVariantSelectionFailure(GradleDsl dsl = GROOVY) {
+        if (dsl == GROOVY) {
+            return """
+                def color = Attribute.of('color', String)
+                def shape = Attribute.of('shape', String)
 
-            configurations {
-                producer1 {
-                    setCanBeConsumed(true)
-                    attributes.attribute color, 'blue'
-                    attributes.attribute shape, 'round'
-                    outgoing {
-                        artifact file('a1.jar')
+                configurations {
+                    producer1 {
+                        setCanBeConsumed(true)
+                        attributes.attribute color, 'blue'
+                        attributes.attribute shape, 'round'
+                        outgoing {
+                            artifact file('a1.jar')
+                        }
+                    }
+                    producer2 {
+                        setCanBeConsumed(true)
+                        attributes.attribute color, 'blue'
+                        attributes.attribute shape, 'square'
+                        outgoing {
+                            artifact file('a2.jar')
+                        }
+                    }
+                    consumer {
+                        setCanBeConsumed(false)
+                        setCanBeResolved(true)
+                        attributes.attribute color, 'blue'
+
+                        // Ensure that the variants added by the `java-library` plugin do not match and aren't considered in Step 1 of variant matching
+                        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                     }
                 }
-                producer2 {
-                    setCanBeConsumed(true)
-                    attributes.attribute color, 'blue'
-                    attributes.attribute shape, 'square'
-                    outgoing {
-                        artifact file('a2.jar')
+
+                dependencies {
+                    consumer project(":")
+                }
+            """
+        } else {
+            return """
+                val color = Attribute.of("color", String::class.java)
+                val shape = Attribute.of("shape", String::class.java)
+
+                configurations {
+                    register("producer1") {
+                        isCanBeConsumed = true
+                        attributes.attribute(color, "blue")
+                        attributes.attribute(shape, "round")
+                        outgoing.artifact(file("a1.jar"))
+                    }
+                    register("producer2") {
+                        isCanBeConsumed = true
+                        attributes.attribute(color, "blue")
+                        attributes.attribute(shape, "square")
+                        outgoing.artifact(file("a2.jar"))
+                    }
+                    register("consumer") {
+                        isCanBeConsumed = false
+                        isCanBeResolved = true
+                        attributes.attribute(color, "blue")
+
+                        // Ensure that the variants added by the `java-library` plugin do not match and aren't considered in Step 1 of variant matching
+                        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
                     }
                 }
-                consumer {
-                    setCanBeConsumed(false)
-                    setCanBeResolved(true)
-                    attributes.attribute color, 'blue'
 
-                    // Ensure that the variants added by the `java-library` plugin do not match and aren't considered in Step 1 of variant matching
-                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                dependencies {
+                    add("consumer", project(":"))
                 }
-            }
-
-            dependencies {
-                consumer project(":")
-            }
-        """
+            """
+        }
     }
 
-    @Language("JAVA")
-    private String defineCustomInterpreter() {
-        return """
-            class TestVariantMatchingFailureInterpreter implements VariantMatchingFailureInterpreter {
-                @Override
-                java.util.Optional<String> process(String producerDisplayName, org.gradle.api.attributes.HasAttributes requested, List<? extends org.gradle.api.attributes.HasAttributes> candidates) {
-                    return java.util.Optional.of("Test matcher always matches!")
+    private String defineCustomInterpreter(GradleDsl dsl = GROOVY) {
+        if (dsl == GROOVY) {
+            return """
+                class TestVariantMatchingFailureInterpreter implements VariantMatchingFailureInterpreter {
+                    @Override
+                    java.util.Optional<String> process(String producerDisplayName, org.gradle.api.attributes.HasAttributes requested, List<? extends org.gradle.api.attributes.HasAttributes> candidates) {
+                        return java.util.Optional.of("Test matcher always matches!")
+                    }
                 }
-            }
-        """
+            """
+        } else {
+            return """
+                typealias OptionalString = java.util.Optional<String>
+                class TestVariantMatchingFailureInterpreter : VariantMatchingFailureInterpreter {
+                    override fun process(producerDisplayName: String, requested: org.gradle.api.attributes.HasAttributes, candidates: List<org.gradle.api.attributes.HasAttributes>): OptionalString {
+                        return OptionalString.of("Test matcher always matches!")
+                    }
+                }
+            """
+        }
+    }
+
+    private String addCustomInterpreter(GradleDsl dsl = GROOVY) {
+        if (dsl == GROOVY) {
+            return """
+                dependencies.attributesSchema {
+                    addVariantMatchingFailureInterpreter(new TestVariantMatchingFailureInterpreter())
+                }
+            """
+        } else {
+            return """
+                dependencies.attributesSchema {
+                    addVariantMatchingFailureInterpreter(TestVariantMatchingFailureInterpreter())
+                }
+            """
+        }
+    }
+
+    private String forceConsumerResolution(GradleDsl dsl = GROOVY) {
+        if (dsl == GROOVY) {
+            return """
+                configurations.consumer.incoming.files.each { println it }
+            """
+        } else {
+            return """
+                configurations.getByName("consumer").incoming.files.forEach { println(it) }
+            """
+        }
     }
 }

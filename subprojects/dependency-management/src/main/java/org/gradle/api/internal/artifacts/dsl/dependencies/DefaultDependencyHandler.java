@@ -36,7 +36,6 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.ExternalModuleDependencyVariantSpec;
-import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
@@ -85,7 +84,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
-    private final VariantSelectionFailureProcessor failureProcessor;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
                                     DependencyFactoryInternal dependencyFactory,
@@ -112,7 +110,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         this.artifactTypeContainer = artifactTypeContainer;
         this.objects = objects;
         this.platformSupport = platformSupport;
-        this.failureProcessor = failureProcessor;
         configureSchema();
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
 
@@ -424,11 +421,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             DefaultExternalModuleDependencyVariantSpec defaultSpec = (DefaultExternalModuleDependencyVariantSpec) spec;
             defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
         });
-    }
-
-    @Override
-    public void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter) {
-        failureProcessor.registerFailureInterpreter(interpreter);
     }
 
     private Category toCategory(String category) {

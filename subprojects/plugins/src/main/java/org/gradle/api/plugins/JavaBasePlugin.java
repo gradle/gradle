@@ -413,7 +413,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureVariantMatchingFailureInterpreters(Project project) {
-        project.getDependencies().addVariantMatchingFailureInterpreter(new JDKVersionMismatchFailureInterpreter());
+        project.getDependencies().getAttributesSchema().addVariantMatchingFailureInterpreter(new JDKVersionMismatchFailureInterpreter());
     }
 
     /**

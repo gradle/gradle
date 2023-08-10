@@ -20,7 +20,9 @@ import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.VariantMatchingFailureInterpreter;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.AttributeSelectionUtils;
@@ -53,10 +55,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
+    private final VariantSelectionFailureProcessor variantMatchingFailureProcessor;
 
-    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
+    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, VariantSelectionFailureProcessor variantMatchingFailureProcessor) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
+        this.variantMatchingFailureProcessor = variantMatchingFailureProcessor;
     }
 
     @Override
@@ -160,6 +164,11 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     @Override
     public Attribute<?> getAttributeByName(String name) {
         return attributesByName.get(name);
+    }
+
+    @Override
+    public void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter) {
+        variantMatchingFailureProcessor.registerFailureInterpreter(interpreter);
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.

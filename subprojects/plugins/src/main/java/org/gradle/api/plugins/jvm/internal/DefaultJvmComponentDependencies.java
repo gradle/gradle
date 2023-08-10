@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.artifacts.dsl.DependencyAdder;
-import org.gradle.api.artifacts.dsl.VariantMatchingFailureInterpreter;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 
 import javax.inject.Inject;
@@ -54,10 +53,5 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     @Override
     public DependencyAdder getAnnotationProcessor() {
         return this.annotationProcessor;
-    }
-
-    @Override
-    public void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter) {
-        getProject().getDependencies().addVariantMatchingFailureInterpreter(interpreter);
     }
 }
