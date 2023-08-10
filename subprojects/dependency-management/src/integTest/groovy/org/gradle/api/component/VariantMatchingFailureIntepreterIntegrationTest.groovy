@@ -93,7 +93,7 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
             testing {
                 suites {
                     mySuite(JvmTestSuite) {
-                        dependencies.attributesSchema.registerVariantSelectionListener(new TestVariantSelectionListener())
+                        dependencies.attributesSchema.registerVariantSelectionListener(TestVariantSelectionListener.class)
                     }
                 }
             }
@@ -191,7 +191,7 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
         } else {
             return """
                 typealias OptionalString = java.util.Optional<String>
-                class TestVariantSelectionListener : VariantSelectionListener {
+                open class TestVariantSelectionListener : VariantSelectionListener {
                     override fun onFailure(producerDisplayName: String, requested: org.gradle.api.attributes.HasAttributes, candidates: List<org.gradle.api.attributes.HasAttributes>): OptionalString {
                         return OptionalString.of("Test matcher always matches!")
                     }
@@ -203,11 +203,11 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
     private String registerCustomListener(GradleDsl dsl = GROOVY) {
         if (dsl == GROOVY) {
             return """
-                dependencies.attributesSchema.registerVariantSelectionListener(new TestVariantSelectionListener())
+                dependencies.attributesSchema.registerVariantSelectionListener(TestVariantSelectionListener.class)
             """
         } else {
             return """
-                dependencies.attributesSchema.registerVariantSelectionListener(TestVariantSelectionListener())
+                dependencies.attributesSchema.registerVariantSelectionListener(TestVariantSelectionListener::class.java)
             """
         }
     }

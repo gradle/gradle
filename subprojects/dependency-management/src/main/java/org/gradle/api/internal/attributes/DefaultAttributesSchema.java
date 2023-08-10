@@ -55,6 +55,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
+
+    private final List<VariantSelectionListener> variantSelectionListeners = new ArrayList<>();
     private final VariantSelectionFailureProcessor variantSelectionFailureProcessor;
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
@@ -167,8 +169,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void registerVariantSelectionListener(VariantSelectionListener interpreter) {
-        variantSelectionFailureProcessor.registerVariantSelectionListener(interpreter);
+    public void registerVariantSelectionListener(Class<? extends VariantSelectionListener> listenerClass) {
+        variantSelectionListeners.add(instantiatorFactory.decorateLenient().newInstance(listenerClass));
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.

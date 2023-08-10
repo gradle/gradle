@@ -145,7 +145,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         configureBuildDependents(project);
         configureArchiveDefaults(project);
 
-        configureVariantMatchingFailureInterpreters(project);
+        configureVariantSelectionListeners(project);
     }
 
     private DefaultJavaPluginExtension addExtensions(final Project project) {
@@ -412,8 +412,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             .flatMap(spec -> toolMapper.apply(service, spec));
     }
 
-    private void configureVariantMatchingFailureInterpreters(Project project) {
-        project.getDependencies().getAttributesSchema().registerVariantSelectionListener(new JDKVersionMismatchListener());
+    private void configureVariantSelectionListeners(Project project) {
+        project.getDependencies().getAttributesSchema().registerVariantSelectionListener(JDKVersionMismatchListener.class);
     }
 
     /**

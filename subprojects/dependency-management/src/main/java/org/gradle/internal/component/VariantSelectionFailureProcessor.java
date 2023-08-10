@@ -19,7 +19,6 @@ package org.gradle.internal.component;
 import com.google.common.collect.Ordering;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.VariantSelectionListener;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
@@ -33,7 +32,6 @@ import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -45,13 +43,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForIncompatibility;
 
 public class VariantSelectionFailureProcessor {
-    private final List<VariantSelectionListener> failureListeners = new ArrayList<>();
-
     public VariantSelectionFailureProcessor() {}
-
-    public void registerVariantSelectionListener(VariantSelectionListener selectionListener) {
-        failureListeners.add(selectionListener);
-    }
 
     public AmbiguousTransformException ambiguousTransformationFailure(String displayName, ImmutableAttributes componentRequested, List<TransformedVariant> transformedVariants) {
         String message = formatAmbiguousTransformMsg(displayName, componentRequested, transformedVariants);

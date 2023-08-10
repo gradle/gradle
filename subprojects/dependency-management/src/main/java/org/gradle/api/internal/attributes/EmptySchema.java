@@ -113,7 +113,7 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void registerVariantSelectionListener(VariantSelectionListener interpreter) {}
+    public void registerVariantSelectionListener(Class<? extends VariantSelectionListener> listener) {}
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {
         @Override
