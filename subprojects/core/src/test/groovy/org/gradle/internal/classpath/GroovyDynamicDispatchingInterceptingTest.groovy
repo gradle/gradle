@@ -143,4 +143,28 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
         then:
         GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass
     }
+
+    def 'interceptors persist after dynamic invocations'() {
+        given:
+        def receiver = new InterceptorTestReceiver()
+        def transformedClosure = instrumentedClasses.instrumentedClosure { test() }
+        transformedClosure.delegate = receiver
+
+        when: "the call site has been hit before"
+        transformedClosure()
+        receiver.intercepted = null
+
+        and: "another call goes through the call site"
+        transformedClosure()
+
+        then:
+        receiver.intercepted == "test()"
+
+        when: "one more call is done, which may work differently after call site initialization"
+        receiver.intercepted = null
+        transformedClosure()
+
+        then:
+        receiver.intercepted == "test()"
+    }
 }
