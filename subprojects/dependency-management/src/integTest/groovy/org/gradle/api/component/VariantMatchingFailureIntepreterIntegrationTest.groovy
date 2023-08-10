@@ -25,7 +25,7 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
     def "can register a failure interpreter using #dsl"() {
         (dsl == GROOVY ? buildFile : buildKotlinFile) << """
             ${defineCustomInterpreter(dsl)}
-            ${addCustomInterpreter(dsl)}
+            ${registerCustomListener(dsl)}
 
             ${setupAmbiguousVariantSelectionFailure(dsl)}
 
@@ -66,7 +66,7 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
             }
 
             ${defineCustomInterpreter(dsl)}
-            ${addCustomInterpreter(dsl)}
+            ${registerCustomListener(dsl)}
 
             ${setupAmbiguousVariantSelectionFailure(dsl)}
 
@@ -93,9 +93,7 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
             testing {
                 suites {
                     mySuite(JvmTestSuite) {
-                        dependencies.attributesSchema {
-                            addVariantMatchingFailureInterpreter(new TestVariantMatchingFailureInterpreter())
-                        }
+                        dependencies.attributesSchema.registerVariantSelectionListener(new TestVariantSelectionListener())
                     }
                 }
             }
@@ -105,8 +103,7 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
 
         expect:
         fails "help"
-        errorOutput.contains("Could not find method attributesSchema()")
-        errorOutput.contains("on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies")
+        errorOutput.contains("Could not get unknown property 'attributesSchema' for object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
     }
 
     private String setupAmbiguousVariantSelectionFailure(GradleDsl dsl = GROOVY) {
@@ -184,9 +181,9 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
     private String defineCustomInterpreter(GradleDsl dsl = GROOVY) {
         if (dsl == GROOVY) {
             return """
-                class TestVariantMatchingFailureInterpreter implements VariantMatchingFailureInterpreter {
+                class TestVariantSelectionListener implements VariantSelectionListener {
                     @Override
-                    java.util.Optional<String> process(String producerDisplayName, org.gradle.api.attributes.HasAttributes requested, List<? extends org.gradle.api.attributes.HasAttributes> candidates) {
+                    java.util.Optional<String> onFailure(String producerDisplayName, org.gradle.api.attributes.HasAttributes requested, List<? extends org.gradle.api.attributes.HasAttributes> candidates) {
                         return java.util.Optional.of("Test matcher always matches!")
                     }
                 }
@@ -194,8 +191,8 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
         } else {
             return """
                 typealias OptionalString = java.util.Optional<String>
-                class TestVariantMatchingFailureInterpreter : VariantMatchingFailureInterpreter {
-                    override fun process(producerDisplayName: String, requested: org.gradle.api.attributes.HasAttributes, candidates: List<org.gradle.api.attributes.HasAttributes>): OptionalString {
+                class TestVariantSelectionListener : VariantSelectionListener {
+                    override fun onFailure(producerDisplayName: String, requested: org.gradle.api.attributes.HasAttributes, candidates: List<org.gradle.api.attributes.HasAttributes>): OptionalString {
                         return OptionalString.of("Test matcher always matches!")
                     }
                 }
@@ -203,18 +200,14 @@ class VariantMatchingFailureIntepreterIntegrationTest extends AbstractIntegratio
         }
     }
 
-    private String addCustomInterpreter(GradleDsl dsl = GROOVY) {
+    private String registerCustomListener(GradleDsl dsl = GROOVY) {
         if (dsl == GROOVY) {
             return """
-                dependencies.attributesSchema {
-                    addVariantMatchingFailureInterpreter(new TestVariantMatchingFailureInterpreter())
-                }
+                dependencies.attributesSchema.registerVariantSelectionListener(new TestVariantSelectionListener())
             """
         } else {
             return """
-                dependencies.attributesSchema {
-                    addVariantMatchingFailureInterpreter(TestVariantMatchingFailureInterpreter())
-                }
+                dependencies.attributesSchema.registerVariantSelectionListener(TestVariantSelectionListener())
             """
         }
     }

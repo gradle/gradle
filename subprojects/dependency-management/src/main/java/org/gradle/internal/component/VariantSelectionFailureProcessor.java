@@ -19,7 +19,7 @@ package org.gradle.internal.component;
 import com.google.common.collect.Ordering;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.VariantMatchingFailureInterpreter;
+import org.gradle.api.attributes.VariantSelectionListener;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
@@ -45,12 +45,12 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForIncompatibility;
 
 public class VariantSelectionFailureProcessor {
-    private final List<VariantMatchingFailureInterpreter> failureInterpreters = new ArrayList<>();
+    private final List<VariantSelectionListener> failureListeners = new ArrayList<>();
 
     public VariantSelectionFailureProcessor() {}
 
-    public void registerFailureInterpreter(VariantMatchingFailureInterpreter failureInterpreter) {
-        failureInterpreters.add(failureInterpreter);
+    public void registerVariantSelectionListener(VariantSelectionListener selectionListener) {
+        failureListeners.add(selectionListener);
     }
 
     public AmbiguousTransformException ambiguousTransformationFailure(String displayName, ImmutableAttributes componentRequested, List<TransformedVariant> transformedVariants) {

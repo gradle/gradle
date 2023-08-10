@@ -27,9 +27,9 @@ import java.util.Optional;
  * @since 8.4
  */
 @Incubating
-public interface VariantMatchingFailureInterpreter {
+public interface VariantSelectionListener {
     // TODO: remove default
-    default Optional<String> process(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
+    default Optional<String> onFailure(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
         return Optional.empty(); // default is failure to process
     }
 }

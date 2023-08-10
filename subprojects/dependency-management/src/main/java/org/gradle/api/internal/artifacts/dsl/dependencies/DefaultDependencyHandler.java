@@ -56,7 +56,6 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -96,8 +95,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                                     VariantTransformRegistry transforms,
                                     Factory<ArtifactTypeContainer> artifactTypeContainer,
                                     ObjectFactory objects,
-                                    PlatformSupport platformSupport,
-                                    VariantSelectionFailureProcessor failureProcessor) {
+                                    PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;

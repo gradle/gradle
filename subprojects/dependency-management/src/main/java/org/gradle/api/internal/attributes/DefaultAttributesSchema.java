@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.VariantMatchingFailureInterpreter;
+import org.gradle.api.attributes.VariantSelectionListener;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -55,12 +55,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
-    private final VariantSelectionFailureProcessor variantMatchingFailureProcessor;
+    private final VariantSelectionFailureProcessor variantSelectionFailureProcessor;
 
-    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, VariantSelectionFailureProcessor variantMatchingFailureProcessor) {
+    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
-        this.variantMatchingFailureProcessor = variantMatchingFailureProcessor;
+        this.variantSelectionFailureProcessor = variantSelectionFailureProcessor;
     }
 
     @Override
@@ -167,8 +167,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter) {
-        variantMatchingFailureProcessor.registerFailureInterpreter(interpreter);
+    public void registerVariantSelectionListener(VariantSelectionListener interpreter) {
+        variantSelectionFailureProcessor.registerVariantSelectionListener(interpreter);
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.

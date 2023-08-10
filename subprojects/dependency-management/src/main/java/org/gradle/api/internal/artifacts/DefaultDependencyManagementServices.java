@@ -406,8 +406,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                   VariantTransformRegistry variantTransformRegistry,
                                                   ArtifactTypeRegistry artifactTypeRegistry,
                                                   ObjectFactory objects,
-                                                  PlatformSupport platformSupport,
-                                                  VariantSelectionFailureProcessor failureProcessor) {
+                                                  PlatformSupport platformSupport) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                 configurationContainer,
                 dependencyFactory,
@@ -420,8 +419,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 variantTransformRegistry,
                 artifactTypeRegistry,
                 objects,
-                platformSupport,
-                failureProcessor);
+                platformSupport);
         }
 
         DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyLockingProvider dependencyLockingProvider) {

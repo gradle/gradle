@@ -58,7 +58,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
-import org.gradle.internal.artifacts.dsl.JDKVersionMismatchFailureInterpreter;
+import org.gradle.internal.artifacts.dsl.JDKVersionMismatchListener;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.tasks.Jar;
@@ -413,7 +413,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureVariantMatchingFailureInterpreters(Project project) {
-        project.getDependencies().getAttributesSchema().addVariantMatchingFailureInterpreter(new JDKVersionMismatchFailureInterpreter());
+        project.getDependencies().getAttributesSchema().registerVariantSelectionListener(new JDKVersionMismatchListener());
     }
 
     /**

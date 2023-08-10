@@ -17,14 +17,14 @@
 package org.gradle.internal.artifacts.dsl;
 
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.attributes.VariantMatchingFailureInterpreter;
+import org.gradle.api.attributes.VariantSelectionListener;
 
 import java.util.List;
 import java.util.Optional;
 
-public class JDKVersionMismatchFailureInterpreter implements VariantMatchingFailureInterpreter {
+public class JDKVersionMismatchListener implements VariantSelectionListener {
     @Override
-    public Optional<String> process(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
+    public Optional<String> onFailure(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
         return Optional.of("JDK ISSUE");
     }
 }

@@ -112,5 +112,5 @@ public interface AttributesSchema {
      * @since 8.4
      */
     @Incubating
-    void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter);
+    void registerVariantSelectionListener(VariantSelectionListener interpreter);
 }

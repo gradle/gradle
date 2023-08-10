@@ -19,7 +19,7 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.VariantMatchingFailureInterpreter;
+import org.gradle.api.attributes.VariantSelectionListener;
 import org.gradle.internal.component.model.AttributeMatcher;
 
 import javax.annotation.Nullable;
@@ -113,7 +113,7 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void addVariantMatchingFailureInterpreter(VariantMatchingFailureInterpreter interpreter) {}
+    public void registerVariantSelectionListener(VariantSelectionListener interpreter) {}
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {
         @Override
