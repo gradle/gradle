@@ -15,34 +15,32 @@
 [[feature_lifecycle]]
 = The Feature Lifecycle
 
-Gradle is under constant development. New versions are delivered on a regular and frequent basis (approximately every 6 weeks) as described in <<#eol_support,the section on end-of-life support>>.
+Gradle is under constant development. New versions are delivered on a regular and frequent basis (approximately every six weeks) as described in <<#eol_support,the section on end-of-life support>>.
 
-Continuous improvement combined with frequent delivery allows new features to be made available to users early.
-Early users provide invaluable feedback which is incorporated into the development process.
+Continuous improvement combined with frequent delivery allows new features to be available to users early.
+Early users provide invaluable feedback, which is incorporated into the development process.
 
 Getting new functionality into the hands of users regularly is a core value of the Gradle platform.
 
-At the same time, API and feature stability is taken very seriously and is also considered a core value of the Gradle platform.
-This is something that is engineered into the development process by design choices and automated testing and formalized by <<#backwards_compatibility,the section on backward compatibility>>.
+At the same time, API and feature stability are taken very seriously and considered a core value of the Gradle platform.
+Design choices and automated testing are engineered into the development process and formalized by <<#backwards_compatibility,the section on backward compatibility>>.
 
-The Gradle _feature lifecycle_ has been designed to meet these goals. It also serves to communicate to users of Gradle what the state of a feature is.
+The Gradle _feature lifecycle_ has been designed to meet these goals. It also communicates to users of Gradle what the state of a feature is.
 The term _feature_ typically means an API or DSL method or property in this context, but it is not restricted to this definition.
-Command line arguments and modes of execution (e.g. the Build Daemon) are two examples of other kinds of features.
-
+Command line arguments and modes of execution (e.g. the Build Daemon) are two examples of other features.
 
 [[sec:states]]
-== States
+== Feature States
 
 Features can be in one of four states:
 
-1. Internal
-2. Incubating
-3. Public
-4. Deprecated
-
+1. <<#sec:internal,Internal>>
+2. <<#sec:incubating_state,Incubating>>
+3. <<#sec:public,Public>>
+4. <<#sec:deprecated,Deprecated>>
 
 [[sec:internal]]
-=== Internal
+== 1. Internal
 
 _Internal_ features are not designed for public use and are only intended to be used by Gradle itself. They can change in any way at any point in time without any notice.
 Therefore, we recommend avoiding the use of such features.
@@ -52,14 +50,14 @@ If it appears in this User Manual, the DSL Reference, or the API Reference, then
 _Internal_ features may evolve into public features.
 
 [[sec:incubating_state]]
-=== Incubating
+== 2. Incubating
 
-Features are introduced in the _incubating_ state to allow real-world feedback to be incorporated into the feature before it is made public.
-It also gives users who are willing to test potential future changes early access.
+Features are introduced in the _incubating_ state to allow real-world feedback to be incorporated into the feature before making it public.
+It also gives users willing to test potential future changes early access.
 
 A feature in an _incubating_ state may change in future Gradle versions until it is no longer _incubating_.
 Changes to _incubating_ features for a Gradle release will be highlighted in the release notes for that release.
-The _incubation_ period for new features varies depending on the scope, complexity, and nature of the feature.
+The _incubation_ period for new features varies depending on the feature's scope, complexity, and nature.
 
 Features in _incubation_ are indicated.
 In the source code, all methods/properties/classes that are _incubating_ are annotated with link:{javadocPath}/org/gradle/api/Incubating.html[incubating].
@@ -68,7 +66,7 @@ This results in a special mark for them in the DSL and API references.
 If an _incubating_ feature is discussed in this User Manual, it will be explicitly said to be in the _incubating_ state.
 
 [[feature_preview]]
-==== Feature Preview API
+=== Feature Preview API
 
 The feature preview API allows certain _incubating_ features to be activated by adding `enableFeaturePreview('FEATURE')` in your _settings_ file.
 Individual preview features will be announced in release notes.
@@ -76,9 +74,9 @@ Individual preview features will be announced in release notes.
 When _incubating_ features are either promoted to _public_ or removed, the feature preview flags for them become obsolete, have no effect, and should be removed from the settings file.
 
 [[sec:public]]
-=== Public
+== 3. Public
 
-The default state for a non-internal feature is _public_. Anything that is documented in the User Manual, DSL Reference, or API reference that is not explicitly said to be _incubating_ or _deprecated_ is considered _public_.
+The default state for a non-internal feature is _public_. Anything documented in the User Manual, DSL Reference, or API reference that is not explicitly said to be _incubating_ or _deprecated_ is considered _public_.
 Features are said to be *promoted* from an _incubating_ state to _public_.
 The release notes for each release indicate which previously _incubating_ features are being promoted by the release.
 
@@ -86,25 +84,25 @@ A _public_ feature will *never* be removed or intentionally changed without unde
 All public features are subject to the backward compatibility policy.
 
 [[sec:deprecated]]
-=== Deprecated
+== 4. Deprecated
 
 Some features may be replaced or become irrelevant due to the natural evolution of Gradle.
 Such features will eventually be removed from Gradle after being _deprecated_.
 A _deprecated_ feature may become stale until it is finally removed according to the backward compatibility policy.
 
 _Deprecated_ features are indicated to be so.
-In the source code, all methods/properties/classes that are _deprecated_ are annotated with “`@java.lang.Deprecated`” which is reflected in the DSL and API References.
-In most cases, there is a replacement for the deprecated element, and this will be described in the documentation.
+In the source code, all methods/properties/classes that are _deprecated_ are annotated with "`@java.lang.Deprecated`" which is reflected in the DSL and API References.
+In most cases, there is a replacement for the deprecated element, which will be described in the documentation.
 Using a _deprecated_ feature will result in a runtime warning in Gradle's output.
 
 The use of _deprecated_ features should be avoided.
-The release notes for each release indicate any features that are being _deprecated_ by the release.
+The release notes for each release indicate any features being _deprecated_ by the release.
 
 [[backwards_compatibility]]
-== Backward Compatibility Policy
+== Backward compatibility policy
 
-Gradle provides backward compatibility across major versions (e.g. `1.x`, `2.x`, etc.).
-Once a public feature is introduced in a Gradle release, it will remain indefinitely unless it is deprecated.
+Gradle provides backward compatibility across major versions (e.g., `1.x`, `2.x`, etc.).
+Once a public feature is introduced in a Gradle release, it will remain indefinitely unless deprecated.
 Once deprecated, it may be removed in the next major release.
 Deprecated features may be supported across major releases, but this is not guaranteed.
 
@@ -113,25 +111,25 @@ Deprecated features may be supported across major releases, but this is not guar
 
 Every day, a new nightly build of Gradle is created.
 
-This contains all of the changes that have made it through Gradle's extensive continuous integration tests during that day.
+This contains all of the changes made through Gradle's extensive continuous integration tests during that day.
 Nightly builds may contain new changes that may or may not be stable.
 
-For each minor or major release, the Gradle team creates a pre-release distribution called a release candidate (RC).
+The Gradle team creates a pre-release distribution called a release candidate (RC) for each minor or major release.
 When no problems are found after a short time (usually a week), the release candidate is promoted to a general availability (GA) release.
-If a regression is found in the release candidate, a new RC distribution is created and the process repeats.
+If a regression is found in the release candidate, a new RC distribution is created, and the process repeats.
 Release candidates are supported for as long as the release window is open, but they are not intended to be used for production.
 Bug reports are greatly appreciated during the RC phase.
 
-The Gradle team may create additional patch releases that are intended to replace the final release due to important bug fixes or regressions.
+The Gradle team may create additional patch releases to replace the final release due to critical bug fixes or regressions.
 For instance, Gradle 5.2.1 replaces the Gradle 5.2 release.
 
 Once a release candidate has been made, all feature development moves on to the next release for the latest major version.
 As such, each minor Gradle release causes the previous minor releases in the same major version to become end-of-life (EOL). EOL releases do not receive bug fixes or feature backports.
 
 For major versions, Gradle will backport critical fixes and security fixes to the last minor in the previous major version.
-For example, when Gradle 7 was the latest major version, several releases in the 6.x line, including Gradle 6.9 (and subsequent releases) were made.
+For example, when Gradle 7 was the latest major version, several releases were made in the 6.x line, including Gradle 6.9 (and subsequent releases).
 
 As such, each major Gradle release causes:
 
-* The previous major version becomes maintenance only and it will only receive critical bug fixes and security fixes.
+* The previous major version becomes maintenance only. It will only receive critical bug fixes and security fixes.
 * The major version before the previous one to become end-of-life (EOL), and that release line will not receive any new fixes.

@@ -447,7 +447,7 @@ You can easily get the same behavior by combining conditions with secondary buil
 
 Let's say you have different deployment settings depending on the environment: local development (the default), a test environment, and production.
 To add profile-like behavior, you first create build scripts for each environment in the project root: `profile-default.gradle`, `profile-test.gradle`, and `profile-prod.gradle`.
-You can then conditionally apply one of those profile scripts based on a <<build_environment#sec:project_properties,project property>> of your own choice.
+You can then conditionally apply one of those profile scripts based on a <<project_properties.adoc#sec:project_properties,project property>> of your own choice.
 
 The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts#sec:extra_properties,extra project property>> called `message`:
 

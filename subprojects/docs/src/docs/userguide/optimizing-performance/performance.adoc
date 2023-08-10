@@ -312,7 +312,7 @@ org.gradle.jvmargs=-Xmx2048M
 ----
 ====
 
-To learn more, check out the <<build_environment.adoc#sec:configuring_jvm_memory,JVM memory configuration documentation>>.
+To learn more, check out the <<config_gradle.adoc#sec:configuring_jvm_memory,JVM memory configuration documentation>>.
 
 == Optimize Configuration
 

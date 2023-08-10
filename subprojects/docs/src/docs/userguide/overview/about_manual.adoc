@@ -1,4 +1,4 @@
-// Copyright 2018 the original author or authors.
+// Copyright 2023 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,21 +15,25 @@
 [[about_manual]]
 = The User Manual
 
+Explore our guides and examples to use Gradle.
+
+[[content]]
 == Content
 
 The Gradle User Manual is broken down into the following sections:
 
-<<introduction.adoc#getting_started,Quick Start>> :: Get up and running by installing Gradle.
-<<command_line_interface.adoc#command_line_interface,Running Gradle Builds>> :: Use Gradle to build your project.
+<<introduction#introduction,Getting Started>> :: Installing Gradle and learn the basics with our getting started tutorial.
+<<command_line_interface.adoc#command_line_interface,Running Gradle Builds>> :: Learn how to use Gradle to build your project.
 <<build_lifecycle.adoc#build_lifecycle,Authoring Gradle Builds>> :: Develop tasks and plugins to customize your build.
 <<building_java_projects.adoc#building_java_projects,Authoring JVM Builds>> :: Use Gradle with your Java project.
 <<dependency_management_terminology.adoc#dependency_management_terminology,Working with Dependencies>> :: Add dependencies to your build.
-<<performance.adoc#performance_gradle,Optimizing Build Times>> :: Use a cache to optimize your build.
+<<performance.adoc#performance_gradle,Optimizing Builds>> :: Use caches to optimize your build and understand the Gradle daemon, incremental builds and file system watching.
 <<jenkins.adoc#build_jenkins,Gradle on CI>> :: Gradle integration with popular continuous integration (CI) servers.
 
+[[reference]]
 == Reference
 
-. Gradle API link:{javadocPath}/index.html[Javadocs]
-. Gradle's link:{groovyDslPath}/index.html[Groovy DSL]
-. Gradle's link:{kotlinDslPath}/index.html[Kotlin DSL]
-. Gradle <<plugin_reference#plugin_reference,Core Plugins>>
+. Gradle's API link:{javadocPath}/index.html[Javadocs^]
+. Gradle's link:{groovyDslPath}/index.html[Groovy DSL^]
+. Gradle's link:{kotlinDslPath}/index.html[Kotlin DSL^]
+. Gradle's <<plugin_reference#plugin_reference,Core Plugins>>
