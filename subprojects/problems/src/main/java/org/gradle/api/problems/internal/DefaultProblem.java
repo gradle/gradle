@@ -117,7 +117,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Map<String, String> getAdditionalMetadata() {
+    public Map<String, String> getAdditionalData() {
         return additionalMetadata;
     }
 

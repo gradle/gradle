@@ -57,7 +57,7 @@ public interface ProblemBuilder {
 
     ProblemBuilder cause(Throwable cause);
 
-    ProblemBuilder withMetadata(String key, String value);
+    ProblemBuilder additionalData(String key, String value);
 
     ProblemBuilder withException(RuntimeException e);
 

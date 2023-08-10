@@ -682,7 +682,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         return new DefaultProblemsOperationDescriptor(descriptor, parent, progressEvent.getProblemGroup(), progressEvent.getSeverity(),
             progressEvent.getMessage(), progressEvent.getDescription(), progressEvent.getSolutions(), progressEvent.getPath(),
-            progressEvent.getLine(), progressEvent.getColumn(), progressEvent.getDocumentationLink(), progressEvent.getCause(), progressEvent.getProblemType(), progressEvent.getAdditionalMetaData());
+            progressEvent.getLine(), progressEvent.getColumn(), progressEvent.getDocumentationLink(), progressEvent.getCause(), progressEvent.getProblemType(), progressEvent.getAdditionalData());
     }
 
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {

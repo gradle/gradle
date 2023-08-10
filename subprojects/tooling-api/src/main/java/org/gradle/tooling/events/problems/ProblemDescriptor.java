@@ -58,5 +58,5 @@ public interface ProblemDescriptor extends OperationDescriptor {
 
     String getProblemType();
 
-    Map<String, String> getAdditionalMetaData();
+    Map<String, String> getAdditionalData();
 }

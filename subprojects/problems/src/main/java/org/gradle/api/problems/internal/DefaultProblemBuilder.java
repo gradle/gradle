@@ -160,7 +160,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public ProblemBuilder withMetadata(String key, String value) {
+    public ProblemBuilder additionalData(String key, String value) {
         this.additionalMetadata.put(key, value);
         return this;
     }

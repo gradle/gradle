@@ -53,5 +53,5 @@ public interface Problem {
 
     String getProblemType();
 
-    Map<String, String> getAdditionalMetadata();
+    Map<String, String> getAdditionalData();
 }
