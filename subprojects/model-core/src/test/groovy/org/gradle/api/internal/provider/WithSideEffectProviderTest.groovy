@@ -138,6 +138,71 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
         "MappingProvider"         | { p, m -> new MappingProvider(Integer, p, m) }
     }
 
+    def "runs the side effect when changing provider is filtered with #description and true predicate"() {
+        given:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def counter = new AtomicInteger(23)
+        def parent = Providers.changing { counter.getAndIncrement() }
+        def provider = wrap(parent.withSideEffect(sideEffect))
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        counter.set(23)
+        def unpackedValue = provider.getOrNull()
+
+        then:
+        unpackedValue == 23
+        1 * sideEffect.execute(23)
+        0 * _
+
+        when:
+        unpackedValue = provider.getOrNull()
+
+        then:
+        unpackedValue == 24
+        1 * sideEffect.execute(24)
+        0 * _
+
+        where:
+        description       | wrap
+        "Provider.filter" | { p -> p.filter({ true }) }
+        "Provider.map"    | { p -> p.map { it } }
+    }
+
+    def "does not run the side effect when changing provider is filtered with #description and false predicate"() {
+        given:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def counter = new AtomicInteger(23)
+        def parent = Providers.changing { counter.getAndIncrement() }
+        def provider = wrap(parent.withSideEffect(sideEffect))
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        counter.set(23)
+        def unpackedValue = provider.getOrNull()
+
+        then:
+        unpackedValue == null
+        0 * _
+
+        where:
+        description       | wrap
+        "Provider.filter" | { p -> p.filter({ false }) }
+        "Provider.map"    | { p -> p.map { null } }
+    }
+
     def "runs the side effect when changing provider is flat-mapped to a provider with side effect"() {
         given:
         def sideEffect1 = Mock(ValueSupplier.SideEffect)
