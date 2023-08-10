@@ -234,9 +234,9 @@ public class TomlCatalogFileParser {
     @Nonnull
     public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
         return problemServiceSupplier.get().createProblemBuilder()
+            .message(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
-            .message(message)
             .type(catalogProblemId.name())
             .group(ProblemGroup.VERSION_CATALOG_ID)
             .severity(ERROR);

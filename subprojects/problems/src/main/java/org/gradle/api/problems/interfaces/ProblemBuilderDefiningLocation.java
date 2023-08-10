@@ -25,9 +25,9 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ProblemBuilderDefiningLocation {
-    ProblemBuilderDefiningMessage location(String path, Integer line);
+    ProblemBuilderDefiningType location(String path, Integer line);
 
-    ProblemBuilderDefiningMessage location(String path, Integer line, Integer column);
+    ProblemBuilderDefiningType location(String path, Integer line, Integer column);
 
-    ProblemBuilderDefiningMessage noLocation();
+    ProblemBuilderDefiningType noLocation();
 }

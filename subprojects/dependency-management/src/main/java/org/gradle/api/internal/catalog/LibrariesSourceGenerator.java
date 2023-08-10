@@ -805,10 +805,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     @Nonnull
     public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
-        return problemService.createProblemBuilder()//VERSION_CATALOG, message, ERROR, catalogProblemId.name())
+        return problemService.createProblemBuilder()
+            .message(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
-            .message(message)
             .type(catalogProblemId.name().toLowerCase())
             .group(VERSION_CATALOG_ID)
             .severity(ERROR);

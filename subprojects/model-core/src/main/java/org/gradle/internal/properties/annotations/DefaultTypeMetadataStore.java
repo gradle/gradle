@@ -105,9 +105,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
+                        .message("is missing " + displayName)
                         .documentedAt(userManual("validation_problems", "missing_annotation"))
                         .noLocation()
-                        .message("is missing " + displayName)
                         .type(ValidationProblemId.MISSING_ANNOTATION.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)
@@ -123,9 +123,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
+                        .message(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
                         .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
                         .noLocation()
-                        .message(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
                         .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)
@@ -147,9 +147,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
+                            .message("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
                             .documentedAt(userManual("validation_problems", "incompatible_annotations"))
                             .noLocation()
-                            .message("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
                             .type(ValidationProblemId.INCOMPATIBLE_ANNOTATIONS.name())
                             .group(ProblemGroup.TYPE_VALIDATION_ID)
                             .severity(Severity.ERROR)
@@ -160,9 +160,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
+                            .message(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
                             .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
                             .noLocation()
-                            .message(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
                             .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())
                             .group(ProblemGroup.TYPE_VALIDATION_ID)
                             .severity(Severity.ERROR)
