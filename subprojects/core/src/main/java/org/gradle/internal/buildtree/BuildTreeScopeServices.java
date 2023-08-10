@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.execution.DefaultTaskSelector;
@@ -94,8 +95,8 @@ public class BuildTreeScopeServices {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
     }
 
-    protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer) {
-        return new DefaultTaskSelector(new TaskNameResolver(), projectConfigurer);
+    protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer, ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultTaskSelector.class, new TaskNameResolver(), projectConfigurer);
     }
 
     protected DefaultListenerManager createListenerManager(DefaultListenerManager parent) {

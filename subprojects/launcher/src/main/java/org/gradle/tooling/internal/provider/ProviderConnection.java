@@ -380,6 +380,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
             .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
             .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
+            .put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS)
             .build();
 
         private final BuildEventSubscriptions clientSubscriptions;
@@ -419,6 +420,9 @@ public class ProviderConnection {
                     if (OPERATION_TYPE_MAPPING.containsKey(operation)) {
                         operationTypes.add(OPERATION_TYPE_MAPPING.get(operation));
                     }
+//                    if (OperationMapping.hasOperationType(operation)) {
+//                        operationTypes.add(OperationMapping.getOperationType(operation));
+//                    }
                 }
                 if (consumerVersion.compareTo(GradleVersion.version("5.1")) < 0) {
                     // Some types were split out of 'generic' type in 5.1, so include these when an older consumer requests 'generic'

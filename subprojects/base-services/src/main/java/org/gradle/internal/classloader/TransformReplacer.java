@@ -16,9 +16,11 @@
 
 package org.gradle.internal.classloader;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.agents.InstrumentingClassLoader;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.io.StreamByteBuffer;
 
@@ -97,8 +99,9 @@ public class TransformReplacer implements Closeable {
     }
 
     private Loader createLoaderForDomain(ProtectionDomain domain) {
-        File transformedJarPath = findTransformedFile(domain);
-        return transformedJarPath != null ? new JarLoader(transformedJarPath) : SKIP_INSTRUMENTATION;
+        File originalJarPath = getOriginalFile(domain);
+        File transformedJarPath = originalJarPath != null ? classPath.findTransformedJarFor(originalJarPath) : null;
+        return transformedJarPath != null ? new JarLoader(originalJarPath, transformedJarPath) : SKIP_INSTRUMENTATION;
     }
 
     private Loader storeIfAbsent(ProtectionDomain domain, Loader newLoader) {
@@ -130,7 +133,7 @@ public class TransformReplacer implements Closeable {
     }
 
     @Nullable
-    private File findTransformedFile(ProtectionDomain protectionDomain) {
+    private static File getOriginalFile(ProtectionDomain protectionDomain) {
         // CodeSource is null for dynamically defined classes, or if the ClassLoader doesn't set them properly.
         CodeSource cs = protectionDomain.getCodeSource();
         URL originalUrl = cs != null ? cs.getLocation() : null;
@@ -139,7 +142,7 @@ public class TransformReplacer implements Closeable {
             return null;
         }
         try {
-            return classPath.findTransformedJarFor(new File(originalUrl.toURI()));
+            return new File(originalUrl.toURI());
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Cannot parse file URL " + originalUrl, e);
         }
@@ -156,11 +159,13 @@ public class TransformReplacer implements Closeable {
     }
 
     private class JarLoader extends Loader {
+        private final File originalJarFilePath;
         private final File jarFilePath;
-        private @Nullable JarFile jarFile;
+        private @Nullable JarCompat jarFile;
 
-        public JarLoader(File transformedJarFile) {
-            jarFilePath = transformedJarFile;
+        public JarLoader(File originalJarFilePath, File transformedJarFile) {
+            this.originalJarFilePath = originalJarFilePath;
+            this.jarFilePath = transformedJarFile;
         }
 
         @Override
@@ -185,26 +190,83 @@ public class TransformReplacer implements Closeable {
 
         @Override
         public synchronized void close() {
+            // Not calling getJarFileLocked intentionally, to avoid opening the JAR if it isn't opened yet.
             IoActions.closeQuietly(jarFile);
         }
 
-        @SuppressWarnings("Since15")
         private JarFile getJarFileLocked() throws IOException {
             ensureOpened();
             if (jarFile == null) {
-                try {
-                    // Set up the MR-JAR properly when running on Java 9+.
-                    jarFile = new JarFile(jarFilePath, true, JarFile.OPEN_READ, JarFile.runtimeVersion());
-                } catch (NoSuchMethodError e) {
-                    // Running on Java 8, fall back to the old ways.
-                    jarFile = new JarFile(jarFilePath);
+                jarFile = JarCompat.open(jarFilePath);
+                if (jarFile.isMultiRelease() && !isTransformed(jarFile.getJarFile())) {
+                    throw new GradleException(String.format(
+                        "Cannot load multi-release JAR '%s' because it cannot be fully instrumented for Java %d by this version of Gradle. Please use a supported Java version (<=%d).",
+                        originalJarFilePath.getAbsolutePath(),
+                        jarFile.javaRuntimeVersionUsed(),
+                        AsmConstants.MAX_SUPPORTED_JAVA_VERSION));
                 }
             }
-            return jarFile;
+            return jarFile.getJarFile();
         }
 
         private String classNameToPath(String className) {
             return className + ".class";
+        }
+    }
+
+    private static boolean isTransformed(JarFile jarFile) throws IOException {
+        JarEntry entry = jarFile.getJarEntry(MarkerResource.RESOURCE_NAME);
+        if (entry != null) {
+            InputStream in = jarFile.getInputStream(entry);
+            try {
+                return MarkerResource.TRANSFORMED.equals(MarkerResource.readFromStream(in));
+            } finally {
+                in.close();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Transformed Multi-Release JARs intended for loading with the TransformReplacer must contain a special resource file named {@code RESOURCE_NAME} and with the body {@code TRANSFORMED.asBytes()}.
+     * If some versioned directories of the JAR haven't been processed, then these directories must contain presiding (overriding) resource with the same name but with
+     * {@code NOT_TRANSFORMED.asBytes()} as body.
+     * <p>
+     * TransformReplacer throws upon opening a JAR file if the current JVM loads the NOT_TRANSFORMED marker resource from the JAR.
+     * TransformReplacer throws upon opening a multi-release JAR without the marker resource.
+     */
+    public enum MarkerResource {
+        // The transformed marker resource is an empty file to reduce archive size in the most common case.
+        TRANSFORMED(new byte[0]),
+        // Not transformed marker resource is a 1-byte file with a single "N" symbol.
+        NOT_TRANSFORMED(new byte[]{'N'});
+
+        public static final String RESOURCE_NAME = TransformReplacer.class.getName() + ".transformed";
+
+        private final byte[] markerBody;
+
+        MarkerResource(byte[] markerBody) {
+            this.markerBody = markerBody;
+        }
+
+        /**
+         * Reads the contents of the MarkerResource and returns the appropriate constant.
+         *
+         * @param in the stream to read from
+         * @return the corresponding marker resource
+         * @throws IOException if reading fails
+         */
+        public static MarkerResource readFromStream(InputStream in) throws IOException {
+            int readByte = in.read();
+            if (readByte < 0) {
+                return TRANSFORMED;
+            }
+            // Be lenient - any non-empty file means the JAR isn't transformed.
+            return NOT_TRANSFORMED;
+        }
+
+        public byte[] asBytes() {
+            return markerBody;
         }
     }
 }

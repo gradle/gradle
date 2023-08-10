@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.invocation.BuildAction;
@@ -29,17 +30,20 @@ public class InitDeprecationLoggingActionExecutor implements BuildTreeActionExec
     private final ProblemDiagnosticsFactory problemDiagnosticsFactory;
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final StartParameter startParameter;
+    private final Problems problemsService;
 
     public InitDeprecationLoggingActionExecutor(
         BuildTreeActionExecutor delegate,
         ProblemDiagnosticsFactory problemDiagnosticsFactory,
         BuildOperationProgressEventEmitter eventEmitter,
-        StartParameter startParameter
+        StartParameter startParameter,
+        Problems problemsService
     ) {
         this.delegate = delegate;
         this.problemDiagnosticsFactory = problemDiagnosticsFactory;
         this.eventEmitter = eventEmitter;
         this.startParameter = startParameter;
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -54,7 +58,7 @@ public class InitDeprecationLoggingActionExecutor implements BuildTreeActionExec
                 LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
         }
 
-        DeprecationLogger.init(problemDiagnosticsFactory, startParameter.getWarningMode(), eventEmitter);
+        DeprecationLogger.init(problemDiagnosticsFactory, startParameter.getWarningMode(), eventEmitter, problemsService);
         return delegate.execute(action, buildTreeContext);
     }
 }

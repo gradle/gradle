@@ -17,7 +17,8 @@
 package org.gradle.process.internal.health.memory;
 
 import net.rubygrapefruit.platform.NativeException;
-import net.rubygrapefruit.platform.memory.WindowsMemory;
+import net.rubygrapefruit.platform.memory.Memory;
+import net.rubygrapefruit.platform.memory.MemoryInfo;
 import net.rubygrapefruit.platform.memory.WindowsMemoryInfo;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
@@ -29,14 +30,21 @@ public class WindowsOsMemoryInfo implements OsMemoryInfo {
     @Override
     public OsMemoryStatus getOsSnapshot() {
         try {
-            WindowsMemory memory = NativeServices.getInstance().get(WindowsMemory.class);
-            WindowsMemoryInfo memoryInfo = memory.getMemoryInfo();
-            return new OsMemoryStatusSnapshot(
-                memoryInfo.getTotalPhysicalMemory(), memoryInfo.getAvailablePhysicalMemory(),
-                // Note: the commit limit is usually less than the hard limit of the commit peak, but I think it would be prudent
-                // for us to not force the user's OS to allocate more page file space, so we'll use the commit limit here.
-                memoryInfo.getCommitLimit(), memoryInfo.getCommitTotal()
-            );
+            Memory memory = NativeServices.getInstance().get(Memory.class);
+            MemoryInfo memoryInfo = memory.getMemoryInfo();
+            if (memoryInfo instanceof WindowsMemoryInfo) {
+                WindowsMemoryInfo windowsMemoryInfo = (WindowsMemoryInfo) memoryInfo;
+                return new OsMemoryStatusSnapshot(
+                    memoryInfo.getTotalPhysicalMemory(), memoryInfo.getAvailablePhysicalMemory(),
+                    // Note: the commit limit is usually less than the hard limit of the commit peak, but I think it would be prudent
+                    // for us to not force the user's OS to allocate more page file space, so we'll use the commit limit here.
+                    windowsMemoryInfo.getCommitLimit(), windowsMemoryInfo.getCommitTotal()
+                );
+            } else {
+                return new OsMemoryStatusSnapshot(
+                    memoryInfo.getTotalPhysicalMemory(), memoryInfo.getAvailablePhysicalMemory()
+                );
+            }
         } catch (NativeException ex) {
             throw new UnsupportedOperationException("Unable to get system memory", ex);
         } catch (NativeIntegrationException ex) {

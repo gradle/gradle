@@ -63,6 +63,8 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.logUnsupported
 import org.gradle.configurationcache.serialization.unsupported
+import org.gradle.internal.event.AbstractBroadcastDispatch
+import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.scripts.GradleScript
 import org.gradle.internal.service.DefaultServiceRegistry
 import java.io.FileDescriptor
@@ -135,6 +137,10 @@ fun BindingsBuilder.unsupportedTypes() {
 
     // Publishing types
     bind(unsupported<Publication>())
+
+    // Event dispatching infrastructure types
+    bind(unsupported<ListenerBroadcast<*>>())
+    bind(unsupported<AbstractBroadcastDispatch<*>>())
 
     // Direct build service references
     // Build services must always be referenced via their providers.

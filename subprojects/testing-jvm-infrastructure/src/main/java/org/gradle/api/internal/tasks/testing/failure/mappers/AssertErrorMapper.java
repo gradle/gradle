@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing.failure.mappers;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.ThrowableToTestFailureMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 
 import java.util.Collections;
@@ -27,10 +27,10 @@ import java.util.List;
 /**
  * Maps {@link AssertionError} to {@link TestFailure}.
  * <p>
- * See {@link FailureMapper} for more details about failure mapping.
+ * See {@link TestFailureMapper} for more details about failure mapping.
  */
 @NonNullApi
-public class AssertErrorMapper extends FailureMapper {
+public class AssertErrorMapper extends TestFailureMapper {
     @Override
     protected List<String> getSupportedClassNames() {
         return Collections.singletonList(
@@ -39,7 +39,7 @@ public class AssertErrorMapper extends FailureMapper {
     }
 
     @Override
-    public TestFailure map(Throwable throwable, RootAssertionToFailureMapper rootMapper) throws Exception {
+    public TestFailure map(Throwable throwable, ThrowableToTestFailureMapper rootMapper) throws Exception {
         return TestFailure.fromTestAssertionFailure(throwable, null, null);
     }
 }

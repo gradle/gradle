@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +43,9 @@ public class DefaultDeleter implements Deleter {
 
     @VisibleForTesting
     static final int MAX_REPORTED_PATHS = 16;
+
+    @VisibleForTesting
+    static final int EMPTY_DIRECTORY_DELETION_ATTEMPTS = 10;
 
     @VisibleForTesting
     static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
@@ -153,7 +157,11 @@ public class DefaultDeleter implements Deleter {
     }
 
     protected boolean deleteFile(File file) {
-        return file.delete() && !file.exists();
+        try {
+            return Files.deleteIfExists(file.toPath()) && !file.exists();
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private boolean tryHardToDelete(File file) {
@@ -162,19 +170,26 @@ public class DefaultDeleter implements Deleter {
         }
 
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
-        // It mentions that there is a bug in the Windows JDK implementations that this is a valid
-        // workaround for. I've been unable to find a definitive reference to this bug.
-        // The thinking is that if this is good enough for Ant, it's good enough for us.
+        // This was introduced in Ant by https://github.com/apache/ant/commit/ececc5c3e332b97f962b94a475408606433ee0e6
+        // This is a workaround for https://bz.apache.org/bugzilla/show_bug.cgi?id=45786
         if (runGcOnFailedDelete) {
             System.gc();
         }
-        try {
-            Thread.sleep(DELETE_RETRY_SLEEP_MILLIS);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
 
-        return deleteFile(file);
+        int failedAttempts = 1;
+        while (failedAttempts < EMPTY_DIRECTORY_DELETION_ATTEMPTS) {
+            try {
+                Thread.sleep(DELETE_RETRY_SLEEP_MILLIS);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            if (deleteFile(file)) {
+                return true;
+            } else {
+                failedAttempts++;
+            }
+        }
+        return false;
     }
 
     private void throwWithHelpMessage(long startTime, File file, Handling handling, Collection<String> failedPaths, boolean more) throws IOException {

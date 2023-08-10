@@ -20,7 +20,6 @@ Learn the basics of Gradle's incremental builds.
 ****
 **In this section you will:**
 
-- Update Gradle Properties
 - Understand incremental builds
 ****
 
@@ -36,11 +35,13 @@ Learn the basics of Gradle's incremental builds.
 It's important to know that Gradle optimizes your build in a variety of ways.
 One such optimization is called _incremental builds_.
 
-An _incremental build_ is a build that avoids running tasks whose inputs did not change (and therefore the same outputs would be produced) since the previous build, making the execution of such tasks unnecessary.
+An _incremental build_ is a build that avoids running tasks whose inputs did not change since the previous build, making the execution of such tasks unnecessary.
 
-To re-iterate, tasks can define their own inputs and outputs. At build time, Gradle will determine whether they have changed or not. If the inputs have changed, Gradle will execute the task. Otherwise, it won’t.
+For incremental builds to work, tasks must define their inputs and outputs. At build time, Gradle will determine whether the input or outputs have changed. If they have changed, Gradle will execute the task. Otherwise, it will skip execution.
 
 == Step 2. Updating Gradle Properties
+To better see incremental builds in action, we are going to switch the console output to verbose.
+
 In the top-level folder of your app (`tutorial`), create a `gradle.properties` file.
 
 [source]
@@ -80,9 +81,10 @@ BUILD SUCCESSFUL in 1s
 8 actionable tasks: 8 executed
 ----
 
-No surprise here, Gradle invoked all the tasks needed to build the app, and it was done successfully.
+No surprise here, Gradle invoked all the tasks needed to build the app.
+This was done successfully.
 
-Let's run the build again:
+Run the build again to view the _incremental build_ optimization in action:
 [source]
 ----
 $ ./gradlew :app:build
@@ -106,14 +108,11 @@ BUILD SUCCESSFUL in 409ms
 7 actionable tasks: 7 up-to-date
 ----
 
-As we can see, Gradle used the _incremental build_ optimization.
-
-Nothing has changed so Gradle has decided not to re-run some tasks.
-
-Gradle lets us know that inputs and outputs have not changed using the _outcome label_ `UP-TO-DATE`.
+Most tasks now have the `UP-TO-DATE` label.
+This is how Gradle lets us know that inputs and outputs have not changed and therefore some tasks did not re-run.
 
 == Step 4. Understanding Outcome Labels
-There are four outcome labels:
+There are four labels that developers can use to view task outcomes when verbose mode is turned on:
 
 |===
 |Outcome Label |Description

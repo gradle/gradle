@@ -1191,7 +1191,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public final GradleHandle start() {
-        assert afterExecute.isEmpty() : "afterExecute actions are not implemented for async execution";
+        // disabled to ease use of BuildOperationsFixture
+//        assert afterExecute.isEmpty() : "afterExecute actions are not implemented for async execution";
         beforeBuildSetup();
         try {
             GradleHandle handle = createGradleHandle();

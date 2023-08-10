@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.Describables
@@ -38,7 +39,7 @@ class TransformBackedProviderTest extends Specification {
 
     def setup() {
         DeprecationLogger.reset()
-        DeprecationLogger.init(Stub(ProblemDiagnosticsFactory), WarningMode.All, progressEventEmitter)
+        DeprecationLogger.init(Stub(ProblemDiagnosticsFactory), WarningMode.All, progressEventEmitter, new DefaultProblems(progressEventEmitter))
     }
 
     def teardown() {

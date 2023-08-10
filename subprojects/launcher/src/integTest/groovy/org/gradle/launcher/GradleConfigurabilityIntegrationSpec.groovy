@@ -25,6 +25,7 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
+
     def buildSucceeds(String script) {
         file('build.gradle') << script
         executer.withArguments("--info").useOnlyRequestedJvmOpts().run()

@@ -19,6 +19,7 @@ package org.gradle.api.internal.catalog.problems
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 
+import static org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf
 import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
@@ -240,8 +241,7 @@ trait VersionCatalogErrorMessages {
         }
 
         ReservedAlias shouldNotContain(String name) {
-            this.alias = name
-            this.message = "Alias '$name' contains a reserved name in Gradle and prevents generation of accessors"
+            this.alias(name)
             this
         }
 
@@ -252,11 +252,11 @@ trait VersionCatalogErrorMessages {
 
         ReservedAlias reservedAliases(String... aliases) {
             this.solution = "Use a different alias which isn't in the reserved names ${oxfordListOf(aliases as List, "or")}"
-            this
+            this.reservedNames(aliases)
         }
 
         ReservedAlias reservedNames(String... names) {
-            this.solution = "Use a different alias which doesn't contain any of ${oxfordListOf(names as List, "or")}"
+            this.solution = "Use a different alias which doesn't contain ${getExcludedNames(names as List)}"
             this
         }
 

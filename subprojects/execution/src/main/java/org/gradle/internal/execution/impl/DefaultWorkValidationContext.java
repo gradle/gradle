@@ -18,11 +18,11 @@ package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.plugin.use.PluginId;
 
 import java.util.Comparator;
@@ -32,14 +32,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static com.google.common.collect.ImmutableList.builder;
+import static org.gradle.internal.reflect.problems.ValidationProblemId.onlyAffectsCacheableWork;
+
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final ImmutableList.Builder<TypeValidationProblem> problems = ImmutableList.builder();
-    private final DocumentationRegistry documentationRegistry;
+    private final ImmutableList.Builder<Problem> problems = builder();
     private final TypeOriginInspector typeOriginInspector;
+    private final Problems problemsService;
 
-    public DefaultWorkValidationContext(DocumentationRegistry documentationRegistry, TypeOriginInspector typeOriginInspector) {
-        this.documentationRegistry = documentationRegistry;
+    public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector, Problems problemsService) {
+        this.problemsService = problemsService;
         this.typeOriginInspector = typeOriginInspector;
     }
 
@@ -47,11 +50,10 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     public TypeValidationContext forType(Class<?> type, boolean cacheable) {
         types.add(type);
         Supplier<Optional<PluginId>> pluginId = () -> typeOriginInspector.findPluginDefining(type);
-        return new ProblemRecordingTypeValidationContext(documentationRegistry, type, pluginId) {
-
+        return new ProblemRecordingTypeValidationContext(problemsService, type, pluginId) {
             @Override
-            protected void recordProblem(TypeValidationProblem problem) {
-                if (problem.getId().onlyAffectsCacheableWork() && !cacheable) {
+            protected void recordProblem(Problem problem) {
+                if (onlyAffectsCacheableWork(problem.getProblemType()) && !cacheable) {
                     return;
                 }
                 problems.add(problem);
@@ -60,7 +62,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     }
 
     @Override
-    public List<TypeValidationProblem> getProblems() {
+    public List<Problem> getProblems() {
         return problems.build();
     }
 

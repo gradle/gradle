@@ -15,12 +15,13 @@
 [[part4_gradle_plugins]]
 = Part 4: Applying Gradle Plugins
 
-Learn about how Plugins extend Gradle's capabilities and use a popular plugin.
+Learn about how plugins extend Gradle's capabilities and use a popular plugin.
 
 ****
 **In this section you will:**
 
 - Apply a plugin
+- Configure the plugin
 - Use the plugin
 - Explore other plugins
 ****
@@ -48,7 +49,7 @@ Plugins can:
 - Add new properties and methods to existing types via extensions.
 
 == Step 2. Applying a Plugin
-Our project currently applies a single plugin, the <<application_plugin#application_plugin,Application Plugin>>:
+Our project currently applies a single plugin, the <<application_plugin#application_plugin,Application Plugin>> which is bundled with Gradle:
 [source]
 ----
 plugins {
@@ -57,10 +58,8 @@ plugins {
 }
 ----
 
-There is a plugin that is maintained and distributed by Gradle called the <<publishing_maven#publishing_maven,Maven Publish Plugin>>.
-
+Let's apply a plugin to our project that is maintained and distributed by Gradle called the <<publishing_maven#publishing_maven,Maven Publish Plugin>>.
 The Maven Publish Plugin provides the ability to publish build artifacts to an https://maven.apache.org/[Apache Maven repository].
-
 It can also publish to Maven local which is a repository located on your machine.
 
 The default location for Maven local repository may vary but is typically:
@@ -114,7 +113,7 @@ Similarly, the new tasks from the Maven Publish plugin are now available in Inte
 
 image::tutorial/intellij-idea-plugin.png[]
 
-== Step 3. Add the Publishing Block
+== Step 3. Configuring the Plugin
 Add the publishing information to your `build.gradle.kts` file:
 [source]
 ----
@@ -174,11 +173,11 @@ BUILD SUCCESSFUL in 331ms
 
 The `publishToMavenLocal` task builds the POM file and the artifacts to be published. It then _installs_ them into the local Maven repository.
 
-You can view the POM and JAR file by perusing the `build` directory:
+You can view the POM and JAR file in the `build` directory:
 
 image::tutorial/intellij-idea-dist.png[]
 
-You can also view the files in your Maven Local directory: `.m2/repository/org/gradle/tutorial/tutorial/1.0`.
+You can also view the files in your Maven Local directory: `/Users/\[username]/m2/repository/org/gradle/tutorial/tutorial/1.0`.
 
 [source,xml]
 ----
@@ -195,18 +194,20 @@ You can also view the files in your Maven Local directory: `.m2/repository/org/g
 
 == Step 5. Exploring Plugins
 Plugins are used to extend build capability and customize Gradle.
-They can be distributed publicly or privately.
 
-Gradle highly recommends the use of **Convention plugins**.
-link:../samples/sample_convention_plugins.html[Convention plugins] are used to share build logic between subprojects (modules).
-Users can wrap common logic in a Convention plugin; for example, a code coverage plugin used as a convention plugin can survey code coverage for the entire project, not just a specific subproject.
+Using plugins is the **primary mechanism for organizing build logic**.
 
-Plugin authors can either keep their plugins private or distribute them to the public. Plugins are distributed three ways:
+Plugin authors can either keep their plugins private or distribute them to the public. As such, plugins are distributed three ways:
 
-1. **Core plugins** - Gradle develops and maintains a set of Gradle <<plugin_reference#plugin_reference,Core Plugins>>.
-2. **Community plugins** - Gradle has a community of plugin developers who contribute plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
-3. **Custom plugins** - Gradle enables user to create custom plugins using APIs that can be used and/or shared privately.
+1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
+2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
+3. **Custom plugins** - Gradle enables user to create custom plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
 
+link:../samples/sample_convention_plugins.html[**Convention plugins**] are plugins used to share build logic between subprojects (modules).
+Users can wrap common logic in a convention plugin.
+For example, a code coverage plugin used as a convention plugin can survey code coverage for the _entire project_ and _not_ just a specific subproject.
+
+TIP: Gradle highly recommends the use of Convention plugins.
 
 [.text-right]
 **Next Step:** <<part5_gradle_inc_builds.adoc#part5_begin,Exploring Incremental Builds>> >>
