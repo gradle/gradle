@@ -173,6 +173,11 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
         variantSelectionListeners.add(instantiatorFactory.decorateLenient().newInstance(listenerClass));
     }
 
+    @Override
+    public List<VariantSelectionListener> getVariantSelectionListeners() {
+        return Collections.unmodifiableList(variantSelectionListeners);
+    }
+
     // TODO: Move this out into its own class so it can be unit tested directly.
     private static class DefaultAttributeSelectionSchema implements AttributeSelectionSchema {
         private final AttributesSchemaInternal consumerSchema;

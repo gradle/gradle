@@ -19,6 +19,8 @@ package org.gradle.internal.component;
 import com.google.common.collect.Ordering;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
@@ -36,6 +38,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -45,26 +48,29 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
 public class VariantSelectionFailureProcessor {
     public VariantSelectionFailureProcessor() {}
 
-    public AmbiguousTransformException ambiguousTransformationFailure(String displayName, ImmutableAttributes componentRequested, List<TransformedVariant> transformedVariants) {
+    public AmbiguousTransformException ambiguousTransformationFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<TransformedVariant> transformedVariants) {
         String message = formatAmbiguousTransformMsg(displayName, componentRequested, transformedVariants);
-        return new AmbiguousTransformException(message);
+        List<String> interpretations = interpretFailure(schema, displayName, componentRequested, transformedVariants);
+        return new AmbiguousTransformException(addIntepretations(interpretations, message));
     }
 
-    public NoMatchingVariantSelectionException noMatchingVariantsSelectionFailure(String displayName, ImmutableAttributes componentRequested, List<ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
+    public NoMatchingVariantSelectionException noMatchingVariantsSelectionFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
         String message = formatNoMatchingVariantsFailureMsg(displayName, componentRequested, variants, matcher, attributeDescriber);
-        return new NoMatchingVariantSelectionException(message);
+        List<String> interpretations = interpretFailure(schema, displayName, componentRequested, variants);
+        return new NoMatchingVariantSelectionException(addIntepretations(interpretations, message));
     }
 
-    public AmbiguousVariantSelectionException ambiguousVariantSelectionFailure(String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
+    public AmbiguousVariantSelectionException ambiguousVariantSelectionFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends HasAttributes> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
         String message = "";
-        return new AmbiguousVariantSelectionException(message);
+        List<String> interpretations = interpretFailure(schema, displayName, componentRequested, matches);
+        return new AmbiguousVariantSelectionException(addIntepretations(interpretations, message));
     }
 
-    public BrokenResolvedArtifactSet unknownSelectionFailure(VariantSelectionException t) {
+    public BrokenResolvedArtifactSet unknownSelectionFailure(AttributesSchema schema, VariantSelectionException t) {
         return new BrokenResolvedArtifactSet(t);
     }
 
-    public BrokenResolvedArtifactSet unknownSelectionFailure(ResolvedVariantSet producer, Exception t) {
+    public BrokenResolvedArtifactSet unknownSelectionFailure(AttributesSchema schema, ResolvedVariantSet producer, Exception t) {
         return new BrokenResolvedArtifactSet(VariantSelectionException.selectionFailed(producer, t));
     }
 
@@ -122,5 +128,17 @@ public class VariantSelectionFailureProcessor {
             formatter.node(attribute.getName() + " '" + attributes.getAttribute(attribute) + "'");
         }
         formatter.endChildren();
+    }
+
+    private List<String> interpretFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends HasAttributes> transformedVariants) {
+        return schema.getVariantSelectionListeners().stream()
+            .map(listener -> listener.onFailure(displayName, componentRequested, transformedVariants))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+    }
+
+    private static String addIntepretations(List<String> interpretations, String message) {
+        return String.join("\n", interpretations) + message;
     }
 }

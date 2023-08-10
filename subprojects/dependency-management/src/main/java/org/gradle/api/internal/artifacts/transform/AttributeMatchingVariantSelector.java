@@ -53,7 +53,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final boolean ignoreWhenNoMatches;
     private final boolean selectFromAllVariants;
     private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
-    private final VariantSelectionFailureProcessor failureProcessor;
+    private final VariantSelectionFailureProcessor selectionFailureProcessor;
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -64,7 +64,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         boolean ignoreWhenNoMatches,
         boolean selectFromAllVariants,
         TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
-        VariantSelectionFailureProcessor failureProcessor
+        VariantSelectionFailureProcessor selectionFailureProcessor
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
@@ -74,7 +74,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.selectFromAllVariants = selectFromAllVariants;
         this.dependenciesResolverFactory = dependenciesResolverFactory;
-        this.failureProcessor = failureProcessor;
+        this.selectionFailureProcessor = selectionFailureProcessor;
     }
 
     @Override
@@ -101,9 +101,9 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         try {
             return doSelect(producer, ignoreWhenNoMatches, factory, AttributeMatchingExplanationBuilder.logging());
         } catch (VariantSelectionException t) {
-            return failureProcessor.unknownSelectionFailure(t);
+            return selectionFailureProcessor.unknownSelectionFailure(schema, t);
         } catch (Exception t) {
-            return failureProcessor.unknownSelectionFailure(producer, t);
+            return selectionFailureProcessor.unknownSelectionFailure(schema, producer, t);
         }
     }
 
@@ -126,7 +126,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             matches = matcher.matches(variants, componentRequested, newExpBuilder);
 
             Set<ResolvedVariant> discarded = Cast.uncheckedCast(newExpBuilder.discarded);
-            throw failureProcessor.ambiguousVariantSelectionFailure(producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded);
+            throw selectionFailureProcessor.ambiguousVariantSelectionFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -143,14 +143,14 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousTransformationFailure(producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
+            throw selectionFailureProcessor.ambiguousTransformationFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
         }
 
         if (ignoreWhenNoMatches) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noMatchingVariantsSelectionFailure(producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
+        throw selectionFailureProcessor.noMatchingVariantsSelectionFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
     }
 
     /**

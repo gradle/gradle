@@ -115,6 +115,11 @@ public class EmptySchema implements AttributesSchemaInternal {
     @Override
     public void registerVariantSelectionListener(Class<? extends VariantSelectionListener> listener) {}
 
+    @Override
+    public List<VariantSelectionListener> getVariantSelectionListeners() {
+        return Collections.emptyList();
+    }
+
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {
         @Override
         public void execute(CompatibilityCheckResult<Object> result) {

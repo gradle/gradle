@@ -113,4 +113,12 @@ public interface AttributesSchema {
      */
     @Incubating
     void registerVariantSelectionListener(Class<? extends VariantSelectionListener> listener);
+
+    /**
+     * TODO: Document
+     *
+     * @since 8.4
+     */
+    @Incubating
+    List<VariantSelectionListener> getVariantSelectionListeners();
 }
