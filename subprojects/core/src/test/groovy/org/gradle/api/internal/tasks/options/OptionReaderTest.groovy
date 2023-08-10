@@ -325,68 +325,66 @@ class OptionReaderTest extends Specification {
         when:
         List<InstanceOptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithPropertyField(), reader).getAll()
 
-        options.forEach {it -> System.out.println(it.name + " " + it.description)}
-
         then:
-        options[0].name == "customOptionName"
-        options[0].description == "custom description"
-        options[0].argumentType == String
+        options[0].name == "booleanValue"
+        options[0].description == "Descr booleanValue"
+        options[0].argumentType == Void.TYPE
+        options[0].availableValues.isEmpty()
 
-        options[1].name == "fieldB"
-        options[1].description == "Descr FieldB"
-        options[1].argumentType == String
-        options[1].availableValues == ["dynValue1", "dynValue2"] as Set
+        options[1].name == "no-booleanValue"
+        options[1].description == "Disables option --booleanValue."
+        options[1].argumentType == Void.TYPE
+        options[1].availableValues.isEmpty()
 
-        options[2].name == "fieldC"
-        options[2].description == "Descr FieldC"
+        options[2].name == "customOptionName"
+        options[2].description == "custom description"
         options[2].argumentType == String
-        options[2].availableValues as Set == ["ABC", "DEF"] as Set
 
-        options[3].name == "fieldD"
-        options[3].description == "Descr FieldD"
-        options[3].argumentType == Void.TYPE
-        options[3].availableValues.isEmpty()
+        options[3].name == "directoryValue"
+        options[3].description == "Descr directoryValue"
+        options[3].argumentType == String
 
-        options[4].name == "no-fieldD"
-        options[4].description == "Disables option --fieldD."
-        options[4].argumentType == Void.TYPE
-        options[4].availableValues.isEmpty()
+        options[4].name == "enumListValue"
+        options[4].description == "Descr enumListValue"
+        options[4].argumentType == List
 
-        options[5].name == "fieldE"
-        options[5].description == "Descr FieldE"
-        options[5].argumentType == String
+        options[5].name == "enumSetValue"
+        options[5].description == "Descr enumSetValue"
+        options[5].argumentType == List
 
-        options[6].name == "fieldF"
-        options[6].description == "Descr FieldF"
-        options[6].argumentType == List
+        options[6].name == "enumValue"
+        options[6].description == "Descr enumValue"
+        options[6].argumentType == String
+        options[6].availableValues as Set == ["ABC", "DEF"] as Set
 
-        options[7].name == "fieldG"
-        options[7].description == "Descr FieldG"
+        options[7].name == "integerListValue"
+        options[7].description == "Descr integerListValue"
         options[7].argumentType == List
 
-        options[8].name == "fieldH"
-        options[8].description == "Descr FieldH"
+        options[8].name == "integerSetValue"
+        options[8].description == "Descr integerSetValue"
         options[8].argumentType == List
 
-        options[9].name == "fieldI"
-        options[9].description == "Descr FieldI"
-        options[9].argumentType == List
+        options[9].name == "integerValue"
+        options[9].description == "Descr integerValue"
+        options[9].argumentType == String
 
-        options[10].name == "fieldJ"
-        options[10].description == "Descr FieldJ"
-        options[10].argumentType == List
+        options[10].name == "regularFileValue"
+        options[10].description == "Descr regularFileValue"
+        options[10].argumentType == String
 
-        options[11].name == "fieldK"
-        options[11].description == "Descr FieldK"
+        options[11].name == "stringListValue"
+        options[11].description == "Descr stringListValue"
         options[11].argumentType == List
 
-        options[12].name == "fieldL"
-        options[12].description == "Descr FieldL"
-        options[12].argumentType == String
+        options[12].name == "stringSetValue"
+        options[12].description == "Descr stringSetValue"
+        options[12].argumentType == List
 
-        options[13].name == "fieldM"
-        options[13].description == "Descr FieldM"
+        options[13].name == "stringValue"
+        options[13].description == "Descr stringValue"
         options[13].argumentType == String
+        options[13].availableValues == ["dynValue1", "dynValue2"] as Set
     }
 
     def "throws decent error when description not set"() {
@@ -793,47 +791,47 @@ class OptionReaderTest extends Specification {
     }
 
     public static class TestClassWithPropertyField {
+        @Option(description = "Descr booleanValue")
+        final Property<Boolean> booleanValue
+
         @Option(option = 'customOptionName', description = "custom description")
-        final Property<String> fieldA
+        final Property<String> customStringValue
 
-        @Option(description = "Descr FieldB")
-        final Property<String> fieldB
+        @Option(description = "Descr directoryValue")
+        final DirectoryProperty directoryValue
 
-        @Option(description = "Descr FieldC")
-        final Property<TestEnum> fieldC
+        @Option(description = "Descr enumListValue")
+        final ListProperty<TestEnum> enumListValue
 
-        @Option(description = "Descr FieldD")
-        final Property<Boolean> fieldD
+        @Option(description = "Descr enumSetValue")
+        final SetProperty<TestEnum> enumSetValue
 
-        @Option(description = "Descr FieldE")
-        final Property<Integer> fieldE
+        @Option(description = "Descr enumValue")
+        final Property<TestEnum> enumValue
 
-        @Option(description = "Descr FieldF")
-        final ListProperty<Integer> fieldF
+        @Option(description = "Descr integerValue")
+        final Property<Integer> integerValue
 
-        @Option(description = "Descr FieldG")
-        final ListProperty<String> fieldG
+        @Option(description = "Descr integerListValue")
+        final ListProperty<Integer> integerListValue
 
-        @Option(description = "Descr FieldH")
-        final ListProperty<TestEnum> fieldH
+        @Option(description = "Descr integerSetValue")
+        final SetProperty<Integer> integerSetValue
 
-        @Option(description = "Descr FieldI")
-        final SetProperty<String> fieldI
+        @Option(description = "Descr regularFileValue")
+        final RegularFileProperty regularFileValue
 
-        @Option(description = "Descr FieldJ")
-        final SetProperty<Integer> fieldJ
+        @Option(description = "Descr stringListValue")
+        final ListProperty<String> stringListValue
 
-        @Option(description = "Descr FieldK")
-        final SetProperty<TestEnum> fieldK
+        @Option(description = "Descr stringValue")
+        final Property<String> stringValue
 
-        @Option(description = "Descr FieldL")
-        final DirectoryProperty fieldL
+        @Option(description = "Descr stringSetValue")
+        final SetProperty<String> stringSetValue
 
-        @Option(description = "Descr FieldM")
-        final RegularFileProperty fieldM
-
-        @OptionValues("fieldB")
-        List<String> getField2Options() {
+        @OptionValues("stringValue")
+        List<String> getStringValueOptions() {
             return Arrays.asList("dynValue1", "dynValue2")
         }
     }

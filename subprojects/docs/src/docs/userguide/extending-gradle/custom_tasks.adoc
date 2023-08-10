@@ -380,8 +380,14 @@ Gradle limits the set of data types that can be used for declaring command line 
 `boolean`, `Boolean`, `Property<Boolean>`::
 Describes an option with the value `true` or `false`. Passing the option on the command line treats the value as `true`, for example `--foo` equates to `true`. The absence of the option uses the default value of the property. For each boolean option, an opposite option is created automatically. For example, `--no-foo` is created for the provided option `--foo` and `--bar` is created for `--no-bar`. Options whose name starts with `--no` are disable options and set the option value to `false`. An opposite option is only created if no option with the same name already exists for the task.
 
+`Double`, `Property<Double>`::
+Describes an option with a double value. Passing the option on the command line also requires a value e.g. `--factor=2.2` or `--factor 2.2`.
+
 `Integer`, `Property<Integer>`::
 Describes an option with an integer value. Passing the option on the command line also requires a value e.g. `--network-timeout=5000` or `--network-timeout 5000`.
+
+`Long`, `Property<Long>`::
+Describes an option with a long value. Passing the option on the command line also requires a value e.g. `--threshold=2147483648` or `--threshold 2147483648`.
 
 `String`, `Property<String>`::
 Describes an option with an arbitrary String value. Passing the option on the command line also requires a value e.g. `--container-id=2x94held` or `--container-id 2x94held`.
@@ -389,10 +395,10 @@ Describes an option with an arbitrary String value. Passing the option on the co
 `enum`, `Property<enum>`::
 Describes an option as an enumerated type. Passing the option on the command line also requires a value e.g. `--log-level=DEBUG` or `--log-level debug`. The value is not case sensitive.
 
-`List<Integer>`, `List<String>`, List<enum>`::
+`List<T>` where `T` is `Double`, `Integer`, `Long`, `String`, `enum`::
 Describes an option that can takes multiple values of a given type. The values for the option have to be provided as multiple declarations e.g. `--image-id=123 --image-id=456`. Other notations such as comma-separated lists or multiple values separated by a space character are currently not supported.
 
-`ListProperty<Integer>`, `ListProperty<String>`, `ListProperty<enum>`, `SetProperty<Integer>`, `SetProperty<String>`, `SetProperty<enum>`::
+`ListProperty<T>`, `SetProperty<T>` where `T` is `Double`, `Integer`, `Long`, `String`, `enum`::
 Describes an option that can takes multiple values of a given type. The values for the option have to be provided as multiple declarations e.g. `--image-id=123 --image-id=456`. Other notations such as comma-separated lists or multiple values separated by a space character are currently not supported.
 
 `DirectoryProperty`, `RegularFileProperty`::

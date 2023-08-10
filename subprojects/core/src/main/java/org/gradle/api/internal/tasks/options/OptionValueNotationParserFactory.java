@@ -19,8 +19,10 @@ package org.gradle.api.internal.tasks.options;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.typeconversion.DoubleFromCharSequenceNotationConverter;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
 import org.gradle.internal.typeconversion.IntegerFromCharSequenceNotationConverter;
+import org.gradle.internal.typeconversion.LongFromCharSequenceNotationConverter;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -33,8 +35,12 @@ public class OptionValueNotationParserFactory {
             @SuppressWarnings({"rawtypes", "unchecked"})
             NotationConverter<CharSequence, T> converter = new EnumFromCharSequenceNotationParser(targetType.asSubclass(Enum.class));
             return new NotationConverterToNotationParserAdapter<>(converter);
+        } else if (targetType.isAssignableFrom(Double.class)) {
+            return new NotationConverterToNotationParserAdapter<>(Cast.uncheckedCast(new DoubleFromCharSequenceNotationConverter()));
         } else if (targetType.isAssignableFrom(Integer.class)) {
             return new NotationConverterToNotationParserAdapter<>(Cast.uncheckedCast(new IntegerFromCharSequenceNotationConverter()));
+        } else if (targetType.isAssignableFrom(Long.class)) {
+            return new NotationConverterToNotationParserAdapter<>(Cast.uncheckedCast(new LongFromCharSequenceNotationConverter()));
         }
 
         throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));
