@@ -18,8 +18,6 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
@@ -27,16 +25,13 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.EncryptionAlgorithm
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 
 
 class ConfigurationCacheKeyTest {
@@ -44,11 +39,6 @@ class ConfigurationCacheKeyTest {
     @JvmField
     @Rule
     val testDirectoryProvider = TestNameTestDirectoryProvider(javaClass)
-
-    @Before
-    fun before() {
-
-    }
 
     @Test
     fun `cache key honours --include-build`() {
