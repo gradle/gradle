@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.internal.component.model.AttributeConfigurationSelector;
 
 import java.util.List;
 
@@ -43,9 +42,4 @@ public interface ConfigurationResolver {
      * Returns the list of repositories available to resolve a given resolve context. This is used for reporting only.
      */
     List<ResolutionAwareRepository> getRepositories();
-
-    /**
-     * TODO: Document
-     */
-    AttributeConfigurationSelector getAttributeConfigurationSelector();
 }

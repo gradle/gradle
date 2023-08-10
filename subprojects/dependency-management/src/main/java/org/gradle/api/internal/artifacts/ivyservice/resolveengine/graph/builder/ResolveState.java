@@ -136,6 +136,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = attributeDesugaring;
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
+        this.attributeConfigurationSelector = attributeConfigurationSelector;
 
         ComponentGraphResolveMetadata rootComponentMetadata = rootComponentState.getMetadata();
         ModuleVersionIdentifier moduleVersionId = rootComponentMetadata.getModuleVersionId();
@@ -154,8 +155,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         VariantGraphResolveState rootVariant = rootComponentState.getConfiguration(rootConfigurationName).asVariant();
         root = new RootNode(idGenerator.nextGraphNodeId(), rootComponent, rootNodeId, this, syntheticDependencies, rootVariant);
         nodes.put(rootNodeId, root);
-
-        this.attributeConfigurationSelector = attributeConfigurationSelector;
     }
 
     public ComponentIdGenerator getIdGenerator() {

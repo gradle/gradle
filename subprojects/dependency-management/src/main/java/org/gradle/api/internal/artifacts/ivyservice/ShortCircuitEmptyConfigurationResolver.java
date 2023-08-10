@@ -45,7 +45,6 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.model.AttributeConfigurationSelector;
 
 import java.io.File;
 import java.util.Collections;
@@ -115,11 +114,6 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             assert graphResults.getArtifactResolveState() != null;
             return delegate.resolveArtifacts(resolveContext, graphResults);
         }
-    }
-
-    @Override
-    public AttributeConfigurationSelector getAttributeConfigurationSelector() {
-        return delegate.getAttributeConfigurationSelector();
     }
 
     private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {

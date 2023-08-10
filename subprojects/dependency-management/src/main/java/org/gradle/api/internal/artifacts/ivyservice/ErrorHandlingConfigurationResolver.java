@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.result.ResolutionResultInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.model.AttributeConfigurationSelector;
 
 import java.io.File;
 import java.util.List;
@@ -90,11 +89,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
         ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(artifactResults.getResolvedConfiguration(), resolveContext, contextualizer);
         return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), wrappedConfiguration, artifactResults.getVisitedArtifacts());
-    }
-
-    @Override
-    public AttributeConfigurationSelector getAttributeConfigurationSelector() {
-        return delegate.getAttributeConfigurationSelector();
     }
 
     private static class ErrorHandlingLenientConfiguration implements LenientConfiguration {
