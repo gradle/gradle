@@ -47,7 +47,7 @@ class ConfigurationCacheKeyTest {
 
     @Before
     fun before() {
-        Problems.init(DefaultProblems(Mockito.mock(BuildOperationProgressEventEmitter::class.java)))
+
     }
 
     @Test

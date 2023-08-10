@@ -38,7 +38,6 @@ public class InitProblems implements BuildTreeActionExecutor  {
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
         ProblemsProgressEventEmitterHolder.init(eventEmitter);
-        Problems.init(problemsService);
         return delegate.execute(action, buildTreeContext);
     }
 }
