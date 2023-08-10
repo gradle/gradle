@@ -41,13 +41,13 @@ public class DefaultProblems extends Problems {
 
     public DefaultProblems(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
-        addPredfinedGroup(GENERIC_ID);
-        addPredfinedGroup(TYPE_VALIDATION_ID);
-        addPredfinedGroup(DEPRECATION_ID);
-        addPredfinedGroup(VERSION_CATALOG_ID);
+        addPredefinedGroup(GENERIC_ID);
+        addPredefinedGroup(TYPE_VALIDATION_ID);
+        addPredefinedGroup(DEPRECATION_ID);
+        addPredefinedGroup(VERSION_CATALOG_ID);
     }
 
-    private void addPredfinedGroup(String genericId) {
+    private void addPredefinedGroup(String genericId) {
         problemGroups.put(genericId, new PredefinedProblemGroup(genericId));
     }
 

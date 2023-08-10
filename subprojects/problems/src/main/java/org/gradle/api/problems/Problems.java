@@ -31,7 +31,7 @@ import java.util.Collection;
 import static java.util.Collections.singleton;
 
 /**
- * Prototype Problems API.
+ * Problems API service.
  *
  * @since 8.4
  */

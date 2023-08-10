@@ -28,7 +28,7 @@ class DocumentationTest extends Specification {
         def documentationReference = Documentation.NO_DOCUMENTATION
 
         then:
-        documentationReference.documentationUrl() == null
+        documentationReference.url() == null
         documentationReference.consultDocumentationMessage() == null
     }
 
@@ -51,7 +51,7 @@ class DocumentationTest extends Specification {
 
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_11", "section")
-        documentationReference.documentationUrl() == expectedUrl
+        documentationReference.url() == expectedUrl
         documentationReference.consultDocumentationMessage() == "Consult the upgrading guide for further information: ${expectedUrl}"
     }
 
@@ -61,7 +61,7 @@ class DocumentationTest extends Specification {
 
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForProperty(Documentation, "property")
-        documentationReference.documentationUrl() == expectedUrl
+        documentationReference.url() == expectedUrl
         documentationReference.consultDocumentationMessage() == "For more information, please refer to ${expectedUrl} in the Gradle documentation."
     }
 

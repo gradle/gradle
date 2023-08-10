@@ -27,40 +27,35 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.internal.DefaultProblem;
-import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.deprecation.Documentation.DocLinkJsonDeserializer;
+import org.gradle.internal.deprecation.Documentation.DocLinkJsonSerializer;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Stream;
 
+@Nonnull
 public class ValidationProblemSerialization {
     public static List<DefaultProblem> parseMessageList(String lines) {
         GsonBuilder gsonBuilder = createGsonBuilder();
-//        gsonBuilder.registerTypeAdapter(Problem.class, (InstanceCreator<Problem>) type -> new DefaultProblem());
         Gson gson = gsonBuilder.create();
         Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
         return gson.fromJson(lines, type);
     }
 
-    @Nonnull
     public static GsonBuilder createGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
         gsonBuilder.registerTypeAdapterFactory(new Factory());
-        gsonBuilder.registerTypeAdapter(DocLink.class, new Documentation.DocLinkJsonDeserializer());
-
-        gsonBuilder.registerTypeAdapter(DocLink.class, new Documentation.DocLinkJsonSerializer());
+        gsonBuilder.registerTypeAdapter(DocLink.class, new DocLinkJsonDeserializer());
+        gsonBuilder.registerTypeAdapter(DocLink.class, new DocLinkJsonSerializer());
 
         return gsonBuilder;
-    }
-
-    public static Stream<String> toMessages(List<DefaultProblem> problems) {
-        return toPlainMessage(problems);
-//            .map(msg -> String.format("%n  - %s", msg));
     }
 
     public static Stream<String> toPlainMessage(List<DefaultProblem> problems) {
@@ -68,9 +63,15 @@ public class ValidationProblemSerialization {
             .map(problem -> problem.getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
 
+    /**
+     * A type adapter factory for {@link Throwable} that supports serializing and deserializing {@link Throwable} instances to JSON using GSON.
+     * <p>
+     * from <a href="https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j.jsonrpc/src/main/java/org/eclipse/lsp4j/jsonrpc/json/adapters/ThrowableTypeAdapter.java">here</a>
+     */
     public static class Factory implements TypeAdapterFactory {
 
         @SuppressWarnings({"unchecked"})
+        @Nullable
         @Override
         public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
             if (!Throwable.class.isAssignableFrom(typeToken.getRawType())) {
@@ -82,6 +83,11 @@ public class ValidationProblemSerialization {
 
     }
 
+    /**
+     * A type adapter for {@link Throwable} that supports serializing and deserializing {@link Throwable} instances to JSON using GSON.
+     * <p>
+     * from <a href="https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j.jsonrpc/src/main/java/org/eclipse/lsp4j/jsonrpc/json/adapters/ThrowableTypeAdapter.java">here</a>
+     */
     public static class ThrowableTypeAdapter extends TypeAdapter<Throwable> {
         private final TypeToken<Throwable> typeToken;
 
@@ -90,6 +96,7 @@ public class ValidationProblemSerialization {
         }
 
         @SuppressWarnings("unchecked")
+        @Nullable
         @Override
         public Throwable read(JsonReader in) throws IOException {
             if (in.peek() == JsonToken.NULL) {
@@ -150,7 +157,7 @@ public class ValidationProblemSerialization {
         }
 
         @Override
-        public void write(JsonWriter out, Throwable throwable) throws IOException {
+        public void write(JsonWriter out, @Nullable Throwable throwable) throws IOException {
             if (throwable == null) {
                 out.nullValue();
             } else if (throwable.getMessage() == null && throwable.getCause() != null) {
@@ -169,7 +176,7 @@ public class ValidationProblemSerialization {
             }
         }
 
-        private boolean shouldWriteCause(Throwable throwable) {
+        private static boolean shouldWriteCause(Throwable throwable) {
             Throwable cause = throwable.getCause();
             if (cause == null || cause.getMessage() == null || cause == throwable) {
                 return false;

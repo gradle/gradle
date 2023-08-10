@@ -22,9 +22,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.deprecation.Documentation;
-import org.gradle.jvm.toolchain.JavaToolchainDownload;
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
-import org.gradle.platform.BuildPlatform;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -33,11 +30,14 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
+import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
+import org.gradle.platform.BuildPlatform;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -72,12 +72,12 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     @Inject
     public DefaultJavaToolchainProvisioningService(
-            JavaToolchainResolverRegistry toolchainResolverRegistry,
-            SecureFileDownloader downloader,
-            JdkCacheDirectory cacheDirProvider,
-            ProviderFactory factory,
-            BuildOperationExecutor executor,
-            BuildPlatform buildPlatform
+        JavaToolchainResolverRegistry toolchainResolverRegistry,
+        SecureFileDownloader downloader,
+        JdkCacheDirectory cacheDirProvider,
+        ProviderFactory factory,
+        BuildOperationExecutor executor,
+        BuildPlatform buildPlatform
     ) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.downloader = downloader;
@@ -100,14 +100,14 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
             throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain auto-provisioning is not enabled.",
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() + ".");
+                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").url() + ".");
         }
 
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
         if (repositories.isEmpty()) {
             throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain download repositories have not been configured.",
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() + ".",
-                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ".");
+                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").url() + ".",
+                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").url() + ".");
         }
 
         for (RealizedJavaToolchainRepository request : repositories) {
@@ -119,8 +119,8 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         }
 
         throw new ToolchainDownloadFailedException("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.",
-            "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() + ".",
-            "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ".");
+            "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").url() + ".",
+            "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").url() + ".");
     }
 
     private File provisionInstallation(JavaToolchainSpec spec, URI uri, Collection<Authentication> authentications) {
@@ -180,8 +180,8 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                    .displayName(displayName)
-                    .progressDisplayName(displayName);
+                .displayName(displayName)
+                .progressDisplayName(displayName);
         }
     }
 }

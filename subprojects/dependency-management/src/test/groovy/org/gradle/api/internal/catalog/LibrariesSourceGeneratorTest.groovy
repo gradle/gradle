@@ -50,13 +50,12 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Specification
 
 import java.util.function.Supplier
 
 import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
 
-class LibrariesSourceGeneratorTest extends Specification implements VersionCatalogErrorMessages {
+class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements VersionCatalogErrorMessages {
 
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))

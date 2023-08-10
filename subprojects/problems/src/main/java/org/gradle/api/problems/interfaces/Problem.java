@@ -51,9 +51,6 @@ public interface Problem {
     @Nullable
     Throwable getCause();
 
-    /**
-     * Mandotory field for problem type.
-     */
     String getProblemType();
 
     Map<String, String> getAdditionalMetadata();

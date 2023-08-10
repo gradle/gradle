@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.catalog.problems
 
+
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 
@@ -83,19 +84,19 @@ trait VersionCatalogErrorMessages {
         buildMessage(MissingCatalogFile, VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST, spec)
     }
 
-    String parseError(@DelegatesTo(value=ParseError, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    String parseError(@DelegatesTo(value = ParseError, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(ParseError, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec)
     }
 
-    String noImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    String noImportFiles(@DelegatesTo(value = NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(NoImportFiles, VersionCatalogProblemId.NO_IMPORT_FILES, spec)
     }
 
-    String tooManyImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    String tooManyImportFiles(@DelegatesTo(value = NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(TooManyImportFiles, VersionCatalogProblemId.TOO_MANY_IMPORT_FILES, spec)
     }
 
-    String tooManyImportInvokation(@DelegatesTo(value=TooManyFromInvokation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    String tooManyImportInvokation(@DelegatesTo(value = TooManyFromInvokation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(TooManyFromInvokation, VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION, spec)
     }
 
@@ -127,7 +128,7 @@ trait VersionCatalogErrorMessages {
         }
 
         String getDocumentation() {
-            doc.getDocumentationRecommendationFor("information","version_catalog_problems", section)
+            doc.getDocumentationRecommendationFor("information", "version_catalog_problems", section)
         }
 
         abstract String build()

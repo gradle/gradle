@@ -30,5 +30,4 @@ description = """A problems description API
 dependencies {
     implementation(project(":base-annotations"))
     implementation(project(":base-services"))
-    api(libs.guava)
 }

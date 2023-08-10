@@ -51,7 +51,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         if (details instanceof Problem) {
             Problem problem = (Problem) details;
             Throwable problemCause = problem.getCause();
-            if(seenProblems.containsKey(problemCause)) {
+            if (seenProblems.containsKey(problemCause)) {
                 return;
             }
             seenProblems.put(problemCause, buildOperationId);
@@ -77,10 +77,10 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     @Nonnull
     private static String getDocumentationFor(Problem problem) {
         DocLink docLink = problem.getDocumentationLink();
-        if(docLink == null) {
+        if (docLink == null) {
             return "";
         }
-        return nullToEmpty(docLink.documentationUrl());
+        return nullToEmpty(docLink.url());
     }
 
     @Override

@@ -146,7 +146,7 @@ dependencies {
     testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.asm)
     testFixturesImplementation(project(":dependency-management")) {
-        because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
+        because("Used in VersionCatalogErrorMessages for org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames")
     }
 
     testFixturesRuntimeOnly(project(":plugin-use")) {

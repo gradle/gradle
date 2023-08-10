@@ -44,8 +44,16 @@ public class DefaultProblem implements Problem {
     private Map<String, String> additionalMetadata;
 
     public DefaultProblem(
-        ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl,
-        @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType, Map<String, String> additionalMetadata
+        ProblemGroup problemGroup,
+        String message,
+        Severity severity,
+        @Nullable ProblemLocation location,
+        @Nullable DocLink documentationUrl,
+        @Nullable String description,
+        @Nullable List<String> solutions,
+        @Nullable Throwable cause,
+        String problemType,
+        Map<String, String> additionalMetadata
     ) {
         this.problemGroup = problemGroup;
         this.message = message;
@@ -130,6 +138,7 @@ public class DefaultProblem implements Problem {
             equals(message, that.message) &&
             severity == that.severity &&
             equals(where, that.where) &&
+            equals(problemType, that.problemType) &&
             equals(documentationLink, that.documentationLink) &&
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&
