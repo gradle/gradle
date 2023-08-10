@@ -1,4 +1,4 @@
-// Copyright 2017 the original author or authors.
+// Copyright 2023 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ The following is a reference for executing and customizing the Gradle command-li
 It also serves as a reference when writing scripts or configuring continuous integration.
 
 **Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged**.
-Substitute `./gradlew` or `gradlew.bat` for `gradle` in the following examples.
+Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 
 Executing Gradle on the command-line conforms to the following structure:
 
