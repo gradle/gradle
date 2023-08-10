@@ -32,6 +32,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.VariantSelectionException;
 import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.model.DescriberSelector;
 
@@ -40,11 +41,17 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A {@link VariantSelector} which uses attribute matching to select a matching variant. If no producer variant
- * is compatible with the requested attributes, this selector will attempt to construct a chain of artifact
+ * A {@link VariantSelector} which uses attribute matching to select a matching set of artifacts.
+ *
+ * If no producer variant is compatible with the requested attributes, this selector will attempt to construct a chain of artifact
  * transforms that can produce a variant compatible with the requested attributes.
+ *
+ * This class is intentionally named similarly to {@link AttributeMatchingConfigurationSelector}, as it has a
+ * similar purpose.  An instance of {@link VariantSelectionFailureProcessor} is injected in the constructor
+ * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
+ * calls to that instance.
  */
-class AttributeMatchingVariantSelector implements VariantSelector {
+public class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;

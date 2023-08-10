@@ -26,6 +26,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.transform.AttributeMatchingVariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
@@ -46,10 +47,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class AttributeConfigurationSelector {
+/**
+ * Uses attribute matching to select a variant.
+ *
+ * This class is intentionally named similarly to {@link AttributeMatchingVariantSelector}, as it has a
+ * similar purpose.  An instance of {@link VariantSelectionFailureProcessor} is injected in the constructor
+ * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
+ * calls to that instance.
+ */
+public class AttributeMatchingConfigurationSelector {
     private final VariantSelectionFailureProcessor selectionFailureProcessor;
 
-    public AttributeConfigurationSelector(VariantSelectionFailureProcessor selectionFailureProcessor) {
+    public AttributeMatchingConfigurationSelector(VariantSelectionFailureProcessor selectionFailureProcessor) {
         this.selectionFailureProcessor = selectionFailureProcessor;
     }
 

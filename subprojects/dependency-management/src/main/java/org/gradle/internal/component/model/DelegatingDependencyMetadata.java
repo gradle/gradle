@@ -42,8 +42,8 @@ public abstract class DelegatingDependencyMetadata implements DependencyMetadata
     }
 
     @Override
-    public VariantSelectionResult selectVariants(AttributeConfigurationSelector attributeConfigurationSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        return delegate.selectVariants(attributeConfigurationSelector, consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
+    public VariantSelectionResult selectVariants(AttributeMatchingConfigurationSelector attributeMatchingConfigurationSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+        return delegate.selectVariants(attributeMatchingConfigurationSelector, consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
     }
 
     @Override

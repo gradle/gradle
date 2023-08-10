@@ -24,7 +24,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.model.AttributeConfigurationSelector;
+import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -79,13 +79,13 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public VariantSelectionResult selectVariants(AttributeConfigurationSelector attributeConfigurationSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public VariantSelectionResult selectVariants(AttributeMatchingConfigurationSelector attributeMatchingConfigurationSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         if (targetComponentState instanceof LenientPlatformGraphResolveState) {
             VariantGraphResolveState variant = ((LenientPlatformGraphResolveState) targetComponentState).getDefaultVariant(from, platformId);
             return new VariantSelectionResult(Collections.singletonList(variant), false);
         }
         // the target component exists, so we need to fallback to the traditional selection process
-        return new LocalComponentDependencyMetadata(cs, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
+        return new LocalComponentDependencyMetadata(componentId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(attributeMatchingConfigurationSelector, consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
     }
 
     @Override

@@ -40,7 +40,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.AttributeTestUtil.attributes
 
-class AttributeConfigurationSelectorTest extends Specification {
+class AttributeMatchingConfigurationSelectorTest extends Specification {
     private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
     private ComponentGraphResolveState targetState
@@ -461,7 +461,7 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        selected = AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(
+        selected = AttributeMatchingConfigurationSelector.selectVariantsUsingAttributeMatching(
             consumerAttributes,
             requestedCapabilities,
             targetState,

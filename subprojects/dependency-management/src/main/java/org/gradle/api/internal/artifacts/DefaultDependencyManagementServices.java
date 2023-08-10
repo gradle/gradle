@@ -116,7 +116,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.model.AttributeConfigurationSelector;
+import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -491,8 +491,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new VariantSelectionFailureProcessor();
         }
 
-        AttributeConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
-            return new AttributeConfigurationSelector(variantSelectionFailureProcessor);
+        AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
+            return new AttributeMatchingConfigurationSelector(variantSelectionFailureProcessor);
         }
 
         ConfigurationResolver createDependencyResolver(
@@ -521,7 +521,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
             VariantSelectionFailureProcessor variantSelectionFailureProcessor,
-            AttributeConfigurationSelector attributeConfigurationSelector
+            AttributeMatchingConfigurationSelector attributeMatchingConfigurationSelector
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 artifactDependencyResolver,
@@ -555,7 +555,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 resolveExceptionContextualizer,
                 componentDetailsSerializer,
                 selectedVariantSerializer,
-                attributeConfigurationSelector
+                attributeMatchingConfigurationSelector
             );
 
             return new ErrorHandlingConfigurationResolver(

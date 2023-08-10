@@ -108,7 +108,7 @@ import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.model.AttributeConfigurationSelector;
+import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.event.ListenerManager;
@@ -393,8 +393,8 @@ class DependencyManagementBuildScopeServices {
         return new VariantSelectionFailureProcessor();
     }
 
-    AttributeConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
-        return new AttributeConfigurationSelector(variantSelectionFailureProcessor);
+    AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
+        return new AttributeMatchingConfigurationSelector(variantSelectionFailureProcessor);
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(
@@ -417,7 +417,7 @@ class DependencyManagementBuildScopeServices {
         LocalComponentGraphResolveStateFactory localResolveStateFactory,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
         ComponentIdGenerator idGenerator,
-        AttributeConfigurationSelector attributeConfigurationSelector
+        AttributeMatchingConfigurationSelector attributeMatchingConfigurationSelector
     ) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
@@ -439,7 +439,7 @@ class DependencyManagementBuildScopeServices {
             localResolveStateFactory,
             moduleResolveStateFactory,
             idGenerator,
-            attributeConfigurationSelector);
+            attributeMatchingConfigurationSelector);
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
