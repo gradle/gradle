@@ -104,9 +104,11 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
+import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
+import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.event.ListenerManager;
@@ -387,6 +389,14 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
+    VariantSelectionFailureProcessor createVariantSelectionFailureProcessor() {
+        return new VariantSelectionFailureProcessor();
+    }
+
+    AttributeConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
+        return new AttributeConfigurationSelector(variantSelectionFailureProcessor);
+    }
+
     ArtifactDependencyResolver createArtifactDependencyResolver(
         ResolveIvyFactory resolveIvyFactory,
         DependencyMetadataFactory dependencyMetadataFactory,
@@ -406,7 +416,8 @@ class DependencyManagementBuildScopeServices {
         AttributeDesugaring attributeDesugaring,
         LocalComponentGraphResolveStateFactory localResolveStateFactory,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-        ComponentIdGenerator idGenerator
+        ComponentIdGenerator idGenerator,
+        AttributeConfigurationSelector attributeConfigurationSelector
     ) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
@@ -427,7 +438,8 @@ class DependencyManagementBuildScopeServices {
             attributeDesugaring,
             localResolveStateFactory,
             moduleResolveStateFactory,
-            idGenerator);
+            idGenerator,
+            attributeConfigurationSelector);
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {

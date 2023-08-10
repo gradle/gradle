@@ -131,7 +131,7 @@ public class VariantSelectionFailureProcessor {
     }
 
     private List<String> interpretFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends HasAttributes> transformedVariants) {
-        return schema.getVariantSelectionListeners().stream()
+        return schema.getVariantSelectionListeners().get().stream()
             .map(listener -> listener.onFailure(displayName, componentRequested, transformedVariants))
             .filter(Optional::isPresent)
             .map(Optional::get)

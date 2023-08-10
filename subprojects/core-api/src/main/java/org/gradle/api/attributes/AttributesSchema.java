@@ -18,6 +18,7 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 
 import java.util.List;
 import java.util.Set;
@@ -120,5 +121,5 @@ public interface AttributesSchema {
      * @since 8.4
      */
     @Incubating
-    List<VariantSelectionListener> getVariantSelectionListeners();
+    Provider<List<VariantSelectionListener>> getVariantSelectionListeners();
 }

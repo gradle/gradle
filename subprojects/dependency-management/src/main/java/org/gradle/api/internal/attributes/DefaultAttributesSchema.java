@@ -21,6 +21,9 @@ import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.VariantSelectionListener;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -55,13 +58,15 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
+    private final ProviderFactory providerFactory;
 
     private final List<VariantSelectionListener> variantSelectionListeners = new ArrayList<>();
     private final VariantSelectionFailureProcessor variantSelectionFailureProcessor;
 
-    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
+    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, ProviderFactory providerFactory, VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
+        this.providerFactory = providerFactory;
         this.variantSelectionFailureProcessor = variantSelectionFailureProcessor;
     }
 
@@ -174,8 +179,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public List<VariantSelectionListener> getVariantSelectionListeners() {
-        return Collections.unmodifiableList(variantSelectionListeners);
+    public Provider<List<VariantSelectionListener>> getVariantSelectionListeners() {
+        return Providers.of(Collections.unmodifiableList(variantSelectionListeners));
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.

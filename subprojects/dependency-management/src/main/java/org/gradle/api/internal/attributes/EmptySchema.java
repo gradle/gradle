@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.VariantSelectionListener;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.component.model.AttributeMatcher;
 
 import javax.annotation.Nullable;
@@ -116,8 +118,8 @@ public class EmptySchema implements AttributesSchemaInternal {
     public void registerVariantSelectionListener(Class<? extends VariantSelectionListener> listener) {}
 
     @Override
-    public List<VariantSelectionListener> getVariantSelectionListeners() {
-        return Collections.emptyList();
+    public Provider<List<VariantSelectionListener>> getVariantSelectionListeners() {
+        return Providers.of(Collections.emptyList());
     }
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {

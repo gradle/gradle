@@ -116,6 +116,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.VariantSelectionFailureProcessor;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -205,8 +206,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ResolutionStrategyFactory.class);
         }
 
-        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport, VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
-            DefaultAttributesSchema attributesSchema = instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, instantiatorFactory, isolatableFactory, variantSelectionFailureProcessor);
+        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport, ProviderFactory providerFactory, VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
+            DefaultAttributesSchema attributesSchema = instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, instantiatorFactory, isolatableFactory, providerFactory, variantSelectionFailureProcessor);
             platformSupport.configureSchema(attributesSchema);
             GradlePluginVariantsSupport.configureSchema(attributesSchema);
             return attributesSchema;
@@ -490,6 +491,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new VariantSelectionFailureProcessor();
         }
 
+        AttributeConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
+            return new AttributeConfigurationSelector(variantSelectionFailureProcessor);
+        }
+
         ConfigurationResolver createDependencyResolver(
             ArtifactDependencyResolver artifactDependencyResolver,
             RepositoriesSupplier repositoriesSupplier,
@@ -515,7 +520,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
-            VariantSelectionFailureProcessor failureProcessor
+            VariantSelectionFailureProcessor variantSelectionFailureProcessor,
+            AttributeConfigurationSelector attributeConfigurationSelector
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 artifactDependencyResolver,
@@ -533,7 +539,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     attributesSchema,
                     attributesFactory,
                     transformedVariantFactory,
-                    failureProcessor
+                    variantSelectionFailureProcessor
                 ),
                 moduleIdentifierFactory,
                 buildOperationExecutor,
@@ -548,7 +554,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 workerLeaseService,
                 resolveExceptionContextualizer,
                 componentDetailsSerializer,
-                selectedVariantSerializer
+                selectedVariantSerializer,
+                attributeConfigurationSelector
             );
 
             return new ErrorHandlingConfigurationResolver(

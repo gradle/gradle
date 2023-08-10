@@ -71,6 +71,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -104,6 +105,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ResolveExceptionContextualizer exceptionContextualizer;
     private final ComponentDetailsSerializer componentDetailsSerializer;
     private final SelectedVariantSerializer selectedVariantSerializer;
+    private final AttributeConfigurationSelector attributeConfigurationSelector;
 
     public DefaultConfigurationResolver(
         ArtifactDependencyResolver resolver,
@@ -125,7 +127,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         WorkerLeaseService workerLeaseService,
         ResolveExceptionContextualizer exceptionContextualizer,
         ComponentDetailsSerializer componentDetailsSerializer,
-        SelectedVariantSerializer selectedVariantSerializer
+        SelectedVariantSerializer selectedVariantSerializer,
+        AttributeConfigurationSelector configurationSelector
     ) {
         this.resolver = resolver;
         this.repositoriesSupplier = repositoriesSupplier;
@@ -148,6 +151,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.exceptionContextualizer = exceptionContextualizer;
         this.componentDetailsSerializer = componentDetailsSerializer;
         this.selectedVariantSerializer = selectedVariantSerializer;
+        this.attributeConfigurationSelector = configurationSelector;
     }
 
     @Override
@@ -255,4 +259,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), new DefaultResolvedConfiguration(result), result);
     }
 
+    @Override
+    public AttributeConfigurationSelector getAttributeConfigurationSelector() {
+        return attributeConfigurationSelector;
+    }
 }
