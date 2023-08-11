@@ -70,7 +70,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .message("of type " + valueType.getName() + " shouldn't be annotated with @Optional")
+                    .message("of type %s shouldn't be annotated with @Optional", valueType.getName())
                     .documentedAt(userManual("validation_problems", "cannot_use_optional_on_primitive_types"))
                     .noLocation()
                     .type(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE.name())
@@ -92,7 +92,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .message(String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
+                    .message("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName())
                     .documentedAt(userManual("validation_problems", "incorrect_use_of_input_annotation"))
                     .noLocation()
                     .type(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION.name())
@@ -112,7 +112,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .message(String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
+                    .message("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName())
                     .documentedAt(userManual("validation_problems", "incorrect_use_of_input_annotation"))
                     .noLocation()
                     .type(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION.name())
@@ -130,7 +130,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .message(String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
+                    .message("has @Input annotation used on type '%s' or a property of this type", URL.class.getName())
                     .documentedAt(userManual("validation_problems", "unsupported_value_type"))
                     .noLocation()
                     .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
