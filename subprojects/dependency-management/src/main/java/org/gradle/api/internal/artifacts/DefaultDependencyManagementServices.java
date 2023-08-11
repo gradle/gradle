@@ -487,8 +487,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
-        VariantSelectionFailureProcessor createVariantSelectionFailureProcessor() {
-            return new VariantSelectionFailureProcessor();
+        VariantSelectionFailureProcessor createVariantSelectionFailureProcessor(Problems problems) {
+            return new VariantSelectionFailureProcessor(problems);
         }
 
         AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {

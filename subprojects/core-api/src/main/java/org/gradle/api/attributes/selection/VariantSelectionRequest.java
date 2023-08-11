@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.artifacts.dsl;
+package org.gradle.api.attributes.selection;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.attributes.selection.VariantSelectionListener;
 
-import java.util.List;
-import java.util.Optional;
-
-public class JDKVersionMismatchListener implements VariantSelectionListener {
-    @Override
-    public Optional<String> onFailure(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
-        return Optional.of("JDK ISSUE");
-    }
+/**
+ * TODO: Document
+ *
+ * @since 8.4
+ */
+@Incubating
+public interface VariantSelectionRequest extends HasAttributes {
+    String requestingComponent();
 }

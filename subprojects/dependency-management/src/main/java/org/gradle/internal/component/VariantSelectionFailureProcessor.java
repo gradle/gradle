@@ -29,6 +29,10 @@ import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.internal.attributes.selection.DefaultVariantSelectionFailureEvent;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -38,25 +42,45 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForIncompatibility;
 
+/**
+ * TODO: Document
+ */
 public class VariantSelectionFailureProcessor {
-    public VariantSelectionFailureProcessor() {}
+    private final Problems problemsService;
+
+    public VariantSelectionFailureProcessor(Problems problemsService) {
+        this.problemsService = problemsService;
+    }
 
     public AmbiguousTransformException ambiguousTransformationFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<TransformedVariant> transformedVariants) {
         String message = formatAmbiguousTransformMsg(displayName, componentRequested, transformedVariants);
         List<String> interpretations = interpretFailure(schema, displayName, componentRequested, transformedVariants);
-        return new AmbiguousTransformException(addIntepretations(interpretations, message));
+
+        AmbiguousTransformException e = new AmbiguousTransformException(addIntepretations(interpretations, message));
+
+        problemsService.createProblemBuilder()
+            .undocumented()
+            .location("file", 1)
+            .message(message)
+            .type("type_string")
+            .group(ProblemGroup.GENERIC_ID)
+            .severity(Severity.ERROR)
+            .cause(e)
+            .build();
+
+        return e;
     }
 
     public NoMatchingVariantSelectionException noMatchingVariantsSelectionFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
         String message = formatNoMatchingVariantsFailureMsg(displayName, componentRequested, variants, matcher, attributeDescriber);
         List<String> interpretations = interpretFailure(schema, displayName, componentRequested, variants);
+
         return new NoMatchingVariantSelectionException(addIntepretations(interpretations, message));
     }
 
@@ -131,11 +155,15 @@ public class VariantSelectionFailureProcessor {
     }
 
     private List<String> interpretFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends HasAttributes> transformedVariants) {
-        return schema.getVariantSelectionListeners().get().stream()
-            .map(listener -> listener.onFailure(displayName, componentRequested, transformedVariants))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.toList());
+//        return schema.getVariantSelectionListeners().get().stream()
+//            .map(listener -> listener.onFailure(displayName, componentRequested, transformedVariants))
+//            .filter(Optional::isPresent)
+//            .map(Optional::get)
+//            .collect(Collectors.toList());
+
+        DefaultVariantSelectionFailureEvent failureEvent = new DefaultVariantSelectionFailureEvent();
+        schema.getVariantSelectionListeners().get().forEach(listener -> listener.onFailure(failureEvent));
+        return failureEvent.getInterpretations();
     }
 
     private static String addIntepretations(List<String> interpretations, String message) {

@@ -19,7 +19,7 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.VariantSelectionListener;
+import org.gradle.api.attributes.selection.VariantSelectionListener;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.component.model.AttributeMatcher;

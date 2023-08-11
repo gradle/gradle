@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.attributes;
-
-import org.gradle.api.Incubating;
-
-import java.util.List;
-import java.util.Optional;
-
 /**
- * TODO: describe
- *
- * @since 8.4
+ * TODO: Document
  */
-@Incubating
-public interface VariantSelectionListener {
-    // TODO: remove default
-    default Optional<String> onFailure(String producerDisplayName, HasAttributes requested, List<? extends HasAttributes> candidates) {
-        return Optional.empty(); // default is failure to process
-    }
-}
+@NonNullApi
+package org.gradle.api.attributes.selection;
+
+import org.gradle.api.NonNullApi;

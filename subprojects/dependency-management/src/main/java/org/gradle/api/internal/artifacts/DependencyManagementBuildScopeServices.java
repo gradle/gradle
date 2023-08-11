@@ -389,8 +389,8 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    VariantSelectionFailureProcessor createVariantSelectionFailureProcessor() {
-        return new VariantSelectionFailureProcessor();
+    VariantSelectionFailureProcessor createVariantSelectionFailureProcessor(Problems problems) {
+        return new VariantSelectionFailureProcessor(problems);
     }
 
     AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {

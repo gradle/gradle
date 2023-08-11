@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.VariantSelectionListener;
+import org.gradle.api.attributes.selection.VariantSelectionListener;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;

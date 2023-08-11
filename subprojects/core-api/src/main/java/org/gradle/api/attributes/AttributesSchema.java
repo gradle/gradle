@@ -18,6 +18,7 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.selection.VariantSelectionListener;
 import org.gradle.api.provider.Provider;
 
 import java.util.List;
