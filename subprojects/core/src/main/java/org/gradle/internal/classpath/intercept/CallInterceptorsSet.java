@@ -226,36 +226,56 @@ public class CallInterceptorsSet implements CallSiteDecorator, CallInterceptorRe
             }
         }
 
-        @SuppressWarnings("DanglingJavadoc")
         private Object invokeDefaultGroovyCallSiteImplementation(Object receiver, @Nullable Object[] args, CallStrategy callStrategy) throws Throwable {
-            if (callStrategy != CallStrategy.CALL_CURRENT && callStrategy != CallStrategy.CALL_GROOVY_OBJECT_GET_PROPERTY) {
-                throw new IllegalArgumentException();
-            }
-
-            if (groovyDefaultCallSite != null) {
-                assert groovyDefaultCallSite != this;
-                return callStrategy == CallStrategy.CALL_CURRENT ? groovyDefaultCallSite.callCurrent((GroovyObject) receiver, args) : groovyDefaultCallSite.callGroovyObjectGetProperty(receiver);
-            } else {
-                try {
-                    return callStrategy == CallStrategy.CALL_CURRENT ? super.callCurrent((GroovyObject) receiver, args) : super.callGroovyObjectGetProperty(receiver);
-                } finally {
-                    /**
-                     * The default Groovy implementation replaces the entry in the call site array with what it creates based on the call kind. <p>
-                     * For example, see this code path:
-                     * {@link AbstractCallSite#callCurrent(GroovyObject, Object[])}
-                     * -> {@link org.codehaus.groovy.runtime.callsite.CallSiteArray#defaultCallCurrent}
-                     * -> {@link org.codehaus.groovy.runtime.callsite.CallSiteArray#createCallCurrentSite(CallSite, GroovyObject, Object[], Class))
-                     * -> {@link org.codehaus.groovy.runtime.callsite.CallSiteArray#replaceCallSite(CallSite, CallSite)} <p>
-                     * Because of it doing so, our decorated call site is removed from the dynamic invocation code path, and we lose the ability to track dynamic call entry points. <p>
-                     * To fix that, we store the optimized call site that the Groovy runtime created, and we put a reference to our decorated call site back into the call site array.
-                     */
-                    CallSite callSiteInArrayAfterCall = array.array[index];
-                    if (callSiteInArrayAfterCall != this) {
-                        groovyDefaultCallSite = callSiteInArrayAfterCall;
+            assert groovyDefaultCallSite != this;
+            switch (callStrategy) {
+                case CALL_CURRENT:
+                    if (groovyDefaultCallSite != null) {
+                        return groovyDefaultCallSite.callCurrent((GroovyObject) receiver, args);
+                    } else {
+                        try {
+                            return super.callCurrent((GroovyObject) receiver, args);
+                        } finally {
+                            restoreCallSiteArrayEntry();
+                        }
                     }
-                    array.array[index] = this;
-                }
+                case CALL_GROOVY_OBJECT_GET_PROPERTY:
+                    if (groovyDefaultCallSite != null) {
+                        return groovyDefaultCallSite.callGroovyObjectGetProperty(receiver);
+                    } else {
+                        try {
+                            return super.callGroovyObjectGetProperty(receiver);
+                        } finally {
+                            restoreCallSiteArrayEntry();
+                        }
+                    }
+                default:
+                    throw new IllegalArgumentException("Unexpected callStrategy " + callStrategy);
             }
+        }
+
+        /**
+         * The default Groovy implementation replaces the entry in the call site array with what it creates based on the call kind. <p>
+         *
+         * For example, see this code path: <p>
+         * <ul>
+         *     <li> {@link AbstractCallSite#callCurrent(GroovyObject, Object[])}
+         *     <li> {@link org.codehaus.groovy.runtime.callsite.CallSiteArray#defaultCallCurrent}
+         *     <li> {@link org.codehaus.groovy.runtime.callsite.CallSiteArray#createCallCurrentSite}
+         *     <li> {@link org.codehaus.groovy.runtime.callsite.CallSiteArray#replaceCallSite}
+         * </ul>
+         *
+         * Because of it doing so, our decorated call site is removed from the dynamic invocation code path, and we lose the ability to track dynamic call entry points. <p>
+         *
+         * To fix that, we store the optimized call site that the Groovy runtime created (and we delegate to it in subsequent calls), and we put a reference to our
+         * decorated call site back into the call site array.
+         */
+        private void restoreCallSiteArrayEntry() {
+            CallSite callSiteInArrayAfterCall = array.array[index];
+            if (callSiteInArrayAfterCall != this) {
+                groovyDefaultCallSite = callSiteInArrayAfterCall;
+            }
+            array.array[index] = this;
         }
 
         @Override
