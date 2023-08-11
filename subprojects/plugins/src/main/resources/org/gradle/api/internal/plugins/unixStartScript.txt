@@ -240,11 +240,13 @@ fi
 # Add default JVM options here. You can also use JAVA_OPTS and ${optsEnvironmentVar} to pass JVM options to this script.
 DEFAULT_JVM_OPTS=${defaultJvmOpts}
 
-# Collect all arguments for the java command;
-#   * \$DEFAULT_JVM_OPTS, \$JAVA_OPTS, and \$${optsEnvironmentVar} can contain fragments of
-#     shell script including quotes and variable substitutions, so put them in
-#     double quotes to make sure that they get re-expanded; and
-#   * put everything else in single quotes, so that it's not re-expanded.
+
+# Collect all arguments for the java command:
+#   * $DEFAULT_JVM_OPTS, $JAVA_OPTS, and $optsEnvironmentVar can contain fragments of 
+#     shell script, and the Gradle Wrapper actively escapes special characters to ensure proper handling;
+#   * Note: The shellness will NOT be re-expanded
+#   * For example: A user cannot expect ${Hostname} to be expanded, as it is an environment variable, And will be
+#     treated as '${Hostname}' itself by the wrapper.
 
 set -- \\
 <% if ( appNameSystemProperty ) {
