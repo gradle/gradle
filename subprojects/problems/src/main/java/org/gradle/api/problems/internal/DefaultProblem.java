@@ -107,7 +107,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Throwable getCause() {
+    public Throwable getCause() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
         return cause;
     }
 

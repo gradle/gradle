@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r83
 
+import groovy.json.JsonSlurper
 import org.gradle.api.problems.interfaces.Severity
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -67,11 +68,15 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        def problems = listener.allProblems
+        def problems = listener.allProblems.collect {new JsonSlurper().parse(it.json.bytes) }
         problems.size() == 2
-        problems[0].message.contains('The RepositoryHandler.jcenter() method has been deprecated.')
-        problems[0].severity == Severity.WARNING.toString()
-        problems[1].message.contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
-        problems[1].severity == Severity.ERROR.toString()
+
+        problems[0].label.contains('The RepositoryHandler.jcenter() method has been deprecated.')
+        problems[0].severity == Severity.WARNING.name()
+        problems[1].label.contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
+        problems[1].severity == Severity.ERROR.name()
+        problems[1].where.path == 'ba'
+        problems[1].where.line == -1
+        problems[1].problemType == 'task_selection'
     }
 }

@@ -244,6 +244,6 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     private void report(Problem problem) {
-        buildOperationProgressEventEmitter.emitNowIfCurrent(problem);
+        buildOperationProgressEventEmitter.emitNowIfCurrent(new DefaultProblemProgressDetails(problem));
     }
 }

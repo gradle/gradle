@@ -29,6 +29,7 @@ dependencies {
 
     implementation(libs.groovy) // for 'Closure'
     implementation(libs.guava)
+    implementation(libs.gson)
     implementation(libs.commonsIo)
 
     testCompileOnly(project(":toolchains-jvm")) {
