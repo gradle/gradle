@@ -37,15 +37,6 @@ public interface ProblemDescriptor extends OperationDescriptor {
     String getSeverity();
 
     @Nullable
-    String getPath();
-
-    @Nullable
-    Integer getLine();
-
-    @Nullable
-    Integer getColumn();
-
-    @Nullable
     String getDocumentationLink();
 
     @Nullable
