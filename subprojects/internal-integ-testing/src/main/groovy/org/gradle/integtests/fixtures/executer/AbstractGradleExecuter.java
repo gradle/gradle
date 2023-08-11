@@ -738,7 +738,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
+    public final GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
+        Preconditions.checkArgument(!environment.containsKey("JAVA_HOME"), "Cannot provide JAVA_HOME to withEnvironmentVars, use withJavaHome instead");
         environmentVars.clear();
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
             environmentVars.put(entry.getKey(), entry.getValue().toString());
@@ -1105,7 +1106,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private void ensureSettingsFileAvailable() {
         TestFile workingDir = new TestFile(getWorkingDir());
         TestFile dir = workingDir;
-        while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
+        while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendant(dir)) {
             if (hasSettingsFile(dir) || hasSettingsFile(dir.file("master"))) {
                 return;
             }

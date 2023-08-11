@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.os.OperatingSystem;
@@ -37,8 +38,8 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
         this.windowsKitWindowsSdkLocator = windowsKitWindowsSdkLocator;
     }
 
-    public DefaultWindowsSdkLocator(OperatingSystem operatingSystem, WindowsRegistry windowsRegistry) {
-        this(new LegacyWindowsSdkLocator(operatingSystem, windowsRegistry), new WindowsKitWindowsSdkLocator(windowsRegistry));
+    public DefaultWindowsSdkLocator(OperatingSystem operatingSystem, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
+        this(new LegacyWindowsSdkLocator(operatingSystem, windowsRegistry), new WindowsKitWindowsSdkLocator(windowsRegistry, systemInfo));
     }
 
     @Override

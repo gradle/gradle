@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.model.ReplacedBy
+import org.gradle.api.problems.interfaces.Severity
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
@@ -38,15 +39,14 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.problems.ValidationProblemId
-import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
 import javax.inject.Inject
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
-import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.api.problems.interfaces.Severity.ERROR
+import static org.gradle.api.problems.interfaces.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -518,13 +518,16 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     public String notANestedGetter() {
                         return "not-a-nested-getter";
                     }
+                    @Input
+                    public String getOther() {
+                        return "valid-nested-getter";
+                    }
                 }
 
                 @TaskAction
                 public void doStuff() { }
             }
         """
-
         expect:
         assertValidationFailsWith([
             error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('method').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
@@ -693,6 +696,21 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             apply plugin: "groovy"
         """
         source("src/main/groovy/MyTask.groovy")
+    }
+
+    TestFile getKotlinTaskSource() {
+        buildFile.delete()
+        buildKotlinFile << """
+            plugins {
+                id("java-gradle-plugin")
+                `kotlin-dsl`
+            }
+
+            repositories {
+                mavenCentral()
+            }
+        """
+        source("src/main/kotlin/MyTask.kt")
     }
 
     static class DocumentedProblem {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.Action
+import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.internal.operations.BuildOperationType
@@ -61,6 +62,10 @@ abstract class BuildOperationTreeQueries {
     abstract BuildOperationRecord first(Pattern displayName)
 
     abstract List<BuildOperationRecord> all();
+
+    List<BuildOperationRecord.Progress> problems(){
+        all().collectMany { it.progress(DefaultProblem.class)}
+    }
 
     List<BuildOperationRecord> all(String displayName) {
         return all(Pattern.compile(Pattern.quote(displayName)))

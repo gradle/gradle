@@ -24,6 +24,6 @@ abstract class PrintValue : DefaultTask() {
 // tag::execution[]
 tasks.register<PrintValue>("printValue") {
     // Eagerly accessing the value of a project property, set as a task input
-    inputValue.set(project.property("myProjectProp").toString())
+    inputValue = project.property("myProjectProp").toString()
 }
 // end::execution[]

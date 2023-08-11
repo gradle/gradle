@@ -22,6 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestFilter;
@@ -80,25 +81,27 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
 
     private void configureTestTasks(Set<Task> tasks) {
         for (Task task : tasks) {
-            if (task instanceof Test) {
-                configureTestTask((Test) task);
+            if (task instanceof AbstractTestTask) {
+                configureTestTask((AbstractTestTask) task);
             }
         }
     }
 
-    private void configureTestTask(Test test) {
+    private void configureTestTask(AbstractTestTask test) {
         test.setIgnoreFailures(true);
         test.getFilter().setFailOnNoMatchingTests(false);
         test.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
-        InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
-        if (debugOptions.isDebugMode()) {
-            test.debugOptions(javaDebugOptions -> {
-                DefaultJavaDebugOptions options = (DefaultJavaDebugOptions) javaDebugOptions;
-                options.getEnabled().set(true);
-                options.getPort().set(debugOptions.getPort());
-                options.getServer().set(false);
-                options.getSuspend().set(false);
-            });
+        if (test instanceof Test) {
+            InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
+            if (debugOptions.isDebugMode()) {
+                ((Test)test).debugOptions(javaDebugOptions -> {
+                    DefaultJavaDebugOptions options = (DefaultJavaDebugOptions) javaDebugOptions;
+                    options.getEnabled().set(true);
+                    options.getPort().set(debugOptions.getPort());
+                    options.getServer().set(false);
+                    options.getSuspend().set(false);
+                });
+        }
         }
     }
 
@@ -106,7 +109,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
         for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
             String testTaskPath = entry.getKey();
-            for (Test testTask : queryTestTasks(context, testTaskPath)) {
+            for (AbstractTestTask testTask : queryTestTasks(context, testTaskPath)) {
                 for (InternalJvmTestRequest jvmTestRequest : entry.getValue()) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
@@ -117,8 +120,8 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         for (InternalTaskSpec taskSpec : testExecutionRequest.getTaskSpecs()) {
             if (taskSpec instanceof InternalTestSpec) {
                 InternalTestSpec testSpec = (InternalTestSpec) taskSpec;
-                Set<Test> tasks = queryTestTasks(context, taskSpec.getTaskPath());
-                for (Test task : tasks) {
+                Set<AbstractTestTask> tasks = queryTestTasks(context, taskSpec.getTaskPath());
+                for (AbstractTestTask task : tasks) {
                     DefaultTestFilter filter = (DefaultTestFilter) task.getFilter();
                     for (String cls : testSpec.getClasses()) {
                         filter.includeCommandLineTest(cls, null);
@@ -146,8 +149,8 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
 
         forEachTaskIn(plan, task -> {
-            if (task instanceof Test) {
-                Test testTask = (Test) task;
+            if (task instanceof AbstractTestTask) {
+                AbstractTestTask testTask = (AbstractTestTask) task;
                 for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
@@ -160,7 +163,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
         for (final InternalTestDescriptor descriptor : testDescriptors) {
             final String testTaskPath = taskPathOf(descriptor);
-            for (Test testTask : queryTestTasks(context, testTaskPath)) {
+            for (AbstractTestTask testTask : queryTestTasks(context, testTaskPath)) {
                 for (InternalTestDescriptor testDescriptor : testDescriptors) {
                     if (taskPathOf(testDescriptor).equals(testTaskPath)) {
                         includeTestMatching((InternalJvmTestDescriptor) testDescriptor, testTask);
@@ -186,7 +189,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
     }
 
-    private static void includeTestMatching(InternalJvmTestDescriptor descriptor, Test testTask) {
+    private static void includeTestMatching(InternalJvmTestDescriptor descriptor, AbstractTestTask testTask) {
         String className = descriptor.getClassName();
         String methodName = descriptor.getMethodName();
         if (className == null && methodName == null) {
@@ -219,13 +222,13 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         return tasks;
     }
 
-    private static Set<Test> queryTestTasks(Context context, String testTaskPath) {
-        Set<Test> result = new LinkedHashSet<>();
+    private static Set<AbstractTestTask> queryTestTasks(Context context, String testTaskPath) {
+        Set<AbstractTestTask> result = new LinkedHashSet<>();
         for (Task task : queryTasks(context, testTaskPath)) {
-            if (!(task instanceof Test)) {
+            if (!(task instanceof AbstractTestTask)) {
                 throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
             }
-            result.add((Test) task);
+            result.add((AbstractTestTask) task);
         }
         return result;
     }
@@ -240,7 +243,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         for (ProjectState projectState : gradle.getOwner().getProjects().getAllProjects()) {
             projectState.ensureConfigured();
             projectState.applyToMutableState(project -> {
-                final Collection<Test> testTasks = project.getTasks().withType(Test.class);
+                final Collection<AbstractTestTask> testTasks = project.getTasks().withType(AbstractTestTask.class);
                 tasksToExecute.addAll(testTasks);
             });
         }

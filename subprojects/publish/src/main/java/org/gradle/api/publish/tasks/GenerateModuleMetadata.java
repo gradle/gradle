@@ -334,7 +334,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     }
 
     private SoftwareComponentInternal component() {
-        return publication().getComponent();
+        return publication().getComponent().getOrNull();
     }
 
     private PublicationInternal<?> publication() {

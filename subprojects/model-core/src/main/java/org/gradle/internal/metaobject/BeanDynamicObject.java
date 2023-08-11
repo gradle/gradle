@@ -38,6 +38,9 @@ import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -108,15 +111,32 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         this.delegate = determineDelegate(bean);
     }
 
+    private static final MethodHandle ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD;
+
+    static {
+        try {
+            Class<?> metaClassHelperClass = Class.forName("org.gradle.internal.classpath.InstrumentedGroovyMetaClassHelper");
+            ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD = MethodHandles.lookup().findStatic(metaClassHelperClass, "addInvocationHooksToMetaClassIfInstrumented", MethodType.methodType(void.class, Class.class, String.class));
+        } catch (NoSuchMethodException e) {
+            throw new NoSuchMethodError(e.getMessage());
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessError(e.getMessage());
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public MetaClassAdapter determineDelegate(Object bean) {
         if (bean instanceof Class) {
             return new ClassAdapter((Class<?>) bean);
         } else if (bean instanceof Map) {
             return new MapAdapter();
-        } else if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
-            return new MetaClassAdapter();
+        } else {
+            if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
+                return new MetaClassAdapter();
+            }
+            return new GroovyObjectAdapter();
         }
-        return new GroovyObjectAdapter();
     }
 
     public BeanDynamicObject withNoProperties() {
@@ -220,6 +240,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return DynamicInvokeResult.notFound();
             }
 
+            maybeAddCallInterceptionHooksToMetaclass(name);
             MetaClass metaClass = getMetaClass();
 
             // First look for a property known to the meta-class
@@ -263,6 +284,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             return getOpaqueProperty(name);
+        }
+
+        private void maybeAddCallInterceptionHooksToMetaclass(String name) {
+            try {
+                ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD.invoke(bean.getClass(), name);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         }
 
         protected DynamicInvokeResult getOpaqueProperty(String name) {
@@ -337,7 +366,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
          */
         @Nullable
         protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
-            if (metaClass instanceof MetaClassImpl) {
+            boolean isInstrumented = metaClass instanceof InstrumentedMetaClass
+                && ((InstrumentedMetaClass) metaClass).interceptsPropertyAccess(name);
+
+            if (metaClass instanceof MetaClassImpl && !isInstrumented) {
                 try {
                     return (MetaProperty) META_PROP_METHOD.invoke(metaClass, name, false);
                 } catch (Throwable e) {
@@ -353,6 +385,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             if (!includeProperties) {
                 return DynamicInvokeResult.notFound();
             }
+
+            maybeAddCallInterceptionHooksToMetaclass(name);
 
             MetaClass metaClass = getMetaClass();
             MetaProperty property = lookupProperty(metaClass, name);
@@ -483,6 +517,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         public DynamicInvokeResult invokeMethod(String name, Object... arguments) {
+            maybeAddCallInterceptionHooksToMetaclass(name);
+
             MetaClass metaClass = getMetaClass();
             MetaMethod metaMethod = lookupMethod(metaClass, name, inferTypes(arguments));
             if (metaMethod != null) {

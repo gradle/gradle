@@ -195,12 +195,7 @@ class DefaultBuildController implements BuildController {
 
         @Override
         public void run() {
-            CurrentBuildOperationRef.instance().set(parentBuildOperation);
-            try {
-                completionHandler.accept(doRun());
-            } finally {
-                CurrentBuildOperationRef.instance().set(null);
-            }
+            CurrentBuildOperationRef.instance().with(parentBuildOperation, () -> completionHandler.accept(doRun()));
         }
     }
 }

@@ -227,9 +227,11 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
 
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
-                ext.testFile = project.file("\$buildDir/\$name")
+                def classpath = sourceSets.main.output.classesDirs
+                def projectDir = project.projectDir
+                def testFile = project.file("\$buildDir/\$name")
                 additionalParameters = {
-                    it.classpath.from(sourceSets.main.output.classesDirs)
+                    it.classpath.from(classpath)
                     it.setProjectDir(projectDir)
                     it.setTestFile(testFile)
                 }
@@ -268,9 +270,11 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
 
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
-                ext.testFile = project.file("\$buildDir/\$name")
+                def classpath = sourceSets.main.output.classesDirs
+                def projectDir = project.projectDir
+                def testFile = project.file("\$buildDir/\$name")
                 additionalParameters = {
-                    it.classpath.from(sourceSets.main.output.classesDirs)
+                    it.classpath.from(classpath)
                     it.setProjectDir(projectDir)
                     it.setTestFile(testFile)
                 }

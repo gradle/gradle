@@ -21,7 +21,7 @@ import org.junit.Assume
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
-class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+class DaemonGroovyCompilerIntegrationTest extends AbstractApiGroovyCompilerIntegrationSpec {
     def "respects fork options settings and ignores executable"() {
         Jvm differentJvm = AvailableJavaHomes.differentJdkWithValidJre
         Assume.assumeNotNull(differentJvm)

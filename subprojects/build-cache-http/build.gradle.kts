@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":logging"))
+    implementation(project(":problems"))
     implementation(project(":resources"))
     implementation(project(":resources-http"))
 
@@ -25,9 +26,4 @@ dependencies {
     integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

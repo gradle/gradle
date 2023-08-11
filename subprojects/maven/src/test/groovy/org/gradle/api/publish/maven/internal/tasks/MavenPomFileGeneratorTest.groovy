@@ -16,31 +16,19 @@
 
 package org.gradle.api.publish.maven.internal.tasks
 
+import com.google.common.collect.ImmutableList
 import groovy.xml.XmlSlurper
-import org.gradle.api.Action
-import org.gradle.api.XmlProvider
-import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.provider.Property
-import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
-import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
-import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDeveloper
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDistributionManagement
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomLicense
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomMailingList
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomOrganization
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomProjectManagement
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomScm
+import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency
+import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenPomDependencies
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependency
+import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
-import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.gradle.util.internal.CollectionUtils
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -48,20 +36,11 @@ import spock.lang.Specification
 class MavenPomFileGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
-    def projectIdentity = new ReadableMavenProjectIdentity("group-id", "artifact-id", "1.0")
-    def rangeMapper = Stub(VersionRangeMapper)
-    def strategy = Stub(VersionMappingStrategyInternal) {
-        findStrategyForVariant(_) >> Stub(VariantVersionMappingStrategyInternal) {
-            maybeResolveVersion(_, _, _) >> null
-        }
-    }
-    def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper, strategy, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, false)
-    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    def objectFactory = TestUtil.objectFactory()
+    def pom = newPom()
 
     def "writes correct prologue and schema declarations"() {
         expect:
-        pomFile.text.startsWith(TextUtil.toPlatformLineSeparators(
+        writePomFile().text.startsWith(TextUtil.toPlatformLineSeparators(
 """<?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -69,9 +48,13 @@ class MavenPomFileGeneratorTest extends Specification {
     }
 
     def "writes Gradle metadata marker"() {
-        generator = new MavenPomFileGenerator(projectIdentity, rangeMapper, strategy, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, markerPresent)
+        given:
+        pom.getWriteGradleMetadataMarker().set(markerPresent)
 
-        expect:
+        when:
+        def pomFile = writePomFile()
+
+        then:
         pomFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER) == markerPresent
 
         where:
@@ -80,7 +63,7 @@ class MavenPomFileGeneratorTest extends Specification {
 
     def "writes configured coordinates"() {
         expect:
-        with (pom) {
+        with (xml) {
             groupId == "group-id"
             artifactId == "artifact-id"
             version == "1.0"
@@ -88,81 +71,59 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-    def "does not require metadata to be configured"() {
-        given:
-        def mavenPom = Mock(MavenPomInternal) {
-            getPackaging() >> "pom"
-            getName() >> objectFactory.property(String)
-            getDescription() >> objectFactory.property(String)
-            getUrl() >> objectFactory.property(String)
-            getInceptionYear() >> objectFactory.property(String)
-            getLicenses() >> []
-            getDevelopers() >> []
-            getContributors() >> []
-            getMailingLists() >> []
-            getProperties() >> objectFactory.mapProperty(String, String)
-        }
-
-        when:
-        generator.configureFrom(mavenPom)
-
-        then:
-        with (pom) {
-            packaging == "pom"
-        }
-    }
-
     def "writes metadata from configuration"() {
         given:
-        def mavenPom = Mock(MavenPomInternal) {
-            getPackaging() >> "pom"
-            getName() >> propertyWithValue("my name")
-            getDescription() >> propertyWithValue("my description")
-            getUrl() >> propertyWithValue("http://example.org")
-            getInceptionYear() >> propertyWithValue("2018")
-            getLicenses() >> [new DefaultMavenPomLicense(objectFactory) {{
-                getName().set("GPL")
-                getUrl().set("http://www.gnu.org/licenses/gpl.html")
-            }}]
-            getOrganization() >> new DefaultMavenPomOrganization(objectFactory) {{
-                getName().set("Some Org")
-            }}
-            getDevelopers() >> [new DefaultMavenPomDeveloper(objectFactory) {{
-                getName().set("Alice")
-            }}]
-            getContributors() >> [new DefaultMavenPomDeveloper(objectFactory) {{
-                getName().set("Bob")
-            }}]
-            getScm() >> new DefaultMavenPomScm(objectFactory) {{
-                getConnection().set("http://cvs.example.org")
-            }}
-            getIssueManagement() >> new DefaultMavenPomProjectManagement(objectFactory) {{
-                getSystem().set("Bugzilla")
-            }}
-            getCiManagement() >> new DefaultMavenPomProjectManagement(objectFactory) {{
-                getSystem().set("Anthill")
-            }}
-            getDistributionManagement() >> new DefaultMavenPomDistributionManagement(instantiator, objectFactory) {{
-                getDownloadUrl().set("https://example.org/download/")
-                relocation { r ->
-                    r.getGroupId().set("org.example.new")
+        with(pom) {
+            setPackaging("pom")
+            name.set("my name")
+            description.set("my description")
+            url.set("http://example.org")
+            inceptionYear.set("2018")
+            licenses {
+                license {
+                    name.set("GPL")
+                    url.set("http://www.gnu.org/licenses/gpl.html")
                 }
-            }}
-            getMailingLists() >> [new DefaultMavenPomMailingList(objectFactory) {{
-                getName().set("Users")
-            }}]
-            getProperties() >> TestUtil.objectFactory().mapProperty(String, String).with {
-                put("spring-boot.version", "2.1.2.RELEASE")
-                put("hibernate.version", "5.4.1.Final")
-                return it
             }
+            organization {
+                name.set("Some Org")
+            }
+            developers {
+                developer {
+                    name.set("Alice")
+                }
+            }
+            contributors {
+                contributor {
+                    name.set("Bob")
+                }
+            }
+            scm {
+                connection.set("http://cvs.example.org")
+            }
+            issueManagement {
+                system.set("Bugzilla")
+            }
+            ciManagement {
+                system.set("Anthill")
+            }
+            distributionManagement {
+                downloadUrl.set("https://example.org/download/")
+                relocation {
+                    groupId.set("org.example.new")
+                }
+            }
+            mailingLists {
+                mailingList {
+                    name.set("Users")
+                }
+            }
+            properties.put("spring-boot.version", "2.1.2.RELEASE")
+            properties.put("hibernate.version", "5.4.1.Final")
         }
 
-        when:
-        generator.configureFrom(mavenPom)
-
-        then:
-        with (pom) {
+        expect:
+        with (xml) {
             packaging == "pom"
             name == "my name"
             description == "my description"
@@ -183,21 +144,14 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-    private <T> Property<T> propertyWithValue(T value) {
-        def property = objectFactory.property(T)
-        property.set(value)
-        return property
-    }
-
     def "encodes coordinates for XML and unicode"() {
-        when:
-        def groupId = 'group-ぴ₦ガき∆ç√∫'
-        def artifactId = 'artifact-<tag attrib="value"/>-markup'
-        def version = 'version-&"'
-        generator = new MavenPomFileGenerator(new ReadableMavenProjectIdentity(groupId, artifactId, version), Stub(VersionRangeMapper), Stub(VersionMappingStrategyInternal), ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, marker)
+        given:
+        pom.coordinates.groupId.set('group-ぴ₦ガき∆ç√∫')
+        pom.coordinates.artifactId.set('artifact-<tag attrib="value"/>-markup')
+        pom.coordinates.version.set('version-&"')
 
-        then:
-        with (pom) {
+        expect:
+        with (xml) {
             groupId == 'group-ぴ₦ガき∆ç√∫'
             artifactId == 'artifact-<tag attrib="value"/>-markup'
             version == 'version-&"'
@@ -208,64 +162,42 @@ class MavenPomFileGeneratorTest extends Specification {
     }
 
     def "writes regular dependency"() {
-        def dependency = Mock(MavenDependencyInternal)
-        when:
-        generator.addRuntimeDependency(dependency)
+        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", null, null, "runtime", [] as Set, false)
+        pom.getDependencies().set(pomDependencies(dependency))
 
-        then:
-        dependency.artifacts >> new HashSet<DependencyArtifact>()
-        dependency.groupId >> "dep-group"
-        dependency.artifactId >> "dep-name"
-        dependency.version >> "dep-version"
-        dependency.excludeRules >> []
-        rangeMapper.map("dep-version") >> "maven-dep-version"
-
-        and:
-        with (pom) {
+        expect:
+        with (xml) {
             dependencies.dependency.size() == 1
             with (dependencies[0].dependency[0]) {
                 groupId == "dep-group"
                 artifactId == "dep-name"
-                version == "maven-dep-version"
+                version == "dep-version"
                 scope == "runtime"
             }
         }
     }
 
     def "writes regular dependency without exclusions"() {
-        def dependency = Mock(MavenDependencyInternal)
-        when:
-        generator.addRuntimeDependency(dependency)
+        given:
+        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", null, null, "runtime", [] as Set, false)
+        pom.getDependencies().set(pomDependencies(dependency))
 
-        then:
-        dependency.artifacts >> new HashSet<DependencyArtifact>()
-        dependency.groupId >> "dep-group"
-        dependency.artifactId >> "dep-name"
-        dependency.version >> "dep-version"
-        dependency.excludeRules >> []
-
-        and:
-        with (pom) {
+        expect:
+        with (xml) {
             dependencies.dependency.exclusions.size() == 0
         }
     }
 
     def "writes dependency with excludes"() {
         given:
-        def dependency = Mock(MavenDependencyInternal)
         def exclude1 = Mock(ExcludeRule)
         def exclude2 = Mock(ExcludeRule)
         def exclude3 = Mock(ExcludeRule)
+        def dependency = new DefaultMavenDependency("dep-group", "dep-name", "dep-version", null, null, "runtime", [exclude1, exclude2, exclude3] as Set, false)
+
+        pom.getDependencies().set(pomDependencies(dependency))
 
         when:
-        generator.addRuntimeDependency(dependency)
-
-        then:
-        dependency.artifacts >> new HashSet<DependencyArtifact>()
-        dependency.groupId >> "dep-group"
-        dependency.artifactId >> "dep-name"
-        dependency.version >> "dep-version"
-        dependency.excludeRules >> CollectionUtils.toSet([exclude1, exclude2, exclude3])
         exclude1.group >> "excl-1-group"
         exclude1.module >> "excl-1-module"
         exclude2.group >> "excl-2-group"
@@ -273,8 +205,8 @@ class MavenPomFileGeneratorTest extends Specification {
         exclude3.group >> null
         exclude3.module >> "excl-3-module"
 
-        and:
-        with (pom) {
+        then:
+        with (xml) {
             dependencies.dependency.exclusions.exclusion.size() == 3
             with (dependencies[0].dependency[0].exclusions[0].exclusion[0]) {
                 groupId == "excl-1-group"
@@ -292,33 +224,18 @@ class MavenPomFileGeneratorTest extends Specification {
     }
 
     def "writes dependency with artifacts"() {
-        def dependency = Mock(MavenDependencyInternal)
-        def artifact1 = Mock(DependencyArtifact)
-        def artifact2 = Mock(DependencyArtifact)
+        pom.getDependencies().set(pomDependencies([
+            new DefaultMavenDependency("dep-group", "artifact-1", "dep-version", "type-1", "classifier-1", "runtime", [] as Set, false),
+            new DefaultMavenDependency("dep-group", "artifact-2", "dep-version", null, null, "runtime", [] as Set, false),
+        ]))
 
-        when:
-        generator.addRuntimeDependency(dependency)
-
-        then:
-        dependency.artifacts >> CollectionUtils.toSet([artifact1, artifact2])
-        dependency.groupId >> "dep-group"
-        dependency.version >> "dep-version"
-        dependency.excludeRules >> []
-        rangeMapper.map("dep-version") >> "maven-dep-version"
-        artifact1.name >> "artifact-1"
-        artifact1.type >> "type-1"
-        artifact1.classifier >> "classifier-1"
-        artifact2.name >> "artifact-2"
-        artifact2.type >> null
-        artifact2.classifier >> null
-
-        and:
-        with (pom) {
+        expect:
+        with (xml) {
             dependencies.dependency.size() == 2
             with (dependencies[0].dependency[0]) {
                 groupId == "dep-group"
                 artifactId == "artifact-1"
-                version == "maven-dep-version"
+                version == "dep-version"
                 type == "type-1"
                 classifier == "classifier-1"
                 scope == "runtime"
@@ -326,7 +243,7 @@ class MavenPomFileGeneratorTest extends Specification {
             with (dependencies[0].dependency[1]) {
                 groupId == "dep-group"
                 artifactId == "artifact-2"
-                version == "maven-dep-version"
+                version == "dep-version"
                 type.empty
                 classifier.empty
                 scope == "runtime"
@@ -336,31 +253,50 @@ class MavenPomFileGeneratorTest extends Specification {
 
     def "applies withXml actions"() {
         when:
-        generator.withXml(new Action<XmlProvider>() {
-            void execute(XmlProvider t) {
-                t.asNode().groupId[0].value = "new-group"
-            }
-        })
-        generator.withXml(new Action<XmlProvider>() {
-            void execute(XmlProvider t) {
-                t.asNode().appendNode("description", "custom-description-ぴ₦ガき∆ç√∫")
-            }
-        })
+        pom.withXml {
+            asNode().groupId[0].value = "new-group"
+        }
+        pom.withXml {
+            asNode().appendNode("description", "custom-description-ぴ₦ガき∆ç√∫")
+        }
 
         then:
-        with (pom) {
+        with (xml) {
             groupId == "new-group"
             description == "custom-description-ぴ₦ガき∆ç√∫"
         }
     }
 
-    private def getPom() {
-        return new XmlSlurper().parse(pomFile);
+    private MavenPomDependencies pomDependencies(MavenDependency dependency) {
+        return new DefaultMavenPomDependencies(ImmutableList.of(dependency), ImmutableList.of())
     }
 
-    private TestFile getPomFile() {
+    private MavenPomDependencies pomDependencies(Collection<MavenDependency> dependency) {
+        return new DefaultMavenPomDependencies(ImmutableList.copyOf(dependency), ImmutableList.of())
+    }
+
+    private MavenPomInternal newPom() {
+        MavenPomInternal pom = TestUtil.objectFactory().newInstance(
+            DefaultMavenPom.class,
+            TestUtil.objectFactory()
+        )
+
+        pom.coordinates.groupId.set("group-id")
+        pom.coordinates.artifactId.set("artifact-id")
+        pom.coordinates.version.set("1.0")
+
+        pom.getWriteGradleMetadataMarker().set(true)
+
+        return pom
+    }
+
+    private def getXml() {
+        return new XmlSlurper().parse(writePomFile());
+    }
+
+    private TestFile writePomFile() {
         def pomFile = testDirectoryProvider.testDirectory.file("pom.xml")
-        generator.writeTo(pomFile)
+        MavenPomFileGenerator.generateSpec(pom).writeTo(pomFile)
         return pomFile
     }
 }

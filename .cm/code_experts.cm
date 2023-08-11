@@ -30,41 +30,41 @@ automations:
   # Also post a comment that lists the best experts for the files that were modified.
   comment_experts:
     if:
-      - {{ false }} # disabled for now
       - {{ author.using_gitstream }}
     run:
-      - action: add-comment@v1
+      - action: explain-code-experts@v1
         args:
-          # Note the comment starts with | and a new-line as explainCodeExperts generates a multiline comment.
-          comment: |
-            {{ repo | explainCodeExperts(gt=10) }}
-
+          gt: 10
 
 # To simplify the automations section, some calculations are placed under unique YAML keys defined here.
 # Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
 # This section could also appear ahead of the automations section.
 
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.jvm.members)) or (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.build_scan.members)) }}
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
 
 teams:
   build_scan:
     members:
       - 'alllex'
       - 'wolfs'
+  dev_prod:
+    members:
+      - 'blindpirate'
   execution:
     members:
-      - 'asodja'
-      - 'lptr'
-      - 'FrauBoes'
+      - 'asodja-DISABLED'
+      - 'lptr-DISABLED'
+      - 'FrauBoes-DISABLED'
   ide:
     members:
+      - 'hegyibalint'
       - 'donat'
       - 'reinsch82'
   jvm:
     members:
       - 'big-guy'
       - 'ghale'
-      - 'jvandort'
+      - 'jvandort-DISABLED'
       - 'octylFractal'
       - 'tresat'

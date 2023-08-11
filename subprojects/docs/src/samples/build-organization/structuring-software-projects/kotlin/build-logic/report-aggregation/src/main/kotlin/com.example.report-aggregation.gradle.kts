@@ -51,8 +51,8 @@ val codeCoverageReport by tasks.registering(JacocoReport::class) {
     executionData(coverageDataPath.incoming.artifactView { lenient(true) }.files.filter { it.exists() })
 
     reports {
-        html.required.set(true)
-        xml.required.set(true)
+        html.required = true
+        xml.required = true
     }
 }
 

@@ -19,11 +19,13 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
+    @Requires(UnitTestPreconditions.IsGroovy3)
     def "produces sensible error when bad code is supplied in component selection rule with Groovy 3"() {
-        assumeGroovy3()
         def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
@@ -57,8 +59,8 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasCause("Could not find method foo()")
     }
 
+    @Requires(UnitTestPreconditions.IsGroovy4)
     def "produces sensible error when bad code is supplied in component selection rule with Groovy 4"() {
-        assumeGroovy4()
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"

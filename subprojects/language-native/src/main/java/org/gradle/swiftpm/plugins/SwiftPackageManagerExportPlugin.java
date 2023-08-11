@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.SubVersionSelector;
@@ -52,6 +53,7 @@ import org.gradle.swiftpm.internal.Dependency;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
 import org.gradle.swiftpm.internal.VersionDependency;
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest;
+import org.gradle.util.Path;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.VcsResolver;
@@ -201,7 +203,8 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
             for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
                 if (dependency instanceof ProjectDependency) {
                     ProjectDependency projectDependency = (ProjectDependency) dependency;
-                    SwiftPmTarget identifier = publicationResolver.resolve(SwiftPmTarget.class, projectDependency);
+                    Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+                    SwiftPmTarget identifier = publicationResolver.resolve(SwiftPmTarget.class, identityPath);
                     target.getRequiredTargets().add(identifier.getTargetName());
                 } else if (dependency instanceof ExternalModuleDependency) {
                     ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;

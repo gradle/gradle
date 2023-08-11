@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
@@ -45,6 +46,7 @@ import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -1026,7 +1028,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         def publication = publication(component, id, mappingStrategy)
 
         mappingStrategy.findStrategyForVariant(_) >> variantMappingStrategy
-        variantMappingStrategy.maybeResolveVersion(_ as String, _ as String, _) >> { String group, String name, String projectPath ->
+        variantMappingStrategy.maybeResolveVersion(_ as String, _ as String, _) >> { String group, String name, Path identityPath ->
             DefaultModuleVersionIdentifier.newId(group, name, 'v99')
         }
 
@@ -1256,7 +1258,7 @@ class GradleModuleMetadataWriterTest extends Specification {
 
     def publication(SoftwareComponentInternal component, ModuleVersionIdentifier coords, VersionMappingStrategyInternal mappingStrategyInternal = null, boolean withBuildId = false) {
         def publication = Stub(PublicationInternal)
-        publication.component >> component
+        publication.component >> Providers.of(component)
         publication.coordinates >> coords
         publication.versionMappingStrategy >> mappingStrategyInternal
         publication.isPublishBuildId() >> withBuildId

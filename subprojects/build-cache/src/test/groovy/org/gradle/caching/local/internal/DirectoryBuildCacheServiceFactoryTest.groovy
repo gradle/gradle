@@ -44,7 +44,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def fileStoreFactory = Mock(DirectoryBuildCacheFileStoreFactory)
     def cleanupActionDecorator = Mock(CleanupActionDecorator)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileStoreFactory, cleanupActionDecorator, fileAccessTimeJournal, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root))
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileStoreFactory, cleanupActionDecorator, fileAccessTimeJournal, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.createDir("tmp")))
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()

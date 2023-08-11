@@ -40,14 +40,14 @@ class IntegTestPreconditions {
     static final class NotEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfies(IsEmbeddedExecutor)
+            return notSatisfied(IsEmbeddedExecutor)
         }
     }
 
     static final class NotEmbeddedExecutorOrNotWindows implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfies(IsEmbeddedExecutor) || notSatisfies(UnitTestPreconditions.Windows)
+            return notSatisfied(IsEmbeddedExecutor) || notSatisfied(UnitTestPreconditions.Windows)
         }
     }
 
@@ -271,11 +271,18 @@ class IntegTestPreconditions {
         }
     }
 
+    static class JavaHomeWithDifferentVersionAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.differentVersion != null
+        }
+    }
+
     static final class HasMsBuild implements TestPrecondition {
         @Override
         boolean isSatisfied() {
             // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-            return doSatisfies(UnitTestPreconditions.Windows) && notSatisfies(IsEmbeddedExecutor)
+            return satisfied(UnitTestPreconditions.Windows) && notSatisfied(IsEmbeddedExecutor)
         }
     }
 
@@ -283,7 +290,7 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() {
             // The S3 publish tests require the following
-            return doSatisfies(UnitTestPreconditions.Jdk9OrLater) || notSatisfies(IsEmbeddedExecutor)
+            return satisfied(UnitTestPreconditions.Jdk9OrLater) || notSatisfied(IsEmbeddedExecutor)
         }
     }
 }

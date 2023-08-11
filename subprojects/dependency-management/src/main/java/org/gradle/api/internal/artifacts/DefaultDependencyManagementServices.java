@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Describable;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
@@ -28,7 +27,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -36,6 +34,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler;
@@ -108,6 +107,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -129,6 +129,7 @@ import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -138,12 +139,10 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.util.internal.SimpleMapInterner;
-import org.gradle.vcs.internal.VcsMappingsStore;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -202,6 +201,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultTransformedVariantFactory.class);
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
             registration.add(ResolveExceptionContextualizer.class);
+            registration.add(ResolutionStrategyFactory.class);
         }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
@@ -222,7 +222,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 TransformExecutionListener transformExecutionListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
-                BuildOperationExecutor buildOperationExecutor
+                BuildOperationExecutor buildOperationExecutor,
+                BuildOperationProgressEventEmitter progressEventEmitter
         ) {
             return new DefaultTransformInvocationFactory(
                 executionEngine,
@@ -231,7 +232,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformWorkspaceServices,
                 fileCollectionFactory,
                 projectStateRegistry,
-                buildOperationExecutor
+                buildOperationExecutor,
+                progressEventEmitter
             );
         }
 
@@ -248,7 +250,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 FileCollectionFactory fileCollectionFactory,
                 FileLookup fileLookup,
                 ServiceRegistry internalServices,
-                DocumentationRegistry documentationRegistry
+                Problems problems
         ) {
             return new DefaultTransformRegistrationFactory(
                 buildOperationExecutor,
@@ -263,7 +265,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 parameterScheme,
                 actionScheme,
                 internalServices,
-                documentationRegistry
+                problems
             );
         }
 
@@ -359,33 +361,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         ConfigurationContainerInternal createConfigurationContainer(
             Instantiator instantiator,
-            GlobalDependencyResolutionRules globalDependencyResolutionRules,
-            VcsMappingsStore vcsMappingsStore,
-            ComponentIdentifierFactory componentIdentifierFactory,
-            ImmutableAttributesFactory attributesFactory,
-            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            ComponentSelectorConverter componentSelectorConverter,
-            DependencyLockingProvider dependencyLockingProvider,
             CollectionCallbackActionDecorator callbackDecorator,
-            NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-            ObjectFactory objectFactory,
             DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
-            DefaultConfigurationFactory defaultConfigurationFactory
+            DefaultConfigurationFactory defaultConfigurationFactory,
+            ResolutionStrategyFactory resolutionStrategyFactory
         ) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 instantiator,
-                globalDependencyResolutionRules.getDependencySubstitutionRules(),
-                vcsMappingsStore,
-                componentIdentifierFactory,
-                attributesFactory,
-                moduleIdentifierFactory,
-                componentSelectorConverter,
-                dependencyLockingProvider,
                 callbackDecorator,
-                moduleSelectorNotationParser,
-                objectFactory,
                 rootComponentMetadataBuilderFactory,
-                defaultConfigurationFactory
+                defaultConfigurationFactory,
+                resolutionStrategyFactory
             );
         }
 

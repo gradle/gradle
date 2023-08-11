@@ -73,6 +73,10 @@ public class DaemonOutputConsumer implements StreamsHandler {
     }
 
     @Override
+    public void removeStartupContext() {
+    }
+
+    @Override
     public void stop() {
     }
 

@@ -211,6 +211,6 @@ class RetryConditions {
     }
 
     static boolean runsOnWindowsAndJava7or8() {
-        return TestPrecondition.doSatisfies(UnitTestPreconditions.Windows) && [JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_8].contains(JavaVersion.current())
+        return TestPrecondition.satisfied(UnitTestPreconditions.Windows) && [JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_8].contains(JavaVersion.current())
     }
 }

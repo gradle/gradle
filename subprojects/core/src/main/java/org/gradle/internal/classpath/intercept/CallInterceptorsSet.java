@@ -16,11 +16,15 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.vmplugin.v8.CacheableCallSite;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.classpath.InstrumentedClosuresHelper;
+import org.gradle.internal.classpath.InstrumentedGroovyCallsHelper;
+import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
@@ -31,11 +35,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsHelper.withEntryPoint;
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY;
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD;
+
 /**
  * Holds a collection of interceptors and can decorate a Groovy CallSite if it is within a scope of a registered interceptor.
  */
 @NonNullApi
-public class CallInterceptorsSet implements CallSiteDecorator {
+public class CallInterceptorsSet implements CallSiteDecorator, CallInterceptorResolver {
     private final Map<InterceptScope, CallInterceptor> interceptors = new HashMap<>();
     private final Set<String> interceptedCallSiteNames = new HashSet<>();
 
@@ -45,7 +53,7 @@ public class CallInterceptorsSet implements CallSiteDecorator {
     // dedicated MethodHandle decorator method just for constructors.
     private final CallInterceptor dispatchingConstructorInterceptor = new CallInterceptor() {
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();
             if (receiver instanceof Class) {
                 CallInterceptor realConstructorInterceptor = interceptors.get(InterceptScope.constructorsOf((Class<?>) receiver));
@@ -129,6 +137,17 @@ public class CallInterceptorsSet implements CallSiteDecorator {
         return interceptedCallSiteNames.contains(callSite.getName());
     }
 
+    @Override
+    @Nullable
+    public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
+        return interceptors.get(scope);
+    }
+
+    @Override
+    public boolean isAwareOfCallSiteName(String name) {
+        return interceptedCallSiteNames.contains(name);
+    }
+
     private class DecoratingCallSite extends AbstractCallSite {
         public DecoratingCallSite(CallSite prev) {
             super(prev);
@@ -136,21 +155,21 @@ public class CallInterceptorsSet implements CallSiteDecorator {
 
         @Override
         public Object call(Object receiver, Object[] args) throws Throwable {
-            CallInterceptor interceptor = interceptors.get(InterceptScope.methodsNamed(getName()));
+            CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.methodsNamed(getName()));
             if (interceptor != null) {
                 return interceptor.doIntercept(new AbstractInvocation<Object>(receiver, args) {
                     @Override
                     public Object callOriginal() throws Throwable {
                         return DecoratingCallSite.super.call(receiver, args);
                     }
-                }, array.owner.getName());
+                }, callSiteOwnerClassName());
             }
             return super.call(receiver, args);
         }
 
         @Override
         public Object callGetProperty(Object receiver) throws Throwable {
-            CallInterceptor interceptor = interceptors.get(InterceptScope.readsOfPropertiesNamed(getName()));
+            CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.readsOfPropertiesNamed(getName()));
             if (interceptor != null) {
                 return interceptor.doIntercept(new AbstractInvocation<Object>(receiver, new Object[0]) {
                     @Override
@@ -164,14 +183,14 @@ public class CallInterceptorsSet implements CallSiteDecorator {
 
         @Override
         public Object callStatic(Class receiver, Object[] args) throws Throwable {
-            CallInterceptor interceptor = interceptors.get(InterceptScope.methodsNamed(getName()));
+            CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.methodsNamed(getName()));
             if (interceptor != null) {
                 return interceptor.doIntercept(new AbstractInvocation<Class<?>>(receiver, args) {
                     @Override
                     public Object callOriginal() throws Throwable {
                         return DecoratingCallSite.super.callStatic(receiver, args);
                     }
-                }, array.owner.getName());
+                }, callSiteOwnerClassName());
             }
             return super.callStatic(receiver, args);
         }
@@ -183,8 +202,61 @@ public class CallInterceptorsSet implements CallSiteDecorator {
                 public Object callOriginal() throws Throwable {
                     return DecoratingCallSite.super.callConstructor(receiver, args);
                 }
-            }, array.owner.getName());
+            }, callSiteOwnerClassName());
+        }
+
+        private @Nullable Object maybeInstrumentedDynamicCall(
+            CallStrategy callStrategy,
+            Object receiver,
+            @Nullable Object[] args
+        ) throws Throwable {
+            if (interceptedCallSiteNames.contains(getName())) {
+                InstrumentedGroovyCallsTracker.CallKind kind = callStrategy == CallStrategy.CALL_CURRENT ? INVOKE_METHOD : GET_PROPERTY;
+                InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
+                return withEntryPoint(callSiteOwnerClassName(), getName(), kind, callableForOriginalCall(callStrategy, receiver, args));
+            } else {
+                if (callStrategy == CallStrategy.CALL_CURRENT) {
+                    return super.callCurrent((GroovyObject) receiver, args);
+                } else {
+                    return super.callGroovyObjectGetProperty(receiver);
+                }
+            }
+        }
+
+        private InstrumentedGroovyCallsHelper.ThrowingCallable<Object> callableForOriginalCall(
+            CallStrategy callStrategy,
+            Object receiver,
+            @Nullable Object[] args
+        ) {
+            InstrumentedGroovyCallsHelper.ThrowingCallable<Object> result =
+                callStrategy == CallStrategy.CALL_CURRENT ? () -> super.callCurrent((GroovyObject) receiver, args) :
+                    callStrategy == CallStrategy.CALL_GROOVY_OBJECT_GET_PROPERTY ? () -> super.callGroovyObjectGetProperty(receiver) :
+                        null;
+
+            if (result == null) {
+                throw new IllegalArgumentException("unexpected original call strategy " + callStrategy);
+            }
+
+            return result;
+        }
+
+        @Override
+        public @Nullable Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
+            return maybeInstrumentedDynamicCall(CallStrategy.CALL_GROOVY_OBJECT_GET_PROPERTY, receiver, null);
+        }
+
+        @Override
+        public @Nullable Object callCurrent(GroovyObject receiver, Object[] args) throws Throwable {
+            return maybeInstrumentedDynamicCall(CallStrategy.CALL_CURRENT, receiver, args);
+        }
+
+        private String callSiteOwnerClassName() {
+            return array.owner.getName();
         }
     }
 
+    @NonNullApi
+    enum CallStrategy {
+        CALL_CURRENT, CALL_GROOVY_OBJECT_GET_PROPERTY
+    }
 }

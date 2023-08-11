@@ -84,7 +84,7 @@ dependencies {
         to.attribute(artifactType, "relocated-classes")
         parameters {
             externalClasspath.from(configurations.externalClasspath)
-            excludedPackage.set("org.gradle.api")
+            excludedPackage = "org.gradle.api"
         }
     }
 }

@@ -21,7 +21,7 @@ import spock.lang.Specification
 class UsageDescriberSpec extends Specification {
     def "can describe usage for role"() {
         given:
-        def role = ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE
+        def role = ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE
 
         expect:
         UsageDescriber.describeRole(role) == "\tResolvable - this configuration can be resolved by this project to a set of files\n" +

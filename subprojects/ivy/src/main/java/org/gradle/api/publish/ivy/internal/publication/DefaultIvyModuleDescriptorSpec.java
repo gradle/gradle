@@ -20,61 +20,62 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
 import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
-import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.internal.MutableActionSet;
-import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecInternal {
+public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecInternal {
 
-    private final MutableActionSet<XmlProvider> xmlActions = new MutableActionSet<XmlProvider>();
-    private final IvyPublicationInternal ivyPublication;
-    private final Instantiator instantiator;
+    private final MutableActionSet<XmlProvider> xmlActions = new MutableActionSet<>();
     private final ObjectFactory objectFactory;
-    private String status = Module.DEFAULT_STATUS;
+    private final IvyPublicationCoordinates ivyPublicationCoordinates;
+    private String status;
     private String branch;
-    private IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
-    private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<IvyModuleDescriptorAuthor>();
-    private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
+    private final IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
+    private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<>();
+    private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<>();
     private IvyModuleDescriptorDescription description;
 
-    public DefaultIvyModuleDescriptorSpec(IvyPublicationInternal ivyPublication, Instantiator instantiator, ObjectFactory objectFactory) {
-        this.ivyPublication = ivyPublication;
-        this.instantiator = instantiator;
+    @Inject
+    public DefaultIvyModuleDescriptorSpec(ObjectFactory objectFactory, IvyPublicationCoordinates ivyPublicationCoordinates) {
         this.objectFactory = objectFactory;
+        this.ivyPublicationCoordinates = ivyPublicationCoordinates;
     }
 
+    @Nullable
     @Override
     public String getStatus() {
         return status;
     }
 
     @Override
-    public void setStatus(String status) {
+    public void setStatus(@Nullable String status) {
         this.status = status;
     }
 
+    @Nullable
     @Override
     public String getBranch() {
         return branch;
     }
 
     @Override
-    public void setBranch(String branch) {
+    public void setBranch(@Nullable String branch) {
         this.branch = branch;
     }
 
@@ -95,13 +96,13 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     }
 
     @Override
-    public IvyPublicationIdentity getProjectIdentity() {
-        return ivyPublication.getIdentity();
+    public IvyPublicationCoordinates getCoordinates() {
+        return ivyPublicationCoordinates;
     }
 
     @Override
     public void withXml(Action<? super XmlProvider> action) {
-        xmlActions.add(new UserCodeAction<XmlProvider>("Could not apply withXml() to Ivy module descriptor", action));
+        xmlActions.add(new UserCodeAction<>("Could not apply withXml() to Ivy module descriptor", action));
     }
 
     @Override
@@ -110,24 +111,16 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     }
 
     @Override
-    public Set<IvyConfiguration> getConfigurations() {
-        return ivyPublication.getConfigurations();
-    }
+    public abstract SetProperty<IvyConfiguration> getConfigurations();
 
     @Override
-    public Set<IvyArtifact> getArtifacts() {
-        return ivyPublication.getArtifacts();
-    }
+    public abstract SetProperty<IvyArtifact> getArtifacts();
 
     @Override
-    public Set<IvyDependencyInternal> getDependencies() {
-        return ivyPublication.getDependencies();
-    }
+    public abstract SetProperty<IvyDependency> getDependencies();
 
     @Override
-    public Set<IvyExcludeRule> getGlobalExcludes() {
-        return ivyPublication.getGlobalExcludes();
-    }
+    public abstract SetProperty<IvyExcludeRule> getGlobalExcludes();
 
     @Override
     public void license(Action<? super IvyModuleDescriptorLicense> action) {
@@ -152,7 +145,7 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     @Override
     public void description(Action<? super IvyModuleDescriptorDescription> action) {
         if (description == null) {
-            description = instantiator.newInstance(DefaultIvyModuleDescriptorDescription.class, objectFactory);
+            description = objectFactory.newInstance(DefaultIvyModuleDescriptorDescription.class, objectFactory);
         }
         action.execute(description);
     }
@@ -163,17 +156,10 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     }
 
     @Override
-    public VersionMappingStrategyInternal getVersionMappingStrategy() {
-        return ivyPublication.getVersionMappingStrategy();
-    }
-
-    @Override
-    public boolean writeGradleMetadataMarker() {
-        return ivyPublication.writeGradleMetadataMarker();
-    }
+    public abstract Property<Boolean> getWriteGradleMetadataMarker();
 
     private <T> void configureAndAdd(Class<? extends T> clazz, Action<? super T> action, List<T> items) {
-        T item = instantiator.newInstance(clazz, objectFactory);
+        T item = objectFactory.newInstance(clazz, objectFactory);
         action.execute(item);
         items.add(item);
     }

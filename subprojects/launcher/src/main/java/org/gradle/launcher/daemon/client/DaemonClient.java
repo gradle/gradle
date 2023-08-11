@@ -204,7 +204,14 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
 
         LOGGER.debug("Received result {} from daemon {} (build should be done).", result, connection.getDaemon());
 
-        connection.dispatch(new Finished());
+        // If we get an error here, it means the daemon has already closed the connection.  This might occur because the
+        // client is slow to send the Finished message, or because the daemon has expired for some reason.  Whatever the reason,
+        // this is not important to the client at this point, so we just log it and continue.
+        try {
+            connection.dispatch(new Finished());
+        } catch (DaemonConnectionException e) {
+            LOGGER.debug("Could not send finished message to the daemon.", e);
+        }
 
         if (result instanceof Failure) {
             Throwable failure = ((Failure) result).getValue();

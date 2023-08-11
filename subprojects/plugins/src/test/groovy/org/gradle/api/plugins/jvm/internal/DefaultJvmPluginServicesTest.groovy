@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.jvm.internal
 
-import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationPublications
@@ -61,17 +60,14 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
     def "configures compileClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
-        Action[] action = new Action[1]
-        def config
-        config = Stub(ConfigurationInternal) {
-            beforeLocking(_) >> { args -> action[0] = args[0] }
+        def config = Stub(ConfigurationInternal) {
             getAttributes() >> mutable
         }
         def javaCompileProvider = Stub(TaskProvider) {
-                get() >> Stub(JavaCompile) {
-                    getTargetCompatibility() >> '8'
-                }
+            get() >> Stub(JavaCompile) {
+                getTargetCompatibility() >> '8'
             }
+        }
         when:
         services.configureAsCompileClasspath(attrs)
 
@@ -86,8 +82,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         ]
 
         when:
-        services.useDefaultTargetPlatformInference(config, javaCompileProvider)
-        action[0].execute(config)
+        jvmLanguageUtilities.useDefaultTargetPlatformInference(config, javaCompileProvider)
 
         then:
         mutable.asMap() == [

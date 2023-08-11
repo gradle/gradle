@@ -26,7 +26,7 @@ abstract class NpmTask : DefaultTask() {
 
 // tag::bundle-task[]
 tasks.register<NpmTask>("bundle") {
-    args.set(listOf("run", "bundle"))
+    args = listOf("run", "bundle")
 
     outputs.cacheIf { true }
 
@@ -38,7 +38,7 @@ tasks.register<NpmTask>("bundle") {
         .withPropertyName("configFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
-    outputs.file("$buildDir/bundle.js")
+    outputs.file(layout.buildDirectory.file("bundle.js"))
         .withPropertyName("bundle")
 }
 // end::bundle-task[]

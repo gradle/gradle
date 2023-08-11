@@ -8,4 +8,4 @@ ant: org.gradle.api.internal.project.DefaultAntBuilder@12345
 antBuilderFactory: org.gradle.api.internal.project.DefaultAntBuilderFactory@12345
 artifacts: org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler_Decorated@12345
 asDynamicObject: DynamicObject for project ':api'
-baseClassLoaderScope: org.gradle.api.internal.initialization.DefaultClassLoaderScope@12345
+baseClassLoaderScope: org.gradle.api.internal.initialization.MutableClassLoaderScope@12345

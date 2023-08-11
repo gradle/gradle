@@ -161,7 +161,7 @@ class DefaultDeleterTest extends Specification {
 
     def "reports reasonable help message when failing to delete single #description"() {
         if (isSymlink) {
-            assumeTrue(TestPrecondition.doSatisfies(UnitTestPreconditions.Symlinks))
+            assumeTrue(TestPrecondition.satisfied(UnitTestPreconditions.Symlinks))
         }
 
         given:
@@ -186,6 +186,43 @@ class DefaultDeleterTest extends Specification {
         "directory"            | true        | false
         "symlink to file"      | false       | true
         "symlink to directory" | true        | true
+    }
+
+    def "reports failed to delete child files and reports a reasonable number of retries after failure to delete directory"() {
+
+        given:
+        def targetDir = tmpDir.createDir("target")
+        def deletable = targetDir.createFile("delete.yes")
+        def nonDeletable = targetDir.createFile("delete.no")
+
+        and:
+        def failedAttempts = 0
+        deleter = FileTime.deleterWithDeletionAction() { file ->
+            if (file.canonicalFile == nonDeletable.canonicalFile) {
+                failedAttempts++
+                return DeletionAction.FAILURE
+            }
+            return DeletionAction.CONTINUE
+        }
+
+        when:
+        deleter.deleteRecursively(targetDir)
+
+        then:
+        targetDir.assertIsDir()
+        deletable.assertDoesNotExist()
+        nonDeletable.assertIsFile()
+
+        and:
+        failedAttempts == DefaultDeleter.EMPTY_DIRECTORY_DELETION_ATTEMPTS
+
+        and:
+        def ex = thrown IOException
+        normaliseLineSeparators(ex.message) == """
+            Unable to delete directory '$targetDir'
+              ${DefaultDeleter.HELP_FAILED_DELETE_CHILDREN}
+              - $nonDeletable
+        """.stripIndent().trim()
     }
 
     def "reports failed to delete child files after failure to delete directory"() {
@@ -305,7 +342,7 @@ class DefaultDeleterTest extends Specification {
         }
 
         when:
-        deleter.deleteRecursively(targetDir)
+        deleter .deleteRecursively(targetDir)
 
         then: 'nothing gets deleted'
         targetDir.assertIsDir()

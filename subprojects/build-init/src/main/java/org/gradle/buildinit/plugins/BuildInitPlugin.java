@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.tasks.InitBuild;
@@ -61,7 +61,7 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
 
                 ProjectInternal.DetachedResolver detachedResolver = projectInternal.newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(
-                    detachedResolver, project.getObjects(), projectInternal.getServices().get(JvmEcosystemUtilities.class));
+                    detachedResolver, project.getObjects(), projectInternal.getServices().get(JvmPluginServices.class));
 
                 initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
             });

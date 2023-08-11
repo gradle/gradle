@@ -26,28 +26,51 @@ package org.gradle.test.precondition;
  *
  * @see Requires
  */
-
 public interface TestPrecondition {
+
+    /**
+     * Returns true if the precondition is satisfied.
+     * @throws Exception if the precondition cannot be checked
+     */
     boolean isSatisfied() throws Exception;
 
-    static boolean doSatisfies(Class<? extends TestPrecondition> preconditionClass) throws Exception {
+    /**
+     * Utility method to check if a precondition class is satisfied.
+     *
+     * @param preconditionClass the class of the precondition to be checked
+     * @return true if the precondition is satisfied
+     * @throws Exception if the precondition cannot be checked
+     */
+    static boolean satisfied(Class<? extends TestPrecondition> preconditionClass) throws Exception {
         final TestPrecondition precondition = preconditionClass
             .getDeclaredConstructor()
             .newInstance();
         return precondition.isSatisfied();
     }
 
-    static boolean doSatisfiesAll(Class<? extends TestPrecondition>[] preconditionClasses) throws Exception {
+    /**
+     * Utility method to check if all precondition classes are satisfied.
+     *
+     * @param preconditionClasses a list of precondition classes to be checked
+     * @return true if all preconditions are satisfied
+     * @throws Exception if a precondition cannot be checked
+     */
+    static boolean allSatisfied(Class<? extends TestPrecondition>[] preconditionClasses) throws Exception {
         for (Class<? extends TestPrecondition> preconditionClass : preconditionClasses) {
-            if (!doSatisfies(preconditionClass)) {
+            if (!satisfied(preconditionClass)) {
                 return false;
             }
         }
         return true;
     }
 
-    static boolean notSatisfies(Class<? extends TestPrecondition> preconditionClass) throws Exception {
-        return !doSatisfies(preconditionClass);
+    /**
+     * Utility method to check if a precondition class is <i>not</i> satisfied.
+     * @param preconditionClass the class of the precondition to be checked
+     * @return true if the precondition is <i>not</i> satisfied
+     */
+    static boolean notSatisfied(Class<? extends TestPrecondition> preconditionClass) throws Exception {
+        return !satisfied(preconditionClass);
     }
 }
 

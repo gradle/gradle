@@ -17,6 +17,8 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.problems.interfaces.DocLink;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.CheckReturnValue;
@@ -31,10 +33,19 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     private DeprecationTimeline deprecationTimeline;
     private String context;
     private String advice;
-    private Documentation documentation = Documentation.NO_DOCUMENTATION;
+    private DocLink documentation = Documentation.NO_DOCUMENTATION;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
     DeprecationMessageBuilder() {
+    }
+
+    public static WithDocumentation withDocumentation(Problem warning, WithDeprecationTimeline withDeprecationTimeline) {
+        DocLink docLink = warning.getDocumentationLink();
+        if (docLink != null) {
+            return withDeprecationTimeline
+                .withDocumentation(warning.getDocumentationLink());
+        }
+        return withDeprecationTimeline.undocumented();
     }
 
     @SuppressWarnings("unchecked")
@@ -66,13 +77,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: This will change in Gradle 9.0.
+     * Output: Starting with Gradle 9.0, ${message}.
      */
-    public WithDeprecationTimeline willChangeInGradle9() {
-        this.deprecationTimeline = DeprecationTimeline.willChangeInVersion(GRADLE9);
+    public WithDeprecationTimeline startingWithGradle9(String message) {
+        this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE9, message);
         return new WithDeprecationTimeline(this);
     }
-
 
     void setIndirectUsage() {
         this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
@@ -94,7 +104,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         this.deprecationTimeline = deprecationTimeline;
     }
 
-    void setDocumentation(Documentation documentation) {
+    void setDocumentation(DocLink documentation) {
         this.documentation = documentation;
     }
 
@@ -110,7 +120,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected WithDocumentation withDocumentation(Documentation documentation) {
+        public WithDocumentation withDocumentation(DocLink documentation) {
             builder.setDocumentation(documentation);
             return new WithDocumentation(builder);
         }

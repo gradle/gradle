@@ -106,7 +106,8 @@ task retrieve(type: Sync) {
 
         expect:
         fails 'retrieve'
-        failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'x86_windows' which is not declared in the descriptor for test:target:1.0.")
+        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    project :")
+        failure.assertHasCause("A dependency was declared on configuration 'x86_windows' which is not declared in the descriptor for test:target:1.0.")
     }
 
     def "fails when ivy module references a configuration that does not exist"() {

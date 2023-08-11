@@ -53,7 +53,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         where:
         role                      | code
         'consume or publish only' | 'canBeResolved = false'
-        'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'        | 'canBeResolved = false; canBeConsumed = false'
 
     }
 
@@ -84,7 +84,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         where:
         role                      | code
         'consume or publish only' | 'canBeResolved = false'
-        'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'        | 'canBeResolved = false; canBeConsumed = false'
     }
 
     @ToBeFixedForConfigurationCache(because = "Uses Configuration API")
@@ -170,7 +170,7 @@ This method is only meant to be called on configurations which allow the (non-de
         where:
         role                    | code
         'query or resolve only' | 'canBeConsumed = false'
-        'bucket'                | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'      | 'canBeResolved = false; canBeConsumed = false'
     }
 
     def "cannot depend on default configuration if it's not consumable (#role)"() {
@@ -209,6 +209,208 @@ This method is only meant to be called on configurations which allow the (non-de
         where:
         role                    | code
         'query or resolve only' | 'canBeConsumed = false'
-        'bucket'                | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'      | 'canBeResolved = false; canBeConsumed = false'
+    }
+
+    def "cannot create #first and #second configuration with the same name"() {
+        buildFile << """
+            configurations {
+                $first("foo")
+                $second("foo")
+            }
+        """
+
+        when:
+        fails "help"
+
+        then:
+        failureHasCause("Cannot add a configuration with name 'foo' as a configuration with that name already exists.")
+
+        where:
+        first             | second
+        "consumable"      | "resolvable"
+        "consumable"      | "dependencyScope"
+        "resolvable"      | "consumable"
+        "resolvable"      | "dependencyScope"
+        "dependencyScope" | "consumable"
+        "dependencyScope" | "resolvable"
+    }
+
+    def "withType works for factory methods before declaration in Groovy DSL"() {
+        buildFile << """
+            configurations {
+                withType(ResolvableConfiguration) {
+                    println "Resolvable: " + name
+                }
+                withType(ConsumableConfiguration) {
+                    println "Consumable: " + name
+                }
+                withType(DependencyScopeConfiguration) {
+                    println "Dependencies: " + name
+                }
+                resolvable("foo")
+                consumable("bar")
+                dependencyScope("baz")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods after declaration in Groovy DSL"() {
+        buildFile << """
+            configurations {
+                resolvable("foo")
+                consumable("bar")
+                dependencyScope("baz")
+                withType(ResolvableConfiguration) {
+                    println "Resolvable: " + name
+                }
+                withType(ConsumableConfiguration) {
+                    println "Consumable: " + name
+                }
+                withType(DependencyScopeConfiguration) {
+                    println "Dependencies: " + name
+                }
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods before declaration in Kotlin DSL"() {
+        buildKotlinFile << """
+            configurations {
+                withType<ResolvableConfiguration> {
+                    println("Resolvable: " + name)
+                }
+                withType<ConsumableConfiguration> {
+                    println("Consumable: " + name)
+                }
+                withType<DependencyScopeConfiguration> {
+                    println("Dependencies: " + name)
+                }
+                resolvable("foo")
+                consumable("bar")
+                dependencyScope("baz")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods after declaration in Kotlin DSL"() {
+        buildKotlinFile << """
+            configurations {
+                resolvable("foo")
+                consumable("bar")
+                dependencyScope("baz")
+                withType<ResolvableConfiguration> {
+                    println("Resolvable: " + name)
+                }
+                withType<ConsumableConfiguration> {
+                    println("Consumable: " + name)
+                }
+                withType<DependencyScopeConfiguration> {
+                    println("Dependencies: " + name)
+                }
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods in Java"() {
+        file("buildSrc/src/main/java/MyPlugin.java") << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.Configuration;
+            import org.gradle.api.artifacts.ResolvableConfiguration;
+            import org.gradle.api.artifacts.ConsumableConfiguration;
+            import org.gradle.api.artifacts.DependencyScopeConfiguration;
+
+            public class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getConfigurations().withType(ResolvableConfiguration.class, configuration -> {
+                        System.out.println("Resolvable: " + configuration.getName());
+                    });
+                    project.getConfigurations().withType(ConsumableConfiguration.class, configuration -> {
+                        System.out.println("Consumable: " + configuration.getName());
+                    });
+                    project.getConfigurations().withType(DependencyScopeConfiguration.class, configuration -> {
+                        System.out.println("Dependencies: " + configuration.getName());
+                    });
+                    project.getConfigurations().resolvable("foo");
+                    project.getConfigurations().consumable("bar");
+                    project.getConfigurations().dependencyScope("baz");
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    broken {
+                        id = "my-plugin"
+                        implementationClass = "MyPlugin"
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins {
+                id("my-plugin")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
     }
 }

@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 /**
  * Contains serializable structural information about a test failure.
  *
+ * @see org.gradle.api.internal.tasks.testing.junit.result.TestFailure
  * @since 7.6
  */
 @Incubating
@@ -58,6 +59,36 @@ public interface TestFailureDetails {
      * @return {@code true} for assertion failures
      */
     boolean isAssertionFailure();
+
+    /**
+     * Returns true if the represented failure is recognized as a file comparison failure.
+     * <p>
+     * If this field is {@code true}, then the {@link #getExpectedContent()} and {@link #getActualContent()} methods <i>might</i> return non-null values.
+     *
+     * @since 8.3
+     * @return {@code true} if this failure is a file comparison failure
+     */
+    boolean isFileComparisonFailure();
+
+    /**
+     * Returns the expected content of a file comparison assertion failure.
+     *
+     * @since 8.3
+     * @see #isFileComparisonFailure()
+     * @return the expected file contents or {@code null} if the test framework doesn't supply detailed information on assertion failures, or it is not a file comparison failure
+     */
+    @Nullable
+    byte[] getExpectedContent();
+
+    /**
+     * Returns the actual content of a file comparison assertion failure.
+     *
+     * @since 8.3
+     * @see #isFileComparisonFailure()
+     * @return the expected file contents or {@code null} if the test framework doesn't supply detailed information on assertion failures, or it is not a file comparison failure
+     */
+    @Nullable
+    byte[] getActualContent();
 
     /**
      * Returns a string representation of the expected value for an assertion failure.

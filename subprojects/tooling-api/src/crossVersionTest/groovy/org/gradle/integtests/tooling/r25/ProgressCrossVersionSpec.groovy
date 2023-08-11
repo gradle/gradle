@@ -49,14 +49,17 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addProgressListener(events).run()
+                connection.newBuild()
+                    .forTasks('assemble')
+                    .addProgressListener(events)
+                    .run()
         }
 
         then: "progress events must be forwarded to the attached listeners"
         events.assertIsABuild()
     }
 
-    def "receive progress events when running a build action"() {
+     def "receive progress events when running a build action"() {
         given:
         goodCode()
 

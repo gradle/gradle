@@ -39,6 +39,8 @@ public interface ExecHandle {
      */
     ExecHandle start();
 
+    void removeStartupContext();
+
     ExecHandleState getState();
 
     /**

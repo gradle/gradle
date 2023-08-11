@@ -191,7 +191,7 @@ public abstract class Wrapper extends DefaultTask {
 
     private static URI getDistributionUri(File uriRoot, String url) {
         try {
-            return WrapperDistributionUrlConverter.toUri(uriRoot, url);
+            return WrapperDistributionUrlConverter.convertDistributionUrl(url, uriRoot);
         } catch (URISyntaxException e) {
             throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
         }
@@ -419,7 +419,7 @@ public abstract class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersionResolver.getGradleVersion() != null) {
-            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
+            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toASCIIString();
         } else {
             return null;
         }
@@ -539,7 +539,7 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @Incubating
     @Optional
-    @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations")
+    @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations.")
     public Property<Integer> getNetworkTimeout() {
         return networkTimeout;
     }
@@ -552,6 +552,6 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Incubating
     @Input
-    @Option(option = "validate-url", description = "Sets task to validate the configured distribution url")
+    @Option(option = "validate-url", description = "Sets task to validate the configured distribution url.")
     public abstract Property<Boolean> getValidateDistributionUrl();
 }

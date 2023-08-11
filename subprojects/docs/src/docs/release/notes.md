@@ -18,7 +18,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -50,17 +50,18 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="SSL"></a>
-### SSL improvements
+### Introduce JetBrains as a known JVM vendor
 
-Gradle had multiple issues when non-standard keystores and truststores were used.
-This affected users on Linux systems with FIPS enabled and also Windows users who were storing certificates in the Trusted Root Certification Authorities store.
-SSL context creation has been improved to be more aligned with the default implementation and to support these cases.
-Also, error messages related to SSL have been improved, and they should be more visible.
+It is now possible to use JetBrains as a known JVM vendor when referring to [JetBrains Runtime](https://www.jetbrains.com/jetbrains-runtime) when using [Toolchains](userguide/toolchains.html):
 
-### Reduced memory consumption
-
-TODO - dependency resolution uses less heap
+```kotlin
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+        vendor.set(JvmVendorSpec.JETBRAINS)
+    }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

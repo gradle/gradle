@@ -9,17 +9,17 @@ body:
         Please use our bug report template to report problems with something that has never worked.
         Regressions reports are greatly appreciated during our RC phase and before a final release.
   - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: Tell us what happens
+    validations:
+      required: true
+  - type: textarea
     id: expected-behavior
     attributes:
       label: Expected Behavior
       description: Tell us what should happen
-    validations:
-      required: true
-  - type: textarea
-    id: current-behavior
-    attributes:
-      label: Current Behavior
-      description: Tell us what happens instead of the expected behavior
     validations:
       required: true
   - type: textarea
@@ -60,6 +60,8 @@ body:
     id: build-scan-url
     attributes:
       label: Build scan URL (optional)
+      description: |
+        You can run your build command with `--scan` to publish a Build Scan to [scans.gradle.com](https://scans.gradle.com/).
     validations:
       required: false
   - type: textarea

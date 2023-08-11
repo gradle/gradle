@@ -18,16 +18,10 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Task;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
-import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.tasks.TaskProvider;
-
-import java.util.Set;
 
 public interface MavenPublicationInternal extends MavenPublication, PublicationInternal<MavenArtifact> {
 
@@ -38,36 +32,17 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator);
 
-    MutableMavenProjectIdentity getMavenProjectIdentity();
-
-    Set<MavenDependency> getApiDependencyConstraints();
-
-    Set<MavenDependency> getRuntimeDependencyConstraints();
-
-    Set<MavenDependency> getImportDependencyConstraints();
-
-    Set<MavenDependencyInternal> getApiDependencies();
-
-    Set<MavenDependencyInternal> getRuntimeDependencies();
-
-    Set<MavenDependencyInternal> getOptionalApiDependencies();
-
-    Set<MavenDependencyInternal> getOptionalRuntimeDependencies();
-
     MavenNormalizedPublication asNormalisedPublication();
-
-    // TODO Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be explicitly set.
-    String determinePackagingFromArtifacts();
 
     /**
      * Some components (e.g. Native) are published such that the module metadata references the original file name,
      * rather than the Maven-standard {artifactId}-{version}-{classifier}.{extension}.
      * This method enables this behaviour for the current publication.
+     *
+     *
+     * <p>Note: This internal API is used by KMP:
+     * <a href="https://github.com/JetBrains/kotlin/blob/5424c54fae7b4836506ec711edc0135392b445d6/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/plugin/mpp/Publishing.kt#L50">Usage</a></a>
+     * </p>
      */
     void publishWithOriginalFileName();
-
-    @Override
-    VersionMappingStrategyInternal getVersionMappingStrategy();
-
-    boolean writeGradleMetadataMarker();
 }

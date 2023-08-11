@@ -132,7 +132,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         file("my-plugin/src/main/groovy/org/gradle/integtests/fixtures/validation/ValidationProblem.groovy") << """
 package org.gradle.integtests.fixtures.validation;
 
-import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.api.problems.interfaces.Severity;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -162,7 +162,7 @@ public @interface ValidationProblem {
     private void writeTaskInto(@GroovyBuildScriptLanguage String header = "", TestFile testFile) {
         testFile << """$header
             import org.gradle.integtests.fixtures.validation.ValidationProblem
-            import org.gradle.internal.reflect.validation.Severity
+            import org.gradle.api.problems.interfaces.Severity
 
             abstract class SomeTask extends DefaultTask {
                 @ValidationProblem(value=Severity.ERROR)

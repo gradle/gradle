@@ -31,6 +31,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.Provider
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.initialization.DefaultBuildCancellationToken
@@ -62,6 +63,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
@@ -118,6 +120,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     }
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
+    def progressEventEmitter = Stub(BuildOperationProgressEventEmitter)
 
     def buildCacheController = Stub(BuildCacheController)
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -150,7 +153,8 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         Mock(TimeoutHandler),
         validationWarningRecorder,
         virtualFileSystem,
-        documentationRegistry
+        documentationRegistry,
+        new DefaultProblems(Mock(BuildOperationProgressEventEmitter))
     )
 
     def invoker = new DefaultTransformInvocationFactory(
@@ -160,7 +164,8 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         transformWorkspaceServices,
         fileCollectionFactory,
         projectStateRegistry,
-        buildOperationExecutor
+        buildOperationExecutor,
+        progressEventEmitter
     )
 
     private static class TestTransform implements Transform {

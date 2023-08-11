@@ -65,7 +65,7 @@ In order to publish Build Scans from GitHub Actions, you'll need to pre-approve 
 To do so, add the following content to the top of your `settings.gradle[.kts]` file. The "CI" environment variable is set by GitHub Actions:
 ```
 plugins {
-    id("com.gradle.enterprise") version("3.13.3")
+    id("com.gradle.enterprise") version("3.14.1")
 }
 
 gradleEnterprise {

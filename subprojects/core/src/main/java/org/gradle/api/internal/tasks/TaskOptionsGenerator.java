@@ -111,7 +111,7 @@ public class TaskOptionsGenerator {
         TaskOptions taskOptions = new TaskOptions();
         Map<String, OptionDescriptor> options = optionReader.getOptions(task);
         options.putAll(generateOppositeOptions(task, options, taskOptions));
-        List<OptionDescriptor> sortedOptions = CollectionUtils.sort(options.values());
+        List<OptionDescriptor> sortedOptions = CollectionUtils.sort(options.values(), BooleanOptionElement.groupOppositeOptions());
         sortedOptions.addAll(generateBuiltInOptions(task, options.keySet()));
         taskOptions.allTaskOptions = Collections.unmodifiableList(sortedOptions);
         return taskOptions;

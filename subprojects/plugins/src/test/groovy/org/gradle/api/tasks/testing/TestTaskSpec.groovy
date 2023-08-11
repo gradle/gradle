@@ -264,43 +264,52 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         0 * closure._
     }
 
-    def "adds listeners and removes after execution"() {
+    def "removes listeners after execution"() {
+        def testListener = Mock(TestListener)
+
         given:
-        expectTestSuitePasses()
-
-        when:
-        task.addTestListener(Stub(TestListener))
-        task.addTestOutputListener(Stub(TestOutputListener))
-
-        then:
-        task.testListenerBroadcaster.size() == 2
-        task.testOutputListenerBroadcaster.size() == 2
+        expectTestPasses()
+        task.addTestListener(testListener)
 
         when:
         task.executeTests()
 
         then:
-        task.testListenerBroadcaster.size() == 1
-        task.testOutputListenerBroadcaster.size() == 1
+        1 * testListener.beforeTest(_)
+
+        when:
+        // rewire a mocked TestReporter as it gets removed by AbstractTestTask#createReporting()
+        task.testReporter = Mock(TestReporter)
+        task.executeTests()
+
+        then:
+        0 * testListener.beforeTest(_)
     }
 
     def "removes listeners even if execution fails"() {
-        given:
-        testExecuter.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { throw new RuntimeException("Boo!") }
+        def closure = Mock(Closure)
 
-        task.addTestListener(Stub(TestListener))
-        task.addTestOutputListener(Stub(TestOutputListener))
+        given:
+        expectTestSuiteFails()
+        task.beforeSuite(closure)
 
         when:
         task.executeTests()
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Boo!"
+        GradleException e = thrown()
+        e.message.startsWith("There were failing tests. See the report at")
+        1 * closure.call()
 
-        and:
-        task.testListenerBroadcaster.size() == 1
-        task.testOutputListenerBroadcaster.size() == 1
+        when:
+        // rewire a mocked TestReporter as it gets removed by AbstractTestTask#createReporting()
+        task.testReporter = Mock(TestReporter)
+        task.executeTests()
+
+        then:
+        e = thrown()
+        e.message.startsWith("There were failing tests. See the report at")
+        0 * closure.call()
     }
 
     def "reports all test failures for multiple suites"() {

@@ -98,8 +98,8 @@ object Config {
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
-    // Android Studio Giraffe (2022.3.1) Canary 8
-    const val androidStudioVersion = "2022.3.1.8"
+    // Android Studio Giraffe 2022.3.1.18
+    const val androidStudioVersion = "2022.3.1.18"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
@@ -320,7 +320,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
                 }
             }
-            into("$buildDir/android-studio")
+            into(layout.buildDirectory.dir("android-studio"))
         }
     }
 
@@ -372,7 +372,7 @@ fun Project.performanceReportZipTaskFor(performanceReport: TaskProvider<out Perf
         from(performanceReport.get().performanceResults) {
             into("perf-results")
         }
-        destinationDirectory = buildDir
+        destinationDirectory = layout.buildDirectory
         archiveFileName = "performance-test-results.zip"
     }
 

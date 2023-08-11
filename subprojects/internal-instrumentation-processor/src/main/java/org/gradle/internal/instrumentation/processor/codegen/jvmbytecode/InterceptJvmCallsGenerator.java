@@ -33,7 +33,7 @@ import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures.FailureInfo;
+import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.model.internal.asm.MethodVisitorScope;
@@ -251,7 +251,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static CodeBlock matchOpcodeExpression(CallableInfo interceptedCallable) {
         CodeBlock result = interceptedCallable.getKind() == CallableKindInfo.STATIC_METHOD ? CodeBlock.of("opcode == $T.INVOKESTATIC", Opcodes.class) :
-            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? CodeBlock.of("opcode == $T.INVOKEVIRTUAL", Opcodes.class) :
+            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? CodeBlock.of("(opcode == $1T.INVOKEVIRTUAL || opcode == $1T.INVOKEINTERFACE)", Opcodes.class) :
                 interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? CodeBlock.of("opcode == $T.INVOKESPECIAL", Opcodes.class) : null;
         if (result == null) {
             throw new Failure("Could not determine the opcode for intercepting the call");
@@ -310,7 +310,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static void generateNormalInterceptedInvocation(FieldSpec ownerTypeField, CallableInfo callable, String implementationName, String implementationDescriptor, CodeBlock.Builder code) {
-        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY) {
+        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER || callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER) {
             throw new IllegalArgumentException("cannot generate invocation for Groovy property");
         }
 
@@ -326,7 +326,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static void generateKotlinDefaultInvocation(CallInterceptionRequest request, FieldSpec ownerTypeField, CodeBlock.Builder method) {
         CallableInfo interceptedCallable = request.getInterceptedCallable();
-        if (interceptedCallable.getKind() == CallableKindInfo.GROOVY_PROPERTY) {
+        if (interceptedCallable.getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER || interceptedCallable.getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER) {
             throw new IllegalArgumentException("cannot generate invocation for Groovy property");
         }
 
@@ -339,7 +339,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static void validateSignature(CallableInfo callable) {
-        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY) {
+        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER || callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER) {
             throw new Failure("Groovy property access cannot be intercepted in JVM calls");
         }
 
@@ -367,6 +367,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                     "@" + ParameterKind.KotlinDefaultMask.class.getSimpleName() + " should be the last parameter of may be followed only by @" + ParameterKind.CallerClassName.class.getSimpleName()
                 );
             }
+        }
+
+        if (callable.getOwner().isInterceptSubtypes() && !callable.getOwner().getType().getInternalName().startsWith("org/gradle")) {
+            throw new Failure("Intercepting inherited methods is supported only for Gradle types for now, but type was: " + callable.getOwner().getType().getInternalName());
         }
     }
 

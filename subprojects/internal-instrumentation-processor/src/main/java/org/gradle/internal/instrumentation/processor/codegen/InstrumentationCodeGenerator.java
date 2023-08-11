@@ -19,7 +19,6 @@ package org.gradle.internal.instrumentation.processor.codegen;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,32 +29,22 @@ public interface InstrumentationCodeGenerator {
     );
 
     interface GenerationResult {
+
         interface CanGenerateClasses extends GenerationResult {
             Collection<String> getClassNames();
             void buildType(String className, TypeSpec.Builder builder);
             Collection<CallInterceptionRequest> getCoveredRequests();
         }
 
-        class HasFailures implements GenerationResult {
+        class CodeFailures implements GenerationResult, HasFailures {
             private final List<FailureInfo> failures;
 
-            public HasFailures(List<FailureInfo> failures) {
+            public CodeFailures(List<FailureInfo> failures) {
                 this.failures = failures;
             }
 
             public List<FailureInfo> getFailureDetails() {
                 return failures;
-            }
-
-            public static class FailureInfo {
-                @Nullable
-                final CallInterceptionRequest request;
-                final String reason;
-
-                public FailureInfo(@Nullable CallInterceptionRequest request, String reason) {
-                    this.request = request;
-                    this.reason = reason;
-                }
             }
         }
     }

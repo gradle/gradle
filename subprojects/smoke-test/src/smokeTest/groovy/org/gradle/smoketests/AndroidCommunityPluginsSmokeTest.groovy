@@ -49,28 +49,28 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             // https://mvnrepository.com/artifact/com.google.gms/google-services?repo=google
             (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.15'),
             // https://mvnrepository.com/artifact/com.google.firebase.crashlytics/com.google.firebase.crashlytics.gradle.plugin
-            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.4'),
+            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.7'),
             // https://mvnrepository.com/artifact/com.google.firebase/perf-plugin
             (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.2'),
             // https://plugins.gradle.org/plugin/com.bugsnag.android.gradle
-            (BUGSNAG_PLUGIN_ID): Versions.of('7.4.1'),
+            (BUGSNAG_PLUGIN_ID): Versions.of('8.0.1'),
             // https://plugins.gradle.org/plugin/com.osacky.fladle
             (FLADLE_PLUGIN_ID): Versions.of('0.17.4'),
             // https://plugins.gradle.org/plugin/com.github.triplet.play
-            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.8.1'),
+            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.8.4'),
             // https://mvnrepository.com/artifact/androidx.navigation.safeargs/androidx.navigation.safeargs.gradle.plugin
-            (SAFEARGS_PLUGIN_ID): Versions.of('2.5.3'),
+            (SAFEARGS_PLUGIN_ID): Versions.of('2.6.0'),
             // https://mvnrepository.com/artifact/com.google.dagger/hilt-android-gradle-plugin
-            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.45'),
+            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.47'),
             // https://mvnrepository.com/artifact/io.sentry.android.gradle/io.sentry.android.gradle.gradle.plugin
-            (SENTRY_PLUGIN_ID): Versions.of('3.4.2'),
+            (SENTRY_PLUGIN_ID): Versions.of('3.11.1'),
         ]
     }
 
     @Override
     void configureValidation(String testedPluginId, String version) {
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(ANDROID_PLUGIN_VERSION_FOR_TESTS)
-        configureAndroidProject(testedPluginId)
+        configureAndroidProject(testedPluginId, version)
 
         validatePlugins {
             passing {
@@ -79,7 +79,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         }
     }
 
-    private void configureAndroidProject(String testedPluginId) {
+    private void configureAndroidProject(String testedPluginId, String version) {
         settingsFile << """
             pluginManagement {
                 repositories {
@@ -152,8 +152,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             case DAGGER_HILT_ANDROID_PLUGIN_ID:
                 buildFile << """
                     dependencies {
-                        implementation "com.google.dagger:hilt-android:2.43.2"
-                        implementation "com.google.dagger:hilt-compiler:2.43.2"
+                        implementation "com.google.dagger:hilt-android:$version"
+                        implementation "com.google.dagger:hilt-compiler:$version"
                     }
                 """
                 break

@@ -20,17 +20,17 @@ import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPomRelocation;
-import org.gradle.internal.reflect.Instantiator;
+
+import javax.inject.Inject;
 
 public class DefaultMavenPomDistributionManagement implements MavenPomDistributionManagementInternal {
 
-    private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
     private final Property<String> downloadUrl;
     private MavenPomRelocation relocation;
 
-    public DefaultMavenPomDistributionManagement(Instantiator instantiator, ObjectFactory objectFactory) {
-        this.instantiator = instantiator;
+    @Inject
+    public DefaultMavenPomDistributionManagement(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
         downloadUrl = objectFactory.property(String.class);
     }
@@ -43,7 +43,7 @@ public class DefaultMavenPomDistributionManagement implements MavenPomDistributi
     @Override
     public void relocation(Action<? super MavenPomRelocation> action) {
         if (relocation == null) {
-            relocation = instantiator.newInstance(DefaultMavenPomRelocation.class, objectFactory);
+            relocation = objectFactory.newInstance(DefaultMavenPomRelocation.class, objectFactory);
         }
         action.execute(relocation);
     }

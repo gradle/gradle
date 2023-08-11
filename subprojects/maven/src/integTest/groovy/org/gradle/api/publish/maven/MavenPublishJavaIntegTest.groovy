@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
+import org.gradle.api.publish.maven.internal.publication.MavenComponentParser
 import org.gradle.test.fixtures.maven.MavenJavaModule
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
@@ -57,7 +57,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultMavenPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(MavenComponentParser.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
 
         javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
@@ -138,7 +138,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultMavenPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(MavenComponentParser.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
     }
 

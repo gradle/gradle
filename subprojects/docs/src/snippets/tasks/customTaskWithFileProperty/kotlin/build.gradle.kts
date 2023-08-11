@@ -18,7 +18,7 @@ abstract class GreetingToFileTask : DefaultTask() {
 val greetingFile = objects.fileProperty()
 
 tasks.register<GreetingToFileTask>("greet") {
-    destination.set(greetingFile)
+    destination = greetingFile
 }
 
 tasks.register("sayGreeting") {
@@ -30,6 +30,6 @@ tasks.register("sayGreeting") {
     }
 }
 
-greetingFile.set(layout.buildDirectory.file("hello.txt"))
+greetingFile = layout.buildDirectory.file("hello.txt")
 // end::config[]
 // end::all[]
