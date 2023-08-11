@@ -23,10 +23,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 
-import static org.gradle.api.JavaVersion.VERSION_1_8
-import static org.gradle.api.JavaVersion.VERSION_1_9
-
-@Requires([IntegTestPreconditions.Java8HomeAvailable, IntegTestPreconditions.Java9HomeAvailable ])
+@Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable ])
 class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
     /**
@@ -37,6 +34,9 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
      */
     def setup() {
         executer.requireDaemon().requireIsolatedDaemons()
+        executer.beforeExecute {
+            noDeprecationChecks()
+        }
     }
 
     def "not up-to-date when default Java version changes"() {
@@ -44,8 +44,8 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "java"
 
-            sourceCompatibility = "1.6"
-            targetCompatibility = "1.6"
+            sourceCompatibility = "1.8"
+            targetCompatibility = "1.8"
         """
 
         and:
@@ -55,19 +55,19 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
+        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
         succeeds "compileJava"
         then:
         executedAndNotSkipped ":compileJava"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
+        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
         succeeds "compileJava"
         then:
         skipped ":compileJava"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_9).javaHome
+        executer.withJavaHome AvailableJavaHomes.getHighestSupportedLTS().javaHome
         succeeds "compileJava", "--info"
         then:
         executedAndNotSkipped ":compileJava"
@@ -76,11 +76,11 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
     def "not up-to-date when java version for forking changes"() {
         given:
-        def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
-        def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)
+        def lowestLTS = AvailableJavaHomes.getLowestSupportedLTS()
+        def highestLTS = AvailableJavaHomes.getHighestSupportedLTS()
 
 
-        buildFile << forkedJavaCompilation(jdk8)
+        buildFile << forkedJavaCompilation(lowestLTS)
 
         and:
         file("src/main/java/org/gradle/Person.java") << """
@@ -89,20 +89,20 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withJavaHome jdk9.javaHome
+        executer.withJavaHome highestLTS.javaHome
         succeeds "compileJava"
         then:
         executedAndNotSkipped ":compileJava"
 
         when:
-        executer.withJavaHome jdk8.javaHome
+        executer.withJavaHome lowestLTS.javaHome
         succeeds "compileJava"
         then:
         skipped ":compileJava"
 
         when:
-        executer.withJavaHome jdk8.javaHome
-        buildFile.text = forkedJavaCompilation(jdk9)
+        executer.withJavaHome lowestLTS.javaHome
+        buildFile.text = forkedJavaCompilation(highestLTS)
         succeeds "compileJava", "--info"
         then:
         executedAndNotSkipped ":compileJava"
@@ -114,8 +114,8 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         """
             apply plugin: "java"
 
-            sourceCompatibility = "1.6"
-            targetCompatibility = "1.6"
+            sourceCompatibility = "1.8"
+            targetCompatibility = "1.8"
 
             compileJava {
                 options.with {
