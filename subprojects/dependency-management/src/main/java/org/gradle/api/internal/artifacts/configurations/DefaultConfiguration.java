@@ -1397,8 +1397,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                     : DefaultMutableVersionConstraint.withVersion(lockedVersion);
                 ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockedDependency.getGroup(), lockedDependency.getModule()), versionConstraint);
                 return new LocalComponentDependencyMetadata(
-                    componentIdentifier, selector, name, getAttributes(),
-                    ImmutableAttributes.EMPTY, null, Collections.emptyList(),  Collections.emptyList(),
+                    selector, ImmutableAttributes.EMPTY, null, Collections.emptyList(),  Collections.emptyList(),
                     false, false, false, true, false, true, getLockReason(strict, lockedVersion)
                 );
             });
@@ -1407,8 +1406,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         Stream<LocalComponentDependencyMetadata> consistentResolutionConstraintMetadata = getConsistentResolutionConstraints().map(dc -> {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dc.getGroup(), dc.getName()), dc.getVersionConstraint());
             return new LocalComponentDependencyMetadata(
-                componentIdentifier, selector, name, getAttributes(),
-                ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(),
+                selector, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(),
                 false, false, false, true, false, true, dc.getReason()
             );
         });
