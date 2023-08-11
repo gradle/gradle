@@ -27,14 +27,15 @@ public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistr
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
-        // legacy
-        registration.add(DefaultBuildScanClock.class);
-        registration.add(DefaultBuildScanBuildStartedTime.class);
-
         registration.add(GradleEnterpriseAutoAppliedPluginRegistry.class);
         registration.add(GradleEnterprisePluginAutoAppliedStatus.class);
         registration.add(DefaultGradleEnterprisePluginServiceRef.class);
         registration.add(DefaultGradleEnterprisePluginConfig.class);
+        registration.add(DefaultGradleEnterprisePluginBuildState.class);
+
+        // legacy
+        registration.add(DefaultBuildScanClock.class);
+        registration.add(DefaultBuildScanBuildStartedTime.class);
     }
 
     @Override
@@ -46,7 +47,6 @@ public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistr
     public void registerGradleServices(ServiceRegistration registration) {
         registration.add(DefaultGradleEnterprisePluginAdapter.class);
         registration.add(DefaultGradleEnterprisePluginBackgroundJobExecutors.class);
-        registration.add(DefaultGradleEnterprisePluginBuildState.class);
         registration.add(DefaultGradleEnterprisePluginCheckInService.class);
         registration.add(DefaultGradleEnterprisePluginRequiredServices.class);
 

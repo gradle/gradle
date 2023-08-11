@@ -24,9 +24,12 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
+@ServiceScope(Scopes.Gradle.class)
 public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePluginAdapter {
 
     private final GradleEnterprisePluginConfig config;

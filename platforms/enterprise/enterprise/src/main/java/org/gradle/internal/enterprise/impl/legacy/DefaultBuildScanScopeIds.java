@@ -20,7 +20,10 @@ import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scopes.Gradle.class)
 public class DefaultBuildScanScopeIds implements BuildScanScopeIds {
 
     private final BuildInvocationScopeId buildInvocationId;

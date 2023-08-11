@@ -16,6 +16,8 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -25,6 +27,7 @@ import javax.inject.Inject;
 
 import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
 
+@ServiceScope(Scopes.Build.class)
 public class GradleEnterprisePluginAutoApplicationListener implements PluginRequestApplicator.PluginApplicationListener {
 
     private final GradleEnterprisePluginAutoAppliedStatus status;
