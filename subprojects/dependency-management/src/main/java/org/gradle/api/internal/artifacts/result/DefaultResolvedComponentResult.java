@@ -152,16 +152,26 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         variantDependencies.put(fromVariant, dependencyResult);
     }
 
+    /**
+     * A recursive function that traverses the dependency graph of a given module and acts on each node and edge encountered.
+     *
+     * @param start A ResolvedComponentResult node, which represents the entry point into the sub-section of the dependency
+     * graph to be traversed
+     * @param moduleAction an action to be performed on each node (module) in the graph
+     * @param dependencyAction an action to be performed on each edge (dependency) in the graph
+     * @param visited tracks the visited nodes during the recursive traversal
+     */
     public static void eachElement(
-        ResolvedComponentResult node,
-        Action<? super ResolvedComponentResult> moduleAction, Action<? super DependencyResult> dependencyAction,
+        ResolvedComponentResult start,
+        Action<? super ResolvedComponentResult> moduleAction,
+        Action<? super DependencyResult> dependencyAction,
         Set<ResolvedComponentResult> visited
     ) {
-        if (!visited.add(node)) {
+        if (!visited.add(start)) {
             return;
         }
-        moduleAction.execute(node);
-        for (DependencyResult d : node.getDependencies()) {
+        moduleAction.execute(start);
+        for (DependencyResult d : start.getDependencies()) {
             dependencyAction.execute(d);
             if (d instanceof ResolvedDependencyResult) {
                 eachElement(((ResolvedDependencyResult) d).getSelected(), moduleAction, dependencyAction, visited);

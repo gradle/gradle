@@ -70,8 +70,8 @@ is:
   docs: {{ (files | allDocs) or (files | match(regex=r/\.adoc$/) | every) }} # This won't catch a mix of .adoc and non .adoc changes, see: https://github.com/linear-b/gitstream/issues/93
   tests: {{ files | allTests }}
 
-  # Also just an approximation
-  build_script_change: {{ files | reject(regex=r/\/src\/(samples|snippets)\//) | match(list=build_logic_files) | some }}
+  # Exclude anything under samples/snippets sourceSets, or any sort of test resource file
+  build_script_change: {{ files | reject(regex=r/.*\/src\/(samples|snippets)\//) | reject(regex=r/.*\/(crossVersionTest|docsTest|functionalTest|integTest|smokeTest|test|testFixtures)\/resources\//) | match(list=build_logic_files) | some }}
 
 build_logic_files:
   - 'build.gradle.kts'
@@ -82,7 +82,7 @@ build_logic_files:
 # Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
 platforms:
   - bt_ge_build_cache:
-    name: 'bt-ge-build-cache'
+    name: 'bt_ge_build_cache'
     subprojects:
       - 'subprojects/build-cache/'
       - 'subprojects/build-cache-base/'
@@ -93,7 +93,7 @@ platforms:
       - 'subprojects/hashing/'
       - 'subprojects/snapshots/'
   - build_infrastructure:
-    name: 'build-infrastructure'
+    name: 'build_infrastructure'
     subprojects:
       - '.teamcity/'
       - '.github/'
@@ -103,65 +103,27 @@ platforms:
       - '/build.gradle*'
       - '/settings.gradle*'
       - 'gradle/shared-with-buildSrc/'
-      - 'subprojects/*/build.gradle*'
       - 'subprojects/internal-architecture-testing/'
       - 'subprojects/internal-build-reports/'
       - 'subprojects/internal-integ-testing/'
       - 'subprojects/internal-performance-testing/'
       - 'subprojects/internal-testing/'
   - cc:
-    name: 'configuration-cache'
+    name: 'configuration_cache'
     subprojects:
       - 'subprojects/api-metadata/'
       - 'subprojects/base-annotations/'
+      - 'subprojects/base-services-groovy/'
       - 'subprojects/configuration-cache/'
+      - 'subprojects/file-collections/'
       - 'subprojects/instrumentation-agent'
       - 'subprojects/internal-instrumentation-api/'
       - 'subprojects/internal-instrumentation-processor/'
-  - core:
-    name: 'core'
-    subprojects:
-      - 'subprojects/base-services/'
-      - 'subprojects/base-services-groovy/'
-      - 'subprojects/bootstrap/'
-      - 'subprojects/build-option/'
-      - 'subprojects/cli/'
-      - 'subprojects/core-platform/'
-      - 'subprojects/distributions-basics/'
-      - 'subprojects/distributions-core/'
-      - 'subprojects/file-collections/'
-      - 'subprojects/file-temp/'
-      - 'subprojects/file-watching/'
-      - 'subprojects/files/'
-      - 'subprojects/hashing/'
-      - 'subprojects/installation-beacon/'
-      - 'subprojects/instrumentation-agent/'
-      - 'subprojects/launcher/'
-      - 'subprojects/logging/'
-      - 'subprojects/logging-api/'
-      - 'subprojects/messaging/'
       - 'subprojects/model-core/'
       - 'subprojects/model-groovy/'
-      - 'subprojects/persistent-cache/'
-      - 'subprojects/problems/'
-      - 'subprojects/process-services/'
-      - 'subprojects/snapshots/'
-      - 'subprojects/worker-processes/'
-      - 'subprojects/worker-services/'
-      - 'subprojects/workers/'
-      - 'subprojects/wrapper/'
-      - 'subprojects/wrapper-shared/'
-  - documentation:
-    name: 'documentation'
+  - core_execution:
+    name: 'core_execution'
     subprojects:
-      - 'subprojects/docs/'
-      - 'subprojects/docs-asciidoctor-extensions/'
-      - 'subprojects/docs-asciidoctor-extensions-base/'
-      - 'subprojects/samples/'
-  - execution:
-    name: 'execution'
-    subprojects:
-      - 'subprojects/base-annotations/'
       - 'subprojects/build-cache/'
       - 'subprojects/build-cache-base/'
       - 'subprojects/build-cache-http/'
@@ -174,6 +136,19 @@ platforms:
       - 'subprojects/functional/'
       - 'subprojects/hashing/'
       - 'subprojects/snapshots/'
+      - 'subprojects/worker-processes/'
+      - 'subprojects/workers/'
+  - core_execution:
+    name: 'core_runtime'
+    subprojects:
+      - 'subprojects/installation-beacon/'
+  - documentation:
+    name: 'documentation'
+    subprojects:
+      - 'subprojects/docs/'
+      - 'subprojects/docs-asciidoctor-extensions/'
+      - 'subprojects/docs-asciidoctor-extensions-base/'
+      - 'subprojects/samples/'
   - extensibility:
     name: 'extensibility'
     subprojects:
@@ -181,26 +156,22 @@ platforms:
       - 'subprojects/plugin-use/'
       - 'subprojects/test-kit/'
   - gradle_enterprise:
-    name: 'gradle-enterprise'
+    name: 'gradle_enterprise'
     subprojects:
-      - 'subprojects/build-scan-performance/'
-      - 'subprojects/enterprise/'
-      - 'subprojects/enterprise-logging/'
-      - 'subprojects/enterprise-operations/'
-      - 'subprojects/enterprise-workers/'
+      - 'platforms/enterprise/'
   - ide:
     name: 'ide'
     subprojects:
+      - 'platforms/ide/'
       - 'subprojects/ide/'
       - 'subprojects/tooling-api/'
       - 'subprojects/tooling-api-builders/'
   - jvm:
     name: 'jvm'
     subprojects:
-      - 'subprojects/code-quality/'
+      - 'platforms/jvm/'
       - 'subprojects/distributions-jvm/'
       - 'subprojects/distributions-publishing/'
-      - 'platforms/jvm/ear/'
       - 'subprojects/jacoco/'
       - 'subprojects/java-compiler-plugin/'
       - 'subprojects/jvm-services/'
@@ -215,18 +186,20 @@ platforms:
       - 'subprojects/testing-jvm/'
       - 'subprojects/testing-jvm-infrastructure/'
   - kotlin_dsl:
-    name: 'kotlin-dsl'
+    name: 'kotlin_dsl'
     subprojects:
+      - 'platforms/core-configuration/kotlin-dsl/'
+      - 'platforms/core-configuration/kotlin-dsl-integ-tests/'
+      - 'platforms/core-configuration/kotlin-dsl-plugins/'
+      - 'platforms/core-configuration/kotlin-dsl-provider-plugins/'
+      - 'platforms/core-configuration/kotlin-dsl-tooling-builders/'
+      - 'platforms/core-configuration/kotlin-dsl-tooling-models/'
       - 'build-logic/kotlin-dsl/'
-      - 'subprojects/kotlin-dsl/'
-      - 'subprojects/kotlin-dsl-integ-tests/'
-      - 'subprojects/kotlin-dsl-plugins/'
-      - 'subprojects/kotlin-dsl-provider-plugins/'
-      - 'subprojects/kotlin-dsl-tooling-builders/'
-      - 'subprojects/kotlin-dsl-tooling-models/'
+      - 'subprojects/docs/src/snippets/kotlinDsl/'
   - release_coordination:
-    name: 'release-coordination'
+    name: 'release_coordination'
     subprojects:
+      - 'subprojects/core-platform/'
       - 'subprojects/distributions-dependencies/'
       - 'subprojects/distributions-full/'
       - 'subprojects/performance/'
@@ -254,20 +227,24 @@ platforms:
       - 'subprojects/version-control/'
 
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.jvm.members)) or (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.build_scan.members)) }}
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
 
 teams:
   build_scan:
     members:
       - 'alllex'
       - 'wolfs'
+  dev_prod:
+    members:
+      - 'blindpirate'
   execution:
     members:
-      - 'asodja'
-      - 'lptr'
-      - 'FrauBoes'
+      - 'asodja-DISABLED'
+      - 'lptr-DISABLED'
+      - 'FrauBoes-DISABLED'
   ide:
     members:
+      - 'hegyibalint'
       - 'donat'
       - 'reinsch82'
   jvm:

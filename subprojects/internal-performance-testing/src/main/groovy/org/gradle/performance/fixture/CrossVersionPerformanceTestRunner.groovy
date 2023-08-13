@@ -30,13 +30,13 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
-import org.gradle.profiler.AndroidStudioSyncAction
 import org.gradle.profiler.BuildAction
 import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.GradleInvoker
-import org.gradle.profiler.GradleInvokerBuildAction
 import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.ToolingApiGradleClient
+import org.gradle.profiler.gradle.GradleInvoker
+import org.gradle.profiler.gradle.GradleInvokerBuildAction
+import org.gradle.profiler.gradle.ToolingApiGradleClient
+import org.gradle.profiler.studio.AndroidStudioSyncAction
 import org.gradle.profiler.studio.tools.StudioFinder
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
@@ -216,7 +216,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
         builder.workingDirectory = workingDir
         def spec = builder.build()
-        experimentRunner.run(testId, spec, results)
+
+        try {
+            experimentRunner.run(testId, spec, results)
+        } catch (Exception e) {
+            maybePrintAndroidStudioLogs(studioSandboxDirAsFile)
+            throw e
+        }
     }
 
     private List<String> resolveGradleOpts() {
@@ -237,6 +243,14 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         studioJvmArgs = System.getProperty("studioJvmArgs") != null
             ? System.getProperty("studioJvmArgs").split(",").collect()
             : []
+    }
+
+    def maybePrintAndroidStudioLogs(File studioSandboxDirAsFile) {
+        if (useAndroidStudio) {
+            File logFile = new File(studioSandboxDirAsFile, "/logs/idea.log")
+            String message = logFile.exists() ? "\n${logFile.text}" : "Android Studio log file '${logFile}' doesn't exist, nothing to print."
+            println("[ANDROID STUDIO LOGS] $message")
+        }
     }
 }
 

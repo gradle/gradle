@@ -135,7 +135,7 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
-        @SuppressWarnings("deprecation") Configuration variant = project.getConfigurations().maybeCreateWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        @SuppressWarnings("deprecation") Configuration variant = project.getConfigurations().maybeCreateMigratingUnlocked(variantName, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         variant.setVisible(false);
         variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 

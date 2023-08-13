@@ -20,12 +20,14 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3901")
 class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
     def "can configure the Java plugin to compile and run tests against Java #version JDK"() {
         def jvm = AvailableJavaHomes.getJdk(version)

@@ -52,7 +52,6 @@ import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -117,8 +116,6 @@ public class ResolveIvyFactory {
         }
 
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
-        startParameterResolutionOverride.applyToCachePolicy(cachePolicy);
-
         UserResolverChain moduleResolver = new UserResolverChain(versionComparator, resolutionStrategy.getComponentSelection(), versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
         ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
 
@@ -203,11 +200,6 @@ public class ResolveIvyFactory {
         @Override
         public ArtifactResolver getArtifactResolver() {
             return this;
-        }
-
-        @Override
-        public OriginArtifactSelector getArtifactSelector() {
-            throw new UnsupportedOperationException();
         }
 
         @Override

@@ -22,13 +22,13 @@ import org.gradle.tooling.events.ProgressEvent;
 /**
  * Base class for {@code ProgressEvent} implementations.
  */
-abstract class BaseProgressEvent implements ProgressEvent {
+public abstract class BaseProgressEvent implements ProgressEvent {
 
     private final long eventTime;
     private final String displayName;
     private final OperationDescriptor descriptor;
 
-    BaseProgressEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
+    protected BaseProgressEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
         this.eventTime = eventTime;
         this.displayName = displayName;
         this.descriptor = descriptor;

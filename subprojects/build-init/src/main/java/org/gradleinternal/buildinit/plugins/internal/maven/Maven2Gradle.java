@@ -85,11 +85,16 @@ public class Maven2Gradle {
         if (multimodule) {
             String groupId = rootProject.getGroupId();
 
-            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "buildSrc/build", useIncubatingAPIs, insecureProtocolOption);
+            String buildLocation = "buildSrc";
+            if (useIncubatingAPIs) {
+                buildLocation = "build-logic";
+            }
+
+            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildLocation + "/build", useIncubatingAPIs, insecureProtocolOption);
             buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl.toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
             buildSrcScriptBuilder.create(workingDir).generate();
 
-            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions", useIncubatingAPIs, insecureProtocolOption);
+            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildLocation + "/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions", useIncubatingAPIs, insecureProtocolOption);
 
             generateSettings(rootProject.getArtifactId(), allProjects);
 
@@ -215,7 +220,7 @@ public class Maven2Gradle {
         if (enforceGoal != null) {
             Xpp3Dom configuration = (Xpp3Dom) enforceGoal.getConfiguration();
             Xpp3Dom bannedDependencies = configuration.getChild("rules").getChild("bannedDependencies");
-            if (bannedDependencies!=null) {
+            if (bannedDependencies != null) {
                 Xpp3Dom[] children = bannedDependencies.getChild("excludes").getChildren();
                 ScriptBlockBuilder block = builder.block(null, "configurations.all");
                 if (children != null) {
@@ -291,16 +296,16 @@ public class Maven2Gradle {
     private void repositoriesForProjects(Set<MavenProject> projects, BuildScriptBuilder builder) {
         builder.repositories().mavenLocal(null);
         Set<String> repoSet = new LinkedHashSet<>();
-        for(MavenProject project : projects) {
+        for (MavenProject project : projects) {
             getRepositoriesForModule(project, repoSet);
         }
-        for(String repo : repoSet) {
+        for (String repo : repoSet) {
             builder.repositories().maven(null, repo);
         }
     }
 
     private void getRepositoriesForModule(MavenProject module, Set<String> repoSet) {
-        for(Repository repo : module.getRepositories()) {
+        for (Repository repo : module.getRepositories()) {
             if (repo.getId().equals(RepositorySystem.DEFAULT_REMOTE_REPO_ID)) {
                 repoSet.add(RepositoryHandler.MAVEN_CENTRAL_URL);
             } else {
@@ -323,7 +328,7 @@ public class Maven2Gradle {
         List<org.apache.maven.model.Dependency> systemScope = new ArrayList<>();
 
         //cleanup duplicates from parent
-        for(org.apache.maven.model.Dependency mavenDependency : dependencies) {
+        for (org.apache.maven.model.Dependency mavenDependency : dependencies) {
             if (!duplicateDependency(mavenDependency, project, allProjects)) {
                 String scope = StringUtils.isNotEmpty(mavenDependency.getScope()) ? mavenDependency.getScope() : "compile";
                 switch (scope) {
@@ -494,6 +499,10 @@ public class Maven2Gradle {
     private void generateSettings(String mvnProjectName, Set<MavenProject> projects) {
         BuildScriptBuilder scriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "settings", useIncubatingAPIs, insecureProtocolOption);
 
+        if (useIncubatingAPIs) {
+            scriptBuilder.block(null, "pluginManagement").methodInvocation(
+                "Include 'plugins build' to define convention plugins.", "includeBuild", "build-logic");
+        }
         scriptBuilder.propertyAssignment(null, "rootProject.name", mvnProjectName);
         Set<MavenProject> modules = modules(projects, true);
 

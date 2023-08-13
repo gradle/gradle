@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.Rule
@@ -328,7 +327,6 @@ project(':b') {
         succeeds("test")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
         expect:
         def module = repo.module('org.gradle.test', 'lib', '1.0')
@@ -350,10 +348,19 @@ dependencies {
     compile "org.gradle.test:lib:1.0@zip"
     compile "org.gradle.test:dist:1.0"
 }
-task test {
-    doLast {
-        assert configurations.compile.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
-        def artifacts = configurations.compile.resolvedConfiguration.resolvedArtifacts as List
+
+abstract class CheckArtifacts extends DefaultTask {
+    @Internal
+    FileCollection files
+
+    @Internal
+    ArtifactCollection artifacts
+
+    @TaskAction
+    void test() {
+        assert this.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
+        def artifacts = this.artifacts.artifacts.collect { it.id.name }
+
         assert artifacts.size() == 4
         assert artifacts[0].name == 'lib'
         assert artifacts[0].type == 'jar'
@@ -372,6 +379,11 @@ task test {
         assert artifacts[3].extension == 'zip'
         assert artifacts[3].classifier == null
     }
+}
+
+tasks.register("test", CheckArtifacts) {
+    files = configurations.compile.incoming.files
+    artifacts = configurations.compile.incoming.artifacts
 }
 """
 
@@ -785,4 +797,3 @@ task test {
         return maven(file('repo'))
     }
 }
-

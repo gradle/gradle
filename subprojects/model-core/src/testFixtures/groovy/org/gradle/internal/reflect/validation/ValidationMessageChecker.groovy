@@ -403,7 +403,8 @@ trait ValidationMessageChecker {
     )
     String dummyValidationProblem(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         display(SimpleMessage, 'dummy') {
-            type('InvalidTask').property('dummy')
+            type('InvalidTask')
+            property('dummy')
             description('test problem')
             reason('this is a test')
             spec.delegate = delegate
@@ -416,9 +417,16 @@ trait ValidationMessageChecker {
     )
     String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(UnsupportedValueType, "unsupported_value_type", spec)
-        config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
-            .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
-        config.render()
+        if (config.propertyType.contains("URL")) {
+            config.description("has @Input annotation used on type 'java.net.URL' or a property of this type")
+                .reason("Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type")
+                .solution("Use type 'java.net.URI' instead")
+                .render()
+        } else {
+            config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
+                .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
+                .render()
+        }
     }
 
     @ValidationTestFor(
@@ -438,8 +446,8 @@ trait ValidationMessageChecker {
     String nestedTypeUnsupported(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(NestedTypeUnsupported, "unsupported_nested_type", spec)
         config.description("with nested type '${config.annotatedType}' is not supported.")
-            .reason("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.")
-            .solution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input.")
+            .solution("Use a different input annotation if type is not a bean.")
+            .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types.")
             .render()
     }
 

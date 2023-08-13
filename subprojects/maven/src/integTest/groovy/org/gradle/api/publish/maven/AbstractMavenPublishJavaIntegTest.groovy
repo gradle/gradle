@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
+import org.gradle.api.publish.maven.internal.publication.MavenComponentParser
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
@@ -89,7 +89,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
+        outputDoesNotContain(MavenComponentParser.INCOMPATIBLE_FEATURE)
         javaLibrary.assertPublished()
         javaLibrary.assertApiDependencies("org.test:foo:1.0")
         javaLibrary.assertRuntimeDependencies("org.test:bar:1.0", "org.test:baz:1.0+10", "org.test:qux:1.0-latest")
@@ -488,7 +488,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         run "publish"
 
         then:
-        outputContains(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
+        outputContains(MavenComponentParser.INCOMPATIBLE_FEATURE)
         javaLibrary.assertPublished()
 
         javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
@@ -774,7 +774,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         run "publish"
 
         then:
-        outputContains(DefaultMavenPublication.PUBLICATION_WARNING_FOOTER)
+        outputContains(MavenComponentParser.PUBLICATION_WARNING_FOOTER)
         outputContains("$silenceMethod(variant)")
         outputContains('Declares capability org:foo:1.0')
         outputContains("Variant apiElements")
@@ -803,7 +803,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultMavenPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(MavenComponentParser.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
     }
 
@@ -953,7 +953,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         javaLibrary.assertPublished()
 
         and:
-        outputContains(DefaultMavenPublication.UNSUPPORTED_FEATURE)
+        outputContains(MavenComponentParser.UNSUPPORTED_FEATURE)
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency('org.test:bar:1.0') {
                 hasAttribute('custom', 'hello')

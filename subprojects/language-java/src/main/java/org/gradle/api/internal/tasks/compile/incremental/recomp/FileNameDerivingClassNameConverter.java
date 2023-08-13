@@ -72,6 +72,11 @@ public class FileNameDerivingClassNameConverter implements SourceFileClassNameCo
         return paths;
     }
 
+    @Override
+    public Set<String> getRelativeSourcePathsThatExist(String className) {
+        return delegate.getRelativeSourcePaths(className);
+    }
+
     private String classNameToRelativePath(String className, String fileExtension) {
         return className.replace('.', '/') + fileExtension;
     }

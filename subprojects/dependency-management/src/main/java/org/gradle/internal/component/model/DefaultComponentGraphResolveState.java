@@ -16,11 +16,14 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -192,33 +195,25 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         }
 
         @Override
-        public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            return graphSelectedConfiguration.artifact(artifact);
+        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, List<IvyArtifactName> dependencyArtifacts, ImmutableAttributes overriddenAttributes) {
+            List<ComponentArtifactMetadata> artifacts = dependencyArtifacts.stream()
+                .map(graphSelectedConfiguration::artifact)
+                .collect(Collectors.toList());
+
+            return artifactSelector.resolveComponentArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), artifacts, overriddenAttributes);
         }
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), new ExternalVariantArtifactSelectionCandidates(allVariants, legacyVariants), exclusions, overriddenAttributes);
-        }
-    }
+            ComponentArtifactResolveMetadata component = new ExternalArtifactResolveMetadata(artifactMetadata);
 
-    private static class ExternalVariantArtifactSelectionCandidates implements VariantArtifactSelectionCandidates {
-        private final Set<? extends VariantResolveMetadata> allVariants;
-        private final Set<? extends VariantResolveMetadata> legacyVariants;
+            ImmutableSet<ResolvedVariant> legacyResolvedVariants =
+                artifactSelector.resolveVariants(component, legacyVariants, exclusions);
+            Lazy<ImmutableSet<ResolvedVariant>> allResolvedVariants = Lazy.locking().of(() ->
+                artifactSelector.resolveVariants(component, allVariants, exclusions)
+            );
 
-        public ExternalVariantArtifactSelectionCandidates(Set<? extends VariantResolveMetadata> allVariants, Set<? extends VariantResolveMetadata> legacyVariants) {
-            this.allVariants = allVariants;
-            this.legacyVariants = legacyVariants;
-        }
-
-        @Override
-        public Set<? extends VariantResolveMetadata> getAllVariants() {
-            return allVariants;
-        }
-
-        @Override
-        public Set<? extends VariantResolveMetadata> getLegacyVariants() {
-            return legacyVariants;
+            return new DefaultArtifactSet(component.getId(), component.getAttributesSchema(), overriddenAttributes, allResolvedVariants::get, legacyResolvedVariants);
         }
     }
 

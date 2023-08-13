@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
+import com.google.common.collect.ImmutableList
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleDependency
@@ -49,12 +50,14 @@ import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
+import org.gradle.internal.Describables
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 import org.gradle.internal.component.model.ComponentIdGenerator
@@ -65,6 +68,8 @@ import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata
+import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
@@ -1028,11 +1033,7 @@ class DependencyGraphBuilderTest extends Specification {
         def componentId = DefaultModuleComponentIdentifier.newId(id)
 
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
-        def defaultConfiguration = new DefaultLocalConfigurationMetadata(
-            "default", "defaultConfig", componentId, true, true, ["default"] as Set, attributes, ImmutableCapabilities.EMPTY,
-            true, false, true, [], [] as Set, [],
-            [] as Set, TestUtil.calculatedValueContainerFactory(), artifacts
-        )
+        def defaultConfiguration = newConfiguration("default", componentId, [], [], artifacts)
 
         def configurations = new DefaultLocalComponentMetadata.ConfigurationsMapMetadataFactory(["default": defaultConfiguration])
         return new DefaultLocalComponentMetadata(id, componentId, "release", attributesSchema, configurations, null)
@@ -1043,20 +1044,30 @@ class DependencyGraphBuilderTest extends Specification {
         def componentId = newProjectId(":root")
 
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
-        def defaultConfiguration = new DefaultLocalConfigurationMetadata(
-            "default", "defaultConfig", componentId, true, true, ["default"] as Set, attributes, ImmutableCapabilities.EMPTY,
-            true, false, true, [], [] as Set, [],
-            [] as Set, TestUtil.calculatedValueContainerFactory(), artifacts
-        )
+        def defaultConfiguration = newConfiguration("default", componentId, [], [], artifacts)
 
-        def rootConfiguration = new DefaultLocalConfigurationMetadata(
-            "root", "rootConfig", componentId, true, true, ["default", "root"] as Set, attributes, ImmutableCapabilities.EMPTY,
-            true, false, true, defaultConfiguration.getDependencies(), [] as Set, [],
-            [] as Set, TestUtil.calculatedValueContainerFactory(), []
-        )
+        def rootConfiguration = newConfiguration("root", componentId, ["default"], defaultConfiguration.getDependencies(), [])
 
         def configurations = new DefaultLocalComponentMetadata.ConfigurationsMapMetadataFactory(["default": defaultConfiguration, "root": rootConfiguration])
         return new DefaultLocalComponentMetadata(newId("group", "root", "1.0"), componentId, "release", attributesSchema, configurations, null)
+    }
+
+    def newConfiguration(String name, ComponentIdentifier componentId, List<String> extendsFrom, List<LocalOriginDependencyMetadata> dependencies, List<LocalComponentArtifactMetadata> artifacts) {
+        CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencyMetadata =
+            TestUtil.calculatedValueContainerFactory().create(Describables.of(name, "dependencies"),
+                new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(dependencies, [] as Set, [])
+            )
+
+        CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifactMetadata =
+            TestUtil.calculatedValueContainerFactory().create(Describables.of(name, "artifacts"),
+                ImmutableList.copyOf(artifacts)
+            )
+
+        return new DefaultLocalConfigurationMetadata(
+            name, name, componentId, true, true, [name] + extendsFrom as Set, attributes, ImmutableCapabilities.EMPTY,
+            true, false, true, dependencyMetadata,
+            [] as Set, TestUtil.calculatedValueContainerFactory(), artifactMetadata
+        )
     }
 
     def traverses(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
@@ -1125,9 +1136,9 @@ class DependencyGraphBuilderTest extends Specification {
             ComponentResolveMetadata excluded = args.exclude
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.moduleVersionId.group, excluded.moduleVersionId.name))
         }
-        def dependencyMetaData = new LocalComponentDependencyMetadata(from.id, componentSelector,
-                "default", null, ImmutableAttributes.EMPTY, "default", [] as List<IvyArtifactName>,
-                excludeRules, force, false, transitive, false, false, null)
+        def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector,
+            ImmutableAttributes.EMPTY, "default", [] as List<IvyArtifactName>,
+            excludeRules, force, false, transitive, false, false, null)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
             getAttributes() >> ImmutableAttributes.EMPTY
         })

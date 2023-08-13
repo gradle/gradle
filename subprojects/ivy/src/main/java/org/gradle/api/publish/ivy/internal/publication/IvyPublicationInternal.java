@@ -20,17 +20,10 @@ import org.gradle.api.Task;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
-import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
-import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.TaskProvider;
 
-import java.util.Set;
-
 public interface IvyPublicationInternal extends IvyPublication, PublicationInternal<IvyArtifact> {
-
-    IvyPublicationIdentity getIdentity();
 
     @Override
     IvyModuleDescriptorSpecInternal getDescriptor();
@@ -38,10 +31,6 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
     void setIvyDescriptorGenerator(TaskProvider<? extends Task> descriptorGenerator);
 
     void setModuleDescriptorGenerator(TaskProvider<? extends Task> descriptorGenerator);
-
-    Set<IvyDependencyInternal> getDependencies();
-
-    Set<IvyExcludeRule> getGlobalExcludes();
 
     IvyNormalizedPublication asNormalisedPublication();
 

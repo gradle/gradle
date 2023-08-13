@@ -15,6 +15,7 @@
  */
 package org.gradle.test.fixtures.file;
 
+import org.gradle.internal.os.OperatingSystem;
 import org.junit.runners.model.FrameworkMethod;
 
 import java.io.File;
@@ -33,14 +34,16 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
 
     private static String determineTestDirectoryName(Class<?> klass) {
         // NOTE: the space in the directory name is intentional to shake out problems with paths that contain spaces
-        // NOTE: and so is the "s with comma below" character (U+0219), to shake out problems with non-ASCII folder names
-        return supportsNonAsciiPaths(klass)
-            ? "teșt files"
+        // NOTE: and so is the "s with circumflex" character (U+015D), to shake out problems with non-ASCII folder names
+        return shouldUseNonAsciiPath(klass)
+            ? "teŝt files"
             : "test files";
     }
 
-    private static boolean supportsNonAsciiPaths(Class<?> klass) {
-        return klass.isAnnotationPresent(SupportsNonAsciiPaths.class);
+    private static boolean shouldUseNonAsciiPath(Class<?> klass) {
+        // TODO Remove this parameter and fix encoding problems on Windows, too
+        return !OperatingSystem.current().isWindows()
+            && !klass.isAnnotationPresent(DoesNotSupportNonAsciiPaths.class);
     }
 
     public static TestNameTestDirectoryProvider forFatDrive(Class<?> klass) {

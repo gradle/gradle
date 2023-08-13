@@ -67,6 +67,30 @@ class ProgressBarTest extends Specification {
         progress == "[##########] 100% EXECUTING"
     }
 
+    def "gracefully handles excessively reported progress"() {
+        when:
+        10.times {
+            progressBar.update(false)
+        }
+
+        then:
+        progress == "[##########] 100% EXECUTING"
+
+        when:
+        progressBar.update(false)
+
+        then:
+        progress == "[#########.] 110% EXECUTING"
+
+        when:
+        9.times {
+            progressBar.update(false)
+        }
+
+        then:
+        progress == "[#########.] 200% EXECUTING"
+    }
+
     def "fills completed progress as work added"() {
         when:
         progressBar.update(false)

@@ -53,6 +53,6 @@ application {
 
 // tag::cpp-select-target-machines[]
 application {
-    targetMachines.set(listOf(machines.windows.x86, machines.windows.x86_64, machines.macOS.x86_64, machines.linux.x86_64))
+    targetMachines = listOf(machines.windows.x86, machines.windows.x86_64, machines.macOS.x86_64, machines.linux.x86_64)
 }
 // end::cpp-select-target-machines[]

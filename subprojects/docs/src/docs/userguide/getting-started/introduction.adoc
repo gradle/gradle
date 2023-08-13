@@ -1,0 +1,48 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[introduction]]
+= Introduction
+
+Everyone has to start somewhere, and if you're new to Gradle, this is where to begin.
+
+[[gs:installation]]
+== Gradle Installation
+If all you want to do is run an existing Gradle build, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>.
+This is identifiable by the presence of the `gradlew` or `gradlew.bat` files in the root of the build.
+You just need to make sure your system <<installation#sec:prerequisites,satisfies Gradle's prerequisites>>.
+
+Android Studio comes with a working installation of Gradle, so you don't need to install Gradle separately when only working within that IDE.
+
+To create a new build or add a Wrapper to an existing build, you will need to install Gradle <<installation.adoc#installation,according to these instructions>>.
+
+If you need to install Gradle before the tutorial, you can do so in the <<installation.adoc#installation,installation section>>.
+
+[[getting_started]]
+== Getting Started with Gradle
+The tutorial will take you from Gradle initialization all the way through to utilizing Gradle's task caching for your basic Java App. No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
+
+[sidebar]
+_Training level_: **Beginner** +
+_Training time_: **55 minutes**
+
+The tutorial covers:
+
+<<part1_gradle_init#part1_begin,Part 1.>> Initializing the Project +
+<<part2_gradle_tasks#part2_begin,Part 2.>> Running Tasks +
+<<part3_gradle_dep_man#part3_begin,Part 3.>> Understanding Dependencies +
+<<part4_gradle_plugins#part4_begin,Part 4.>> Applying Plugins +
+<<part5_gradle_inc_builds#part5_begin,Part 5.>> Exploring Incremental Builds +
+<<part6_gradle_caching#part6_begin,Part 6.>> Enabling the Cache +
+<<part7_gradle_refs#part7_begin,Part 7.>> Using Reference Materials +

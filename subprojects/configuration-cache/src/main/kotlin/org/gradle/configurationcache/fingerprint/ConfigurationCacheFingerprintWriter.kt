@@ -117,10 +117,12 @@ class ConfigurationCacheFingerprintWriter(
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
+        val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
         val instrumentationAgentUsed: Boolean
+        val ignoredFileSystemCheckInputs: String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode
-        fun hashCodeOfDirectoryContent(file: File): HashCode
+        fun hashCodeOfDirectoryChildrenNames(file: File): HashCode
         fun displayNameOf(file: File): String
         fun reportProblem(exception: Throwable? = null, documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder)
         fun reportInput(input: PropertyProblem)
@@ -179,7 +181,9 @@ class ConfigurationCacheFingerprintWriter(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
                 host.startParameterProperties,
-                host.instrumentationAgentUsed
+                host.ignoreInputsInConfigurationCacheTaskGraphWriting,
+                host.instrumentationAgentUsed,
+                host.ignoredFileSystemCheckInputs
             )
         )
     }
@@ -792,7 +796,7 @@ class ConfigurationCacheFingerprintWriter(
             if (!capturedDirectories.add(file)) {
                 return
             }
-            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOfDirectoryContent(file)))
+            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOfDirectoryChildrenNames(file)))
         }
 
         fun captureRemoteScript(uri: URI) {

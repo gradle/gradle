@@ -88,6 +88,7 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
@@ -202,7 +203,8 @@ class DependencyManagementBuildScopeServices {
         DependencyMetaDataProvider dependencyMetaDataProvider,
         ObjectFactory objects,
         ProviderFactory providers,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        Problems problemService
     ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
@@ -212,7 +214,8 @@ class DependencyManagementBuildScopeServices {
             dependencyMetaDataProvider,
             objects,
             providers,
-            collectionCallbackActionDecorator
+            collectionCallbackActionDecorator,
+            problemService
         );
     }
 
@@ -496,6 +499,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     DependenciesAccessors createDependenciesAccessorGenerator(
+        ObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
         DefaultProjectDependencyFactory factory,
@@ -506,7 +510,7 @@ class DependencyManagementBuildScopeServices {
         CapabilityNotationParser capabilityNotationParser,
         InputFingerprinter inputFingerprinter
     ) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
+        return objectFactory.newInstance(DefaultDependenciesAccessors.class, registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
     }
 
 
@@ -527,20 +531,21 @@ class DependencyManagementBuildScopeServices {
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem,
-        DocumentationRegistry documentationRegistry
+        DocumentationRegistry documentationRegistry,
+        Problems problems
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
         // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
-        return new DefaultExecutionEngine(documentationRegistry,
-            new IdentifyStep<>(buildOperationExecutor,
+        return new DefaultExecutionEngine(
+            problems, new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new RemoveUntrackedExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new NoOpCachingStateStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(

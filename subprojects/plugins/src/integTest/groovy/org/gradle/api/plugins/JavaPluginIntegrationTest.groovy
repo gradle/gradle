@@ -124,7 +124,7 @@ Artifacts
             def testResolve = tasks.register('testResolve') {
                 def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
                 def resolvedConfigFiles = provider {
-                    sourceElementsConfig.getResolvedConfiguration().files
+                    sourceElementsConfig.files
                 }
                 doLast {
                     assert resolvedConfigFiles.get().containsAll(expectedResolvedFiles)
@@ -215,7 +215,7 @@ Artifacts
 
             def testResolve = tasks.register('testResolve') {
                 def actual = provider {
-                    sourceElementsConfig.getResolvedConfiguration().getFiles()
+                    sourceElementsConfig.files
                 }
                 doLast {
                     assert actual.get().containsAll(expectedResolvedFiles)

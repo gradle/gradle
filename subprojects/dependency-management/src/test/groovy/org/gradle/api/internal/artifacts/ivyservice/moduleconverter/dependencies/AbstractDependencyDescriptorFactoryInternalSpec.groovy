@@ -31,7 +31,6 @@ import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
 abstract class AbstractDependencyDescriptorFactoryInternalSpec extends Specification {
-    static final TEST_CONF = "conf"
     static final TEST_DEP_CONF = "depconf1"
 
     static final TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule("testOrg", null)
@@ -62,7 +61,6 @@ abstract class AbstractDependencyDescriptorFactoryInternalSpec extends Specifica
 
     protected static void assertDependencyDescriptorHasCommonFixtureValues(LocalOriginDependencyMetadata dependencyMetadata, boolean withArtifacts) {
         assert TEST_IVY_EXCLUDE_RULE == dependencyMetadata.getExcludes().get(0)
-        assert dependencyMetadata.getModuleConfiguration() == TEST_CONF
         if (!withArtifacts) {
             assert dependencyMetadata.getDependencyConfiguration() == TEST_DEP_CONF
         }

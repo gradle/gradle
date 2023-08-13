@@ -37,8 +37,8 @@ class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec 
     def cppToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.CLANG)
 
     def setup() {
-        assumeTrue(swiftToolChain != null)
-        assumeTrue(cppToolChain != null)
+        assumeTrue("Swift toolchain is available", swiftToolChain != null)
+        assumeTrue("C++ toolchain is available", cppToolChain != null)
 
         File initScript = file("init.gradle") << """
         allprojects { p ->

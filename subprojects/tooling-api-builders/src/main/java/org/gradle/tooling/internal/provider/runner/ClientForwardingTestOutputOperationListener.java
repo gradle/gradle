@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.build.event.types.DefaultTestOutputDescriptor;
@@ -33,6 +34,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 /**
  * Test listener that forwards the test output events.
  */
+@NonNullApi
 class ClientForwardingTestOutputOperationListener implements BuildOperationListener {
     private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;
@@ -48,15 +50,17 @@ class ClientForwardingTestOutputOperationListener implements BuildOperationListe
 
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-        if (progressEvent.getDetails() instanceof TestListenerBuildOperationAdapter.OutputProgress) {
-            TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) progressEvent.getDetails();
+        Object details = progressEvent.getDetails();
+        if (details instanceof TestListenerBuildOperationAdapter.OutputProgress) {
+            TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) details;
             InternalTestOutputDescriptor descriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
-            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), getDestination(progress.getOutput().getDestination()), progress.getOutput().getMessage());
+            int destination = getDestination(progress.getOutput().getDestination());
+            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), destination, progress.getOutput().getMessage());
             eventConsumer.progress(new DefaultTestOutputEvent(progressEvent.getTime(), descriptor, result));
         }
     }
 
-    private int getDestination(TestOutputEvent.Destination destination) {
+    private static int getDestination(TestOutputEvent.Destination destination) {
         switch (destination) {
             case StdOut: return Destination.StdOut.getCode();
             case StdErr: return Destination.StdErr.getCode();

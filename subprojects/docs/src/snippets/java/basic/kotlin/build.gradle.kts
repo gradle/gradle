@@ -6,7 +6,7 @@ plugins {
 // tag::java-extension[]
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 // end::java-extension[]
@@ -103,7 +103,7 @@ tasks.compileJava {
 
 // tag::java-release-flag[]
 tasks.compileJava {
-    options.release.set(7)
+    options.release = 7
 }
 // end::java-release-flag[]
 

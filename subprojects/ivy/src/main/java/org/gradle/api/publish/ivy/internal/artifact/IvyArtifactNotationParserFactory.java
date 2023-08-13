@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -43,13 +43,13 @@ import java.io.File;
 public class IvyArtifactNotationParserFactory implements Factory<NotationParser<Object, IvyArtifact>> {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
-    private final IvyPublicationIdentity publicationIdentity;
+    private final IvyPublicationCoordinates publicationCoordinates;
     private final TaskDependencyFactory taskDependencyFactory;
 
-    public IvyArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver, IvyPublicationIdentity publicationIdentity, TaskDependencyFactory taskDependencyFactory) {
+    public IvyArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver, IvyPublicationCoordinates publicationCoordinates, TaskDependencyFactory taskDependencyFactory) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
-        this.publicationIdentity = publicationIdentity;
+        this.publicationCoordinates = publicationCoordinates;
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
@@ -87,7 +87,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         protected IvyArtifact parseType(AbstractArchiveTask archiveTask) {
-            return instantiator.newInstance(ArchiveTaskBasedIvyArtifact.class, archiveTask, publicationIdentity, taskDependencyFactory);
+            return instantiator.newInstance(ArchiveTaskBasedIvyArtifact.class, archiveTask, publicationCoordinates, taskDependencyFactory);
         }
     }
 
@@ -98,14 +98,14 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         protected IvyArtifact parseType(PublishArtifact publishArtifact) {
-            return instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, publishArtifact, publicationIdentity, taskDependencyFactory);
+            return instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, publishArtifact, publicationCoordinates, taskDependencyFactory);
         }
     }
 
     private class ProviderNotationConverter implements NotationConverter<Provider<?>, IvyArtifact> {
         @Override
         public void convert(Provider<?> publishArtifact, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
-            IvyArtifact artifact = instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, new LazyPublishArtifact(publishArtifact, fileResolver, taskDependencyFactory), publicationIdentity, taskDependencyFactory);
+            IvyArtifact artifact = instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, new LazyPublishArtifact(publishArtifact, fileResolver, taskDependencyFactory), publicationCoordinates, taskDependencyFactory);
             result.converted(artifact);
         }
 
@@ -125,7 +125,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         @Override
         public void convert(Object notation, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
-            IvyArtifact ivyArtifact = instantiator.newInstance(FileBasedIvyArtifact.class, file, publicationIdentity, taskDependencyFactory);
+            IvyArtifact ivyArtifact = instantiator.newInstance(FileBasedIvyArtifact.class, file, publicationCoordinates, taskDependencyFactory);
             if (notation instanceof TaskDependencyContainer) {
                 TaskDependencyContainer taskDependencyContainer;
                 if (notation instanceof Provider) {

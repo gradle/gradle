@@ -15,7 +15,7 @@ dependencies {
 // tag::java-cross-compilation[]
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(7))
+        languageVersion = JavaLanguageVersion.of(7)
     }
 }
 // end::java-cross-compilation[]

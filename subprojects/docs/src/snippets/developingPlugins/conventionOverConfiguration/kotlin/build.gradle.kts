@@ -3,5 +3,5 @@ plugins {
 }
 
 server {
-    url.set("http://localhost:8080/server")
+    url = "http://localhost:8080/server"
 }

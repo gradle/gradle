@@ -18,7 +18,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -50,34 +50,16 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="SSL"></a>
-### SSL improvements
+### Introduce JetBrains as a known JVM vendor
 
-Gradle had multiple issues when non-standard keystores and truststores were used.
-This affected users on Linux systems with FIPS enabled and also Windows users who were storing certificates in the Trusted Root Certification Authorities store.
-SSL context creation has been improved to be more aligned with the default implementation and to support these cases.
-Also, error messages related to SSL have been improved, and they should be more visible.
-
-### Reduced memory consumption
-
-TODO - dependency resolution uses less heap
-
-### Kotlin DSL improvements
-
-Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing experience in supported IDEs compared to the traditional Groovy DSL — auto-completion, smart content assist, quick access to documentation, navigation to source, and context-aware refactoring.
-
-Kotlin DSL has received substantial improvements in the recent releases, leading to the announcement that [Kotlin DSL is Now the Default for New Gradle Builds](https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds).
-This release brings another series of improvements.
-
-#### Request plugin with the embedded Kotlin version
-
-It is now easier to request a plugin with the embedded Kotlin version in the builds of your Gradle plugins implemented in Kotlin.
-
-Instead of using [kotlin()](kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html) that requires a version declaration you can now use [embeddedKotlin()](kotlin-dsl/gradle/org.gradle.kotlin.dsl/embedded-kotlin.html) instead:
+It is now possible to use JetBrains as a known JVM vendor when referring to [JetBrains Runtime](https://www.jetbrains.com/jetbrains-runtime) when using [Toolchains](userguide/toolchains.html):
 
 ```kotlin
-plugins {
-    embeddedKotlin("plugin.serialization")
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+        vendor.set(JvmVendorSpec.JETBRAINS)
+    }
 }
 ```
 

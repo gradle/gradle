@@ -20,11 +20,15 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.FileUtils
+import org.gradle.test.fixtures.Flaky
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion
 
+@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3901")
 class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     static List<String> javaVersionsToCrossCompileAgainst() {

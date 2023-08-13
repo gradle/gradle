@@ -20,11 +20,14 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
 
+import javax.inject.Inject;
+
 public class DefaultIvyModuleDescriptorDescription implements IvyModuleDescriptorDescription {
 
     private final Property<String> text;
     private final Property<String> homepage;
 
+    @Inject
     public DefaultIvyModuleDescriptorDescription(ObjectFactory objectFactory) {
         text = objectFactory.property(String.class);
         homepage = objectFactory.property(String.class);

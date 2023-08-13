@@ -382,13 +382,17 @@ To fix the problem either annotate the work type with `@CacheableTask`/`@Cacheab
 [[unsupported_value_type]]
 == Unsupported value type
 
-This error indicates that a task declares an input property with values of an unsupported type.
+This message indicates that a task declares an input property with values of an unsupported type.
 
-To fix this, look at the error message which indicates the list of possible solutions.
+To address this, look at the message which indicates the list of possible solutions.
 
-Please find below the list of unsupported value type and links to respective sections of the user manual:
+Please find below the list of unsupported value types:
 
 `ResolvedArtifactResult`:: <<incremental_build#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+`java.net.URL`:: This type is not supported on properties annotated with @Input because up-to-date checks might to be inconsistent for this type, leading to incorrect build results.
+This is caused by a known issue in Java where the serialization of `java.net.URL` is incorrect.
+See the https://bugs.openjdk.org/browse/JDK-8075619[OpenJDK bug report] for more details.
+To address this, we suggest to use `java.net.URI` instead.
 
 [[unsupported_key_type_of_nested_map]]
 == Unsupported key type of nested map

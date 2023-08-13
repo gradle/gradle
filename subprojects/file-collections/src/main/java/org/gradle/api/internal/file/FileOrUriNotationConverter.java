@@ -28,9 +28,12 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,9 +42,6 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
 
     private static final Pattern URI_SCHEME = Pattern.compile("([a-zA-Z][a-zA-Z0-9+-\\.]*:).+");
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
-
-    public FileOrUriNotationConverter() {
-    }
 
     public static NotationParser<Object, Object> parser() {
         return NotationParserBuilder
@@ -122,11 +122,11 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         }
     }
 
-    private boolean isWindowsRootDirectory(String scheme) {
+    private static boolean isWindowsRootDirectory(String scheme) {
         return scheme.length() == 2 && Character.isLetter(scheme.charAt(0)) && scheme.charAt(1) == ':' && OperatingSystem.current().isWindows();
     }
 
-    private void convertToUrl(String notationString, NotationConvertResult<? super Object> result) {
+    private static void convertToUrl(String notationString, NotationConvertResult<? super Object> result) {
         try {
             result.converted(new URI(notationString));
         } catch (URISyntaxException e) {
@@ -134,15 +134,29 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         }
     }
 
-    private String uriDecode(String path) {
+    private static String uriDecode(String path) {
+        try {
+            return URLDecoder.decode(path, StandardCharsets.UTF_8.name());
+        } catch (IllegalArgumentException e) {
+            return fallbackUrlDecode(path);
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    /**
+     * Lenient legacy behavior to fall back to when URI cannot be normally parsed.
+     *
+     * TODO: Deprecate this
+     */
+    private static String fallbackUrlDecode(String path) {
         StringBuffer builder = new StringBuffer();
         Matcher matcher = ENCODED_URI.matcher(path);
         while (matcher.find()) {
             String val = matcher.group(1);
-            matcher.appendReplacement(builder, String.valueOf((char) (Integer.parseInt(val, 16))));
+            matcher.appendReplacement(builder, String.valueOf((char) Integer.parseInt(val, 16)));
         }
         matcher.appendTail(builder);
         return builder.toString();
     }
-
 }

@@ -19,6 +19,9 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLocation;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -35,6 +38,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+
+import static org.gradle.api.problems.interfaces.ProblemGroup.DEPRECATION_ID;
+import static org.gradle.api.problems.interfaces.Severity.WARNING;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -53,12 +59,16 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private WarningMode warningMode = WarningMode.Summary;
     private BuildOperationProgressEventEmitter progressEventEmitter;
+    private Problems problemsService;
     private GradleException error;
 
-    public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
-        this.problemStream = problemDiagnosticsFactory.newStream();
+    public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, Problems problemsService) {
         this.warningMode = warningMode;
+        this.problemStream = warningMode.shouldDisplayMessages()
+            ? problemDiagnosticsFactory.newUnlimitedStream()
+            : problemDiagnosticsFactory.newStream();
         this.progressEventEmitter = progressEventEmitter;
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -73,7 +83,25 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
             }
         }
+        if (problemsService != null) {
+            ProblemBuilderDefiningLocation genericDeprecation = problemsService.createProblemBuilder()//DEPRECATION, usage.formattedMessage(), WARNING, "generic_deprecation")
+                .documentedAt(usage.getDocumentationUrl());
+            addPossibleLocation(diagnostics, genericDeprecation)
+                .message(usage.formattedMessage())
+                .type("generic_deprecation")
+                .group(DEPRECATION_ID)
+                .severity(WARNING)
+                .report();
+        }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
+    }
+
+    private static ProblemBuilderDefiningMessage addPossibleLocation(ProblemDiagnostics diagnostics, ProblemBuilderDefiningLocation genericDeprecation) {
+        Location location = diagnostics.getLocation();
+        if (location == null) {
+            return genericDeprecation.noLocation();
+        }
+        return genericDeprecation.location(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {

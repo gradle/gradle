@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
@@ -47,13 +48,13 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         then:
         assertConfigurationCacheStateStored()
 
-        // TODO - this is here because AGP >=7.4 reads build/generated/source/kapt/debug at configuration time
         when: 'up-to-date build, reusing configuration cache when enabled'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
         buildUpToDateLocation(originalDir, agpVersion)
 
         then:
-        if (agpVersion.startsWith('7.3')) {
+        // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
+        if (agpVersion.startsWith('7.3') || VersionNumber.parse(agpVersion) >= VersionNumber.parse('8.1.0')) {
             assertConfigurationCacheStateLoaded()
         } else {
             assertConfigurationCacheStateStored()

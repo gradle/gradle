@@ -16,11 +16,10 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 public class ConfigurationNotFoundException extends RuntimeException {
-    public ConfigurationNotFoundException(ComponentIdentifier fromComponent, String fromConfiguration, String toConfiguration, ComponentIdentifier toComponent) {
-        super(String.format("%s declares a dependency from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", StringUtils.capitalize(fromComponent.getDisplayName()), fromConfiguration, toConfiguration, toComponent.getDisplayName()));
+    public ConfigurationNotFoundException(String toConfiguration, ComponentIdentifier toComponent) {
+        super(String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", toConfiguration, toComponent.getDisplayName()));
     }
 }

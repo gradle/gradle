@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.VersionConstraintInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -28,12 +27,6 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 class ExternalModuleDependencyMetadataConverterTest extends AbstractDependencyDescriptorFactoryInternalSpec {
 
     ExternalModuleDependencyMetadataConverter converter = new ExternalModuleDependencyMetadataConverter(excludeRuleConverterStub)
-    private final ComponentIdentifier componentId = new ComponentIdentifier() {
-        @Override
-        String getDisplayName() {
-            return "example"
-        }
-    }
 
     def canConvert() {
         expect:
@@ -44,7 +37,7 @@ class ExternalModuleDependencyMetadataConverterTest extends AbstractDependencyDe
     def testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         when:
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF)
-        LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(componentId, TEST_CONF, null, dependency)
+        LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(dependency)
         ModuleComponentSelector selector = (ModuleComponentSelector) dependencyMetaData.getSelector()
 
         then:
@@ -60,7 +53,7 @@ class ExternalModuleDependencyMetadataConverterTest extends AbstractDependencyDe
         DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", configuration)
         setUpDependency(moduleDependency, withArtifacts)
 
-        LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(componentId, TEST_CONF, null, moduleDependency)
+        LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(moduleDependency)
 
         then:
         moduleDependency.changing == dependencyMetaData.changing

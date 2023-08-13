@@ -33,10 +33,12 @@ public class JavadocUtils {
 
     public static String callableKindForJavadoc(CallInterceptionRequest request) {
         CallableInfo interceptedCallable = request.getInterceptedCallable();
-        return interceptedCallable.getKind() == CallableKindInfo.STATIC_METHOD ? "static method" :
-            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? "instance method" :
-                interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? "constructor (getting notified after it)" :
-                    interceptedCallable.getKind() == CallableKindInfo.GROOVY_PROPERTY ? "Groovy property getter" : null;
+        CallableKindInfo kind = interceptedCallable.getKind();
+        return kind == CallableKindInfo.STATIC_METHOD ? "static method" :
+            kind == CallableKindInfo.INSTANCE_METHOD ? "instance method" :
+                kind == CallableKindInfo.AFTER_CONSTRUCTOR ? "constructor (getting notified after it)" :
+                    kind == CallableKindInfo.GROOVY_PROPERTY_GETTER ? "Groovy property getter" :
+                        kind == CallableKindInfo.GROOVY_PROPERTY_SETTER ? "Groovy property setter" : null;
     }
 
     public static CodeBlock interceptedCallableLink(CallInterceptionRequest request) {
@@ -47,7 +49,7 @@ public class JavadocUtils {
         List<ParameterInfo> params = request.getInterceptedCallable().getParameters();
         List<ParameterInfo> methodParameters = params.stream().filter(parameter -> parameter.getKind().isSourceParameter()).collect(Collectors.toList());
         result.add("{@link $L#$L", className, callableNameForDocComment);
-        if (interceptedCallable.getKind() != CallableKindInfo.GROOVY_PROPERTY) {
+        if (interceptedCallable.getKind() != CallableKindInfo.GROOVY_PROPERTY_GETTER && interceptedCallable.getKind() != CallableKindInfo.GROOVY_PROPERTY_SETTER) {
             result.add("(");
             methodParameters.forEach(parameter -> {
                 result.add("$L", parameterTypeForJavadoc(parameter, true));

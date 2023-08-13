@@ -93,7 +93,7 @@ public class UnauthorizedFileVisitDetails implements FileVisitDetails {
     }
 
     @Override
-    public FilePermissions getImmutablePermissions() {
+    public FilePermissions getPermissions() {
         throw new UnsupportedOperationException();
     }
 }

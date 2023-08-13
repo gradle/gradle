@@ -14,9 +14,9 @@ body:
     attributes:
       label: Issue type
       options:
-        - Typo
         - Wrong or misleading information
         - Missing information
+        - Typo
     validations:
       required: true
   - type: textarea
@@ -25,6 +25,7 @@ body:
       label: Problem description
       description: |
         Please describe the problem as concisely as possible.
+        If it's a clear typo, consider opening a PR to fix it instead of opening an issue.
     validations:
       required: true
   - type: textarea

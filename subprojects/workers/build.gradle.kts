@@ -37,6 +37,7 @@ dependencies {
     integTestRuntimeOnly(project(":test-kit"))
 
     integTestImplementation(project(":jvm-services"))
+    integTestImplementation(project(":enterprise-operations"))
 
     testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.groovyJson)
@@ -46,9 +47,4 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-core"))
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

@@ -375,6 +375,7 @@ Sorting is done based on the following rules:
 .. GRAAL_VM
 .. HEWLETT_PACKARD
 .. IBM
+.. JETBRAINS
 .. MICROSOFT
 .. ORACLE
 .. SAP
@@ -389,8 +390,8 @@ Let's illustrate with an example.
 A toolchain specification requests Java version 17.
 Gradle detects the following matching installations:
 
-* Oracle JRE v17.0.0
-* Oracle JDK v17.0.1
+* Oracle JRE v17.0.1
+* Oracle JDK v17.0.0
 * Microsoft JDK 17.0.0
 * Microsoft JRE 17.0.1
 * Microsoft JDK 17.0.1

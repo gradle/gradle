@@ -18,6 +18,8 @@ package org.gradle.internal.instrumentation.model;
 
 import org.objectweb.asm.Type;
 
+import java.util.Objects;
+
 public class CallableOwnerInfo {
     private final Type type;
     private final boolean interceptSubtypes;
@@ -33,5 +35,22 @@ public class CallableOwnerInfo {
 
     public boolean isInterceptSubtypes() {
         return interceptSubtypes;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CallableOwnerInfo that = (CallableOwnerInfo) o;
+        return interceptSubtypes == that.interceptSubtypes && Objects.equals(type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, interceptSubtypes);
     }
 }

@@ -104,7 +104,7 @@ public class TarCopyAction implements CopyAction {
                 TarArchiveEntry archiveEntry = new TarArchiveEntry(fileDetails.getRelativePath().getPathString());
                 archiveEntry.setModTime(getArchiveTimeFor(fileDetails));
                 archiveEntry.setSize(fileDetails.getSize());
-                archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getImmutablePermissions().toUnixNumeric());
+                archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
                 tarOutStr.putArchiveEntry(archiveEntry);
                 fileDetails.copyTo(tarOutStr);
                 tarOutStr.closeArchiveEntry();
@@ -118,7 +118,7 @@ public class TarCopyAction implements CopyAction {
                 // Trailing slash on name indicates entry is a directory
                 TarArchiveEntry archiveEntry = new TarArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
                 archiveEntry.setModTime(getArchiveTimeFor(dirDetails));
-                archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getImmutablePermissions().toUnixNumeric());
+                archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getPermissions().toUnixNumeric());
                 tarOutStr.putArchiveEntry(archiveEntry);
                 tarOutStr.closeArchiveEntry();
             } catch (Exception e) {

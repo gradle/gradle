@@ -31,15 +31,15 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             import org.gradle.internal.instrumentation.api.annotations.CallableKind.*;
             import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
             import org.gradle.internal.classpath.declarations.*;
-            import java.io.File;
+            import org.gradle.api.*;
 
             @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl")
             public class FileInterceptorsDeclaration {
                 @InterceptCalls
                 @InstanceMethod
                 @InterceptInherited
-                public static File[] intercept_listFiles(@Receiver File thisFile) {
-                    return new File[0];
+                public static String intercept_getDescription(@Receiver Rule thisRule) {
+                    return "";
                 }
             }
         """
@@ -64,9 +64,9 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
-                    if (metadata.isInstanceOf(owner, "java/io/File")) {
-                        if (name.equals("listFiles") && descriptor.equals("()[Ljava/io/File;") && opcode == Opcodes.INVOKEVIRTUAL) {
-                            _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION_TYPE, "intercept_listFiles", "(Ljava/io/File;)[Ljava/io/File;");
+                    if (metadata.isInstanceOf(owner, "org/gradle/api/Rule")) {
+                        if (name.equals("getDescription") && descriptor.equals("()Ljava/lang/String;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION_TYPE, "intercept_getDescription", "(Lorg/gradle/api/Rule;)Ljava/lang/String;");
                             return true;
                         }
                     }
@@ -78,6 +78,34 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(expectedJvmInterceptors))
             .containsElementsIn(expectedJvmInterceptors)
+    }
+
+    def "compilation should fail if non-gradle type is instrumented with @InterceptInherited"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.CallableKind.*;
+            import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
+            import java.io.File;
+
+            @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl")
+            public class FileInterceptorsDeclaration {
+                @InterceptCalls
+                @InstanceMethod
+                @InterceptInherited
+                public static File[] intercept_listFiles(@Receiver File thisFile) {
+                    return new File[0];
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        assertThat(compilation).failed()
+        assertThat(compilation).hadErrorContaining("Intercepting inherited methods is supported only for Gradle types for now, but type was: java/io/File")
     }
 
     def "should generate interceptor with public modifier and public constructor"() {
@@ -111,6 +139,71 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                     super(methodVisitor);
                     this.methodVisitor = methodVisitor;
                     this.metadata = metadata;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(expectedJvmInterceptors))
+            .containsElementsIn(expectedJvmInterceptors)
+    }
+
+    def "should group visitMethodInsn logic by call owner"() {
+        given:
+        def givenFirstSource = source """
+            package org.gradle.test;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.CallableKind.*;
+            import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
+            import java.io.File;
+
+            @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl")
+            public class FileInterceptorsDeclaration {
+                @InterceptCalls
+                @InstanceMethod
+                public static File[] intercept_listFiles(@Receiver File thisFile) {
+                    return new File[0];
+                }
+            }
+        """
+        def givenSecondSource = source """
+            package org.gradle.test;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.CallableKind.*;
+            import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
+            import java.io.File;
+
+            @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl")
+            public class FileInterceptorsDeclaration2 {
+                @InterceptCalls
+                @InstanceMethod
+                public static boolean intercept_exists(@Receiver File thisFile) {
+                    return false;
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenFirstSource, givenSecondSource)
+
+        then:
+        def expectedJvmInterceptors = source """
+            package my;
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+                @Override
+                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                        String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+                    if (owner.equals("java/io/File")) {
+                        if (name.equals("listFiles") && descriptor.equals("()[Ljava/io/File;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION_TYPE, "intercept_listFiles", "(Ljava/io/File;)[Ljava/io/File;");
+                            return true;
+                        }
+                        if (name.equals("exists") && descriptor.equals("()Z") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION2_TYPE, "intercept_exists", "(Ljava/io/File;)Z");
+                            return true;
+                        }
+                    }
+                    return false;
                 }
             }
         """

@@ -611,7 +611,7 @@ include::sample[dir="snippets/kotlinDsl/containers-scope/kotlin",files="build.gr
 [[kotdsl:properties]]
 == Working with runtime properties
 
-Gradle has two main sources of properties that are defined at runtime: <<build_environment#sec:project_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
+Gradle has two main sources of properties that are defined at runtime: <<project_properties.adoc#sec:project_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
 The Kotlin DSL provides specific syntax for working with these types of properties, which we look at in the following sections.
 
 === Project properties
@@ -677,7 +677,7 @@ tasks {
 
     register<Zip>("archiveTestReports") {
         val reportType: String by test.get().extra  // <2>
-        archiveAppendix.set(reportType)
+        archiveAppendix = reportType
         from(test.get().reports.html.destination)
     }
 }
@@ -695,7 +695,7 @@ tasks.test.doLast { ... }
 val testReportType by tasks.test.get().extra("dev")  // <1>
 
 tasks.create<Zip>("archiveTestReports") {
-    archiveAppendix.set(testReportType)  // <2>
+    archiveAppendix = testReportType  // <2>
     from(test.get().reports.html.destination)
 }
 ----
@@ -728,12 +728,12 @@ tasks.create("myTask") {
 [[kotdsl:assignment]]
 == Kotlin lazy property assignment
 
-Gradle's Kotlin DSL supports lazy property assignment using the `=` operator as an incubating feature enabled by default. It can be disabled by adding `systemProp.org.gradle.unsafe.kotlin.assignment=false` to the `gradle.properties` file.
+Gradle's Kotlin DSL supports lazy property assignment using the `=` operator .
 Lazy property assignment reduces the verbosity for Kotlin DSL when <<lazy_configuration#lazy_properties,lazy properties>> are used.
 It works for properties that are publicly seen as `final` (without a setter) and have type `Property` or `ConfigurableFileCollection`.
 Since properties have to be `final`, our general recommendation is not to implement custom setters for properties with lazy types and, if possible, implement such properties via an abstract getter.
 
-Once the feature is promoted to stable, using the `=` operator will be the preferred way to call `set()` in the Kotlin DSL.
+Using the `=` operator is the preferred way to call `set()` in the Kotlin DSL.
 
 .Kotlin lazy property assignment
 ====
@@ -746,8 +746,6 @@ include::sample[dir="snippets/kotlinDsl/assignment/kotlin",files="build.gradle.k
 === IDE support
 
 Lazy property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
-For IDE to detect the Kotlin assignment is disabled, `systemProp.org.gradle.unsafe.kotlin.assignment=false` has to be added to the root project `gradle.properties` file (also for all included builds).
-Additionally, the project has to be reopened after the property value is changed.
 
 
 [[sec:kotlin-dsl_plugin]]

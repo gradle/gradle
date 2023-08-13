@@ -26,23 +26,23 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
+import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public class DefaultVariantVersionMappingStrategy implements VariantVersionMappingStrategyInternal {
     private final ConfigurationContainer configurations;
     private final ProjectDependencyPublicationResolver projectResolver;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
     private boolean usePublishedVersions;
     private Configuration targetConfiguration;
 
-    public DefaultVariantVersionMappingStrategy(ConfigurationContainer configurations, ProjectDependencyPublicationResolver projectResolver, ProjectRegistry<ProjectInternal> projectRegistry) {
+    public DefaultVariantVersionMappingStrategy(ConfigurationContainer configurations, ProjectDependencyPublicationResolver projectResolver) {
         this.configurations = configurations;
         this.projectResolver = projectResolver;
-        this.projectRegistry = projectRegistry;
     }
 
     @Override
@@ -62,50 +62,56 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
     }
 
     @Override
-    public ModuleVersionIdentifier maybeResolveVersion(String group, String module, String projectPath) {
-        if (usePublishedVersions && targetConfiguration != null) {
-            ResolutionResult resolutionResult = targetConfiguration
-                .getIncoming()
-                .getResolutionResult();
-            Set<? extends ResolvedComponentResult> resolvedComponentResults = resolutionResult.getAllComponents();
-            for (ResolvedComponentResult selected : resolvedComponentResults) {
-                ModuleVersionIdentifier moduleVersion = selected.getModuleVersion();
-                if (moduleVersion != null && group.equals(moduleVersion.getGroup()) && module.equals(moduleVersion.getName())) {
-                    return moduleVersion;
-                }
+    public ModuleVersionIdentifier maybeResolveVersion(String group, String module, Path identityPath) {
+        if (!usePublishedVersions || targetConfiguration == null) {
+            return null;
+        }
+
+        ResolutionResult resolutionResult = targetConfiguration
+            .getIncoming()
+            .getResolutionResult();
+        Set<? extends ResolvedComponentResult> resolvedComponentResults = resolutionResult.getAllComponents();
+        for (ResolvedComponentResult selected : resolvedComponentResults) {
+            ModuleVersionIdentifier moduleVersion = selected.getModuleVersion();
+            if (moduleVersion != null && group.equals(moduleVersion.getGroup()) && module.equals(moduleVersion.getName())) {
+                return moduleVersion;
             }
-            // If we reach this point it means we have a dependency which doesn't belong to the resolution result
-            // Which can mean two things:
-            // 1. the graph used to get the resolved version has nothing to do with the dependencies we're trying to get versions for (likely user error)
-            // 2. the graph contains first-level dependencies which have been substituted (likely) so we're going to iterate on dependencies instead
-            Set<? extends DependencyResult> allDependencies = resolutionResult.getAllDependencies();
-            for (DependencyResult dependencyResult : allDependencies) {
-                if (dependencyResult instanceof ResolvedDependencyResult) {
-                    ComponentSelector rcs = dependencyResult.getRequested();
-                    ResolvedComponentResult selected = null;
-                    if (rcs instanceof ModuleComponentSelector) {
-                        ModuleComponentSelector requested = (ModuleComponentSelector) rcs;
-                        if (requested.getGroup().equals(group) && requested.getModule().equals(module)) {
-                            selected = ((ResolvedDependencyResult) dependencyResult).getSelected();
-                        }
-                    } else if (rcs instanceof ProjectComponentSelector) {
-                        ProjectComponentSelector pcs = (ProjectComponentSelector) rcs;
-                        if (pcs.getProjectPath().equals(projectPath)) {
-                            selected = ((ResolvedDependencyResult) dependencyResult).getSelected();
-                        }
+        }
+
+        // If we reach this point it means we have a dependency which doesn't belong to the resolution result
+        // Which can mean two things:
+        // 1. the graph used to get the resolved version has nothing to do with the dependencies we're trying to get versions for (likely user error)
+        // 2. the graph contains first-level dependencies which have been substituted (likely) so we're going to iterate on dependencies instead
+        Set<? extends DependencyResult> allDependencies = resolutionResult.getAllDependencies();
+        for (DependencyResult dependencyResult : allDependencies) {
+            if (dependencyResult instanceof ResolvedDependencyResult) {
+                ComponentSelector rcs = dependencyResult.getRequested();
+                ResolvedComponentResult selected = ((ResolvedDependencyResult) dependencyResult).getSelected();
+                if (rcs instanceof ModuleComponentSelector) {
+                    ModuleComponentSelector requested = (ModuleComponentSelector) rcs;
+                    if (requested.getGroup().equals(group) && requested.getModule().equals(module)) {
+                        return getModuleVersionId(selected);
                     }
-                    // Match found - need to make sure that if the selection is a project, we use its publication identity
-                    if (selected != null) {
-                        if (selected.getId() instanceof ProjectComponentIdentifier) {
-                            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) selected.getId();
-                            return projectResolver.resolve(ModuleVersionIdentifier.class, projectRegistry.getProject(projectId.getProjectPath()));
-                        }
-                        return selected.getModuleVersion();
+                } else if (rcs instanceof ProjectComponentSelector) {
+                    ProjectComponentSelectorInternal pcs = (ProjectComponentSelectorInternal) rcs;
+                    if (pcs.getIdentityPath().equals(identityPath)) {
+                        return getModuleVersionId(selected);
                     }
                 }
             }
         }
+
         return null;
+    }
+
+    @Nullable
+    private ModuleVersionIdentifier getModuleVersionId(ResolvedComponentResult selected) {
+        // Match found - need to make sure that if the selection is a project, we use its publication identity
+        if (selected.getId() instanceof ProjectComponentIdentifier) {
+            Path identityPath = ((ProjectComponentIdentifierInternal) selected.getId()).getIdentityPath();
+            return projectResolver.resolve(ModuleVersionIdentifier.class, identityPath);
+        }
+        return selected.getModuleVersion();
     }
 
     public void setTargetConfiguration(Configuration target) {

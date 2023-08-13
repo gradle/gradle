@@ -40,7 +40,7 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
             ${mavenCentralRepository()}
 
             dependencies {
-                compileOnly 'org.junit.platform:junit-platform-launcher:1.9.1'
+                compileOnly 'org.junit.platform:junit-platform-launcher:1.10.0'
             }
         """
         file("other/src/main/java/com/example/MyLauncherSessionListener.java") << """
@@ -69,8 +69,8 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
 
             dependencies {
                 testImplementation project(':other')
-                testCompileOnly 'org.junit.jupiter:junit-jupiter:5.9.1'
-                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.1'
+                testCompileOnly 'org.junit.jupiter:junit-jupiter:5.10.0'
+                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
             }
 
             test {

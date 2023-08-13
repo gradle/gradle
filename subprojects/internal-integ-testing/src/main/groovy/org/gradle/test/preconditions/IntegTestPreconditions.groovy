@@ -271,6 +271,13 @@ class IntegTestPreconditions {
         }
     }
 
+    static class JavaHomeWithDifferentVersionAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.differentVersion != null
+        }
+    }
+
     static final class HasMsBuild implements TestPrecondition {
         @Override
         boolean isSatisfied() {

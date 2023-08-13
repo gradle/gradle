@@ -16,6 +16,8 @@
 
 package org.gradle.internal.deprecation;
 
+import org.gradle.api.problems.interfaces.DocLink;
+
 import javax.annotation.Nullable;
 
 class DeprecationMessage {
@@ -24,10 +26,10 @@ class DeprecationMessage {
     private final String removalDetails;
     private final String advice;
     private final String context;
-    private final Documentation documentation;
+    private final DocLink documentation;
     private final DeprecatedFeatureUsage.Type usageType;
 
-    DeprecationMessage(String summary, String removalDetails, @Nullable String advice, @Nullable String context, Documentation documentation, DeprecatedFeatureUsage.Type usageType) {
+    DeprecationMessage(String summary, String removalDetails, @Nullable String advice, @Nullable String context, DocLink documentation, DeprecatedFeatureUsage.Type usageType) {
         this.summary = summary;
         this.removalDetails = removalDetails;
         this.advice = advice;
