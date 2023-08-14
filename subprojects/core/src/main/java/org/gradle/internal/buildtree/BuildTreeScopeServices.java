@@ -44,6 +44,7 @@ import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
@@ -72,6 +73,7 @@ public class BuildTreeScopeServices {
             pluginServiceRegistry.registerBuildTreeServices(registration);
         }
         registration.add(BuildTreeState.class, buildTree);
+        registration.add(GradleEnterprisePluginManager.class);
         registration.add(DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
         registration.add(BuildInclusionCoordinator.class);
