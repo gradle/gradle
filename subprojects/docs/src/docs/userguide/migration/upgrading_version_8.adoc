@@ -99,25 +99,20 @@ See the <<compatibility.adoc#compatibility, Compatibility Matrix>> for details a
 
 ==== Eager evaluation of `Configuration` attributes
 
-Gradle 8.3 updates the `org.gradle.libraryelements` and `org.gradle.jvm.version` attributes of JVM Configurations
-to be present at the time of creation, as opposed to previously, where they were only present after the Configuration
-had been resolved or consumed. In particular, the value for `org.gradle.jvm.version` relies on the project's configured
-toolchain, meaning that querying the value for this attribute will finalize the value of the project's Java toolchain.
+Gradle 8.3 updates the `org.gradle.libraryelements` and `org.gradle.jvm.version` attributes of JVM Configurations to be present at the time of creation, as opposed to previously, where they were only present after the Configuration had been resolved or consumed.
+In particular, the value for `org.gradle.jvm.version` relies on the project's configured toolchain, meaning that querying the value for this attribute will finalize the value of the project's Java toolchain.
 
-Plugins or build logic that eagerly queries the attributes of JVM configurations may now cause the project's Java toolchain
-to be finalized earlier than before. Attempting to modify the toolchain after it has been finalized will result in error
-messages similar to the following:
+Plugins or build logic that eagerly queries the attributes of JVM configurations may now cause the project's Java toolchain to be finalized earlier than before.
+Attempting to modify the toolchain after it has been finalized will result in error messages similar to the following:
 ```
 The value for property 'implementation' is final and cannot be changed any further.
 The value for property 'languageVersion' is final and cannot be changed any further.
 The value for property 'vendor' is final and cannot be changed any further.
 ```
 
-This sort of situation may arise when plugins or build logic eagerly queries an existing JVM Configuration's attributes
-in order to create a new Configuration with the same attributes. Previously, this logic would have omitted the two above
-noted attributes entirely, while now the same logic will copy the attributes, but will also finalize the project's Java
-toolchain. In order to avoid early toolchain finalization, attribute-copying logic should be updated to lazily query
-the source Configuration's attributes:
+This situation may arise when plugins or build logic eagerly queries an existing JVM Configuration's attributes to create a new Configuration with the same attributes.
+Previously, this logic would have omitted the two above noted attributes entirely, while now the same logic will copy the attributes and finalize the project's Java toolchain.
+To avoid early toolchain finalization, attribute-copying logic should be updated to query the source Configuration's attributes lazily:
 
 =====
 [.multi-language-sample]
