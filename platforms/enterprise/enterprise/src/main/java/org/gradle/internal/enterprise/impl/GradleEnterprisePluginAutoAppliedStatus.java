@@ -16,10 +16,6 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-@ServiceScope(Scopes.BuildTree.class)
 public class GradleEnterprisePluginAutoAppliedStatus {
 
     private boolean autoApplied;

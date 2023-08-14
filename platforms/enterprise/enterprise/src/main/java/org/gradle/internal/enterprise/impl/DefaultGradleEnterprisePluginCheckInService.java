@@ -24,13 +24,10 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginMetadata;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.VersionNumber;
 
 import java.util.function.Supplier;
 
-@ServiceScope(Scopes.Gradle.class)
 public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterprisePluginCheckInService {
 
     private final GradleEnterprisePluginManager manager;
