@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A interface for a Problem class
+ * Interface for describing structured information about a problem.
  *
  * @since 8.4
  */
