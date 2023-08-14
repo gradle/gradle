@@ -91,10 +91,6 @@ public abstract class Problems {
         problemsService.collectError(failure);
     }
 
-    public static void init(Problems problemsService) {
-        Problems.problemsService = problemsService;
-    }
-
     protected static void collect(Problem problem) {
         problemsService.collectError(problem);
     }
