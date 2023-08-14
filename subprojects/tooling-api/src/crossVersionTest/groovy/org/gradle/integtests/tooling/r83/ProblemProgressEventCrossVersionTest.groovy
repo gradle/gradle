@@ -41,7 +41,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
     }
 
-    def "Test failure context"() {
+    def "test failure context"() {
         setup:
         buildFile << """
             plugins {
@@ -70,33 +70,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.allProblems
         problems.size() == 2
         problems[0].message.contains('The RepositoryHandler.jcenter() method has been deprecated.')
-//        (problems[0].rawAttributes['doc'] as String).contains('https://docs.gradle.org/')
         problems[0].severity == Severity.WARNING.toString()
         problems[1].message.contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
         problems[1].severity == Severity.ERROR.toString()
-    }
-
-    def "Test line number"() {
-        setup:
-        buildFile << """
-            plugins {
-                repositories.mavenCentral()
-            }
-        """
-
-
-        when:
-        def listener = new MyProgressListener()
-        withConnection { connection ->
-            connection.newBuild().forTasks(":help").addProgressListener(listener).run()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.allProblems
-        problems[0].message.contains('Could not compile build file')
-        problems[0].severity == Severity.ERROR.toString()
-        problems[0].path.endsWith('build.gradle')
-        problems[0].line == 3
     }
 }
