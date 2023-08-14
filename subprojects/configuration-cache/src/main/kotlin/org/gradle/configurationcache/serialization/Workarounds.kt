@@ -24,13 +24,19 @@ internal
 object Workarounds {
 
     private
-    val ignoredBeanFields: List<Pair<String, String>> = listOf(
+    val ignoredBeanFields = arrayOf(
         // TODO:configuration-cache remove once fixed
         "ndkLocation" to "com.android.build.gradle.tasks.ShaderCompile"
     )
 
-    fun isIgnoredBeanField(field: Field) =
-        ignoredBeanFields.contains(field.name to field.declaringClass.name)
+    fun isIgnoredBeanField(field: Field): Boolean {
+        for (f in ignoredBeanFields) {
+            if (field.name == f.first && field.declaringClass.name == f.second) {
+                return true
+            }
+        }
+        return false
+    }
 
     fun canReadSystemProperty(from: String): Boolean =
         withWorkaroundsFor("systemProps") {
