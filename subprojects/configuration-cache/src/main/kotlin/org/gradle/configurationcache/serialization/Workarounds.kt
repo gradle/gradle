@@ -60,10 +60,11 @@ object Workarounds {
 
     fun canAccessProjectAtExecutionTime(task: TaskInternal) =
         withWorkaroundsFor("task-project") {
-            val className = task.javaClass.name
-            className.startsWith("com.android.build.gradle.tasks.ShaderCompile") ||
-                className.startsWith("com.android.build.gradle.tasks.MapSourceSetPathsTask") ||
-                className.startsWith("com.android.build.gradle.tasks.MergeResources")
+            task.javaClass.name.run {
+                startsWith("com.android.build.gradle.tasks.ShaderCompile")
+                    || startsWith("com.android.build.gradle.tasks.MapSourceSetPathsTask")
+                    || startsWith("com.android.build.gradle.tasks.MergeResources")
+            }
         }
 
     fun canAccessConventions(from: String, area: String) =
