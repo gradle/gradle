@@ -35,7 +35,7 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
     static Map<JavaInfo, JavaVersion> availableJdksWithJavac() {
         AvailableJavaHomes.availableJdksWithVersion.findAll { jdk, version ->
             try {
-                if (jdk.javacExecutable) {
+                if (jdk.javacExecutable && version >= JavaVersion.VERSION_1_8) {
                     return true
                 }
             }

@@ -36,7 +36,6 @@ abstract class BuildEnvironmentExtension {
 
 
 // `generatePrecompiledScriptPluginAccessors` task invokes this method without `gradle.build-environment` applied
-private
 fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension? = rootProject.extensions.findByType(BuildEnvironmentExtension::class.java)
 
 

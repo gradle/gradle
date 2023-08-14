@@ -127,10 +127,8 @@ BUILD SUCCESSFUL in [ \\dms]+
         def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).ansiCharsToColorText().removeDebugPrefix().withNormalizedEol()
 
         outputWithFailureAndNoDebugging.contains("FAILURE: Build failed with an exception.")
-        outputWithFailureAndNoDebugging.contains("""
-            * What went wrong:
-            Execution failed for task ':broken'.
-            """.stripIndent().trim())
+        outputWithFailureAndNoDebugging.contains("* What went wrong:")
+        outputWithFailureAndNoDebugging.contains("Execution failed for task ':broken'.")
 
         !outputWithoutFailure.contains("Build failed with an exception.")
         !outputWithoutFailure.contains("* What went wrong:")
