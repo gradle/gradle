@@ -25,6 +25,7 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum Severity {
+    ADVICE("Advice"),
     WARNING("Warning"),
     ERROR("Error");
     private final String displayName;

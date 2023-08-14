@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Problem description.
+ * Interface for describing structured information about a problem.
  *
  * @since 8.4
  */
@@ -33,25 +33,52 @@ public interface Problem {
 
     ProblemGroup getProblemGroup();
 
+    String getProblemType();
+
+    /**
+     * A short description of the problem.
+     */
     String getMessage();
+
+    /**
+     * A longer string describing the problem.
+     */
+    @Nullable
+    String getDescription();
+
+    /**
+     * Problem severity.
+     * <p>
+     * The severity of a problem is a hint to the user about how important the problem is.
+     * ERROR will fail the build, WARNING will not.
+     */
 
     Severity getSeverity();
 
     @Nullable
     ProblemLocation getWhere();
 
+    /**
+     * A link to the documentation for this problem.
+     */
     @Nullable
     DocLink getDocumentationLink();
 
-    @Nullable
-    String getDescription();
 
+    /**
+     * A list of possible solutions the user can try to fix the problem.
+     */
     List<String> getSolutions();
 
+    /**
+     * The exception that caused the problem.
+     */
     @Nullable
     Throwable getCause();
 
-    String getProblemType();
-
+    /**
+     * Additional Data about the problem.
+     * In a map so it can be somewhat structured.
+     */
     Map<String, String> getAdditionalData();
 }
