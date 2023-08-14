@@ -23,7 +23,7 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scopes.Gradle.class)
 public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePluginConfig {
 
     private final BuildScanRequest buildScanRequest;
