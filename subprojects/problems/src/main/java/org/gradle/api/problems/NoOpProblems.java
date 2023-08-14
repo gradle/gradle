@@ -18,7 +18,7 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 
 import javax.annotation.Nullable;
@@ -32,7 +32,7 @@ import java.util.Collection;
 @Incubating
 class NoOpProblems extends Problems {
     @Override
-    public ProblemBuilderDefiningDocumentation createProblemBuilder() {
+    public ProblemBuilderDefiningMessage createProblemBuilder() {
         return null;
     }
 

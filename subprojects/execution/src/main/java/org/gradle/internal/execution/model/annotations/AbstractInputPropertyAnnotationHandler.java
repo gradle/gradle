@@ -65,9 +65,9 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
             validationContext.visitPropertyProblem(problem -> {
                     ProblemBuilder describedProblem = problem
                         .forProperty(propertyMetadata.getPropertyName())
+                        .message(String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
                         .documentedAt(userManual("validation_problems", "unsupported_value_type"))
                         .noLocation()
-                        .message(String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
                         .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)

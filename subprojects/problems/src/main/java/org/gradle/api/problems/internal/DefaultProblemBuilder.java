@@ -96,7 +96,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningType message(String message, Object... args) {
+    public ProblemBuilderDefiningDocumentation message(String message, Object... args) {
         this.message = String.format(message, args);
         return this;
     }
@@ -107,13 +107,13 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public ProblemBuilderDefiningMessage location(String path, Integer line) {
+    public ProblemBuilderDefiningType location(String path, Integer line) {
         this.path = path;
         this.line = line;
         return this;
     }
 
-    public ProblemBuilderDefiningMessage location(String path, Integer line, Integer column) {
+    public ProblemBuilderDefiningType location(String path, Integer line, Integer column) {
         this.path = path;
         this.line = line;
         this.column = column;
@@ -121,7 +121,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningMessage noLocation() {
+    public ProblemBuilderDefiningType noLocation() {
         this.noLocation = true;
         return this;
     }

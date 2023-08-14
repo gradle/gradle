@@ -169,9 +169,9 @@ public class MissingTaskDependencyDetector {
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
             problem.typeIsIrrelevantInErrorMessage()
+                .message("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .documentedAt(userManual("validation_problems", "implicit_dependency"))
                 .noLocation()
-                .message("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .type(ValidationProblemId.IMPLICIT_DEPENDENCY.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(org.gradle.api.problems.interfaces.Severity.ERROR)

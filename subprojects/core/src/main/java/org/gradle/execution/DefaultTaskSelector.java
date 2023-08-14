@@ -99,14 +99,14 @@ public class DefaultTaskSelector implements TaskSelector {
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
             matcher.formatErrorMessage("task", searchContext));
 
-        throw getProblemService().throwing(builder ->
-            builder.undocumented()
-                .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
-                .message(message)
-                .type("task_selection")
-                .group(ProblemGroup.GENERIC_ID)
-                .severity(Severity.ERROR)
-                .withException(new TaskSelectionException(message)) // this instead of cause
+        throw getProblemService().throwing(builder -> builder
+            .message(message)
+            .undocumented()
+            .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
+            .type("task_selection")
+            .group(ProblemGroup.GENERIC_ID)
+            .severity(Severity.ERROR)
+            .withException(new TaskSelectionException(message)) // this instead of cause
         );
     }
 

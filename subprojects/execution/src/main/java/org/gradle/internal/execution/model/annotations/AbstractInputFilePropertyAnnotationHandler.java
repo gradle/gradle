@@ -115,9 +115,9 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
                 String propertyName = propertyMetadata.getPropertyName();
                 problem
                     .forProperty(propertyName)
+                    .message(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
                     .documentedAt(userManual("validation_problems", "missing_normalization_annotation"))
                     .noLocation()
-                    .message(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
                     .type(ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
