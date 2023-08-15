@@ -44,6 +44,7 @@ import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.lang.ref.SoftReference;
 
 public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder, HoldsProjectState {
     private final DependencyMetaDataProvider metadataProvider;
@@ -87,13 +88,13 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     public RootComponentState toRootComponent(String configurationName) {
         Module module = metadataProvider.getModule();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        ComponentDetails details = holder.tryCached(componentIdentifier);
-        if (details == null) {
-            details = getComponentDetails(module, componentIdentifier);
-            holder.cachedValue = details;
+        LocalComponentGraphResolveState state = getComponentState(module, componentIdentifier);
+        ConfigurationGraphResolveState configuration = state.getConfiguration(configurationName);
+        if (configuration == null) {
+            throw new IllegalArgumentException(String.format("Expected configuration '%s' to be present in %s", configurationName, componentIdentifier));
         }
-        LocalComponentGraphResolveState state = details.getState();
-        VariantGraphResolveState rootVariant = details.getConfiguration(configurationName);
+        VariantGraphResolveState rootVariant = configuration.asVariant();
+
         return new RootComponentState() {
             @Override
             public LocalComponentGraphResolveState getRootComponent() {
@@ -112,7 +113,16 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         };
     }
 
-    private ComponentDetails getComponentDetails(Module module, ComponentIdentifier componentIdentifier) {
+    private LocalComponentGraphResolveState getComponentState(Module module, ComponentIdentifier componentIdentifier) {
+        LocalComponentGraphResolveState state = holder.tryCached(componentIdentifier);
+        if (state == null) {
+            state = createComponentState(module, componentIdentifier);
+            holder.cache(state, configurationsProvider.size());
+        }
+        return state;
+    }
+
+    private LocalComponentGraphResolveState createComponentState(Module module, ComponentIdentifier componentIdentifier) {
         ProjectComponentIdentifier projectId = module.getProjectId();
         if (projectId != null) {
             ProjectState projectState = projectStateRegistry.stateFor(projectId);
@@ -120,21 +130,21 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 throw new IllegalStateException("Thread should hold project lock for " + projectState.getDisplayName());
             }
             return projectState.fromMutableState(project -> {
-                LocalComponentGraphResolveState state = getProjectRootComponentMetadata(project, module, componentIdentifier);
+                LocalComponentGraphResolveState state = createProjectRootComponentMetadata(project, module, componentIdentifier);
                 // This should move into the configuration metadata builder
                 configurationsProvider.visitAll(ConfigurationInternal::preventFromFurtherMutation);
-                return new UnsharedComponentDetails(state);
+                return state;
             });
         } else {
-            return new UnsharedComponentDetails(getRootComponentMetadata(module, componentIdentifier, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE));
+            return createRootComponentMetadata(module, componentIdentifier, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE);
         }
     }
 
-    private LocalComponentGraphResolveState getProjectRootComponentMetadata(ProjectInternal project, Module module, ComponentIdentifier componentIdentifier) {
-        return getRootComponentMetadata(module, componentIdentifier, (AttributesSchemaInternal) project.getDependencies().getAttributesSchema(), project.getModel());
+    private LocalComponentGraphResolveState createProjectRootComponentMetadata(ProjectInternal project, Module module, ComponentIdentifier componentIdentifier) {
+        return createRootComponentMetadata(module, componentIdentifier, (AttributesSchemaInternal) project.getDependencies().getAttributesSchema(), project.getModel());
     }
 
-    private LocalComponentGraphResolveState getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ModelContainer<?> model) {
+    private LocalComponentGraphResolveState createRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ModelContainer<?> model) {
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
             new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
@@ -160,48 +170,11 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         holder.discard();
     }
 
-    private static abstract class ComponentDetails {
-        abstract LocalComponentGraphResolveState getState();
-
-        ComponentIdentifier getId() {
-            return getState().getId();
-        }
-
-        void reevaluate() {
-            getState().reevaluate();
-        }
-
-        public abstract VariantGraphResolveState getConfiguration(String configurationName);
-
-        protected IllegalArgumentException missingConfiguration(String configurationName) {
-            throw new IllegalArgumentException(String.format("Expected configuration '%s' to be present in %s", configurationName, getId()));
-        }
-    }
-
-    private static class UnsharedComponentDetails extends ComponentDetails {
-        private final LocalComponentGraphResolveState state;
-
-        private UnsharedComponentDetails(LocalComponentGraphResolveState state) {
-            this.state = state;
-        }
-
-        @Override
-        public LocalComponentGraphResolveState getState() {
-            return state;
-        }
-
-        @Override
-        public VariantGraphResolveState getConfiguration(String configurationName) {
-            ConfigurationGraphResolveState configuration = state.getConfiguration(configurationName);
-            if (configuration == null) {
-                throw missingConfiguration(configurationName);
-            }
-            return configuration.asVariant();
-        }
-    }
-
     private static class MetadataHolder implements MutationValidator {
-        private ComponentDetails cachedValue;
+        @Nullable
+        private SoftReference<LocalComponentGraphResolveState> reference;
+        @Nullable
+        private LocalComponentGraphResolveState cachedValue;
 
         @Override
         public void validateMutation(MutationType type) {
@@ -209,23 +182,51 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.USAGE ||
                 type == MutationType.HIERARCHY
             ) {
-                if (cachedValue != null) {
-                    cachedValue.reevaluate();
+                LocalComponentGraphResolveState value = currentValue();
+                if (value != null) {
+                    value.reevaluate();
                 }
             }
         }
 
         @Nullable
-        ComponentDetails tryCached(ComponentIdentifier id) {
-            if (cachedValue != null) {
-                assert cachedValue.getId().equals(id);
+        LocalComponentGraphResolveState tryCached(ComponentIdentifier id) {
+            LocalComponentGraphResolveState value = currentValue();
+            assert value == null || value.getId().equals(id);
+            return value;
+        }
+
+        @Nullable
+        private LocalComponentGraphResolveState currentValue() {
+            if (reference != null) {
+                return reference.get();
+            } else {
                 return cachedValue;
             }
-            return null;
         }
 
         public void discard() {
+            reference  = null;
             cachedValue = null;
+        }
+
+        public void cache(LocalComponentGraphResolveState state, int configurationCount) {
+            if (configurationCount > 1) {
+                // Keep a hard reference to the state for re-evaluation on mutation
+                // and to force the value to be reused for resolution of other configurations
+                reference = null;
+                cachedValue = state;
+            } else {
+                // Keep a soft reference only, as there are no other configurations that will be resolved
+                // Need to keep a reference so that the cached value can be re-evaluated on mutation, but
+                // use a soft reference to allow the state to be GCed
+                //
+                // Also keep a soft reference to try to avoid recreating the state when it is queried during
+                // work graph calculation and then later during resolution. It would be better if the configuration
+                // implementation took care of this instead
+                reference = new SoftReference<>(state);
+                cachedValue = null;
+            }
         }
     }
 
