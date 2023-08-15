@@ -95,7 +95,12 @@ org.gradle.daemon=true
 [[sec:disabling_the_daemon]]
 == Disable Daemon
 
-You can disable the Daemon in multiple ways.
+You can disable the Daemon in multiple ways but there are important considerations:
+
+Single-use Deamon :: If the JVM args of the client process don't match what the build requires (org.gradle.jvmargs), the long-lived Daemon becomes a single-used Daemon.
+This means the Daemon will be used for the build, but it will be stopped at the end of the build.
+
+No Daemon :: If the `JAVA_OPTS` / `GRADLE_OPTS` match `org.gradle.jvmargs`, the Daemon will not be used at all.
 
 === Disable for a build
 
@@ -134,8 +139,10 @@ There are two recommended ways to disable the Daemon globally across an environm
 * add `org.gradle.daemon=false` to the `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`/gradle.properties` file
 * add the flag `-Dorg.gradle.daemon=false` to the `GRADLE_OPTS` environment variable
 
+Don't forget to make sure your JVM arguments and `GRADLE_OPTS` / `JAVA_OPTS` match if you want to completely disable the Daemon and not simply invoke a single-use one.
+
 [[sec:stopping_an_existing_daemon]]
-== Stop Deamon
+== Stop Daemon
 
 It can be helpful to stop the Daemon when troubleshooting or debugging a failure.
 
