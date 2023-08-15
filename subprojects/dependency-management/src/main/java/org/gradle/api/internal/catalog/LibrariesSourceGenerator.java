@@ -29,8 +29,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
+import org.gradle.api.problems.interfaces.ReportableProblem;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -522,11 +522,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
-        throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()), problemService);
+        throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()));
     }
 
     private void assertUnique(List<String> names, String prefix, String suffix) {
-        List<Problem> errors = names.stream()
+        List<ReportableProblem> errors = names.stream()
             .collect(groupingBy(AbstractSourceGenerator::toJavaName))
             .entrySet()
             .stream()
@@ -539,7 +539,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                     .build();
             })
             .collect(toList());
-        maybeThrowError(ERROR_HEADER, errors, problemService);
+        maybeThrowError(ERROR_HEADER, errors);
     }
 
     @Nonnull

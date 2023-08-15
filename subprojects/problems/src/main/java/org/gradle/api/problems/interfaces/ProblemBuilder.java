@@ -63,9 +63,5 @@ public interface ProblemBuilder {
 
     ProblemBuilder severity(Severity severity);
 
-    Problem build();
-
-    void report();
-
-    RuntimeException throwIt();
+    ReportableProblem build();
 }

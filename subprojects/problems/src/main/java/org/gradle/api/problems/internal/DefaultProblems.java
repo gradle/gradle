@@ -16,104 +16,65 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
-import javax.annotation.Nonnull;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.gradle.api.problems.interfaces.ProblemGroup.DEPRECATION_ID;
-import static org.gradle.api.problems.interfaces.ProblemGroup.GENERIC_ID;
-import static org.gradle.api.problems.interfaces.ProblemGroup.TYPE_VALIDATION_ID;
-import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG_ID;
-import static org.gradle.api.problems.interfaces.Severity.ERROR;
+public class DefaultProblems implements InternalProblems {
 
-public class DefaultProblems extends Problems {
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
 
     private final Map<String, ProblemGroup> problemGroups = new LinkedHashMap<>();
 
     public DefaultProblems(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
-        addPredefinedGroup(GENERIC_ID);
-        addPredefinedGroup(TYPE_VALIDATION_ID);
-        addPredefinedGroup(DEPRECATION_ID);
-        addPredefinedGroup(VERSION_CATALOG_ID);
+        addPredefinedGroup(ProblemGroup.GENERIC_ID);
+        addPredefinedGroup(ProblemGroup.TYPE_VALIDATION_ID);
+        addPredefinedGroup(ProblemGroup.DEPRECATION_ID);
+        addPredefinedGroup(ProblemGroup.VERSION_CATALOG_ID);
     }
 
     private void addPredefinedGroup(String genericId) {
-        problemGroups.put(genericId, new PredefinedProblemGroup(genericId));
-    }
-
-    public ProblemBuilderDefiningLabel createProblemBuilder() {
-        return createProblemBuilderInternal();
-    }
-
-    @Nonnull
-    private DefaultProblemBuilder createProblemBuilderInternal() {
-        return new DefaultProblemBuilder(this, buildOperationProgressEventEmitter);
-    }
-
-
-    public void collectError(RuntimeException failure) {
-        new DefaultProblemBuilder(this, buildOperationProgressEventEmitter)
-            .label(failure.getMessage())
-            .undocumented()
-            .noLocation()
-            .type("generic_exception")
-            .group(GENERIC_ID)
-            .severity(ERROR)
-            .withException(failure)
-            .report();
+        problemGroups.put(genericId, new ProblemGroup(genericId));
     }
 
     @Override
-    public void collectError(Problem problem) {
-        buildOperationProgressEventEmitter.emitNowIfCurrent(problem);
-//        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+    public DefaultProblemBuilder createProblemBuilder() {
+        return new DefaultProblemBuilder(this);
     }
 
     @Override
-    public void collectErrors(Collection<Problem> problem) {
-        problem.forEach(this::collectError);
+    public RuntimeException throwing(ProblemBuilderSpec action) {
+        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        ProblemBuilder problemBuilder =action.apply(defaultProblemBuilder);
+        throw throwError(defaultProblemBuilder.getException(), problemBuilder.build());
+    }
+
+    @Override
+    public RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action) {
+        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        ProblemBuilder problemBuilder = action.apply(defaultProblemBuilder);
+        problemBuilder.withException(e);
+        throw throwError(e, problemBuilder.build());
+    }
+
+    public RuntimeException throwError(RuntimeException exception, Problem problem) {
+        reportAsProgressEvent(problem);
+        throw exception;
+    }
+
+    @Override
+    public void reportAsProgressEvent(Problem problem) {
+        buildOperationProgressEventEmitter.emitNowIfCurrent(new DefaultProblemProgressDetails(problem));
     }
 
     @Override
     public ProblemGroup getProblemGroup(String groupId) {
         return problemGroups.get(groupId);
-    }
-
-    @Override
-    public ProblemGroup registerProblemGroup(String typeId) {
-        PredefinedProblemGroup value = new PredefinedProblemGroup(typeId);
-        problemGroups.put(typeId, value);
-        return value;
-    }
-
-    @Override
-    public ProblemGroup registerProblemGroup(ProblemGroup typeId) {
-        problemGroups.put(typeId.getId(), typeId);
-        return typeId;
-    }
-
-    @Override
-    public RuntimeException throwing(ProblemSpec action) {
-        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilderInternal();
-        throw action.apply(defaultProblemBuilder)
-            .throwIt();
-    }
-
-    @Override
-    public RuntimeException rethrowing(RuntimeException e, ProblemSpec action) {
-        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilderInternal();
-        ProblemBuilder problemBuilder = action.apply(defaultProblemBuilder);
-        problemBuilder.withException(e);
-        throw problemBuilder.throwIt();
     }
 }

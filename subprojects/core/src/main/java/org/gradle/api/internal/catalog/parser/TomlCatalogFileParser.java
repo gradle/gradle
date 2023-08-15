@@ -101,7 +101,6 @@ public class TomlCatalogFileParser {
     private final Supplier<Problems> problemServiceSupplier;
 
     public TomlCatalogFileParser(Path catalogFilePath, VersionCatalogBuilder builder, Supplier<Problems> problemServiceSupplier) {
-
         this.catalogFilePath = catalogFilePath;
         this.builder = builder;
         this.problemServiceSupplier = problemServiceSupplier;
@@ -542,6 +541,6 @@ public class TomlCatalogFileParser {
     }
 
     private RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
-        throw throwErrorWithNewProblemsApi("Invalid TOML catalog definition", ImmutableList.of(problem.build()), problemServiceSupplier.get());
+        throw throwErrorWithNewProblemsApi("Invalid TOML catalog definition", ImmutableList.of(problem.build()));
     }
 }

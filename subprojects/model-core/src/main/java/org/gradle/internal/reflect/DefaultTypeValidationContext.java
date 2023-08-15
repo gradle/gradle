@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ReportableProblem;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
@@ -35,21 +36,21 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 //    private final ImmutableMap.Builder<Problem, Severity> problems = ImmutableMap.builder();
     private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
 
-    public static DefaultTypeValidationContext withRootType(Problems problems, Class<?> rootType, boolean cacheable) {
-        return new DefaultTypeValidationContext(problems, rootType, cacheable);
+    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable) {
+        return new DefaultTypeValidationContext(rootType, cacheable);
     }
 
     public static DefaultTypeValidationContext withoutRootType(Problems problems, boolean reportCacheabilityProblems) {
-        return new DefaultTypeValidationContext(problems, null, reportCacheabilityProblems);
+        return new DefaultTypeValidationContext(null, reportCacheabilityProblems);
     }
 
-    private DefaultTypeValidationContext(Problems problems, @Nullable Class<?> rootType, boolean reportCacheabilityProblems) {
-        super(problems, rootType, Optional::empty);
+    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems) {
+        super(rootType, Optional::empty);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
     @Override
-    protected void recordProblem(Problem problem) {
+    protected void recordProblem(ReportableProblem problem) {
         if (onlyAffectsCacheableWork(problem.getProblemType()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }
