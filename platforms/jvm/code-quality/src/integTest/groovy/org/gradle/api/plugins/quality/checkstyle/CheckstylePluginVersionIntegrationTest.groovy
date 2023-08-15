@@ -31,6 +31,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
+import static org.gradle.util.Matchers.containsText
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
@@ -57,10 +58,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/test.xml").assertContents(containsClass("org.gradle.TestClass1"))
         file("build/reports/checkstyle/test.xml").assertContents(containsClass("org.gradle.TestClass2"))
 
-        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.Class1"))
-        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.Class2"))
-        file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass1"))
-        file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
+        file("build/reports/checkstyle/main.html").assertExists()
+        file("build/reports/checkstyle/main.html").assertContents(containsText("No violations were found."))
     }
 
     def "supports fallback when configDirectory does not exist"() {

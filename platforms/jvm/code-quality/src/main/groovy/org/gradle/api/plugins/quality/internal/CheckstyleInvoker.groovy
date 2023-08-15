@@ -25,6 +25,7 @@ import org.gradle.api.internal.exceptions.MarkedVerificationException
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GFileUtils
 import org.gradle.util.internal.VersionNumber
 import org.slf4j.Logger
@@ -119,6 +120,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                 ? stylesheetString.get()
                 : Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl').text
             ant.xslt(in: xmlOutputLocation, out: htmlOutputLocation) {
+                param(name: "gradleVersion", expression: GradleVersion.current().toString())
                 style {
                     string(value: stylesheet)
                 }
