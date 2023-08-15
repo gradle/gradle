@@ -1,4 +1,4 @@
-// Copyright 2017 the original author or authors.
+// Copyright 2023 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,23 +16,22 @@
 = Build Lifecycle
 
 Gradle is an example of *dependency based programming*: you define tasks and dependencies between tasks.
-Gradle guarantees that these tasks execute in the order of their dependencies.
+Gradle guarantees that these tasks will execute in order of their dependencies.
 Your build scripts and plugins configure this dependency graph.
-This page discusses the phases of the lifecycle Gradle passes through as it interprets those scripts.
-Additionally, this page explains how you can react to events of the lifecycle using notifications.
+There are phases of the lifecycle Gradle passes through as it interprets those scripts.
 
 == Task Graphs
 
 Some build tools assemble a task graph as they execute tasks.
 Gradle builds the task graph before executing any task.
-With configuration avoidance, Gradle skips configuration for tasks that aren't part of the current build.
+
+With *configuration avoidance*, Gradle skips configuration for tasks that aren't part of the current build.
 
 Within each project, tasks form a http://en.wikipedia.org/wiki/Directed_acyclic_graph[Directed Acyclic Graph] (DAG).
 
-This diagram shows two example task graphs: one abstract and the other concrete.
-The diagram represents dependencies between tasks as arrows:
+This diagram shows two example task graphs, one abstract and the other concrete.
+Dependencies between tasks are represented as arrows:
 
-.Two examples of Gradle task graphs
 image::task-dag-examples.png[Example task graphs]
 
 Both plugins and your own build scripts contribute to the task graph via the <<tutorial_using_tasks#sec:task_dependencies,task dependency mechanism>>.
@@ -43,17 +42,17 @@ Both plugins and your own build scripts contribute to the task graph via the <<t
 == Build Phases
 
 A Gradle build has three distinct phases.
-Gradle runs these phases in order: first initialization, then configuration, and finally execution.
+Gradle runs these phases in order:
 
-Initialization::
-- Detects the <<organizing_gradle_projects#sec:settings_file,settings file>>.
-- Evaluates the settings file to determine which projects and included builds participate in the build.
+PHASE 1. Initialization::
+- Detects the `settings.gradle.kts` file.
+- Evaluates the settings file to determine which projects (and included builds) make up the build.
 - Creates a link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] instance for every project.
-Configuration::
-- Evaluates the build scripts of every project participating in the build.
+PHASE 2. Configuration::
+- Evaluates the build scripts (`build.gradle.kts`) of every project participating in the build.
 - Creates a task graph for requested tasks.
-Execution::
-- Schedules and executes each of the selected tasks in the order of their dependencies.
+PHASE 3. Execution::
+- Schedules and executes each of the selected tasks in order of their dependencies.
 
 === Example
 
