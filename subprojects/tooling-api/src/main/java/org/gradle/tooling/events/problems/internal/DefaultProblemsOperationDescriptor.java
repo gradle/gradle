@@ -33,12 +33,6 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     private final String message;
     private final String description;
     private final List<String> solutions;
-    @Nullable
-    private final String path;
-    @Nullable
-    private final Integer line;
-    @Nullable
-    private final Integer column;
     private final String documentationLink;
     private final Throwable cause;
     private final String problemType;
@@ -52,9 +46,6 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         String message,
         @Nullable String description,
         List<String> solutions,
-        @Nullable String path,
-        @Nullable Integer line,
-        @Nullable Integer column,
         @Nullable String documentationLink,
         @Nullable Throwable cause,
         String problemType,
@@ -66,9 +57,6 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         this.message = message;
         this.description = description;
         this.solutions = solutions;
-        this.path = path;
-        this.line = line;
-        this.column = column;
         this.documentationLink = documentationLink;
         this.cause = cause;
         this.problemType = problemType;
@@ -116,24 +104,6 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     @Override
     public String getProblemType() {
         return problemType;
-    }
-
-    @Nullable
-    @Override
-    public Integer getLine() {
-        return line;
-    }
-
-    @Nullable
-    @Override
-    public Integer getColumn() {
-        return column;
-    }
-
-    @Nullable
-    @Override
-    public String getPath() {
-        return path;
     }
 
     @Override
