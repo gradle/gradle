@@ -30,7 +30,6 @@ import java.util.Map;
 @Incubating
 public interface Problem {
 
-
     ProblemGroup getProblemGroup();
 
     String getProblemType();
