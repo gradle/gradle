@@ -93,6 +93,7 @@
             <trusting group="com.fasterxml.jackson.core"/>
             <trusting group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="29bea2a645f2d6ced7fb12e02b172e3e156466e8" group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
          <trusted-key id="2bcbdd0f23ea1cafcc11d4860374cf2e8dd1bdfd" group="org.sonatype.plexus"/>
          <trusted-key id="2be67ac00d699e04e840b7fe29967e804d85663f">
             <trusting group="com.eed3si9n" name="shaded-scalajson_2.13"/>
@@ -1068,9 +1069,19 @@
             <pgp value="f254b35617dc255d9344bcfa873a8e86b4372146"/>
          </artifact>
       </component>
+      <component group="org.apache.maven.shared" name="maven-shared-utils" version="3.3.4">
+         <artifact name="maven-shared-utils-3.3.4.jar">
+            <pgp value="82c9ec0e52c47a936a849e0113d979595e6d01e1"/>
+         </artifact>
+      </component>
       <component group="org.apache.maven.wagon" name="wagon-provider-api" version="3.3.4">
          <artifact name="wagon-provider-api-3.3.4.jar">
             <pgp value="fa77dcfef2ee6eb2debedd2c012579464d01c06a"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven.wagon" name="wagon-provider-api" version="3.5.3">
+         <artifact name="wagon-provider-api-3.5.3.jar">
+            <pgp value="6a814b1f869c2bbeab7cb7271a2a1c94bde89688"/>
          </artifact>
       </component>
       <component group="org.apache.mina" name="mina-core" version="2.0.17">
@@ -1173,9 +1184,24 @@
             <pgp value="f254b35617dc255d9344bcfa873a8e86b4372146"/>
          </artifact>
       </component>
+      <component group="org.codehaus.plexus" name="plexus-cipher" version="2.0">
+         <artifact name="plexus-cipher-2.0.jar">
+            <pgp value="6a814b1f869c2bbeab7cb7271a2a1c94bde89688"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-classworlds" version="2.7.0">
+         <artifact name="plexus-classworlds-2.7.0.jar">
+            <pgp value="b91ab7d2121dc6b0a61aa182d7742d58455ecc7c"/>
+         </artifact>
+      </component>
       <component group="org.codehaus.plexus" name="plexus-interpolation" version="1.26">
          <artifact name="plexus-interpolation-1.26.jar">
             <pgp value="f254b35617dc255d9344bcfa873a8e86b4372146"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-sec-dispatcher" version="2.0">
+         <artifact name="plexus-sec-dispatcher-2.0.jar">
+            <pgp value="f3d15b8ff9902805de4be6b18dc6f3d0abdbd017"/>
          </artifact>
       </component>
       <component group="org.codehaus.woodstox" name="stax2-api" version="4.2.1">

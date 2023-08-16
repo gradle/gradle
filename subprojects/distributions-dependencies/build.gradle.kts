@@ -25,7 +25,7 @@ val bouncycastleVersion = "1.68"
 val jacksonVersion = "2.14.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
-val mavenVersion = "3.6.3"
+val mavenVersion = "3.9.3"
 val nativePlatformVersion = "0.22-snapshot-20230807182135+0000"
 val slf4jVersion = "1.7.30"
 val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
@@ -136,10 +136,10 @@ dependencies {
         api(libs.nativePlatform)        { version { strictly(nativePlatformVersion) }}
         api(libs.nativePlatformFileEvents) { version { strictly(nativePlatformVersion) }}
         api(libs.objenesis)             { version { strictly("2.6") }}
-        api(libs.plexusCipher)          { version { strictly("1.7"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusCipher)          { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusSecDispatcher)   { version { strictly("1.4"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusUtils)           { version { strictly("3.3.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusSecDispatcher)   { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusUtils)           { version { strictly("3.5.1"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plist)                 { version { strictly("1.21") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
