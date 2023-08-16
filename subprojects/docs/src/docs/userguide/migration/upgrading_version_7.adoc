@@ -114,6 +114,12 @@ Since the previous version was 3.0.10, the https://groovy-lang.org/changelogs/ch
 
 PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[PMD 6.48.0].
 
+==== Upgrade to Ant 1.10.13
+
+Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
+
+Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
+
 ==== Configuring a non-existing executable now fails
 
 When configuring an executable explicitly for link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:executable[`JavaCompile`] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable[`Test`] tasks, Gradle will now emit an error if this executable does not exist.
