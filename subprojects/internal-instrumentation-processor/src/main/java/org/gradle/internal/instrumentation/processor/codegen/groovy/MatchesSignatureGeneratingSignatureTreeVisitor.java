@@ -38,12 +38,14 @@ import static org.gradle.internal.instrumentation.processor.codegen.groovy.Param
  * signatures in the signature tree.
  */
 class MatchesSignatureGeneratingSignatureTreeVisitor {
+    private final TargetTypeFieldLookup targetTypeFieldLookup;
     private final CodeBlock.Builder result;
 
     private static final TypeName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
         ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor.SignatureMatch");
 
-    MatchesSignatureGeneratingSignatureTreeVisitor(CodeBlock.Builder result) {
+    MatchesSignatureGeneratingSignatureTreeVisitor(TargetTypeFieldLookup targetTypeFieldLookup, CodeBlock.Builder result) {
+        this.targetTypeFieldLookup = targetTypeFieldLookup;
         this.result = result;
     }
 
@@ -89,8 +91,8 @@ class MatchesSignatureGeneratingSignatureTreeVisitor {
         CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS ?
             CodeBlock.of("isStatic && $T.class.isAssignableFrom($L)", entryChildType.box(), argExpr) :
             entry.kind == RECEIVER ?
-                CodeBlock.of("!isStatic && ($2L == null || $1T.class.isAssignableFrom($2L))", entryChildType.box(), argExpr) :
-                CodeBlock.of("$2L == null || $1T.class.isAssignableFrom($2L)", entryChildType.box(), argExpr);
+                CodeBlock.of("!isStatic && ($2L == null || $1L.isAssignableFromType($2L))", targetTypeFieldFor(entryChildType), argExpr) :
+                CodeBlock.of("$2L == null || $1L.isAssignableFromType($2L)", targetTypeFieldFor(entryChildType), argExpr);
         // Vararg fits here, too:
         result.beginControlFlow("if ($L)", matchExpr);
         visit(child, childArgCount);
@@ -118,7 +120,7 @@ class MatchesSignatureGeneratingSignatureTreeVisitor {
         result.beginControlFlow("for (int argIndex = $1L; argIndex < argumentClasses.length; argIndex++)", paramIndex);
         CodeBlock nextArg = CodeBlock.of("nextArg");
         result.addStatement("Class<?> $L = argumentClasses[argIndex]", nextArg);
-        result.beginControlFlow("if ($2L != null && !$1T.class.isAssignableFrom($2L))", entryParamType, nextArg);
+        result.beginControlFlow("if ($2L != null && !$1L.isAssignableFromType($2L))", targetTypeFieldFor(entryParamType), nextArg);
         result.addStatement("$L = false", varargMatched);
         result.addStatement("break");
         result.endControlFlow();
@@ -144,5 +146,9 @@ class MatchesSignatureGeneratingSignatureTreeVisitor {
             .filter(it -> it.getKind().isSourceParameter())
             .map(it -> CodeBlock.of("$T.class", TypeUtils.typeName(it.getParameterType())))
             .collect(CodeBlock.joining(", ", "new Class<?>[] {", "}"));
+    }
+
+    private CodeBlock targetTypeFieldFor(TypeName type) {
+        return targetTypeFieldLookup.lookupTargetTypeFieldFor(type.box());
     }
 }

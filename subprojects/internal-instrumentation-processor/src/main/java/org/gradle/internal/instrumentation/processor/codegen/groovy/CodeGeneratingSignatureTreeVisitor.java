@@ -39,9 +39,11 @@ import static org.gradle.internal.instrumentation.processor.codegen.groovy.Param
 
 class CodeGeneratingSignatureTreeVisitor {
     private final Stack<CodeBlock> paramVariablesStack = new Stack<>();
+    private final TargetTypeFieldLookup targetTypeFieldLookup;
     private final CodeBlock.Builder result;
 
-    CodeGeneratingSignatureTreeVisitor(CodeBlock.Builder result) {
+    CodeGeneratingSignatureTreeVisitor(TargetTypeFieldLookup targetTypeFieldLookup, CodeBlock.Builder result) {
+        this.targetTypeFieldLookup = targetTypeFieldLookup;
         this.result = result;
     }
 
@@ -124,11 +126,11 @@ class CodeGeneratingSignatureTreeVisitor {
 
         CodeBlock nextArg = CodeBlock.of("nextArg");
         result.addStatement("Object $L = invocation.getArgument(argIndex)", nextArg);
-        result.beginControlFlow("if ($1L == null || $1L instanceof $2T)", nextArg, entryParamType);
+        result.beginControlFlow("if ($2L.isAssignableFrom($1L))", nextArg, targetTypeFieldFor(entryParamType));
         if (entryParamType.equals(TypeName.OBJECT)) {
             result.addStatement("$1L[argIndex - $2L] = $3L", varargVariable, paramIndex, nextArg);
         } else {
-            result.addStatement("$1L[argIndex - $2L] = ($3T) $4L", varargVariable, paramIndex, entryParamType, nextArg);
+            result.addStatement("$1L[argIndex - $2L] = $3L.cast($4L)", varargVariable, paramIndex, targetTypeFieldFor(entryParamType), nextArg);
         }
         result.nextControlFlow("else");
         result.addStatement("$L = false", varargMatched);
@@ -154,14 +156,14 @@ class CodeGeneratingSignatureTreeVisitor {
         CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS ?
             CodeBlock.of("$L.equals($T.class)", argExpr, entryChildType) :
             // Vararg fits here, too:
-            CodeBlock.of("$1L == null || $1L instanceof $2T", argExpr, entryChildType.box());
+            CodeBlock.of("$1L.isAssignableFrom($2L)", targetTypeFieldFor(entryChildType), argExpr);
         result.beginControlFlow("if ($L)", matchExpr);
         boolean shouldPopParameter = false;
         if (entry.kind != RECEIVER_AS_CLASS) {
             shouldPopParameter = true;
             CodeBlock paramVariable = CodeBlock.of("$LTyped", argExpr);
             if (!entryChildType.equals(TypeName.OBJECT)) {
-                result.addStatement("$2T $1L = ($2T) $3L", paramVariable, entryChildType, argExpr);
+                result.addStatement("$2T $1L = $3L.cast($4L)", paramVariable, entryChildType, targetTypeFieldFor(entryChildType), argExpr);
             } else {
                 result.addStatement("$2T $1L = $3L", paramVariable, entryChildType, argExpr);
             }
@@ -172,5 +174,9 @@ class CodeGeneratingSignatureTreeVisitor {
             paramVariablesStack.pop();
         }
         result.endControlFlow();
+    }
+
+    private CodeBlock targetTypeFieldFor(TypeName type) {
+        return targetTypeFieldLookup.lookupTargetTypeFieldFor(type.box());
     }
 }

@@ -130,6 +130,8 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .addJavadoc(interceptorClassJavadoc(requests))
             .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
 
+        TargetTypeFieldsGenerator targetTypeFieldsGenerator = new TargetTypeFieldsGenerator(requests);
+        generatedClass.addFields(targetTypeFieldsGenerator.getFields());
 
         MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addStatement("super($L)", scopes).build();
         generatedClass.addMethod(constructor);
@@ -143,7 +145,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .addParameter(INVOCATION_CLASS, "invocation")
             .addParameter(String.class, "consumer")
             .addException(Throwable.class)
-            .addCode(generateCodeFromInterceptorSignatureTree(signatureTree))
+            .addCode(generateCodeFromInterceptorSignatureTree(targetTypeFieldsGenerator, signatureTree))
             .build();
 
         ParameterizedTypeName classWildcard = ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class));
@@ -154,7 +156,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .addParameter(classWildcard, "receiverClass")
             .addParameter(ArrayTypeName.of(classWildcard), "argumentClasses")
             .addParameter(boolean.class, "isStatic")
-            .addCode(generateMatchesSignatureCodeFromInterceptorSignatureTree(signatureTree))
+            .addCode(generateMatchesSignatureCodeFromInterceptorSignatureTree(targetTypeFieldsGenerator, signatureTree))
             .build();
 
         generatedClass.addMethod(doIntercept);
@@ -216,19 +218,19 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         return scopeExpressions.stream().distinct().collect(CodeBlock.joining(", "));
     }
 
-    private static CodeBlock generateCodeFromInterceptorSignatureTree(SignatureTree tree) {
+    private static CodeBlock generateCodeFromInterceptorSignatureTree(TargetTypeFieldLookup targetTypeFieldLookup, SignatureTree tree) {
         CodeBlock.Builder result = CodeBlock.builder();
         result.addStatement("$T receiver = invocation.getReceiver()", Object.class);
 
-        new CodeGeneratingSignatureTreeVisitor(result).visit(tree, -1);
+        new CodeGeneratingSignatureTreeVisitor(targetTypeFieldLookup, result).visit(tree, -1);
 
         result.addStatement("return invocation.callOriginal()");
         return result.build();
     }
 
-    private static CodeBlock generateMatchesSignatureCodeFromInterceptorSignatureTree(SignatureTree tree) {
+    private static CodeBlock generateMatchesSignatureCodeFromInterceptorSignatureTree(TargetTypeFieldLookup targetTypeFieldLookup, SignatureTree tree) {
         CodeBlock.Builder result = CodeBlock.builder();
-        new MatchesSignatureGeneratingSignatureTreeVisitor(result).visit(tree, -1);
+        new MatchesSignatureGeneratingSignatureTreeVisitor(targetTypeFieldLookup, result).visit(tree, -1);
         result.addStatement("return null");
         return result.build();
     }
