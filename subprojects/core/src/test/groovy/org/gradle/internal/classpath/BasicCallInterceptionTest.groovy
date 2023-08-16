@@ -18,7 +18,9 @@ package org.gradle.internal.classpath
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import spock.lang.Issue
 
+import java.util.function.Consumer
 import java.util.function.Predicate
 
 import static java.util.function.Predicate.isEqual
@@ -101,6 +103,25 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         "vararg with array"     | "Groovy dynamic dispatch" | { testVararg([it, it, it].toArray()) }    | true           | "testVararg(Object...)"
         "vararg with null item" | "Groovy dynamic dispatch" | { testVararg(null) }                      | true           | "testVararg(Object...)"
         "non-existent-method"   | "Groovy dynamic dispatch" | { nonExistent(null) }                     | true          | "nonExistent(String)-non-existent"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26108")
+    def 'intercept a basic instance call with #method from #caller with coercion from #type'() {
+        when:
+        def intercepted = interceptedWhen(shouldDelegate, invocation)
+
+        then:
+        intercepted == expected
+
+        where:
+        type      | method            | caller                    | invocation                          | shouldDelegate | expected
+        "GString" | "instance method" | "Groovy callsite"         | { it.setTestString("GString $it") } | false          | "setTestString(String)"
+        "GString" | "Groovy property" | "Groovy callsite"         | { it.testString = "GString $it" }   | false          | "setTestString(String)"
+        "Closure" | "instance method" | "Groovy callsite"         | { it.callSam {} }                   | false          | "callSam(Consumer)"
+
+        "GString" | "instance method" | "Groovy dynamic dispatch" | { setTestString("GString $it") }    | true           | "setTestString(String)"
+        "GString" | "Groovy property" | "Groovy dynamic dispatch" | { testString = "GString $it" }      | true           | "setTestString(String)"
+        "Closure" | "instance method" | "Groovy dynamic dispatch" | { callSam {} }                      | true           | "callSam(Consumer)"
     }
 
     def 'access to a #kind of a Groovy property from a #caller caller is intercepted as #expected'() {

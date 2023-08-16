@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import org.codehaus.groovy.reflection.CachedClass;
+import org.codehaus.groovy.reflection.ReflectionCache;
 import org.gradle.api.NonNullApi;
 
 import javax.annotation.Nullable;
@@ -27,10 +29,10 @@ import javax.annotation.Nullable;
  */
 @NonNullApi
 public class TargetType<T> {
-    private final Class<T> cls;
+    private final CachedClass cachedClass;
 
     private TargetType(Class<T> cls) {
-        this.cls = cls;
+        cachedClass = ReflectionCache.getCachedClass(cls);
     }
 
     /**
@@ -40,7 +42,7 @@ public class TargetType<T> {
      * @return {@code true} if the argument can be assigned to a variable of this type
      */
     public boolean isAssignableFrom(@Nullable Object argument) {
-        return argument == null || cls.isInstance(argument);
+        return argument == null || cachedClass.isAssignableFrom(argument.getClass());
     }
 
     /**
@@ -50,7 +52,7 @@ public class TargetType<T> {
      * @return {@code true} if the argument of the given class can be assigned to a variable of this type
      */
     public boolean isAssignableFromType(Class<?> argumentClass) {
-        return cls.isAssignableFrom(argumentClass);
+        return cachedClass.isAssignableFrom(argumentClass);
     }
 
     /**
@@ -61,8 +63,9 @@ public class TargetType<T> {
      * @throws ClassCastException is the argument cannot be converted to this class
      */
     @Nullable
+    @SuppressWarnings("unchecked")
     public T cast(@Nullable Object argument) {
-        return cls.cast(argument);
+        return (T) cachedClass.coerceArgument(argument);
     }
 
     /**

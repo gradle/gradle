@@ -23,6 +23,8 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
+import java.util.function.Consumer;
+
 @SuppressWarnings("NewMethodNamingConvention")
 @SpecificJvmCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
 @SpecificGroovyCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
@@ -130,5 +132,16 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
         String value
     ) {
         self.intercepted = "setNonExistentProperty(String)-non-existent";
+    }
+
+    // TODO(mlopatkin) support parameterized types
+    @SuppressWarnings("rawtypes")
+    @InterceptGroovyCalls
+    @CallableKind.InstanceMethod
+    public static void intercept_callSam(
+        @ParameterKind.Receiver InterceptorTestReceiver self,
+        Consumer consumer
+    ) {
+        self.intercepted = "callSam(Consumer)";
     }
 }

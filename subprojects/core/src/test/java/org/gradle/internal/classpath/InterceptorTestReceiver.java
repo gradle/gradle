@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath;
 
+import java.util.function.Consumer;
+
 public class InterceptorTestReceiver {
     public void test() {}
     public void test(InterceptorTestReceiver arg) {}
@@ -43,6 +45,11 @@ public class InterceptorTestReceiver {
 
     public void setTestFlag(boolean newValue) {
         testFlag = newValue;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void callSam(Consumer r) {
+        r.accept("Hello");
     }
 
     public String intercepted = null;
