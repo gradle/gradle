@@ -117,7 +117,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         LocalComponentGraphResolveState state = holder.tryCached(componentIdentifier);
         if (state == null) {
             state = createComponentState(module, componentIdentifier);
-            holder.cache(state, configurationsProvider.size());
+            holder.cache(state, shouldCacheResolutionState());
         }
         return state;
     }
@@ -153,7 +153,19 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         configurationsProvider.visitAll(ConfigurationInternal::preventFromFurtherMutation);
 
         LocalComponentMetadata metadata = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
-        return localResolveStateFactory.stateFor(metadata);
+        if (shouldCacheResolutionState()) {
+            return localResolveStateFactory.stateFor(metadata);
+        } else {
+            // Mark the state as 'ad hoc' and not cacheable
+            return localResolveStateFactory.adHocStateFor(metadata);
+        }
+    }
+
+    private boolean shouldCacheResolutionState() {
+        // When there may be more than one configuration defined, cache the component resolution state, so it can be reused for resolving multiple configurations.
+        // When there may be no more than one configuration, don't cache the resolution state for reuse. Currently, this only applies to detached configurations, however
+        // it might be better to skip caching when it's likely there is only one configuration defined, for example, for script class paths, as the meta-data is unlikely to be reused.
+        return !configurationsProvider.isFixedSize() || configurationsProvider.size() > 1;
     }
 
     @Override
@@ -206,12 +218,12 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         }
 
         public void discard() {
-            reference  = null;
+            reference = null;
             cachedValue = null;
         }
 
-        public void cache(LocalComponentGraphResolveState state, int configurationCount) {
-            if (configurationCount > 1) {
+        public void cache(LocalComponentGraphResolveState state, boolean useStrongReference) {
+            if (useStrongReference) {
                 // Keep a hard reference to the state for re-evaluation on mutation
                 // and to force the value to be reused for resolution of other configurations
                 reference = null;

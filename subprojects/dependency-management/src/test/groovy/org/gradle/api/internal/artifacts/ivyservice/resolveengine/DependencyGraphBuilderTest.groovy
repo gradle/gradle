@@ -132,7 +132,7 @@ class DependencyGraphBuilderTest extends Specification {
     DependencyGraphBuilder builder
 
     def setup() {
-        def rootComponentState = new DefaultLocalComponentGraphResolveState(0, root, desugaring, new ComponentIdGenerator())
+        def rootComponentState = new DefaultLocalComponentGraphResolveState(0, root, desugaring, new ComponentIdGenerator(), false)
 
         _ * resolveContext.name >> 'root'
         _ * resolveContext.toRootComponent() >> Stub(RootComponentMetadataBuilder.RootComponentState) {

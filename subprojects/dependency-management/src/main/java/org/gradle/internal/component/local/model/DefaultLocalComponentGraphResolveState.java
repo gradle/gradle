@@ -63,6 +63,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata, LocalComponentMetadata> implements LocalComponentGraphResolveState {
     private final ComponentIdGenerator idGenerator;
+    private final boolean adHoc;
 
     // The graph resolve state for each configuration of this component
     private final ConcurrentMap<String, DefaultLocalConfigurationGraphResolveState> configurations = new ConcurrentHashMap<>();
@@ -76,7 +77,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     // The public view of all selectable variants of this component
     private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
 
-    public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
+    public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator, boolean adHoc) {
         super(instanceId, metadata, metadata, attributeDesugaring);
         allVariantsForGraphResolution = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
@@ -89,6 +90,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
                 flatMap(variant -> variant.getVariants().stream()).
                 collect(Collectors.toSet())));
         this.idGenerator = idGenerator;
+        this.adHoc = adHoc;
         selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream().
             map(LocalConfigurationGraphResolveMetadata.class::cast).
             flatMap(variant -> variant.getVariants().stream()).
@@ -111,6 +113,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     @Override
     public ModuleVersionIdentifier getModuleVersionId() {
         return getMetadata().getModuleVersionId();
+    }
+
+    @Override
+    public boolean isAdHoc() {
+        return adHoc;
     }
 
     @Override

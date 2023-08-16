@@ -32,6 +32,17 @@ public class LocalComponentGraphResolveStateFactory {
     }
 
     public LocalComponentGraphResolveState stateFor(LocalComponentMetadata metadata) {
-        return new DefaultLocalComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring, idGenerator);
+        return createState(metadata, false);
+    }
+
+    /**
+     * Creates state for an ad hoc component, see {@link org.gradle.internal.component.model.ComponentGraphResolveState#isAdHoc()} for the definition of "ad hoc component".
+     */
+    public LocalComponentGraphResolveState adHocStateFor(LocalComponentMetadata metadata) {
+        return createState(metadata, true);
+    }
+
+    private DefaultLocalComponentGraphResolveState createState(LocalComponentMetadata metadata, boolean adHoc) {
+        return new DefaultLocalComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring, idGenerator, adHoc);
     }
 }

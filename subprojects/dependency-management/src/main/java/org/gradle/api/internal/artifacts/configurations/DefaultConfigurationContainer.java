@@ -80,6 +80,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
+    public boolean isFixedSize() {
+        return false;
+    }
+
+    @Override
     public Set<? extends ConfigurationInternal> getAll() {
         Set<? extends ConfigurationInternal> set = Cast.uncheckedCast(this);
         return ImmutableSet.copyOf(set);
