@@ -68,7 +68,6 @@ public interface Problem {
     @Nullable
     DocLink getDocumentationLink();
 
-
     /**
      * A list of possible solutions the user can try to fix the problem.
      */
