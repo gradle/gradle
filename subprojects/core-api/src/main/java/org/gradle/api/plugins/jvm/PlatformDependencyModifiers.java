@@ -72,7 +72,7 @@ public interface PlatformDependencyModifiers {
          * Selects the platform variant of the given dependency.
          */
         @Override
-        public void modifyImpl(ModuleDependency dependency) {
+        protected void modifyImplementation(ModuleDependency dependency) {
             dependency.endorseStrictVersions();
             dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
         }
@@ -113,7 +113,7 @@ public interface PlatformDependencyModifiers {
          * Selects the enforced platform variant of the given dependency.
          */
         @Override
-        public void modifyImpl(ModuleDependency dependency) {
+        protected void modifyImplementation(ModuleDependency dependency) {
             if (dependency instanceof ExternalDependency) {
                 String version = dependency.getVersion();
                 ((ExternalDependency) dependency).version(constraint -> constraint.strictly(version));

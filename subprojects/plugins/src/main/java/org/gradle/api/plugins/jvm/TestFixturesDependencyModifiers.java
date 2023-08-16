@@ -62,7 +62,7 @@ public interface TestFixturesDependencyModifiers {
          * Selects the test fixtures variant of the given dependency.
          */
         @Override
-        public void modifyImpl(ModuleDependency dependency) {
+        protected void modifyImplementation(ModuleDependency dependency) {
             if (dependency instanceof ExternalDependency) {
                 String group = dependency.getGroup();
                 String name = dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;

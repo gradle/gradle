@@ -36,9 +36,9 @@ import javax.inject.Inject;
  * <li>For Kotlin DSL, we create {@code invoke(...)} equivalents for all the {@code modify(...)} methods.</li>
  * </ul>
  *
- * @implSpec The default implementation of all methods should not be overridden except {@link #modify(ModuleDependency)}. This method must be implemented.
- *
- * @implNote All other implementations of {@code modify(...)} delegate to {@link #modify(ModuleDependency)}.
+ * @implSpec The only method that should be implemented is {@link #modifyImplementation(ModuleDependency)}. Other overridable methods are used to inject necessary services,
+ * and should not be overridden.
+ * @implNote All implementations of {@code modify(...)} delegate to {@link #modifyImplementation(ModuleDependency)}.
  * <p>
  * Changes to this interface may require changes to the
  * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
@@ -116,7 +116,7 @@ public abstract class DependencyModifier {
         // The unchecked cast can be incorrect if D is an implementation type, but it shouldn't be used in that way.
         @SuppressWarnings("unchecked")
         D copy = (D) dependency.copy();
-        modifyImpl(copy);
+        modifyImplementation(copy);
         return copy;
     }
 
@@ -127,6 +127,6 @@ public abstract class DependencyModifier {
      * @implSpec This method must be implemented.
      * @since 8.4
      */
-    protected abstract void modifyImpl(ModuleDependency dependency);
+    protected abstract void modifyImplementation(ModuleDependency dependency);
 
 }
