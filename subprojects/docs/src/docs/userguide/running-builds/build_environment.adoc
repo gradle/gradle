@@ -77,7 +77,7 @@ The following are _common_ system properties:
 `gradle.wrapperPassword=(mypassword)`:: Specify password for downloading a Gradle distribution using the Gradle wrapper.
 `gradle.user.home=(path to directory)`:: Specify the `GRADLE_USER_HOME` directory.
 
-The Gradle Properties listed the <<gradle_configuration_properties,section below>> can also be set as system properties.
+The Gradle Properties listed the <<#sec:gradle_configuration_properties,section below>> can also be set as system properties.
 
 *Networking Properties*
 
@@ -163,7 +163,7 @@ The final configuration taken into account by Gradle is a combination of all Gra
 If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
 . command line, set using `-D`.
-. `gradle.properties` in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory.
+. `gradle.properties` in `<directory_layout.adoc#<dir:gradle_user_home,GRADLE_USER_HOME>>` directory.
 . `gradle.properties` in the project's directory, then its parent project's directory up to the build's root directory.
 . `gradle.properties` in the Gradle installation directory.
 
