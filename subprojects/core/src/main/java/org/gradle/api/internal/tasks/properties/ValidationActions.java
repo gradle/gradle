@@ -157,7 +157,7 @@ public enum ValidationActions implements ValidationAction {
             String lowerKind = kind.toLowerCase();
             problem
                 .forProperty(propertyName)
-                .message("specifies " + lowerKind + " '" + input + "' which doesn't exist")
+                .label("specifies " + lowerKind + " '" + input + "' which doesn't exist")
                 .documentedAt(userManual("validation_problems", "input_file_does_not_exist"))
                 .noLocation()
                 .type(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST.name())
@@ -174,7 +174,7 @@ public enum ValidationActions implements ValidationAction {
             String lowerKind = kind.toLowerCase();
             problem
                 .forProperty(propertyName)
-                .message(lowerKind + " '" + input + "' is not a " + lowerKind)
+                .label(lowerKind + " '" + input + "' is not a " + lowerKind)
                 .documentedAt(userManual("validation_problems", "unexpected_input_file_type"))
                 .noLocation()
                 .type(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE.name())
@@ -190,7 +190,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
-                .message("is not writable because " + cause)
+                .label("is not writable because " + cause)
                 .documentedAt(userManual("validation_problems", "cannot_write_output"))
                 .noLocation()
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
@@ -205,7 +205,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
-                .message("is not writable because '" + directory + "' is not a directory")
+                .label("is not writable because '" + directory + "' is not a directory")
                 .documentedAt(userManual("validation_problems", "cannot_write_output"))
                 .noLocation()
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
@@ -220,7 +220,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
-                .message("is not writable because '" + file + "' is not a file")
+                .label("is not writable because '" + file + "' is not a file")
                 .documentedAt(userManual("validation_problems", "cannot_write_output"))
                 .noLocation()
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
@@ -236,7 +236,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
-                .message("is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
+                .label("is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
                 .documentedAt(userManual("validation_problems", "cannot_write_output"))
                 .noLocation()
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
@@ -262,7 +262,7 @@ public enum ValidationActions implements ValidationAction {
             context.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .message("points to '" + location + "' which is managed by Gradle")
+                    .label("points to '" + location + "' which is managed by Gradle")
                     .documentedAt(userManual("validation_problems", "cannot_write_to_reserved_location"))
                     .noLocation()
                     .type(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION.name())
@@ -295,7 +295,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem -> {
                 ProblemBuilder describedProblem = problem
                     .forProperty(propertyName)
-                    .message("has unsupported value '" + value + "'")
+                    .label("has unsupported value '" + value + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_notation"))
                     .noLocation()
                     .type(ValidationProblemId.UNSUPPORTED_NOTATION.name())

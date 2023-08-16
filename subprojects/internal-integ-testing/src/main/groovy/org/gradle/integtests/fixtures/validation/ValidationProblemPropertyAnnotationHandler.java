@@ -46,7 +46,7 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
         validationContext.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyMetadata.getPropertyName())
-                .message("test problem")
+                .label("test problem")
                 .documentedAt(Documentation.userManual("id", "section"))
                 .noLocation()
                 .type(ValidationProblemId.TEST_PROBLEM.name())

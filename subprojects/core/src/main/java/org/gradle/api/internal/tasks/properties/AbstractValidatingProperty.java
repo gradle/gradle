@@ -45,7 +45,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     public static void reportValueNotSet(String propertyName, TypeValidationContext context) {
         context.visitPropertyProblem(problem -> {
             problem.forProperty(propertyName)
-                .message("doesn't have a configured value")
+                .label("doesn't have a configured value")
                 .documentedAt(userManual("validation_problems", "value_not_set"))
                 .noLocation()
                 .type(ValidationProblemId.VALUE_NOT_SET.name())

@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * <ul>
  *     <li>{@link ProblemBuilderDefiningDocumentation}
  *     <li>{@link ProblemBuilderDefiningLocation}
- *     <li>{@link ProblemBuilderDefiningMessage}
+ *     <li>{@link ProblemBuilderDefiningLabel}
  *     <li>{@link ProblemBuilderDefiningType}
  *     <li>{@link ProblemBuilderDefiningGroup}
  * </ul>

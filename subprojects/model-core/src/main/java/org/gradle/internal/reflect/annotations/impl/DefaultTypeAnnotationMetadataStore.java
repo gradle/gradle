@@ -278,7 +278,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 previouslySeenBuilder.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
-                            .message(String.format("has redundant getters: '%s()' and '%s()'",
+                            .label(String.format("has redundant getters: '%s()' and '%s()'",
                                 previouslySeenBuilder.getter.getName(),
                                 metadataBuilder.getter.getName()))
                             .documentedAt(userManual("validation_problems", "redundant_getters"))
@@ -341,7 +341,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     validationContext.visitTypeProblem(problem ->
                         problem
                             .withAnnotationType(type)
-                            .message(String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
+                            .label(String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
                             .documentedAt(userManual("validation_problems", "ignored_annotations_on_field"))
                             .noLocation()
                             .type(ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD.name())
@@ -428,7 +428,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             metadataBuilder.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .message(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
+                        .label(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                         .documentedAt(userManual("validation_problems", "private_getter_must_not_be_annotated"))
                         .noLocation()
                         .type(ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.name())
@@ -452,7 +452,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .message(String.format("of mutable type '%s' is writable", setterType.getName()))
+                    .label(String.format("of mutable type '%s' is writable", setterType.getName()))
                     .documentedAt(userManual("validation_problems", "mutable_type_with_setter"))
                     .noLocation()
                     .type(ValidationProblemId.MUTABLE_TYPE_WITH_SETTER.name())
@@ -487,7 +487,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .message(String.format("%s '%s()' should not be annotated with: %s",
+                    .label(String.format("%s '%s()' should not be annotated with: %s",
                         methodKind.getDisplayName(), method.getName(), simpleAnnotationNames(annotationTypes.stream())
                     ))
                     .documentedAt(userManual("validation_problems", "ignored_annotations_on_method"))
@@ -588,7 +588,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         visitPropertyProblem(problem ->
                                 problem
                                     .forProperty(propertyName)
-                                    .message(String.format("annotated with @%s should not be also annotated with %s",
+                                    .label(String.format("annotated with @%s should not be also annotated with %s",
                                         ignoredMethodAnnotation.getSimpleName(),
                                         simpleAnnotationNames(declaredAnnotations.values().stream()
                                             .<Class<? extends Annotation>>map(Annotation::annotationType)
@@ -644,7 +644,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .message(String.format("has conflicting %s annotations %s: %s",
+                        .label(String.format("has conflicting %s annotations %s: %s",
                             category.getDisplayName(),
                             source,
                             simpleAnnotationNames(annotationsForCategory.stream()

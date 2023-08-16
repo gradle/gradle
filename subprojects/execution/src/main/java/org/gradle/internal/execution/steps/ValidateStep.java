@@ -136,7 +136,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             workValidationContext.visitPropertyProblem(problem -> problem
                 .forProperty(propertyName)
                 .typeIsIrrelevantInErrorMessage()
-                .message(unknownImplSnapshot.getProblemDescription())
+                .label(unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
                 .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
@@ -153,7 +153,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
             workValidationContext.visitPropertyProblem(problem -> problem
                 .typeIsIrrelevantInErrorMessage()
-                .message(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
+                .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
                 .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())

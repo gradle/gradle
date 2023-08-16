@@ -58,7 +58,7 @@ public class NestedValidationUtil {
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .message("with nested type '" + beanType.getName() + "' is not supported")
+                    .label("with nested type '" + beanType.getName() + "' is not supported")
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
                     .noLocation()
                     .type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED.name())
@@ -101,7 +101,7 @@ public class NestedValidationUtil {
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .message("where key of nested map is of type '" + keyType.getName() + "'")
+                    .label("where key of nested map is of type '" + keyType.getName() + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
                     .noLocation()
                     .type(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE.name())

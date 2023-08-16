@@ -165,7 +165,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             validationContext.visitTypeProblem(problem -> {
                     ProblemBuilder builder = problem
                         .withAnnotationType(topLevelBean)
-                        .message("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
+                        .label("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                         .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                         .noLocation()
                         .type(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON.name())

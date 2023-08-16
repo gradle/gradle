@@ -105,7 +105,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .message("is missing " + displayName)
+                        .label("is missing " + displayName)
                         .documentedAt(userManual("validation_problems", "missing_annotation"))
                         .noLocation()
                         .type(ValidationProblemId.MISSING_ANNOTATION.name())
@@ -123,7 +123,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .message(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
+                        .label(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
                         .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
                         .noLocation()
                         .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())
@@ -147,7 +147,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .message("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
+                            .label("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
                             .documentedAt(userManual("validation_problems", "incompatible_annotations"))
                             .noLocation()
                             .type(ValidationProblemId.INCOMPATIBLE_ANNOTATIONS.name())
@@ -160,7 +160,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .message(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
+                            .label(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
                             .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
                             .noLocation()
                             .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())

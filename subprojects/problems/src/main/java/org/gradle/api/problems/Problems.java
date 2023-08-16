@@ -19,7 +19,7 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -63,12 +63,12 @@ public abstract class Problems {
     public interface ProblemSpec {
 
         @Nonnull
-        ProblemBuilder apply(ProblemBuilderDefiningMessage builder);
+        ProblemBuilder apply(ProblemBuilderDefiningLabel builder);
     }
 
     private static Problems problemsService = new NoOpProblems();
 
-    abstract public ProblemBuilderDefiningMessage createProblemBuilder();
+    abstract public ProblemBuilderDefiningLabel createProblemBuilder();
 
     abstract public void collectError(RuntimeException failure);
 
@@ -95,7 +95,7 @@ public abstract class Problems {
         problemsService.collectError(problem);
     }
 
-    protected static ProblemBuilderDefiningMessage create() {
+    protected static ProblemBuilderDefiningLabel create() {
         return problemsService.createProblemBuilder();
     }
 

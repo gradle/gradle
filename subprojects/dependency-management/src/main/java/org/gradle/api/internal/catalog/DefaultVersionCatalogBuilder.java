@@ -184,7 +184,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     @Nonnull
     public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
         return getProblemService().createProblemBuilder()
-            .message(message)
+            .label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
             .type(catalogProblemId.name())

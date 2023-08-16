@@ -25,7 +25,7 @@ import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningGroup;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningType;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.ProblemLocation;
@@ -51,7 +51,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningGroup,
-    ProblemBuilderDefiningMessage,
+    ProblemBuilderDefiningLabel,
     ProblemBuilderDefiningType {
 
     private ProblemGroup problemGroup;
@@ -96,8 +96,8 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningDocumentation message(String message, Object... args) {
-        this.message = String.format(message, args);
+    public ProblemBuilderDefiningDocumentation label(String label, Object... args) {
+        this.message = String.format(label, args);
         return this;
     }
 
