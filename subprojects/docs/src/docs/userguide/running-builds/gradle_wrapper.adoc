@@ -222,17 +222,14 @@ As usual, you should commit the changes to the Wrapper files to version control.
 
 Note that running the wrapper task once will update `gradle-wrapper.properties` only, but leave the wrapper itself in `gradle-wrapper.jar` untouched.
 This is usually fine as new versions of Gradle can be run even with older wrapper files.
-If you want *all* the wrapper files to be completely up-to-date, you will need to run the `wrapper` task a second time.
 
-Use the Gradle `wrapper` task to generate the wrapper, specifying a version.
-The default is the current version.
-Once you have upgraded the wrapper, you can check that it's the version you expected by executing `./gradlew --version`.
+NOTE: If you want *all* the wrapper files to be completely up-to-date, you will need to run the `wrapper` task a second time.
 
 The following command upgrades the Wrapper to the `latest` version:
 
 [listing,subs=+attributes]
 ----
-$ ./gradlew wrapper --gradle-version latest
+$ gradle wrapper --gradle-version latest
 include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
 
@@ -240,9 +237,21 @@ The following command upgrades the Wrapper to a specific version:
 
 [listing,subs=+attributes]
 ----
+$ gradle wrapper --gradle-version {gradleVersion}
+include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
+----
+
+You can also use the wrapper directly:
+
+[listing,subs=+attributes]
+----
 $ ./gradlew wrapper --gradle-version {gradleVersion}
 include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
+
+Once you have upgraded the wrapper, you can check that it's the version you expected by executing `./gradlew --version`.
+
+Don't forget to run the `wrapper` task again to download the Gradle distribution binaries (if needed) and update the `gradlew` and `gradle.bat` files.
 
 [[customizing_wrapper]]
 == Customizing the Gradle Wrapper
