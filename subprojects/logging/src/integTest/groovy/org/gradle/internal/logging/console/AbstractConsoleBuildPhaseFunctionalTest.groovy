@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -32,7 +31,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         server.start()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished", skip = ToBeFixedForConfigurationCache.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -56,9 +54,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                     ${server.callFromBuild('task2')}
                 }
             }
-            gradle.buildFinished {
-                ${server.callFromBuild('build-finished')}
-            }
+            ${buildFinishedCall('build-finished')}
         """
         file("b/build.gradle") << """
             ${server.callFromBuild('b-build-script')}
@@ -122,7 +118,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener", skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "shows progress bar and percent phase completion with included build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -136,9 +131,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                     ${server.callFromBuild('task2')}
                 }
             }
-            gradle.buildFinished {
-                ${server.callFromBuild('root-build-finished')}
-            }
+            ${buildFinishedCall('root-build-finished')}
         """
         file("child/settings.gradle") << """
             include 'a', 'b'
@@ -206,7 +199,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished", skip = ToBeFixedForConfigurationCache.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion with buildSrc build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -218,9 +210,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                     ${server.callFromBuild('task2')}
                 }
             }
-            gradle.buildFinished {
-                ${server.callFromBuild('root-build-finished')}
-            }
+            ${buildFinishedCall('root-build-finished')}
         """
         file("buildSrc/settings.gradle") << """
             include 'a', 'b'
@@ -288,7 +278,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished", skip = ToBeFixedForConfigurationCache.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion with artifact transforms"() {
         given:
         setupTransformBuild()
@@ -330,7 +319,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished", skip = ToBeFixedForConfigurationCache.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion with non-planned planned artifact transforms"() {
         given:
         setupTransformBuild()
@@ -482,9 +470,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                 }
             }
 
-            gradle.buildFinished {
-                ${server.callFromBuild('build-finished')}
-            }
+            ${buildFinishedCall('build-finished')}
         """
     }
 
@@ -501,5 +487,27 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     void waitForFinish() {
         result = gradle.waitForFinish()
         outputDoesNotContain("More progress was logged than there should be")
+    }
+
+    String buildFinishedCall(String name) {
+        """
+            abstract class BuildFinishCall implements FlowAction<Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input
+                    Property<String> getBuildSuccess();
+                }
+
+                @Override
+                void execute(Parameters ignored) {
+                    ${server.callFromBuild(name)}
+                }
+            }
+
+            def flowScope = gradle.services.get(FlowScope)
+            def flowProviders = gradle.services.get(FlowProviders)
+            flowScope.always(BuildFinishCall) {
+                parameters.buildSuccess = flowProviders.buildWorkResult.map { result -> "Finished" }
+            }
+        """
     }
 }
