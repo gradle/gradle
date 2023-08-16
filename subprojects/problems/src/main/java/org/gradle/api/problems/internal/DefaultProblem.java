@@ -76,7 +76,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public String getMessage() {
+    public String getLabel() {
         return message;
     }
 
@@ -97,7 +97,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public String getDescription() {
+    public String getDetails() {
         return description;
     }
 

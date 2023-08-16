@@ -36,15 +36,20 @@ public interface Problem {
     String getProblemType();
 
     /**
-     * A short description of the problem.
+     * The label of the problem.
+     * <p>
+     * Labels should be short and concise, so they fit approximately in a single line.
      */
-    String getMessage();
+    String getLabel();
 
     /**
      * A longer string describing the problem.
+     * <p>
+     * Details can elaborate on the problem, and provide more information about the problem.
+     * They can be multiple lines long, but should not detail solutions; for that, use {@link #getSolutions()}.
      */
     @Nullable
-    String getDescription();
+    String getDetails();
 
     /**
      * Problem severity.
@@ -52,7 +57,6 @@ public interface Problem {
      * The severity of a problem is a hint to the user about how important the problem is.
      * ERROR will fail the build, WARNING will not.
      */
-
     Severity getSeverity();
 
     @Nullable

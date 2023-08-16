@@ -59,10 +59,10 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
             DefaultProblemEvent event = new DefaultProblemEvent(
                 descriptor,
                 problem.getProblemGroup().toString(),
-                problem.getMessage(),
+                problem.getLabel(),
                 problem.getSeverity().toString(),
                 getDocumentationFor(problem),
-                problem.getDescription(),
+                problem.getDetails(),
                 problem.getSolutions(),
                 problemCause, problem.getProblemType(), problem.getAdditionalData());
             eventConsumer.progress(event);
