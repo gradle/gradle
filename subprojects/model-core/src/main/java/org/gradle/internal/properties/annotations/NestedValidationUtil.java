@@ -64,7 +64,7 @@ public class NestedValidationUtil {
                     .type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED.name())
                     .group(TYPE_VALIDATION_ID)
                     .severity(Severity.WARNING)
-                    .description(reason)
+                    .details(reason)
                     .solution("Use a different input annotation if type is not a bean")
                     .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types")
             )
@@ -107,7 +107,7 @@ public class NestedValidationUtil {
                     .type(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE.name())
                     .group(TYPE_VALIDATION_ID)
                     .severity(Severity.WARNING)
-                    .description("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
+                    .details("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())
             );
         }

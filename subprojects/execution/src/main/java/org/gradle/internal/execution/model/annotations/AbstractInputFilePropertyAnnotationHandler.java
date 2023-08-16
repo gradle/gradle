@@ -121,7 +121,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
                     .type(ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
-                    .description("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
+                    .details("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
                     .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath");
             });
         }

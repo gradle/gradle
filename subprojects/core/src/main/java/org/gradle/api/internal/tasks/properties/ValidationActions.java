@@ -163,7 +163,7 @@ public enum ValidationActions implements ValidationAction {
                 .type(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(Severity.ERROR)
-                .description("An input file was expected to be present but it doesn't exist")
+                .details("An input file was expected to be present but it doesn't exist")
                 .solution("Make sure the " + lowerKind + " exists before the task is called")
                 .solution("Make sure that the task which produces the " + lowerKind + " is declared as an input");
         });
@@ -180,7 +180,7 @@ public enum ValidationActions implements ValidationAction {
                 .type(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(Severity.ERROR)
-                .description("Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
+                .details("Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
                 .solution("Use a " + lowerKind + " as an input")
                 .solution("Declare the input as a " + actualKindOf(input) + " instead");
         });
@@ -196,7 +196,7 @@ public enum ValidationActions implements ValidationAction {
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(Severity.ERROR)
-                .description("Expected '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
+                .details("Expected '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
                 .solution("Make sure that the '" + propertyName + "' is configured to a directory")
         );
     }
@@ -211,7 +211,7 @@ public enum ValidationActions implements ValidationAction {
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(Severity.ERROR)
-                .description("Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
+                .details("Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
                 .solution("Make sure that the root of the file tree '" + propertyName + "' is configured to a directory")
         );
     }
@@ -225,7 +225,7 @@ public enum ValidationActions implements ValidationAction {
                 .noLocation()
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
-                .description("Cannot write a file to a location pointing at a directory")
+                .details("Cannot write a file to a location pointing at a directory")
                 .severity(Severity.ERROR)
                 .solution("Configure '" + propertyName + "' to point to a file, not a directory")
                 .solution("Annotate '" + propertyName + "' with @OutputDirectory instead of @OutputFiles")
@@ -242,7 +242,7 @@ public enum ValidationActions implements ValidationAction {
                 .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(Severity.ERROR)
-                .description("Cannot create parent directories that are existing as file")
+                .details("Cannot create parent directories that are existing as file")
                 .solution("Configure '" + propertyName + "' to point to the correct location")
         );
     }
@@ -268,7 +268,7 @@ public enum ValidationActions implements ValidationAction {
                     .type(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
-                    .description("Trying to write an output to a read-only location which is for Gradle internal use only")
+                    .details("Trying to write an output to a read-only location which is for Gradle internal use only")
                     .solution("Select a different output location")
             );
         }
@@ -301,7 +301,7 @@ public enum ValidationActions implements ValidationAction {
                     .type(ValidationProblemId.UNSUPPORTED_NOTATION.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
-                    .description("Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
+                    .details("Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
                 if (candidates.isEmpty()) {
                     describedProblem.solution("Use a value of type '" + targetType + "'");
                 } else {

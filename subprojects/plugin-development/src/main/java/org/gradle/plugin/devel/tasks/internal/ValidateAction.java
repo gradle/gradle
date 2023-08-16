@@ -171,7 +171,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                         .type(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(WARNING)
-                        .description("The " + workType + " author should make clear why a " + workType + " is not cacheable")
+                        .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                         .solution("Add " + disableCachingAnnotation + "(because = ...)")
                         .solution("Add " + cacheableAnnotation);
                     if (isTask) {

@@ -126,8 +126,8 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public ProblemBuilder description(String description) {
-        this.description = description;
+    public ProblemBuilder details(String details) {
+        this.description = details;
         return this;
     }
 

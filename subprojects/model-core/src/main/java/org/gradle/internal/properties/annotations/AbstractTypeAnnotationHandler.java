@@ -54,7 +54,7 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
                 .type(INVALID_USE_OF_TYPE_ANNOTATION.name())
                 .group(GENERIC_ID)
                 .severity(Severity.ERROR)
-                .description(String.format("This annotation only makes sense on %s types", Arrays.stream(appliesOnlyTo)
+                .details(String.format("This annotation only makes sense on %s types", Arrays.stream(appliesOnlyTo)
                     .map(Class::getSimpleName)
                     .collect(joining(", "))))
                 .solution("Remove the annotation")

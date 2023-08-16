@@ -71,7 +71,7 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
                         .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)
-                        .description(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
+                        .details(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
                     for (String possibleSolution : possibleSolutions) {
                         describedProblem.solution(possibleSolution);
                     }

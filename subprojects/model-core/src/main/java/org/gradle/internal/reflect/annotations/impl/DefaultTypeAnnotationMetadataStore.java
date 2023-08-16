@@ -286,7 +286,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             .type(ValidationProblemId.REDUNDANT_GETTERS.name())
                             .group(ProblemGroup.GENERIC_ID)
                             .severity(ERROR)
-                            .description("Boolean property '" + propertyName + "' has both an `is` and a `get` getter")
+                            .details("Boolean property '" + propertyName + "' has both an `is` and a `get` getter")
 //                        .withLongDescription("Different annotations on the different getters cause problems on what to track as inputs")
                             .solution("Remove one of the getters")
                             .solution("Annotate one of the getters with @Internal")
@@ -347,7 +347,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             .type(ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD.name())
                             .group(ProblemGroup.GENERIC_ID)
                             .severity(ERROR)
-                            .description("Annotations on fields are only used if there's a corresponding getter for the field")
+                            .details("Annotations on fields are only used if there's a corresponding getter for the field")
                             .solution("Add a getter for field '" + fieldName + "'")
                             .solution("Remove the annotations on '" + fieldName + "'")
                     );
@@ -434,7 +434,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .type(ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.name())
                         .group(ProblemGroup.GENERIC_ID)
                         .severity(ERROR)
-                        .description("Annotations on private getters are ignored")
+                        .details("Annotations on private getters are ignored")
 //                    .withLongDescription("Private getters are ignored for up-to-date checking, meaning that you might think you have declared an input when it's not the case")
                         .solution("Make the getter public")
                         .solution("Annotate the public version of the getter")
@@ -458,7 +458,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .type(ValidationProblemId.MUTABLE_TYPE_WITH_SETTER.name())
                     .group(ProblemGroup.GENERIC_ID)
                     .severity(ERROR)
-                    .description("Properties of type '" + setterType.getName() + "' are already mutable")
+                    .details("Properties of type '" + setterType.getName() + "' are already mutable")
                     .solution("Remove the '" + setterMethod.getName() + "' method")
             );
         }
@@ -495,7 +495,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .type(ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD.name())
                     .group(ProblemGroup.GENERIC_ID)
                     .severity(ERROR)
-                    .description("Input/Output annotations are ignored if they are placed on something else than a getter")
+                    .details("Input/Output annotations are ignored if they are placed on something else than a getter")
                     .solution("Remove the annotations")
                     .solution("Rename the method")
             );
@@ -598,7 +598,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                     .type(ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED.name())
                                     .group(ProblemGroup.GENERIC_ID)
                                     .severity(ERROR)
-                                    .description("A property is ignored but also has input annotations")
+                                    .details("A property is ignored but also has input annotations")
 //                                .withLongDescription("Having both an input annotation and saying that the property is ignored is confusing: Gradle cannot determine if the input is relevant or not")
                                     .solution("Remove the input annotations")
                                     .solution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
@@ -655,7 +655,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .type(ValidationProblemId.CONFLICTING_ANNOTATIONS.name())
                         .group(ProblemGroup.GENERIC_ID)
                         .severity(ERROR)
-                        .description("The different annotations have different semantics and Gradle cannot determine which one to pick")
+                        .details("The different annotations have different semantics and Gradle cannot determine which one to pick")
                         .solution("Choose between one of the conflicting annotations")
                 );
             }

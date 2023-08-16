@@ -141,7 +141,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .noLocation()
                 .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
-                .description(unknownImplSnapshot.getReasonDescription())
+                .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
             );
@@ -158,7 +158,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .noLocation()
                 .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
-                .description(unknownImplSnapshot.getReasonDescription())
+                .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
             );

@@ -75,7 +75,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                     .noLocation()
                     .type(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
-                    .description("Properties of primitive type cannot be optional")
+                    .details("Properties of primitive type cannot be optional")
                     .severity(Severity.ERROR)
                     .solution("Remove the @Optional annotation")
                     .solution("Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
@@ -98,7 +98,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                     .type(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
-                    .description("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
+                    .details("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                     .solution("Annotate with @InputFile for regular files")
                     .solution("Annotate with @InputFiles for collections of files")
                     .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
@@ -118,7 +118,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                     .type(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
-                    .description("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
+                    .details("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                     .solution("Annotate with @InputDirectory for directories")
             );
         }
@@ -136,7 +136,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                     .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(WARNING)
-                    .description(String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
+                    .details(String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
                     .solution("Use type 'java.net.URI' instead")
             );
         }
