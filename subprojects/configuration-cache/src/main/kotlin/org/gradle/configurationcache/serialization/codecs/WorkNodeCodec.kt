@@ -180,6 +180,7 @@ class WorkNodeCodec(
                     override fun <T : Any> getService(type: Class<T>): T {
                         return ownerService(type)
                     }
+                    override fun isGlobal() = true
                 })
                 successors = successors + setupNode.postExecutionNodes
             }

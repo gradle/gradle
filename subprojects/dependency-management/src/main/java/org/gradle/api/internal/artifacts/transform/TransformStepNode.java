@@ -244,7 +244,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
             @Override
             public TransformStepSubject calculateValue(NodeExecutionContext context) {
-                return buildOperationExecutor.call(new TransformStepBuildOperation() {
+                TransformStepBuildOperation buildOperation = new TransformStepBuildOperation() {
                     @Override
                     protected TransformStepSubject transform() {
                         TransformStepSubject initialSubject;
@@ -266,7 +266,12 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                     protected String describeSubject() {
                         return artifact.getId().getDisplayName();
                     }
-                });
+                };
+                if (context.isGlobal()) {
+                    return buildOperation.transform();
+                } else {
+                    return buildOperationExecutor.call(buildOperation);
+                }
             }
         }
     }
@@ -322,7 +327,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
             @Override
             public TransformStepSubject calculateValue(NodeExecutionContext context) {
-                return buildOperationExecutor.call(new TransformStepBuildOperation() {
+                TransformStepBuildOperation buildOperation = new TransformStepBuildOperation(){
                     @Override
                     protected TransformStepSubject transform() {
                         return previousTransformStepNode.getTransformedSubject()
@@ -338,7 +343,12 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                             .map(Describable::getDisplayName)
                             .getOrMapFailure(Throwable::getMessage);
                     }
-                });
+                };
+                if (context.isGlobal()) {
+                    return buildOperation.transform();
+                } else {
+                    return buildOperationExecutor.call(buildOperation);
+                }
             }
         }
     }

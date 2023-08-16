@@ -44,7 +44,17 @@ public class ProjectExecutionServiceRegistry implements AutoCloseable {
         });
 
     public ProjectExecutionServiceRegistry(ServiceRegistry globalServices) {
-        global = globalServices::get;
+        global = new NodeExecutionContext() {
+            @Override
+            public <T> T getService(Class<T> type) throws ServiceLookupException {
+                return globalServices.get(type);
+            }
+
+            @Override
+            public boolean isGlobal() {
+                return true;
+            }
+        };
     }
 
     public NodeExecutionContext forProject(@Nullable ProjectInternal project) {
@@ -69,6 +79,11 @@ public class ProjectExecutionServiceRegistry implements AutoCloseable {
         @Override
         public <T> T getService(Class<T> type) throws ServiceLookupException {
             return services.get(type);
+        }
+
+        @Override
+        public boolean isGlobal() {
+            return false;
         }
 
         @Override

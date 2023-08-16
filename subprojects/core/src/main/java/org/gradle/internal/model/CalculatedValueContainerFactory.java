@@ -19,6 +19,7 @@ package org.gradle.internal.model;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -32,7 +33,17 @@ public class CalculatedValueContainerFactory {
 
     public CalculatedValueContainerFactory(ProjectLeaseRegistry projectLeaseRegistry, ServiceRegistry buildScopeServices) {
         this.projectLeaseRegistry = projectLeaseRegistry;
-        this.globalContext = buildScopeServices::get;
+        this.globalContext = new NodeExecutionContext() {
+            @Override
+            public <T> T getService(Class<T> type) throws ServiceLookupException {
+                return buildScopeServices.get(type);
+            }
+
+            @Override
+            public boolean isGlobal() {
+                return true;
+            }
+        };
     }
 
     /**

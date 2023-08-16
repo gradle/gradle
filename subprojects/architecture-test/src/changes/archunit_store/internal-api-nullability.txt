@@ -2705,6 +2705,7 @@ Class <org.gradle.internal.model.CalculatedModelValue> is not annotated (directl
 Class <org.gradle.internal.model.CalculatedValue> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CalculatedValue.java:0)
 Class <org.gradle.internal.model.CalculatedValueContainer$CalculationState> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CalculatedValueContainer.java:0)
 Class <org.gradle.internal.model.CalculatedValueContainer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CalculatedValueContainer.java:0)
+Class <org.gradle.internal.model.CalculatedValueContainerFactory$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CalculatedValueContainerFactory.java:0)
 Class <org.gradle.internal.model.CalculatedValueContainerFactory$SupplierBackedCalculator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CalculatedValueContainerFactory.java:0)
 Class <org.gradle.internal.model.CalculatedValueContainerFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CalculatedValueContainerFactory.java:0)
 Class <org.gradle.internal.model.ModelContainer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ModelContainer.java:0)
