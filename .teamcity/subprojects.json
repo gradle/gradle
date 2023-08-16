@@ -682,7 +682,7 @@
     "name": "problems",
     "path": "subprojects/problems",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
