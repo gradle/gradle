@@ -46,6 +46,7 @@ import org.gradle.operations.dependencies.variants.Capability;
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
 
 import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -228,23 +229,21 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             return result;
         }
 
-        private class TransformInitialArtifact implements ValueCalculator<TransformStepSubject> {
-            private final BuildOperationExecutor buildOperationExecutor;
+        protected class TransformInitialArtifact extends AbstractTransformArtifacts {
 
             public TransformInitialArtifact(BuildOperationExecutor buildOperationExecutor) {
-                this.buildOperationExecutor = buildOperationExecutor;
+                super(buildOperationExecutor);
             }
 
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(transformStep);
-                context.add(upstreamDependencies);
+                super.visitDependencies(context);
                 context.add(artifact);
             }
 
             @Override
-            public TransformStepSubject calculateValue(NodeExecutionContext context) {
-                TransformStepBuildOperation buildOperation = new TransformStepBuildOperation() {
+            protected TransformStepBuildOperation createBuildOperation(NodeExecutionContext context) {
+                return new TransformStepBuildOperation() {
                     @Override
                     protected TransformStepSubject transform() {
                         TransformStepSubject initialSubject;
@@ -267,11 +266,6 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                         return artifact.getId().getDisplayName();
                     }
                 };
-                if (context.isGlobal()) {
-                    return buildOperation.transform();
-                } else {
-                    return buildOperationExecutor.call(buildOperation);
-                }
             }
         }
     }
@@ -311,23 +305,21 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             super.executeIfNotAlready();
         }
 
-        private class TransformPreviousArtifacts implements ValueCalculator<TransformStepSubject> {
-            private final BuildOperationExecutor buildOperationExecutor;
+        protected class TransformPreviousArtifacts extends AbstractTransformArtifacts {
 
             public TransformPreviousArtifacts(BuildOperationExecutor buildOperationExecutor) {
-                this.buildOperationExecutor = buildOperationExecutor;
+                super(buildOperationExecutor);
             }
 
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(transformStep);
-                context.add(upstreamDependencies);
+                super.visitDependencies(context);
                 context.add(new DefaultTransformNodeDependency(Collections.singletonList(previousTransformStepNode)));
             }
 
             @Override
-            public TransformStepSubject calculateValue(NodeExecutionContext context) {
-                TransformStepBuildOperation buildOperation = new TransformStepBuildOperation(){
+            protected TransformStepBuildOperation createBuildOperation(NodeExecutionContext context) {
+                return new TransformStepBuildOperation() {
                     @Override
                     protected TransformStepSubject transform() {
                         return previousTransformStepNode.getTransformedSubject()
@@ -344,16 +336,36 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                             .getOrMapFailure(Throwable::getMessage);
                     }
                 };
-                if (context.isGlobal()) {
-                    return buildOperation.transform();
-                } else {
-                    return buildOperationExecutor.call(buildOperation);
-                }
             }
         }
     }
 
-    private abstract class TransformStepBuildOperation implements CallableBuildOperation<TransformStepSubject> {
+    protected abstract class AbstractTransformArtifacts implements ValueCalculator<TransformStepSubject> {
+        private final BuildOperationExecutor buildOperationExecutor;
+
+        protected AbstractTransformArtifacts(BuildOperationExecutor buildOperationExecutor) {
+            this.buildOperationExecutor = buildOperationExecutor;
+        }
+
+        @OverridingMethodsMustInvokeSuper
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(transformStep);
+            context.add(upstreamDependencies);
+        }
+
+        @Override
+        public TransformStepSubject calculateValue(NodeExecutionContext context) {
+            TransformStepBuildOperation buildOperation = createBuildOperation(context);
+            return context.isGlobal()
+                ? buildOperation.transform()
+                : buildOperationExecutor.call(buildOperation);
+        }
+
+        protected abstract TransformStepBuildOperation createBuildOperation(NodeExecutionContext context);
+    }
+
+    protected abstract class TransformStepBuildOperation implements CallableBuildOperation<TransformStepSubject> {
 
         @UsedByScanPlugin("The string is used for filtering out artifact transform logs in Gradle Enterprise")
         private static final String TRANSFORMING_PROGRESS_PREFIX = "Transforming ";
