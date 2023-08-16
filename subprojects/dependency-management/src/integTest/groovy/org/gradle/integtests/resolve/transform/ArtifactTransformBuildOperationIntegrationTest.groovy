@@ -1198,6 +1198,63 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), ["FROM-CACHE"])
     }
 
+    def "no build operation for planned steps executed non-planned"() {
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithChainedColorTransform()
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+
+
+            class ShowFileCollectionWithoutDependencies extends DefaultTask {
+                @Internal
+                final ConfigurableFileCollection files = project.objects.fileCollection()
+
+                ShowFileCollectionWithoutDependencies() {
+                    outputs.upToDateWhen { false }
+                }
+
+                @TaskAction
+                def go() {
+                    println "result = \${files.files.name}"
+                }
+            }
+
+            project(":consumer") {
+                tasks.register("resolveWithoutDependencies", ShowFileCollectionWithoutDependencies) {
+                    def view = configurations.resolver.incoming.artifactView {
+                        attributes.attribute(color, 'green')
+                    }.files
+                    files.from(view)
+                    dependsOn(":producer:producer")
+                }
+            }
+        """
+
+        when:
+        run ":consumer:resolveWithoutDependencies"
+
+        then:
+        executedAndNotSkipped(":consumer:resolveWithoutDependencies")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolveWithoutDependencies', deps=[Task :producer:producer])]")
+
+        result.groupedOutput.task(":consumer:resolveWithoutDependencies")
+            .assertOutputContains("processing [producer.jar]")
+            .assertOutputContains("processing [producer.jar.red]")
+            .assertOutputContains("result = [producer.jar.red.green, test-4.2.jar]")
+
+        getPlannedNodes(0)
+    }
+
     void checkExecutionPlanMatchingDependencies(List<PlannedNode> plannedNodes, List<NodeMatcher> nodeMatchers) {
         Map<TypedNodeId, List<String>> expectedDependencyNodeIdsByTypedNodeId = [:]
         Map<TypedNodeId, String> nodeIdByTypedNodeId = [:]
