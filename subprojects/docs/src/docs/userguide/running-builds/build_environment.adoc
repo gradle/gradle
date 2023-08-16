@@ -163,7 +163,7 @@ The final configuration taken into account by Gradle is a combination of all Gra
 If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
 . command line, set using `-D`.
-. `gradle.properties` in <<directory_layout.adoc#<dir:gradle_user_home,`GRADLE_USER_HOME`>> directory.
+. `gradle.properties` in <<directory_layout.adoc#dir:gradle_user_home,`GRADLE_USER_HOME`>> directory.
 . `gradle.properties` in the project's directory, then its parent project's directory up to the build's root directory.
 . `gradle.properties` in the Gradle installation directory.
 
