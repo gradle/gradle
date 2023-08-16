@@ -50,7 +50,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 
     // This dependency is used by the application.
-    implementation("com.google.guava:guava:31.1-jre")
+    implementation("com.google.guava:guava:32.1.2-jre")
 }
 ----
 
@@ -64,11 +64,11 @@ It is the de-facto public artifact store for Java and is used by many build syst
 *Dependencies* - Dependencies declared via configuration types -> https://mvnrepository.com/artifact/junit/junit[`junit`] and https://mvnrepository.com/artifact/com.google.guava/guava[`guava`] +
 
 Gradle needs specific information to find a dependency.
-Let's look at `com.google.guava:guava:31.1-jre` and `junit:junit:4.13.2`; they are broken down as follows:
+Let's look at `com.google.guava:guava:32.1.2-jre` and `junit:junit:4.13.2`; they are broken down as follows:
 
 [cols="10h,30,40,20"]
 |===
-| |Description | com.google.guava:guava:31.1-jre | junit:junit:4.13.2
+| |Description | com.google.guava:guava:32.1.2-jre | junit:junit:4.13.2
 
 |Group
 |identifier of an organization
@@ -82,7 +82,7 @@ Let's look at `com.google.guava:guava:31.1-jre` and `junit:junit:4.13.2`; they a
 
 |Version
 |version # to import
-|`31.1-jre`
+|`32.1.2-jre`
 |`4.13.2`
 |===
 
@@ -107,7 +107,7 @@ Project ':app'
 ...
 
 compileClasspath - Compile classpath for source set 'main'.
-\--- com.google.guava:guava:31.1-jre
+\--- com.google.guava:guava:32.1.2-jre
      +--- com.google.guava:failureaccess:1.0.1
      +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
      +--- com.google.code.findbugs:jsr305:3.0.2
@@ -118,7 +118,7 @@ compileClasspath - Compile classpath for source set 'main'.
 ...
 ----
 
-The output clearly depicts that `com.google.guava:guava:31.1-jre` has a dependency on `com.google.guava:failureaccess:1.0.1`.
+The output clearly depicts that `com.google.guava:guava:32.1.2-jre` has a dependency on `com.google.guava:failureaccess:1.0.1`.
 
 == Step 4. Viewing Dependencies in a Build Scan®
 To view dependencies using a https://scans.gradle.com/[Build Scan], run the build task with an optional `--scan` flag.
@@ -159,12 +159,12 @@ image::tutorial/build-scan-dependencies.png[]
 
 As expected, we can see the declared dependencies `junit` and `guava` are used by Gradle to compile, run, and test the app.
 
-Expand `com.google.guava:guava:31.1-jre` and `org.junit.jupiter:junit-jupiter:5.9.1` in the window:
+Expand `com.google.guava:guava:32.1.2-jre` and `org.junit.jupiter:junit-jupiter:5.9.1` in the window:
 
 image::tutorial/build-scan-trans-dependencies.png[]
 
 There are several transitive dependencies under `junit` and `guava`.
-For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:31.1-jre` dependency.
+For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:32.1.2-jre` dependency.
 
 == Step 5. Updating Project Dependencies
 Adding and changing dependencies is done in the build file.
@@ -213,7 +213,7 @@ Then, add the following lines to this new file:
 ----
 [versions]
 junitVer = "5.9.1"
-guavaVer = "31.1-jre"
+guavaVer = "32.1.2-jre"
 
 [libraries]
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitVer" }
