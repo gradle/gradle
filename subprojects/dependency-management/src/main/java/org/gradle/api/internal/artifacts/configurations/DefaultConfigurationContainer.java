@@ -52,7 +52,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
-    private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
+    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
     public DefaultConfigurationContainer(
@@ -77,6 +77,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         // TODO: Deprecate legacy configurations for consumption
         validateNameIsAllowed(name);
         return defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.LEGACY);
+    }
+
+    @Override
+    public boolean isFixedSize() {
+        return false;
     }
 
     @Override

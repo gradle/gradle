@@ -19,14 +19,25 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.ListSerializer;
+import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * A serializer used for resolution results that will be consumed from the same Gradle invocation that produces them.
@@ -36,11 +47,27 @@ import java.io.IOException;
 @ThreadSafe
 public class ThisBuildOnlySelectedVariantSerializer implements SelectedVariantSerializer {
     private final Long2ObjectMap<VariantGraphResolveState> variants = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+    private final Serializer<ComponentIdentifier> componentIdSerializer = new ComponentIdentifierSerializer();
+    private final Serializer<AttributeContainer> attributeContainerSerializer;
+    private final Serializer<List<Capability>> capabilitySerializer = new ListSerializer<>(new CapabilitySerializer());
+
+    public ThisBuildOnlySelectedVariantSerializer(ImmutableAttributesFactory immutableAttributesFactory, NamedObjectInstantiator namedObjectInstantiator) {
+        attributeContainerSerializer = new DesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator);
+    }
 
     @Override
-    public void writeVariantResult(ResolvedGraphVariant variant, Encoder encoder) throws IOException {
+    public void writeVariantResult(ResolvedGraphVariant variant, Encoder encoder) throws Exception {
         encoder.writeSmallLong(variant.getNodeId());
         VariantGraphResolveState state = variant.getResolveState();
+        if (state.isAdHoc()) {
+            writeVariantData(encoder, state);
+        } else {
+            writeVariantReference(encoder, variant, state);
+        }
+    }
+
+    private void writeVariantReference(Encoder encoder, ResolvedGraphVariant variant, VariantGraphResolveState state) throws IOException {
+        encoder.writeBoolean(false);
         writeVariantReference(encoder, state);
         ResolvedGraphVariant externalVariant = variant.getExternalVariant();
         if (externalVariant == null) {
@@ -51,15 +78,32 @@ public class ThisBuildOnlySelectedVariantSerializer implements SelectedVariantSe
         }
     }
 
-    private void writeVariantReference(Encoder encoder, VariantGraphResolveState state) throws IOException {
-        long instanceId = state.getInstanceId();
-        variants.putIfAbsent(instanceId, state);
+    private void writeVariantData(Encoder encoder, VariantGraphResolveState state) throws Exception {
+        encoder.writeBoolean(true);
+        ResolvedVariantResult variantResult = state.getVariantResult(null);
+        componentIdSerializer.write(encoder, variantResult.getOwner());
+        encoder.writeString(variantResult.getDisplayName());
+        attributeContainerSerializer.write(encoder, variantResult.getAttributes());
+        capabilitySerializer.write(encoder, variantResult.getCapabilities());
+    }
+
+    private void writeVariantReference(Encoder encoder, VariantGraphResolveState variant) throws IOException {
+        long instanceId = variant.getInstanceId();
+        variants.putIfAbsent(instanceId, variant);
         encoder.writeSmallLong(instanceId);
     }
 
     @Override
-    public void readSelectedVariant(Decoder decoder, ResolvedComponentVisitor visitor) throws IOException {
+    public void readSelectedVariant(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception {
         long nodeId = decoder.readSmallLong();
+        if (decoder.readBoolean()) {
+            readVariantData(decoder, visitor, nodeId);
+        } else {
+            readVariantReference(decoder, visitor, nodeId);
+        }
+    }
+
+    private void readVariantReference(Decoder decoder, ResolvedComponentVisitor visitor, long nodeId) throws IOException {
         VariantGraphResolveState variant = readVariantReference(decoder);
         ResolvedVariantResult externalVariant;
         if (decoder.readBoolean()) {
@@ -68,6 +112,14 @@ public class ThisBuildOnlySelectedVariantSerializer implements SelectedVariantSe
             externalVariant = null;
         }
         visitor.visitSelectedVariant(nodeId, variant.getVariantResult(externalVariant));
+    }
+
+    private void readVariantData(Decoder decoder, ResolvedComponentVisitor visitor, long nodeId) throws Exception {
+        ComponentIdentifier ownerId = componentIdSerializer.read(decoder);
+        String displayName = decoder.readString();
+        AttributeContainer attributes = attributeContainerSerializer.read(decoder);
+        List<Capability> capabilities = capabilitySerializer.read(decoder);
+        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(ownerId, Describables.of(displayName), attributes, capabilities, null));
     }
 
     private VariantGraphResolveState readVariantReference(Decoder decoder) throws IOException {
