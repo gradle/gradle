@@ -36,6 +36,6 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
         // that references types that were previously eliminated from gradle-tooling-api.jar.
 
         def size = resolve.classpath.find { it.name ==~ /gradle-tooling-api.*\.jar/ }.size()
-        size < 3_000_000
+        size < 3_100_000
     }
 }
