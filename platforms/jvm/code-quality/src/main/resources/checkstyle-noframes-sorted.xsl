@@ -104,7 +104,7 @@
                                     <xsl:for-each select="file[error]">
                                         <!-- sort by number of errors and then alphabetically -->
                                         <xsl:sort data-type="number" order="descending" select="count(descendant::error)"/>
-                                        <xsl:sort select="name"/>
+                                        <xsl:sort select="@name"/>
                                         <xsl:variable name="errors" select="count(descendant::error)"/>
                                         <tr>
                                             <td><a href="#{generate-id(@name)}"><xsl:value-of select="@name"/></a></td>
@@ -113,7 +113,10 @@
                                     </xsl:for-each>
                                 </table>
                                 <p/>
-                                <xsl:apply-templates/>
+                                <xsl:apply-templates>
+                                    <!-- sort entries by file name alphabetically -->
+                                    <xsl:sort select="@name"/>
+                                </xsl:apply-templates>
                                 <p/>
                             </xsl:when>
                             <xsl:otherwise>
