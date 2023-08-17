@@ -76,7 +76,7 @@ class FlowParametersInstantiator(
                             override fun add(dependency: Any) {
                                 problems.add(
                                     problemsService.createProblemBuilder()
-                                        .message("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
+                                        .label("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
                                         .undocumented()
                                         .noLocation()
                                         .type("validation_type")

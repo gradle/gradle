@@ -33,7 +33,7 @@ import java.util.Map;
 public class DefaultProblem implements Problem {
 
     private ProblemGroup problemGroup;
-    private String message;
+    private String label;
     private Severity severity;
     private ProblemLocation where;
     private DocLink documentationLink;
@@ -45,7 +45,7 @@ public class DefaultProblem implements Problem {
 
     public DefaultProblem(
         ProblemGroup problemGroup,
-        String message,
+        String label,
         Severity severity,
         @Nullable ProblemLocation location,
         @Nullable DocLink documentationUrl,
@@ -56,7 +56,7 @@ public class DefaultProblem implements Problem {
         Map<String, String> additionalMetadata
     ) {
         this.problemGroup = problemGroup;
-        this.message = message;
+        this.label = label;
         this.severity = severity;
         this.where = location;
         this.documentationLink = documentationUrl;
@@ -76,8 +76,8 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public String getMessage() {
-        return message;
+    public String getLabel() {
+        return label;
     }
 
     @Override
@@ -97,7 +97,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public String getDescription() {
+    public String getDetails() {
         return description;
     }
 
@@ -135,7 +135,7 @@ public class DefaultProblem implements Problem {
         }
         DefaultProblem that = (DefaultProblem) o;
         return equals(problemGroup, that.problemGroup) &&
-            equals(message, that.message) &&
+            equals(label, that.label) &&
             severity == that.severity &&
             equals(where, that.where) &&
             equals(problemType, that.problemType) &&
@@ -148,7 +148,7 @@ public class DefaultProblem implements Problem {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{problemGroup, message, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
+        return Arrays.hashCode(new Object[]{problemGroup, label, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
     }
 
     public void setSeverity(Severity severity) {

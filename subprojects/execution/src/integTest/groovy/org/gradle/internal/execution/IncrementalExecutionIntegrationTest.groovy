@@ -281,10 +281,10 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                     .forType(UnitOfWork, false)
                     .visitPropertyProblem {
                         it.type(ValidationProblemId.TEST_PROBLEM.name())
+                            .label("Validation problem")
                             .severity(Severity.WARNING)
-                            .message("Validation problem")
                             .documentedAt(Documentation.userManual("id", "section"))
-                            .description("Test")
+                            .details("Test")
                             .noLocation()
                     }
             }
@@ -591,12 +591,12 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 validationContext.forType(Object, true).visitTypeProblem {
                     it
                         .withAnnotationType(Object)
-                        .type(ValidationProblemId.TEST_PROBLEM.name())
-                        .severity(Severity.ERROR)
-                        .message("Validation error")
+                        .label("Validation error")
                         .documentedAt(Documentation.userManual("id", "section"))
-                        .description("Test")
                         .noLocation()
+                        .type(ValidationProblemId.TEST_PROBLEM.name())
+                        .details("Test")
+                        .severity(Severity.ERROR)
                 }
             }
             .withWork({ throw new RuntimeException("Should not get executed") })

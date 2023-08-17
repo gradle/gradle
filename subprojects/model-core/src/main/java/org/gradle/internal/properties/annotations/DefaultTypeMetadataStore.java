@@ -105,13 +105,13 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .message("is missing " + displayName)
+                        .label("is missing " + displayName)
                         .documentedAt(userManual("validation_problems", "missing_annotation"))
                         .noLocation()
                         .type(ValidationProblemId.MISSING_ANNOTATION.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)
-                        .description("A property without annotation isn't considered during up-to-date checking")
+                        .details("A property without annotation isn't considered during up-to-date checking")
                         .solution("Add " + displayName)
                         .solution("Mark it as @Internal")
                 );
@@ -123,13 +123,13 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .message(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
+                        .label(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
                         .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
                         .noLocation()
                         .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)
-                        .description("The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
+                        .details("The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
                         .solution("Remove the property")
                         .solution("Use a different annotation, e.g one of " + toListOfAnnotations(propertyAnnotationHandlers.keySet()))
                 );
@@ -147,26 +147,26 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .message("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
+                            .label("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
                             .documentedAt(userManual("validation_problems", "incompatible_annotations"))
                             .noLocation()
                             .type(ValidationProblemId.INCOMPATIBLE_ANNOTATIONS.name())
                             .group(ProblemGroup.TYPE_VALIDATION_ID)
                             .severity(Severity.ERROR)
-                            .description("This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
+                            .details("This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
 //                            .withLongDescription(() -> "The list of allowed modifiers for '" + propertyType.getSimpleName() + "' is " + toListOfAnnotations(allowedPropertyModifiers))
                             .solution("Remove the '@" + annotationType.getSimpleName() + "' annotation"));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .message(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
+                            .label(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
                             .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
                             .noLocation()
                             .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())
                             .group(ProblemGroup.TYPE_VALIDATION_ID)
                             .severity(Severity.ERROR)
-                            .description("The '@" + annotationType.getSimpleName() + "' annotation cannot be used in this context")
+                            .details("The '@" + annotationType.getSimpleName() + "' annotation cannot be used in this context")
                             .solution("Remove the annotation")
                             .solution("Use a different annotation, e.g one of " + toListOfAnnotations(allowedPropertyModifiers))
                     );

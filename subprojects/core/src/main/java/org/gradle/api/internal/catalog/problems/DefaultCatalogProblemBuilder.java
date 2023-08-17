@@ -56,10 +56,10 @@ public class DefaultCatalogProblemBuilder {
 
     private static void reportInto(TreeFormatter output, Problem problem) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(problem.getMessage());
-        if (problem.getDescription() != null) {
+        formatter.node(problem.getLabel());
+        if (problem.getDetails() != null) {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDescription())));
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         }
 
         renderSolutionsWithNewProblemsApi(formatter, problem.getSolutions());

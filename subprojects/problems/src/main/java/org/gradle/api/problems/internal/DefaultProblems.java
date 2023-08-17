@@ -19,7 +19,7 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
@@ -51,7 +51,7 @@ public class DefaultProblems extends Problems {
         problemGroups.put(genericId, new PredefinedProblemGroup(genericId));
     }
 
-    public ProblemBuilderDefiningMessage createProblemBuilder() {
+    public ProblemBuilderDefiningLabel createProblemBuilder() {
         return createProblemBuilderInternal();
     }
 
@@ -63,7 +63,7 @@ public class DefaultProblems extends Problems {
 
     public void collectError(RuntimeException failure) {
         new DefaultProblemBuilder(this, buildOperationProgressEventEmitter)
-            .message(failure.getMessage())
+            .label(failure.getMessage())
             .undocumented()
             .noLocation()
             .type("generic_exception")

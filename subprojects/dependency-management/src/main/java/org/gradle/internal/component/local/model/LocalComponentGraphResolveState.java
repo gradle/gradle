@@ -35,4 +35,9 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
     LocalComponentMetadata getArtifactMetadata();
 
     LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
+
+    /**
+     * @see LocalComponentGraphResolveState#reevaluate()
+     */
+    void reevaluate();
 }

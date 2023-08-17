@@ -65,13 +65,13 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
             validationContext.visitPropertyProblem(problem -> {
                     ProblemBuilder describedProblem = problem
                         .forProperty(propertyMetadata.getPropertyName())
-                        .message(String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
+                        .label(String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
                         .documentedAt(userManual("validation_problems", "unsupported_value_type"))
                         .noLocation()
                         .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)
-                        .description(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
+                        .details(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
                     for (String possibleSolution : possibleSolutions) {
                         describedProblem.solution(possibleSolution);
                     }

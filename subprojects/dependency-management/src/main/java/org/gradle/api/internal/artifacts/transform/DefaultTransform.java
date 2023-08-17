@@ -204,13 +204,13 @@ public class DefaultTransform implements Transform {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .message("is declared to be sensitive to absolute paths")
+                        .label("is declared to be sensitive to absolute paths")
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .noLocation()
                         .type(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY.name())
                         .group(ProblemGroup.GENERIC_ID)
                         .severity(ERROR)
-                        .description("This is not allowed for cacheable transforms")
+                        .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
             }
         }
@@ -360,13 +360,13 @@ public class DefaultTransform implements Transform {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
-                            .message("declares an output")
+                            .label("declares an output")
                             .documentedAt(userManual("validation_problems", "artifact_transform_should_not_declare_output"))
                             .noLocation()
                             .type(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.name())
                             .group(ProblemGroup.TYPE_VALIDATION_ID)
                             .severity(ERROR)
-                            .description("is annotated with an output annotation")
+                            .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
                     );
                 }

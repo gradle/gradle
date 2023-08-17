@@ -215,7 +215,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
         throw getProblemService().createProblemBuilder()
-            .message(message)
+            .label(message)
             .undocumented()
             .location(source.getFileName(), lineNumber)
             .type("script_compilation_failed")
