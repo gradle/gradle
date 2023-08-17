@@ -13,6 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+:root {
+    --caution-color: #802392;
+    --caution-on-color: #fff;
+    --important-color: #e40046;
+    --important-on-color: #fff;
+    --note-color: #2d7dd2;
+    --note-on-color: #fff;
+    --tip-color: #43b929;
+    --tip-on-color: #fff;
+    --warning-color: #f70;
+    --warning-on-color: #fff;
+    --admonition-background: #fafafa;
+    --doc-icon-filter: invert(14.5%);
+    --rem-base: 18;
+}
 
 /* Lato (normal, regular) */
 @font-face {
@@ -438,12 +453,131 @@ table.tableblock > caption.title { white-space: nowrap; overflow: visible; max-w
 
 table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-size: inherit; }
 
-.admonitionblock > table { border-collapse: separate; border: 0; background: none; width: 100%; }
-.admonitionblock > table td.icon { text-align: center; width: 80px; }
-.admonitionblock > table td.icon img { max-width: initial; }
-.admonitionblock > table td.icon .title { font-weight: bold; font-family: "Open Sans", "DejaVu Sans", sans-serif; text-transform: uppercase; }
-.admonitionblock > table td.content { padding-left: 1.125em; padding-right: 1.25em; border-left: 1px solid #ddddd8; color: rgba(0, 0, 0, 0.6); }
-.admonitionblock > table td.content > :last-child > :last-child { margin-bottom: 0; }
+/* Icons from https://github.com/primer/octicons */
+.admonitionblock {
+    margin: 1.4rem 0 0
+}
+
+.admonitionblock i {
+    font-family: inherit;
+}
+
+.admonitionblock i.fa {
+    background: no-repeat 50%/1em 1em;
+    display: inline-block;
+    filter: var(--doc-icon-filter);
+    font-style: normal;
+    height: 1em;
+    -webkit-hyphens: none;
+    hyphens: none;
+    vertical-align: -.125em;
+    width: 1em
+}
+
+.admonitionblock p,
+.admonitionblock td.content {
+    font-size: 1rem;
+}
+
+.admonitionblock td.content>.title+*,
+.admonitionblock td.content>:not(.title):first-child {
+    margin-top: 0
+}
+
+.admonitionblock pre {
+    font-size: calc(15/var(--rem-base)*1rem)
+}
+
+.admonitionblock > table {
+    position: relative;
+    table-layout: fixed;
+    border: none;
+    width: 100%
+}
+
+.admonitionblock td.content {
+    word-wrap: anywhere;
+    background: var(--admonition-background);
+    padding: 1rem 1rem .75rem;
+    width: 100%
+}
+
+.admonitionblock td.icon {
+    background: linear-gradient(90deg,rgba(0,0,0,.2) 0,rgba(0,0,0,.2)) no-repeat 0 /2.075em 100%;
+    border-radius: .5em;
+    font-size: calc(15/var(--rem-base)*1rem);
+    left: 0;
+    line-height: 1;
+    padding: .25em .075em;
+    position: absolute;
+    top: 0;
+    transform: translate(-.5rem,-50%)
+}
+
+.admonitionblock td.icon i {
+    align-items: center;
+    background-position-x: .5em;
+    display: inline-flex;
+    filter: invert(100%);
+    padding-left: 2em;
+    vertical-align: initial;
+    width: auto
+}
+
+.admonitionblock td.icon i::after {
+    content: attr(title);
+    filter: invert(100%);
+    font-style: normal;
+    font-weight: bold;
+    margin: -.05em;
+    padding: 0 .5em;
+    text-transform: uppercase
+}
+
+.admonitionblock.caution td.icon {
+    background-color: var(--caution-color);
+    color: var(--caution-on-color)
+}
+
+.admonitionblock.caution td.icon i {
+    background-image: url(./img/octicons-16.svg#view-flame)
+}
+
+.admonitionblock.important td.icon {
+    background-color: var(--important-color);
+    color: var(--important-on-color)
+}
+
+.admonitionblock.important td.icon i {
+    background-image: url(./img/octicons-16.svg#view-stop)
+}
+
+.admonitionblock.note td.icon {
+    background-color: var(--note-color);
+    color: var(--note-on-color)
+}
+
+.admonitionblock.note td.icon i {
+    background-image: url(./img/octicons-16.svg#view-info)
+}
+
+.admonitionblock.tip td.icon {
+    background-color: var(--tip-color);
+    color: var(--tip-on-color)
+}
+
+.admonitionblock.tip td.icon i {
+    background-image: url(./img/octicons-16.svg#view-light-bulb)
+}
+
+.admonitionblock.warning td.icon {
+    background-color: var(--warning-color);
+    color: var(--warning-on-color)
+}
+
+.admonitionblock.warning td.icon i {
+    background-image: url(./img/octicons-16.svg#view-alert)
+}
 
 .exampleblock > .content { border-style: solid; border-width: 1px; border-color: #e6e6e6; margin-bottom: 1.25em; padding: 1.25em; background: white; -webkit-border-radius: 4px; border-radius: 4px; }
 .exampleblock > .content > :first-child { margin-top: 0; }
@@ -724,19 +858,6 @@ div.unbreakable { page-break-inside: avoid; }
 
 span.icon > .fa { cursor: default; }
 
-.admonitionblock td.icon [class^="fa icon-"] {
-    cursor: default;
-    color: transparent;
-    font-size: 3.5em;
-    text-shadow: 0 0 #00c489;
-    opacity: 0.7;
-}
-.admonitionblock td.icon .icon-note:before { content: "\2728"; }
-.admonitionblock td.icon .icon-tip:before { content: "\1F4A1"; }
-.admonitionblock td.icon .icon-warning:before { content: "\2757"; }
-.admonitionblock td.icon .icon-caution:before { content: "\26A0"; }
-.admonitionblock td.icon .icon-important:before { content: "\26A0"; }
-
 .conum[data-value] { display: inline-block; color: #fff !important; background-color: rgba(0, 0, 0, 0.8); -webkit-border-radius: 100px; border-radius: 100px; text-align: center; font-size: 0.75em; width: 1.67em; height: 1.67em; line-height: 1.67em; font-family: "Open Sans", "DejaVu Sans", sans-serif; font-style: normal; font-weight: bold; }
 .conum[data-value] * { color: #fff !important; }
 .conum[data-value] + b { display: none; }
@@ -1000,17 +1121,6 @@ table.tableblock > .title,
     font-weight: bold;
 }
 
-.admonitionblock td.content > .title {
-    font-family: inherit;
-    font-style: normal;
-    font-size: 1.25em;
-    color: #555;
-}
-
-.admonitionblock table tr td {
-    padding: 0;
-}
-
 .imageblock,
 .videoblock {
     padding: 0.25em;
@@ -1033,19 +1143,6 @@ p.lead,
 
 .sect1 + .sect1 {
     border: 0 none;
-}
-
-.admonitionblock .icon .title {
-    font-size: 2.3em;
-}
-
-.admonitionblock > table td.icon .title {
-    font-family: "Lato", Arial, sans-serif;
-}
-
-.admonitionblock .content,
-.admonitionblock p {
-    color: #666;
 }
 
 .verseblock pre {
