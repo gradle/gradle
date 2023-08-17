@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunction
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 
 abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
@@ -319,6 +320,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/24370")
     def "shows progress bar and percent phase completion with non-planned planned artifact transforms"() {
         given:
         setupTransformBuild()
@@ -348,16 +350,18 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         sizeTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("50% EXECUTING")
+        assertHasBuildPhase("100% EXECUTING")
         sizeTransform.releaseAll()
 
         and:
         buildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("200% EXECUTING")
         buildFinished.releaseAll()
 
-        and:
-        waitForFinish()
+        when:
+        result = gradle.waitForFinish()
+        then:
+        outputContains("More progress was logged than there should be")
     }
 
     def setupTransformBuild() {
