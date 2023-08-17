@@ -28,7 +28,6 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESS
 
 class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
-
     @LeaksFileHandles("Puts gradle user home in integration test dir")
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "root component identifier has the correct type when resolving a script classpath"() {

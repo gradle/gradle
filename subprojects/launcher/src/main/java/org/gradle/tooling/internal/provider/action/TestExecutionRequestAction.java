@@ -16,9 +16,12 @@
 
 package org.gradle.tooling.internal.provider.action;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.DefaultTaskExecutionRequest;
+import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
@@ -34,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final StartParameterInternal startParameter;
@@ -69,14 +73,42 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     // TestExecutionRequestAction
     public static TestExecutionRequestAction create(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, ProviderInternalTestExecutionRequest testExecutionRequest) {
         ImmutableSet<String> classNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
-        return new TestExecutionRequestAction(clientSubscriptions, startParameter,
+        List<InternalTaskSpec> taskSpecs = testExecutionRequest.getTaskSpecs(Collections.emptyList());
+        boolean runDefaultTasks = testExecutionRequest.isRunDefaultTasks(false);
+
+        return new TestExecutionRequestAction(
+            clientSubscriptions,
+            configureStartParameter(startParameter, taskSpecs, runDefaultTasks),
             ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),
             classNames,
             getInternalJvmTestRequests(testExecutionRequest, classNames),
             getDebugOptions(testExecutionRequest),
             getTaskAndTests(testExecutionRequest),
-            testExecutionRequest.isRunDefaultTasks(false),
-            testExecutionRequest.getTaskSpecs(Collections.emptyList()));
+            runDefaultTasks,
+            taskSpecs);
+    }
+
+    private static StartParameterInternal configureStartParameter(StartParameterInternal startParameter, List<InternalTaskSpec> taskSpecs, boolean runDefaultTasks) {
+        Preconditions.checkArgument(
+            startParameter.getTaskNames().isEmpty(),
+            "Cannot pass task requests with start parameter here, got %s",
+            startParameter.getTaskNames());
+        if (!taskSpecs.isEmpty()) {
+            List<String> taskPaths = taskSpecs.stream().map(InternalTaskSpec::getTaskPath).collect(Collectors.toList());
+
+            Preconditions.checkArgument(
+                !runDefaultTasks,
+                "Cannot run default tasks when task specs %s are provided",
+                taskPaths);
+
+            startParameter.setTaskRequests(Collections.singletonList(new DefaultTaskExecutionRequest(taskPaths)));
+        } else if (runDefaultTasks) {
+            startParameter.setTaskRequests(Collections.singletonList(new RunDefaultTasksExecutionRequest()));
+        } else {
+            startParameter.setTaskRequests(Collections.emptyList());
+        }
+
+        return startParameter;
     }
 
     private static Set<InternalJvmTestRequest> getInternalJvmTestRequests(ProviderInternalTestExecutionRequest testExecutionRequest, Set<String> classNames) {

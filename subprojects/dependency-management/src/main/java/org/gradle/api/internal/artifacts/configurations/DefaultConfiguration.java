@@ -115,7 +115,6 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -1326,10 +1325,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private DefaultConfiguration newConfiguration(ConfigurationRole role) {
+        String newName = getNameWithCopySuffix();
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
-
-        String newName = getNameWithCopySuffix();
 
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = defaultConfigurationFactory.create(
@@ -1372,9 +1370,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public LocalComponentMetadata toRootComponentMetaData() {
-        warnOnInvalidInternalAPIUsage("toRootComponentMetaData()", ProperMethodUsage.RESOLVABLE);
-        return rootComponentMetadataBuilder.toRootComponentMetaData();
+    public RootComponentMetadataBuilder.RootComponentState toRootComponent() {
+        warnOnInvalidInternalAPIUsage("toRootComponent()", ProperMethodUsage.RESOLVABLE);
+        return rootComponentMetadataBuilder.toRootComponent(getName());
     }
 
     @Override

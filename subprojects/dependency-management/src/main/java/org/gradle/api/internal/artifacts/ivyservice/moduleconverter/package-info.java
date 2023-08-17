@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
+@NonNullApi
+package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-
-public interface SelectedVariantSerializer {
-    void writeVariantResult(ResolvedGraphVariant variant, Encoder encoder) throws Exception;
-
-    void readSelectedVariant(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception;
-}
+import org.gradle.api.NonNullApi;
