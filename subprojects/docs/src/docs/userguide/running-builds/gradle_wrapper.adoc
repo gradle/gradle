@@ -229,19 +229,11 @@ The following command upgrades the Wrapper to the `latest` version:
 
 [listing,subs=+attributes]
 ----
-$ gradle wrapper --gradle-version latest
+$ ./gradlew wrapper --gradle-version latest
 include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
 
 The following command upgrades the Wrapper to a specific version:
-
-[listing,subs=+attributes]
-----
-$ gradle wrapper --gradle-version {gradleVersion}
-include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
-----
-
-You can also use the wrapper directly:
 
 [listing,subs=+attributes]
 ----
