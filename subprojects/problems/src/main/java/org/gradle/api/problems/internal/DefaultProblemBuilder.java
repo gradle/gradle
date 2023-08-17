@@ -55,7 +55,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     ProblemBuilderDefiningType {
 
     private ProblemGroup problemGroup;
-    private String message;
+    private String label;
     private String problemType;
     private final Problems problemsService;
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
@@ -97,7 +97,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
 
     @Override
     public ProblemBuilderDefiningDocumentation label(String label, Object... args) {
-        this.message = String.format(label, args);
+        this.label = String.format(label, args);
         return this;
     }
 
@@ -178,22 +178,22 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     @Nonnull
     private DefaultProblem buildInternal(@Nullable Severity severity) {
         if (!explicitlyUndocumented && documentationUrl == null) {
-            throw new IllegalStateException("Problem is not documented: " + message);
+            throw new IllegalStateException("Problem is not documented: " + label);
         }
 
         if (!noLocation) {
             if (path == null) {
-                throw new IllegalStateException("Problem location path is not set: " + message);
+                throw new IllegalStateException("Problem location path is not set: " + label);
             }
             if (line == null) {
-                throw new IllegalStateException("Problem location line is not set: " + message);
+                throw new IllegalStateException("Problem location line is not set: " + label);
             }
             // Column is optional field, so we don't need to check it
         }
 
         return new DefaultProblem(
             problemGroup,
-            message,
+            label,
             getSeverity(severity),
             getProblemLocation(),
             documentationUrl,
