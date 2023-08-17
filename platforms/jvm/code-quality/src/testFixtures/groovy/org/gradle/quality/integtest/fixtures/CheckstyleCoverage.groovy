@@ -21,7 +21,7 @@ import org.gradle.api.plugins.quality.CheckstylePlugin
 import org.gradle.util.internal.VersionNumber
 
 class CheckstyleCoverage {
-    private final static List<String> JDK8_SUPPORTED = ['7.0', '7.6', '8.0', '8.12', '8.17', '8.24', CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION].asImmutable()
+    private final static List<String> JDK8_SUPPORTED = [CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION, '7.0', '7.6', '8.0', '8.12', '8.17', '8.24'].asImmutable()
     private final static List<String> JDK11_REQUIRED = ['10.3.3'].asImmutable()
     private final static List<String> ALL = JDK8_SUPPORTED + JDK11_REQUIRED
 
