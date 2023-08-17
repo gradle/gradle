@@ -1198,7 +1198,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), ["FROM-CACHE"])
     }
 
-    def "no build operation for planned steps executed non-planned"() {
+    def "build operation for planned steps executed non-planned"() {
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -1247,12 +1247,17 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolveWithoutDependencies', deps=[Task :producer:producer])]")
 
-        result.groupedOutput.task(":consumer:resolveWithoutDependencies")
+        result.groupedOutput.transform("MakeColor")
             .assertOutputContains("processing [producer.jar]")
             .assertOutputContains("processing [producer.jar.red]")
+
+        result.groupedOutput.task(":consumer:resolveWithoutDependencies")
             .assertOutputContains("result = [producer.jar.red.green, test-4.2.jar]")
 
         getPlannedNodes(0)
+        getExecutePlannedStepOperations(2).each {
+            checkExecuteTransformWorkOperations(it, 1)
+        }
     }
 
     void checkExecutionPlanMatchingDependencies(List<PlannedNode> plannedNodes, List<NodeMatcher> nodeMatchers) {
