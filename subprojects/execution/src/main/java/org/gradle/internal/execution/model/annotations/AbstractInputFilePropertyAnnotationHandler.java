@@ -115,13 +115,13 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
                 String propertyName = propertyMetadata.getPropertyName();
                 problem
                     .forProperty(propertyName)
+                    .label(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
                     .documentedAt(userManual("validation_problems", "missing_normalization_annotation"))
                     .noLocation()
-                    .message(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
                     .type(ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
-                    .description("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
+                    .details("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
                     .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath");
             });
         }

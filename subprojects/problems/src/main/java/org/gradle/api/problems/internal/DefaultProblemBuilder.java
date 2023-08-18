@@ -25,7 +25,7 @@ import org.gradle.api.problems.interfaces.ProblemBuilder;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningGroup;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
+import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.interfaces.ProblemBuilderDefiningType;
 import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.ProblemLocation;
@@ -51,11 +51,11 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningGroup,
-    ProblemBuilderDefiningMessage,
+    ProblemBuilderDefiningLabel,
     ProblemBuilderDefiningType {
 
     private ProblemGroup problemGroup;
-    private String message;
+    private String label;
     private String problemType;
     private final Problems problemsService;
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
@@ -96,8 +96,8 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningType message(String message, Object... args) {
-        this.message = String.format(message, args);
+    public ProblemBuilderDefiningDocumentation label(String label, Object... args) {
+        this.label = String.format(label, args);
         return this;
     }
 
@@ -107,13 +107,13 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public ProblemBuilderDefiningMessage location(String path, Integer line) {
+    public ProblemBuilderDefiningType location(String path, Integer line) {
         this.path = path;
         this.line = line;
         return this;
     }
 
-    public ProblemBuilderDefiningMessage location(String path, Integer line, Integer column) {
+    public ProblemBuilderDefiningType location(String path, Integer line, Integer column) {
         this.path = path;
         this.line = line;
         this.column = column;
@@ -121,13 +121,13 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningMessage noLocation() {
+    public ProblemBuilderDefiningType noLocation() {
         this.noLocation = true;
         return this;
     }
 
-    public ProblemBuilder description(String description) {
-        this.description = description;
+    public ProblemBuilder details(String details) {
+        this.description = details;
         return this;
     }
 
@@ -178,22 +178,22 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     @Nonnull
     private DefaultProblem buildInternal(@Nullable Severity severity) {
         if (!explicitlyUndocumented && documentationUrl == null) {
-            throw new IllegalStateException("Problem is not documented: " + message);
+            throw new IllegalStateException("Problem is not documented: " + label);
         }
 
         if (!noLocation) {
             if (path == null) {
-                throw new IllegalStateException("Problem location path is not set: " + message);
+                throw new IllegalStateException("Problem location path is not set: " + label);
             }
             if (line == null) {
-                throw new IllegalStateException("Problem location line is not set: " + message);
+                throw new IllegalStateException("Problem location line is not set: " + label);
             }
             // Column is optional field, so we don't need to check it
         }
 
         return new DefaultProblem(
             problemGroup,
-            message,
+            label,
             getSeverity(severity),
             getProblemLocation(),
             documentationUrl,

@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * <ul>
  *     <li>{@link ProblemBuilderDefiningDocumentation}
  *     <li>{@link ProblemBuilderDefiningLocation}
- *     <li>{@link ProblemBuilderDefiningMessage}
+ *     <li>{@link ProblemBuilderDefiningLabel}
  *     <li>{@link ProblemBuilderDefiningType}
  *     <li>{@link ProblemBuilderDefiningGroup}
  * </ul>
@@ -37,13 +37,13 @@ import javax.annotation.Nullable;
  * An example of how to use the builder:
  * <pre>{@code
  *  <problemService>.createProblemBuilder()
+ *          .label("test problem")
  *          .undocumented()
  *          .noLocation()
- *          .severity(Severity.ERROR)
- *          .message("test problem")
  *          .type(ValidationProblemId.TEST_PROBLEM.name())
  *          .group(ProblemGroup.TYPE_VALIDATION)
- *          .description("this is a test")
+ *          .severity(Severity.ERROR)
+ *          .details("this is a test")
  *  }</pre>
  *
  * @since 8.4
@@ -51,7 +51,7 @@ import javax.annotation.Nullable;
 @Incubating
 public interface ProblemBuilder {
 
-    ProblemBuilder description(String description);
+    ProblemBuilder details(String details);
 
     ProblemBuilder solution(@Nullable String solution);
 

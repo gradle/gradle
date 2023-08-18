@@ -21,7 +21,6 @@ import com.google.common.collect.HashBiMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -57,17 +56,13 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
             seenProblems.put(problemCause, buildOperationId);
 
             DefaultProblemDescriptor descriptor = new DefaultProblemDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
-            ProblemLocation where = problem.getWhere();
             DefaultProblemEvent event = new DefaultProblemEvent(
                 descriptor,
                 problem.getProblemGroup().toString(),
-                problem.getMessage(),
+                problem.getLabel(),
                 problem.getSeverity().toString(),
-                where == null ? null : where.getPath(),
-                where == null ? null : where.getLine(),
-                where == null ? null : where.getColumn(),
                 getDocumentationFor(problem),
-                problem.getDescription(),
+                problem.getDetails(),
                 problem.getSolutions(),
                 problemCause, problem.getProblemType(), problem.getAdditionalData());
             eventConsumer.progress(event);

@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderDefiningMessage {
+public interface ProblemBuilderDefiningLabel {
 
-    ProblemBuilderDefiningType message(String message, Object... args);
+    ProblemBuilderDefiningDocumentation label(String label, Object... args);
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -50,8 +51,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
         new DummyBinaryStore(),
         new DummyStore(),
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
-        new ThisBuildOnlyComponentDetailsSerializer(),
-        new ThisBuildOnlySelectedVariantSerializer(),
+        new ThisBuildOnlyComponentDetailsSerializer(new DefaultImmutableModuleIdentifierFactory()),
+        new ThisBuildOnlySelectedVariantSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false

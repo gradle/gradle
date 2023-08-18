@@ -98,4 +98,35 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':secondTest')
         assertTestExecuted(className: 'example.MyTest', methodName: 'foo2', task: ':secondTest')
     }
+
+    @TargetGradleVersion(">=8.4")
+    @Issue("https://github.com/gradle/gradle/issues/26056")
+    def "Can execute same tests within different tests types with configuration cache enabled"() {
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withArguments("--configuration-cache")
+            launcher.withTestsFor { TestSpecs specs ->
+                specs.forTaskPath(':test').includeMethod('example.MyTest' , 'foo')
+            }
+        }
+
+        then:
+        events.testClassesAndMethods.size() == 2
+        assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':test')
+
+        when:
+        events.clear()
+        stdout.reset() // we are interested in the output of the second build only
+        launchTests { TestLauncher launcher ->
+            launcher.withArguments("--configuration-cache")
+            launcher.withTestsFor { TestSpecs specs ->
+                specs.forTaskPath(':secondTest').includeMethod("example.MyTest", 'foo')
+            }
+        }
+
+        then:
+        !stdout.toString().contains("Reusing configuration cache.")
+        events.testClassesAndMethods.size() == 2
+        assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':secondTest')
+    }
 }

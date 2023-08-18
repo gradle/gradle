@@ -125,7 +125,7 @@ public class TomlCatalogFileParser {
             Sets.SetView<String> unknownTle = Sets.difference(result.keySet(), TOP_LEVEL_ELEMENTS);
             if (!unknownTle.isEmpty()) {
                 throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog(builder) + ", unknown top level elements " + unknownTle, TOML_SYNTAX_ERROR)
-                    .description("TOML file contains an unexpected top-level element")
+                    .details("TOML file contains an unexpected top-level element")
                     .solution("Make sure the top-level elements of your TOML file is one of " + oxfordListOf(TOP_LEVEL_ELEMENTS, "or")));
             }
             parseLibraries(librariesTable, strictVersionParser);
@@ -140,7 +140,7 @@ public class TomlCatalogFileParser {
             List<TomlParseError> errors = result.errors();
             throw throwVersionCatalogProblemException(
                 createVersionCatalogError(getProblemInVersionCatalog(builder) + ", parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".", TOML_SYNTAX_ERROR)
-                    .description(getErrorText(catalogFilePath, errors))
+                    .details(getErrorText(catalogFilePath, errors))
                     .solution("Fix the TOML file according to the syntax described at https://toml.io"));
         }
     }
@@ -161,7 +161,7 @@ public class TomlCatalogFileParser {
             String format = metadataTable.getString("format.version");
             if (format != null && !CURRENT_VERSION.equals(format)) {
                 throw throwVersionCatalogProblemException(createVersionCatalogError(getProblemInVersionCatalog(builder) + ", unsupported version catalog format " + format + ".", UNSUPPORTED_FORMAT_VERSION)
-                    .description("This version of Gradle only supports format version " + CURRENT_VERSION)
+                    .details("This version of Gradle only supports format version " + CURRENT_VERSION)
                     .solution("Try to upgrade to a newer version of Gradle which supports the catalog format version " + format + "."));
             }
         }
@@ -227,16 +227,16 @@ public class TomlCatalogFileParser {
 
     private RuntimeException throwUnexpectedTypeError(String kind, String name, String typeLabel, TomlInvalidTypeException ex) {
         throw throwVersionCatalogProblemException(createVersionCatalogError("Unexpected type for " + kind + " '" + name + "'", TOML_SYNTAX_ERROR)
-            .description("Expected " + typeLabel + " but " + uncapitalize(ex.getMessage()))
+            .details("Expected " + typeLabel + " but " + uncapitalize(ex.getMessage()))
             .solution("Use " + typeLabel + " instead"));
     }
 
     @Nonnull
     public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
         return problemServiceSupplier.get().createProblemBuilder()
+            .label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
-            .message(message)
             .type(catalogProblemId.name())
             .group(ProblemGroup.VERSION_CATALOG_ID)
             .severity(ERROR);
@@ -284,7 +284,7 @@ public class TomlCatalogFileParser {
                 return;
             } else {
                 throw throwVersionCatalogProblemException(createVersionCatalogError(getInVersionCatalog(builder.getName()) + ", on alias '" + alias + "' notation '" + gav + "' is not a valid dependency notation.", INVALID_DEPENDENCY_NOTATION)
-                    .description("When using a string to declare library coordinates, you must use a valid dependency notation")
+                    .details("When using a string to declare library coordinates, you must use a valid dependency notation")
                     .solution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2"));
             }
         }
@@ -302,7 +302,7 @@ public class TomlCatalogFileParser {
                 name = notEmpty(split.get(1), "name", alias);
             } else {
                 throw throwVersionCatalogProblemException(createVersionCatalogError(getInVersionCatalog(builder.getName()) + ", on alias '" + alias + "' module '" + mi + "' is not a valid module notation.", INVALID_MODULE_NOTATION)
-                    .description("When using a string to declare library module coordinates, you must use a valid module notation")
+                    .details("When using a string to declare library module coordinates, you must use a valid module notation")
                     .solution("Make sure that the module consist of 2 parts separated by colons, eg: my.group:artifact"));
             }
         }
@@ -347,7 +347,7 @@ public class TomlCatalogFileParser {
     @Nonnull
     private RuntimeException throwVersionCatalogAliasException(String alias, String aliasType) {
         throw throwVersionCatalogProblemException(createAliasInvalid(alias)
-            .description(capitalize(aliasType) + " for alias '" + alias + "' wasn't set")
+            .details(capitalize(aliasType) + " for alias '" + alias + "' wasn't set")
             .solution("Add the '" + aliasType + "' element on alias '" + alias + "'"));
     }
 
@@ -368,7 +368,7 @@ public class TomlCatalogFileParser {
                 return;
             } else {
                 throw throwVersionCatalogProblemException(createVersionCatalogError(getInVersionCatalog(builder.getName()) + ", on alias '" + alias + "' notation '" + coordinates + "' is not a valid plugin notation.", INVALID_PLUGIN_NOTATION)
-                    .description("When using a string to declare plugin coordinates, you must use a valid plugin notation")
+                    .details("When using a string to declare plugin coordinates, you must use a valid plugin notation")
                     .solution("Make sure that the coordinates consist of 2 parts separated by colons, eg: my.plugin.id:1.2"));
             }
         }
@@ -407,7 +407,7 @@ public class TomlCatalogFileParser {
         }
         if (id == null) {
             throw throwVersionCatalogProblemException(createVersionCatalogError("Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR)
-                .description("Id for plugin alias '" + alias + "' wasn't set")
+                .details("Id for plugin alias '" + alias + "' wasn't set")
                 .solution("Add the 'id' element on alias '" + alias + "'"));
         }
         registerPlugin(builder, alias, id, versionRef, require, strictly, prefer, rejectedVersions, rejectAll);
@@ -415,7 +415,7 @@ public class TomlCatalogFileParser {
 
     private RuntimeException throwUnexpectedVersionSyntax(String alias, Object version) {
         throw throwVersionCatalogProblemException(createVersionCatalogError("Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR)
-            .description("expected a version as a String or a table but got " + version.getClass().getSimpleName())
+            .details("expected a version as a String or a table but got " + version.getClass().getSimpleName())
             .solution("Use a String notation, e.g version = \"1.1\"")
             .solution("Use a version reference, e.g version.ref = \"some-version\"")
             .solution("Use a rich version table, e.g version = { require=\"[1.0, 2.0[\", prefer=\"1.5\" }"));
@@ -458,7 +458,7 @@ public class TomlCatalogFileParser {
         }
         if (string.isEmpty()) {
             throw throwVersionCatalogProblemException(createVersionCatalogError("Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR)
-                .description("Empty " + member + " for plugin alias '" + alias + "'" +
+                .details("Empty " + member + " for plugin alias '" + alias + "'" +
                     (member == null ? "value" : capitalize(member)) + " for '" + alias + "' must not be empty")
                 .solution("Remove the '" + member + "' element on alias '" + alias + "'"));
         }

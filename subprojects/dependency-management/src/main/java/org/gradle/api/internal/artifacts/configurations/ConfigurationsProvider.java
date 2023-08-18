@@ -30,6 +30,8 @@ public interface ConfigurationsProvider {
      */
     int size();
 
+    boolean isFixedSize();
+
     Set<? extends ConfigurationInternal> getAll();
 
     void visitAll(Consumer<ConfigurationInternal> visitor);

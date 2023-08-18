@@ -515,7 +515,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
             throw throwVersionCatalogProblemException(createVersionCatalogError(gerProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
-                .description("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
+                .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
                 .solution("Reduce the number of aliases defined in this catalog")
                 .solution("Split the catalog into multiple catalogs"));
         }
@@ -534,7 +534,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .map(e -> {
                 String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
                 return createVersionCatalogError(gerProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
-                    .description("A name clash was detected")
+                    .details("A name clash was detected")
                     .solution("Use a different alias for " + errorValues)
                     .build();
             })
@@ -805,10 +805,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     @Nonnull
     public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
-        return problemService.createProblemBuilder()//VERSION_CATALOG, message, ERROR, catalogProblemId.name())
+        return problemService.createProblemBuilder()
+            .label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
-            .message(message)
             .type(catalogProblemId.name().toLowerCase())
             .group(VERSION_CATALOG_ID)
             .severity(ERROR);

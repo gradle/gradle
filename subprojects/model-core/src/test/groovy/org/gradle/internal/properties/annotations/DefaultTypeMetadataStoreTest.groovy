@@ -29,6 +29,7 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.problems.interfaces.ProblemGroup
 import org.gradle.api.problems.interfaces.Severity
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.Property
@@ -141,12 +142,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitPropertyProblem {
                 it
                     .forProperty(metadata.propertyName)
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .severity(Severity.WARNING)
-                    .message("is broken")
+                    .label("is broken")
                     .documentedAt(userManual("id", "section"))
-                    .description("Test")
                     .noLocation()
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
+                    .severity(Severity.WARNING)
+                    .details("Test")
             }
         }
 
@@ -171,12 +173,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitPropertyProblem {
                 it
                     .forProperty(metadata.propertyName)
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .severity(Severity.WARNING)
-                    .message("is broken")
+                    .label("is broken")
                     .documentedAt(userManual("id", "section"))
-                    .description("Test")
                     .noLocation()
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
+                    .severity(Severity.WARNING)
+                    .details("Test")
             }
         }
 
@@ -198,12 +201,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitTypeProblem {
                 it
                     .withAnnotationType(type)
-                    .severity(Severity.WARNING)
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .message("type is broken")
+                    .label("type is broken")
                     .documentedAt(userManual("id", "section"))
-                    .description("Test")
                     .noLocation()
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
+                    .severity(Severity.WARNING)
+                    .details("Test")
             }
         }
 

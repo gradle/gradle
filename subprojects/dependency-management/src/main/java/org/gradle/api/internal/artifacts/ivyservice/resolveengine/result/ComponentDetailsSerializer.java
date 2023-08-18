@@ -20,10 +20,8 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.IOException;
-
 public interface ComponentDetailsSerializer {
-    void writeComponentDetails(ComponentGraphResolveState component, boolean requireAllVariants, Encoder encoder) throws IOException;
+    void writeComponentDetails(ComponentGraphResolveState component, boolean requireAllVariants, Encoder encoder) throws Exception;
 
-    void readComponentDetails(Decoder decoder, ResolvedComponentVisitor visitor) throws IOException;
+    void readComponentDetails(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception;
 }
