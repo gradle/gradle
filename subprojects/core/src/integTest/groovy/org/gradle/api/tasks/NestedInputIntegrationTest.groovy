@@ -498,7 +498,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         expect:
         fails "myTask"
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
-        failureDescriptionContains(missingValueMessage { type('TaskWithAbsentNestedInput').property('nested') })
+        failureDescriptionContains(missingNonConfigurableValueMessage { type('TaskWithAbsentNestedInput').property('nested') })
 
         where:
         description               | property

@@ -573,7 +573,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage { property('input') })
+        failureDescriptionContains(missingNonConfigurableValueMessage { property('input') })
     }
 
     def "optional null input properties registered via TaskInputs.property are allowed"() {
@@ -601,7 +601,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage { property('input') })
+        failureDescriptionContains(missingNonConfigurableValueMessage { property('input') })
 
         where:
         method << ["file", "files", "dir"]
@@ -635,7 +635,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage { property('output') })
+        failureDescriptionContains(missingNonConfigurableValueMessage { property('output') })
 
         where:
         method << ["file", "files", "dir", "dirs"]

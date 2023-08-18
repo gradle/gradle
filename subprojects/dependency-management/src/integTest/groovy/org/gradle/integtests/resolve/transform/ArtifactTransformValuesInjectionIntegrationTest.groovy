@@ -440,14 +440,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             absolutePathSensitivity: invalidUseOfAbsoluteSensitivity { includeLink().noIntro() },
             extension: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
             fileInput: [
-                missingValueMessage { property('fileInput').includeLink().noIntro() },
+                missingNonConfigurableValueMessage { property('fileInput').includeLink().noIntro() },
                 incorrectUseOfInputAnnotation { property('fileInput').propertyType('File').includeLink().noIntro() },
             ],
             incrementalNonFileInput: [
-                missingValueMessage { property('incrementalNonFileInput').includeLink().noIntro() },
+                missingNonConfigurableValueMessage { property('incrementalNonFileInput').includeLink().noIntro() },
                 incompatibleAnnotations { property('incrementalNonFileInput').annotatedWith('Incremental').incompatibleWith('Input').includeLink().noIntro() },
             ],
-            missingInput: missingValueMessage { property('missingInput').includeLink().noIntro() },
+            missingInput: missingNonConfigurableValueMessage { property('missingInput').includeLink().noIntro() },
             'nested.outputDirectory': annotationInvalidInContext { annotation('OutputDirectory').includeLink() },
             'nested.inputFile': missingNormalizationStrategy { annotatedWith('InputFile').includeLink().noIntro() },
             'nested.stringProperty': missingAnnotationMessage { property('nested.stringProperty').missingInput().includeLink().noIntro() },

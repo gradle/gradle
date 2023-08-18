@@ -47,15 +47,13 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     public static void reportValueNotSet(String propertyName, TypeValidationContext context, boolean hasConfigurableValue) {
         context.visitPropertyProblem(problem -> {
             ProblemBuilder problemBuilder = problem.forProperty(propertyName)
-            problem.forProperty(propertyName)
                 .label("doesn't have a configured value")
                 .documentedAt(userManual("validation_problems", "value_not_set"))
                 .noLocation()
                 .type(ValidationProblemId.VALUE_NOT_SET.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(org.gradle.api.problems.interfaces.Severity.ERROR)
-                .details("This property isn't marked as optional and no value has been configured")
-                .solution("Mark property '" + propertyName + "' as optional");
+                .details("This property isn't marked as optional and no value has been configured");
             if (hasConfigurableValue) {
                 problemBuilder.solution("The value of '" + propertyName + "' is calculated, make sure a valid value can be calculated");
             }

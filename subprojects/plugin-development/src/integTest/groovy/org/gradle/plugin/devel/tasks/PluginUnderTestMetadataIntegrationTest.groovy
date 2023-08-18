@@ -49,7 +49,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec imp
         fails TASK_NAME
 
         then:
-        failureDescriptionContains(missingValueMessage { type(PluginUnderTestMetadata.name).property('outputDirectory').includeLink() })
+        failureDescriptionContains(missingNonConfigurableValueMessage { type(PluginUnderTestMetadata.name).property('outputDirectory').includeLink() })
     }
 
     def "implementation-classpath entry in metadata is empty if there is no classpath"() {

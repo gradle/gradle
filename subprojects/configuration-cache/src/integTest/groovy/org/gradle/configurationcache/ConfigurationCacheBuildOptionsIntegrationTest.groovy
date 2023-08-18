@@ -142,14 +142,14 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains missingValueMessage { type('Build_gradle.PrintString').property('string') }
+        failureDescriptionContains missingNonConfigurableValueMessage { type('Build_gradle.PrintString').property('string') }
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains missingValueMessage { type('Build_gradle.PrintString').property('string') }
+        failureDescriptionContains missingNonConfigurableValueMessage { type('Build_gradle.PrintString').property('string') }
         configurationCache.assertStateLoaded()
 
         where:
