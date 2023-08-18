@@ -45,7 +45,7 @@ dependencies {
     implementation(libs.nativePlatform) {
         because("Required for SystemInfo")
     }
-    implementation(libs.futureKotlin("stdlib-jdk8"))
+    implementation(libs.futureKotlin("stdlib"))
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":language-groovy"))) {

@@ -83,7 +83,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.slf4jApi)
 
-    implementation(libs.futureKotlin("stdlib-jdk8"))
+    implementation(libs.futureKotlin("stdlib"))
     implementation(libs.futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))

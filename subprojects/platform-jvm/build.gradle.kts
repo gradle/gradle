@@ -32,7 +32,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.inject)
     implementation(libs.nativePlatform)
-    implementation(libs.futureKotlin("stdlib-jdk8"))
+    implementation(libs.futureKotlin("stdlib"))
 
     testImplementation(project(":snapshots"))
     testImplementation(libs.ant)

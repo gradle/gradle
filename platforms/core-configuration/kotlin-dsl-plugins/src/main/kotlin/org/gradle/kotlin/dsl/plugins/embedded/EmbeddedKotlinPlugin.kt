@@ -50,7 +50,7 @@ abstract class EmbeddedKotlinPlugin @Inject internal constructor(
             embeddedKotlin.addDependenciesTo(
                 dependencies,
                 embeddedKotlinConfiguration.name,
-                "stdlib-jdk8", "reflect"
+                "stdlib", "reflect"
             )
 
             kotlinArtifactConfigurationNames.forEach {
