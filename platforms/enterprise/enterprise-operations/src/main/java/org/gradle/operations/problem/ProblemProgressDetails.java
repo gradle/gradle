@@ -14,26 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.problems;
+package org.gradle.operations.problem;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.api.NonNullApi;
 
 /**
- * Describes a problem operation.
- * <p>
- * The Problems API in an incubating stage and the associated classes are likely to change in a non-compatible way.
- * Consequently, the Tooling API only exposes problem instances with dynamic data in json format without any guarantees.
+ * Represents a reported problem in the build.
  *
  * @since 8.4
  */
 @Incubating
-public interface ProblemDescriptor extends OperationDescriptor {
-
-    /**
-     * The problem properties in JSON format.
-     *
-     * @return the problem properties.
-     */
-    String getJson();
+@NonNullApi
+public interface ProblemProgressDetails {
 }
