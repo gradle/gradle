@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import org.gradle.util.GradleVersion
 
 @FluidDependenciesResolveTest
 class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
@@ -241,7 +242,7 @@ This method is only meant to be called on configurations which allow the (non-de
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The con configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations.html in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The con configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         succeeds("resolve")
     }
 

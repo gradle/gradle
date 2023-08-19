@@ -74,7 +74,7 @@ public interface DeprecatableConfiguration extends Configuration {
             DeprecationLogger.deprecateConfiguration(getName())
                 .forConsumption()
                 .willBecomeAnErrorInGradle9()
-                .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
                 .nagUser();
         }
     }

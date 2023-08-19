@@ -16,6 +16,7 @@
 package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -37,6 +38,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.internal.ConfigureUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
 
@@ -63,6 +65,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private Configuration classpathConfiguration;
     private DynamicObject dynamicObject;
 
+    @Inject
     public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope, ScriptClassPathResolver scriptClassPathResolver) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
@@ -128,8 +131,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     }
 
     @Override
-    public void configurations(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getConfigurations());
+    public void configurations(Action<? super ConfigurationContainer> configureClosure) {
+        configureClosure.execute(getConfigurations());
     }
 
     @SuppressWarnings("deprecation")

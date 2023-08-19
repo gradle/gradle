@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
@@ -65,7 +66,7 @@ abstract class ScriptHandlerDelegate : ScriptHandler {
     override fun getConfigurations(): ConfigurationContainer =
         delegate.configurations
 
-    override fun configurations(configureClosure: Closure<Any>) =
+    override fun configurations(configureClosure: Action<in ConfigurationContainer>) =
         delegate.configurations(configureClosure)
 
     override fun dependencyLocking(configureClosure: Closure<Any>) =
