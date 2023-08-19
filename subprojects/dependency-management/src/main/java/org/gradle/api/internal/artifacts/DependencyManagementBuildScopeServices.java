@@ -46,7 +46,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSe
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
@@ -180,7 +179,6 @@ import java.util.function.Function;
 class DependencyManagementBuildScopeServices {
     void configure(ServiceRegistration registration) {
         registration.add(TransformStepNodeDependencyResolver.class);
-        registration.add(DefaultProjectLocalComponentProvider.class);
         registration.add(DefaultProjectPublicationRegistry.class);
         registration.add(FileResourceConnector.class);
         registration.add(DefaultComponentSelectorConverter.class);

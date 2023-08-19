@@ -19,16 +19,16 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.function.Function;
 
 /**
- * A provider of dependency resolution metadata for components produced by another build in the build tree.
- *
- * <p>In general, you should be using {@link LocalComponentRegistry} instead of this type.</p>
+ * Loads cached dependency resolution metadata for the given project, if available,
+ * or else runs the given function to create it and then writes the result to the cache.
  */
 @ThreadSafe
-public interface LocalComponentInAnotherBuildProvider {
-    /**
-     * @return The component metadata for the supplied identifier.
-     */
-    LocalComponentGraphResolveState getComponent(ProjectState project);
+public interface LocalComponentCache {
+
+    LocalComponentCache NO_OP = (project, factory) -> factory.apply(project);
+
+    LocalComponentGraphResolveState computeIfAbsent(ProjectState project, Function<ProjectState, LocalComponentGraphResolveState> factory);
 }
