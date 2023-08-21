@@ -52,7 +52,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -105,13 +106,13 @@ public class Instrumented {
 
     @NonNullApi
     public static class CallInterceptorRegistry {
-        private static final AtomicBoolean INTERCEPTORS_LOADED = new AtomicBoolean();
+        private static final Set<Integer> LOADED_FROM_CLASSLOADERS = ConcurrentHashMap.newKeySet();
         private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
         private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
 
         public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
-            if (INTERCEPTORS_LOADED.getAndSet(true)) {
-                return;
+            if (!LOADED_FROM_CLASSLOADERS.add(System.identityHashCode(classLoader))) {
+                throw new RuntimeException("Cannot load interceptors twice for class loader: " + classLoader);
             }
 
             GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
