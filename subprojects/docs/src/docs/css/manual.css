@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ /* Custom Admonition Blocks */
 :root {
     --caution-color: #802392;
     --caution-on-color: #fff;
@@ -453,7 +454,7 @@ table.tableblock > caption.title { white-space: nowrap; overflow: visible; max-w
 
 table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-size: inherit; }
 
-/* Icons from https://github.com/primer/octicons */
+/* Custom Admonition Blocks - Icons from https://github.com/primer/octicons */
 .admonitionblock {
     margin: 1.4rem 0 0
 }
@@ -577,6 +578,44 @@ table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-si
 
 .admonitionblock.warning td.icon i {
     background-image: url(./img/octicons-16.svg#view-alert)
+}
+
+/* Custom collapsible block */
+details summary {
+  width: 100%;
+  padding: 1rem 0;
+  border-top: 1px solid gray;
+  position: relative;
+  cursor: pointer;
+  list-style: none;
+}
+
+details summary:after {
+  content: "+";
+  color: black;
+  position: absolute;
+  font-size: 1.75rem;
+  line-height: 0;
+  margin-top: 0.3rem;
+  right: 0;
+  font-weight: 400;
+  transform-origin: center;
+  transition: 200ms linear;
+}
+
+details[open] summary:after {
+  transform: rotate(45deg);
+  font-size: 2rem;
+}
+
+details summary {
+  outline: 0;
+}
+
+details p {
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+  padding-top: 1rem;
 }
 
 .exampleblock > .content { border-style: solid; border-width: 1px; border-color: #e6e6e6; margin-bottom: 1.25em; padding: 1.25em; background: white; -webkit-border-radius: 4px; border-radius: 4px; }
