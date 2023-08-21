@@ -111,7 +111,7 @@ public class Instrumented {
 
         public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
             if (INTERCEPTORS_LOADED.getAndSet(true)) {
-                return;
+                throw new RuntimeException("Cannot load interceptors twice");
             }
 
             GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
