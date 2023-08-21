@@ -20,24 +20,21 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 @NonNullApi
 public class InitProblems implements BuildTreeActionExecutor  {
 
     private final BuildTreeActionExecutor delegate;
-    private final BuildOperationProgressEventEmitter eventEmitter;
     private final Problems problemsService;
 
-    public InitProblems(BuildTreeActionExecutor delegate, BuildOperationProgressEventEmitter eventEmitter, Problems problemsService) {
+    public InitProblems(BuildTreeActionExecutor delegate, Problems problemsService) {
         this.delegate = delegate;
-        this.eventEmitter = eventEmitter;
         this.problemsService = problemsService;
     }
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
-        ProblemsProgressEventEmitterHolder.init(eventEmitter);
+        ProblemsProgressEventEmitterHolder.init(problemsService);
         return delegate.execute(action, buildTreeContext);
     }
 }

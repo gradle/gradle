@@ -178,7 +178,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     }
 
     private RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
-        throw throwErrorWithNewProblemsApi("Invalid catalog definition", ImmutableList.of(problem.build()), getProblemService());
+        throw throwErrorWithNewProblemsApi("Invalid catalog definition", ImmutableList.of(problem.build()));
     }
 
     @Nonnull

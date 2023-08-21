@@ -14,30 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.operations.problem.ProblemProgressDetails;
 
-/**
- * Problem id.
- *
- * @since 8.4
- */
-@Incubating
-public class ProblemGroup {
+public class DefaultProblemProgressDetails implements ProblemProgressDetails {
+    private final Problem problem;
 
-    public static final String GENERIC_ID = "generic";
-    public static final String DEPRECATION_ID = "deprecation";
-    public static final String VERSION_CATALOG_ID = "version_catalog";
-    public static final String TYPE_VALIDATION_ID = "type_validation";
-
-    private String id;
-
-    public ProblemGroup(String id) {
-        this.id = id;
+    DefaultProblemProgressDetails(Problem problem) {
+        this.problem = problem;
     }
 
-    public String getId() {
-        return id;
+    public Problem getProblem() {
+        return problem;
     }
 }

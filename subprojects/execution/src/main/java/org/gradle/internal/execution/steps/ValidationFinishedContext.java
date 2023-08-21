@@ -21,9 +21,9 @@ import org.gradle.api.problems.interfaces.Problem;
 
 public class ValidationFinishedContext extends BeforeExecutionContext {
 
-    private final ImmutableList<Problem> validationProblems;
+    private final ImmutableList<? extends Problem> validationProblems;
 
-    public ValidationFinishedContext(BeforeExecutionContext parent, ImmutableList<Problem> validationProblems) {
+    public ValidationFinishedContext(BeforeExecutionContext parent, ImmutableList<? extends Problem> validationProblems) {
         super(parent);
         this.validationProblems = validationProblems;
     }
@@ -35,7 +35,7 @@ public class ValidationFinishedContext extends BeforeExecutionContext {
     /**
      * Returns the list of validation warnings encountered so far.
      */
-    public ImmutableList<Problem> getValidationProblems() {
+    public ImmutableList<? extends  Problem> getValidationProblems() {
         return validationProblems;
     }
 }

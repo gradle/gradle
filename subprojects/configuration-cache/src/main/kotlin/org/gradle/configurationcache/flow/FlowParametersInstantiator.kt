@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.interfaces.Problem
 import org.gradle.api.problems.interfaces.ProblemGroup
+import org.gradle.api.problems.interfaces.ReportableProblem
 import org.gradle.api.problems.interfaces.Severity
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
@@ -58,8 +59,8 @@ class FlowParametersInstantiator(
         val problems = ImmutableList.builder<Problem>()
         inspection.propertyWalker.visitProperties(
             parameters,
-            object : ProblemRecordingTypeValidationContext(problemsService, type, { Optional.empty() }) {
-                override fun recordProblem(problem: Problem) {
+            object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }) {
+                override fun recordProblem(problem: ReportableProblem) {
                     problems.add(problem)
                 }
             },

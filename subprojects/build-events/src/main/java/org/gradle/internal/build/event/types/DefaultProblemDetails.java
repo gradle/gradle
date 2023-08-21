@@ -17,28 +17,20 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.InternalProblemEvent;
-import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 
+import java.io.Serializable;
+
 @NonNullApi
-public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements InternalProblemEvent {
-    private final InternalProblemDetails details;
+public class DefaultProblemDetails implements InternalProblemDetails, Serializable {
+    private final String json;
 
-    public DefaultProblemEvent(
-        InternalProblemDescriptor descriptor,
-        InternalProblemDetails details
-    ) {
-        super(System.currentTimeMillis(), descriptor);
-        this.details = details;
-    }
-
-    public String getDisplayName() {
-        return "problem";
+    public DefaultProblemDetails(String json) {
+        this.json = json;
     }
 
     @Override
-    public InternalProblemDetails getDetails() {
-        return details;
+    public String getJson() {
+        return json;
     }
 }

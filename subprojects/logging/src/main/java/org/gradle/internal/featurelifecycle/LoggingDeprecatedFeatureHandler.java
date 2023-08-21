@@ -92,6 +92,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 .type("generic_deprecation")
                 .group(DEPRECATION_ID)
                 .severity(WARNING)
+                .build()
                 .report();
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);

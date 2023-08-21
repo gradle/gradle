@@ -132,20 +132,20 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         if (TransformAction.class.isAssignableFrom(topLevelBean)) {
             return createValidationContextAndValidateCacheableAnnotations(problemService, topLevelBean, CacheableTransform.class, enableStricterValidation);
         }
-        return createValidationContext(problemService, topLevelBean, enableStricterValidation);
+        return createValidationContext(topLevelBean, enableStricterValidation);
     }
 
     private static DefaultTypeValidationContext createValidationContextAndValidateCacheableAnnotations(Problems problems, Class<?> topLevelBean, Class<? extends Annotation> cacheableAnnotationClass, boolean enableStricterValidation) {
         boolean cacheable = topLevelBean.isAnnotationPresent(cacheableAnnotationClass);
-        DefaultTypeValidationContext validationContext = createValidationContext(problems, topLevelBean, cacheable || enableStricterValidation);
+        DefaultTypeValidationContext validationContext = createValidationContext(topLevelBean, cacheable || enableStricterValidation);
         if (enableStricterValidation) {
             validateCacheabilityAnnotationPresent(topLevelBean, cacheable, cacheableAnnotationClass, validationContext);
         }
         return validationContext;
     }
 
-    private static DefaultTypeValidationContext createValidationContext(Problems problems, Class<?> topLevelBean, boolean reportCacheabilityProblems) {
-        return DefaultTypeValidationContext.withRootType(problems, topLevelBean, reportCacheabilityProblems);
+    private static DefaultTypeValidationContext createValidationContext(Class<?> topLevelBean, boolean reportCacheabilityProblems) {
+        return DefaultTypeValidationContext.withRootType(topLevelBean, reportCacheabilityProblems);
     }
 
     private static void validateCacheabilityAnnotationPresent(Class<?> topLevelBean, boolean cacheable, Class<? extends Annotation> cacheableAnnotationClass, DefaultTypeValidationContext validationContext) {

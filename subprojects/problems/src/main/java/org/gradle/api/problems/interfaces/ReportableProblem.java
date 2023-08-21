@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems.interfaces;
 
-import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.Incubating;
 
-public class PredefinedProblemGroup extends ProblemGroup {
-    public PredefinedProblemGroup(String id) {
-        super(id);
-    }
+/**
+ * Problem that can be submitted for external consumption (e.g. to expose via the Tooling API).
+ *
+ * @since 8.4
+ */
+@Incubating
+public interface ReportableProblem extends Problem {
+
+    /**
+     * Report this problem.
+     */
+    void report();
 }
