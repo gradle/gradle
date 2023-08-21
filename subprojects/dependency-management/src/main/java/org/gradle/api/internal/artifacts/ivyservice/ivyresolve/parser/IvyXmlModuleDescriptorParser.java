@@ -1174,7 +1174,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         @Override
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"deprecation"})
         public void endElement(String uri, String localName, String qName) {
             if (state == State.PUB && "artifact".equals(qName)) {
                 if (artifact.getConfigurations().isEmpty()) {
@@ -1222,7 +1222,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.EXTRA_INFO) {
-                getMd().getExtraInfo().put(new NamespaceId(uri, localName), buffer == null ? "" : buffer.toString());
+                getMd().getExtraInfo().put(new NamespaceId(uri, localName).encode(), buffer == null ? "" : buffer.toString());
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.DESCRIPTION) {
