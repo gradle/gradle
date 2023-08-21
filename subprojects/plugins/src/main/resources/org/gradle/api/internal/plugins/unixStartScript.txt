@@ -242,10 +242,9 @@ DEFAULT_JVM_OPTS=${defaultJvmOpts}
 
 # Collect all arguments for the java command:
 #   * DEFAULT_JVM_OPTS, JAVA_OPTS, JAVA_OPTS, and optsEnvironmentVar are not allowed to contain shell fragments,
-#     As any embedded shellness will be escaped
-#   * Note: The shellness will NOT be re-expanded
-#   * For example: A user cannot expect ${Hostname} to be expanded, as it is an environment variable, And will be
-#     treated as '${Hostname}' itself
+#     and any embedded shellness will be escaped.
+#   * For example: A user cannot expect \${Hostname} to be expanded, as it is an environment variable and will be
+#     treated as '\${Hostname}' itself on the command line.
 
 set -- \\
 <% if ( appNameSystemProperty ) {
