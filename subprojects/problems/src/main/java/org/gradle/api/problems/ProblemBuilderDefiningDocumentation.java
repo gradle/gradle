@@ -19,13 +19,24 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * Builder that is part of the {@link ProblemBuilder} concept.
+ * {@link Problem} instance builder requiring the specification of documentation.
  *
  * @since 8.4
  */
 @Incubating
 public interface ProblemBuilderDefiningDocumentation {
+
+    /**
+     * Declares the documentation for this problem.
+     *
+     * @return the builder for the next required property
+     */
     ProblemBuilderDefiningLocation documentedAt(DocLink doc);
 
+    /**
+     * Marks this problem as undocumented
+     *
+     * @return the builder for the next required property
+     */
     ProblemBuilderDefiningLocation undocumented();
 }

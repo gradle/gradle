@@ -19,15 +19,35 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * Builder that is part of the {@link ProblemBuilder} concept.
+ * {@link Problem} instance builder requiring the specification of the problem location.
  *
  * @since 8.4
  */
 @Incubating
 public interface ProblemBuilderDefiningLocation {
+    /**
+     * Declares that this problem is in a file at a particular line.
+     *
+     * @param path the file location
+     * @param line the line number
+     * @return the builder for the next required property
+     */
     ProblemBuilderDefiningType location(String path, Integer line);
 
+    /**
+     * Declares that this problem is in a file at a particular line.
+     *
+     * @param path the file location
+     * @param line the line number
+     * @param column the column number
+     * @return the builder for the next required property
+     */
     ProblemBuilderDefiningType location(String path, Integer line, Integer column);
 
+    /**
+     * Declares that this problem has no associated location data.
+     *
+     * @return the builder for the next required property
+     */
     ProblemBuilderDefiningType noLocation();
 }
