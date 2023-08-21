@@ -1609,6 +1609,7 @@ Class <org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCa
 Class <org.gradle.groovy.scripts.internal.CustomCompilationUnit$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CustomCompilationUnit.java:0)
 Class <org.gradle.groovy.scripts.internal.CustomCompilationUnit> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CustomCompilationUnit.java:0)
 Class <org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultScriptCompilationHandler.java:0)
+Class <org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler$2> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultScriptCompilationHandler.java:0)
 Class <org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler$ClassesDirCompiledScript> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultScriptCompilationHandler.java:0)
 Class <org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler$EmptyScriptDetector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultScriptCompilationHandler.java:0)
 Class <org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler$InstrumentingScriptClassLoader> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultScriptCompilationHandler.java:0)
