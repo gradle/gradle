@@ -267,7 +267,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     eventEmitter,
                     startParameter,
                     problemsService),
-                eventEmitter,
                 problemsService);
         }
 

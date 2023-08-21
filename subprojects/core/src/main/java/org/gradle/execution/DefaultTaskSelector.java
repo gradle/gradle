@@ -100,7 +100,7 @@ public class DefaultTaskSelector implements TaskSelector {
             matcher.formatErrorMessage("task", searchContext));
 
         throw getProblemService().throwing(builder -> builder
-            .message(message)
+            .label(message)
             .undocumented()
             .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
             .type("task_selection")

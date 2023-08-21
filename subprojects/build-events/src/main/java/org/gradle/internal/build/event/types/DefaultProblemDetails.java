@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.internal.build.event.types;
 
-import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.NonNullApi;
+import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 
-public class PredefinedProblemGroup extends ProblemGroup {
-    public PredefinedProblemGroup(String id) {
-        super(id);
+import java.io.Serializable;
+
+@NonNullApi
+public class DefaultProblemDetails implements InternalProblemDetails, Serializable {
+    private final String json;
+
+    public DefaultProblemDetails(String json) {
+        this.json = json;
+    }
+
+    @Override
+    public String getJson() {
+        return json;
     }
 }

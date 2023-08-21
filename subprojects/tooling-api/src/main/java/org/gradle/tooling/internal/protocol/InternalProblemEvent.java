@@ -19,35 +19,14 @@ package org.gradle.tooling.internal.protocol;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-
 
 /**
- * implements org.gradle.tooling.Problem
+ * This interface is part of the cross-version protocol
+ *
+ * since 8.4
  */
 @NonNullApi
 public interface InternalProblemEvent extends InternalProgressEvent {
 
-    String getProblemGroup();
-
-    String getMessage();
-
-    String getSeverity();
-
-    @Nullable
-    String getDocumentationLink();
-
-    @Nullable
-    String getDescription();
-
-    List<String> getSolutions();
-
-    @Nullable
-    Throwable getCause();
-
-    String getProblemType();
-
-    Map<String, String> getAdditionalData();
+    InternalProblemDetails getDetails();
 }

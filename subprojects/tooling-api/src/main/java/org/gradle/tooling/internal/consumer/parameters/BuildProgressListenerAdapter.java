@@ -683,15 +683,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultProblemsOperationDescriptor(
             descriptor,
             parent,
-            progressEvent.getProblemGroup(),
-            progressEvent.getSeverity(),
-            progressEvent.getMessage(),
-            progressEvent.getDescription(),
-            progressEvent.getSolutions(),
-            progressEvent.getDocumentationLink(),
-            progressEvent.getCause(),
-            progressEvent.getProblemType(),
-            progressEvent.getAdditionalData()
+            progressEvent.getDetails().getJson()
         );
     }
 

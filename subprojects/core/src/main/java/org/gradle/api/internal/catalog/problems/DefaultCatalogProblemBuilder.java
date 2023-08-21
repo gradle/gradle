@@ -18,9 +18,9 @@ package org.gradle.api.internal.catalog.problems;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ReportableProblem;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nonnull;
@@ -35,13 +35,13 @@ public class DefaultCatalogProblemBuilder {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
-    public static void maybeThrowError(String error, Collection<Problem> problems, Problems problemService) {
+    public static void maybeThrowError(String error, Collection<ReportableProblem> problems) {
         if (!problems.isEmpty()) {
-            throw throwErrorWithNewProblemsApi(error, problems, problemService);
+            throw throwErrorWithNewProblemsApi(error, problems);
         }
     }
 
-    public static RuntimeException throwErrorWithNewProblemsApi(String error, Collection<Problem> problems, Problems problemService) {
+    public static RuntimeException throwErrorWithNewProblemsApi(String error, Collection<ReportableProblem> problems) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
@@ -50,16 +50,18 @@ public class DefaultCatalogProblemBuilder {
         }
         formatter.endChildren();
 
-        problemService.collectErrors(problems);
+        for (ReportableProblem problem : problems) {
+            problem.report();
+        }
         throw new InvalidUserDataException(formatter.toString());
     }
 
     private static void reportInto(TreeFormatter output, Problem problem) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(problem.getMessage());
-        if (problem.getDescription() != null) {
+        formatter.node(problem.getLabel());
+        if (problem.getDetails() != null) {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDescription())));
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         }
 
         renderSolutionsWithNewProblemsApi(formatter, problem.getSolutions());

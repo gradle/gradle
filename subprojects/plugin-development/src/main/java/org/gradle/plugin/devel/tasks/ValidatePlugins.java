@@ -24,6 +24,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -121,7 +122,9 @@ public abstract class ValidatePlugins extends DefaultTask {
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
-                    problems.collectErrors(problemMessages.stream().map(Problem.class::cast).collect(toList()));
+                    for (Problem problem : problemMessages.stream().map(Problem.class::cast).collect(toList())) {
+                        ((InternalProblems) problems).reportAsProgressEvent(problem);
+                    }
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
                         .getWithExplanation(annotateTaskPropertiesDoc());

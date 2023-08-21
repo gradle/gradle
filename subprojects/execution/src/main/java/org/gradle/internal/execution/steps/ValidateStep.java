@@ -21,6 +21,7 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.interfaces.ReportableProblem;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
@@ -78,15 +79,18 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         context.getBeforeExecutionState()
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
-        List<Problem> problems = validationContext.getProblems();
-        problemService.collectErrors(problems);
+        List<ReportableProblem> problems = validationContext.getProblems();
+        for (ReportableProblem problem : problems) {
+            problem.report();
+        }
 
-        Map<Severity, ImmutableList<Problem>> problemsMap = problems.stream()
+        Map<Severity, ImmutableList<ReportableProblem>> problemsMap = problems.stream()
+
             .collect(
                 groupingBy(Problem::getSeverity,
                     mapping(identity(), toImmutableList())));
-        ImmutableList<Problem> warnings = problemsMap.getOrDefault(WARNING, of());
-        ImmutableList<Problem> errors = problemsMap.getOrDefault(ERROR, of());
+        ImmutableList<ReportableProblem> warnings = problemsMap.getOrDefault(WARNING, of());
+        ImmutableList<ReportableProblem> errors = problemsMap.getOrDefault(ERROR, of());
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
@@ -136,12 +140,12 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             workValidationContext.visitPropertyProblem(problem -> problem
                 .forProperty(propertyName)
                 .typeIsIrrelevantInErrorMessage()
-                .message(unknownImplSnapshot.getProblemDescription())
+                .label(unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
                 .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
-                .description(unknownImplSnapshot.getReasonDescription())
+                .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
             );
@@ -153,19 +157,19 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
             workValidationContext.visitPropertyProblem(problem -> problem
                 .typeIsIrrelevantInErrorMessage()
-                .message(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
+                .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
                 .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
                 .group(ProblemGroup.TYPE_VALIDATION_ID)
-                .description(unknownImplSnapshot.getReasonDescription())
+                .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
             );
         }
     }
 
-    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<Problem> validationErrors) {
+    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends Problem> validationErrors) {
         Set<String> uniqueErrors = validationErrors.stream()
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
@@ -175,6 +179,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     }
 
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork work, Collection<Problem> warnings);
+        void recordValidationWarnings(UnitOfWork work, Collection<? extends Problem> warnings);
     }
 }

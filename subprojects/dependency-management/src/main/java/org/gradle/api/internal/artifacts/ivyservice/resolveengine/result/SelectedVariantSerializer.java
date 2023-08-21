@@ -20,10 +20,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.IOException;
-
 public interface SelectedVariantSerializer {
-    void writeVariantResult(ResolvedGraphVariant variant, Encoder encoder) throws IOException;
+    void writeVariantResult(ResolvedGraphVariant variant, Encoder encoder) throws Exception;
 
-    void readSelectedVariant(Decoder decoder, ResolvedComponentVisitor visitor) throws IOException;
+    void readSelectedVariant(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception;
 }

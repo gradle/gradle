@@ -22,92 +22,21 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-
 @NonNullApi
 public class DefaultProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
-    private final String problemGroup;
-    private final String severity;
-    private final String message;
-    private final String description;
-    private final List<String> solutions;
-    private final String documentationLink;
-    private final Throwable cause;
-    private final String problemType;
-    private Map<String, String> additionalData;
+    private final String json;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
         OperationDescriptor parent,
-        String problemId,
-        String severity,
-        String message,
-        @Nullable String description,
-        List<String> solutions,
-        @Nullable String documentationLink,
-        @Nullable Throwable cause,
-        String problemType,
-        Map<String, String> additionalData
+        String json
     ) {
         super(internalDescriptor, parent);
-        this.problemGroup = problemId;
-        this.severity = severity;
-        this.message = message;
-        this.description = description;
-        this.solutions = solutions;
-        this.documentationLink = documentationLink;
-        this.cause = cause;
-        this.problemType = problemType;
-        this.additionalData = additionalData;
+        this.json = json;
     }
 
     @Override
-    public String getProblemGroup() {
-        return problemGroup;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
-    public String getSeverity() {
-        return severity;
-    }
-
-    @Nullable
-    @Override
-    public String getDocumentationLink() {
-        return documentationLink;
-    }
-
-    @Nullable
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public List<String> getSolutions() {
-        return solutions;
-    }
-
-    @Nullable
-    @Override
-    public Throwable getCause() {
-        return cause;
-    }
-
-    @Override
-    public String getProblemType() {
-        return problemType;
-    }
-
-    @Override
-    public Map<String, String> getAdditionalData() {
-        return additionalData;
+    public String getJson() {
+        return json;
     }
 }

@@ -19,12 +19,15 @@ package org.gradle.api.problems.interfaces;
 import org.gradle.api.Incubating;
 
 /**
- * Builder that is part of the {@link ProblemBuilder} concept.
+ * Problem that can be submitted for external consumption (e.g. to expose via the Tooling API).
  *
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderDefiningMessage {
+public interface ReportableProblem extends Problem {
 
-    ProblemBuilderDefiningDocumentation message(String message, Object... args);
+    /**
+     * Report this problem.
+     */
+    void report();
 }

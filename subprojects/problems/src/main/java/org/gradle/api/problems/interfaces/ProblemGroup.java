@@ -24,14 +24,14 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public abstract class ProblemGroup {
+public class ProblemGroup {
 
     public static final String GENERIC_ID = "generic";
     public static final String DEPRECATION_ID = "deprecation";
     public static final String VERSION_CATALOG_ID = "version_catalog";
     public static final String TYPE_VALIDATION_ID = "type_validation";
 
-    private final String id;
+    private String id;
 
     public ProblemGroup(String id) {
         this.id = id;

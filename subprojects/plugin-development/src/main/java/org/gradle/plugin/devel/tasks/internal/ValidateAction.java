@@ -132,20 +132,20 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         if (TransformAction.class.isAssignableFrom(topLevelBean)) {
             return createValidationContextAndValidateCacheableAnnotations(problemService, topLevelBean, CacheableTransform.class, enableStricterValidation);
         }
-        return createValidationContext(problemService, topLevelBean, enableStricterValidation);
+        return createValidationContext(topLevelBean, enableStricterValidation);
     }
 
     private static DefaultTypeValidationContext createValidationContextAndValidateCacheableAnnotations(Problems problems, Class<?> topLevelBean, Class<? extends Annotation> cacheableAnnotationClass, boolean enableStricterValidation) {
         boolean cacheable = topLevelBean.isAnnotationPresent(cacheableAnnotationClass);
-        DefaultTypeValidationContext validationContext = createValidationContext(problems, topLevelBean, cacheable || enableStricterValidation);
+        DefaultTypeValidationContext validationContext = createValidationContext(topLevelBean, cacheable || enableStricterValidation);
         if (enableStricterValidation) {
             validateCacheabilityAnnotationPresent(topLevelBean, cacheable, cacheableAnnotationClass, validationContext);
         }
         return validationContext;
     }
 
-    private static DefaultTypeValidationContext createValidationContext(Problems problems, Class<?> topLevelBean, boolean reportCacheabilityProblems) {
-        return DefaultTypeValidationContext.withRootType(problems, topLevelBean, reportCacheabilityProblems);
+    private static DefaultTypeValidationContext createValidationContext(Class<?> topLevelBean, boolean reportCacheabilityProblems) {
+        return DefaultTypeValidationContext.withRootType(topLevelBean, reportCacheabilityProblems);
     }
 
     private static void validateCacheabilityAnnotationPresent(Class<?> topLevelBean, boolean cacheable, Class<? extends Annotation> cacheableAnnotationClass, DefaultTypeValidationContext validationContext) {
@@ -165,13 +165,13 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             validationContext.visitTypeProblem(problem -> {
                     ProblemBuilder builder = problem
                         .withAnnotationType(topLevelBean)
-                        .message("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
+                        .label("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                         .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                         .noLocation()
                         .type(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(WARNING)
-                        .description("The " + workType + " author should make clear why a " + workType + " is not cacheable")
+                        .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                         .solution("Add " + disableCachingAnnotation + "(because = ...)")
                         .solution("Add " + cacheableAnnotation);
                     if (isTask) {
