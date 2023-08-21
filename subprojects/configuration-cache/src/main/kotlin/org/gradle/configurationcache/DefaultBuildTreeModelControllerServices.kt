@@ -161,7 +161,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
     private
     class VintageModelProvider {
-        fun createLocalComponentCache(): LocalComponentCache = LocalComponentCache.NO_OP
+        fun createLocalComponentCache(): LocalComponentCache = LocalComponentCache.NO_CACHE
     }
 
     private

@@ -24,17 +24,14 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A provider of dependency resolution metadata for local components produced by any build in the build tree.
  *
- * <p>Currently, the metadata for a component is different based on whether it is consumed from the
- * producing build or from another build. Depending on the consumer, either {@link #getLocalComponent}
- * or {@link #getForeignComponent} should be called. Eventually, once {@link BuildIdentifier#isCurrentBuild()}
- * is removed, we can eliminate this distinction.</p>
- *
  * <p>In general, you should be using {@link LocalComponentRegistry} instead of this type, as it is scoped
  * to a build and will call the appropriate method on this provider.</p>
  */
 @ThreadSafe
 public interface BuildTreeLocalComponentProvider {
-    LocalComponentGraphResolveState getLocalComponent(ProjectComponentIdentifier projectIdentifier);
-
-    LocalComponentGraphResolveState getForeignComponent(ProjectComponentIdentifier projectIdentifier);
+    /**
+     * Get the local component for the project identified by {@code projectIdentifier}. The returned metadata will
+     * use foreign component identifiers for local components originating from builds different from {@code currentBuild}.
+     */
+    LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier, BuildIdentifier currentBuild);
 }

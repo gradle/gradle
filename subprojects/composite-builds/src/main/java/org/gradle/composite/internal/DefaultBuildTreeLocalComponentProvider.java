@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache;
@@ -47,8 +48,16 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     private final LocalComponentCache localComponentCache;
     private final LocalComponentProvider localComponentProvider;
 
-    private final ConcurrentCache localProjects;
-    private final ConcurrentCache foreignProjects;
+    /**
+     * Caches the "true" metadata instances for local components.
+     */
+    private final ConcurrentCache originalComponents;
+
+    /**
+     * Contains copies of metadata instances in {@link #originalComponents}, except
+     * with the component identifier replaced with the foreign counterpart.
+     */
+    private final ConcurrentCache foreignIdentifiedComponents;
 
     public DefaultBuildTreeLocalComponentProvider(
         ProjectStateRegistry projectStateRegistry,
@@ -62,25 +71,34 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         this.localComponentCache = localComponentCache;
         this.localComponentProvider = localComponentProvider;
 
-        this.localProjects = new ConcurrentCache(calculatedValueContainerFactory);
-        this.foreignProjects = new ConcurrentCache(calculatedValueContainerFactory);
+        this.originalComponents = new ConcurrentCache(calculatedValueContainerFactory);
+        this.foreignIdentifiedComponents = new ConcurrentCache(calculatedValueContainerFactory);
     }
 
     @Override
-    public LocalComponentGraphResolveState getLocalComponent(ProjectComponentIdentifier projectIdentifier) {
-        return getLocalComponent(projectIdentifier, projectStateRegistry.stateFor(projectIdentifier));
+    public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier, BuildIdentifier currentBuild) {
+        boolean isLocalProject = projectIdentifier.getBuild().getBuildPath().equals(currentBuild.getBuildPath());
+        if (isLocalProject) {
+            return getLocalComponent(projectIdentifier, projectStateRegistry.stateFor(projectIdentifier));
+        } else {
+            return getLocalComponentWithForeignId(projectIdentifier);
+        }
     }
 
     private LocalComponentGraphResolveState getLocalComponent(ProjectComponentIdentifier projectIdentifier, ProjectState projectState) {
-        return localProjects.computeIfAbsent(projectIdentifier, () -> localComponentCache.computeIfAbsent(projectState, localComponentProvider::getComponent));
+        return originalComponents.computeIfAbsent(projectIdentifier, () -> localComponentCache.computeIfAbsent(projectState, localComponentProvider::getComponent));
     }
 
-    @Override
-    public LocalComponentGraphResolveState getForeignComponent(ProjectComponentIdentifier projectIdentifier) {
-        return foreignProjects.computeIfAbsent(projectIdentifier, () -> getComponentInAnotherBuild(projectIdentifier));
+    private LocalComponentGraphResolveState getLocalComponentWithForeignId(ProjectComponentIdentifier projectIdentifier) {
+        return foreignIdentifiedComponents.computeIfAbsent(projectIdentifier, () -> copyComponentWithForeignId(projectIdentifier));
     }
 
-    public LocalComponentGraphResolveState getComponentInAnotherBuild(ProjectComponentIdentifier projectIdentifier) {
+    /**
+     * Copes the component identified by {@code projectIdentifier}, except with its identifier replaced with the foreign counterpart.
+     *
+     * <p>Eventually, in Gradle 9.0, when {@link BuildIdentifier#isCurrentBuild()} is removed, all this logic can disappear.</p>
+     */
+    private LocalComponentGraphResolveState copyComponentWithForeignId(ProjectComponentIdentifier projectIdentifier) {
         ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
         CompositeBuildParticipantBuildState buildState = (CompositeBuildParticipantBuildState) projectState.getOwner();
         if (buildState instanceof IncludedBuildState) {
@@ -105,8 +123,8 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
 
     @Override
     public void discardAll() {
-        localProjects.clear();
-        foreignProjects.clear();
+        originalComponents.clear();
+        foreignIdentifiedComponents.clear();
     }
 
     private static class ConcurrentCache {

@@ -21,7 +21,8 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 
 /**
- * Default implementation of {@link LocalComponentRegistry}.
+ * Default implementation of {@link LocalComponentRegistry}. This is a simple build-scoped wrapper
+ * around {@link BuildTreeLocalComponentProvider} that contextualizes it to the current build.
  */
 public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     private final BuildIdentifier thisBuild;
@@ -37,14 +38,6 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
 
     @Override
     public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier) {
-        if (isLocalProject(projectIdentifier)) {
-            return componentProvider.getLocalComponent(projectIdentifier);
-        } else {
-            return componentProvider.getForeignComponent(projectIdentifier);
-        }
-    }
-
-    private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
-        return projectIdentifier.getBuild().equals(thisBuild);
+        return componentProvider.getComponent(projectIdentifier, thisBuild);
     }
 }
