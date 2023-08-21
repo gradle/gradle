@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath
 
-
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentingTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 

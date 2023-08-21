@@ -47,7 +47,7 @@ public interface GroovyCallInterceptorsProvider {
         private final Lazy<List<CallInterceptor>> interceptors;
 
         public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader) {
-            this(classLoader, "org.gradle");
+            this(classLoader, "");
         }
 
         @VisibleForTesting

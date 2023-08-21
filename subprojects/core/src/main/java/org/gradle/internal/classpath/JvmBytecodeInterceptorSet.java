@@ -23,12 +23,12 @@ import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterc
 import org.gradle.internal.lazy.Lazy;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.gradle.internal.jvm.inspection.JavaInstallationRegistry.distinctByKey;
 
 /**
  * Provides a set of implementation classes for call interception in JVM bytecode, specified by the full class name as in {@link Class#getName()}.
@@ -39,7 +39,7 @@ public interface JvmBytecodeInterceptorSet {
 
     JvmBytecodeInterceptorSet DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet.class.getClassLoader());
 
-    List<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData);
+    Collection<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData);
 
     default JvmBytecodeInterceptorSet plus(JvmBytecodeInterceptorSet other) {
         return new CompositeJvmBytecodeInterceptorSet(this, other);
@@ -70,7 +70,7 @@ public interface JvmBytecodeInterceptorSet {
         }
 
         @Override
-        public List<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData) {
+        public Collection<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData) {
             ImmutableList.Builder<JvmBytecodeCallInterceptor> interceptors = ImmutableList.builder();
             for (JvmBytecodeCallInterceptor.Factory factory : factories.get()) {
                 interceptors.add(factory.create(methodVisitor, classData));
@@ -90,11 +90,11 @@ public interface JvmBytecodeInterceptorSet {
         }
 
         @Override
-        public List<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData) {
+        public Collection<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData) {
             return Stream.of(first.getInterceptors(methodVisitor, classData), second.getInterceptors(methodVisitor, classData))
-                .flatMap(List::stream)
-                .filter(distinctByKey(interceptor -> interceptor.getClass().getName()))
-                .collect(Collectors.toList());
+                .flatMap(Collection::stream)
+                .collect(Collectors.toMap(interceptor -> interceptor.getClass().getName(), p -> p, (p, q) -> p, LinkedHashMap::new))
+                .values();
         }
     }
 }

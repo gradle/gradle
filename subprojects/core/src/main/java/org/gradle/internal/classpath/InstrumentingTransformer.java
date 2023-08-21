@@ -36,6 +36,7 @@ import java.io.File;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -258,7 +259,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private final InstrumentingVisitor owner;
         private final String className;
         private final Lazy<MethodNode> asNode;
-        private final List<JvmBytecodeCallInterceptor> externalInterceptors;
+        private final Collection<JvmBytecodeCallInterceptor> externalInterceptors;
 
         public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
             super(methodVisitor);

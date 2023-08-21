@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath
 
-
 import org.gradle.internal.metaobject.BeanDynamicObject
 
 import java.lang.reflect.Constructor
