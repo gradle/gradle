@@ -381,6 +381,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                     exclude ".gradle"
                     exclude "build.gradle"
                     exclude "settings.gradle"
+                    exclude "operations-log.txt"
                 }
                 inputs.files(sources)
                 doLast {

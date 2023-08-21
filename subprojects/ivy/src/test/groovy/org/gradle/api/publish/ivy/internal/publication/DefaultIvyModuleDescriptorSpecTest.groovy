@@ -17,7 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publication
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.util.TestUtil
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates
 import spock.lang.Specification
 
 import javax.xml.namespace.QName
@@ -25,7 +25,7 @@ import javax.xml.namespace.QName
 import static org.gradle.util.TestUtil.objectFactory
 
 class DefaultIvyModuleDescriptorSpecTest extends Specification {
-    def spec = new DefaultIvyModuleDescriptorSpec(Stub(IvyPublicationInternal), TestUtil.instantiatorFactory().decorateLenient(), objectFactory())
+    def spec = objectFactory().newInstance(DefaultIvyModuleDescriptorSpec, objectFactory(), objectFactory().newInstance(IvyPublicationCoordinates))
 
     def "getExtraInfo returns IvyExtraInfo with immutable map" () {
         when:

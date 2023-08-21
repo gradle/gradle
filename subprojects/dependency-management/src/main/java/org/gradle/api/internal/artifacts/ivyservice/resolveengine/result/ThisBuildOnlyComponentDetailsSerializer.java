@@ -20,10 +20,15 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
@@ -37,19 +42,52 @@ import java.util.List;
 @ThreadSafe
 public class ThisBuildOnlyComponentDetailsSerializer implements ComponentDetailsSerializer {
     private final Long2ObjectMap<ComponentGraphResolveState> components = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+    private final Serializer<ComponentIdentifier> componentIdSerializer = new ComponentIdentifierSerializer();
+    private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
+
+    public ThisBuildOnlyComponentDetailsSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+    }
 
     @Override
-    public void writeComponentDetails(ComponentGraphResolveState component, boolean requireAllVariants, Encoder encoder) throws IOException {
+    public void writeComponentDetails(ComponentGraphResolveState component, boolean requireAllVariants, Encoder encoder) throws Exception {
+        if (component.isAdHoc()) {
+            // Cannot cache the state instance, write the data
+            writeComponentData(component, encoder);
+        } else {
+            // Can cache the state instance, so write a reference to the instance instead of the data
+            writeComponentReference(component, requireAllVariants, encoder);
+        }
+    }
+
+    private void writeComponentReference(ComponentGraphResolveState component, boolean requireAllVariants, Encoder encoder) throws IOException {
+        encoder.writeBoolean(false);
         long instanceId = component.getInstanceId();
         components.putIfAbsent(instanceId, component);
         encoder.writeSmallLong(instanceId);
         encoder.writeBoolean(requireAllVariants);
     }
 
+    private void writeComponentData(ComponentGraphResolveState component, Encoder encoder) throws Exception {
+        encoder.writeBoolean(true);
+        componentIdSerializer.write(encoder, component.getId());
+        moduleVersionIdSerializer.write(encoder, component.getMetadata().getModuleVersionId());
+    }
+
     @Override
-    public void readComponentDetails(Decoder decoder, ResolvedComponentVisitor visitor) throws IOException {
+    public void readComponentDetails(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception {
+        ComponentGraphResolveState component;
+        if (decoder.readBoolean()) {
+            readComponentData(decoder, visitor);
+        } else {
+            readComponentReference(decoder, visitor);
+        }
+    }
+
+    private void readComponentReference(Decoder decoder, ResolvedComponentVisitor visitor) throws IOException {
+        ComponentGraphResolveState component;
         long instanceId = decoder.readSmallLong();
-        ComponentGraphResolveState component = components.get(instanceId);
+        component = components.get(instanceId);
         if (component == null) {
             throw new IllegalStateException("No component with id " + instanceId + " found.");
         }
@@ -62,5 +100,12 @@ public class ThisBuildOnlyComponentDetailsSerializer implements ComponentDetails
             availableVariants = ImmutableList.of();
         }
         visitor.visitComponentVariants(availableVariants);
+    }
+
+    private void readComponentData(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception {
+        ComponentIdentifier componentIdentifier = componentIdSerializer.read(decoder);
+        ModuleVersionIdentifier moduleVersionIdentifier = moduleVersionIdSerializer.read(decoder);
+        visitor.visitComponentDetails(componentIdentifier, moduleVersionIdentifier);
+        visitor.visitComponentVariants(ImmutableList.of());
     }
 }

@@ -50,6 +50,10 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         this.artifactMetadata = artifactMetadata;
         this.attributeDesugaring = attributeDesugaring;
     }
+    @Override
+    public String toString() {
+        return getId().toString();
+    }
 
     @Override
     public long getInstanceId() {
@@ -74,6 +78,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
         Optional<List<? extends VariantGraphResolveState>> variants = getVariantsForGraphTraversal();
         return new DefaultGraphSelectionCandidates(variants);
+    }
+
+    @Override
+    public boolean isAdHoc() {
+        return false;
     }
 
     protected abstract Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal();
@@ -108,6 +117,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
         public AbstractVariantGraphResolveState() {
             this.publicView = Lazy.locking().of(() -> createVariantResult(null));
+        }
+
+        @Override
+        public boolean isAdHoc() {
+            return AbstractComponentGraphResolveState.this.isAdHoc();
         }
 
         @Override

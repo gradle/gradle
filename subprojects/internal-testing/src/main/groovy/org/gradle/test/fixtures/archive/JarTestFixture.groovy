@@ -101,7 +101,7 @@ class JarTestFixture extends ZipTestFixture {
     }
 
     def assertIsMultiRelease() {
-        "true" == manifest.mainAttributes.getValue("Multi-Release")
+        assert "true" == manifest.mainAttributes.getValue("Multi-Release")
         this
     }
 
@@ -114,7 +114,12 @@ class JarTestFixture extends ZipTestFixture {
         assertNotContainsFile(toVersionedPath(version, basePath))
     }
 
+    def assertVersionedContent(int version, String basePath, String content) {
+        assertFileContent(toVersionedPath(version, basePath), content)
+    }
+
     static String toVersionedPath(int version, String basePath) {
+        assert version > 8: "Java only supports versioned directories for versions >8, got $version"
         return "META-INF/versions/$version/$basePath"
     }
 }

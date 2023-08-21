@@ -16,13 +16,15 @@
 package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
@@ -42,12 +44,15 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validationContext.visitPropertyProblem(problem ->
-            problem.forProperty(propertyMetadata.getPropertyName())
-                .withId(ValidationProblemId.TEST_PROBLEM)
-                .reportAs(annotationValue(propertyMetadata))
-                .withDescription("test problem")
-                .documentedAt("id", "section")
-                .happensBecause("this is a test")
+            problem
+                .forProperty(propertyMetadata.getPropertyName())
+                .label("test problem")
+                .documentedAt(Documentation.userManual("id", "section"))
+                .noLocation()
+                .type(ValidationProblemId.TEST_PROBLEM.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .severity(annotationValue(propertyMetadata))
+                .details("this is a test")
         );
     }
 

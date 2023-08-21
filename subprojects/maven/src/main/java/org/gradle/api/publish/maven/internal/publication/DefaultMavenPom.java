@@ -22,7 +22,6 @@ import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomContributor;
 import org.gradle.api.publish.maven.MavenPomContributorSpec;
@@ -36,6 +35,7 @@ import org.gradle.api.publish.maven.MavenPomMailingList;
 import org.gradle.api.publish.maven.MavenPomMailingListSpec;
 import org.gradle.api.publish.maven.MavenPomOrganization;
 import org.gradle.api.publish.maven.MavenPomScm;
+import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.internal.MutableActionSet;
 
@@ -47,7 +47,6 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
 
     private final MutableActionSet<XmlProvider> xmlAction = new MutableActionSet<>();
     private final ObjectFactory objectFactory;
-    private final VersionMappingStrategyInternal versionMappingStrategy;
     private final MavenPublicationCoordinates mavenPublicationCoordinates;
     private final List<MavenPomLicense> licenses = new ArrayList<>();
     private MavenPomOrganization organization;
@@ -60,9 +59,8 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     private final List<MavenPomMailingList> mailingLists = new ArrayList<>();
 
     @Inject
-    public DefaultMavenPom(ObjectFactory objectFactory, VersionMappingStrategyInternal versionMappingStrategy) {
+    public DefaultMavenPom(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
-        this.versionMappingStrategy = versionMappingStrategy;
         this.mavenPublicationCoordinates = objectFactory.newInstance(MavenPublicationCoordinates.class);
     }
 
@@ -74,11 +72,6 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public Action<XmlProvider> getXmlAction() {
         return xmlAction;
-    }
-
-    @Override
-    public VersionMappingStrategyInternal getVersionMappingStrategy() {
-        return versionMappingStrategy;
     }
 
     @Override

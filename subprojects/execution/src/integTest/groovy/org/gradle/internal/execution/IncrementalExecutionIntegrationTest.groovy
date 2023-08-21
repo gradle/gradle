@@ -20,18 +20,22 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.interfaces.Severity
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
-import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.impl.DefaultInputFingerprinter
-import org.gradle.internal.execution.impl.FingerprinterRegistration
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
+import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
+import org.gradle.internal.execution.impl.FingerprinterRegistration
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
@@ -58,6 +62,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -72,8 +77,6 @@ import spock.lang.Specification
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.reflect.validation.Severity.ERROR
-import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 class IncrementalExecutionIntegrationTest extends Specification implements ValidationMessageChecker {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
@@ -135,14 +138,14 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     ExecutionEngine getExecutor() {
         // @formatter:off
-        new DefaultExecutionEngine(documentationRegistry,
+        new DefaultExecutionEngine( Stub(Problems),
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new RemoveUntrackedExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
+            new ValidateStep<>(virtualFileSystem, validationWarningReporter, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)),
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
@@ -273,15 +276,17 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         execute(unitOfWork)
 
         def invalidWork = builder
-            .withValidator {context -> context
-                .forType(UnitOfWork, false)
-                .visitPropertyProblem{
-                    it.withId(ValidationProblemId.TEST_PROBLEM)
-                        .reportAs(WARNING)
-                        .withDescription("Validation problem")
-                        .documentedAt("id", "section")
-                        .happensBecause("Test")
-                }
+            .withValidator { context ->
+                context
+                    .forType(UnitOfWork, false)
+                    .visitPropertyProblem {
+                        it.type(ValidationProblemId.TEST_PROBLEM.name())
+                            .label("Validation problem")
+                            .severity(Severity.WARNING)
+                            .documentedAt(Documentation.userManual("id", "section"))
+                            .details("Test")
+                            .noLocation()
+                    }
             }
             .build()
         when:
@@ -380,7 +385,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def "out-of-date when any output files properties are added"() {
         when:
         execute(unitOfWork)
-        def outputFilesAddedUnitOfWork = builder.withOutputFiles(*:outputFiles, newFile: temporaryFolder.createFile("output-file-2")).build()
+        def outputFilesAddedUnitOfWork = builder.withOutputFiles(*: outputFiles, newFile: temporaryFolder.createFile("output-file-2")).build()
 
         then:
         outOfDate(outputFilesAddedUnitOfWork, "Output property 'newFile' has been added for ${outputFilesAddedUnitOfWork.displayName}")
@@ -391,7 +396,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         execute(unitOfWork)
 
         when:
-        outputFiles.removeAll { it.key == "file"}
+        outputFiles.removeAll { it.key == "file" }
         def outputFilesRemovedUnitOfWork = builder.withOutputFiles(outputFiles).build()
         def result = execute(outputFilesRemovedUnitOfWork)
 
@@ -584,12 +589,14 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         def invalidWork = builder
             .withValidator { validationContext ->
                 validationContext.forType(Object, true).visitTypeProblem {
-                    it.withId(ValidationProblemId.TEST_PROBLEM)
-                        .reportAs(ERROR)
-                        .forType(Object)
-                        .withDescription("Validation error")
-                        .documentedAt("id", "section")
-                        .happensBecause("Test")
+                    it
+                        .withAnnotationType(Object)
+                        .label("Validation error")
+                        .documentedAt(Documentation.userManual("id", "section"))
+                        .noLocation()
+                        .type(ValidationProblemId.TEST_PROBLEM.name())
+                        .details("Test")
+                        .severity(Severity.ERROR)
                 }
             }
             .withWork({ throw new RuntimeException("Should not get executed") })
@@ -663,7 +670,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     }
 
     ExecutionEngine.Result outOfDate(UnitOfWork unitOfWork, String... expectedReasons) {
-        return outOfDate(unitOfWork, ImmutableList.<String>copyOf(expectedReasons))
+        return outOfDate(unitOfWork, ImmutableList.<String> copyOf(expectedReasons))
     }
 
     ExecutionEngine.Result outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {

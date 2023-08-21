@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations
 
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
@@ -28,7 +29,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def listener = Mock(BuildOperationListener)
     def timeProvider = Mock(Clock)
     def progressLoggerFactory = Spy(NoOpProgressLoggerFactory)
-    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), new DefaultParallelismConfiguration(true, 1), new DefaultBuildOperationIdFactory())
+    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), new DefaultParallelismConfiguration(true, 1), new DefaultBuildOperationIdFactory(), new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
 
     def setup() {
         CurrentBuildOperationRef.instance().clear()

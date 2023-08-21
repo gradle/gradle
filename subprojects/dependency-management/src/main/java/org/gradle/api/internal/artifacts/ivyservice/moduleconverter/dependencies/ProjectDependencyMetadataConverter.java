@@ -17,9 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -28,7 +26,6 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class ProjectDependencyMetadataConverter extends AbstractDependencyMetadataConverter {
@@ -38,7 +35,7 @@ public class ProjectDependencyMetadataConverter extends AbstractDependencyMetada
     }
 
     @Override
-    public LocalOriginDependencyMetadata createDependencyMetadata(ComponentIdentifier componentId, @Nullable String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
+    public LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject(),
                 ((AttributeContainerInternal)projectDependency.getAttributes()).asImmutable(),
@@ -46,10 +43,7 @@ public class ProjectDependencyMetadataConverter extends AbstractDependencyMetada
 
         List<ExcludeMetadata> excludes = convertExcludeRules(dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-            componentId,
             selector,
-            clientConfiguration,
-            clientAttributes,
             dependency.getAttributes(),
             projectDependency.getTargetConfiguration(),
             convertArtifacts(dependency.getArtifacts()),

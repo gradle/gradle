@@ -27,6 +27,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.beAnnotatedOrInPackag
 import static org.gradle.architecture.test.ArchUnitFixture.classes_not_written_in_kotlin;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.inGradleInternalApiPackages;
+import static org.gradle.architecture.test.ArchUnitFixture.not_synthetic_classes;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class InternalNullabilityTest {
@@ -43,7 +44,6 @@ public class InternalNullabilityTest {
      */
     @ArchTest
     public static final ArchRule internal_classes_are_annotated_with_non_null_api = freeze(classes()
-        .that(are(inGradleInternalApiPackages())).and(classes_not_written_in_kotlin)
+        .that(are(inGradleInternalApiPackages())).and(classes_not_written_in_kotlin).and(not_synthetic_classes)
         .should(beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class)));
-
 }

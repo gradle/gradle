@@ -23,6 +23,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.UpgradedPropertyType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
@@ -57,10 +58,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
-import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY;
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_GETTER;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANCE_METHOD;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
@@ -116,6 +118,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             return Type.getType(Map.class);
         } else if (typeName.equals(ListProperty.class.getName())) {
             return Type.getType(List.class);
+        } else if (typeName.equals(SetProperty.class.getName())) {
+            return Type.getType(Set.class);
         } else {
             throw new AnnotationReadFailure(String.format("Cannot extract original type for method '%s.%s: %s'. Use explicit @UpgradedProperty#originalType instead.", method.getEnclosingElement(), method, typeMirror));
         }
@@ -126,7 +130,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
         return new CallInterceptionRequestImpl(
-            extractCallableInfo(GROOVY_PROPERTY, method, originalType, propertyName, parameters),
+            extractCallableInfo(GROOVY_PROPERTY_GETTER, method, originalType, propertyName, parameters),
             extractImplementationInfo(method, originalType, "get", Collections.emptyList()),
             extras
         );

@@ -44,7 +44,7 @@ public interface IdentifyTransformExecutionProgressDetails {
     /**
      * The component identifier of the input artifact.
      */
-    ComponentIdentifier getInputArtifactComponentIdentifier();
+    ComponentIdentifier getComponentId();
 
     /**
      * The from attributes of the registered transform.
@@ -59,7 +59,7 @@ public interface IdentifyTransformExecutionProgressDetails {
     /**
      * The file name of the input artifact that is about to be transformed.
      */
-    String getInputArtifactName();
+    String getArtifactName();
 
     /**
      * The class of the transform action.

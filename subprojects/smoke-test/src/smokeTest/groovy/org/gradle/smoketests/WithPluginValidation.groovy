@@ -17,7 +17,7 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.internal.reflect.validation.Severity
+import org.gradle.api.problems.interfaces.Severity
 import org.gradle.plugin.devel.tasks.TaskValidationReportFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.TaskOutcome

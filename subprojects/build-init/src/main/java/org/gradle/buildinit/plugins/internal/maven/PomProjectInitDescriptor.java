@@ -25,7 +25,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -45,9 +45,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class PomProjectInitDescriptor implements BuildConverter {
-    private final static String MAVEN_VERSION = "3.6.3";
-    private final static String MAVEN_WAGON_VERSION = "3.4.2";
-    private final static String AETHER_VERSION = "1.1.0";
+    private final static String MAVEN_VERSION = "3.9.3";
+    private final static String MAVEN_WAGON_VERSION = "3.5.3";
+    private final static String MAVEN_RESOLVER_VERSION = "1.9.13";
 
     private final MavenSettingsProvider settingsProvider;
     private final DocumentationRegistry documentationRegistry;
@@ -92,7 +92,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects, JvmPluginServices jvmPluginServices) {
         DependencyHandler dependencies = detachedResolver.getDependencies();
         Configuration config = detachedResolver.getConfigurations().detachedConfiguration(
             dependencies.create("org.apache.maven:maven-core:" + MAVEN_VERSION),
@@ -100,10 +100,10 @@ public class PomProjectInitDescriptor implements BuildConverter {
             dependencies.create("org.apache.maven:maven-compat:" + MAVEN_VERSION),
             dependencies.create("org.apache.maven.wagon:wagon-http:" + MAVEN_WAGON_VERSION),
             dependencies.create("org.apache.maven.wagon:wagon-provider-api:" + MAVEN_WAGON_VERSION),
-            dependencies.create("org.eclipse.aether:aether-connector-basic:" + AETHER_VERSION),
-            dependencies.create("org.eclipse.aether:aether-transport-wagon:" + AETHER_VERSION)
+            dependencies.create("org.apache.maven.resolver:maven-resolver-connector-basic:" + MAVEN_RESOLVER_VERSION),
+            dependencies.create("org.apache.maven.resolver:maven-resolver-transport-wagon:" + MAVEN_RESOLVER_VERSION)
         );
-        jvmEcosystemUtilities.configureAsRuntimeClasspath(config);
+        jvmPluginServices.configureAsRuntimeClasspath(config);
         detachedResolver.getRepositories().mavenCentral();
         mavenClasspath = config;
     }

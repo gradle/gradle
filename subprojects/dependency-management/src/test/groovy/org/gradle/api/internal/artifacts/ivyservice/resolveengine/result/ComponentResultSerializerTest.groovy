@@ -38,7 +38,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 class ComponentResultSerializerTest extends Specification {
     def serializer = new ComponentResultSerializer(
         new ThisBuildOnlyComponentDetailsSerializer(),
-        new ThisBuildOnlySelectedVariantSerializer(),
+        new ThisBuildOnlySelectedVariantSerializer(null, null),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false
     )

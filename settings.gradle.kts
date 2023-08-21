@@ -24,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.13.4") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.14.1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
@@ -133,38 +133,48 @@ unassigned {
     subproject("build-cache-packaging")
     subproject("execution")
     subproject("build-profile")
-    subproject("kotlin-dsl")
-    subproject("kotlin-dsl-provider-plugins")
-    subproject("kotlin-dsl-tooling-models")
-    subproject("kotlin-dsl-tooling-builders")
     subproject("worker-processes")
     subproject("base-annotations")
     subproject("security")
     subproject("normalization-java")
-    subproject("enterprise")
-    subproject("enterprise-logging")
-    subproject("enterprise-workers")
     subproject("build-operations")
     subproject("problems")
     subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
 }
 
+// Core Configuration Platform
+platform("core-configuration") {
+    subproject("kotlin-dsl")
+    subproject("kotlin-dsl-provider-plugins")
+    subproject("kotlin-dsl-tooling-builders")
+    subproject("kotlin-dsl-tooling-models")
+    subproject("kotlin-dsl-plugins")
+    subproject("kotlin-dsl-integ-tests")
+}
+
+// IDE Platform
+platform("ide") {
+    subproject("base-ide-plugins")
+    subproject("ide-plugins")
+}
+
 // JVM Platform
 platform("jvm") {
     subproject("code-quality")
     subproject("ear")
+    subproject("toolchains-jvm")
+    subproject("java-platform")
     subproject("war")
 }
 
 // Gradle Enterprise Platform
 platform("enterprise") {
+    subproject("enterprise")
+    subproject("enterprise-logging")
     subproject("enterprise-operations")
-}
-
-// Plugin portal projects
-unassigned {
-    subproject("kotlin-dsl-plugins")
+    subproject("enterprise-plugin-performance")
+    subproject("enterprise-workers")
 }
 
 // Internal utility and verification projects
@@ -182,12 +192,10 @@ unassigned {
     subproject("internal-architecture-testing")
     subproject("internal-build-reports")
     subproject("integ-test")
-    subproject("kotlin-dsl-integ-tests")
     subproject("distributions-integ-tests")
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
-    subproject("build-scan-performance")
     subproject("precondition-tester")
 }
 

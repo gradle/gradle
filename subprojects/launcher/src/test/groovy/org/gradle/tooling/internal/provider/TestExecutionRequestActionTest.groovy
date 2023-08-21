@@ -24,8 +24,8 @@ import spock.lang.Specification
 
 class TestExecutionRequestActionTest extends Specification {
 
-    StartParameterInternal startParameter = Mock()
-    BuildEventSubscriptions buildClientSubscriptions= Mock()
+    StartParameterInternal startParameter = Stub()
+    BuildEventSubscriptions buildClientSubscriptions = Mock()
     ProviderInternalTestExecutionRequest executionRequest = Mock()
 
     def "maps testClasses to internalJvmTestRequests if empty"(){
@@ -34,6 +34,8 @@ class TestExecutionRequestActionTest extends Specification {
         1 * executionRequest.getInternalJvmTestRequests(_) >> []
         1 * executionRequest.getTaskAndTests(_) >> [:]
         1 * executionRequest.getTestClassNames() >> ["org.acme.Foo"]
+        1 * executionRequest.getTaskSpecs(_) >> []
+        1 * executionRequest.isRunDefaultTasks(_) >> false
 
         when:
         def executionRequestAction = TestExecutionRequestAction.create(buildClientSubscriptions, startParameter, executionRequest);

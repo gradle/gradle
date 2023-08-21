@@ -108,6 +108,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         sourcesPath.extendsFrom(runtimeClasspath);
 
         extension.getClasspath().from(runtimeClasspath);
+        extension.getSourceRoots().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles());
         extension.getDocumentedSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
             f.include(PublicApi.INSTANCE.getIncludes());
             // Filter out any non-public APIs

@@ -46,6 +46,7 @@ import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -1027,7 +1028,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         def publication = publication(component, id, mappingStrategy)
 
         mappingStrategy.findStrategyForVariant(_) >> variantMappingStrategy
-        variantMappingStrategy.maybeResolveVersion(_ as String, _ as String, _) >> { String group, String name, String projectPath ->
+        variantMappingStrategy.maybeResolveVersion(_ as String, _ as String, _) >> { String group, String name, Path identityPath ->
             DefaultModuleVersionIdentifier.newId(group, name, 'v99')
         }
 

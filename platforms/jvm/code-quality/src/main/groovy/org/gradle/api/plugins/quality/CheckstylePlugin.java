@@ -100,12 +100,12 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         taskMapping.map("checkstyleClasspath", Callables.returning(configuration));
         taskMapping.map("config", (Callable<TextResource>) () -> extension.getConfig());
         taskMapping.map("configProperties", (Callable<Map<String, Object>>) () -> extension.getConfigProperties());
-        taskMapping.map("ignoreFailures", (Callable<Boolean>) () -> extension.isIgnoreFailures());
         taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.isShowViolations());
         taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
         taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
         task.getConfigDirectory().convention(extension.getConfigDirectory());
         task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
+        task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {

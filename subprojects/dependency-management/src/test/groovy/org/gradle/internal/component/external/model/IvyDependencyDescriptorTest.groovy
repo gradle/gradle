@@ -34,7 +34,7 @@ import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata
 import org.gradle.internal.component.model.ConfigurationGraphResolveState
 import org.gradle.internal.component.model.ConfigurationMetadata
-import org.gradle.internal.component.model.ConfigurationNotFoundException
+import org.gradle.internal.component.model.ExternalConfigurationNotFoundException
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ModuleConfigurationMetadata
@@ -429,7 +429,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent)
 
         then:
-        ConfigurationNotFoundException e = thrown()
+        ExternalConfigurationNotFoundException e = thrown()
         e.message == "Thing a declares a dependency from configuration 'from' to configuration 'to' which is not declared in the descriptor for thing b."
 
         where:

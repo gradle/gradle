@@ -36,6 +36,7 @@ import org.gradle.tooling.events.download.FileDownloadFinishEvent
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
 import org.gradle.tooling.events.download.FileDownloadResult
 import org.gradle.tooling.events.download.FileDownloadStartEvent
+import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.task.TaskStartEvent
@@ -157,6 +158,9 @@ class ProgressEvents implements ProgressListener {
             } else {
                 def descriptor = event.descriptor
                 // operation should still be running
+                if (descriptor instanceof ProblemDescriptor) {
+                    continue
+                }
                 assert running.containsKey(descriptor)
                 def operation = operations.find { it.descriptor == event.descriptor }
                 otherEvent(event, operation)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,15 +60,14 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
     def "configures compileClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
-        def config
-        config = Stub(ConfigurationInternal) {
+        def config = Stub(ConfigurationInternal) {
             getAttributes() >> mutable
         }
         def javaCompileProvider = Stub(TaskProvider) {
-                get() >> Stub(JavaCompile) {
-                    getTargetCompatibility() >> '8'
-                }
+            get() >> Stub(JavaCompile) {
+                getTargetCompatibility() >> '8'
             }
+        }
         when:
         services.configureAsCompileClasspath(attrs)
 
@@ -83,7 +82,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         ]
 
         when:
-        services.useDefaultTargetPlatformInference(config, javaCompileProvider)
+        jvmLanguageUtilities.useDefaultTargetPlatformInference(config, javaCompileProvider)
 
         then:
         mutable.asMap() == [

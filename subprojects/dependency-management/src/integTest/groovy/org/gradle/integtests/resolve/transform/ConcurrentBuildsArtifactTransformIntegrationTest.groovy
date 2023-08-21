@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
+
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {

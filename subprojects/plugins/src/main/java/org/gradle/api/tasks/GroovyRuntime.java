@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
@@ -178,7 +178,7 @@ public abstract class GroovyRuntime {
 
             private Configuration detachedRuntimeClasspath(Dependency... dependencies) {
                 Configuration classpath = project.getConfigurations().detachedConfiguration(dependencies);
-                jvmEcosystemUtilities().configureAsRuntimeClasspath(classpath);
+                getJvmPluginServices().configureAsRuntimeClasspath(classpath);
                 return classpath;
             }
 
@@ -215,7 +215,7 @@ public abstract class GroovyRuntime {
         return null;
     }
 
-    private JvmEcosystemUtilities jvmEcosystemUtilities() {
-        return project.getServices().get(JvmEcosystemUtilities.class);
+    private JvmPluginServices getJvmPluginServices() {
+        return project.getServices().get(JvmPluginServices.class);
     }
 }

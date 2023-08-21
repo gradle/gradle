@@ -20,7 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 
@@ -30,16 +30,16 @@ import java.io.File;
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
     private final TaskProvider<? extends Task> generator;
-    private final IvyPublicationIdentity identity;
+    private final IvyPublicationCoordinates coordinates;
     private final String extension;
     private final String type;
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, IvyPublicationIdentity identity, String extension, String type, @Nullable String classifier, TaskDependencyFactory taskDependencyFactory) {
+    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, IvyPublicationCoordinates coordinates, String extension, String type, @Nullable String classifier, TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.generator = generator;
-        this.identity = identity;
+        this.coordinates = coordinates;
         this.extension = extension;
         this.type = type;
         this.classifier = classifier;
@@ -50,7 +50,7 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     protected String getDefaultName() {
-        return identity.getModule();
+        return coordinates.getModule().get();
     }
 
     @Override

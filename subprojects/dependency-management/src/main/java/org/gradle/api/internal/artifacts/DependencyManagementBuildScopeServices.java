@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CachingVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -47,7 +46,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSe
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
@@ -56,7 +54,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
@@ -71,7 +68,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.DefaultDependenciesAccessors;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
@@ -88,6 +84,7 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
@@ -105,8 +102,6 @@ import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -147,7 +142,6 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
@@ -191,6 +185,7 @@ class DependencyManagementBuildScopeServices {
         registration.add(FileResourceConnector.class);
         registration.add(DefaultComponentSelectorConverter.class);
         registration.add(ProjectDependencyResolver.class);
+        registration.add(DefaultArtifactDependencyResolver.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(
@@ -202,7 +197,8 @@ class DependencyManagementBuildScopeServices {
         DependencyMetaDataProvider dependencyMetaDataProvider,
         ObjectFactory objects,
         ProviderFactory providers,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        Problems problemService
     ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
@@ -212,7 +208,8 @@ class DependencyManagementBuildScopeServices {
             dependencyMetaDataProvider,
             objects,
             providers,
-            collectionCallbackActionDecorator
+            collectionCallbackActionDecorator,
+            problemService
         );
     }
 
@@ -384,49 +381,6 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    ArtifactDependencyResolver createArtifactDependencyResolver(
-        ResolveIvyFactory resolveIvyFactory,
-        DependencyMetadataFactory dependencyMetadataFactory,
-        VersionComparator versionComparator,
-        List<ResolverProviderFactory> resolverFactories,
-        ModuleExclusions moduleExclusions,
-        BuildOperationExecutor buildOperationExecutor,
-        ComponentSelectorConverter componentSelectorConverter,
-        ImmutableAttributesFactory attributesFactory,
-        VersionSelectorScheme versionSelectorScheme,
-        VersionParser versionParser,
-        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-        InstantiatorFactory instantiatorFactory,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        ResolvedVariantCache resolvedVariantCache,
-        AttributeDesugaring attributeDesugaring,
-        LocalComponentGraphResolveStateFactory localResolveStateFactory,
-        ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-        ComponentIdGenerator idGenerator
-    ) {
-        return new DefaultArtifactDependencyResolver(
-            buildOperationExecutor,
-            resolverFactories,
-            resolveIvyFactory,
-            dependencyMetadataFactory,
-            versionComparator,
-            moduleExclusions,
-            componentSelectorConverter,
-            attributesFactory,
-            versionSelectorScheme,
-            versionParser,
-            componentMetadataSupplierRuleExecutor,
-            instantiatorFactory,
-            componentSelectionDescriptorFactory,
-            calculatedValueContainerFactory,
-            resolvedVariantCache,
-            attributeDesugaring,
-            localResolveStateFactory,
-            moduleResolveStateFactory,
-            idGenerator);
-    }
-
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
         DefaultVersionSelectorScheme delegate = new DefaultVersionSelectorScheme(versionComparator, versionParser);
         CachingVersionSelectorScheme selectorScheme = new CachingVersionSelectorScheme(delegate);
@@ -496,6 +450,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     DependenciesAccessors createDependenciesAccessorGenerator(
+        ObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
         DefaultProjectDependencyFactory factory,
@@ -506,7 +461,7 @@ class DependencyManagementBuildScopeServices {
         CapabilityNotationParser capabilityNotationParser,
         InputFingerprinter inputFingerprinter
     ) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
+        return objectFactory.newInstance(DefaultDependenciesAccessors.class, registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
     }
 
 
@@ -527,20 +482,21 @@ class DependencyManagementBuildScopeServices {
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem,
-        DocumentationRegistry documentationRegistry
+        DocumentationRegistry documentationRegistry,
+        Problems problems
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
         // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
-        return new DefaultExecutionEngine(documentationRegistry,
-            new IdentifyStep<>(buildOperationExecutor,
+        return new DefaultExecutionEngine(
+            problems, new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new RemoveUntrackedExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new NoOpCachingStateStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(

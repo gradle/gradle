@@ -21,10 +21,12 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.FileLockManager
 import org.gradle.internal.Pair
 import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.internal.classloader.TransformReplacer.MarkerResource
 import org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.Policy
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 import org.gradle.internal.hash.Hasher
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -32,12 +34,11 @@ import org.objectweb.asm.ClassVisitor
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
-import java.util.jar.Attributes
 import java.util.jar.JarFile
-import java.util.jar.Manifest
 
 import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent
 import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader
+import static org.gradle.util.JarUtils.jar
 
 class InstrumentingClasspathFileTransformerTest extends Specification {
     @Rule
@@ -214,12 +215,88 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
     }
 
+    def "agent instrumentation puts no marker into non-multi-release jar"() {
+        given:
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                // No Multi-Release attribute in the manifest.
+            }
+
+            entry("Foo.class", classOne())
+        }
+
+        expect:
+        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())), false)) {
+            assertNotContainsFile(MarkerResource.RESOURCE_NAME)
+        }
+    }
+
+    def "agent instrumentation puts support marker to the root of multi-release jar"() {
+        given:
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                mainAttributes.putValue("Multi-Release", "true")
+            }
+
+            entry("Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION, "Foo.class", classOne())
+        }
+
+        expect:
+        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
+            assertFileContent(MarkerResource.RESOURCE_NAME, instrumentedMarker())
+
+            9..AsmConstants.MAX_SUPPORTED_JAVA_VERSION.each {
+                assertNotContainsVersioned(it, MarkerResource.RESOURCE_NAME)
+            }
+        }
+    }
+
+    def "agent instrumentation puts support marker to unsupported versioned directory"() {
+        given:
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                mainAttributes.putValue("Multi-Release", "true")
+            }
+
+            entry("Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2, "Foo.class", classOne())
+        }
+
+        expect:
+        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
+            assertFileContent(MarkerResource.RESOURCE_NAME, instrumentedMarker())
+            assertVersionedContent(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MarkerResource.RESOURCE_NAME, notInstrumentedMarker())
+
+            assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 2, MarkerResource.RESOURCE_NAME)
+        }
+    }
+
+    def "agent instrumentation puts no marker into unsupported versioned directories with resources only"() {
+        given:
+        def testFile = jar(testDir.file("thing.jar")) {
+            manifest {
+                mainAttributes.putValue("Multi-Release", "true")
+            }
+
+            entry("Foo.class", classOne())
+            versionedEntry(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "resource.txt", "resource")
+        }
+
+        expect:
+        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
+            assertFileContent(MarkerResource.RESOURCE_NAME, instrumentedMarker())
+            assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MarkerResource.RESOURCE_NAME)
+        }
+    }
+
     private File transform(File file, InstrumentingClasspathFileTransformer transformer) {
         return transformer.transform(file, fileSystemAccess.read(file.path), cacheDir, typeRegistry)
     }
 
     private InstrumentingClasspathFileTransformer transformerWithPolicy(Policy policy) {
-        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, policy, new NoOpTransformer(), gradleCoreInstrumentingRegistry)
+        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, FileSystemLocationSnapshot::getHash, policy, new NoOpTransformer(), gradleCoreInstrumentingRegistry)
     }
 
     private static class NoOpTransformer implements CachedClasspathTransformer.Transform {
@@ -241,57 +318,15 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         return new JarTestFixture(transformedJar, 'UTF-8', null, expectManifest)
     }
 
-    private File jar(File jarFile, @DelegatesTo(JarBuilder) Closure<?> closure) {
-        classpathBuilder.jar(jarFile) {
-            closure.setDelegate(new JarBuilder(it))
-            closure.setResolveStrategy(Closure.DELEGATE_FIRST)
-            closure()
-        }
-
-        jarFile
+    private static String instrumentedMarker() {
+        return markerBodyAsString(MarkerResource.TRANSFORMED)
     }
 
-    static class JarBuilder {
-        private final ClasspathBuilder.EntryBuilder builder
-        private boolean hasManifest
+    private static String notInstrumentedMarker() {
+        return markerBodyAsString(MarkerResource.NOT_TRANSFORMED)
+    }
 
-        JarBuilder(ClasspathBuilder.EntryBuilder builder) {
-            this.builder = builder
-        }
-
-        def manifest(@DelegatesTo(value = Manifest, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-            def man = new Manifest()
-            man.mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
-
-            closure.setDelegate(man)
-            closure()
-
-            def baos = new ByteArrayOutputStream()
-            man.write(baos)
-            builder.put(JarFile.MANIFEST_NAME, baos.toByteArray())
-            hasManifest = true
-            this
-        }
-
-        def versionedEntry(int version, String path, byte[] bytes) {
-            entry(JarTestFixture.toVersionedPath(version, path), bytes)
-        }
-
-        def versionedEntry(int version, String path, String body) {
-            entry(JarTestFixture.toVersionedPath(version, path), body)
-        }
-
-        def entry(String path, byte[] bytes) {
-            checkManifestWritten()
-            builder.put(path, bytes)
-        }
-
-        def entry(String path, String body) {
-            entry(path, body.getBytes(StandardCharsets.UTF_8))
-        }
-
-        private def checkManifestWritten() {
-            assert hasManifest : "Must have manifest before entries"
-        }
+    private static String markerBodyAsString(MarkerResource resource) {
+        return new String(resource.asBytes(), StandardCharsets.US_ASCII)
     }
 }

@@ -20,6 +20,6 @@ plugins {
 
 // tag::use_version_asprovider[]
 scala {
-    zincVersion.set(libs.versions.zinc.asProvider().get())
+    zincVersion = libs.versions.zinc.asProvider().get()
 }
 // end::use_version_asprovider[]

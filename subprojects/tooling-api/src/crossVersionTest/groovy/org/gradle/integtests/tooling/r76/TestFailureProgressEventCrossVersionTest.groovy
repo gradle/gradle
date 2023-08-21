@@ -38,6 +38,9 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
     ProgressEventCollector progressEventCollector
 
     def setup() {
+        // Avoid mixing JUnit dependencies with the ones from the JVM running this test
+        // For example, when using PTS/TD for running this test, the JUnit Platform Launcher classes from the GE plugin take precedence
+        toolingApi.requireDaemons()
         progressEventCollector = new ProgressEventCollector()
     }
 

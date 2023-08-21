@@ -55,7 +55,7 @@ public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeEle
      * Returns the archive entry for this element.
      *
      * @return the archive entry
-     * @implSpec this method should be overriden to return a more specific type
+     * @implSpec this method should be overridden to return a more specific type
      */
     protected abstract ArchiveEntry getArchiveEntry();
 
