@@ -16,7 +16,7 @@
 
 package org.gradle.internal.properties.annotations;
 
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.Severity;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
@@ -24,7 +24,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
 import static java.util.stream.Collectors.joining;
-import static org.gradle.api.problems.interfaces.ProblemGroup.GENERIC_ID;
+import static org.gradle.api.problems.ProblemGroup.GENERIC_ID;
 import static org.gradle.internal.reflect.problems.ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION;
 
 public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHandler {

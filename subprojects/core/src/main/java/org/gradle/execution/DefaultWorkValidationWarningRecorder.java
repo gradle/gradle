@@ -16,7 +16,7 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.slf4j.Logger;

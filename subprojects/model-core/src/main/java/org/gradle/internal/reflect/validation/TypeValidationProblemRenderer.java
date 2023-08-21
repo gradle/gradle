@@ -16,8 +16,8 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemsPluginId;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemsPluginId;
 import org.gradle.api.problems.internal.DefaultPluginId;
 import org.gradle.internal.logging.text.TreeFormatter;
 

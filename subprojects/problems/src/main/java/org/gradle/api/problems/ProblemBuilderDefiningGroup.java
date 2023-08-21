@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
@@ -24,6 +24,7 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderDefiningType {
-    ProblemBuilderDefiningGroup type(String problemType);
+public interface ProblemBuilderDefiningGroup {
+    ProblemBuilder group(ProblemGroup group);
+    ProblemBuilder group(String group);
 }

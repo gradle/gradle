@@ -18,14 +18,14 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.Severity;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.problems.interfaces.ProblemGroup.TYPE_VALIDATION_ID;
+import static org.gradle.api.problems.ProblemGroup.TYPE_VALIDATION_ID;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**

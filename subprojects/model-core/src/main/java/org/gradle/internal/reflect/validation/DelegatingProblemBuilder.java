@@ -17,16 +17,16 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.DocLink;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningGroup;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLabel;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningType;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.ReportableProblem;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
+import org.gradle.api.problems.ProblemBuilderDefiningGroup;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.ProblemBuilderDefiningLocation;
+import org.gradle.api.problems.ProblemBuilderDefiningType;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 

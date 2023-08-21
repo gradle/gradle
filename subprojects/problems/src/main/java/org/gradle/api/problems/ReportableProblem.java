@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
 /**
- * Builder that is part of the {@link ProblemBuilder} concept.
+ * Problem that can be submitted for external consumption (e.g. to expose via the Tooling API).
  *
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderDefiningDocumentation {
-    ProblemBuilderDefiningLocation documentedAt(DocLink doc);
+public interface ReportableProblem extends Problem {
 
-    ProblemBuilderDefiningLocation undocumented();
+    /**
+     * Report this problem.
+     */
+    void report();
 }

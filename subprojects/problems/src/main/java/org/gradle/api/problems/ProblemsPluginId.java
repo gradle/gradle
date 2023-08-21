@@ -14,32 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
- * Severity.
+ * A description of a plugin.
  *
  * @since 8.4
  */
 @Incubating
-public enum Severity {
-    ADVICE("Advice"),
-    WARNING("Warning"),
-    ERROR("Error");
-    private final String displayName;
+public interface ProblemsPluginId {
 
-    Severity(String displayName) {
-        this.displayName = displayName;
-    }
+    /**
+     * The fully qualified plugin ID.
+     */
+    String getId();
 
-    @Override
-    public String toString() {
-        return displayName;
-    }
+    /**
+     * The namespace of the plugin or {@code null} if the ID contains no {@code .}.
+     */
+    @Nullable
+    String getNamespace();
 
-    public boolean isWarning() {
-        return this == WARNING;
-    }
+    /**
+     * The plugin name without the namespace.
+     */
+    String getName();
 }

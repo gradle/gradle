@@ -19,7 +19,7 @@ package org.gradle.internal.execution.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.ReportableProblem;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
