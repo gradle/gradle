@@ -48,12 +48,12 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -106,13 +106,15 @@ public class Instrumented {
 
     @NonNullApi
     public static class CallInterceptorRegistry {
-        private static final Set<Integer> LOADED_FROM_CLASSLOADERS = ConcurrentHashMap.newKeySet();
+        private static final Map<ClassLoader, Void> LOADED_FROM_CLASSLOADERS = Collections.synchronizedMap(new WeakHashMap<>());
         private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
         private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
 
         public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
-            if (!LOADED_FROM_CLASSLOADERS.add(System.identityHashCode(classLoader))) {
+            if (LOADED_FROM_CLASSLOADERS.containsKey(classLoader)) {
                 throw new RuntimeException("Cannot load interceptors twice for class loader: " + classLoader);
+            } else {
+                LOADED_FROM_CLASSLOADERS.put(classLoader, null);
             }
 
             GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
