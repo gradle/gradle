@@ -371,7 +371,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                         if (metaBeanProperty.getSetter() == null) {
                             if (metaBeanProperty.getField() == null) {
-                                trySetReadOnlyProperty(name, value, metaBeanProperty);
+                                trySetGetterOnlyProperty(name, value, metaBeanProperty);
                             } else {
                                 value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
                                 metaBeanProperty.getField().setProperty(bean, value);
@@ -418,7 +418,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return setOpaqueProperty(metaClass, name, value);
         }
 
-        private void trySetReadOnlyProperty(String name, Object value, MetaBeanProperty metaBeanProperty) {
+        private void trySetGetterOnlyProperty(String name, Object value, MetaBeanProperty metaBeanProperty) {
             Class<?> propertyType = metaBeanProperty.getType();
             if (HasConfigurableValue.class.isAssignableFrom(propertyType)) {
                 Object propertyValue = metaBeanProperty.getGetter().invoke(bean, new Object[0]);
@@ -428,7 +428,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                     return;
                 }
             }
-            throw setReadOnlyProperty(name);
+            throw setGetterOnlyProperty(name);
         }
 
         protected DynamicInvokeResult setOpaqueProperty(MetaClass metaClass, String name, Object value) {
