@@ -17,8 +17,16 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.gradle.internal.Cast;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Base64;
+import java.util.Objects;
 
 /**
  * Represents an identifier containing a tuple of namespace and name for use when
@@ -28,9 +36,27 @@ public class NamespaceId implements Serializable {
     private String namespace;
     private String name;
 
+    public static NamespaceId decode(String encoding) {
+        byte[] data = Base64.getDecoder().decode(encoding);
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(data); ObjectInputStream ois = new ObjectInputStream(bais)) {
+            return Objects.requireNonNull(Cast.uncheckedCast(ois.readObject()));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed decoding namespace ID");
+        }
+    }
+
     public NamespaceId(String namespace, String name) {
         this.namespace = namespace;
         this.name = name;
+    }
+
+    public String encode() {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(this);
+            return Base64.getEncoder().encodeToString(baos.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed encoding namespace ID '" + name + "'");
+        }
     }
 
     /**

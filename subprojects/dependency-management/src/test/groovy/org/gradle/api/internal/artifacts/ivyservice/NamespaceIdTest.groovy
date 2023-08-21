@@ -54,11 +54,19 @@ class NamespaceIdTest extends Specification {
         "some-namespace1" | "some-name"  | "some-namespace"  | "some-name2"
     }
 
-    def "toString returns name" () {
+    def "toString returns name"() {
         given:
         NamespaceId id = new NamespaceId("some-namespace", "some-name")
 
         expect:
         id.toString().equals("some-name")
+    }
+
+    def "can decode an encoding"() {
+        given:
+        NamespaceId id = new NamespaceId("some-namespace", "some-name")
+
+        expect:
+        NamespaceId.decode(id.encode()) == id
     }
 }

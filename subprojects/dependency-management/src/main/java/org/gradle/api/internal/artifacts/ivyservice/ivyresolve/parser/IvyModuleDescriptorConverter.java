@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
-import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -49,6 +48,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class IvyModuleDescriptorConverter {
 
@@ -69,8 +69,11 @@ public class IvyModuleDescriptorConverter {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    @SuppressWarnings("deprecation")
     public Map<NamespaceId, String> extractExtraAttributes(ModuleDescriptor ivyDescriptor) {
-        return Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
+        Map<String, String> extraInfo = ivyDescriptor.getExtraInfo();
+        return extraInfo.entrySet().stream().collect(
+            Collectors.toMap(e -> NamespaceId.decode(e.getKey()), Map.Entry::getValue));
     }
 
     public List<Exclude> extractExcludes(ModuleDescriptor ivyDescriptor) {
@@ -116,7 +119,7 @@ public class IvyModuleDescriptorConverter {
 
         List<Artifact> artifacts = Lists.newArrayList();
         for (DependencyArtifactDescriptor ivyArtifact : dependencyDescriptor.getAllDependencyArtifacts()) {
-            IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExt(), (String) ivyArtifact.getExtraAttributes().get(CLASSIFIER));
+            IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExt(), ivyArtifact.getExtraAttributes().get(CLASSIFIER));
             artifacts.add(new Artifact(ivyArtifactName, Sets.newHashSet(ivyArtifact.getConfigurations())));
         }
 
