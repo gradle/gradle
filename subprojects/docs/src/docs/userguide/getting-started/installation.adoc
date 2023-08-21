@@ -68,7 +68,9 @@ Existing installations are ignored by Gradle.
 
 == Linux installation
 
-=== >> Installing with a package manager
+.Installing with a package manager
+[%collapsible]
+====
 
 link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-like systems (macOS, Linux, Cygwin, Solaris and FreeBSD).
 Gradle is deployed and maintained by SDKMAN!:
@@ -79,8 +81,11 @@ Gradle is deployed and maintained by SDKMAN!:
 
 Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc.
 Linux package managers may distribute a modified version of Gradle that is incompatible or incomplete when compared to the official version.
+====
 
-=== >> Installing manually
+.Installing manually
+[%collapsible]
+====
 
 **Step 1 - link:{website}/releases[Download] the latest Gradle distribution**
 
@@ -124,10 +129,13 @@ When upgrading to a different version of Gradle, simply change the `GRADLE_HOME`
 export GRADLE_HOME=/opt/gradle/gradle-{gradleVersion}
 export PATH=${GRADLE_HOME}/bin:${PATH}
 ----
+====
 
 == macOS installation
 
-=== >> Installing with a package manager
+.Installing with a package manager
+[%collapsible]
+====
 
 link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-like systems (macOS, Linux, Cygwin, Solaris and FreeBSD).
 Gradle is deployed and maintained by SDKMAN!:
@@ -149,8 +157,11 @@ Using link:https://www.macports.org[MacPorts]:
 ----
 
 Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc.
+====
 
-=== >> Installing manually
+.Installing manually
+[%collapsible]
+====
 
 **Step 1 - link:{website}/releases[Download] the latest Gradle distribution**
 
@@ -194,10 +205,13 @@ It's a good idea to edit `.bash_profile` in your home directory to add `GRADLE_H
 export GRADLE_HOME=/usr/local/gradle/gradle-{gradleVersion}
 export PATH=$GRADLE_HOME/bin:$PATH
 ----
+====
 
 == Windows installation
 
-=== >> Installing manually
+.Installing manually
+[%collapsible]
+====
 
 **Step 1 - link:{website}/releases[Download] the latest Gradle distribution**
 
@@ -230,6 +244,7 @@ Click `OK` to save.
 Alternatively, you can add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.
 Instead of adding a specific version of Gradle to your `Path`, you can add `__%GRADLE_HOME%__\bin` to your `Path`.
 When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
+====
 
 [[sec:running_and_testing_your_installation]]
 == Verify the installation
