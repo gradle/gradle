@@ -121,7 +121,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
                 .orElse(false);
             CallInterceptionRequest groovyPropertyRequest = createGroovyPropertyInterceptionRequest(propertyName, method, originalType);
             CallInterceptionRequest jvmGetterRequest = createJvmGetterInterceptionRequest(propertyName, method, originalType);
-            CallInterceptionRequest jvmSetterRequest = createJvmSetterInterceptionRequest(method, originalType, isFluentSetter);
+            CallInterceptionRequest jvmSetterRequest = createJvmSetterInterceptionRequest(propertyName, method, originalType, isFluentSetter);
             return Arrays.asList(new Success(groovyPropertyRequest), new Success(jvmGetterRequest), new Success(jvmSetterRequest));
         } catch (AnnotationReadFailure failure) {
             return Collections.singletonList(new InvalidRequest(failure.reason));
@@ -171,7 +171,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private CallInterceptionRequest createJvmGetterInterceptionRequest(String propertyName, ExecutableElement method, Type originalType) {
-        List<RequestExtra> extras = getJvmRequestExtras(method, false);
+        List<RequestExtra> extras = getJvmRequestExtras(propertyName, method, false);
         String capitalize = propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
         String callableName = originalType.equals(Type.BOOLEAN_TYPE) ? "is" + capitalize : "get" + capitalize;
         return new CallInterceptionRequestImpl(
@@ -181,11 +181,11 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    private CallInterceptionRequest createJvmSetterInterceptionRequest(ExecutableElement method, Type originalType, boolean isFluentSetter) {
+    private CallInterceptionRequest createJvmSetterInterceptionRequest(String propertyName, ExecutableElement method, Type originalType, boolean isFluentSetter) {
         Type returnType = isFluentSetter ? extractType(method.getEnclosingElement().asType()) : Type.VOID_TYPE;
         String callableName = method.getSimpleName().toString().replaceFirst("get", "set");
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
-        List<RequestExtra> extras = getJvmRequestExtras(method, isFluentSetter);
+        List<RequestExtra> extras = getJvmRequestExtras(propertyName, method, isFluentSetter);
         return new CallInterceptionRequestImpl(
             extractCallableInfo(INSTANCE_METHOD, method, returnType, callableName, parameters),
             extractImplementationInfo(method, returnType, "set", parameters),
@@ -194,7 +194,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     @Nonnull
-    private List<RequestExtra> getJvmRequestExtras(ExecutableElement method, boolean isFluentSetter) {
+    private List<RequestExtra> getJvmRequestExtras(String propertyName, ExecutableElement method, boolean isFluentSetter) {
         String interceptorsClassName = getJavaInterceptorsClassName();
         List<RequestExtra> extras = new ArrayList<>();
         extras.add(new RequestExtra.OriginatingElement(method));
@@ -202,7 +202,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
         UpgradedPropertyType upgradedPropertyType = UpgradedPropertyType.from(extractType(method.getReturnType()));
-        extras.add(new PropertyUpgradeRequestExtra(isFluentSetter, implementationClass, method.getSimpleName().toString(), upgradedPropertyType));
+        extras.add(new PropertyUpgradeRequestExtra(propertyName, isFluentSetter, implementationClass, method.getSimpleName().toString(), upgradedPropertyType));
         return extras;
     }
 

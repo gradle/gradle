@@ -62,16 +62,22 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         }
     }
 
+    private final String propertyName;
     private final boolean isFluentSetter;
     private final String implementationClassName;
     private final String interceptedPropertyAccessorName;
     private final UpgradedPropertyType upgradedPropertyType;
 
-    public PropertyUpgradeRequestExtra(boolean isFluentSetter, String implementationClassName, String interceptedPropertyAccessorName, UpgradedPropertyType upgradedPropertyType) {
+    public PropertyUpgradeRequestExtra(String propertyName, boolean isFluentSetter, String implementationClassName, String interceptedPropertyAccessorName, UpgradedPropertyType upgradedPropertyType) {
+        this.propertyName = propertyName;
         this.isFluentSetter = isFluentSetter;
         this.implementationClassName = implementationClassName;
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
         this.upgradedPropertyType = upgradedPropertyType;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
     }
 
     public String getImplementationClassName() {
