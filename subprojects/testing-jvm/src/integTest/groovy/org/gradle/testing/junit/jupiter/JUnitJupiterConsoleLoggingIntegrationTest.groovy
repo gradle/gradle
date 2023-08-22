@@ -27,4 +27,33 @@ class JUnitJupiterConsoleLoggingIntegrationTest extends AbstractJUnitConsoleLogg
     String getMaybePackagePrefix() {
         return ''
     }
+
+    def "failure during JUnit platform initialization is written to console when granularity is set"() {
+        buildFile.text = """
+            apply plugin: "groovy"
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+
+            test {
+                ${configureTestFramework} {
+                    includeEngines 'does-not-exist'
+                }
+                testLogging {
+                    minGranularity = 1
+                    exceptionFormat = "FULL"
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        fails "test"
+
+        then:
+        output.contains("org.junit.platform.commons.JUnitException: No TestEngine ID matched the following include EngineFilters: [does-not-exist]")
+    }
 }
