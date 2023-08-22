@@ -42,7 +42,7 @@ class GroovyInterceptorsSubstitution {
         synchronized (Instrumented.class) {
             maybeSetGlobalCallSiteDecorator()
                 .substituteForCurrentThread(
-                    new CallInterceptorsSet(GroovyCallInterceptorsProvisionTools.getInterceptorsFromProvider(substitutionProvider).stream())
+                    new CallInterceptorsSet(substitutionProvider)
                 )
         }
     }

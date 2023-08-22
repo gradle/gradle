@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.extensions.types;
+package org.gradle.internal.instrumentation.processor.codegen.jvmbytecode;
 
-
+import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
 
 import java.io.IOException;
@@ -29,13 +30,13 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * Writes all instrumented types with inherited method interception to a resources
+ * Generates META-INF/services resource with all factory classes for generated JvmBytecodeCallInterceptors so we can load them at runtime
  */
-public class InstrumentedTypesResourceGenerator implements InstrumentationResourceGenerator {
+public class InterceptJvmCallsResourceGenerator implements InstrumentationResourceGenerator {
     @Override
     public Collection<CallInterceptionRequest> filterRequestsForResource(Collection<CallInterceptionRequest> interceptionRequests) {
         return interceptionRequests.stream()
-            .filter(request -> request.getInterceptedCallable().getOwner().isInterceptSubtypes())
+            .filter(request -> request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class).isPresent())
             .collect(Collectors.toList());
     }
 
@@ -44,18 +45,20 @@ public class InstrumentedTypesResourceGenerator implements InstrumentationResour
         return new GenerationResult.CanGenerateResource() {
             @Override
             public String getPackageName() {
-                return "org.gradle.internal.instrumentation";
+                return "";
             }
 
             @Override
             public String getName() {
-                return "instrumented-classes.txt";
+                return "META-INF/services/" + JvmBytecodeCallInterceptor.Factory.class.getName();
             }
 
             @Override
             public void write(OutputStream outputStream) {
+                @SuppressWarnings("OptionalGetWithoutIsPresent")
                 String types = filteredRequests.stream()
-                    .map(request -> request.getInterceptedCallable().getOwner().getType().getClassName().replace(".", "/"))
+                    .map(request -> request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class))
+                    .map(extra -> extra.get().getImplementationClassName() + "$Factory")
                     .distinct()
                     .sorted()
                     .collect(Collectors.joining("\n"));

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.extensions.types;
-
+package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
 
 import java.io.IOException;
@@ -25,37 +25,45 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator.CALL_INTERCEPTOR_CLASS;
+
 /**
- * Writes all instrumented types with inherited method interception to a resources
+ * Generates META-INF/services resource with all generated CallInterceptors so we can load them at runtime
  */
-public class InstrumentedTypesResourceGenerator implements InstrumentationResourceGenerator {
+public class InterceptGroovyCallsResourceGenerator implements InstrumentationResourceGenerator {
     @Override
     public Collection<CallInterceptionRequest> filterRequestsForResource(Collection<CallInterceptionRequest> interceptionRequests) {
         return interceptionRequests.stream()
-            .filter(request -> request.getInterceptedCallable().getOwner().isInterceptSubtypes())
+            .filter(request -> request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class).isPresent())
             .collect(Collectors.toList());
     }
 
     @Override
     public GenerationResult generateResourceForRequests(Collection<CallInterceptionRequest> filteredRequests) {
+        List<String> callInterceptorTypes = new ArrayList<>();
+        CallInterceptorSpecs specs = GroovyClassGeneratorUtils.groupRequests(filteredRequests);
+        specs.getNamedRequests().forEach(spec -> callInterceptorTypes.add(spec.getFullClassName()));
+        specs.getConstructorRequests().forEach(spec -> callInterceptorTypes.add(spec.getFullClassName()));
+
         return new GenerationResult.CanGenerateResource() {
             @Override
             public String getPackageName() {
-                return "org.gradle.internal.instrumentation";
+                return "";
             }
 
             @Override
             public String getName() {
-                return "instrumented-classes.txt";
+                return "META-INF/services/" + CALL_INTERCEPTOR_CLASS.canonicalName();
             }
 
             @Override
             public void write(OutputStream outputStream) {
-                String types = filteredRequests.stream()
-                    .map(request -> request.getInterceptedCallable().getOwner().getType().getClassName().replace(".", "/"))
+                String types = callInterceptorTypes.stream()
                     .distinct()
                     .sorted()
                     .collect(Collectors.joining("\n"));

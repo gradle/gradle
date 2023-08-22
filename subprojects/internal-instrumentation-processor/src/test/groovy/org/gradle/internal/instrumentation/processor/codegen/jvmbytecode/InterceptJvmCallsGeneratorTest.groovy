@@ -55,7 +55,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                 private final MethodVisitor methodVisitor;
                 private final InstrumentationMetadata metadata;
 
-                public InterceptorDeclaration_JvmBytecodeImpl(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
+                private InterceptorDeclaration_JvmBytecodeImpl(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
                     super(methodVisitor);
                     this.methodVisitor = methodVisitor;
                     this.metadata = metadata;
@@ -108,7 +108,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         assertThat(compilation).hadErrorContaining("Intercepting inherited methods is supported only for Gradle types for now, but type was: java/io/File")
     }
 
-    def "should generate interceptor with public modifier and public constructor"() {
+    def "should generate interceptor with public modifier and a public factory class"() {
         given:
         def givenSource = source """
             package org.gradle.test;
@@ -135,10 +135,17 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             package my;
             public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
 
-                public InterceptorDeclaration_JvmBytecodeImpl(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
+                private InterceptorDeclaration_JvmBytecodeImpl(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
                     super(methodVisitor);
                     this.methodVisitor = methodVisitor;
                     this.metadata = metadata;
+                }
+
+                public static class Factory implements JvmBytecodeCallInterceptor.Factory {
+                    @Override
+                    public JvmBytecodeCallInterceptor create(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
+                        return new my.InterceptorDeclaration_JvmBytecodeImpl(methodVisitor, metadata);
+                    }
                 }
             }
         """
