@@ -106,15 +106,13 @@ public class Instrumented {
 
     @NonNullApi
     public static class CallInterceptorRegistry {
-        private static final Map<ClassLoader, Void> LOADED_FROM_CLASSLOADERS = Collections.synchronizedMap(new WeakHashMap<>());
+        private static final Map<ClassLoader, Boolean> LOADED_FROM_CLASSLOADERS = Collections.synchronizedMap(new WeakHashMap<>());
         private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
         private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
 
         public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
-            if (LOADED_FROM_CLASSLOADERS.containsKey(classLoader)) {
+            if (LOADED_FROM_CLASSLOADERS.put(classLoader, true) != null) {
                 throw new RuntimeException("Cannot load interceptors twice for class loader: " + classLoader);
-            } else {
-                LOADED_FROM_CLASSLOADERS.put(classLoader, null);
             }
 
             GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
