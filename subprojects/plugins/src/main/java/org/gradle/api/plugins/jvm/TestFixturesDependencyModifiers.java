@@ -43,7 +43,7 @@ public interface TestFixturesDependencyModifiers {
      * @return the dependency modifier
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      *
-     * @see TestFixturesDependencyModifier#modify(ModuleDependency)
+     * @see TestFixturesDependencyModifier#modifyImplementation(ModuleDependency)
      */
     @Nested
     TestFixturesDependencyModifier getTestFixtures();
@@ -52,7 +52,7 @@ public interface TestFixturesDependencyModifiers {
      * Implementation for the test fixtures dependency modifier.
      *
      * @since 8.0
-     * @see #modify(ModuleDependency)
+     * @see #modifyImplementation(ModuleDependency)
      */
     @Incubating
     abstract class TestFixturesDependencyModifier extends DependencyModifier {

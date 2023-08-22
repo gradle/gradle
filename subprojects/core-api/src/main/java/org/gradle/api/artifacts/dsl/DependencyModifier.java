@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
 
@@ -35,9 +36,8 @@ import javax.inject.Inject;
  * <li>For Groovy DSL, we create {@code call(...)} equivalents for all the {@code modify(...)} methods.</li>
  * <li>For Kotlin DSL, we create {@code invoke(...)} equivalents for all the {@code modify(...)} methods.</li>
  * </ul>
- *
- * @implSpec The only method that should be implemented is {@link #modifyImplementation(ModuleDependency)}. Other overridable methods are used to inject necessary services,
- * and should not be overridden.
+ * @implSpec The only method that should be implemented is {@link #modifyImplementation(ModuleDependency)}. Other {@code abstract} methods are used to inject necessary services
+ * and should not be implemented.
  * @implNote All implementations of {@code modify(...)} delegate to {@link #modifyImplementation(ModuleDependency)}.
  * <p>
  * Changes to this interface may require changes to the
@@ -114,8 +114,7 @@ public abstract class DependencyModifier {
     public final <D extends ModuleDependency> D modify(D dependency) {
         // Enforce a copy of the dependency to avoid modifying the original dependency
         // The unchecked cast can be incorrect if D is an implementation type, but it shouldn't be used in that way.
-        @SuppressWarnings("unchecked")
-        D copy = (D) dependency.copy();
+        D copy = Cast.uncheckedNonnullCast(dependency.copy());
         modifyImplementation(copy);
         return copy;
     }
