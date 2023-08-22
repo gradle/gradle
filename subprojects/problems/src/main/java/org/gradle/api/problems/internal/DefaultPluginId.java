@@ -15,7 +15,7 @@
  */
 
 package org.gradle.api.problems.internal;
-import org.gradle.api.problems.interfaces.ProblemsPluginId;
+import org.gradle.api.problems.ProblemsPluginId;
 
 import javax.annotation.Nullable;
 

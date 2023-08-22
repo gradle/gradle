@@ -14,33 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
-
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
- * A link to a documentation page.
- * <p>
- * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
+ * Problem id.
  *
  * @since 8.4
  */
 @Incubating
-public interface DocLink {
+public class ProblemGroup {
 
-    /**
-     * The URL to the documentation page.
-     */
-    @Nullable
-    String url();
+    public static final String GENERIC_ID = "generic";
+    public static final String DEPRECATION_ID = "deprecation";
+    public static final String VERSION_CATALOG_ID = "version_catalog";
+    public static final String TYPE_VALIDATION_ID = "type_validation";
 
-    /**
-     * A message that tells the user to consult the documentation.
-     * There are currently 2 different messages used for this, hence this method.
-     */
-    @Nullable
-    String consultDocumentationMessage();
+    private String id;
+
+    public ProblemGroup(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
 }

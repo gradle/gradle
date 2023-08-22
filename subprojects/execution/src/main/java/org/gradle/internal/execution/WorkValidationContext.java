@@ -17,7 +17,7 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.problems.interfaces.ReportableProblem;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.plugin.use.PluginId;
 

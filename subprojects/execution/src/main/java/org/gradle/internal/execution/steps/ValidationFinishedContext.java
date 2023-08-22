@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.Problem;
 
 public class ValidationFinishedContext extends BeforeExecutionContext {
 

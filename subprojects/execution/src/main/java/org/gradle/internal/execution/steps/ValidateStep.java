@@ -19,10 +19,10 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.ReportableProblem;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.Severity;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -48,8 +48,8 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static org.gradle.api.problems.interfaces.Severity.ERROR;
-import static org.gradle.api.problems.interfaces.Severity.WARNING;
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {

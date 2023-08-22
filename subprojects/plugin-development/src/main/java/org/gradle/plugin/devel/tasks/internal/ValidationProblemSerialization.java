@@ -25,7 +25,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.problems.interfaces.DocLink;
+import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.internal.deprecation.Documentation.DocLinkJsonDeserializer;
 import org.gradle.internal.deprecation.Documentation.DocLinkJsonSerializer;

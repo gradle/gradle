@@ -17,7 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.ProblemLocation;
+import org.gradle.api.problems.ProblemLocation;
 
 @NonNullApi
 public class DefaultProblemLocation implements ProblemLocation {

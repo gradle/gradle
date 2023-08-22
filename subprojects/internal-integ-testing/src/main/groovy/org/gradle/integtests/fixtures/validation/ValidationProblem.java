@@ -16,7 +16,7 @@
 package org.gradle.integtests.fixtures.validation;
 
 
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.Severity;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

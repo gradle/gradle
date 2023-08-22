@@ -22,10 +22,10 @@ import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.problems.Problems
-import org.gradle.api.problems.interfaces.Problem
-import org.gradle.api.problems.interfaces.ProblemGroup
-import org.gradle.api.problems.interfaces.ReportableProblem
-import org.gradle.api.problems.interfaces.Severity
+import org.gradle.api.problems.Problem
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ReportableProblem
+import org.gradle.api.problems.Severity
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input

@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
- * Problem id.
+ * Problem location.
  *
  * @since 8.4
  */
 @Incubating
-public class ProblemGroup {
+public interface ProblemLocation {
+    String getPath();
 
-    public static final String GENERIC_ID = "generic";
-    public static final String DEPRECATION_ID = "deprecation";
-    public static final String VERSION_CATALOG_ID = "version_catalog";
-    public static final String TYPE_VALIDATION_ID = "type_validation";
+    @Nullable
+    Integer getLine();
 
-    private String id;
-
-    public ProblemGroup(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
-    }
+    @Nullable
+    Integer getColumn();
 }

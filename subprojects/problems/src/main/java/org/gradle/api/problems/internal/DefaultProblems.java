@@ -17,9 +17,9 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemBuilderSpec;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import java.util.LinkedHashMap;

@@ -17,9 +17,6 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLabel;
 
 /**
  * A function that can be used to specify a {@link Problem} using a {@link ProblemBuilder}.

@@ -14,17 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
 /**
- * Builder that is part of the {@link ProblemBuilder} concept.
+ * Severity.
  *
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderDefiningLabel {
+public enum Severity {
+    ADVICE("Advice"),
+    WARNING("Warning"),
+    ERROR("Error");
+    private final String displayName;
 
-    ProblemBuilderDefiningDocumentation label(String label, Object... args);
+    Severity(String displayName) {
+        this.displayName = displayName;
+    }
+
+    @Override
+    public String toString() {
+        return displayName;
+    }
+
+    public boolean isWarning() {
+        return this == WARNING;
+    }
 }
