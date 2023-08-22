@@ -32,6 +32,8 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
 import org.gradle.api.internal.coerce.StringToEnumTransformer;
+import org.gradle.api.internal.provider.support.LazyGroovySupport;
+import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
@@ -403,10 +405,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                         if (metaBeanProperty.getSetter() == null) {
                             if (metaBeanProperty.getField() == null) {
-                                throw setReadOnlyProperty(name);
+                                trySetGetterOnlyProperty(name, value, metaBeanProperty);
+                            } else {
+                                value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
+                                metaBeanProperty.getField().setProperty(bean, value);
                             }
-                            value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
-                            metaBeanProperty.getField().setProperty(bean, value);
                         } else {
                             // Coerce the value to the type accepted by the property setter and invoke the setter directly
                             Class setterType = metaBeanProperty.getSetter().getParameterTypes()[0].getTheClass();
@@ -447,6 +450,19 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             return setOpaqueProperty(metaClass, name, value);
+        }
+
+        private void trySetGetterOnlyProperty(String name, Object value, MetaBeanProperty metaBeanProperty) {
+            Class<?> propertyType = metaBeanProperty.getType();
+            if (HasConfigurableValue.class.isAssignableFrom(propertyType)) {
+                Object propertyValue = metaBeanProperty.getGetter().invoke(bean, new Object[0]);
+                if (propertyValue instanceof LazyGroovySupport) {
+                    value = propertySetTransformer.transformValue(propertyType, value);
+                    ((LazyGroovySupport) propertyValue).setFromAnyValue(value);
+                    return;
+                }
+            }
+            throw setGetterOnlyProperty(name);
         }
 
         protected DynamicInvokeResult setOpaqueProperty(MetaClass metaClass, String name, Object value) {

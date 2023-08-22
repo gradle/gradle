@@ -127,7 +127,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         }
     }
 
-    protected GroovyRuntimeException setReadOnlyProperty(String name) {
+    protected GroovyRuntimeException setGetterOnlyProperty(String name) {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
