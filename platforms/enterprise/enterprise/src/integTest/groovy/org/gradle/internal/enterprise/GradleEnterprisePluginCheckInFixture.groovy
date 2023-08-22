@@ -92,7 +92,7 @@ class GradleEnterprisePluginCheckInFixture {
                 void apply($Settings.name settings) {
                     println "gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion"
 
-                    if (!$doCheckIn) {
+                    if (!$doCheckIn || settings.gradle.parent != null) {
                         return
                     }
 
