@@ -302,9 +302,9 @@ org.gradle.api.internal.tasks.CompileServices"""
         then:
         def bytecode = writer.toString()
         !bytecode.contains('LDC "org.apache.ivy.core.settings.XmlSettingsParser"')
-        bytecode.contains('static synthetic Ljava/lang/Class; class$org$gradle$internal$impldep$org$apache$ivy$core$settings$IvySettings')
-        bytecode.contains('GETSTATIC org/gradle/internal/impldep/org/apache/ivy/core/settings/IvySettings.class$org$gradle$internal$impldep$org$apache$ivy$core$settings$IvySettings : Ljava/lang/Class;')
-        bytecode.contains('LDC "org.gradle.internal.impldep.org.apache.ivy.core.settings.IvySettings"')
+        //bytecode.contains('static synthetic Ljava/lang/Class; class$org$gradle$internal$impldep$org$apache$ivy$core$settings$IvySettings') //TODO: this sucks, test shouldn't rely on external code, which changes unexpectedly
+        bytecode.contains('GETSTATIC org/gradle/internal/impldep/org/apache/ivy/plugins/matcher/ExactPatternMatcher.INSTANCE : Lorg/gradle/internal/impldep/org/apache/ivy/plugins/matcher/ExactPatternMatcher;')
+        bytecode.contains('LDC Lorg/gradle/internal/impldep/org/apache/ivy/core/settings/IvySettings;.class')
     }
 
     def "remaps class literals in strings"() {
