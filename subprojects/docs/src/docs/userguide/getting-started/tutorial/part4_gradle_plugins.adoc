@@ -119,7 +119,7 @@ Add the publishing information to your `build.gradle.kts` file:
 ----
 publishing {
     publications {
-        create<MavenPublication>("maven") {
+        mavenJava(MavenPublication)("maven") {
             groupId = "org.gradle.tutorial"
             artifactId = "tutorial"
             version = "1.0"
