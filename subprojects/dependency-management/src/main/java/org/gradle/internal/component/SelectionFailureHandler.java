@@ -22,6 +22,7 @@ import com.google.common.collect.Ordering;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
@@ -293,6 +294,23 @@ public class SelectionFailureHandler {
         return e;
     }
 
+    public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
+        String message = buildNoMatchingCapabilitiesFailureMsg(targetComponent, requestedCapabilities, candidates);
+        NoMatchingCapabilitiesException e = new NoMatchingCapabilitiesException(message);
+
+        problemsService.createProblemBuilder()
+            .label("No matching variant found for requested capabilities")
+            .undocumented()
+            .noLocation()
+            .type(FAILURE_TYPE)
+            .group(ProblemGroup.GENERIC_ID)
+            .severity(Severity.ERROR)
+            .withException(e)
+            .build();
+
+        return e;
+    }
+
     private String buildAmbiguousConfigurationSelectionFailureMsg(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
                                                                   AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches,
                                                                   ComponentGraphResolveMetadata targetComponent, boolean variantAware,
@@ -377,6 +395,18 @@ public class SelectionFailureHandler {
         }
         formatter.endChildren();
         return formatter.toString();
+    }
+
+    private static String buildNoMatchingCapabilitiesFailureMsg(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
+        StringBuilder sb = new StringBuilder("Unable to find a variant of ");
+        sb.append(targetComponent.getId()).append(" providing the requested ");
+        sb.append(CapabilitiesSupport.prettifyCapabilities(targetComponent, requestedCapabilities));
+        sb.append(":\n");
+        for (VariantGraphResolveState candidate : candidates) {
+            sb.append("   - Variant ").append(candidate.getName()).append(" provides ");
+            sb.append(CapabilitiesSupport.sortedCapabilityList(targetComponent, candidate.getCapabilities().getCapabilities())).append("\n");
+        }
+        return sb.toString();
     }
 
     private void formatConfiguration(TreeFormatter formatter,

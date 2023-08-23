@@ -35,7 +35,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.NoMatchingCapabilitiesException;
 import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
@@ -83,7 +82,7 @@ public class AttributeMatchingConfigurationSelector {
         List<? extends VariantGraphResolveState> allConsumableVariants = candidates.getVariants();
         ImmutableList<VariantGraphResolveState> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allConsumableVariants, true);
         if (variantsProvidingRequestedCapabilities.isEmpty()) {
-            throw new NoMatchingCapabilitiesException(targetComponent, explicitRequestedCapabilities, allConsumableVariants);
+            throw failureProcessor.noMatchingCapabilitiesFailure(targetComponent, explicitRequestedCapabilities, allConsumableVariants);
         }
 
         List<VariantGraphResolveState> matches = attributeMatcher.matches(variantsProvidingRequestedCapabilities, consumerAttributes, explanationBuilder);
