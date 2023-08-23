@@ -25,6 +25,10 @@ dependencies {
     annotationProcessor(platform(project(":distributions-dependencies")))
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("-Aorg.gradle.annotation.processing.instrumented.project=${project.name}")
+}
+
 strictCompile {
     ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations
 }

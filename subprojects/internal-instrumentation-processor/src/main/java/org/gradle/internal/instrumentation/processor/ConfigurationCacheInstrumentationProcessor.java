@@ -75,7 +75,7 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
             (ResourceGeneratorContributor) InterceptGroovyCallsResourceGenerator::new,
 
             // Properties upgrade extensions
-            new PropertyUpgradeAnnotatedMethodReader(),
+            new PropertyUpgradeAnnotatedMethodReader(processingEnv),
             (CodeGeneratorContributor) PropertyUpgradeClassSourceGenerator::new,
 
             // Generate resource with instrumented types
