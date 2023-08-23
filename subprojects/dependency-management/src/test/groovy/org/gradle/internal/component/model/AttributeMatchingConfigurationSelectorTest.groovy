@@ -28,8 +28,10 @@ import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.problems.UsesTestProblems
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
+import org.gradle.internal.component.VariantSelectionFailureProcessor
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
@@ -40,7 +42,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.AttributeTestUtil.attributes
 
-class AttributeConfigurationSelectorTest extends Specification {
+class AttributeMatchingConfigurationSelectorTest extends Specification implements UsesTestProblems {
     private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
     private ComponentGraphResolveState targetState
@@ -461,7 +463,8 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        selected = AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(
+        AttributeMatchingConfigurationSelector configurationSelector = new AttributeMatchingConfigurationSelector(new VariantSelectionFailureProcessor(createTestProblems()))
+        selected = configurationSelector.selectVariantsUsingAttributeMatching(
             consumerAttributes,
             requestedCapabilities,
             targetState,

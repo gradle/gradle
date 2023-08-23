@@ -50,8 +50,10 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.problems.UsesTestProblems
 import org.gradle.api.specs.Specs
 import org.gradle.internal.Describables
+import org.gradle.internal.component.VariantSelectionFailureProcessor
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -62,8 +64,9 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrap
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
-import org.gradle.internal.component.model.ComponentIdGenerator
+import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
+import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -88,7 +91,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
-class DependencyGraphBuilderTest extends Specification {
+class DependencyGraphBuilderTest extends Specification implements UsesTestProblems {
     def resolveContext = Mock(ResolveContext) {
         getResolutionStrategy() >> Stub(ResolutionStrategyInternal)
     }
@@ -128,6 +131,7 @@ class DependencyGraphBuilderTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
+    def configurationSelector = new AttributeMatchingConfigurationSelector(new VariantSelectionFailureProcessor(createTestProblems()))
 
     DependencyGraphBuilder builder
 
@@ -140,7 +144,7 @@ class DependencyGraphBuilderTest extends Specification {
             getRootVariant() >> rootComponentState.getConfiguration('root').asVariant()
         }
 
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, versionComparator.asVersionComparator(), new ComponentIdGenerator(), new VersionParser())
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, versionComparator.asVersionComparator(), new ComponentIdGenerator(), new VersionParser(), configurationSelector)
     }
 
     private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
@@ -591,7 +595,7 @@ class DependencyGraphBuilderTest extends Specification {
     def "does not include filtered dependencies"() {
         given:
         def spec = { DependencyMetadata dep -> dep.selector.module != 'c' }
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, spec, attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, Stub(Comparator), new ComponentIdGenerator(), new VersionParser())
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, spec, attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, Stub(Comparator), new ComponentIdGenerator(), new VersionParser(), configurationSelector)
 
         def a = revision('a')
         def b = revision('b')
@@ -1183,7 +1187,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        void visitSelector(DependencyGraphSelector selector) {
+        void visitSelector(DependencyGraphSelector configurationSelector) {
         }
 
         @Override

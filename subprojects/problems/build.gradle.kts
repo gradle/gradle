@@ -35,4 +35,6 @@ dependencies {
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":logging")))
     integTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    testFixturesImplementation(project(":enterprise-operations"))
 }

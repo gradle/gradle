@@ -61,6 +61,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
+import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -97,6 +98,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final AttributeDesugaring attributeDesugaring;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final ComponentIdGenerator idGenerator;
+    private final AttributeMatchingConfigurationSelector configurationSelector;
 
     public DefaultArtifactDependencyResolver(
         BuildOperationExecutor buildOperationExecutor,
@@ -116,7 +118,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         ResolvedVariantCache resolvedVariantCache,
         AttributeDesugaring attributeDesugaring,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-        ComponentIdGenerator idGenerator
+        ComponentIdGenerator idGenerator,
+        AttributeMatchingConfigurationSelector configurationSelector
     ) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
@@ -136,6 +139,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.attributeDesugaring = attributeDesugaring;
         this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.idGenerator = idGenerator;
+        this.configurationSelector = configurationSelector;
     }
 
     @Override
@@ -182,7 +186,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = createCapabilitiesConflictHandler(resolutionStrategy.getCapabilitiesResolutionRules());
 
         DependencySubstitutionApplicator applicator = createDependencySubstitutionApplicator(resolutionStrategy);
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, applicator, componentSelectorConverter, attributesFactory, attributeDesugaring, versionSelectorScheme, versionComparator.asVersionComparator(), idGenerator, versionParser);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, applicator, componentSelectorConverter, attributesFactory, attributeDesugaring, versionSelectorScheme, versionComparator.asVersionComparator(), idGenerator, versionParser, configurationSelector);
     }
 
     private DependencySubstitutionApplicator createDependencySubstitutionApplicator(ResolutionStrategyInternal resolutionStrategy) {

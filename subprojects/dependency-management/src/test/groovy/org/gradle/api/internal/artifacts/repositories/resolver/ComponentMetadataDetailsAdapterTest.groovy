@@ -27,10 +27,13 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
+import org.gradle.api.problems.UsesTestProblems
+import org.gradle.internal.component.VariantSelectionFailureProcessor
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
+import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -40,7 +43,7 @@ import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
-class ComponentMetadataDetailsAdapterTest extends Specification {
+class ComponentMetadataDetailsAdapterTest extends Specification implements UsesTestProblems {
     private instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe())
     private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, SimpleMapInterner.notThreadSafe())
@@ -157,8 +160,9 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentSelector, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
+        def configurationSelector = new AttributeMatchingConfigurationSelector(new VariantSelectionFailureProcessor(createTestProblems()))
 
-        def variant = consumer.selectVariants(attributes, state, schema, [] as Set).variants[0]
+        def variant = consumer.selectVariants(configurationSelector, attributes, state, schema, [] as Set).variants[0]
         variant.metadata.dependencies
     }
 }
