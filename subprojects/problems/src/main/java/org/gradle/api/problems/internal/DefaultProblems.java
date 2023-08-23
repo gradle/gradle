@@ -21,12 +21,14 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@ServiceScope(Scope.Global.class)
 public class DefaultProblems implements InternalProblems {
-
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
 
     private final Map<String, ProblemGroup> problemGroups = new LinkedHashMap<>();
