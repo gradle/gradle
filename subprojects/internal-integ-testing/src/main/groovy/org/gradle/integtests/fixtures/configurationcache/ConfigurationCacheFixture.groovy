@@ -255,6 +255,12 @@ class ConfigurationCacheFixture {
             // Runs in quiet mode, and does not log anything
             return
         }
+
+        if (details.storeReason != null) {
+            spec.outputContains(details.storeReason)
+            return
+        }
+
         if (details.runsTasks) {
             spec.outputContains("Calculating task graph as no configuration cache is available for tasks:")
         } else {
@@ -342,6 +348,7 @@ class ConfigurationCacheFixture {
     }
 
     trait HasBuildActions {
+        String storeReason = null
         boolean runsTasks = true
         boolean loadsOnStore = true
 

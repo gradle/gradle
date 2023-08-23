@@ -54,6 +54,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
+        val isIsolatedProjectsEnabled: Boolean
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
@@ -229,6 +230,9 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 if (host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths) {
                     return "the set of paths ignored in file-system-check input tracking has changed"
+                }
+                if (host.isIsolatedProjectsEnabled != isIsolatedProjectsEnabled) {
+                    return "the Isolated Projects option has changed"
                 }
             }
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {

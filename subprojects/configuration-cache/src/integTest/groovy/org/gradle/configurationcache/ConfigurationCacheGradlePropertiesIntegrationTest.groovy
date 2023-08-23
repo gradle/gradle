@@ -18,7 +18,10 @@ package org.gradle.configurationcache
 
 import org.gradle.configurationcache.fixtures.GradlePropertiesIncludedBuildFixture
 import org.gradle.configurationcache.fixtures.SystemPropertiesCompositeBuildFixture
+import org.gradle.configurationcache.isolated.IsolatedProjectsFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.Flaky
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
@@ -312,5 +315,37 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         cleanup:
         System.clearProperty(systemProp)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26049")
+    @IgnoreIf({ GradleContextualExecuter.isolatedProjects }) // Isolated Projects option is explicitly controlled by the test
+    def "invalidates cache when Isolated Projects property is changed"() {
+        def configurationCache = newConfigurationCacheFixture()
+        def isolatedProjects = new IsolatedProjectsFixture(this)
+
+        when:
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun "help", "-Dorg.gradle.unsafe.isolated-projects=true"
+        then:
+        configurationCache.assertStateStored()
+        isolatedProjects.assertStateStored {
+            storeReason = "Calculating task graph as configuration cache cannot be reused because the Isolated Projects option has changed."
+            projectConfigured(":")
+        }
+
+        when:
+        configurationCacheRun "help", "-Dorg.gradle.unsafe.isolated-projects=true"
+        then:
+        configurationCache.assertStateLoaded()
+        isolatedProjects.assertStateLoaded()
     }
 }

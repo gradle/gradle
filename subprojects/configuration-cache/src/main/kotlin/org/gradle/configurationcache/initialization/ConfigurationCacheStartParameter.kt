@@ -136,6 +136,9 @@ class ConfigurationCacheStartParameter(
 
     val isNoBuildScan: Boolean
         get() = startParameter.isNoBuildScan
+
+    val isIsolatedProjects: Boolean
+        get() = startParameter.isolatedProjects.get()
 }
 
 

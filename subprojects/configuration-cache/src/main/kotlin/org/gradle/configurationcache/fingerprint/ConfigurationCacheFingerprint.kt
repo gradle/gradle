@@ -47,7 +47,12 @@ sealed class ConfigurationCacheFingerprint {
          * The file system paths that will be ignored during file system checks tracking for the cache fingerprint.
          * @see org.gradle.configurationcache.DefaultIgnoredConfigurationInputs
          */
-        val ignoredFileSystemCheckInputPaths: String?
+        val ignoredFileSystemCheckInputPaths: String?,
+        /**
+         * Without taking Isolated Projects feature option into account a configuration cache entry can be re-used
+         * that does not comply with the additional feature requirements for the build.
+         */
+        val isIsolatedProjectsEnabled: Boolean,
     ) : ConfigurationCacheFingerprint()
 
     data class InitScripts(

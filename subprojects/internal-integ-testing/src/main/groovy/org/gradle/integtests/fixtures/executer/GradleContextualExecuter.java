@@ -87,6 +87,14 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter() == Executer.configCache;
     }
 
+    public static boolean isNotIsolatedProjects() {
+        return isIsolatedProjects();
+    }
+
+    public static boolean isIsolatedProjects() {
+        return getSystemPropertyExecuter() == Executer.isolatedProjects;
+    }
+
     private GradleExecuter gradleExecuter;
 
     public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {

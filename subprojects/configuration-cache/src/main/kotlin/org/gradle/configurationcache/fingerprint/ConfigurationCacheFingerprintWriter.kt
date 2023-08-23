@@ -120,6 +120,7 @@ class ConfigurationCacheFingerprintWriter(
         val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
+        val isIsolatedProjectsEnabled: Boolean
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode
         fun hashCodeOfDirectoryChildrenNames(file: File): HashCode
@@ -183,7 +184,8 @@ class ConfigurationCacheFingerprintWriter(
                 host.startParameterProperties,
                 host.ignoreInputsInConfigurationCacheTaskGraphWriting,
                 host.instrumentationAgentUsed,
-                host.ignoredFileSystemCheckInputs
+                host.ignoredFileSystemCheckInputs,
+                host.isIsolatedProjectsEnabled
             )
         )
     }

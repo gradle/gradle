@@ -340,6 +340,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val ignoredFileSystemCheckInputs: String?
             get() = startParameter.ignoredFileSystemCheckInputs
 
+        override val isIsolatedProjectsEnabled: Boolean
+            get() = startParameter.isIsolatedProjects
+
         override fun hashCodeOf(file: File) =
             fileSystemAccess.read(file.absolutePath).hash
 
@@ -398,6 +401,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val ignoredFileSystemCheckInputs: String?
             get() = startParameter.ignoredFileSystemCheckInputs
+
+        override val isIsolatedProjectsEnabled: Boolean
+            get() = startParameter.isIsolatedProjects
 
         override fun gradleProperty(propertyName: String): String? =
             gradleProperties.find(propertyName)?.uncheckedCast()
