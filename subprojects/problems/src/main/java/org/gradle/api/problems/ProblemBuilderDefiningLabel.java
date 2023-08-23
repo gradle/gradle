@@ -19,12 +19,19 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * Builder that is part of the {@link ProblemBuilder} concept.
+ * {@link Problem} instance builder requiring the specification of the problem description.
  *
  * @since 8.4
  */
 @Incubating
 public interface ProblemBuilderDefiningLabel {
 
+    /**
+     * Declares a short message for this problem.
+     * @param label the short message
+     * @param args the arguments for formatting the label with {@link String#format(String, Object...)}
+     *
+     * @return the builder for the next required property
+     */
     ProblemBuilderDefiningDocumentation label(String label, Object... args);
 }

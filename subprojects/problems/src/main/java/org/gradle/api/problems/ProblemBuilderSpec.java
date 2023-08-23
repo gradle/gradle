@@ -25,11 +25,12 @@ import org.gradle.api.Incubating;
  *
  * <pre>
  * throw getProblemService().throwing(builder -&gt;
- *        builder.undocumented()
- *            .location(...)
- *            .message(message)
+ *        builder.label(message)
+ *            .undocumented()
+ *            .noLocation()
  *            .type("task_selection")
  *            .group(ProblemGroup.GENERIC_ID)
+ *            .details("long message")
  *            .severity(Severity.ERROR)
  *            .withException(new TaskSelectionException(message)));
  * </pre>

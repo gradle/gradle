@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
-import org.gradle.api.problems.ProblemsPluginId;
+package org.gradle.internal.reflect.validation;
+
+import org.gradle.api.NonNullApi;
 
 import javax.annotation.Nullable;
 
-
-public class DefaultPluginId implements ProblemsPluginId {
+@NonNullApi
+public class DefaultPluginId {
     private static final String SEPARATOR = ".";
     private final String value;
 
@@ -32,13 +33,11 @@ public class DefaultPluginId implements ProblemsPluginId {
         return value.contains(SEPARATOR);
     }
 
-    @Override
     @Nullable
     public String getNamespace() {
         return isQualified() ? value.substring(0, value.lastIndexOf(SEPARATOR)) : null;
     }
 
-    @Override
     public String getName() {
         return isQualified() ? value.substring(value.lastIndexOf(SEPARATOR) + 1) : value;
     }
@@ -48,7 +47,6 @@ public class DefaultPluginId implements ProblemsPluginId {
         return value;
     }
 
-    @Override
     public String getId() {
         return value;
     }

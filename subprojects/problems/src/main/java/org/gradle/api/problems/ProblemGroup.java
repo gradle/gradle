@@ -19,7 +19,7 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * Problem id.
+ * Specifies the main categories of problems.
  *
  * @since 8.4
  */
