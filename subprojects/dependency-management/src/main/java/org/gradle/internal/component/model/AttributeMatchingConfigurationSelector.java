@@ -35,9 +35,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingCapabilitiesException;
-import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
@@ -60,6 +58,10 @@ public class AttributeMatchingConfigurationSelector {
 
     public AttributeMatchingConfigurationSelector(SelectionFailureHandler failureProcessor) {
         this.failureProcessor = failureProcessor;
+    }
+
+    public SelectionFailureHandler getFailureProcessor() {
+        return failureProcessor;
     }
 
     public VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
@@ -120,14 +122,14 @@ public class AttributeMatchingConfigurationSelector {
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             if (explanationBuilder instanceof TraceDiscardedConfigurations) {
                 Set<VariantGraphResolveState> discarded = Cast.uncheckedCast(((TraceDiscardedConfigurations) explanationBuilder).discarded);
-                throw new AmbiguousConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, matches, targetComponent, true, discarded);
+                throw failureProcessor.ambiguousConfigurationSelectionFailure(describer, consumerAttributes, attributeMatcher, matches, targetComponent, true, discarded);
             } else {
                 // Perform a second resolution with tracing
                 return selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
             }
         } else {
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-            throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+            throw failureProcessor.noMatchingConfigurationSelectionFailure(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
         }
     }
 
@@ -144,7 +146,7 @@ public class AttributeMatchingConfigurationSelector {
         }
 
         AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-        throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+        throw failureProcessor.noMatchingConfigurationSelectionFailure(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
     }
 
     @Nullable
@@ -276,7 +278,6 @@ public class AttributeMatchingConfigurationSelector {
     }
 
     private static class TraceDiscardedConfigurations implements AttributeMatchingExplanationBuilder {
-
         private final Set<HasAttributes> discarded = Sets.newHashSet();
 
         @Override

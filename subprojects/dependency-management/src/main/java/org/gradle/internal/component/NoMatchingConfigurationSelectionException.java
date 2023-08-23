@@ -16,64 +16,8 @@
 
 package org.gradle.internal.component;
 
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
-import org.gradle.internal.component.model.GraphSelectionCandidates;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.util.Map;
-import java.util.TreeMap;
-
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
-
 public class NoMatchingConfigurationSelectionException extends AbstractConfigurationSelectionException {
-    public NoMatchingConfigurationSelectionException(
-        AttributeDescriber describer,
-        AttributeContainerInternal fromConfigurationAttributes,
-        AttributeMatcher attributeMatcher,
-        ComponentGraphResolveMetadata targetComponent,
-        GraphSelectionCandidates candidates
-    ) {
-        super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates));
+    public NoMatchingConfigurationSelectionException(String message) {
+        super(message);
     }
-
-    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
-        boolean variantAware = candidates.isUseVariants();
-        Map<String, VariantGraphResolveMetadata> variants = new TreeMap<>();
-        if (variantAware) {
-            for (VariantGraphResolveState variant : candidates.getVariants()) {
-                variants.put(variant.getName(), variant.getMetadata());
-            }
-        } else {
-            for (ConfigurationGraphResolveMetadata configuration : candidates.getCandidateConfigurations()) {
-                variants.put(configuration.getName(), configuration);
-            }
-        }
-        TreeFormatter formatter = new TreeFormatter();
-        String targetVariantText = style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName());
-        if (fromConfigurationAttributes.isEmpty()) {
-            formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText);
-        } else {
-            formatter.node("No matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(fromConfigurationAttributes.asMap()) + " but:");
-        }
-        formatter.startChildren();
-        if (variants.isEmpty()) {
-            formatter.node("None of the " + (variantAware ? "variants" : "consumable configurations") + " have attributes.");
-        } else {
-            // We're sorting the names of the configurations and later attributes
-            // to make sure the output is consistently the same between invocations
-            for (VariantGraphResolveMetadata variant : variants.values()) {
-                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, variant, variantAware, false, describer);
-            }
-        }
-        formatter.endChildren();
-        return formatter.toString();
-    }
-
 }
