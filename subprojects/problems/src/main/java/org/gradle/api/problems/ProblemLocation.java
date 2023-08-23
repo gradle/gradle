@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
- * Builder that is part of the {@link ProblemBuilder} concept.
+ * Problem location.
  *
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderDefiningType {
-    ProblemBuilderDefiningGroup type(String problemType);
+public interface ProblemLocation {
+    String getPath();
+
+    @Nullable
+    Integer getLine();
+
+    @Nullable
+    Integer getColumn();
 }

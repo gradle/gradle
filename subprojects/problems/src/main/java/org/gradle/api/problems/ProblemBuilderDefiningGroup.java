@@ -14,30 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
 /**
- * Problem id.
+ * Builder that is part of the {@link ProblemBuilder} concept.
  *
  * @since 8.4
  */
 @Incubating
-public abstract class ProblemGroup {
-
-    public static final String GENERIC_ID = "generic";
-    public static final String DEPRECATION_ID = "deprecation";
-    public static final String VERSION_CATALOG_ID = "version_catalog";
-    public static final String TYPE_VALIDATION_ID = "type_validation";
-
-    private final String id;
-
-    public ProblemGroup(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
-    }
+public interface ProblemBuilderDefiningGroup {
+    ProblemBuilder group(ProblemGroup group);
+    ProblemBuilder group(String group);
 }

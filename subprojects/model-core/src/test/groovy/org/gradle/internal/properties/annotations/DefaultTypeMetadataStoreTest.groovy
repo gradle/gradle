@@ -29,8 +29,8 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.problems.interfaces.ProblemGroup
-import org.gradle.api.problems.interfaces.Severity
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath

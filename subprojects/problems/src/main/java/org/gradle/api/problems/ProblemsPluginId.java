@@ -14,20 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
- * Builder that is part of the {@link ProblemBuilder} concept.
+ * A description of a plugin.
  *
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderDefiningLocation {
-    ProblemBuilderDefiningType location(String path, Integer line);
+public interface ProblemsPluginId {
 
-    ProblemBuilderDefiningType location(String path, Integer line, Integer column);
+    /**
+     * The fully qualified plugin ID.
+     */
+    String getId();
 
-    ProblemBuilderDefiningType noLocation();
+    /**
+     * The namespace of the plugin or {@code null} if the ID contains no {@code .}.
+     */
+    @Nullable
+    String getNamespace();
+
+    /**
+     * The plugin name without the namespace.
+     */
+    String getName();
 }

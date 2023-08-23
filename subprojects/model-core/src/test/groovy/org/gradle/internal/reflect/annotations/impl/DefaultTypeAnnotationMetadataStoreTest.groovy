@@ -21,7 +21,7 @@ import groovy.transform.Memoized
 import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.problems.interfaces.Severity
+import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter

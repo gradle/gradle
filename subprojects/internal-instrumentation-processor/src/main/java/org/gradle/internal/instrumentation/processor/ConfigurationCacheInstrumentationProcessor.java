@@ -26,7 +26,9 @@ import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeCl
 import org.gradle.internal.instrumentation.extensions.types.InstrumentedTypesResourceGenerator;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsResourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.jvmbytecode.InterceptJvmCallsGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.jvmbytecode.InterceptJvmCallsResourceGenerator;
 import org.gradle.internal.instrumentation.processor.extensibility.ClassLevelAnnotationsContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.CodeGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.InstrumentationProcessorExtension;
@@ -64,7 +66,12 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
             new AddGeneratedClassNameFlagFromClassLevelAnnotation(ifHasAnnotation(InterceptGroovyCalls.class), SpecificGroovyCallInterceptors.class, RequestExtra.InterceptGroovyCalls::new),
 
             (CodeGeneratorContributor) InterceptJvmCallsGenerator::new,
+            // Generate META-INF/services resource with factories for all generated InterceptJvmCallsGenerator
+            (ResourceGeneratorContributor) InterceptJvmCallsResourceGenerator::new,
+
             (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new,
+            // Generate META-INF/services resource with all generated CallInterceptors
+            (ResourceGeneratorContributor) InterceptGroovyCallsResourceGenerator::new,
 
             // Properties upgrade extensions
             new PropertyUpgradeAnnotatedMethodReader(),

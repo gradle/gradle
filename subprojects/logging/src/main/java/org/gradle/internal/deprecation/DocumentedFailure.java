@@ -18,7 +18,7 @@ package org.gradle.internal.deprecation;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.problems.interfaces.DocLink;
+import org.gradle.api.problems.DocLink;
 import org.gradle.internal.exceptions.Contextual;
 
 import javax.annotation.Nullable;

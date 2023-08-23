@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.problems.interfaces.Severity
+import org.gradle.api.problems.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 /**

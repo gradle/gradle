@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
@@ -63,9 +63,5 @@ public interface ProblemBuilder {
 
     ProblemBuilder severity(Severity severity);
 
-    Problem build();
-
-    void report();
-
-    RuntimeException throwIt();
+    ReportableProblem build();
 }

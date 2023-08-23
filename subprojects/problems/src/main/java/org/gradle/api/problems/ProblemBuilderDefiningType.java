@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-/**
- * Probles API interfaces.
- */
-@NonNullApi
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.Incubating;
+
+/**
+ * Builder that is part of the {@link ProblemBuilder} concept.
+ *
+ * @since 8.4
+ */
+@Incubating
+public interface ProblemBuilderDefiningType {
+    ProblemBuilderDefiningGroup type(String problemType);
+}

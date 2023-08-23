@@ -14,32 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
 /**
- * Severity.
+ * Problem that can be submitted for external consumption (e.g. to expose via the Tooling API).
  *
  * @since 8.4
  */
 @Incubating
-public enum Severity {
-    ADVICE("Advice"),
-    WARNING("Warning"),
-    ERROR("Error");
-    private final String displayName;
+public interface ReportableProblem extends Problem {
 
-    Severity(String displayName) {
-        this.displayName = displayName;
-    }
-
-    @Override
-    public String toString() {
-        return displayName;
-    }
-
-    public boolean isWarning() {
-        return this == WARNING;
-    }
+    /**
+     * Report this problem.
+     */
+    void report();
 }

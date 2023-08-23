@@ -17,7 +17,7 @@
 package org.gradle.plugin.devel.tasks
 
 import groovy.transform.CompileStatic
-import org.gradle.api.problems.interfaces.Severity
+import org.gradle.api.problems.Severity
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
 import org.gradle.plugin.devel.tasks.internal.ValidationProblemSerialization
 

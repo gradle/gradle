@@ -27,8 +27,9 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterc
 @SpecificJvmCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
 @SpecificGroovyCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
 public class BasicCallInterceptionTestInterceptorsDeclaration {
-    public static final String JVM_BYTECODE_GENERATED_CLASS = "org.gradle.internal.classpath.Test_interceptors_jvmbytecode_generated";
-    public static final String GROOVY_GENERATED_CLASS = "org.gradle.internal.classpath.Test_interceptors_groovy_generated";
+    public static final String TEST_GENERATED_CLASSES_PACKAGE = "test.gradle.internal.classpath";
+    public static final String JVM_BYTECODE_GENERATED_CLASS = TEST_GENERATED_CLASSES_PACKAGE + ".Test_interceptors_jvmbytecode_generated";
+    public static final String GROOVY_GENERATED_CLASS = TEST_GENERATED_CLASSES_PACKAGE + ".Test_interceptors_groovy_generated";
 
     @InterceptCalls
     @CallableKind.InstanceMethod

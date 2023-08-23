@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemGroup;
 
-/**
- * Builder that is part of the {@link ProblemBuilder} concept.
- *
- * @since 8.4
- */
-@Incubating
-public interface ProblemBuilderDefiningLabel {
+import javax.annotation.Nullable;
 
-    ProblemBuilderDefiningDocumentation label(String label, Object... args);
+public interface InternalProblems extends Problems {
+
+    void reportAsProgressEvent(Problem problem);
+
+    @Nullable ProblemGroup getProblemGroup(String groupId);
 }

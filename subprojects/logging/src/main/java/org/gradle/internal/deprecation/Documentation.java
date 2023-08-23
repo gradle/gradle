@@ -26,7 +26,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.interfaces.DocLink;
+import org.gradle.api.problems.DocLink;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;

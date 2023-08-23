@@ -29,8 +29,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -57,8 +57,8 @@ import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuil
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
-import static org.gradle.api.problems.interfaces.ProblemGroup.VERSION_CATALOG_ID;
-import static org.gradle.api.problems.interfaces.Severity.ERROR;
+import static org.gradle.api.problems.ProblemGroup.VERSION_CATALOG_ID;
+import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.problems.internal.RenderingUtils.oxfordJoin;
 
@@ -522,11 +522,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
-        throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()), problemService);
+        throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()));
     }
 
     private void assertUnique(List<String> names, String prefix, String suffix) {
-        List<Problem> errors = names.stream()
+        List<ReportableProblem> errors = names.stream()
             .collect(groupingBy(AbstractSourceGenerator::toJavaName))
             .entrySet()
             .stream()
@@ -539,7 +539,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                     .build();
             })
             .collect(toList());
-        maybeThrowError(ERROR_HEADER, errors, problemService);
+        maybeThrowError(ERROR_HEADER, errors);
     }
 
     @Nonnull

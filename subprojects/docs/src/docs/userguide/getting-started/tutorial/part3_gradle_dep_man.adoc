@@ -169,9 +169,9 @@ For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency c
 == Step 5. Updating Project Dependencies
 Adding and changing dependencies is done in the build file.
 
-Let's change the `junit` version and look at how this affects the dependency tree.
+Let's change the `guava` version and look at how this affects the dependency tree.
 
-Change the `junit` dependency to the `gradle.build.kts` file to:
+Change the `guava` dependency to the `gradle.build.kts` file to:
 [source]
 ----
 implementation("com.google.guava:guava:30.0-jre")

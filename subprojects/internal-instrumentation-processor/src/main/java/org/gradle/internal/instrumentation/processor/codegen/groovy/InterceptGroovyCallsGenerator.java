@@ -25,7 +25,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
@@ -33,13 +32,14 @@ import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
+import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.ConstructorInterceptorSpec;
+import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.NamedCallableInterceptorSpec;
 import org.gradle.internal.instrumentation.util.NameUtil;
 import org.gradle.util.internal.TextUtil;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -69,52 +69,33 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         Consumer<? super HasFailures.FailureInfo> onFailure
     ) {
         List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup);
-        MethodSpec getInterceptors = generateGetInterceptorsMethod(interceptorTypeSpecs);
 
         return builder -> builder
             .addModifiers(Modifier.PUBLIC)
-            .addTypes(interceptorTypeSpecs)
-            .addMethod(getInterceptors);
+            .addTypes(interceptorTypeSpecs);
     }
 
     private static List<TypeSpec> generateInterceptorClasses(Collection<CallInterceptionRequest> interceptionRequests) {
         List<TypeSpec> result = new ArrayList<>(interceptionRequests.size() / 2);
 
-        LinkedHashMap<String, List<CallInterceptionRequest>> namedRequests = new LinkedHashMap<>();
-        LinkedHashMap<Type, List<CallInterceptionRequest>> constructorRequests = new LinkedHashMap<>();
-
-        interceptionRequests.forEach(request -> {
-            if (request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class).isPresent()) {
-                CallableInfo callable = request.getInterceptedCallable();
-                CallableKindInfo kind = callable.getKind();
-                if (kind == CallableKindInfo.AFTER_CONSTRUCTOR) {
-                    constructorRequests.computeIfAbsent(request.getInterceptedCallable().getOwner().getType(), key -> new ArrayList<>()).add(request);
-                } else {
-                    String nameKey = NameUtil.interceptedJvmMethodName(callable);
-                    namedRequests.computeIfAbsent(nameKey, key -> new ArrayList<>()).add(request);
-                }
-            }
-        });
-
-        namedRequests.entrySet().stream()
-            .map(it -> generateNamedCallableInterceptorClass(it.getKey(), it.getValue()))
+        CallInterceptorSpecs callInterceptorSpecs = GroovyClassGeneratorUtils.groupRequests(interceptionRequests);
+        callInterceptorSpecs.getNamedRequests().stream()
+            .map(InterceptGroovyCallsGenerator::generateNamedCallableInterceptorClass)
             .collect(Collectors.toCollection(() -> result));
 
-        constructorRequests.entrySet().stream()
-            .map(it -> generateConstructorInterceptorClass(it.getKey(), it.getValue()))
+        callInterceptorSpecs.getConstructorRequests().stream()
+            .map(InterceptGroovyCallsGenerator::generateConstructorInterceptorClass)
             .collect(Collectors.toCollection(() -> result));
 
         return result;
     }
 
-    private static TypeSpec generateNamedCallableInterceptorClass(String name, List<CallInterceptionRequest> requests) {
-        String className = TextUtil.capitalize(name) + "CallInterceptor";
-        return generateInterceptorClass(className, namedCallableScopesArgs(name, requests), requests).build();
+    private static TypeSpec generateNamedCallableInterceptorClass(NamedCallableInterceptorSpec spec) {
+        return generateInterceptorClass(spec.getClassName(), namedCallableScopesArgs(spec.getName(), spec.getRequests()), spec.getRequests()).build();
     }
 
-    private static TypeSpec generateConstructorInterceptorClass(Type constructedType, List<CallInterceptionRequest> requests) {
-        String className = ClassName.bestGuess(constructedType.getClassName()).simpleName() + "ConstructorCallInterceptor";
-        return generateInterceptorClass(className, constructorScopeArg(TypeUtils.typeName(constructedType)), requests).build();
+    private static TypeSpec generateConstructorInterceptorClass(ConstructorInterceptorSpec spec) {
+        return generateInterceptorClass(spec.getClassName(), constructorScopeArg(TypeUtils.typeName(spec.getConstructorType())), spec.getRequests()).build();
     }
 
     private static SignatureTree signatureTreeFromRequests(Collection<CallInterceptionRequest> requests) {
@@ -128,7 +109,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .superclass(CALL_INTERCEPTOR_CLASS)
             .addSuperinterface(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
             .addJavadoc(interceptorClassJavadoc(requests))
-            .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 
 
         MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addStatement("super($L)", scopes).build();
@@ -277,22 +258,11 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .orElseThrow(() -> new IllegalArgumentException("a property interception request must have a receiver parameter")).getParameterType();
     }
 
-    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor");
+    static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor");
     private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor");
     private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
         ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor.SignatureMatch");
     private static final ClassName PROPERTY_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.PropertyAwareCallInterceptor");
     private static final ClassName INTERCEPTED_SCOPE_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.InterceptScope");
     private static final ClassName INVOCATION_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.Invocation");
-
-    private static MethodSpec generateGetInterceptorsMethod(List<TypeSpec> interceptorTypes) {
-        MethodSpec.Builder method = MethodSpec.methodBuilder("getCallInterceptors")
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .returns(ParameterizedTypeName.get(ClassName.get(List.class), ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor")));
-        CodeBlock[] constructorCalls = interceptorTypes.stream().map(it -> CodeBlock.builder().add("new $T()", ClassName.bestGuess(it.name)).build()).toArray(CodeBlock[]::new);
-        CodeBlock constructorCallsArgs = CodeBlock.builder().add(interceptorTypes.stream().map(it -> "$L").collect(Collectors.joining(",\n")), (Object[]) constructorCalls).build();
-        method.addCode("return $T.asList($>\n$L$<\n", Arrays.class, constructorCallsArgs);
-        method.addCode(");");
-        return method.build();
-    }
 }

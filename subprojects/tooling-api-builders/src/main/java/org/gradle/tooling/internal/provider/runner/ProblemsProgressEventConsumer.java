@@ -20,7 +20,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.gson.Gson;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;

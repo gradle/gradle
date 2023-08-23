@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
@@ -24,8 +24,7 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderDefiningDocumentation {
-    ProblemBuilderDefiningLocation documentedAt(DocLink doc);
+public interface ProblemBuilderDefiningLabel {
 
-    ProblemBuilderDefiningLocation undocumented();
+    ProblemBuilderDefiningDocumentation label(String label, Object... args);
 }

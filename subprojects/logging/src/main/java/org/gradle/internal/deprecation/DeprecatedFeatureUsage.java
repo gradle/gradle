@@ -18,7 +18,7 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.gradle.api.problems.interfaces.DocLink;
+import org.gradle.api.problems.DocLink;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 
 import javax.annotation.Nullable;

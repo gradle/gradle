@@ -14,33 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
-
+package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
- * A link to a documentation page.
- * <p>
- * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
+ * Builder that is part of the {@link ProblemBuilder} concept.
  *
  * @since 8.4
  */
 @Incubating
-public interface DocLink {
+public interface ProblemBuilderDefiningDocumentation {
+    ProblemBuilderDefiningLocation documentedAt(DocLink doc);
 
-    /**
-     * The URL to the documentation page.
-     */
-    @Nullable
-    String url();
-
-    /**
-     * A message that tells the user to consult the documentation.
-     * There are currently 2 different messages used for this, hence this method.
-     */
-    @Nullable
-    String consultDocumentationMessage();
+    ProblemBuilderDefiningLocation undocumented();
 }
