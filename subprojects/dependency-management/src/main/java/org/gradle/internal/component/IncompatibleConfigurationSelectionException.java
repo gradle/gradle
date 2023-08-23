@@ -21,13 +21,12 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
-import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
-public class IncompatibleConfigurationSelectionException extends StyledException {
+public class IncompatibleConfigurationSelectionException extends AbstractConfigurationSelectionException {
     public IncompatibleConfigurationSelectionException(
         AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,

@@ -18,10 +18,15 @@ package org.gradle.internal.component;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.StyledException;
 
+/**
+ * Base class of exceptions thrown by the {@link VariantSelectionFailureProcessor} when a variant of a component cannot be selected
+ * by the {@link org.gradle.api.internal.artifacts.transform.AttributeMatchingVariantSelector AttributeMatchingVariantSelector}.
+ *
+ * Throwing a more specific subclass of this type should be preferred when possible.
+ */
 @Contextual
-public class VariantSelectionException extends StyledException {
+public class VariantSelectionException extends AbstractSelectionException {
     public VariantSelectionException(String message) {
         super(message);
     }

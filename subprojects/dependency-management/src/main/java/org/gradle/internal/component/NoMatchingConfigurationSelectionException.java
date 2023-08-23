@@ -24,7 +24,6 @@ import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -33,7 +32,7 @@ import java.util.TreeMap;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
-public class NoMatchingConfigurationSelectionException extends StyledException {
+public class NoMatchingConfigurationSelectionException extends AbstractConfigurationSelectionException {
     public NoMatchingConfigurationSelectionException(
         AttributeDescriber describer,
         AttributeContainerInternal fromConfigurationAttributes,
