@@ -937,8 +937,8 @@ project.extensions.create("some", SomeExtension)
     def "filter is evaluated lazily"() {
         buildKotlinFile << """
             tasks.register("printer") {
+                val someValue = objects.property<String>().convention("some value")
                 doLast {
-                    val someValue = objects.property<String>().convention("some value")
                     val filtered = someValue.filter { it.contains("value") }
                     someValue.set("trash")
                     println("filter: ${'$'}{filtered.getOrNull()}")
