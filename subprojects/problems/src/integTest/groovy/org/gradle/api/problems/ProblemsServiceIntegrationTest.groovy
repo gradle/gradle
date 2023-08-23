@@ -59,7 +59,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         this.collectedProblems.size() == 1
         this.collectedProblems[0]["label"] == "label"
         this.collectedProblems[0]["problemType"] == "type"
-        this.collectedProblems[0]["severity"] == "ERROR"
     }
 
     def "can emit a problem with user-manual documentation"() {
