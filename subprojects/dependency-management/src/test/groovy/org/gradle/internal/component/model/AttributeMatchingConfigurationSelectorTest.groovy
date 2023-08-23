@@ -31,7 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.problems.UsesTestProblems
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
-import org.gradle.internal.component.VariantSelectionFailureProcessor
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
@@ -463,7 +463,7 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        AttributeMatchingConfigurationSelector configurationSelector = new AttributeMatchingConfigurationSelector(new VariantSelectionFailureProcessor(createTestProblems()))
+        AttributeMatchingConfigurationSelector configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(createTestProblems()))
         selected = configurationSelector.selectVariantsUsingAttributeMatching(
             consumerAttributes,
             requestedCapabilities,

@@ -113,7 +113,7 @@ import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.component.VariantSelectionFailureProcessor;
+import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
@@ -487,12 +487,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
-        VariantSelectionFailureProcessor createVariantSelectionFailureProcessor(Problems problems) {
-            return new VariantSelectionFailureProcessor(problems);
+        SelectionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
+            return new SelectionFailureHandler(problems);
         }
 
-        AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
-            return new AttributeMatchingConfigurationSelector(variantSelectionFailureProcessor);
+        AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(SelectionFailureHandler selectionFailureHandler) {
+            return new AttributeMatchingConfigurationSelector(selectionFailureHandler);
         }
 
         ConfigurationResolver createDependencyResolver(
@@ -520,7 +520,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
-            VariantSelectionFailureProcessor variantSelectionFailureProcessor,
+            SelectionFailureHandler selectionFailureHandler,
             AttributeMatchingConfigurationSelector attributeMatchingConfigurationSelector
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
@@ -539,7 +539,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     attributesSchema,
                     attributesFactory,
                     transformedVariantFactory,
-                    variantSelectionFailureProcessor
+                    selectionFailureHandler
                 ),
                 moduleIdentifierFactory,
                 buildOperationExecutor,

@@ -50,17 +50,19 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
  * Provides a central location for logging and reporting variant selection failures appearing during
  * each stage of the selection process.
  *
- * All variant selection failures should be routed through this class.
+ * All variant selection failures encountered during selection by the {@link org.gradle.internal.component.model.AttributeMatchingConfigurationSelector AttributeMatchingConfigurationSelector} or
+ * {@link org.gradle.api.internal.artifacts.transform.AttributeMatchingVariantSelector AttributeMatchingVariantSelector}
+ * should be routed through this class.
  *
  * This class reports failures to the {@link Problems} service.  It is a
  * Gradle managed type, and so it can serve as an injection point for any types wishing to be notified or respond
  * to the variant selection process.
  */
-public class VariantSelectionFailureProcessor {
+public class SelectionFailureHandler {
     private static final String FAILURE_TYPE = "Variant Selection Failure";
     private final Problems problemsService;
 
-    public VariantSelectionFailureProcessor(Problems problemsService) {
+    public SelectionFailureHandler(Problems problemsService) {
         this.problemsService = problemsService;
     }
 

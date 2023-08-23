@@ -35,7 +35,7 @@ import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
 import org.gradle.api.problems.UsesTestProblems
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException
-import org.gradle.internal.component.VariantSelectionFailureProcessor
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -54,7 +54,7 @@ class LocalComponentDependencyMetadataTest extends Specification implements Uses
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
-        configurationSelector = new AttributeMatchingConfigurationSelector(new VariantSelectionFailureProcessor(createTestProblems()))
+        configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(createTestProblems()))
     }
 
     def "returns this when same target requested"() {

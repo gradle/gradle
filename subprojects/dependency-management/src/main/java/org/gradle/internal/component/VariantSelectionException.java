@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.internal.exceptions.Contextual;
 
 /**
- * Base class of exceptions thrown by the {@link VariantSelectionFailureProcessor} when a variant of a component cannot be selected
+ * Base class of exceptions thrown by the {@link SelectionFailureHandler} when a variant of a component cannot be selected
  * by the {@link org.gradle.api.internal.artifacts.transform.AttributeMatchingVariantSelector AttributeMatchingVariantSelector}.
  *
  * Throwing a more specific subclass of this type should be preferred when possible.

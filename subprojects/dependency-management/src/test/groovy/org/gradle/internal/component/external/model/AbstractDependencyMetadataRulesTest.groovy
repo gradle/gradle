@@ -32,7 +32,7 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.api.problems.Problems
-import org.gradle.internal.component.VariantSelectionFailureProcessor
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
@@ -284,7 +284,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentSelector, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
-        def configurationSelector = new AttributeMatchingConfigurationSelector(new VariantSelectionFailureProcessor(Stub(Problems.class)))
+        def configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(Stub(Problems.class)))
 
         return consumer.selectVariants(configurationSelector, attributes, state, schema, [] as Set).variants[0].metadata
     }

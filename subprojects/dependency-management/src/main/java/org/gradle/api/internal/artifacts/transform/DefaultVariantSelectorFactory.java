@@ -19,21 +19,21 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.VariantSelectionFailureProcessor;
+import org.gradle.internal.component.SelectionFailureHandler;
 
 public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
-    private final VariantSelectionFailureProcessor failureProcessor;
+    private final SelectionFailureHandler failureProcessor;
 
     public DefaultVariantSelectorFactory(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
         TransformedVariantFactory transformedVariantFactory,
-        VariantSelectionFailureProcessor failureProcessor
+        SelectionFailureHandler failureProcessor
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;

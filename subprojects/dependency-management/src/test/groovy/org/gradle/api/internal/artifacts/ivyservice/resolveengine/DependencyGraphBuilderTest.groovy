@@ -53,7 +53,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.problems.UsesTestProblems
 import org.gradle.api.specs.Specs
 import org.gradle.internal.Describables
-import org.gradle.internal.component.VariantSelectionFailureProcessor
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -131,7 +131,7 @@ class DependencyGraphBuilderTest extends Specification implements UsesTestProble
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
-    def configurationSelector = new AttributeMatchingConfigurationSelector(new VariantSelectionFailureProcessor(createTestProblems()))
+    def configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(createTestProblems()))
 
     DependencyGraphBuilder builder
 

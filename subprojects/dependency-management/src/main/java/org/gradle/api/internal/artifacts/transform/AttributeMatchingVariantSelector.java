@@ -31,7 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.VariantSelectionException;
-import org.gradle.internal.component.VariantSelectionFailureProcessor;
+import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
@@ -48,7 +48,7 @@ import java.util.Set;
  * transforms that can produce a variant compatible with the requested attributes.
  *
  * This class is intentionally named similarly to {@link AttributeMatchingConfigurationSelector}, as it has a
- * similar purpose.  An instance of {@link VariantSelectionFailureProcessor} is injected in the constructor
+ * similar purpose.  An instance of {@link SelectionFailureHandler} is injected in the constructor
  * to allow the caller to handle failures in a consistent way - all selection failures should be reported via
  * calls to that instance.
  */
@@ -61,7 +61,7 @@ public class AttributeMatchingVariantSelector implements VariantSelector {
     private final boolean ignoreWhenNoMatches;
     private final boolean selectFromAllVariants;
     private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
-    private final VariantSelectionFailureProcessor failureProcessor;
+    private final SelectionFailureHandler failureProcessor;
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -72,7 +72,7 @@ public class AttributeMatchingVariantSelector implements VariantSelector {
         boolean ignoreWhenNoMatches,
         boolean selectFromAllVariants,
         TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
-        VariantSelectionFailureProcessor failureProcessor
+        SelectionFailureHandler failureProcessor
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;

@@ -104,7 +104,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.component.VariantSelectionFailureProcessor;
+import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
@@ -389,12 +389,12 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    VariantSelectionFailureProcessor createVariantSelectionFailureProcessor(Problems problems) {
-        return new VariantSelectionFailureProcessor(problems);
+    SelectionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
+        return new SelectionFailureHandler(problems);
     }
 
-    AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(VariantSelectionFailureProcessor variantSelectionFailureProcessor) {
-        return new AttributeMatchingConfigurationSelector(variantSelectionFailureProcessor);
+    AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(SelectionFailureHandler selectionFailureHandler) {
+        return new AttributeMatchingConfigurationSelector(selectionFailureHandler);
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(

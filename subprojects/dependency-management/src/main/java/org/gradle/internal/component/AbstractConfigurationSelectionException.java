@@ -17,7 +17,7 @@
 package org.gradle.internal.component;
 
 /**
- * Abstract base class of exceptions thrown by the {@link VariantSelectionFailureProcessor} when a variant of a component cannot be selected
+ * Abstract base class of exceptions thrown by the {@link SelectionFailureHandler} when a variant of a component cannot be selected
  * by the {@link org.gradle.internal.component.model.AttributeMatchingConfigurationSelector AttributeMatchingConfigurationSelector}.
  */
 public abstract class AbstractConfigurationSelectionException extends AbstractSelectionException {

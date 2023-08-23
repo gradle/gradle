@@ -25,7 +25,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.problems.UsesTestProblems
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousVariantSelectionException
-import org.gradle.internal.component.VariantSelectionFailureProcessor
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
@@ -57,7 +57,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification implements Uses
     }
 
     def factory = Mock(VariantSelector.Factory)
-    def failureProcessor = new VariantSelectionFailureProcessor(createTestProblems())
+    def failureProcessor = new SelectionFailureHandler(createTestProblems())
 
     def 'direct match on variant means no finder interaction'() {
         given:

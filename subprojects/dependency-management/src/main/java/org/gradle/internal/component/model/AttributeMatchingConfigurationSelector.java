@@ -38,7 +38,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingCapabilitiesException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
-import org.gradle.internal.component.VariantSelectionFailureProcessor;
+import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
 import javax.annotation.Nullable;
@@ -48,18 +48,18 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Uses attribute matching to select a variant.
+ * Uses attribute matching to select a list of variants from a graph.
  *
  * This class is intentionally named similarly to {@link AttributeMatchingVariantSelector}, as it has a
- * similar purpose.  An instance of {@link VariantSelectionFailureProcessor} is injected in the constructor
+ * similar purpose.  An instance of {@link SelectionFailureHandler} is injected in the constructor
  * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
  * calls to that instance.
  */
 public class AttributeMatchingConfigurationSelector {
-    private final VariantSelectionFailureProcessor selectionFailureProcessor;
+    private final SelectionFailureHandler failureProcessor;
 
-    public AttributeMatchingConfigurationSelector(VariantSelectionFailureProcessor selectionFailureProcessor) {
-        this.selectionFailureProcessor = selectionFailureProcessor;
+    public AttributeMatchingConfigurationSelector(SelectionFailureHandler failureProcessor) {
+        this.failureProcessor = failureProcessor;
     }
 
     public VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
