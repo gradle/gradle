@@ -16,8 +16,7 @@
 
 package org.gradle.api.problems
 
-import org.gradle.api.problems.interfaces.Problem
-import org.gradle.api.problems.interfaces.Severity
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
@@ -32,8 +31,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with mandatory fields"() {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
@@ -64,8 +63,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with user-manual documentation"() {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
@@ -102,8 +101,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with upgrade-guide documentation"() {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
@@ -140,8 +139,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with dsl-reference documentation"() {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
@@ -178,8 +177,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with partially specified location"() {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
@@ -213,8 +212,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with fully specified location"() {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
@@ -248,8 +247,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with a severity"(Severity severity) {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
@@ -284,8 +283,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with a solution"() {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
@@ -318,8 +317,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with exception cause"() {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
@@ -351,8 +350,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with additional data"() {
         given:
         buildFile << """
-            import org.gradle.api.problems.interfaces.Problem
-            import org.gradle.api.problems.interfaces.Severity
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
             abstract class ProblemReportingTask extends DefaultTask {
