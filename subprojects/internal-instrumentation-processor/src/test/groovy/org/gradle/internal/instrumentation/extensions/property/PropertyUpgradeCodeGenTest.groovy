@@ -94,7 +94,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -217,7 +217,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -239,5 +239,27 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
             .containsElementsIn(generatedClass)
+    }
+
+    def "should visit classes annotated with just @UpgradedProperty on properties"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+
+            public abstract class Task {
+                @UpgradedProperty
+                public abstract Property<Integer> getMaxErrors();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation).generatedSourceFile("${GENERATED_CLASSES_PACKAGE_NAME}.Task_Adapter")
     }
 }
