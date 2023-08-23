@@ -18,11 +18,11 @@ package org.gradle.api.tasks.bundling
 
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
@@ -146,7 +146,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecutedAndNotSkipped(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     @Issue("https://github.com/gradle/gradle/issues/22685")
     def "can visit and edit zip archive differently from settings script when gradle is run in two simultaneous processes"() {
         given: "a started server which can be used to cause the edits to begin at approximately the same time"
@@ -231,7 +231,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         server.stop()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     @Issue("https://github.com/gradle/gradle/issues/22685")
     def "can visit and edit tar archive differently from settings script when gradle is run in two simultaneous processes"() {
         given: "a started server which can be used to cause the edits to begin at approximately the same time"

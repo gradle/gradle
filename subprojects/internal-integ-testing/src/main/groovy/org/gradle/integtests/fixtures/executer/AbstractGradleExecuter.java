@@ -850,6 +850,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return requireDaemon || cliDaemonArgument == DAEMON;
     }
 
+
     public static boolean isAgentInstrumentationEnabled() {
         return Boolean.parseBoolean(System.getProperty(ALLOW_INSTRUMENTATION_AGENT_SYSPROP, "true"));
     }

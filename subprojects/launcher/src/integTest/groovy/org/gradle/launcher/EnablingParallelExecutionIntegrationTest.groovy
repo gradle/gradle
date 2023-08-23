@@ -17,10 +17,10 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "parallel mode enabled via gradle.properties"() {

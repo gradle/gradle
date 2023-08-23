@@ -17,13 +17,13 @@
 package org.gradle.api.tasks.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "include 'a', 'b'"

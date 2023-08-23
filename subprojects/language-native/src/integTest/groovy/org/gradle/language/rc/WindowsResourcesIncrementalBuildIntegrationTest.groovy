@@ -15,16 +15,15 @@
  */
 package org.gradle.language.rc
 
-
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
@@ -58,7 +57,7 @@ model {
         mainResourceFile = file("src/main/rc/resources.rc")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "does not re-compile sources with no change"() {
         when:
         run "mainExecutable"

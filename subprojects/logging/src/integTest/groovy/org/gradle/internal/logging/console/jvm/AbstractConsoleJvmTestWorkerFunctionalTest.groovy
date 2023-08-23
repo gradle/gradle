@@ -19,17 +19,17 @@ package org.gradle.internal.logging.console.jvm
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.JavaTestClass
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.containsTestExecutionWorkInProgressLine
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testClass
 
-@IgnoreIf({ GradleContextualExecuter.isParallel() })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegrationSpec {
 
     private static final int MAX_WORKERS = 2

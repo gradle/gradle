@@ -17,14 +17,14 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.nativeintegration.jansi.JansiStorageLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // needs to run a distribution from scratch to not have native services on the classpath already
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "needs to run a distribution from scratch to not have native services on the classpath already")
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

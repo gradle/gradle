@@ -20,8 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.util.jar.Attributes
@@ -352,7 +353,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "property ordering is consistent"() {
         def differentJdk = AvailableJavaHomes.differentJdk
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)

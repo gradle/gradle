@@ -19,14 +19,13 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
-
 
 @TargetCoverage({ ScalaCoverage.LATEST_IN_MAJOR })
 class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
@@ -260,7 +259,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
         Integer.valueOf(matcher.group(1)) >= 16
     }
 
-    @IgnoreIf({ GradleContextualExecuter.noDaemon })
+    @Requires(IntegTestPreconditions.NotNoDaemonExecutor)
     def "Scala compiler daemon respects keepalive option"() {
         buildFile << """
             plugins {
