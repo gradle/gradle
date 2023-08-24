@@ -27,6 +27,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 /**
  * A partial {@link Provider} implementation. Subclasses must implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue(ValueConsumer)}.
@@ -38,6 +39,11 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     public <S> ProviderInternal<S> map(final Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer) {
         // Could do a better job of inferring the type
         return new TransformBackedProvider<>(null, this, transformer);
+    }
+
+    @Override
+    public ProviderInternal<T> filter(final Predicate<? super T> predicate) {
+        return new FilteringProvider<>(this, predicate);
     }
 
     @Override
