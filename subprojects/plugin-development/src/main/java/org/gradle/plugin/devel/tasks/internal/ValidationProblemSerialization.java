@@ -53,8 +53,8 @@ public class ValidationProblemSerialization {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
-        gsonBuilder.registerTypeAdapterFactory(new Factory());
-        gsonBuilder.registerTypeAdapter(ProblemLocation.class, new ProblemLocationAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new ProblemLocationAdapter());
+        gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
     }
@@ -69,7 +69,7 @@ public class ValidationProblemSerialization {
      * <p>
      * from <a href="https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j.jsonrpc/src/main/java/org/eclipse/lsp4j/jsonrpc/json/adapters/ThrowableTypeAdapter.java">here</a>
      */
-    public static class Factory implements TypeAdapterFactory {
+    public static class ThrowableAdapterFactory implements TypeAdapterFactory {
 
         @SuppressWarnings({"unchecked"})
         @Nullable

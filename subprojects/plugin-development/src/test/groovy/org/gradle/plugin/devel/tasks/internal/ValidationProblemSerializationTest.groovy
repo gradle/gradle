@@ -20,6 +20,7 @@ import com.google.gson.Gson
 import org.gradle.api.problems.DocLink
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.Problems
+import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import spock.lang.Specification
@@ -120,6 +121,59 @@ class ValidationProblemSerializationTest extends Specification {
         String consultDocumentationMessage() {
             return "consult"
         }
+    }
+
+    def "can serialize and deserialize a validation problem with a cause"() {
+        given:
+        def problem = problems.createProblemBuilder()
+                .label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+                .withException(new RuntimeException("cause"))
+                .build()
+
+        when:
+        def json = gson.toJson([problem])
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+
+        then:
+        deserialized.size() == 1
+        deserialized[0].label == "label"
+        deserialized[0].problemType == "type"
+        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].where == null
+        deserialized[0].documentationLink == null
+        deserialized[0].cause.message == "cause"
+    }
+
+    def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
+        given:
+        def problem = problems.createProblemBuilder()
+                .label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+                .severity(severity)
+                .build()
+
+        when:
+        def json = gson.toJson([problem])
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+
+        then:
+        deserialized.size() == 1
+        deserialized[0].label == "label"
+        deserialized[0].problemType == "type"
+        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].where == null
+        deserialized[0].documentationLink == null
+        deserialized[0].severity == severity
+
+        where:
+        severity << Severity.values()
     }
 
 }
