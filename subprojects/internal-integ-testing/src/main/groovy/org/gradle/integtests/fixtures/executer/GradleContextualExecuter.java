@@ -88,7 +88,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     }
 
     public static boolean isNotIsolatedProjects() {
-        return isIsolatedProjects();
+        return !isIsolatedProjects();
     }
 
     public static boolean isIsolatedProjects() {
