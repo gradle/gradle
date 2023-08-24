@@ -19,12 +19,19 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * Builder that is part of the {@link ProblemBuilder} concept.
+ * {@link Problem} instance builder requiring the specification of the problem group.
  *
  * @since 8.4
  */
 @Incubating
 public interface ProblemBuilderDefiningGroup {
-    ProblemBuilder group(ProblemGroup group);
+
+    /**
+     * Declares the problem group. A problem group defines the main category for the problems (e.g. deprecation, type validation, task selection ,etc.). The available group IDs are declared in
+     * {@link ProblemGroup}.
+     * @param group the group ID
+     *
+     * @return the builder for the next required property
+     */
     ProblemBuilder group(String group);
 }

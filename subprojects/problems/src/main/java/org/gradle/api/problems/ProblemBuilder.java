@@ -18,21 +18,10 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
- * A builder interface for {@link Problem} instances.
+ * {@link Problem} instance builder allowing the specification of all optional fields.
  *
- * This is the last interface in the builder chain.
- *
- * before this can be used the following interfaces must be used in order:
- * <ul>
- *     <li>{@link ProblemBuilderDefiningDocumentation}
- *     <li>{@link ProblemBuilderDefiningLocation}
- *     <li>{@link ProblemBuilderDefiningLabel}
- *     <li>{@link ProblemBuilderDefiningType}
- *     <li>{@link ProblemBuilderDefiningGroup}
- * </ul>
+ * This is the last interface in the builder chain. The order of steps can be traced from the {@link Problems} service interface.
  *
  * An example of how to use the builder:
  * <pre>{@code
@@ -51,17 +40,52 @@ import javax.annotation.Nullable;
 @Incubating
 public interface ProblemBuilder {
 
+    /**
+     * The long description of this problem.
+     *
+     * @param details the details
+     *
+     * @return this
+     */
     ProblemBuilder details(String details);
 
-    ProblemBuilder solution(@Nullable String solution);
+    /**
+     * The description of how to solve this problem
+     *
+     * @param solution the solution.
+     *
+     * @return this
+     */
+    ProblemBuilder solution(String solution);
 
-    ProblemBuilder cause(Throwable cause);
-
+    /**
+     * Specifies arbitrary data associated with this problem.
+     *
+     * @return this
+     */
     ProblemBuilder additionalData(String key, String value);
 
+    /**
+     * The exception causing this problem.
+     *
+     * @param e the exception.
+     *
+     * @return this
+     */
     ProblemBuilder withException(RuntimeException e);
 
+    /**
+     * Declares the severity of the problem.
+     * @param severity the severity
+     *
+     * @return this
+     */
     ProblemBuilder severity(Severity severity);
 
+    /**
+     * Creates the new problem. Calling {@link #build()} won't report the problem via build operations, it can be done separately by calling {@link ReportableProblem#report()}.
+     *
+     * @return the new problem
+     */
     ReportableProblem build();
 }

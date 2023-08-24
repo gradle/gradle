@@ -64,18 +64,11 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     private DocLink documentationUrl;
     private boolean explicitlyUndocumented = false;
     private List<String> solution;
-    private Throwable cause;
     private RuntimeException exception;
     protected final Map<String, String> additionalMetadata = new HashMap<>();
 
     public DefaultProblemBuilder(InternalProblems problemsService) {
         this.problemsService = problemsService;
-    }
-
-    @Override
-    public ProblemBuilder group(ProblemGroup group) {
-        this.problemGroup = group;
-        return this;
     }
 
     @Override
@@ -85,7 +78,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
             if (existingGroup == null) {
                 throw new GradleException("Problem group " + group + " does not exist, either use existing group or register a new one");
             }
-            group(existingGroup);
+            this.problemGroup = existingGroup;
         }
         return this;
     }
@@ -147,11 +140,6 @@ public class DefaultProblemBuilder implements ProblemBuilder,
             this.solution = new ArrayList<>();
         }
         this.solution.add(solution);
-        return this;
-    }
-
-    public ProblemBuilder cause(Throwable cause) {
-        this.cause = cause;
         return this;
     }
 

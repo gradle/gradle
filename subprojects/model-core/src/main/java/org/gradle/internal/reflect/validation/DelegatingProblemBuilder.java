@@ -24,7 +24,6 @@ import org.gradle.api.problems.ProblemBuilderDefiningGroup;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.ProblemBuilderDefiningType;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 
@@ -109,15 +108,6 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilder group(ProblemGroup group) {
-        ProblemBuilder newDelegate = ((ProblemBuilderDefiningGroup) delegate).group(group);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
-    }
-
-    @Override
     public ProblemBuilder group(String group) {
         ProblemBuilder newDelegate = ((ProblemBuilderDefiningGroup) delegate).group(group);
         if (delegate != newDelegate) {
@@ -138,15 +128,6 @@ class DelegatingProblemBuilder implements
     @Override
     public ProblemBuilder solution(@Nullable String solution) {
         ProblemBuilder newDelegate = ((ProblemBuilder) delegate).solution(solution);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
-    }
-
-    @Override
-    public ProblemBuilder cause(Throwable cause) {
-        ProblemBuilder newDelegate = ((ProblemBuilder) delegate).cause(cause);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
