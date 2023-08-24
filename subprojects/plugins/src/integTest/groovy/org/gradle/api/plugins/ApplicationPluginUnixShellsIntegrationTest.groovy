@@ -192,15 +192,33 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires(PluginTestPreconditions.ShellcheckAvailable)
+    @Requires(UnitTestPreconditions.HasDocker)
     def "generate start script passes shellcheck"() {
         given:
         succeeds('installDist')
 
         when:
-        runViaUnixStartScript("shellcheck")
+        runViaDocker("koalaman/shellcheck")
+
         then:
         noExceptionThrown()
+    }
+
+    ExecutionResult runViaDocker(String dockerImageName, String... args) {
+        TestFile appDir = file('build/install/sample')
+        buildFile << """
+task execStartScript(type: Exec) {
+    workingDir '$appDir.canonicalPath'
+    commandLine 'docker'
+    args 'run', '-v', '$appDir.canonicalPath:/app', '${dockerImageName}', '/app/bin/sample'
+}
+"""
+        if (args.length > 0) {
+            buildFile << """
+                execStartScript.args "${args.join('", "')}"
+            """
+        }
+        return succeeds('execStartScript')
     }
 
     ExecutionResult runViaUnixStartScript(String shCommand, String... args) {
@@ -208,7 +226,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         buildFile << """
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
-    commandLine '${PluginTestPreconditions.locate(shCommand).absolutePath}'
+    commandLine '${shCommand}'
     args "./sample"
 }
 """
