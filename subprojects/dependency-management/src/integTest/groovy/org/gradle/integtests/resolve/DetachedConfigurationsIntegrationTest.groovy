@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL

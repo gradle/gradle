@@ -17,13 +17,13 @@ package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
@@ -33,8 +33,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.metaobject.BeanDynamicObject;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -42,7 +40,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
 
-public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal, DynamicObjectAware {
+@NonExtensible
+public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal {
 
     /**
      * If set to {@code true}, the buildscript's {@code classpath} configuration will not be reset after the
@@ -63,7 +62,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private DependencyHandler dependencyHandler;
     private RoleBasedConfigurationContainerInternal configContainer;
     private Configuration classpathConfiguration;
-    private DynamicObject dynamicObject;
 
     @Inject
     public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope, ScriptClassPathResolver scriptClassPathResolver) {
@@ -176,13 +174,5 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             LOGGER.debug("Eager creation of script class loader for {}. This may result in performance issues.", scriptResource.getDisplayName());
         }
         return classLoaderScope.getLocalClassLoader();
-    }
-
-    @Override
-    public DynamicObject getAsDynamicObject() {
-        if (dynamicObject == null) {
-            dynamicObject = new BeanDynamicObject(this);
-        }
-        return dynamicObject;
     }
 }

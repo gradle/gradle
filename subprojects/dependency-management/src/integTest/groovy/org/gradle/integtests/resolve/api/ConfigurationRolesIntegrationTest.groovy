@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
-import org.gradle.util.GradleVersion
 
 @FluidDependenciesResolveTest
 class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
