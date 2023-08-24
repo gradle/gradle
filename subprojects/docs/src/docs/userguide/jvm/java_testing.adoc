@@ -348,6 +348,33 @@ If `scanForTestClasses` is false and no include or exclude patterns are specifie
 With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `includes` and `excludes` are used to filter test classes — `scanForTestClasses` has no effect.
 ====
 
+[[sec:test_logging]]
+== Test logging
+
+Gradle allows fine-tuned control over events that are logged to the console.  
+Logging is configurable on a per-log-level basis and by default, the following events are logged:
+
+[cols="1,1,1"]
+|===
+|When the log level is |Events that are logged | Additional configuration
+| `ERROR`, `QUIET` or `WARNING`
+| None
+| None
+| `LIFECYCLE`
+| link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#FAILED[Test failures]
+| Exception format is link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestExceptionFormat.html#SHORT[SHORT]
+| `INFO`
+| link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#FAILED[Test failures], link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#SKIPPED[skipped tests], link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#STANDARD_OUT[test standard output] and link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#STANDARD_ERROR[test standard error]
+| Stacktraces are truncated.
+| `DEBUG`
+| link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html[All events]
+| Full stacktraces are logged.
+|===
+
+Test logging can be modified on a per-log-level basis by adjusting the appropriate link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogging.html[TestLogging] instances in the link:{javadocPath}/org/gradle/api/tasks/testing/AbstractTestTask.html#getTestLogging--[testLogging] property of the test task.
+For example, to adjust the `INFO` level test logging configuration, modify the
+link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html#getInfo--[TestLoggingContainer.getInfo()] property.
+
 [[test_grouping]]
 == Test grouping
 
