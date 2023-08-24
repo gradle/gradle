@@ -51,13 +51,13 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     /**
      * Caches the "true" metadata instances for local components.
      */
-    private final ConcurrentCache originalComponents;
+    private final ConcurrentMetadataCache originalComponents;
 
     /**
      * Contains copies of metadata instances in {@link #originalComponents}, except
      * with the component identifier replaced with the foreign counterpart.
      */
-    private final ConcurrentCache foreignIdentifiedComponents;
+    private final ConcurrentMetadataCache foreignIdentifiedComponents;
 
     public DefaultBuildTreeLocalComponentProvider(
         ProjectStateRegistry projectStateRegistry,
@@ -71,8 +71,8 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         this.localComponentCache = localComponentCache;
         this.localComponentProvider = localComponentProvider;
 
-        this.originalComponents = new ConcurrentCache(calculatedValueContainerFactory);
-        this.foreignIdentifiedComponents = new ConcurrentCache(calculatedValueContainerFactory);
+        this.originalComponents = new ConcurrentMetadataCache(calculatedValueContainerFactory);
+        this.foreignIdentifiedComponents = new ConcurrentMetadataCache(calculatedValueContainerFactory);
     }
 
     @Override
@@ -127,12 +127,12 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         foreignIdentifiedComponents.clear();
     }
 
-    private static class ConcurrentCache {
+    private static class ConcurrentMetadataCache {
 
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
         private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentGraphResolveState, ?>> cache = new ConcurrentHashMap<>();
 
-        public ConcurrentCache(CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        public ConcurrentMetadataCache(CalculatedValueContainerFactory calculatedValueContainerFactory) {
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         }
 

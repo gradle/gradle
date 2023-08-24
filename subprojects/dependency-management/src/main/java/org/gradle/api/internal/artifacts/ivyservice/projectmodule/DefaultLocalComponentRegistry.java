@@ -22,7 +22,10 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 
 /**
  * Default implementation of {@link LocalComponentRegistry}. This is a simple build-scoped wrapper
- * around {@link BuildTreeLocalComponentProvider} that contextualizes it to the current build.
+ * around {@link BuildTreeLocalComponentProvider} that contextualizes it to the current build, so that
+ * users of this class do not need to keep track of their own build ID.
+ *
+ * When {@link BuildIdentifier#isCurrentBuild()} is removed, this class can be made build-tree scoped.
  */
 public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     private final BuildIdentifier thisBuild;
