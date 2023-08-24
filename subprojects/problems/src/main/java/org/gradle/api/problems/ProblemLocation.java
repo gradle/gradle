@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import javax.annotation.Nullable;
 
 /**
- * Problem location.
+ * A basic problem location pointing to a specific part of a file.
  *
  * @since 8.4
  */

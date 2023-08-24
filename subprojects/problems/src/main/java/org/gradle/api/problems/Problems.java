@@ -22,6 +22,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Problems API service.
+ * <p>
+ * The main purpose of this API is to allow clients to create configure and report problems in a centralized way.
+ * <p>
+ * Reported problems are exposed via build operation progress events, which then be converted to Tooling API progress events.
  *
  * @since 8.4
  */
@@ -29,9 +33,33 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Global.class)
 public interface Problems {
 
+    /**
+     * Returns a new problem builder which can configure and create Problem instances.
+     * <p>
+     * The builder uses a stepwise builder pattern forcing the clients to define all mandatory fields in a specific order.
+     * <p>
+     * Once all mandatory fields are set, the returned type will allow clients to call {@link ProblemBuilder#build()} to create a new Problem instance.
+     * The {@link ProblemBuilder#build()} method doesn't have any side effects, it just creates a new instance. Problems should be reported separately with {@link ReportableProblem#report()}.
+     *
+     * @return a new problem builder
+     */
     ProblemBuilderDefiningLabel createProblemBuilder();
 
+    /**
+     * Configures a new problem with error severity, reports it and uses it to throw a new exception.
+     * <p>
+     * Note: The action should not call the {@code build()} method on the builder.
+     *
+     * @return nothing, the method throws an exception
+     */
     RuntimeException throwing(ProblemBuilderSpec action);
 
+    /**
+     * Configures a new problem with error severity using an existing exception as input, reports it and uses it to throw a new exception.
+     * <p>
+     * Note: The action should not call the {@code build()} method on the builder.
+     *
+     * @return nothing, the method throws an exception
+     */
     RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action);
 }

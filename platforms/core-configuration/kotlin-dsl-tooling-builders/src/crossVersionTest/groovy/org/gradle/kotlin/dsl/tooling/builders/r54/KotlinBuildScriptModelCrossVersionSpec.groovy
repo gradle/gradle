@@ -534,7 +534,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         assertSourcePathGiven(
             rootProjectScript,
             subProjectScript,
-            hasItems("kotlin-stdlib-jdk8-${targetKotlinVersion}-sources.jar".toString())
+            hasItems("kotlin-stdlib-${targetKotlinVersion}-sources.jar".toString())
         )
     }
 
