@@ -19,14 +19,20 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemLocation;
 
+import javax.annotation.Nullable;
+
 @NonNullApi
 public class DefaultProblemLocation implements ProblemLocation {
 
     private final String path;
+
+    @Nullable
     private final Integer line;
+
+    @Nullable
     private final Integer column;
 
-    public DefaultProblemLocation(String path, Integer line, Integer column) {
+    public DefaultProblemLocation(String path, @Nullable Integer line, @Nullable Integer column) {
         this.path = path;
         this.line = line;
         this.column = column;
@@ -38,11 +44,13 @@ public class DefaultProblemLocation implements ProblemLocation {
     }
 
     @Override
+    @Nullable
     public Integer getLine() {
         return line;
     }
 
     @Override
+    @Nullable
     public Integer getColumn() {
         return column;
     }

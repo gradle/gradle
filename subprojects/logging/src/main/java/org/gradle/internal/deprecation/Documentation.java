@@ -18,20 +18,11 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.DocLink;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Type;
 import java.util.Map;
-import java.util.Map.Entry;
 
 public abstract class Documentation implements DocLink {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
@@ -198,35 +189,6 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    public static class DocLinkJsonDeserializer implements JsonDeserializer<DocLink> {
-        @Override
-        public DocLink deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            JsonObject jsonObject = (JsonObject) json;
-            JsonElement page = jsonObject.get("page");
-            JsonElement section = jsonObject.get("section");
-            if (page == null && section == null) {
-                return NO_DOCUMENTATION;
-            }
-
-            return userManual(page.getAsString(), section.getAsString());
-        }
-    }
-
-    public static class DocLinkJsonSerializer implements JsonSerializer<DocLink> {
-        @Override
-        public JsonElement serialize(DocLink src, Type typeOfSrc, JsonSerializationContext context) {
-            final JsonObject jsonObject = new JsonObject();
-            if (src instanceof SerializerableDocumentation) {
-                SerializerableDocumentation sd = (SerializerableDocumentation) src;
-                for (Entry<String, String> entry : sd.getProperties().entrySet()) {
-                    if (entry.getValue() != null) {
-                        jsonObject.addProperty(entry.getKey(), entry.getValue());
-                    }
-                }
-            }
-            return jsonObject;
-        }
-    }
 }
 
 

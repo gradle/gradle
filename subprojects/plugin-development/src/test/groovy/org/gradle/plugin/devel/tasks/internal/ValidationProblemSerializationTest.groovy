@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
+import org.gradle.api.problems.DocLink
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
@@ -51,6 +52,74 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
         deserialized[0].where == null
         deserialized[0].documentationLink == null
+    }
+
+    def "can serialize and deserialize a validation problem with a location"() {
+        given:
+        def problem = problems.createProblemBuilder()
+                .label("label")
+                .undocumented()
+                .location("location", 1, 1)
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+                .build()
+
+        when:
+        def json = gson.toJson([problem])
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+
+        then:
+        deserialized.size() == 1
+        deserialized[0].label == "label"
+        deserialized[0].problemType == "type"
+        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].where.path == "location"
+        deserialized[0].where.line == 1
+        deserialized[0].where.column == 1
+        deserialized[0].documentationLink == null
+    }
+
+    def "can serialize and deserialize a validation problem with a documentation link"() {
+        given:
+        def problem = problems.createProblemBuilder()
+                .label("label")
+                .documentedAt(new TestDocLink())
+                .location("location", 1, 1)
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+                .build()
+
+        when:
+        def json = gson.toJson([problem])
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+
+        then:
+        deserialized.size() == 1
+        deserialized[0].label == "label"
+        deserialized[0].problemType == "type"
+        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].where.path == "location"
+        deserialized[0].where.line == 1
+        deserialized[0].where.column == 1
+        deserialized[0].documentationLink.url() == "url"
+        deserialized[0].documentationLink.consultDocumentationMessage() == "consult"
+    }
+
+    /**
+     * Required to be a named, static class for serialization to work.
+     * See https://google.github.io/gson/UserGuide.html#nested-classes-including-inner-classes
+     */
+    class TestDocLink implements DocLink {
+
+        @Override
+        String url() {
+            return "url"
+        }
+
+        @Override
+        String consultDocumentationMessage() {
+            return "consult"
+        }
     }
 
 }
