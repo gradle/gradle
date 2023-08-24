@@ -21,6 +21,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.watch.registry.WatchMode;
 
 import javax.annotation.Nullable;
@@ -134,6 +135,12 @@ public class StartParameterInternal extends StartParameter {
      */
     @Deprecated
     public boolean isConfigurationCache() {
+        DeprecationLogger
+            .deprecateMethod(StartParameterInternal.class, "isConfigurationCache()")
+            .replaceWith("StartParameter.isConfigurationCacheRequested()")
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser();
         return getConfigurationCache().get();
     }
 
