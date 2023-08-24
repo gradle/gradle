@@ -520,8 +520,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
-            SelectionFailureHandler selectionFailureHandler,
-            AttributeMatchingConfigurationSelector attributeMatchingConfigurationSelector
+            SelectionFailureHandler selectionFailureHandler
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 artifactDependencyResolver,
@@ -554,8 +553,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 workerLeaseService,
                 resolveExceptionContextualizer,
                 componentDetailsSerializer,
-                selectedVariantSerializer,
-                attributeMatchingConfigurationSelector
+                selectedVariantSerializer
             );
 
             return new ErrorHandlingConfigurationResolver(

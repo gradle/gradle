@@ -194,6 +194,7 @@ class DependencyManagementBuildScopeServices {
         registration.add(FileResourceConnector.class);
         registration.add(DefaultComponentSelectorConverter.class);
         registration.add(ProjectDependencyResolver.class);
+        registration.add(DefaultArtifactDependencyResolver.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(
@@ -395,50 +396,6 @@ class DependencyManagementBuildScopeServices {
 
     AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(SelectionFailureHandler selectionFailureHandler) {
         return new AttributeMatchingConfigurationSelector(selectionFailureHandler);
-    }
-
-    ArtifactDependencyResolver createArtifactDependencyResolver(
-        ResolveIvyFactory resolveIvyFactory,
-        DependencyMetadataFactory dependencyMetadataFactory,
-        VersionComparator versionComparator,
-        List<ResolverProviderFactory> resolverFactories,
-        ModuleExclusions moduleExclusions,
-        BuildOperationExecutor buildOperationExecutor,
-        ComponentSelectorConverter componentSelectorConverter,
-        ImmutableAttributesFactory attributesFactory,
-        VersionSelectorScheme versionSelectorScheme,
-        VersionParser versionParser,
-        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-        InstantiatorFactory instantiatorFactory,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        ResolvedVariantCache resolvedVariantCache,
-        AttributeDesugaring attributeDesugaring,
-        LocalComponentGraphResolveStateFactory localResolveStateFactory,
-        ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-        ComponentIdGenerator idGenerator,
-        AttributeMatchingConfigurationSelector attributeMatchingConfigurationSelector
-    ) {
-        return new DefaultArtifactDependencyResolver(
-            buildOperationExecutor,
-            resolverFactories,
-            resolveIvyFactory,
-            dependencyMetadataFactory,
-            versionComparator,
-            moduleExclusions,
-            componentSelectorConverter,
-            attributesFactory,
-            versionSelectorScheme,
-            versionParser,
-            componentMetadataSupplierRuleExecutor,
-            instantiatorFactory,
-            componentSelectionDescriptorFactory,
-            calculatedValueContainerFactory,
-            resolvedVariantCache,
-            attributeDesugaring,
-            moduleResolveStateFactory,
-            idGenerator,
-            attributeMatchingConfigurationSelector);
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
