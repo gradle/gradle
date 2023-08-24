@@ -176,7 +176,7 @@ public abstract class Node {
         OrdinalGroup newOrdinal = ordinal;
         for (Node successor : getHardSuccessors()) {
             OrdinalGroup successorOrdinal = successor.getGroup().asOrdinal();
-            if (successorOrdinal != null && (ordinal == null || successorOrdinal.getOrdinal() > ordinal.getOrdinal())) {
+            if (successorOrdinal != null && (newOrdinal == null || successorOrdinal.getOrdinal() > newOrdinal.getOrdinal())) {
                 newOrdinal = successorOrdinal;
             }
         }
