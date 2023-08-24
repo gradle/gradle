@@ -176,4 +176,31 @@ class ValidationProblemSerializationTest extends Specification {
         severity << Severity.values()
     }
 
+    def "can serialize and deserialize a validation problem with a solution"() {
+        given:
+        def problem = problems.createProblemBuilder()
+                .label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+                .solution("solution 0")
+                .solution("solution 1")
+                .build()
+
+        when:
+        def json = gson.toJson([problem])
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+
+        then:
+        deserialized.size() == 1
+        deserialized[0].label == "label"
+        deserialized[0].problemType == "type"
+        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].where == null
+        deserialized[0].documentationLink == null
+        deserialized[0].solutions[0] == "solution 0"
+        deserialized[0].solutions[1] == "solution 1"
+    }
+
 }
