@@ -36,14 +36,14 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.time.Time
-import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.internal.TextUtil
 import spock.lang.Shared
 
 import java.nio.charset.StandardCharsets
 import java.util.zip.GZIPInputStream
 
-@LeaksFileHandles("https://github.com/gradle/gradle-private/issues/3916")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3916")
 class NextGenBuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Shared
