@@ -33,6 +33,14 @@
             ]
         },
         {
+            "type": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
+            "member": "Method org.gradle.plugin.devel.GradlePluginDevelopmentExtension.getPlugins()",
+            "acceptation": "Converting existing property to a managed property",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.util.SingleMessageLogger",
             "member": "Class org.gradle.util.SingleMessageLogger",
             "acceptation": "use Problems class for reporting warnings to TAPI",

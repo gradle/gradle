@@ -32,6 +32,7 @@ It is called a _managed property_, as Gradle takes care of managing the state of
 A property may be _mutable_, meaning that it has both a `get()` method and `set()` method, or _read-only_, meaning that it has only a `get()` method.
 _Read-only_ properties are also called _providers_.
 
+[[mutable_managed_properties]]
 ==== Mutable managed properties
 
 To declare a mutable managed property, add an abstract getter method of type `Property<T>` - where `T` can be any serializable type or a fully Gradle <<#managed_types,managed type>>.

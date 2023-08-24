@@ -177,13 +177,19 @@ abstract class ProjectDelegate : Project {
     override fun allprojects(configureClosure: Closure<*>) =
         delegate.allprojects(configureClosure)
 
+    @Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(type)"))
     override fun <T : Any?> container(type: Class<T>): NamedDomainObjectContainer<T> =
+        @Suppress("deprecation")
         delegate.container(type)
 
+    @Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(type, factory)"))
     override fun <T : Any?> container(type: Class<T>, factory: NamedDomainObjectFactory<T>): NamedDomainObjectContainer<T> =
+        @Suppress("deprecation")
         delegate.container(type, factory)
 
+    @Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(type, factoryClosure)"))
     override fun <T : Any?> container(type: Class<T>, factoryClosure: Closure<*>): NamedDomainObjectContainer<T> =
+        @Suppress("deprecation")
         delegate.container(type, factoryClosure)
 
     override fun repositories(configureClosure: Closure<*>) =

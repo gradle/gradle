@@ -40,6 +40,16 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
+[[project_container_methods]]
+=== Deprecated `Project.container(...)` methods
+
+The link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[`Project.container(...)`] methods are deprecated and will be removed in Gradle 9.0. These methods were used to manually create named domain object containers.
+
+A named domain object container can be created with a <<custom_gradle_types.adoc#mutable_managed_properties,managed property>>, which delegates the responsibility to Gradle to instantiate the container properly.
+
+Since Gradle 5.5, `ObjectFactory.domainObjectContainer(...)` has provided equivalent functionality if the plugin cannot use a managed property.
+Unlike `Project.container(Class)`, `ObjectFactory.domainObjectContainer(Class)` requires the given type is non-final and elements of the container will be decorated and made extension aware.
+
 [[generate_maven_pom_method_deprecations]]
 ==== Deprecated `GenerateMavenPom` methods
 

@@ -754,16 +754,19 @@ class ProblemReportingCrossProjectModelAccess(
 
         override fun <T : Any?> container(type: Class<T>): NamedDomainObjectContainer<T> {
             onAccess()
+            @Suppress("deprecation")
             return delegate.container(type)
         }
 
         override fun <T : Any?> container(type: Class<T>, factory: NamedDomainObjectFactory<T>): NamedDomainObjectContainer<T> {
             onAccess()
+            @Suppress("deprecation")
             return delegate.container(type, factory)
         }
 
         override fun <T : Any?> container(type: Class<T>, factoryClosure: Closure<*>): NamedDomainObjectContainer<T> {
             onAccess()
+            @Suppress("deprecation")
             return delegate.container(type, factoryClosure)
         }
 
