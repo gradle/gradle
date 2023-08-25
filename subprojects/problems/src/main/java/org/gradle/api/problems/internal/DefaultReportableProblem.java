@@ -30,7 +30,7 @@ import java.util.Map;
 @NonNullApi
 public class DefaultReportableProblem extends DefaultProblem implements ReportableProblem {
 
-    private final InternalProblems problemService;
+    private transient final InternalProblems problemService;
 
     public DefaultReportableProblem(
         ProblemGroup problemGroup,

@@ -26,9 +26,9 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
-import org.gradle.internal.deprecation.Documentation.DocLinkJsonDeserializer;
-import org.gradle.internal.deprecation.Documentation.DocLinkJsonSerializer;
+import org.gradle.api.problems.internal.DefaultProblemLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Nonnull
@@ -51,9 +52,9 @@ public class ValidationProblemSerialization {
     public static GsonBuilder createGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
-        gsonBuilder.registerTypeAdapterFactory(new Factory());
-        gsonBuilder.registerTypeAdapter(DocLink.class, new DocLinkJsonDeserializer());
-        gsonBuilder.registerTypeAdapter(DocLink.class, new DocLinkJsonSerializer());
+        gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new ProblemLocationAdapter());
+        gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
     }
@@ -68,7 +69,7 @@ public class ValidationProblemSerialization {
      * <p>
      * from <a href="https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j.jsonrpc/src/main/java/org/eclipse/lsp4j/jsonrpc/json/adapters/ThrowableTypeAdapter.java">here</a>
      */
-    public static class Factory implements TypeAdapterFactory {
+    public static class ThrowableAdapterFactory implements TypeAdapterFactory {
 
         @SuppressWarnings({"unchecked"})
         @Nullable
@@ -184,6 +185,107 @@ public class ValidationProblemSerialization {
             return throwable.getMessage() == null || !throwable.getMessage().contains(cause.getMessage());
         }
 
+    }
+
+    public static class ProblemLocationAdapter extends TypeAdapter<ProblemLocation> {
+
+        @Override
+        public void write(JsonWriter out, @Nullable ProblemLocation value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+
+            out.beginObject();
+            out.name("path").value(value.getPath());
+            out.name("line").value(value.getLine());
+            out.name("column").value(value.getColumn());
+            out.endObject();
+        }
+
+        @Override
+        public ProblemLocation read(JsonReader in) throws IOException {
+            in.beginObject();
+            String path = null;
+            Integer line = null;
+            Integer column = null;
+            while (in.hasNext()) {
+                String name = in.nextName();
+                switch (name) {
+                    case "path": {
+                        path = in.nextString();
+                        break;
+                    }
+                    case "line": {
+                        line = in.nextInt();
+                        break;
+                    }
+                    case "column": {
+                        column = in.nextInt();
+                        break;
+                    }
+                    default:
+                        in.skipValue();
+                }
+            }
+            in.endObject();
+
+            Objects.requireNonNull(path, "path must not be null");
+            return new DefaultProblemLocation(path, line, column);
+        }
+    }
+
+    public static class DocLinkAdapter extends TypeAdapter<DocLink> {
+
+        @Override
+        public void write(JsonWriter out, @Nullable DocLink value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+
+            out.beginObject();
+            out.name("url").value(value.url());
+            out.name("consultDocumentationMessage").value(value.consultDocumentationMessage());
+            out.endObject();
+        }
+
+        @Override
+        public DocLink read(JsonReader in) throws IOException {
+            in.beginObject();
+            String url = null;
+            String consultDocumentationMessage = null;
+            while (in.hasNext()) {
+                String name = in.nextName();
+                switch (name) {
+                    case "url": {
+                        url = in.nextString();
+                        break;
+                    }
+                    case "consultDocumentationMessage": {
+                        consultDocumentationMessage = in.nextString();
+                        break;
+                    }
+                    default:
+                        in.skipValue();
+                }
+            }
+            in.endObject();
+
+            final String finalUrl = url;
+            final String finalConsultDocumentationMessage = consultDocumentationMessage;
+            return new DocLink() {
+                @Override
+                public String url() {
+                    return finalUrl;
+                }
+
+                @Override
+                public String consultDocumentationMessage() {
+                    return finalConsultDocumentationMessage;
+                }
+            };
+        }
     }
 
 }
