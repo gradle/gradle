@@ -191,7 +191,7 @@ Used to exclude file system checks on the specified path from configuration cach
 +
 _Default is `null`._
 
-`org.gradle.configuration-cache.inputs.unsafe.ignore-in-serialization=(true,false)`::
+`org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization=(true,false)`::
 Used to ignore inputs in task graph serialization.
 +
 _Default is `false`._

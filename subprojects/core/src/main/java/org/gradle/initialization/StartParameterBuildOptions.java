@@ -531,7 +531,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     public static class ConfigurationCacheIgnoreInputsInTaskGraphSerialization extends BooleanBuildOption<StartParameterInternal> {
 
-        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore-in-serialization";
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization";
 
         public ConfigurationCacheIgnoreInputsInTaskGraphSerialization() {
             super(PROPERTY_NAME);
