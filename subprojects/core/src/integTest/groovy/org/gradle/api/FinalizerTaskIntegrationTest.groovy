@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -855,7 +856,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/10549")
+    @Issue("https://github.com/gradle/gradle/issues/10549")
     def "mustRunAfter is respected for finalizer without direct dependency"() {
         settingsFile << """
             include 'a'
@@ -891,9 +892,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             run("work", "--parallel")
-            // TODO: Should be:
-            // result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
-            result.assertTaskOrder(any(exact(":a:work", ":a:finalizer"), ":b:work"))
+            result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
         }
 
         and: "Apply workaround"
@@ -905,6 +904,49 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             run("work", "--parallel")
             result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25951")
+    def "finalizer is run after last finalized task"() {
+        buildFile """
+            def finalizer = tasks.register("finalizer") {
+            }
+
+            def test = tasks.register("test") {
+              finalizedBy finalizer
+            }
+
+            def cleanZip = tasks.register("cleanZip", Delete) {
+              delete layout.buildDirectory.file("zip.txt")
+            }
+
+            def zip = tasks.register("zip") {
+              def zipFile = layout.buildDirectory.file("zip.txt")
+              outputs.file zipFile
+              doLast { zipFile.get().asFile.text = "bar" }
+              dependsOn cleanZip
+            }
+
+            def integTest = tasks.register("integTest") {
+              finalizedBy finalizer
+            }
+
+            tasks.register("publish") {
+              inputs.files zip
+            }
+        """
+
+        expect:
+        2.times {
+            run(":test",  ":publish", ":integTest")
+            if (GradleContextualExecuter.isConfigCache()) {
+                // With configuration cache tasks can run in parallel
+                result.assertTaskOrder(exact(any(":test", ":integTest"), ":finalizer"))
+                result.assertTaskOrder(exact(":cleanZip", ":zip", ":publish"))
+            } else {
+                result.assertTaskOrder(":test", ":cleanZip", ":zip", ":publish", ":integTest", ":finalizer")
+            }
         }
     }
 
