@@ -477,7 +477,7 @@ public class Instrumented {
         lazyKotlinStaticDefaultHandle(FilesKt.class, "readText", String.class, File.class, Charset.class);
 
     public static String filesReadString(Path file, String consumer) throws Throwable {
-        listener().fileOpened(file.toFile(), consumer);
+        FileUtils.tryReportFileOpened(file, consumer);
         return (String) FILES_READ_STRING_PATH.get().invokeExact(file);
     }
 
