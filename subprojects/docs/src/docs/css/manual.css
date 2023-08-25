@@ -269,6 +269,8 @@ small { font-size: 60%; line-height: inherit; }
 
 code { font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace; font-weight: normal; color: rgba(0, 0, 0, 0.9); }
 
+a code { color: #021274; }
+
 /* Lists */
 ul, ol, dl { font-size: 1em; line-height: 1.6; margin-bottom: 1.25em; list-style-position: outside; font-family: inherit; }
 
@@ -611,7 +613,8 @@ td.hdlist1, td.hdlist2 { vertical-align: top; padding: 0 0.625em; }
 
 td.hdlist1 { font-weight: bold; padding-bottom: 1.25em; }
 
-.literalblock + .colist, .listingblock + .colist { margin-top: -0.5em; }
+.literalblock + .colist { margin-top: -0.5em; }
+/*.literalblock + .colist, .listingblock + .colist { margin-top: -0.5em; }*/
 
 .colist > table tr > td:first-of-type { padding: 0 0.75em; line-height: 1; }
 .colist > table tr > td:first-of-type img { max-width: initial; }
@@ -830,6 +833,7 @@ a:focus {
 }
 
 #content a[href^='../dsl/'],
+#content a[href^='../kotlin-dsl/'],
 #content a[href^='../javadoc/'] {
     font-family: 'Inconsolata', monospace;
     font-style: normal;
@@ -839,6 +843,8 @@ a:focus {
 
 #content a[href^='../dsl/']:hover,
 #content a[href^='../dsl/']:focus,
+#content a[href^='../kotlin-dsl/']:hover,
+#content a[href^='../kotlin-dsl/']:focus,
 #content a[href^='../javadoc/']:hover,
 #content a[href^='../javadoc/']:focus {
     text-decoration: none;

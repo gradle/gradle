@@ -327,7 +327,7 @@ Furthermore, it is not necessary to append `.class` to identify a class literal 
 [[sec:applying_plugins_buildscript]]
 ==== Applying plugins with the buildscript block
 
-Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the build script classpath and then applying the plugin. External jars can be added to the build script classpath using the `buildscript {}` block as described in <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External dependencies for the build script>>.
+Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the build script classpath and then applying the plugin. External jars can be added to the build script classpath using the `buildscript {}` block as described in <<writing_build_scripts#sec:build_script_external_dependencies,External dependencies for the build script>>.
 
 .Applying a plugin with the buildscript block
 ====

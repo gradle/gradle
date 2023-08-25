@@ -15,7 +15,7 @@
 [[more_about_tasks]]
 = Authoring Tasks
 
-In the <<tutorial_using_tasks.adoc#tutorial_using_tasks,introductory tutorial>> you learned how to create simple tasks. You also learned how to add additional behavior to these tasks later on, and you learned how to create dependencies between tasks. This was all about simple tasks, but Gradle takes the concept of tasks further. Gradle supports tasks that have their own properties and methods. Such tasks are either provided by you or built into Gradle.
+In the <<writing_build_scripts#tutorial_using_tasks,introductory tutorial>> you learned how to create simple tasks. You also learned how to add additional behavior to these tasks later on, and you learned how to create dependencies between tasks. This was all about simple tasks, but Gradle takes the concept of tasks further. Gradle supports tasks that have their own properties and methods. Such tasks are either provided by you or built into Gradle.
 
 
 [[sec:task_outcomes]]
@@ -57,7 +57,7 @@ Task did not need to execute its actions.
 [[sec:defining_tasks]]
 == Defining tasks
 
-We have already seen how to define tasks using strings for task names in <<tutorial_using_tasks.adoc#tutorial_using_tasks,this chapter>>. There are a few variations on this style, which you may need to use in certain situations.
+We have already seen how to define tasks using strings for task names in <<writing_build_scripts#tutorial_using_tasks,this chapter>>. There are a few variations on this style, which you may need to use in certain situations.
 
 [NOTE]
 ====
@@ -223,7 +223,7 @@ If you attempt to pass a `null` value, Gradle will throw a `NullPointerException
 [[sec:adding_dependencies_to_tasks]]
 == Adding dependencies to a task
 
-There are several ways you can define the dependencies of a task. In <<tutorial_using_tasks.adoc#sec:task_dependencies,Task dependencies>> you were introduced to defining dependencies using task names. Task names can refer to tasks in the same project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to. The following is an example which adds a dependency from `project-a:taskX` to `project-b:taskY`:
+There are several ways you can define the dependencies of a task. In <<writing_build_scripts#sec:task_dependencies,Task dependencies>> you were introduced to defining dependencies using task names. Task names can refer to tasks in the same project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to. The following is an example which adds a dependency from `project-a:taskX` to `project-b:taskY`:
 
 .Adding dependency on task from another project
 ====
