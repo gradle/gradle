@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.specs.Spec;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         this.artifactsById = artifactsById;
     }
 
-    private SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, Function<ResolvedArtifactSet, ResolvedArtifactSet> artifactSetHandler, boolean selectFromAllVariants) {
+    private SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector, Function<ResolvedArtifactSet, ResolvedArtifactSet> artifactSetHandler) {
         if (artifactsById.isEmpty()) {
             return NoArtifactResults.INSTANCE;
         }
@@ -67,13 +67,13 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     }
 
     @Override
-    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, boolean selectFromAllVariants) {
-        return select(componentFilter, selector, DO_NOTHING, selectFromAllVariants);
+    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector) {
+        return select(componentFilter, selector, DO_NOTHING);
     }
 
     @Override
-    public SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, boolean selectFromAllVariants) {
-        return select(componentFilter, selector, ALLOW_UNAVAILABLE, selectFromAllVariants);
+    public SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector) {
+        return select(componentFilter, selector, ALLOW_UNAVAILABLE);
     }
 
     private static class NoArtifactResults implements SelectedArtifactResults {

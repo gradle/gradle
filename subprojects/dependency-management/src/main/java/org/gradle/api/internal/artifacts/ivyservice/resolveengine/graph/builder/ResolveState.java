@@ -42,7 +42,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
@@ -91,7 +91,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = Maps.newHashMap();
     private final AttributeDesugaring attributeDesugaring;
     private final ResolutionConflictTracker conflictTracker;
-    private final AttributeMatchingConfigurationSelector configurationSelector;
+    private final GraphVariantSelector configurationSelector;
 
     public ResolveState(
         ComponentIdGenerator idGenerator,
@@ -113,7 +113,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         ConflictResolution conflictResolution,
         List<? extends DependencyMetadata> syntheticDependencies,
         ResolutionConflictTracker conflictTracker,
-        AttributeMatchingConfigurationSelector configurationSelector
+        GraphVariantSelector configurationSelector
     ) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
@@ -305,7 +305,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return resolveOptimizations;
     }
 
-    public AttributeMatchingConfigurationSelector getAttributeConfigurationSelector() {
+    public GraphVariantSelector getAttributeConfigurationSelector() {
         return configurationSelector;
     }
 

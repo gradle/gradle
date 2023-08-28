@@ -63,13 +63,13 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrap
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
-import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ExcludeMetadata
+import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
@@ -131,7 +131,7 @@ class DependencyGraphBuilderTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
-    def configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(createTestProblems()))
+    def configurationSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
 
     DependencyGraphBuilder builder
 

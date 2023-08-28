@@ -47,8 +47,8 @@ import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.IncompatibleVariantsSelectionException;
-import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
+import org.gradle.internal.component.IncompatibleArtifactVariantSelectionException;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
@@ -91,7 +91,7 @@ public class DependencyGraphBuilder {
     private final ComponentIdGenerator idGenerator;
     private final VersionParser versionParser;
     private final ResolutionConflictTracker conflictTracker;
-    private final AttributeMatchingConfigurationSelector configurationSelector;
+    private final GraphVariantSelector configurationSelector;
 
     final static Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
     final static Spec<EdgeState> NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
@@ -112,7 +112,7 @@ public class DependencyGraphBuilder {
                                   Comparator<Version> versionComparator,
                                   ComponentIdGenerator idGenerator,
                                   VersionParser versionParser,
-                                  AttributeMatchingConfigurationSelector configurationSelector
+                                  GraphVariantSelector configurationSelector
     ) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
@@ -467,7 +467,7 @@ public class DependencyGraphBuilder {
             assertCompatibleAttributes(first, second, incompatibleNodes);
         }
         if (!incompatibleNodes.isEmpty()) {
-            IncompatibleVariantsSelectionException variantsSelectionException = new IncompatibleVariantsSelectionException(
+            IncompatibleArtifactVariantSelectionException variantsSelectionException = new IncompatibleArtifactVariantSelectionException(
                 IncompatibleVariantsSelectionMessageBuilder.buildMessage(selected, incompatibleNodes)
             );
             for (EdgeState edge : module.getIncomingEdges()) {

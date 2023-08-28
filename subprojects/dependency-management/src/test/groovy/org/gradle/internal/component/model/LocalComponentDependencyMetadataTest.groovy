@@ -49,12 +49,12 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema
     ImmutableAttributesFactory factory
-    AttributeMatchingConfigurationSelector configurationSelector
+    GraphVariantSelector configurationSelector
 
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
-        configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(createTestProblems()))
+        configurationSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
     }
 
     def "returns this when same target requested"() {

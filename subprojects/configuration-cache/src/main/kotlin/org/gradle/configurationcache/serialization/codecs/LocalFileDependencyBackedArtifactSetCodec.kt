@@ -43,7 +43,7 @@ import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.VariantDefinition
-import org.gradle.api.internal.artifacts.transform.VariantSelector
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -150,11 +150,11 @@ class LocalFileDependencyBackedArtifactSetCodec(
         }
 
         val selector = if (!requestedAttributes) {
-            NoTransformsSelector()
+            NoTransformsSelectorArtifact()
         } else {
             val matchingOnArtifactFormat = readBoolean()
             val transforms = readNonNull<Map<ImmutableAttributes, MappingSpec>>()
-            FixedVariantSelector(matchingOnArtifactFormat, transforms, NoOpTransformedVariantFactory)
+            FixedArtifactVariantSelector(matchingOnArtifactFormat, transforms, NoOpTransformedVariantFactory)
         }
         return LocalFileDependencyBackedArtifactSet(FixedFileMetadata(componentId, files), filter, selector, artifactTypeRegistry, calculatedValueContainerFactory)
     }
@@ -165,7 +165,7 @@ private
 class RecordingVariantSet(
     private val source: FileCollectionInternal,
     private val attributes: ImmutableAttributes
-) : ResolvedVariantSet, ResolvedVariant, VariantSelector.Factory, ResolvedArtifactSet {
+) : ResolvedVariantSet, ResolvedVariant, ArtifactVariantSelector.ResolvedArtifactTransformer, ResolvedArtifactSet {
     var targetAttributes: ImmutableAttributes? = null
     var transformChain: TransformChain? = null
 
@@ -259,14 +259,15 @@ object IdentityMapping : MappingSpec()
 
 
 private
-class FixedVariantSelector(
+class FixedArtifactVariantSelector(
     private val matchingOnArtifactFormat: Boolean,
     private val transforms: Map<ImmutableAttributes, MappingSpec>,
     private val transformedVariantFactory: TransformedVariantFactory
-) : VariantSelector {
+) : ArtifactVariantSelector {
     override fun getRequestedAttributes() = throw UnsupportedOperationException("Should not be called")
+    override fun getFailureProcessor() = throw UnsupportedOperationException("Should not be called")
 
-    override fun select(candidates: ResolvedVariantSet, factory: VariantSelector.Factory): ResolvedArtifactSet {
+    override fun select(candidates: ResolvedVariantSet, resolvedArtifactTransformer: ArtifactVariantSelector.ResolvedArtifactTransformer): ResolvedArtifactSet {
         require(candidates.variants.size == 1)
         val variant = candidates.variants.first()
         return when (val spec = transforms[variant.attributes.asImmutable()]) {
@@ -280,17 +281,18 @@ class FixedVariantSelector(
             }
 
             is IdentityMapping -> variant.artifacts
-            is TransformMapping -> factory.asTransformed(variant, spec, EmptyDependenciesResolverFactory(), transformedVariantFactory)
+            is TransformMapping -> resolvedArtifactTransformer.asTransformed(variant, spec, EmptyDependenciesResolverFactory(), transformedVariantFactory)
         }
     }
 }
 
 
 private
-class NoTransformsSelector : VariantSelector {
+class NoTransformsSelectorArtifact : ArtifactVariantSelector {
     override fun getRequestedAttributes() = throw UnsupportedOperationException("Should not be called")
+    override fun getFailureProcessor() = throw UnsupportedOperationException("Should not be called")
 
-    override fun select(candidates: ResolvedVariantSet, factory: VariantSelector.Factory): ResolvedArtifactSet {
+    override fun select(candidates: ResolvedVariantSet, resolvedArtifactTransformer: ArtifactVariantSelector.ResolvedArtifactTransformer): ResolvedArtifactSet {
         require(candidates.variants.size == 1)
         return candidates.variants.first().artifacts
     }

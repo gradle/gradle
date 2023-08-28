@@ -26,7 +26,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.transform.AttributeMatchingVariantSelector;
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
@@ -37,7 +37,6 @@ import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -46,29 +45,34 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Uses attribute matching to select a list of variants from a graph.
+ * Uses attribute matching to select a list one or more variants for a component in a graph.
  *
- * This class is intentionally named similarly to {@link AttributeMatchingVariantSelector}, as it has a
+ * This class is intentionally named similarly to {@link ArtifactVariantSelector}, as it has a
  * similar purpose.  An instance of {@link SelectionFailureHandler} is injected in the constructor
  * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
  * calls to that instance.
  */
-public class AttributeMatchingConfigurationSelector {
+public class GraphVariantSelector {
     private final SelectionFailureHandler failureProcessor;
 
-    public AttributeMatchingConfigurationSelector(SelectionFailureHandler failureProcessor) {
+    public GraphVariantSelector(SelectionFailureHandler failureProcessor) {
         this.failureProcessor = failureProcessor;
     }
 
+    /**
+     * Returns the failure processor which must be used to report failures during variant selection.
+     *
+     * @return the failure processor
+     */
     public SelectionFailureHandler getFailureProcessor() {
         return failureProcessor;
     }
 
-    public VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
-        return selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
+    public GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
+        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
     }
 
-    private VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(targetComponent.getAttributesSchema());
@@ -125,7 +129,7 @@ public class AttributeMatchingConfigurationSelector {
                 throw failureProcessor.ambiguousConfigurationSelectionFailure(describer, consumerAttributes, attributeMatcher, matches, targetComponent, true, discarded);
             } else {
                 // Perform a second resolution with tracing
-                return selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
+                return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
             }
         } else {
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
@@ -133,7 +137,7 @@ public class AttributeMatchingConfigurationSelector {
         }
     }
 
-    private VariantSelectionResult selectDefaultConfiguration(
+    private GraphVariantSelectionResult selectDefaultConfiguration(
         ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema,
         ComponentGraphResolveMetadata targetComponent, AttributeMatcher attributeMatcher, GraphSelectionCandidates candidates
     ) {
@@ -173,22 +177,9 @@ public class AttributeMatchingConfigurationSelector {
         return sameClassifier;
     }
 
-    private VariantSelectionResult singleVariant(boolean variantAware, List<VariantGraphResolveState> matches) {
+    private GraphVariantSelectionResult singleVariant(boolean variantAware, List<VariantGraphResolveState> matches) {
         assert matches.size() == 1;
-
-        VariantGraphResolveState match = matches.get(0);
-        VariantGraphResolveMetadata matchMetadata = matches.get(0).getMetadata();
-
-        if ((matchMetadata instanceof ConfigurationGraphResolveMetadata) &&
-            ((ConfigurationGraphResolveMetadata) matchMetadata).isDeprecatedForConsumption()
-        ) {
-            DeprecationLogger.deprecateConfiguration(matchMetadata.getName())
-                .forConsumption()
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-                .nagUser();
-        }
-        return new VariantSelectionResult(ImmutableList.of(match), variantAware);
+        return new GraphVariantSelectionResult(ImmutableList.of(matches.get(0)), variantAware);
     }
 
     private ImmutableList<VariantGraphResolveState> filterVariantsByRequestedCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends VariantGraphResolveState> consumableVariants, boolean lenient) {

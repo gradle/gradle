@@ -42,7 +42,7 @@ import spock.lang.Specification
 import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.util.AttributeTestUtil.attributes
 
-class AttributeMatchingConfigurationSelectorTest extends Specification {
+class AttributeMatchingGraphArtifactVariantSelectorTest extends Specification {
     private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
     private ComponentGraphResolveState targetState
@@ -463,8 +463,8 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        AttributeMatchingConfigurationSelector configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(createTestProblems()))
-        selected = configurationSelector.selectVariantsUsingAttributeMatching(
+        GraphVariantSelector configurationSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+        selected = configurationSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,
             targetState,

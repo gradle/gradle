@@ -43,7 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
-import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -122,8 +122,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        VariantSelector selector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariants, resolveContext.getDependenciesResolverFactory());
-        SelectedArtifactResults artifactResults = this.artifactResults.selectLenient(componentSpec, selector, selectFromAllVariants);
+        ArtifactVariantSelector selector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariants, selectFromAllVariants, resolveContext.getDependenciesResolverFactory());
+        SelectedArtifactResults artifactResults = this.artifactResults.selectLenient(componentSpec, selector);
 
         return new SelectedArtifactSet() {
             @Override

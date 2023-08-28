@@ -46,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
 
 /**
- * Factory for creating {@link org.gradle.api.artifacts.Configuration} instances.
+ * ResolvedArtifactTransformer for creating {@link org.gradle.api.artifacts.Configuration} instances.
  */
 @ThreadSafe
 public class DefaultConfigurationFactory {

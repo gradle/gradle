@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 
@@ -30,8 +30,8 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, boolean selectFromAllVariants) {
-        final ResolvedArtifactSet selectedArtifacts = set.select(componentFilter, selector, selectFromAllVariants);
+    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector) {
+        final ResolvedArtifactSet selectedArtifacts = set.select(componentFilter, selector);
         if (selectedArtifacts == ResolvedArtifactSet.EMPTY) {
             return selectedArtifacts;
         }

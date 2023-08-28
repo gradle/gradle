@@ -30,10 +30,9 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.VariantSelectionException;
+import org.gradle.internal.component.ArtifactVariantSelectionException;
 import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.model.DescriberSelector;
 
@@ -42,17 +41,15 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A {@link VariantSelector} that uses attribute matching to select a matching set of artifacts.
+ * A {@link ArtifactVariantSelector} that uses attribute matching to select a matching set of artifacts.
  *
  * If no producer variant is compatible with the requested attributes, this selector will attempt to construct a chain of artifact
  * transforms that can produce a variant compatible with the requested attributes.
  *
- * This class is intentionally named similarly to {@link AttributeMatchingConfigurationSelector}, as it has a
- * similar purpose.  An instance of {@link SelectionFailureHandler} is injected in the constructor
- * to allow the caller to handle failures in a consistent way - all selection failures should be reported via
- * calls to that instance.
+ * An instance of {@link SelectionFailureHandler} is injected in the constructor
+ * to allow the caller to handle failures in a consistent manner as during graph variant selection.
  */
-public class AttributeMatchingVariantSelector implements VariantSelector {
+public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
@@ -62,7 +59,7 @@ public class AttributeMatchingVariantSelector implements VariantSelector {
     private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final SelectionFailureHandler failureProcessor;
 
-    AttributeMatchingVariantSelector(
+    AttributeMatchingArtifactVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
@@ -83,6 +80,11 @@ public class AttributeMatchingVariantSelector implements VariantSelector {
     }
 
     @Override
+    public SelectionFailureHandler getFailureProcessor() {
+        return failureProcessor;
+    }
+
+    @Override
     public String toString() {
         return "Variant selector for " + requested;
     }
@@ -93,26 +95,26 @@ public class AttributeMatchingVariantSelector implements VariantSelector {
     }
 
     @Override
-    public ResolvedArtifactSet select(ResolvedVariantSet producer, Factory factory) {
-        return selectAndWrapFailures(producer, ignoreWhenNoMatches, factory);
+    public ResolvedArtifactSet select(ResolvedVariantSet producer, ResolvedArtifactTransformer resolvedArtifactTransformer) {
+        return selectAndWrapFailures(producer, ignoreWhenNoMatches, resolvedArtifactTransformer);
     }
 
     @Override
-    public ResolvedArtifactSet maybeSelect(ResolvedVariantSet candidates, Factory factory) {
-        return selectAndWrapFailures(candidates, true, factory);
+    public ResolvedArtifactSet maybeSelect(ResolvedVariantSet candidates, ResolvedArtifactTransformer resolvedArtifactTransformer) {
+        return selectAndWrapFailures(candidates, true, resolvedArtifactTransformer);
     }
 
-    private ResolvedArtifactSet selectAndWrapFailures(ResolvedVariantSet producer, boolean ignoreWhenNoMatches, Factory factory) {
+    private ResolvedArtifactSet selectAndWrapFailures(ResolvedVariantSet producer, boolean ignoreWhenNoMatches, ResolvedArtifactTransformer resolvedArtifactTransformer) {
         try {
-            return doSelect(producer, ignoreWhenNoMatches, factory, AttributeMatchingExplanationBuilder.logging());
-        } catch (VariantSelectionException t) {
+            return doSelect(producer, ignoreWhenNoMatches, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging());
+        } catch (ArtifactVariantSelectionException t) {
             return failureProcessor.unknownSelectionFailure(schema, t);
         } catch (Exception t) {
             return failureProcessor.unknownSelectionFailure(schema, producer, t);
         }
     }
 
-    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean ignoreWhenNoMatches, Factory factory, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean ignoreWhenNoMatches, ResolvedArtifactTransformer resolvedArtifactTransformer, AttributeMatchingExplanationBuilder explanationBuilder) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverriddenAttributes());
         final List<ResolvedVariant> variants = ImmutableList.copyOf(producer.getVariants());
@@ -140,7 +142,7 @@ public class AttributeMatchingVariantSelector implements VariantSelector {
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            return factory.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory);
+            return resolvedArtifactTransformer.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory);
         }
 
         if (!transformedVariants.isEmpty()) {

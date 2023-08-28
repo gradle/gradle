@@ -16,8 +16,8 @@
 
 package org.gradle.internal.component;
 
-public class NoMatchingVariantSelectionException extends VariantSelectionException {
-    public NoMatchingVariantSelectionException(String message) {
+public class AmbiguousArtifactVariantSelectionException extends ArtifactVariantSelectionException {
+    public AmbiguousArtifactVariantSelectionException(String message) {
         super(message);
     }
 }

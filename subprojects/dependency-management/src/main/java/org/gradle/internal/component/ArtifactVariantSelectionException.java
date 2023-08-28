@@ -17,25 +17,26 @@
 package org.gradle.internal.component;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
+import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.internal.exceptions.Contextual;
 
 /**
  * Base class of exceptions thrown by the {@link SelectionFailureHandler} when a variant of a component cannot be selected
- * by the {@link org.gradle.api.internal.artifacts.transform.AttributeMatchingVariantSelector AttributeMatchingVariantSelector}.
+ * by the {@link AttributeMatchingArtifactVariantSelector AttributeMatchingArtifactVariantSelector}.
  *
  * Throwing a more specific subclass of this type should be preferred when possible.
  */
 @Contextual
-public class VariantSelectionException extends AbstractSelectionException {
-    public VariantSelectionException(String message) {
+public class ArtifactVariantSelectionException extends AbstractVariantSelectionException {
+    public ArtifactVariantSelectionException(String message) {
         super(message);
     }
 
-    public VariantSelectionException(String message, Throwable cause) {
+    public ArtifactVariantSelectionException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public static VariantSelectionException selectionFailed(ResolvedVariantSet producer, Throwable failure) {
-        return new VariantSelectionException(String.format("Could not select a variant of %s that matches the consumer attributes.", producer.asDescribable().getDisplayName()), failure);
+    public static ArtifactVariantSelectionException selectionFailed(ResolvedVariantSet producer, Throwable failure) {
+        return new ArtifactVariantSelectionException(String.format("Could not select a variant of %s that matches the consumer attributes.", producer.asDescribable().getDisplayName()), failure);
     }
 }

@@ -22,7 +22,7 @@ public interface VariantSelectorFactory {
     /**
      * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.
      */
-    VariantSelector create(
+    ArtifactVariantSelector create(
         AttributeContainerInternal consumerAttributes,
         boolean allowNoMatchingVariants,
         TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory
