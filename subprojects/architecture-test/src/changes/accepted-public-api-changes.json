@@ -33,6 +33,14 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.configurations(org.gradle.api.Action)",
+            "acceptation": "@since cannot be added since method is implemented via Kotlin delegation",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.util.SingleMessageLogger",
             "member": "Class org.gradle.util.SingleMessageLogger",
             "acceptation": "use Problems class for reporting warnings to TAPI",

@@ -173,4 +173,44 @@ rootProject.name = 'testproject'
         succeeds 'buildEnvironment'
         outputContains('org.apache.logging.log4j:log4j-core:{require 2.17.1; reject [2.0, 2.17.1)} -> 3.1.0 (c)')
     }
+
+    def "can use configuration closure in buildscript block"() {
+        buildFile << """
+            buildscript {
+                configurations {
+                    foo {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "bar"))
+                        }
+                    }
+                }
+                assert configurations.foo.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == "bar"
+            }
+
+            assert configurations.empty
+        """
+
+        expect:
+        succeeds "help"
+    }
+
+    def "can use configuration closure in buildscript block in Kotlin DSL"() {
+        buildKotlinFile << """
+            buildscript {
+                configurations {
+                    create("foo") {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("bar"))
+                        }
+                    }
+                }
+                assert(configurations.named("foo").get().attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == "bar")
+            }
+
+            assert(configurations.isEmpty())
+        """
+
+        expect:
+        succeeds "help"
+    }
 }
