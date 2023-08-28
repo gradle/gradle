@@ -43,9 +43,13 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":model-core")))
     testFixturesImplementation(libs.guava)
 
+    integTestImplementation(testFixtures(project(":model-core")))
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.javaParser) {
         because("The Groovy docs inspects the dependencies at compile time")
+    }
+    integTestImplementation(libs.nativePlatform) {
+        because("Required for SystemInfo")
     }
 
     testRuntimeOnly(project(":distributions-core")) {
