@@ -50,7 +50,6 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.problems.UsesTestProblems
 import org.gradle.api.specs.Specs
 import org.gradle.internal.Describables
 import org.gradle.internal.component.SelectionFailureHandler
@@ -88,10 +87,11 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
-class DependencyGraphBuilderTest extends Specification implements UsesTestProblems {
+class DependencyGraphBuilderTest extends Specification {
     def resolveContext = Mock(ResolveContext) {
         getResolutionStrategy() >> Stub(ResolutionStrategyInternal)
     }

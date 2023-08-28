@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.problems.UsesTestProblems
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.SelectionFailureHandler
@@ -30,7 +29,9 @@ import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
-class AttributeMatchingVariantSelectorSpec extends Specification implements UsesTestProblems {
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
+
+class AttributeMatchingVariantSelectorSpec extends Specification {
 
     def consumerProvidedVariantFinder = Mock(ConsumerProvidedVariantFinder)
     def transformedVariantFactory = Mock(TransformedVariantFactory)

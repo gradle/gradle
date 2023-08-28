@@ -33,12 +33,12 @@ import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
-import org.gradle.api.problems.UsesTestProblems
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
-class DefaultVariantSelectorFactoryTest extends Specification implements UsesTestProblems {
+class DefaultVariantSelectorFactoryTest extends Specification {
     def matchingCache = Mock(ConsumerProvidedVariantFinder)
     def producerSchema = Mock(AttributesSchemaInternal)
     def consumerSchema = Mock(AttributesSchemaInternal) {

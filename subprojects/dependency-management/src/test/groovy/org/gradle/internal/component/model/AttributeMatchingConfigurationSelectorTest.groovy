@@ -28,7 +28,6 @@ import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.problems.UsesTestProblems
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
 import org.gradle.internal.component.SelectionFailureHandler
@@ -40,9 +39,10 @@ import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.util.AttributeTestUtil.attributes
 
-class AttributeMatchingConfigurationSelectorTest extends Specification implements UsesTestProblems {
+class AttributeMatchingConfigurationSelectorTest extends Specification {
     private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
     private ComponentGraphResolveState targetState

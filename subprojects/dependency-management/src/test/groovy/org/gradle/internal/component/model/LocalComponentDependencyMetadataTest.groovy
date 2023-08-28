@@ -32,7 +32,6 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
-import org.gradle.api.problems.UsesTestProblems
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException
 import org.gradle.internal.component.SelectionFailureHandler
@@ -43,10 +42,11 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static com.google.common.collect.ImmutableList.copyOf
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
-class LocalComponentDependencyMetadataTest extends Specification implements UsesTestProblems {
+class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema
     ImmutableAttributesFactory factory
     AttributeMatchingConfigurationSelector configurationSelector

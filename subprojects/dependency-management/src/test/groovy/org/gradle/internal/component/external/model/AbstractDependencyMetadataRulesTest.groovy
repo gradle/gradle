@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyM
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.api.problems.UsesTestProblems
 import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
@@ -47,9 +46,10 @@ import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Shared
 import spock.lang.Specification
 
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
-abstract class AbstractDependencyMetadataRulesTest extends Specification implements UsesTestProblems {
+abstract class AbstractDependencyMetadataRulesTest extends Specification {
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def notationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl, SimpleMapInterner.notThreadSafe())
     def constraintNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl, SimpleMapInterner.notThreadSafe())

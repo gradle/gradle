@@ -27,7 +27,6 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.api.problems.UsesTestProblems
 import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -41,9 +40,10 @@ import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
-class ComponentMetadataDetailsAdapterTest extends Specification implements UsesTestProblems {
+class ComponentMetadataDetailsAdapterTest extends Specification {
     private instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe())
     private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, SimpleMapInterner.notThreadSafe())

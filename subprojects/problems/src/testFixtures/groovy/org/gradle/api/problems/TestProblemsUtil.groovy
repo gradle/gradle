@@ -22,9 +22,11 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.OperationIdentifier
 
 /**
- * Utility to be implemented by test classes that provides methods for creating [Problems] instances for testing.
+ * Static util class that provides methods for creating [Problems] instances for testing.
  */
-interface UsesTestProblems {
+abstract class TestProblemsUtil {
+    private TestProblemsUtil() { /* not instantiable */ }
+
     /**
      * A [BuildOperationProgressEventEmitter] that does nothing.
      */
@@ -47,7 +49,7 @@ interface UsesTestProblems {
      *
      * @return the problems instance
      */
-    default Problems createTestProblems() {
+    public static Problems createTestProblems() {
         return new DefaultProblems(new NoOpBuildOperationProgressEventEmitter())
     }
 }
