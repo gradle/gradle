@@ -1,0 +1,123 @@
+## GitHub docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+##
+## LABELOWNERS style rules should mirror that of CODEOWNERS:
+## 1. Prefer team ownership over individual user ownership.
+## 2. GBT-related team should be listed first.
+## 3. Try to keep paths alphabetically sorted.
+## 4. List individual owners last.
+##
+
+# All labels that are not explicitly assigned ('Mixed', 'No platform' or '') are considered
+# unassigned and mapped to bt-unassigned-maintainers.
+
+in:android-support                           @gradle/bt-unassigned-maintainers
+in:annotation-processing                     @gradle/bt-jvm
+in:ant-integration                           @gradle/bt-unassigned-maintainers
+in:antlr-plugin                              @gradle/bt-jvm
+in:api-evolution                             @gradle/bt-execution
+in:api-impl-separation                       @gradle/bt-jvm
+in:application-plugin                        @gradle/bt-jvm
+in:artifact-transforms                       @gradle/bt-execution
+in:build-cache                               @gradle/bt-execution
+in:build-environment                         @gradle/bt-core-runtime-maintainers
+in:build-init-plugin                         @gradle/bt-unassigned-maintainers
+in:build-operations                          @gradle/bt-build-scan
+in:build-scan                                @gradle/bt-build-scan
+in:build-services                            @gradle/bt-configuration-cache
+in:build-src                                 @gradle/bt-configuration-cache
+in:building-gradle                           @gradle/bt-developer-productivity
+in:buildscript-compilation                   @gradle/bt-configuration-cache
+in:checkstyle-plugin                         @gradle/bt-jvm
+in:classloading                              @gradle/bt-unassigned-maintainers
+in:clean-task                                @gradle/bt-unassigned-maintainers
+in:codenarc-plugin                           @gradle/bt-jvm
+in:component-metadata-rules                  @gradle/bt-jvm
+in:composite-builds                          @gradle/bt-configuration-cache
+in:configuration-cache                       @gradle/bt-configuration-cache
+in:configuration-model                       @gradle/bt-configuration-cache
+in:configure-on-demand                       @gradle/bt-configuration-cache
+in:consistent-resolution                     @gradle/bt-jvm
+in:console                                   @gradle/bt-core-runtime-maintainers
+in:continuous-build                          @gradle/bt-execution
+in:continuous-integration                    @gradle/bt-unassigned-maintainers
+in:core                                      @gradle/bt-unassigned-maintainers
+in:daemon                                    @gradle/bt-core-runtime-maintainers
+in:dependency-cache                          @gradle/bt-jvm
+in:dependency-declarations                   @gradle/bt-jvm
+in:dependency-locking                        @gradle/bt-jvm
+in:dependency-management                     @gradle/bt-unassigned-maintainers
+in:dependency-remoting                       @gradle/bt-jvm
+in:dependency-resolution                     @gradle/bt-jvm
+in:dependency-verification                   @gradle/bt-jvm
+in:dependency-version-catalog                @gradle/bt-jvm
+in:deprecation-logging                       @gradle/bt-core-runtime-maintainers
+in:distribution-plugin                       @gradle/bt-jvm
+in:documentation                             @gradle/bt-unassigned-maintainers
+in:documentation-infrastructure              @gradle/null
+in:ear-plugin                                @gradle/bt-jvm
+in:eclipse-plugin                            @gradle/bt-ide-experience
+in:enterprise-plugin                         @gradle/bt-build-scan
+in:exec-tasks                                @gradle/bt-execution
+in:execution-engine                          @gradle/bt-execution
+in:file-locking                              @gradle/bt-core-runtime-maintainers
+in:file-tasks                                @gradle/bt-execution
+in:gradle-module-metadata                    @gradle/bt-jvm
+in:groovy-dsl                                @gradle/bt-configuration-cache
+in:groovy-plugin                             @gradle/bt-jvm
+in:ide                                       @gradle/bt-ide-experience
+in:idea-plugin                               @gradle/bt-ide-experience
+in:init-scripts                              @gradle/bt-configuration-cache
+in:input-normalization                       @gradle/bt-execution
+in:integrations                              @gradle/bt-unassigned-maintainers
+in:internal-caches                           @gradle/bt-unassigned-maintainers
+in:invoking-gradle                           @gradle/bt-unassigned-maintainers
+in:jacoco-plugin                             @gradle/bt-jvm
+in:java-plugins                              @gradle/bt-jvm
+in:javadoc-task                              @gradle/bt-jvm
+in:jvm-ecosystem                             @gradle/bt-jvm
+in:kotlin-dsl                                @gradle/bt-configuration-cache
+in:learning                                  @gradle/null
+in:legacy-script-plugins                     @gradle/bt-configuration-cache
+in:lifecycle-tasks                           @gradle/bt-execution
+in:logging                                   @gradle/bt-core-runtime-maintainers
+in:maven-integration                         @gradle/bt-jvm
+in:memory-usage                              @gradle/bt-unassigned-maintainers
+in:modular-java                              @gradle/bt-jvm
+in:multi-projects                            @gradle/bt-configuration-cache
+in:native-platform                           @gradle/bt-execution
+in:non-http-publishing                       @gradle/bt-unassigned-maintainers
+in:performance-test                          @gradle/null
+in:plugin-development                        @gradle/bt-support
+in:plugin-management                         @gradle/bt-support
+in:plugin-portal                             @gradle/bt-support
+in:pmd-plugin                                @gradle/bt-jvm
+in:precompiled-script-plugin                 @gradle/bt-support
+in:problems                                  @gradle/bt-core-runtime-maintainers
+in:project-accessors                         @gradle/bt-configuration-cache
+in:project-isolation                         @gradle/bt-configuration-cache
+in:provider-api                              @gradle/bt-configuration-cache
+in:publishing-plugins                        @gradle/bt-jvm
+in:remoting                                  @gradle/bt-unassigned-maintainers
+in:reporting-tasks                           @gradle/bt-unassigned-maintainers
+in:repository-declarations                   @gradle/bt-jvm
+in:resource-handler                          @gradle/bt-unassigned-maintainers
+in:scala-plugin                              @gradle/bt-jvm
+in:scheduler                                 @gradle/bt-execution
+in:settings-script                           @gradle/bt-configuration-cache
+in:signing-plugin                            @gradle/bt-jvm
+in:smoke-test                                @gradle/null
+in:source-dependencies                       @gradle/bt-jvm
+in:test-kit                                  @gradle/bt-support
+in:test-suites                               @gradle/bt-jvm
+in:testing                                   @gradle/bt-jvm
+in:testing-junit4                            @gradle/bt-jvm
+in:testing-junit5                            @gradle/bt-jvm
+in:testing-testng                            @gradle/bt-jvm
+in:toolchains                                @gradle/bt-jvm
+in:tooling-api                               @gradle/bt-ide-experience
+in:virtual-file-system                       @gradle/bt-execution
+in:war-plugin                                @gradle/bt-jvm
+in:work-validation                           @gradle/bt-execution
+in:workers                                   @gradle/bt-execution
+in:wrapper                                   @gradle/bt-core-runtime-maintainers
+in:writing-tasks                             @gradle/bt-execution
