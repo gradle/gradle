@@ -180,7 +180,7 @@ task resolve {
         noExceptionThrown()
     }
 
-    def "can re-select artifacts if dependency has explicit artifact when lenient=true"() {
+    def "can re-select artifacts if dependency has explicit artifact when"() {
         file("consumer/build.gradle") << """
 dependencies {
     implementation 'com.example:test'
@@ -191,7 +191,6 @@ task resolve {
     def normal = configurations.runtimeClasspath.incoming.files
     def reselected = configurations.runtimeClasspath.incoming.artifactView {
         withVariantReselection()
-        lenient = true
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
