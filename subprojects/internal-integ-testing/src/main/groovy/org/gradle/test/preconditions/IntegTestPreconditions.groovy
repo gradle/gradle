@@ -127,6 +127,20 @@ class IntegTestPreconditions {
         }
     }
 
+    static class HighestSupportedLTSJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getHighestSupportedLTS()
+        }
+    }
+
+    static class LowestSupportedLTSJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getLowestSupportedLTS()
+        }
+    }
+
     static class Java9HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
