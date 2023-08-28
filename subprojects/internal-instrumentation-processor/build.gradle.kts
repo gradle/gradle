@@ -27,6 +27,7 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.asmCommons)
+    implementation(libs.gson)
 
     testImplementation(libs.compileTesting)
     testImplementation(project(":core"))

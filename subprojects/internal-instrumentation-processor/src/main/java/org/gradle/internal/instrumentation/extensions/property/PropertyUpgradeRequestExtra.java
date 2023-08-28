@@ -37,7 +37,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
 
         private final boolean isMultiValueProperty;
 
-        private UpgradedPropertyType(boolean isMultiValueProperty) {
+        UpgradedPropertyType(boolean isMultiValueProperty) {
             this.isMultiValueProperty = isMultiValueProperty;
         }
 

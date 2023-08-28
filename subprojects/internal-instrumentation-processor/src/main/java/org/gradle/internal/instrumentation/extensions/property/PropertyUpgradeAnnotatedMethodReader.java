@@ -206,10 +206,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         return extras;
     }
 
-    private static CallableInfo extractCallableInfo(CallableKindInfo kindInfo, ExecutableElement methodElement, Type returnType, String callableName, List<ParameterInfo> parameter) {
+    private static CallableInfo extractCallableInfo(CallableKindInfo kindInfo, ExecutableElement methodElement, Type returnType, String callableName, List<ParameterInfo> parameters) {
         CallableOwnerInfo owner = new CallableOwnerInfo(extractType(methodElement.getEnclosingElement().asType()), true);
         CallableReturnTypeInfo returnTypeInfo = new CallableReturnTypeInfo(returnType);
-        return new CallableInfoImpl(kindInfo, owner, callableName, returnTypeInfo, parameter);
+        return new CallableInfoImpl(kindInfo, owner, callableName, returnTypeInfo, parameters);
     }
 
     private static ImplementationInfoImpl extractImplementationInfo(ExecutableElement method, Type returnType, String methodPrefix, List<ParameterInfo> parameters) {
