@@ -83,9 +83,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private static String getProjectName(ProcessingEnvironment processingEnv) {
-        String projectName = processingEnv.getOptions().getOrDefault(PROJECT_NAME_OPTIONS, "");
-        if (projectName.isEmpty()) {
-            return projectName;
+        String projectName = processingEnv.getOptions().get(PROJECT_NAME_OPTIONS);
+        if (projectName == null || projectName.isEmpty()) {
+            return null;
         }
         return Stream.of(projectName.split("-"))
             .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1))
@@ -107,9 +107,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             return Collections.emptySet();
         }
 
-        if (projectName.isEmpty()) {
+        if (projectName == null) {
             // We validate project name here because we want to fail only if there is an @UpgradedProperty annotation used in the project
-            return Collections.singletonList(new InvalidRequest("Project name is not specified. Use -A" + PROJECT_NAME_OPTIONS + "=<projectName> compiler option."));
+            return Collections.singletonList(new InvalidRequest("Project name is not specified or is empty. Use -A" + PROJECT_NAME_OPTIONS + "=<projectName> compiler option to set the project name."));
         }
 
         try {
