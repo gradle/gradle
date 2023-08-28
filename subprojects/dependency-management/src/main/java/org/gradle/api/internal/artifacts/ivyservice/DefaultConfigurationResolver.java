@@ -254,5 +254,4 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), new DefaultResolvedConfiguration(result), result);
     }
-
 }

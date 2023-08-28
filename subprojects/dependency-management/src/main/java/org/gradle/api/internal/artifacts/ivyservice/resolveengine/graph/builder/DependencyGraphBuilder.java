@@ -48,6 +48,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleVariantsSelectionException;
+import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
@@ -90,6 +91,7 @@ public class DependencyGraphBuilder {
     private final ComponentIdGenerator idGenerator;
     private final VersionParser versionParser;
     private final ResolutionConflictTracker conflictTracker;
+    private final AttributeMatchingConfigurationSelector configurationSelector;
 
     final static Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
     final static Spec<EdgeState> NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
@@ -109,7 +111,9 @@ public class DependencyGraphBuilder {
                                   VersionSelectorScheme versionSelectorScheme,
                                   Comparator<Version> versionComparator,
                                   ComponentIdGenerator idGenerator,
-                                  VersionParser versionParser) {
+                                  VersionParser versionParser,
+                                  AttributeMatchingConfigurationSelector configurationSelector
+    ) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
         this.moduleConflictHandler = moduleConflictHandler;
@@ -127,6 +131,7 @@ public class DependencyGraphBuilder {
         this.idGenerator = idGenerator;
         this.versionParser = versionParser;
         this.conflictTracker = new ResolutionConflictTracker(moduleConflictHandler, capabilitiesConflictHandler);
+        this.configurationSelector = configurationSelector;
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor, boolean includeSyntheticDependencies) {
@@ -137,7 +142,7 @@ public class DependencyGraphBuilder {
 
         List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ? resolveContext.getSyntheticDependencies() : Collections.emptyList();
 
-        ResolveState resolveState = new ResolveState(idGenerator, rootComponent, idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, attributeDesugaring, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies, conflictTracker);
+        ResolveState resolveState = new ResolveState(idGenerator, rootComponent, idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, attributeDesugaring, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies, conflictTracker, configurationSelector);
 
         traverseGraph(resolveState);
 

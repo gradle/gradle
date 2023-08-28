@@ -28,12 +28,14 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class DefaultVariantSelectorFactoryTest extends Specification {
@@ -46,7 +48,8 @@ class DefaultVariantSelectorFactoryTest extends Specification {
     def factory = Mock(VariantSelector.Factory)
     def dependenciesResolverFactory = Stub(TransformUpstreamDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory)
+    def variantSelectionFailureProcessor = new SelectionFailureHandler(createTestProblems())
+    def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory, variantSelectionFailureProcessor)
 
     def "selects producer variant with requested attributes"() {
         def variant1 = resolvedVariant()

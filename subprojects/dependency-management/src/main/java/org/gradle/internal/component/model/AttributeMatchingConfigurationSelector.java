@@ -26,6 +26,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.transform.AttributeMatchingVariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
@@ -34,9 +35,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
-import org.gradle.internal.component.NoMatchingCapabilitiesException;
-import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
+import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
 import javax.annotation.Nullable;
@@ -45,13 +44,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class AttributeConfigurationSelector {
+/**
+ * Uses attribute matching to select a list of variants from a graph.
+ *
+ * This class is intentionally named similarly to {@link AttributeMatchingVariantSelector}, as it has a
+ * similar purpose.  An instance of {@link SelectionFailureHandler} is injected in the constructor
+ * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
+ * calls to that instance.
+ */
+public class AttributeMatchingConfigurationSelector {
+    private final SelectionFailureHandler failureProcessor;
 
-    public static VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
+    public AttributeMatchingConfigurationSelector(SelectionFailureHandler failureProcessor) {
+        this.failureProcessor = failureProcessor;
+    }
+
+    public SelectionFailureHandler getFailureProcessor() {
+        return failureProcessor;
+    }
+
+    public VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
         return selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
     }
 
-    private static VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(targetComponent.getAttributesSchema());
@@ -66,7 +82,7 @@ public abstract class AttributeConfigurationSelector {
         List<? extends VariantGraphResolveState> allConsumableVariants = candidates.getVariants();
         ImmutableList<VariantGraphResolveState> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allConsumableVariants, true);
         if (variantsProvidingRequestedCapabilities.isEmpty()) {
-            throw new NoMatchingCapabilitiesException(targetComponent, explicitRequestedCapabilities, allConsumableVariants);
+            throw failureProcessor.noMatchingCapabilitiesFailure(targetComponent, explicitRequestedCapabilities, allConsumableVariants);
         }
 
         List<VariantGraphResolveState> matches = attributeMatcher.matches(variantsProvidingRequestedCapabilities, consumerAttributes, explanationBuilder);
@@ -105,18 +121,18 @@ public abstract class AttributeConfigurationSelector {
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             if (explanationBuilder instanceof TraceDiscardedConfigurations) {
                 Set<VariantGraphResolveState> discarded = Cast.uncheckedCast(((TraceDiscardedConfigurations) explanationBuilder).discarded);
-                throw new AmbiguousConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, matches, targetComponent, true, discarded);
+                throw failureProcessor.ambiguousConfigurationSelectionFailure(describer, consumerAttributes, attributeMatcher, matches, targetComponent, true, discarded);
             } else {
                 // Perform a second resolution with tracing
                 return selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
             }
         } else {
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-            throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+            throw failureProcessor.noMatchingConfigurationSelectionFailure(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
         }
     }
 
-    private static VariantSelectionResult selectDefaultConfiguration(
+    private VariantSelectionResult selectDefaultConfiguration(
         ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema,
         ComponentGraphResolveMetadata targetComponent, AttributeMatcher attributeMatcher, GraphSelectionCandidates candidates
     ) {
@@ -129,11 +145,11 @@ public abstract class AttributeConfigurationSelector {
         }
 
         AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-        throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+        throw failureProcessor.noMatchingConfigurationSelectionFailure(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
     }
 
     @Nullable
-    private static List<VariantGraphResolveState> findVariantsProvidingExactlySameClassifier(List<VariantGraphResolveState> matches, String classifier) {
+    private List<VariantGraphResolveState> findVariantsProvidingExactlySameClassifier(List<VariantGraphResolveState> matches, String classifier) {
         List<VariantGraphResolveState> sameClassifier = null;
         // let's see if we can find a single variant which has exactly the requested artifacts
         for (VariantGraphResolveState match : matches) {
@@ -156,12 +172,12 @@ public abstract class AttributeConfigurationSelector {
         return sameClassifier;
     }
 
-    private static VariantSelectionResult singleVariant(boolean variantAware, List<VariantGraphResolveState> matches) {
+    private VariantSelectionResult singleVariant(boolean variantAware, List<VariantGraphResolveState> matches) {
         assert matches.size() == 1;
         return new VariantSelectionResult(ImmutableList.of(matches.get(0)), variantAware);
     }
 
-    private static ImmutableList<VariantGraphResolveState> filterVariantsByRequestedCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends VariantGraphResolveState> consumableVariants, boolean lenient) {
+    private ImmutableList<VariantGraphResolveState> filterVariantsByRequestedCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends VariantGraphResolveState> consumableVariants, boolean lenient) {
         if (consumableVariants.isEmpty()) {
             return ImmutableList.of();
         }
@@ -193,7 +209,7 @@ public abstract class AttributeConfigurationSelector {
      * Determines if a producer variant provides all the requested capabilities. When doing so it does
      * NOT consider capability versions, as they will be used later in the engine during conflict resolution.
      */
-    private static MatchResult providesAllCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
+    private MatchResult providesAllCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
         if (providerCapabilities.isEmpty()) {
             // producer doesn't declare anything, so we assume that it only provides the implicit capability
             if (explicitRequestedCapabilities.size() == 1) {
@@ -222,7 +238,7 @@ public abstract class AttributeConfigurationSelector {
         return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
     }
 
-    private static MatchResult containsImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, Collection<? extends Capability> capabilities, String group, String name) {
+    private MatchResult containsImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, Collection<? extends Capability> capabilities, String group, String name) {
         if (fastContainsImplicitCapability((CapabilitiesMetadataInternal) capabilitiesMetadata, capabilities)) {
             // An empty capability list means that it's an implicit capability only
             return MatchResult.EXACT_MATCH;
@@ -237,11 +253,11 @@ public abstract class AttributeConfigurationSelector {
         return MatchResult.NO_MATCH;
     }
 
-    private static boolean fastContainsImplicitCapability(CapabilitiesMetadataInternal capabilitiesMetadata, Collection<? extends Capability> capabilities) {
+    private boolean fastContainsImplicitCapability(CapabilitiesMetadataInternal capabilitiesMetadata, Collection<? extends Capability> capabilities) {
         return capabilities.isEmpty() || capabilitiesMetadata.isShadowedCapabilityOnly();
     }
 
-    private static Capability unwrap(Capability capability) {
+    private Capability unwrap(Capability capability) {
         if (capability instanceof ShadowedCapability) {
             return ((ShadowedCapability) capability).getShadowedCapability();
         }
@@ -261,7 +277,6 @@ public abstract class AttributeConfigurationSelector {
     }
 
     private static class TraceDiscardedConfigurations implements AttributeMatchingExplanationBuilder {
-
         private final Set<HasAttributes> discarded = Sets.newHashSet();
 
         @Override

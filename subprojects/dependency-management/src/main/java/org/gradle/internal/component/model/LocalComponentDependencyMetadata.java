@@ -25,7 +25,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.internal.GUtil;
@@ -117,13 +116,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
      * @return A List containing a single `ConfigurationMetadata` representing the target variant.
      */
     @Override
-    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public VariantSelectionResult selectVariants(AttributeMatchingConfigurationSelector configurationSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || candidates.isUseVariants());
         if (useConfigurationAttributes) {
-            return AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
+            return configurationSelector.selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
         }
 
         String targetConfiguration = getDependencyConfiguration();
@@ -137,7 +136,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
             AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
-                throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, toConfiguration, false, DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
+                throw configurationSelector.getFailureProcessor().incompatibleConfigurationSelectionFailure(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, toConfiguration, false, DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
             }
         }
         return new VariantSelectionResult(ImmutableList.of(toConfiguration.asVariant()), false);

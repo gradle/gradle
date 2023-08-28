@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
 
 package org.gradle.internal.component;
 
-public class IncompatibleConfigurationSelectionException extends AbstractConfigurationSelectionException {
-    public IncompatibleConfigurationSelectionException(String message) {
+/**
+ * Abstract base class of exceptions thrown by the {@link SelectionFailureHandler} when a variant of a component cannot be selected
+ * by the {@link org.gradle.internal.component.model.AttributeMatchingConfigurationSelector AttributeMatchingConfigurationSelector}.
+ */
+public abstract class AbstractConfigurationSelectionException extends AbstractSelectionException {
+    public AbstractConfigurationSelectionException(String message) {
         super(message);
     }
 }
