@@ -33,8 +33,8 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.ProblemGroup;
-import org.gradle.api.problems.Severity;
+//import org.gradle.api.problems.ProblemGroup;
+//import org.gradle.api.problems.Severity;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -81,15 +81,15 @@ public class SelectionFailureHandler {
         String message = buildNoMatchingVariantsFailureMsg(displayName, componentRequested, variants, matcher, attributeDescriber);
         NoMatchingVariantSelectionException e = new NoMatchingVariantSelectionException(message);
 
-        problemsService.createProblemBuilder()
-            .label("No matching variants found")
-            .undocumented()
-            .noLocation()
-            .type(FAILURE_TYPE)
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(Severity.ERROR)
-            .withException(e)
-            .build();
+//        problemsService.createProblemBuilder()
+//            .label("No matching variants found")
+//            .undocumented()
+//            .noLocation()
+//            .type(FAILURE_TYPE)
+//            .group(ProblemGroup.GENERIC_ID)
+//            .severity(Severity.ERROR)
+//            .withException(e)
+//            .build();
 
         return e;
     }
@@ -98,15 +98,15 @@ public class SelectionFailureHandler {
         String message = buildMultipleMatchingVariantsFailureMsg(attributeDescriber, displayName, componentRequested, matches, matcher, discarded);
         AmbiguousVariantSelectionException e = new AmbiguousVariantSelectionException(message);
 
-        problemsService.createProblemBuilder()
-            .label("Multiple matching variants found")
-            .undocumented()
-            .noLocation()
-            .type(FAILURE_TYPE)
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(Severity.ERROR)
-            .withException(e)
-            .build();
+//        problemsService.createProblemBuilder()
+//            .label("Multiple matching variants found")
+//            .undocumented()
+//            .noLocation()
+//            .type(FAILURE_TYPE)
+//            .group(ProblemGroup.GENERIC_ID)
+//            .severity(Severity.ERROR)
+//            .withException(e)
+//            .build();
 
         return e;
     }
@@ -115,29 +115,29 @@ public class SelectionFailureHandler {
         String message = buildAmbiguousTransformMsg(displayName, componentRequested, transformedVariants);
         AmbiguousTransformException e = new AmbiguousTransformException(message);
 
-        problemsService.createProblemBuilder()
-            .label("Ambiguous artifact transformation")
-            .undocumented()
-            .noLocation()
-            .type(FAILURE_TYPE)
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(Severity.ERROR)
-            .withException(e)
-            .build();
+//        problemsService.createProblemBuilder()
+//            .label("Ambiguous artifact transformation")
+//            .undocumented()
+//            .noLocation()
+//            .type(FAILURE_TYPE)
+//            .group(ProblemGroup.GENERIC_ID)
+//            .severity(Severity.ERROR)
+//            .withException(e)
+//            .build();
 
         return e;
     }
 
     public BrokenResolvedArtifactSet unknownSelectionFailure(AttributesSchema schema, VariantSelectionException t) {
-        problemsService.createProblemBuilder()
-            .label("Variant selection failed")
-            .undocumented()
-            .noLocation()
-            .type(FAILURE_TYPE)
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(Severity.ERROR)
-            .withException(t)
-            .build();
+//        problemsService.createProblemBuilder()
+//            .label("Variant selection failed")
+//            .undocumented()
+//            .noLocation()
+//            .type(FAILURE_TYPE)
+//            .group(ProblemGroup.GENERIC_ID)
+//            .severity(Severity.ERROR)
+//            .withException(t)
+//            .build();
 
         return new BrokenResolvedArtifactSet(t);
     }
@@ -238,15 +238,15 @@ public class SelectionFailureHandler {
         String message = buildAmbiguousConfigurationSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware, discarded);
         AmbiguousConfigurationSelectionException e = new AmbiguousConfigurationSelectionException(message);
 
-        problemsService.createProblemBuilder()
-            .label("Multiple matching configurations found")
-            .undocumented()
-            .noLocation()
-            .type(FAILURE_TYPE)
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(Severity.ERROR)
-            .withException(e)
-            .build();
+//        problemsService.createProblemBuilder()
+//            .label("Multiple matching configurations found")
+//            .undocumented()
+//            .noLocation()
+//            .type(FAILURE_TYPE)
+//            .group(ProblemGroup.GENERIC_ID)
+//            .severity(Severity.ERROR)
+//            .withException(e)
+//            .build();
 
         return e;
     }
@@ -260,15 +260,15 @@ public class SelectionFailureHandler {
         String message = buildIncompatibleConfigurationSelectionFailureMsg(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware, describer);
         IncompatibleConfigurationSelectionException e = new IncompatibleConfigurationSelectionException(message);
 
-        problemsService.createProblemBuilder()
-            .label("Configuration does not match consumer attributes")
-            .undocumented()
-            .noLocation()
-            .type(FAILURE_TYPE)
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(Severity.ERROR)
-            .withException(e)
-            .build();
+//        problemsService.createProblemBuilder()
+//            .label("Configuration does not match consumer attributes")
+//            .undocumented()
+//            .noLocation()
+//            .type(FAILURE_TYPE)
+//            .group(ProblemGroup.GENERIC_ID)
+//            .severity(Severity.ERROR)
+//            .withException(e)
+//            .build();
 
         return e;
     }
@@ -281,15 +281,15 @@ public class SelectionFailureHandler {
         String message = buildNoMatchingConfigurationSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
         NoMatchingConfigurationSelectionException e = new NoMatchingConfigurationSelectionException(message);
 
-        problemsService.createProblemBuilder()
-            .label("No matching configuration found")
-            .undocumented()
-            .noLocation()
-            .type(FAILURE_TYPE)
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(Severity.ERROR)
-            .withException(e)
-            .build();
+//        problemsService.createProblemBuilder()
+//            .label("No matching configuration found")
+//            .undocumented()
+//            .noLocation()
+//            .type(FAILURE_TYPE)
+//            .group(ProblemGroup.GENERIC_ID)
+//            .severity(Severity.ERROR)
+//            .withException(e)
+//            .build();
 
         return e;
     }
@@ -298,15 +298,15 @@ public class SelectionFailureHandler {
         String message = buildNoMatchingCapabilitiesFailureMsg(targetComponent, requestedCapabilities, candidates);
         NoMatchingCapabilitiesException e = new NoMatchingCapabilitiesException(message);
 
-        problemsService.createProblemBuilder()
-            .label("No matching variant found for requested capabilities")
-            .undocumented()
-            .noLocation()
-            .type(FAILURE_TYPE)
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(Severity.ERROR)
-            .withException(e)
-            .build();
+//        problemsService.createProblemBuilder()
+//            .label("No matching variant found for requested capabilities")
+//            .undocumented()
+//            .noLocation()
+//            .type(FAILURE_TYPE)
+//            .group(ProblemGroup.GENERIC_ID)
+//            .severity(Severity.ERROR)
+//            .withException(e)
+//            .build();
 
         return e;
     }
