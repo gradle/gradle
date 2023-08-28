@@ -69,7 +69,7 @@ class DefaultVariantSelectorFactoryTest extends Specification {
         attributeMatcher.matches(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
 
         expect:
-        def result = variantSelectorFactory.create(typeAttributes("classes"), true, false, dependenciesResolverFactory).select(set, factory)
+        def result = variantSelectorFactory.create(typeAttributes("classes"), true, dependenciesResolverFactory).select(set, factory)
         result == variant1Artifacts
     }
 
@@ -93,7 +93,7 @@ class DefaultVariantSelectorFactoryTest extends Specification {
         attributeMatcher.isMatching(_, _, _) >> true
 
         when:
-        def result = variantSelectorFactory.create(typeAttributes("classes"), true, false, dependenciesResolverFactory).select(set, factory)
+        def result = variantSelectorFactory.create(typeAttributes("classes"), true, dependenciesResolverFactory).select(set, factory)
         visit(result)
 
         then:
@@ -125,7 +125,7 @@ class DefaultVariantSelectorFactoryTest extends Specification {
         attributeMatcher.matches(transformedVariants, _, _) >> transformedVariants
         matchingCache.findTransformedVariants(_, _) >> transformedVariants
 
-        def selector = variantSelectorFactory.create(requested, true, false, dependenciesResolverFactory)
+        def selector = variantSelectorFactory.create(requested, true, dependenciesResolverFactory)
 
         when:
         def result = selector.select(set, factory)
@@ -164,7 +164,7 @@ Found the following transforms:
         matchingCache.findTransformedVariants(_, _) >> []
 
         expect:
-        def result = variantSelectorFactory.create(typeAttributes("dll"), true, false, dependenciesResolverFactory).select(set, factory)
+        def result = variantSelectorFactory.create(typeAttributes("dll"), true, dependenciesResolverFactory).select(set, factory)
         result == ResolvedArtifactSet.EMPTY
     }
 
@@ -189,7 +189,7 @@ Found the following transforms:
         matchingCache.findTransformedVariants(_, _) >> []
 
         when:
-        def result = variantSelectorFactory.create(typeAttributes("dll"), false, false, dependenciesResolverFactory).select(set, factory)
+        def result = variantSelectorFactory.create(typeAttributes("dll"), false, dependenciesResolverFactory).select(set, factory)
         visit(result)
 
         then:

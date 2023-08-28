@@ -249,8 +249,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, resolveState.graphResults);
 
-        boolean selectFromAllVariants = false;
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(resolveContext, selectFromAllVariants, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, variantSelectorFactory, buildOperationExecutor, dependencyVerificationOverride, workerLeaseService);
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(resolveContext, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, variantSelectorFactory, buildOperationExecutor, dependencyVerificationOverride, workerLeaseService);
 
         return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), new DefaultResolvedConfiguration(result), result);
     }

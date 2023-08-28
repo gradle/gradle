@@ -16,13 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-
-import java.util.Set;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 
 /**
  * Represents all variants available for artifact selection.
  */
 public interface ComponentArtifactResolveVariantState {
-    Set<ResolvedVariant> getAllVariants();
+    ResolvedVariantSet getAllVariants();
 }

@@ -35,7 +35,7 @@ public class FileDependencyArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
+    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, boolean selectFromAllVariants) {
         // Select the artifacts later, as this is a function of the file names and these may not be known yet because the producing tasks have not yet executed
         return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, artifactTypeRegistry, calculatedValueContainerFactory);
     }

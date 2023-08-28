@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Describable;
-import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
@@ -34,15 +33,8 @@ public interface ResolvedVariantSet {
 
     /**
      * The variants available for artifact selection when variant reselection is not enabled.
-     * Generally contains the target variant, plus any 'sub-variants'.
      */
     Set<ResolvedVariant> getVariants();
-
-    /**
-     * The variants available for artifact selection when {@link ArtifactView.ViewConfiguration#withVariantReselection()} is enabled.
-     * Generally contains all variants of the target component.
-     */
-    Set<ResolvedVariant> getAllVariants();
 
     /**
      * The provider may have been selected thanks to a different attribute set than the one from
