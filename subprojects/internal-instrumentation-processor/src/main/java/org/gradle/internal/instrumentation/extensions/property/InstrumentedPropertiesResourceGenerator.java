@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
+
 /**
  * Writes all instrumented properties to a resource file
  */
@@ -47,10 +49,6 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
     @Override
     public GenerationResult generateResourceForRequests(Collection<CallInterceptionRequest> filteredRequests) {
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        Map<String, List<CallInterceptionRequest>> requests = filteredRequests.stream()
-            .collect(Collectors.groupingBy(request -> request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName()));
-
         return new GenerationResult.CanGenerateResource() {
             @Override
             public String getPackageName() {
@@ -64,6 +62,8 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
             @Override
             public void write(OutputStream outputStream) {
+                Map<String, List<CallInterceptionRequest>> requests = filteredRequests.stream()
+                    .collect(groupingBy(InstrumentedPropertiesResourceGenerator::getFqName));
                 List<PropertyEntry> entries = toPropertyEntries(requests);
                 try (Writer writer = new OutputStreamWriter(outputStream)) {
                     writer.write(gson.toJson(entries));
@@ -74,19 +74,25 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         };
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private static String getFqName(CallInterceptionRequest request) {
+        String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
+        String containingType = request.getImplementationInfo().getOwner().getClassName();
+        return containingType + "." + propertyName;
+    }
+
     private static List<PropertyEntry> toPropertyEntries(Map<String, List<CallInterceptionRequest>> requests) {
         return requests.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
-            .map(e -> toPropertyEntry(e.getValue()))
+            .map(e -> toPropertyEntry(e.getKey(), e.getValue()))
             .collect(Collectors.toList());
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    private static PropertyEntry toPropertyEntry(List<CallInterceptionRequest> requests) {
+    private static PropertyEntry toPropertyEntry(String fqName, List<CallInterceptionRequest> requests) {
         CallInterceptionRequest request = requests.get(0);
         String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
         String containingType = request.getImplementationInfo().getOwner().getClassName();
-        String fqName = containingType + "." + propertyName;
         List<UpgradedMethod> upgradedMethods = requests.stream()
             .map(CallInterceptionRequest::getImplementationInfo)
             .map(implementation -> new UpgradedMethod(implementation.getName(), implementation.getDescriptor()))
