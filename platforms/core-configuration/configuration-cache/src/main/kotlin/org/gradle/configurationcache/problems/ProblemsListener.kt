@@ -34,6 +34,9 @@ interface ProblemsListener {
         if (error is IOException || error is ConfigurationCacheThrowable) {
             throw error
         }
+
+        onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
+
         throw ConfigurationCacheError(
             "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message)}",
             error.maybeUnwrapInvocationTargetException()
