@@ -16,8 +16,11 @@
 
 package gradlebuild.instrumentation.tasks
 
+import com.google.gson.Gson
+import com.google.gson.JsonArray
 import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.DIRECT_SUPER_TYPES_FILE
 import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTED_CLASSES_FILE
+import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.UPGRADED_PROPERTIES_FILE
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
@@ -47,19 +50,34 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
     @get:OutputFile
     abstract val instrumentedSuperTypesHash: RegularFileProperty
 
+    @get:OutputFile
+    abstract val upgradedProperties: RegularFileProperty
+
+    @get:OutputFile
+    abstract val upgradedPropertiesHash: RegularFileProperty
+
     @TaskAction
     fun run() {
         val instrumentedClasses = findInstrumentedClasses()
         if (instrumentedClasses.isEmpty()) {
             instrumentedSuperTypes.asFile.get().toEmptyFile()
             instrumentedSuperTypesHash.asFile.get().toEmptyFile()
-        } else {
-            // Merge and find all transitive super types
-            val superTypes = mergeSuperTypes()
-            // Keep only instrumented super types as we don't need to others for instrumentation
-            val onlyInstrumentedSuperTypes = keepOnlyInstrumentedSuperTypes(superTypes, instrumentedClasses)
-            writeOutput(onlyInstrumentedSuperTypes)
+            upgradedProperties.asFile.get().toEmptyFile()
+            upgradedPropertiesHash.asFile.get().toEmptyFile()
+            return
         }
+
+        mergeAndWriteInstrumentedSuperTypes(instrumentedClasses)
+        mergeAndWriteUpgradedProperties()
+    }
+
+    private
+    fun mergeAndWriteInstrumentedSuperTypes(instrumentedClasses: Set<String>) {
+        // Merge and find all transitive super types
+        val superTypes = mergeSuperTypes()
+        // Keep only instrumented super types as we don't need to others for instrumentation
+        val onlyInstrumentedSuperTypes = keepOnlyInstrumentedSuperTypes(superTypes, instrumentedClasses)
+        writeSuperTypes(onlyInstrumentedSuperTypes)
     }
 
     /**
@@ -122,7 +140,7 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
     }
 
     private
-    fun writeOutput(onlyInstrumentedSuperTypes: Map<String, Set<String>>) {
+    fun writeSuperTypes(onlyInstrumentedSuperTypes: Map<String, Set<String>>) {
         val outputFile = instrumentedSuperTypes.asFile.get()
         val outputHashFile = instrumentedSuperTypesHash.asFile.get()
         if (onlyInstrumentedSuperTypes.isEmpty()) {
@@ -142,6 +160,34 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
                 .forEach { hasher.putString(it.key + "=" + it.value.sorted().joinToString(",")) }
             outputHashFile.outputStream().use { it.write(hasher.hash().toByteArray()) }
         }
+    }
+
+    private
+    fun mergeAndWriteUpgradedProperties() {
+        // Merge and find all upgraded properties
+        val gson = Gson()
+        val mergedUpgradedProperties = mergeProperties(gson)
+        if (mergedUpgradedProperties.isEmpty) {
+            upgradedProperties.asFile.get().toEmptyFile()
+            upgradedPropertiesHash.asFile.get().toEmptyFile()
+            return
+        }
+
+        upgradedProperties.asFile.get().writer().use { gson.toJson(mergedUpgradedProperties, it) }
+        val hash = Hashing.defaultFunction().hashFile(upgradedProperties.asFile.get())
+        upgradedPropertiesHash.asFile.get().outputStream().use { it.write(hash.toByteArray()) }
+    }
+
+    private
+    fun mergeProperties(gson: Gson): JsonArray {
+        val merged = JsonArray()
+        instrumentationMetadataDirs
+            .map { it.resolve(UPGRADED_PROPERTIES_FILE) }
+            .filter { it.exists() }
+            .sorted()
+            .map { gson.toJsonTree(it).asJsonArray }
+            .forEach { merged.addAll(it) }
+        return merged
     }
 
     private

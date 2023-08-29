@@ -142,6 +142,8 @@ extensions.configure<InstrumentationMetadataExtension>("instrumentationMetadata"
     classpathToInspect = runtimeClasspath.toInstrumentationMetadataView()
     superTypesOutputFile = generatedPropertiesFileFor("instrumented-super-types")
     superTypesHashFile = generatedTxtFileFor("instrumented-super-types-hash")
+    upgradedPropertiesFile = generatedJsonFileFor("upgraded-properties")
+    upgradedPropertiesHashFile = generatedTxtFileFor("upgraded-properties-hash")
 }
 
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'
@@ -238,6 +240,9 @@ fun generatedTxtFileFor(name: String) =
 
 fun generatedPropertiesFileFor(name: String) =
     layout.buildDirectory.file("generated-resources/$name/$name.properties")
+
+fun generatedJsonFileFor(name: String) =
+    layout.buildDirectory.file("generated-resources/$name/$name.json")
 
 fun bucket() =
     configurations.creating {

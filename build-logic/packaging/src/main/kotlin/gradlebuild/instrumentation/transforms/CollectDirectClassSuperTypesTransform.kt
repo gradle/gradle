@@ -43,6 +43,7 @@ abstract class CollectDirectClassSuperTypesTransform : TransformAction<Transform
         const val INSTRUMENTATION_METADATA = "instrumentationMetadata"
         const val DIRECT_SUPER_TYPES_FILE = "direct-super-types.properties"
         const val INSTRUMENTED_CLASSES_FILE = "instrumented-classes.txt"
+        const val UPGRADED_PROPERTIES_FILE = "upgraded-properties.json"
     }
 
     @get:Inject
@@ -54,40 +55,58 @@ abstract class CollectDirectClassSuperTypesTransform : TransformAction<Transform
 
     override fun transform(outputs: TransformOutputs) {
         val oldSuperTypes = Properties()
-        val dir = outputs.dir("instrumentation")
-        val superTypesFile = File(dir, DIRECT_SUPER_TYPES_FILE)
+        val outputDir = outputs.dir("instrumentation")
+        val superTypesFile = File(outputDir, DIRECT_SUPER_TYPES_FILE)
         if (superTypesFile.exists()) {
             superTypesFile.inputStream().use { oldSuperTypes.load(it) }
         }
-
-        var oldInstrumentedClassesFile: File? = null
-        val instrumentedClassesFile = File(dir, INSTRUMENTED_CLASSES_FILE)
-        if (instrumentedClassesFile.exists()) {
-            oldInstrumentedClassesFile = instrumentedClassesFile
+        val instrumentedClassesFile = File(outputDir, INSTRUMENTED_CLASSES_FILE)
+        val upgradedPropertiesFile = File(outputDir, UPGRADED_PROPERTIES_FILE)
+        val oldInstrumentedClassesFile: File? = when {
+            instrumentedClassesFile.exists() -> instrumentedClassesFile
+            else -> null
+        }
+        val oldUpgradedPropertiesFile: File? = when {
+            upgradedPropertiesFile.exists() -> upgradedPropertiesFile
+            else -> null
         }
 
-        val (newSuperTypes, newInstrumentedClassesFile) = findChanges(oldSuperTypes, oldInstrumentedClassesFile)
+        // Find changes
+        val (newSuperTypes, newInstrumentedClassesFile, newUpgradedPropertiesFile) = findChanges(
+            oldSuperTypes,
+            oldInstrumentedClassesFile,
+            oldUpgradedPropertiesFile
+        )
+
+        // Print output
         superTypesFile.outputStream().use { newSuperTypes.store(it, null) }
         when (newInstrumentedClassesFile) {
             null -> instrumentedClassesFile.writeText("")
             else -> newInstrumentedClassesFile.copyTo(instrumentedClassesFile, overwrite = true)
         }
+        when (newUpgradedPropertiesFile) {
+            null -> upgradedPropertiesFile.writeText("[]")
+            else -> newUpgradedPropertiesFile.copyTo(upgradedPropertiesFile, overwrite = true)
+        }
     }
 
     private
-    fun findChanges(oldSuperTypes: Properties, oldInstrumentedClassesFile: File?): Pair<Properties, File?> {
+    fun findChanges(oldSuperTypes: Properties, oldInstrumentedClassesFile: File?, oldUpgradedPropertiesFile: File?): Triple<Properties, File?, File?> {
         val superTypes = Properties().apply { putAll(oldSuperTypes) }
         var instrumentedClassesFile = oldInstrumentedClassesFile
+        var upgradedPropertiesFile = oldUpgradedPropertiesFile
         inputChanges.getFileChanges(classesDir)
             .filter { change -> change.fileType == FileType.FILE }
             .forEach { change ->
                 when {
                     change.normalizedPath.endsWith(".class") -> handleClassChange(change, superTypes)
                     // "instrumented-classes.txt" is always just one in a classes dir
-                    change.file.name.equals(INSTRUMENTED_CLASSES_FILE) -> instrumentedClassesFile = handleInstrumentedClassesFileChange(change)
+                    change.file.name.equals(INSTRUMENTED_CLASSES_FILE) -> instrumentedClassesFile = handleInstrumentedMetadataFileChange(change)
+                    // "upgraded-properties.json" is always just one in a classes dir
+                    change.file.name.equals(UPGRADED_PROPERTIES_FILE) -> upgradedPropertiesFile = handleInstrumentedMetadataFileChange(change)
                 }
             }
-        return superTypes to instrumentedClassesFile
+        return Triple(superTypes, instrumentedClassesFile, upgradedPropertiesFile)
     }
 
     private
@@ -104,7 +123,7 @@ abstract class CollectDirectClassSuperTypesTransform : TransformAction<Transform
     }
 
     private
-    fun handleInstrumentedClassesFileChange(change: FileChange): File? {
+    fun handleInstrumentedMetadataFileChange(change: FileChange): File? {
         return when (change.changeType) {
             ADDED, MODIFIED -> change.file
             REMOVED -> null
