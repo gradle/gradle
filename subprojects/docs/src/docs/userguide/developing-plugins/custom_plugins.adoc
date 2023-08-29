@@ -153,7 +153,7 @@ Gradle provides some types that you can use in task implementations and extensio
 Now we will move our plugin to a standalone project so that we can publish it and share it with others. This project is simply a Java project that produces a JAR containing the plugin classes.
 The easiest and the recommended way to package and publish a plugin is to use the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>.
 This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the api configuration,
-generate the required plugin descriptors in the resulting JAR file and configure the <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> to be used when publishing.
+generate the required plugin descriptors in the resulting JAR file and configure the <<writing_plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> to be used when publishing.
 Here is a simple build script for the project.
 
 .A build for a custom plugin
@@ -208,7 +208,7 @@ include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="setti
 ====
 
 ==== Note for plugins published without `java-gradle-plugin`
-If your plugin was published without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will be lacking <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>>, which is needed for <<plugins.adoc#sec:plugins_block,plugins DSL>> to locate the plugin.
+If your plugin was published without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will be lacking <<writing_plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>>, which is needed for <<writing_plugins.adoc#sec:plugins_block,plugins DSL>> to locate the plugin.
 In this case, the recommended way to resolve the plugin in another project is to add a `resolutionStrategy` section to the `pluginManagement {}` block of the project's settings file as shown below.
 
 .Resolution strategy for plugins without Plugin Marker Artifact

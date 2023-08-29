@@ -59,7 +59,7 @@ The `gradlePlugin {}` block defines the plugins being built by the project inclu
 From this data about the plugins being developed, Gradle can automatically:
 
 * Generate the plugin descriptor in the `jar` file's `META-INF` directory.
-* Configure the <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> publications (Maven or Ivy) for each plugin.
+* Configure the <<writing_plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> publications (Maven or Ivy) for each plugin.
 * Publish each plugin to the Gradle Plugin Portal (see <<publishing_gradle_plugins.adoc#publishing_portal,Publishing Plugins to Gradle Plugin Portal>> for details), but only if the link:https://plugins.gradle.org/docs/publish-plugin[Plugin Publishing Plugin] has also been applied.
 
 [[sec:gradle_plugin_dev_interactions]]
@@ -74,7 +74,7 @@ Other plugins auto apply the Java Gradle Plugin, like the link:https://plugins.g
 When the Java Gradle Plugin (`java-gradle-plugin`) detects that the Maven Publish Plugin (`maven-publish`) is also applied by the build, it will automatically configure the following link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublications]:
 
 * a single "main" publication, named `pluginMaven`, based on the <<java_plugin.adoc#sec:java_plugin_publishing,main Java component>>
-* multiple <<plugins.adoc#sec:plugin_markers,"marker" publications>> (one for each plugin defined in the `gradlePlugin {}` block), named `<pluginName>PluginMarkerMaven` (for example in the above example it would be `simplePluginPluginMarkerMaven`)
+* multiple <<writing_plugins.adoc#sec:plugin_markers,"marker" publications>> (one for each plugin defined in the `gradlePlugin {}` block), named `<pluginName>PluginMarkerMaven` (for example in the above example it would be `simplePluginPluginMarkerMaven`)
 
 This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle.adoc#sec:build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
 
@@ -83,7 +83,7 @@ This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Pr
 When the Java Gradle Plugin(`java-gradle-plugin`) detects that the Ivy Publish Plugin (`ivy-publish`) is also applied by the build, it will automatically configure the following link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublications]:
 
 * a single "main" publication, named `pluginIvy`, based on the <<java_plugin.adoc#sec:java_plugin_publishing,main Java component>>
-* multiple <<plugins.adoc#sec:plugin_markers,"marker" publications>> (one for each plugin defined in the `gradlePlugin {}` block), named `<pluginName>PluginMarkerIvy` (for example in the above example it would be `simplePluginPluginMarkerIvy`)
+* multiple <<writing_plugins.adoc#sec:plugin_markers,"marker" publications>> (one for each plugin defined in the `gradlePlugin {}` block), named `<pluginName>PluginMarkerIvy` (for example in the above example it would be `simplePluginPluginMarkerIvy`)
 
 This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle.adoc#sec:build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
 

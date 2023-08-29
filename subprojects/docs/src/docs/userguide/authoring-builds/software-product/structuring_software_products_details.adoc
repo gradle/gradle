@@ -98,7 +98,7 @@ You just need to define versions for the components, ideally in a <<platforms.ad
 [[publish-convention-plugins]]
 === Publishing components with convention plugins
 
-Note that when publishing build logic components, the `maven-publish` will also publish so called <<plugins.adoc#sec:plugin_markers,plugin markers>> that allow Gradle to find plugins by ID – even if they are located in a repository.
+Note that when publishing build logic components, the `maven-publish` will also publish so called <<writing_plugins.adoc#sec:plugin_markers,plugin markers>> that allow Gradle to find plugins by ID – even if they are located in a repository.
 For that you only need to <<publishing_gradle_plugins.adoc#custom-plugin-repositories,declare the repositories you want to publish to>> in your build the same way you do it for other components.
 
 [[settings_convention_plugins]]

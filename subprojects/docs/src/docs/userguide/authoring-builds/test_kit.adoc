@@ -97,7 +97,7 @@ The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin development 
 Starting with Gradle version 2.13, the plugin provides a direct integration with TestKit.
 When applied to a project, the plugin automatically adds the `gradleTestKit()` dependency to the `testApi` configuration.
 Furthermore, it automatically generates the classpath for the code under test and injects it via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath--[GradleRunner.withPluginClasspath()] for any `GradleRunner` instance created by the user.
-It's important to note that the mechanism currently _only_ works if the plugin under test is applied using the <<plugins.adoc#sec:plugins_block,plugins DSL>>.
+It's important to note that the mechanism currently _only_ works if the plugin under test is applied using the <<writing_plugins.adoc#sec:plugins_block,plugins DSL>>.
 If the <<#sub:gradle-runner-gradle-version,target Gradle version>> is prior to 2.8, automatic plugin classpath injection is not performed.
 
 The plugin uses the following conventions for applying the TestKit dependency and injecting the classpath:

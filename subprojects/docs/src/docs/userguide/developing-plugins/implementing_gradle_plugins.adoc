@@ -348,7 +348,7 @@ That is, if you followed this chapter and your plugin class is `org.example.Gree
 
 Given a dependency on a multi-variant plugin, Gradle will automatically choose its variant that best matches the current Gradle version when it resolves any of:
 
-* plugins specified in the <<plugins.adoc#sec:plugins_block,`plugins {}` block>>;
+* plugins specified in the <<writing_plugins.adoc#sec:plugins_block,`plugins {}` block>>;
 * `buildscript` classpath dependencies;
 * dependencies in the root project of the <<organizing_gradle_projects.adoc#sec:build_sources,build source (`buildSrc`)>> that appear on the compile or runtime classpath;
 * dependencies in a project that applies the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> or the <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL plugin>>, appearing on the compile or runtime classpath.

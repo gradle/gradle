@@ -333,7 +333,7 @@ You can bypass the toolchain discovery by specifying the installation directory 
 [[changes_4.3]]
 == Upgrading from 4.2 and earlier
 
- * The `plugins {}` block can now be <<plugins.adoc#sec:subprojects_plugins_dsl,used in subprojects>> and for <<plugins.adoc#sec:buildsrc_plugins_dsl,plugins in the _buildSrc_ directory>>.
+ * The `plugins {}` block can now be <<writing_plugins.adoc#sec:subprojects_plugins_dsl,used in subprojects>> and for <<writing_plugins.adoc#sec:buildsrc_plugins_dsl,plugins in the _buildSrc_ directory>>.
 
 === Other deprecations
 

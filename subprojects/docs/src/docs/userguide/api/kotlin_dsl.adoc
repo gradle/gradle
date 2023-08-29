@@ -34,7 +34,7 @@ If you are interested in migrating an existing Gradle build to the Kotlin DSL, p
 
 * The embedded Kotlin compiler is known to work on Linux, macOS, Windows, Cygwin, FreeBSD and Solaris on x86-64 architectures.
 * Knowledge of Kotlin syntax and basic language features is very helpful. The link:{kotlin-reference}[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] will help you to learn the basics.
-* Use of the <<plugins#sec:plugins_block,plugins {}>> block to declare Gradle plugins significantly improves the editing experience and is highly recommended.
+* Use of the <<writing_plugins#sec:plugins_block,plugins {}>> block to declare Gradle plugins significantly improves the editing experience and is highly recommended.
 
 [[sec:ide_support]]
 == IDE support
@@ -418,7 +418,7 @@ As with single-project builds, you should try to use the `plugins {}` block in y
 
 You can declare your plugins within the subprojects to which they apply, but we recommend that you also declare them within the root project build script. This makes it easier to keep plugin versions consistent across projects within a build. The approach also improves the performance of the build.
 
-The <<plugins#sec:subprojects_plugins_dsl,Using Gradle plugins>> chapter explains how you can declare plugins in the root project build script with a version and then apply them to the appropriate subprojects' build scripts. What follows is an example of this approach using three subprojects and three plugins. Note how the root build script only declares the community plugins as the Java Library Plugin is tied to the version of Gradle you are using:
+The <<writing_plugins#sec:subprojects_plugins_dsl,Using Gradle plugins>> chapter explains how you can declare plugins in the root project build script with a version and then apply them to the appropriate subprojects' build scripts. What follows is an example of this approach using three subprojects and three plugins. Note how the root build script only declares the community plugins as the Java Library Plugin is tied to the version of Gradle you are using:
 
 [[ex:multi_project_ratpack]]
 .Declare plugin dependencies in the root build script using the `plugins {}` block
@@ -433,7 +433,7 @@ If your build requires additional plugin repositories on top of the Gradle Plugi
 include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=repositories]"]
 ====
 
-Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] can only be declared via the `plugins {}` block if they are published with their <<plugins#sec:plugin_markers,plugin marker artifacts>>.
+Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] can only be declared via the `plugins {}` block if they are published with their <<writing_plugins#sec:plugin_markers,plugin marker artifacts>>.
 
 NOTE: At the time of writing, all versions of the Android Plugin for Gradle up to 3.2.0 present in the `google()` repository lack plugin marker artifacts.
 
@@ -470,7 +470,7 @@ We are also using standard APIs instead of type-safe accessors to configure task
 == When you can't use the `plugins {}` block
 
 Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] may or may not be usable with the `plugins {}` block.
-It depends on how they have been published and, specifically, whether they have been published with the necessary <<plugins#sec:plugin_markers,plugin marker artifacts>>.
+It depends on how they have been published and, specifically, whether they have been published with the necessary <<writing_plugins#sec:plugin_markers,plugin marker artifacts>>.
 
 For example, the Android Plugin for Gradle is not published to the Gradle Plugin Portal and — at least up to version 3.2.0 of the plugin — the metadata required to resolve the artifacts for a given plugin identifier is not published to the Google repository.
 
@@ -500,7 +500,7 @@ include::sample[dir="snippets/kotlinDsl/androidSingleBuild/kotlin",files="settin
 
 In fact, the above sample will work for all `com.android.*` plugins that are provided by the specified module. That's because the packaged module contains the details of which plugin ID maps to which plugin implementation class, using the properties-file mechanism described in the <<custom_plugins#sec:custom_plugins_standalone_project,Writing Custom Plugins>> chapter.
 
-See the <<plugins#sec:plugin_management,Plugin Management>> section of the Gradle user manual for more information on the `pluginManagement {}` block and what it can be used for.
+See the <<writing_plugins#sec:plugin_management,Plugin Management>> section of the Gradle user manual for more information on the `pluginManagement {}` block and what it can be used for.
 
 // [PL] It seems to me that this block of content should really be in a more generic part
 //      of the user manual as it discusses techniques that apply outside of the Kotlin DSL.
