@@ -20,6 +20,7 @@ package org.gradle.internal.instrumentation.extensions.property;
 import com.google.gson.Gson;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -96,6 +97,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         List<UpgradedMethod> upgradedMethods = requests.stream()
             .map(CallInterceptionRequest::getImplementationInfo)
             .map(implementation -> new UpgradedMethod(implementation.getName(), implementation.getDescriptor()))
+            .sorted()
             .collect(Collectors.toList());
         return new PropertyEntry(fqName, propertyName, containingType, upgradedMethods);
     }
@@ -133,7 +135,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         }
     }
 
-    private static class UpgradedMethod {
+    private static class UpgradedMethod implements Comparable<UpgradedMethod> {
         private final String name;
         private final String descriptor;
 
@@ -148,6 +150,12 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
         public String getDescriptor() {
             return descriptor;
+        }
+
+        @Override
+        public int compareTo(@NotNull InstrumentedPropertiesResourceGenerator.UpgradedMethod o) {
+            int nameComparison = name.compareTo(o.name);
+            return nameComparison != 0 ? nameComparison : descriptor.compareTo(o.descriptor);
         }
     }
 }
