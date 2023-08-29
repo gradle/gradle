@@ -16,6 +16,9 @@
 
 package org.gradle.internal.classpath;
 
+import groovy.lang.GroovySystem;
+import groovy.lang.MetaClass;
+import groovy.lang.MetaClassRegistry;
 import kotlin.io.FilesKt;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
@@ -32,7 +35,9 @@ import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
 import org.gradle.internal.classpath.intercept.CallSiteDecorator;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
+import org.gradle.internal.classpath.intercept.InterceptorMetaClass;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
@@ -49,6 +54,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -120,6 +126,9 @@ public class Instrumented {
             currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
             ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader);
             currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
+
+            ProcessGroovyMethodsExecuteInterceptor pgmInterceptor = new ProcessGroovyMethodsExecuteInterceptor();
+            pgmInterceptor.installMetaClasses();
         }
 
         public static CallSiteDecorator getGroovyCallDecorator() {
@@ -159,7 +168,7 @@ public class Instrumented {
             new BooleanGetBooleanInterceptor(),
             new SystemGetenvInterceptor(),
             new RuntimeExecInterceptor(),
-            new ProcessGroovyMethodsExecuteInterceptor(),
+//            new ProcessGroovyMethodsExecuteInterceptor(),
             new ProcessBuilderStartInterceptor(),
             new ProcessBuilderStartPipelineInterceptor()
         );
@@ -871,7 +880,8 @@ public class Instrumented {
     /**
      * The interceptor for Groovy's {@code String.execute}, {@code String[].execute}, and {@code List.execute}. This also handles {@code ProcessGroovyMethods.execute}.
      */
-    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor {
+    @NonNullApi
+    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor implements SignatureAwareCallInterceptor {
         protected ProcessGroovyMethodsExecuteInterceptor() {
             super(InterceptScope.methodsNamed("execute"));
         }
@@ -932,6 +942,75 @@ public class Instrumented {
                 }
             }
             return Optional.empty();
+        }
+
+        @Nullable
+        @Override
+        public SignatureMatch matchesMethodSignature(Class<?> receiverClass, Class<?>[] argumentClasses, boolean isStatic) {
+            if (!isStatic && (String.class.isAssignableFrom(receiverClass) || String[].class.isAssignableFrom(receiverClass) || List.class.isAssignableFrom(receiverClass))) {
+                switch (argumentClasses.length) {
+                    case 0:
+                        return new SignatureMatch(false, argumentClasses);
+                    case 2: {
+                        Class<?> envpArg = argumentClasses[0];
+                        Class<?> fileArg = argumentClasses[1];
+                        if ((List.class.isAssignableFrom(envpArg) || String[].class.isAssignableFrom(envpArg)) && File.class.isAssignableFrom(fileArg)) {
+                            return new SignatureMatch(false, argumentClasses);
+                        }
+                        break;
+                    }
+                }
+            } else if (isStatic && ProcessGroovyMethods.class.equals(receiverClass)) {
+                switch (argumentClasses.length) {
+                    case 1: {
+                        Class<?> cmdArg = argumentClasses[0];
+                        if (String.class.isAssignableFrom(cmdArg) || String[].class.isAssignableFrom(cmdArg) || List.class.isAssignableFrom(cmdArg)) {
+                            return new SignatureMatch(true, argumentClasses);
+                        }
+                        break;
+                    }
+                    case 3: {
+                        Class<?> cmdArg = argumentClasses[0];
+                        Class<?> envpArg = argumentClasses[1];
+                        Class<?> fileArg = argumentClasses[2];
+                        if (
+                            (String.class.isAssignableFrom(cmdArg) || String[].class.isAssignableFrom(cmdArg) || List.class.isAssignableFrom(cmdArg)) &&
+                                (List.class.isAssignableFrom(envpArg) || String[].class.isAssignableFrom(envpArg)) &&
+                                File.class.isAssignableFrom(fileArg)) {
+                            return new SignatureMatch(true, argumentClasses);
+                        }
+                        break;
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void installMetaClasses() {
+            GroovySystem.getMetaClassRegistry().setMetaClass(String.class, new InterceptorMetaClass(String.class, this));
+            GroovySystem.getMetaClassRegistry().setMetaClass(String[].class, new InterceptorMetaClass(String[].class, this));
+            GroovySystem.getMetaClassRegistry().setMetaClass(ProcessGroovyMethods.class, new InterceptorMetaClass(ProcessGroovyMethods.class, this));
+
+            GroovySystem.getMetaClassRegistry().setMetaClassCreationHandle(new MetaClassRegistry.MetaClassCreationHandle() {
+                @Override
+                protected MetaClass createNormalMetaClass(Class theClass, MetaClassRegistry registry) {
+                    MetaClass mc = super.createNormalMetaClass(theClass, registry);
+                    if (List.class.isAssignableFrom(theClass)) {
+                        return new InterceptorMetaClass(mc, ProcessGroovyMethodsExecuteInterceptor.this);
+                    }
+                    return mc;
+                }
+            });
+
+            @SuppressWarnings("unchecked")
+            Iterator<MetaClass> mcIter = GroovySystem.getMetaClassRegistry().iterator();
+            while (mcIter.hasNext()) {
+                MetaClass mc = mcIter.next();
+                if (List.class.isAssignableFrom(mc.getTheClass())) {
+                    GroovySystem.getMetaClassRegistry().setMetaClass(mc.getTheClass(), new InterceptorMetaClass(mc, this));
+                }
+            }
         }
     }
 

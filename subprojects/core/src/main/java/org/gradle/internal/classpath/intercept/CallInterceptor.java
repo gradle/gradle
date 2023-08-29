@@ -64,6 +64,8 @@ public abstract class CallInterceptor {
      */
     public abstract Object doIntercept(Invocation invocation, String consumer) throws Throwable;
 
+    public void installMetaClasses() {}
+
     MethodHandle decorateMethodHandle(MethodHandle original, MethodHandles.Lookup caller, int flags) {
         MethodHandle spreader = original.asSpreader(Object[].class, original.type().parameterCount());
         MethodHandle decorated = MethodHandles.insertArguments(INTERCEPTOR, 0, this, spreader, flags, caller.lookupClass().getName());
