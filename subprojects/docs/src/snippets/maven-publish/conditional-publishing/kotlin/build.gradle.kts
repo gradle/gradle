@@ -7,7 +7,7 @@ group = "org.gradle.sample"
 version = "1.0"
 
 task<Jar>("sourcesJar") {
-    archiveClassifier.set("sources")
+    archiveClassifier = "sources"
     from(sourceSets.main.get().allJava)
 }
 

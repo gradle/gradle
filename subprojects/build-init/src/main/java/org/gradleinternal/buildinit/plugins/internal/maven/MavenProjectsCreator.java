@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+@SuppressWarnings("deprecation") // This Class uses a number of types deprecated in Maven
 public class MavenProjectsCreator {
 
     public Set<MavenProject> create(Settings mavenSettings, File pomFile) {
@@ -96,20 +97,17 @@ public class MavenProjectsCreator {
         //we should add coverage for nested multi-project builds with multiple parents.
         reactorProjects.add(mavenProject);
         List<ProjectBuildingResult> allProjects = builder.build(ImmutableList.of(pomFile), true, buildingRequest);
-        //noinspection NullableProblems
         CollectionUtils.collect(allProjects, reactorProjects, ProjectBuildingResult::getProject);
 
         MavenExecutionResult result = new DefaultMavenExecutionResult();
         result.setProject(mavenProject);
         RepositorySystemSession repoSession = new DefaultRepositorySystemSession();
-        @SuppressWarnings("deprecation")
         MavenSession session = new MavenSession(container, repoSession, executionRequest, result);
         session.setCurrentProject(mavenProject);
 
         return reactorProjects;
     }
 
-    @SuppressWarnings("deprecation")
     private void populateFromSettings(Settings settings, MavenExecutionRequest executionRequest, MavenExecutionRequestPopulator populator) throws MavenExecutionRequestPopulationException {
         populator.populateFromSettings(executionRequest, settings);
     }

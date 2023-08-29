@@ -25,7 +25,6 @@ public interface VariantSelectorFactory {
     VariantSelector create(
         AttributeContainerInternal consumerAttributes,
         boolean allowNoMatchingVariants,
-        boolean selectFromAllVariants,
         TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory
     );
 }

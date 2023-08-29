@@ -27,6 +27,7 @@ import org.gradle.util.GradleVersion
     reason = "wrapperExecuter requires a real distribution")
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
+
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         prepareWrapper()

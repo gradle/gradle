@@ -17,19 +17,13 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.tasks.testing.TestExecutionException;
-import org.gradle.internal.DefaultTaskExecutionRequest;
-import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
-
-import java.util.Collections;
-import java.util.stream.Collectors;
 
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
     private final BuildOperationAncestryTracker ancestryTracker;
@@ -72,15 +66,6 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
     }
 
     private void doRun(TestExecutionRequestAction action, BuildTreeLifecycleController buildController) {
-        // TODO - move this to the client
-        if (!action.getTaskSpecs().isEmpty()) {
-            action.getStartParameter().setTaskRequests(Collections.singletonList(new DefaultTaskExecutionRequest(action.getTaskSpecs().stream().map(InternalTaskSpec::getTaskPath).collect(Collectors.toList()))));
-        } else if (action.isRunDefaultTasks()) {
-            action.getStartParameter().setTaskRequests(Collections.singletonList(new RunDefaultTasksExecutionRequest()));
-        } else {
-            action.getStartParameter().setTaskRequests(Collections.emptyList());
-        }
-
         buildController.scheduleAndRunTasks(new TestExecutionBuildConfigurationAction(action));
     }
 

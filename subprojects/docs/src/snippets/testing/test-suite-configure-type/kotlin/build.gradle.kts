@@ -29,7 +29,7 @@ repositories {
 testing {
     suites {
         val secondaryTest by registering(JvmTestSuite::class) {
-            testType.set(TestSuiteType.INTEGRATION_TEST) // <1>
+            testType = TestSuiteType.INTEGRATION_TEST // <1>
         }
     }
 }

@@ -23,7 +23,7 @@ import static com.google.testing.compile.CompilationSubject.assertThat
 
 class InterceptGroovyCallsGeneratorTest extends InstrumentationCodeGenTest {
 
-    def "should generate interceptor with public modifier and public getCallInterceptors method"() {
+    def "should generate interceptor declaration with public modifier"() {
         given:
         def givenSource = source """
             package org.gradle.test;
@@ -49,9 +49,6 @@ class InterceptGroovyCallsGeneratorTest extends InstrumentationCodeGenTest {
         def expectedJvmInterceptors = source """
             package my;
             public class InterceptorDeclaration_GroovyBytecodeImpl {
-                public static List<CallInterceptor> getCallInterceptors() {
-                    return Arrays.asList(new ListFilesCallInterceptor());
-                }
             }
         """
         assertThat(compilation).succeededWithoutWarnings()

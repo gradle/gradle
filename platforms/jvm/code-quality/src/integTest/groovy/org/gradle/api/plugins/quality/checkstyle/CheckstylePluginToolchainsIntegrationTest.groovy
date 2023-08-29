@@ -159,8 +159,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class2"))
 
-        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.Class1"))
-        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.Class2"))
+        file("build/reports/checkstyle/main.html").assertExists()
     }
 
     def "analyze bad code with the toolchain JDK"() {

@@ -1,0 +1,91 @@
+
+// Copyright 2019 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[compatibility]]
+= Compatibility Matrix
+
+The sections below describe Gradle's compatibility with several integrations.
+Versions not listed here may or may not work.
+
+== Java
+A Java version between 8 and 20 is required to execute Gradle.
+Java 21 and later versions are not yet supported.
+
+Java 6 and 7 can be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation>> but are deprecated for use with testing. Testing with Java 6 and 7 will not be supported in Gradle 9.0.
+
+Any fully supported version of Java can be used for compilation or testing.
+However, the latest Java version may only be supported for compilation or testing, not for running Gradle.
+Support is achieved using <<toolchains#toolchains,toolchains>> and applies to all tasks supporting toolchains.
+
+See the table below for the Java version supported by a specific Gradle release:
+
+.Java Compatibility
+|===
+|Java version | Support for compiling/testing/... | Support for running Gradle
+
+| 8 | N/A | 2.0
+| 9 | N/A | 4.3
+| 10| N/A | 4.7
+| 11| N/A | 5.0
+| 12| N/A | 5.4
+| 13| N/A | 6.0
+| 14| N/A | 6.3
+| 15| 6.7 | 6.7
+| 16| 7.0 | 7.0
+| 17| 7.3 | 7.3
+| 18| 7.5 | 7.5
+| 19| 7.6 | 7.6
+| 20| 8.1 | 8.3
+|===
+
+[[kotlin]]
+== Kotlin
+Gradle is tested with Kotlin 1.6.10 through 1.9.0.
+Beta and RC versions may or may not work.
+
+.Embedded Kotlin version
+|===
+| Gradle version | Embedded Kotlin version | Kotlin Language version
+
+| 5.0 | 1.3.10 | 1.3
+| 5.1 | 1.3.11 | 1.3
+| 5.2 | 1.3.20 | 1.3
+| 5.3 | 1.3.21 | 1.3
+| 5.5 | 1.3.31 | 1.3
+| 5.6 | 1.3.41 | 1.3
+| 6.0 | 1.3.50 | 1.3
+| 6.1 | 1.3.61 | 1.3
+| 6.3 | 1.3.70 | 1.3
+| 6.4 | 1.3.71 | 1.3
+| 6.5 | 1.3.72 | 1.3
+| 6.8 | 1.4.20 | 1.3
+| 7.0 | 1.4.31 | 1.4
+| 7.2 | 1.5.21 | 1.4
+| 7.3 | 1.5.31 | 1.4
+| 7.5 | 1.6.21 | 1.4
+| 7.6 | 1.7.10 | 1.4
+| 8.0 | 1.8.10 | 1.8
+| 8.2 | 1.8.20 | 1.8
+| 8.3 | 1.9.0  | 1.8
+|===
+
+== Groovy
+Gradle is tested with Groovy 1.5.8 through 4.0.0.
+
+Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Gradle and Groovy DSL build scripts.
+
+== Android
+Gradle is tested with Android Gradle Plugin 7.3 through 8.1.
+Alpha and beta versions may or may not work.

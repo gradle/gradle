@@ -1,5 +1,5 @@
 <!--- The issue this PR addresses -->
-Fixes #?
+<!-- Fixes #? -->
 
 ### Context
 <!--- Why do you believe many users will benefit from this change? -->
@@ -16,7 +16,10 @@ Fixes #?
 - [ ] Ensure that tests pass sanity check: `./gradlew sanityCheck`
 - [ ] Ensure that tests pass locally: `./gradlew <changed-subproject>:quickTest`
 
-### Gradle Core Team Checklist
-- [ ] Verify design and implementation 
-- [ ] Verify test coverage and CI build status
-- [ ] Verify documentation
+### Reviewing cheatsheet
+
+Before merging the PR, comments starting with 
+- ❌ ❓**must** be fixed
+- 🤔 💅 **should** be fixed
+- 💭 **may** be fixed
+- 🎉 celebrate happy things

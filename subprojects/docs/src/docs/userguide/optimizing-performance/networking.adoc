@@ -1,0 +1,79 @@
+// Copyright 2023 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[networking_gradle]]
+== Networking with Gradle
+
+[[sec:accessing_the_web_via_a_proxy]]
+== Accessing the web through a proxy
+
+Configuring a proxy (for downloading dependencies, for example) is done via standard JVM system properties.
+
+These properties can be set directly in the build script.
+For example, setting the HTTP proxy host would be done with `System.setProperty('http.proxyHost', 'www.somehost.org')`.
+
+Alternatively, the properties can be <<build_environment.adoc#sec:gradle_configuration_properties,specified in `gradle.properties`>>.
+
+*Example 1:* Configuring an HTTP proxy using `gradle.properties`:
+====
+----
+systemProp.http.proxyHost=www.somehost.org
+systemProp.http.proxyPort=8080
+systemProp.http.proxyUser=userid
+systemProp.http.proxyPassword=password
+systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
+----
+====
+
+There are separate settings for HTTPS.
+
+*Example 2:* Configuring an HTTPS proxy using `gradle.properties`:
+====
+----
+systemProp.https.proxyHost=www.somehost.org
+systemProp.https.proxyPort=8080
+systemProp.https.proxyUser=userid
+systemProp.https.proxyPassword=password
+# NOTE: this is not a typo.
+systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
+----
+====
+
+There are separate settings for SOCKS.
+
+*Example 3:* Configuring a SOCKS proxy using `gradle.properties`:
+====
+----
+systemProp.socksProxyHost=www.somehost.org
+systemProp.socksProxyPort=1080
+systemProp.java.net.socks.username=userid
+systemProp.java.net.socks.password=password
+----
+====
+
+You may need to set other properties to access other networks.
+
+Helpful references:
+
+* link:https://github.com/apache/ant/blob/master/src/main/org/apache/tools/ant/util/ProxySetup.java[ProxySetup.java in the Ant codebase^]
+* link:https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html[JDK 8 Proxies^]
+
+=== NTLM Authentication
+
+If your proxy requires NTLM authentication, you may need to provide the authentication domain as well as the username and password.
+
+There are 2 ways that you can provide the domain for authenticating to a NTLM proxy:
+
+* Set the `http.proxyUser` system property to a value like `__domain__/__username__`.
+* Provide the authentication domain via the `http.auth.ntlm.domain` system property.

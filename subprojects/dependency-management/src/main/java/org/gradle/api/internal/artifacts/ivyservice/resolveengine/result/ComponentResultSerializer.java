@@ -57,14 +57,20 @@ public class ComponentResultSerializer {
     }
 
     public void write(Encoder encoder, ResolvedGraphComponent value) throws IOException {
-        encoder.writeSmallLong(value.getResultId());
-        reasonSerializer.write(encoder, value.getSelectionReason());
-        encoder.writeNullableString(value.getRepositoryName());
-        componentDetailsSerializer.writeComponentDetails(value.getResolveState(), returnAllVariants, encoder);
-        List<ResolvedGraphVariant> selectedVariants = value.getSelectedVariants();
-        encoder.writeSmallInt(selectedVariants.size());
-        for (ResolvedGraphVariant variant : selectedVariants) {
-            selectedVariantSerializer.writeVariantResult(variant, encoder);
+        try {
+            encoder.writeSmallLong(value.getResultId());
+            reasonSerializer.write(encoder, value.getSelectionReason());
+            encoder.writeNullableString(value.getRepositoryName());
+            componentDetailsSerializer.writeComponentDetails(value.getResolveState(), returnAllVariants, encoder);
+            List<ResolvedGraphVariant> selectedVariants = value.getSelectedVariants();
+            encoder.writeSmallInt(selectedVariants.size());
+            for (ResolvedGraphVariant variant : selectedVariants) {
+                selectedVariantSerializer.writeVariantResult(variant, encoder);
+            }
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e);
         }
     }
 }

@@ -17,13 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
-import javax.annotation.Nullable;
-
 public interface DependencyMetadataFactory {
-    LocalOriginDependencyMetadata createDependencyMetadata(ComponentIdentifier componentId, @Nullable String clientConfiguration, @Nullable AttributeContainer attributes, ModuleDependency dependency);
-    LocalOriginDependencyMetadata createDependencyConstraintMetadata(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint);
+    LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency);
+    LocalOriginDependencyMetadata createDependencyConstraintMetadata(DependencyConstraint dependencyConstraint);
 }

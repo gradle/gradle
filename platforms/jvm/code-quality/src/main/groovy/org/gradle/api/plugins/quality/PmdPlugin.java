@@ -154,7 +154,6 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         taskMapping.map("ruleSets", () -> extension.getRuleSets());
         taskMapping.map("ruleSetConfig", () -> extension.getRuleSetConfig());
         taskMapping.map("ruleSetFiles", () -> extension.getRuleSetFiles());
-        taskMapping.map("ignoreFailures", () -> extension.isIgnoreFailures());
         taskMapping.map("consoleOutput", () -> extension.isConsoleOutput());
         taskMapping.map("targetJdk", () -> extension.getTargetJdk());
 
@@ -162,6 +161,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
         task.getThreads().convention(extension.getThreads());
+        task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {

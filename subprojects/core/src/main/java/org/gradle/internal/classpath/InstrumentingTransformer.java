@@ -21,9 +21,9 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
-import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
@@ -36,15 +36,13 @@ import java.io.File;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.gradle.internal.classpath.CommonTypes.NO_EXCEPTIONS;
 import static org.gradle.internal.classpath.CommonTypes.STRING_TYPE;
@@ -67,7 +65,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 31;
+    private static final int DECORATION_FORMAT = 34;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
@@ -175,7 +173,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     }
 
     public InstrumentingTransformer() {
-        this(JvmBytecodeInterceptorSet.DEFAULT);
+        this(CallInterceptorRegistry.getJvmBytecodeInterceptors());
     }
 
     /**
@@ -188,19 +186,28 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new LambdaSerializationTransformer(new InstrumentingBackwardsCompatibilityVisitor(visitor)), classData, externalInterceptors.interceptorClassNames()));
+        return Pair.of(entry.getPath(),
+            new InstrumentingVisitor(
+                new CallInterceptionClosureInstrumentingClassVisitor(
+                    new LambdaSerializationTransformer(
+                        new InstrumentingBackwardsCompatibilityVisitor(visitor)
+                    )
+                ),
+                classData, externalInterceptors
+            )
+        );
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
         String className;
         private final ClassData classData;
         private boolean hasGroovyCallSites;
-        private final List<String> generatedInterceptorClassNames;
+        private final JvmBytecodeInterceptorSet externalInterceptors;
 
-        public InstrumentingVisitor(ClassVisitor visitor, ClassData classData, List<String> generatedInterceptorClassNames) {
+        public InstrumentingVisitor(ClassVisitor visitor, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
             super(ASM_LEVEL, visitor);
             this.classData = classData;
-            this.generatedInterceptorClassNames = generatedInterceptorClassNames;
+            this.externalInterceptors = externalInterceptors;
         }
 
         @Override
@@ -221,7 +228,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, generatedInterceptorClassNames);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, externalInterceptors);
         }
 
         @Override
@@ -252,25 +259,14 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private final InstrumentingVisitor owner;
         private final String className;
         private final Lazy<MethodNode> asNode;
-        private final List<JvmBytecodeCallInterceptor> externalInterceptors;
+        private final Collection<JvmBytecodeCallInterceptor> externalInterceptors;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, List<String> externalInterceptors) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
             this.asNode = asNode;
-            this.externalInterceptors = externalInterceptors.stream()
-                .map(className -> newInterceptor(className, methodVisitor, classData))
-                .collect(toImmutableList());
-        }
-
-        private static JvmBytecodeCallInterceptor newInterceptor(String className, MethodVisitor methodVisitor, ClassData classData) {
-            try {
-                Constructor<?> constructor = Class.forName(className).getConstructor(MethodVisitor.class, InstrumentationMetadata.class);
-                return (JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, classData);
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
+            this.externalInterceptors = externalInterceptors.getInterceptors(methodVisitor, classData);
         }
 
         @Override

@@ -20,7 +20,10 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A module dependency declared in an ivy dependency descriptor published as part of an {@link IvyPublication}.
+ *
+ * @deprecated This type is not referenced by any other public API classes. It will be removed in Gradle 9.0
  */
+@Deprecated
 @HasInternalProtocol
 public interface IvyDependency {
 

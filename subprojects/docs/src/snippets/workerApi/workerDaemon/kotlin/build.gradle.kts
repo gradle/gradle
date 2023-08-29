@@ -38,8 +38,8 @@ abstract class ReverseFiles @Inject constructor(private val workerExecutor: Work
         // Create and submit a unit of work for each file
         source.forEach { file ->
             workQueue.submit(ReverseFile::class) {
-                fileToReverse.set(file)
-                destinationDir.set(outputDir)
+                fileToReverse = file
+                destinationDir = outputDir
             }
         }
         // end::worker-daemon[]
@@ -47,6 +47,6 @@ abstract class ReverseFiles @Inject constructor(private val workerExecutor: Work
 }
 
 tasks.register<ReverseFiles>("reverseFiles") {
-    outputDir.set(layout.buildDirectory.dir("reversed"))
+    outputDir = layout.buildDirectory.dir("reversed")
     source("sources")
 }

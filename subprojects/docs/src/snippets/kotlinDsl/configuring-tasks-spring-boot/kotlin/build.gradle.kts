@@ -14,24 +14,24 @@ plugins {
 
 // tag::accessors[]
 tasks.bootJar {
-    archiveFileName.set("app.jar")
-    mainClass.set("com.example.demo.Demo")
+    archiveFileName = "app.jar"
+    mainClass = "com.example.demo.Demo"
 }
 
 tasks.bootRun {
-    mainClass.set("com.example.demo.Demo")
+    mainClass = "com.example.demo.Demo"
     args("--spring.profiles.active=demo")
 }
 // end::accessors[]
 
 // tag::lazy[]
 tasks.named<BootJar>("bootJar") {
-    archiveFileName.set("app.jar")
-    mainClass.set("com.example.demo.Demo")
+    archiveFileName = "app.jar"
+    mainClass = "com.example.demo.Demo"
 }
 
 tasks.named<BootRun>("bootRun") {
-    mainClass.set("com.example.demo.Demo")
+    mainClass = "com.example.demo.Demo"
     args("--spring.profiles.active=demo")
 }
 // end::lazy[]

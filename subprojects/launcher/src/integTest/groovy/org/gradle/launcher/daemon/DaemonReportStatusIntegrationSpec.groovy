@@ -29,7 +29,7 @@ class DaemonReportStatusIntegrationSpec extends DaemonIntegrationSpec {
 
     def "shows default message if no daemons are running"() {
         when:
-        def out = executer.withArguments("--status").run().normalizedOutput
+        def out = executer.withArgument("--status").run().normalizedOutput
 
         then:
         out =~ """^$DaemonMessages.NO_DAEMONS_RUNNING
@@ -79,7 +79,7 @@ task block {
         daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12346L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON"))
 
         when:
-        def out = executer.withArguments("--status").run().normalizedOutput
+        def out = executer.withArgument("--status").run().normalizedOutput
 
         then:
         out.startsWith(DaemonMessages.NO_DAEMONS_RUNNING)

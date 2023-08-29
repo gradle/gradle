@@ -210,8 +210,7 @@ trait ToolingApiSpec {
         result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
-            def args = executer.allArgs
-            args.remove("--no-daemon")
+            def args = executer.allArgs.tap { remove("--no-daemon") }
 
             model = connection.action(buildAction)
                 .withArguments(args)

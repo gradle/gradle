@@ -29,8 +29,8 @@ publishing {
 // The project requires libraries to have a README containing sections configured below
 // tag::use-java-class[]
 val readmeCheck by tasks.registering(com.example.ReadmeVerificationTask::class) {
-    readme.set(layout.projectDirectory.file("README.md"))
-    readmePatterns.set(listOf("^## API$", "^## Changelog$"))
+    readme = layout.projectDirectory.file("README.md")
+    readmePatterns = listOf("^## API$", "^## Changelog$")
 }
 // end::use-java-class[]
 

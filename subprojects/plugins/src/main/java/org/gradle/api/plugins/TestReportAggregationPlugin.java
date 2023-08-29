@@ -32,7 +32,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.testing.DefaultAggregateTestReport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.testing.AggregateTestReport;
 import org.gradle.testing.base.TestSuite;
@@ -55,7 +55,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
     public static final String TEST_REPORT_AGGREGATION_CONFIGURATION_NAME = "testReportAggregation";
 
     @Inject
-    protected abstract JvmEcosystemUtilities getEcosystemUtilities();
+    protected abstract JvmPluginServices getJvmPluginServices();
 
     @Override
     public void apply(Project project) {
@@ -105,7 +105,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
 
         project.getPlugins().withType(JavaBasePlugin.class, plugin -> {
             // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
-            getEcosystemUtilities().configureAsRuntimeClasspath(testAggregation);
+            getJvmPluginServices().configureAsRuntimeClasspath(testAggregation);
         });
 
         // convention for synthesizing reports based on existing test suites in "this" project

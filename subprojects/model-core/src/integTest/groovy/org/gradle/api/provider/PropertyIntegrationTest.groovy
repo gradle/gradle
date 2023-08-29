@@ -888,4 +888,67 @@ project.extensions.create("some", SomeExtension)
         where:
         fieldModifier << ["", "final"]
     }
+
+    def "can use a filtered value provider"() {
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract ListProperty<String> getStrings()
+
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                def action() {
+                    def outputFile = output.get().asFile
+                    outputFile.write(strings.get().join(","))
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                strings.add(providers.gradleProperty("my").filter { it.contains("value") })
+                output = layout.buildDirectory.file("myTask.txt")
+            }
+        """
+
+        when:
+        run 'myTask', "-Pmy=value1"
+        then:
+        executedAndNotSkipped(":myTask")
+        file("build/myTask.txt").text == "value1"
+
+        when:
+        run 'myTask', "-Pmy=value1"
+        then:
+        skipped(":myTask")
+        file("build/myTask.txt").text == "value1"
+
+        when:
+        fails('myTask', "-Pmy=trash")
+        then:
+        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+
+        when:
+        fails('myTask')
+        then:
+        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+    }
+
+    def "filter is evaluated lazily"() {
+        buildKotlinFile << """
+            tasks.register("printer") {
+                val someValue = objects.property<String>().convention("some value")
+                doLast {
+                    val filtered = someValue.filter { it.contains("value") }
+                    someValue.set("trash")
+                    println("filter: ${'$'}{filtered.getOrNull()}")
+                }
+            }
+        """
+
+        when:
+        run 'printer'
+        then:
+        outputContains("filter: null")
+    }
 }

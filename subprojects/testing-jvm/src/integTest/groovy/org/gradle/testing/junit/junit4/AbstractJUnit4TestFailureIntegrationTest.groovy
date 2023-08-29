@@ -19,6 +19,7 @@ package org.gradle.testing.junit.junit4
 import org.gradle.testing.junit.AbstractJUnitTestFailureIntegrationTest
 
 abstract class AbstractJUnit4TestFailureIntegrationTest extends AbstractJUnitTestFailureIntegrationTest {
+
     @Override
     void writeBrokenRunnerOrExtension(String className) {
         file("src/test/java/org/gradle/${className}.java") << """

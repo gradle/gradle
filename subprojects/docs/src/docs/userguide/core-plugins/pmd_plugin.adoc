@@ -45,10 +45,6 @@ Runs PMD against the production Java source files.
 +
 Runs PMD against the test Java source files.
 
-`pmd__SourceSet__` — link:{groovyDslPath}/org.gradle.api.plugins.quality.Pmd.html[Pmd]::
-+
-Runs PMD against the given source set's Java source files.
-
 The PMD plugin adds the following dependencies to tasks defined by the Java plugin.
 
 .PMD plugin - additional task dependencies

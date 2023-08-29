@@ -29,8 +29,6 @@ import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
-import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -444,12 +442,12 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     class TestDependencyMetadataFactory implements DependencyMetadataFactory {
         @Override
-        LocalOriginDependencyMetadata createDependencyMetadata(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, ModuleDependency dependency) {
+        LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency) {
             return dependencyMetadata(dependency)
         }
 
         @Override
-        LocalOriginDependencyMetadata createDependencyConstraintMetadata(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
+        LocalOriginDependencyMetadata createDependencyConstraintMetadata(DependencyConstraint dependencyConstraint) {
             throw new UnsupportedOperationException()
         }
     }

@@ -202,6 +202,9 @@
                 <td>org.gradle.plugin.management.PluginManagementSpec</td>
             </tr>
             <tr>
+                <td>org.gradle.api.provider.ProviderFactory</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.resources.ResourceHandler</td>
             </tr>
             <tr>

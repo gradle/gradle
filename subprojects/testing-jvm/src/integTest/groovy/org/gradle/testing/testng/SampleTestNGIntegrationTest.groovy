@@ -26,7 +26,8 @@ import org.junit.Test
 
 class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider)
+    @Rule
+    public final Sample sample = new Sample(testDirectoryProvider)
 
     @Before
     void setUp() {
@@ -35,7 +36,7 @@ class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @UsesSample('testing/testng-suitexmlbuilder')
-     void suiteXmlBuilder() {
+    void suiteXmlBuilder() {
         def testDir = sample.dir.file('groovy')
         executer.inDirectory(testDir).withTasks('clean', 'test').run()
 

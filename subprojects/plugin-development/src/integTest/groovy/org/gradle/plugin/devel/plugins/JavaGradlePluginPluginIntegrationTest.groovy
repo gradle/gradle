@@ -332,6 +332,31 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "test"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/25732")
+    def "can set tags with Groovy = assignment"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                        tags = ["first", "second", "third"]
+                    }
+                }
+            }
+
+            gradlePlugin.plugins.all {
+                assert it.tags.get() == ["first", "second", "third"] as Set<String>
+            }
+        """
+
+        expect:
+        succeeds "jar"
+    }
+
     def buildFile() {
         buildFile << """
 apply plugin: 'java-gradle-plugin'

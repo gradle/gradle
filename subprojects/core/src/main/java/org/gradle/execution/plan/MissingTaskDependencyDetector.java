@@ -22,10 +22,11 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.io.File;
@@ -37,6 +38,8 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class MissingTaskDependencyDetector {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
@@ -166,19 +169,21 @@ public class MissingTaskDependencyDetector {
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
-            problem.withId(ValidationProblemId.IMPLICIT_DEPENDENCY)
-                .reportAs(Severity.ERROR)
-                .withDescription(() -> "Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
-                .happensBecause(() -> String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
+            problem.typeIsIrrelevantInErrorMessage()
+                .label("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
+                .documentedAt(userManual("validation_problems", "implicit_dependency"))
+                .noLocation()
+                .type(ValidationProblemId.IMPLICIT_DEPENDENCY.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .severity(Severity.ERROR)
+                .details(String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
                         + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
                     consumer,
                     producer
                 ))
-                .addPossibleSolution(() -> "Declare task '" + producer + "' as an input of '" + consumer + "'")
-                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
-                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
-                .documentedAt("validation_problems", "implicit_dependency")
-                .typeIsIrrelevantInErrorMessage()
+                .solution("Declare task '" + producer + "' as an input of '" + consumer + "'")
+                .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
+                .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
         );
     }
 

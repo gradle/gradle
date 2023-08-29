@@ -126,7 +126,7 @@ to illustrate:
 
 |b1-2-3.3
 |b
-|2-3.3
+|1-2-3.3
 |===
 
 As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.

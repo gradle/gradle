@@ -45,7 +45,7 @@ import java.util.function.Supplier;
 
 import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_PATTERN;
 
-public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalogBuilder {
+abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalogBuilder {
     private final static Logger LOGGER = Logging.getLogger(DependenciesAwareVersionCatalogBuilder.class);
 
     private final Configuration dependenciesConfiguration;

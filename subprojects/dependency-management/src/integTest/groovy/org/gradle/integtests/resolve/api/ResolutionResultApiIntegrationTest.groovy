@@ -738,4 +738,66 @@ testRuntimeClasspath
             }
 """
     }
+
+    def "resolution result does not realize artifact tasks"() {
+        settingsFile << "include 'producer'"
+        file("producer/build.gradle") << """
+            plugins {
+                id("base")
+            }
+
+            def fooTask = tasks.register("foo", Zip) {
+                throw new RuntimeException("Realized artifact task")
+            }
+
+            configurations {
+                consumable("conf") {
+                    outgoing {
+                        artifact(fooTask)
+                    }
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "cat"))
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            configurations {
+                conf {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "cat"))
+                    }
+                }
+            }
+
+            dependencies {
+                conf project(":producer")
+            }
+
+            task resolve {
+                def rootComponent = configurations.conf.incoming.resolutionResult.rootComponent
+                doLast {
+                    def root = rootComponent.get()
+                    assert root.dependencies.size() == 1
+                    def producer = root.dependencies[0].selected
+                    assert producer.variants.first().displayName == "conf"
+                }
+            }
+
+            task selectArtifacts {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    println files.files
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+
+        and:
+        fails("selectArtifacts")
+        failure.assertHasCause("Realized artifact task")
+    }
 }

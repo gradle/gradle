@@ -102,8 +102,8 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
 
         then:
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
-        1 * dependencyMetadataFactory.createDependencyMetadata(componentId, "config", _, dependency1) >> dependencyDescriptor1
-        1 * dependencyMetadataFactory.createDependencyMetadata(componentId, "config", _, dependency2) >> dependencyDescriptor2
+        1 * dependencyMetadataFactory.createDependencyMetadata(dependency1) >> dependencyDescriptor1
+        1 * dependencyMetadataFactory.createDependencyMetadata(dependency2) >> dependencyDescriptor2
         dependencies == [dependencyDescriptor1, dependencyDescriptor2]
     }
 
@@ -124,8 +124,8 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
 
         then:
         1 * dependencyConstraintSet.iterator() >> [dependencyConstraint1, dependencyConstraint2].iterator()
-        1 * dependencyMetadataFactory.createDependencyConstraintMetadata(componentId, "config", _, dependencyConstraint1) >> dependencyDescriptor1
-        1 * dependencyMetadataFactory.createDependencyConstraintMetadata(componentId, "config", _, dependencyConstraint2) >> dependencyDescriptor2
+        1 * dependencyMetadataFactory.createDependencyConstraintMetadata(dependencyConstraint1) >> dependencyDescriptor1
+        1 * dependencyMetadataFactory.createDependencyConstraintMetadata(dependencyConstraint2) >> dependencyDescriptor2
         dependencies == [dependencyDescriptor1, dependencyDescriptor2]
     }
 

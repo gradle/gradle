@@ -16,10 +16,9 @@
 
 package org.gradle.smoketests
 
-
+import org.gradle.api.problems.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING
 /**
  * Base class for smoke tests for Kotlin and Kotlin Multiplatform plugins.
  */
@@ -106,14 +105,15 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
         return pluginId.contains('android')
     }
 
+    @SuppressWarnings('UnnecessaryQualifiedReference')
     protected registerValidationFailure(org.gradle.smoketests.WithPluginValidation.PluginValidation pluginValidation) {
         pluginValidation.failsWith(nestedTypeUnsupported {
             type('org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest')
                     .property('environment')
                     .annotatedType('java.lang.String')
-                    .reason('Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input')
+                    .reason("Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types.")
                     .includeLink()
-        }, WARNING)
+        }, Severity.WARNING)
     }
 
     protected static class KotlinDeprecations extends BaseDeprecations implements WithKotlinDeprecations {

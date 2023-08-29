@@ -216,7 +216,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
         builder.workingDirectory = workingDir
         def spec = builder.build()
-        experimentRunner.run(testId, spec, results)
+
+        try {
+            experimentRunner.run(testId, spec, results)
+        } catch (Exception e) {
+            maybePrintAndroidStudioLogs(studioSandboxDirAsFile)
+            throw e
+        }
     }
 
     private List<String> resolveGradleOpts() {
@@ -237,6 +243,14 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         studioJvmArgs = System.getProperty("studioJvmArgs") != null
             ? System.getProperty("studioJvmArgs").split(",").collect()
             : []
+    }
+
+    def maybePrintAndroidStudioLogs(File studioSandboxDirAsFile) {
+        if (useAndroidStudio) {
+            File logFile = new File(studioSandboxDirAsFile, "/logs/idea.log")
+            String message = logFile.exists() ? "\n${logFile.text}" : "Android Studio log file '${logFile}' doesn't exist, nothing to print."
+            println("[ANDROID STUDIO LOGS] $message")
+        }
     }
 }
 

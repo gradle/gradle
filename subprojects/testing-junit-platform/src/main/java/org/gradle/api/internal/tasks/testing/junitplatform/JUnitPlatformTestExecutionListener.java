@@ -24,11 +24,11 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.failure.RootAssertionToFailureMapper;
-import org.gradle.api.internal.tasks.testing.failure.FailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.DefaultThrowableToTestFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertErrorMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAssertionsErrorMapper;
-import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonFailureMapper;
+import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
@@ -65,17 +65,19 @@ import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
  * Most importantly, it will map assertion and platform failures to Gradle's {@link TestFailure} class, which we can send through the TAPI.
  */
 @NonNullApi
-public class JUnitPlatformTestExecutionListener implements TestExecutionListener, RootAssertionToFailureMapper {
+public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
 
-    private final static List<FailureMapper> MAPPERS = Arrays.asList(
+    private final static List<TestFailureMapper> MAPPERS = Arrays.asList(
         new OpenTestAssertionFailedMapper(),
         new OpenTestMultipleFailuresErrorMapper(),
-        new JUnitComparisonFailureMapper(),
+        new JUnitComparisonTestFailureMapper(),
         new AssertjMultipleAssertionsErrorMapper(),
         new AssertErrorMapper()
     );
+
+    private static final DefaultThrowableToTestFailureMapper FAILURE_MAPPER = new DefaultThrowableToTestFailureMapper(MAPPERS);
 
     private final ConcurrentMap<String, TestDescriptorInternal> descriptorsByUniqueId = new ConcurrentHashMap<>();
     private final TestResultProcessor resultProcessor;
@@ -144,22 +146,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void reportTestFailure(TestIdentifier testIdentifier, Throwable failure) {
-        TestFailure testFailure = createFailure(failure);
+        TestFailure testFailure = FAILURE_MAPPER.createFailure(failure);
         resultProcessor.failure(getId(testIdentifier), testFailure);
-    }
-
-    public TestFailure createFailure(Throwable failure) {
-        for (FailureMapper mapper : MAPPERS) {
-            if (mapper.supports(failure.getClass())) {
-                try {
-                    return mapper.map(failure, this);
-                } catch (Exception ex) {
-                    LOGGER.error("Failed to map supported failure '{}' with mapper '{}': {}", failure, mapper, ex.getMessage());
-                }
-            }
-        }
-
-        return TestFailure.fromTestFrameworkFailure(failure);
     }
 
     private void reportStartedUnlessAlreadyStarted(TestIdentifier testIdentifier) {

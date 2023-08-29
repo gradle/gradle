@@ -18,7 +18,6 @@ package org.gradle.internal.component.model
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
@@ -26,7 +25,6 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -36,6 +34,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -43,48 +42,41 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static com.google.common.collect.ImmutableList.copyOf
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema
     ImmutableAttributesFactory factory
-    ComponentIdentifier componentId = new ComponentIdentifier() {
-        @Override
-        String getDisplayName() {
-            return "example"
-        }
-    }
+    AttributeMatchingConfigurationSelector configurationSelector
 
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
-    }
-
-    private static VersionConstraint v(String version) {
-        new DefaultMutableVersionConstraint(version)
+        configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(createTestProblems()))
     }
 
     def "returns this when same target requested"() {
         def selector = Stub(ProjectComponentSelector)
-        def dep = new LocalComponentDependencyMetadata(componentId, selector, "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(selector, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
 
         expect:
         dep.withTarget(selector).is(dep)
     }
 
     def "selects the target configuration from target component"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
         def toComponent = Stub(ComponentGraphResolveState)
         def toConfig = consumableConfiguration(toComponent, "to")
 
         expect:
-        dep.selectVariants(attributes([:]), toComponent, attributesSchema, [] as Set).variants == [toConfig]
+        dep.selectVariants(configurationSelector, attributes([:]), toComponent, attributesSchema, [] as Set).variants == [toConfig]
     }
 
     @Unroll("selects variant '#expected' from target component (#scenario)")
     def "selects the variant from target component that matches the attributes"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def toFooVariant = variant('foo', attributes(key: 'something'))
         def toBarVariant = variant('bar', attributes(key: 'something else'))
         def toCandidates = Stub(GraphSelectionCandidates) {
@@ -98,7 +90,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         attributesSchema.attribute(Attribute.of('extra', String))
 
         expect:
-        dep.selectVariants(attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set == [expected] as Set
+        dep.selectVariants(configurationSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set == [expected] as Set
 
         where:
         scenario                                         | queryAttributes                 | expected
@@ -108,7 +100,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "revalidates default configuration if it has attributes"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, Dependency.DEFAULT_CONFIGURATION, [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, Dependency.DEFAULT_CONFIGURATION, [] as List, [], false, false, true, false, false, null)
         def toComponentMetadata = Stub(ComponentGraphResolveMetadata) {
             getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "[target]"
@@ -122,7 +114,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         attributesSchema.attribute(Attribute.of('will', String))
 
         when:
-        dep.selectVariants(attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(configurationSelector, attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -132,7 +124,7 @@ Configuration 'default':
     }
 
     def "revalidates explicit configuration selection if it has attributes"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, 'bar', [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, 'bar', [] as List, [], false, false, true, false, false, null)
         def toComponentMetadata = Stub(ComponentGraphResolveMetadata) {
             getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "[target]"
@@ -146,7 +138,7 @@ Configuration 'default':
         attributesSchema.attribute(Attribute.of('key', String))
 
         when:
-        dep.selectVariants(attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(configurationSelector, attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -157,7 +149,7 @@ Configuration 'bar':
 
     @Unroll("selects variant '#expected' from target component with Java proximity matching strategy (#scenario)")
     def "selects the variant from target component with Java proximity matching strategy"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def toFooVariant = variant('foo', attributes(fooAttributes))
         def toBarVariant = variant('bar', attributes(barAttributes))
         def toComponentMetadata = Stub(ComponentGraphResolveMetadata) {
@@ -182,9 +174,9 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectVariants(attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
+            def result = dep.selectVariants(configurationSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
             if (expected == null && result) {
-                throw new AssertionError("Expected an ambiguous result, but got $result")
+                throw new Exception("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
         } catch (AmbiguousConfigurationSelectionException e) {
@@ -217,7 +209,7 @@ Configuration 'bar':
 
     @Unroll("selects variant '#expected' from target component with Java proximity matching strategy using short-hand notation (#scenario)")
     def "selects variant from target component with Java proximity matching strategy using short-hand notation"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def toFooVariant = variant('foo', attributes(fooAttributes))
         def toBarVariant = variant('bar', attributes(barAttributes))
         def toComponentMetadata = Stub(ComponentGraphResolveMetadata) {
@@ -242,9 +234,9 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectVariants(attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
+            def result = dep.selectVariants(configurationSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
             if (expected == null && result) {
-                throw new AssertionError("Expected an ambiguous result, but got $result")
+                throw new Exception("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
         } catch (AmbiguousConfigurationSelectionException e) {
@@ -276,8 +268,7 @@ Configuration 'bar':
     }
 
     def "fails to select target configuration when not present in the target component"() {
-        def fromId = Stub(ComponentIdentifier) { getDisplayName() >> "thing a" }
-        def dep = new LocalComponentDependencyMetadata(fromId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
         def toComponent = Stub(ComponentGraphResolveMetadata)
         toComponent.id >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
         def toState = Stub(ComponentGraphResolveState) {
@@ -288,16 +279,16 @@ Configuration 'bar':
         toState.getConfiguration("to") >> null
 
         when:
-        dep.selectVariants(attributes([:]), toState, attributesSchema,[] as Set)
+        dep.selectVariants(configurationSelector, attributes([:]), toState, attributesSchema,[] as Set)
 
         then:
         def e = thrown(ConfigurationNotFoundException)
-        e.message == "Thing a declares a dependency from configuration 'from' to configuration 'to' which is not declared in the descriptor for thing b."
+        e.message == "A dependency was declared on configuration 'to' which is not declared in the descriptor for thing b."
     }
 
     def "excludes nothing when no exclude rules provided"() {
         def moduleExclusions = new ModuleExclusions()
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
 
         expect:
         def exclusions = moduleExclusions.excludeAny(copyOf(dep.excludes))
@@ -309,7 +300,7 @@ Configuration 'bar':
         def exclude1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "*"))
         def exclude2 = new DefaultExclude(DefaultModuleIdentifier.newId("group2", "*"))
         def moduleExclusions = new ModuleExclusions()
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [exclude1, exclude2], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, "to", [] as List, [exclude1, exclude2], false, false, true, false, false, null)
 
         expect:
         def exclusions = moduleExclusions.excludeAny(copyOf(dep.excludes))
@@ -341,7 +332,7 @@ Configuration 'bar':
 
     @Unroll("can select a compatible attribute value (#scenario)")
     def "can select a compatible attribute value"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def toFooVariant = variant('foo', attributes(key: 'something'))
         def toBarVariant = variant('bar', attributes(key: 'something else'))
         def toCandidates = Stub(GraphSelectionCandidates) {
@@ -359,7 +350,7 @@ Configuration 'bar':
         attributeSchemaWithCompatibility.attribute(Attribute.of('extra', String))
 
         expect:
-        dep.selectVariants(attributes(queryAttributes), toState, attributeSchemaWithCompatibility, [] as Set).variants.name as Set == [expected] as Set
+        dep.selectVariants(configurationSelector, attributes(queryAttributes), toState, attributeSchemaWithCompatibility, [] as Set).variants.name as Set == [expected] as Set
 
         where:
         scenario                     | queryAttributes                 | expected
@@ -377,7 +368,7 @@ Configuration 'bar':
         def attributes = factory.mutable()
         src.each { String name, Object value ->
             def key = Attribute.of(name, value.class)
-            attributes.attribute(key, value)
+            attributes.attribute(key as Attribute<Object>, value)
         }
         return attributes.asImmutable()
     }

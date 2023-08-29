@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":platform-jvm"))
     implementation(project(":file-collections"))
+    implementation(project(":toolchains-jvm"))
     compileOnly(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy)
@@ -56,6 +57,9 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 
     integTestImplementation(testFixtures(project(":language-groovy")))
+    integTestImplementation(libs.jsoup) {
+        because("We need to validate generated HTML reports")
+    }
 }
 
 packageCycles {

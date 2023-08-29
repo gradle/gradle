@@ -391,7 +391,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         executer.noDeprecationChecks()
         buildFile """
             import org.gradle.integtests.fixtures.validation.ValidationProblem
-            import org.gradle.internal.reflect.validation.Severity
+            import org.gradle.api.problems.Severity
 
             @CacheableTask
             abstract class InvalidTask extends DefaultTask {

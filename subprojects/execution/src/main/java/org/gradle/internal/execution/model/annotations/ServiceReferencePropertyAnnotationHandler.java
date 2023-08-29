@@ -16,6 +16,8 @@
 package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Severity;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Optional;
@@ -31,8 +33,8 @@ import org.gradle.model.internal.type.ModelType;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public ServiceReferencePropertyAnnotationHandler() {
@@ -60,14 +62,17 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
         List<ModelType<?>> typeVariables = Cast.uncheckedNonnullCast(propertyType.getTypeVariables());
         if (typeVariables.size() != 1 || !BuildService.class.isAssignableFrom(typeVariables.get(0).getRawClass())) {
             validationContext.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE)
+                problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .reportAs(ERROR)
-                    .withDescription(() -> String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
-                    .happensBecause(() -> String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
-                    .addPossibleSolution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
-                    .addPossibleSolution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
-                    .documentedAt("validation_problems", "service_reference_must_be_a_build_service")
+                    .label(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
+                    .documentedAt(userManual("validation_problems", "service_reference_must_be_a_build_service"))
+                    .noLocation()
+                    .type(ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.name())
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
+                    .severity(Severity.ERROR)
+                    .details(String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
+                    .solution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
+                    .solution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
             );
         }
     }

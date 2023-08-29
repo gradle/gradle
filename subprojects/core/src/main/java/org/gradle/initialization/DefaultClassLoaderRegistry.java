@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
@@ -36,6 +37,9 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         this.gradleApiSpec = apiSpecFor(pluginsClassLoader);
         this.workerExtensionSpec = new MixInLegacyTypesClassLoader.Spec("legacy-mixin-loader", classPathRegistry.getClassPath("GRADLE_WORKER_EXTENSIONS").getAsURLs());
         this.apiAndPluginsClassLoader = restrictTo(gradleApiSpec, pluginsClassLoader);
+
+        // Load instrumentation classes from Plugin class loader for instrumentation
+        CallInterceptorRegistry.loadCallInterceptors(pluginsClassLoader);
     }
 
     private ClassLoader restrictToGradleApi(ClassLoader classLoader) {

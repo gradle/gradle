@@ -135,11 +135,6 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     @Override
-    public boolean isCanBeResolved() {
-        return false;
-    }
-
-    @Override
     public boolean isExternalVariant() {
         return externalVariant;
     }

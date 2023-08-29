@@ -36,4 +36,7 @@ dependencies {
     pluginsRuntimeOnly(project(":kotlin-dsl-provider-plugins")) {
         because("We need a KotlinScriptBasePluginsApplicator service implementation to use Kotlin DSL scripts.")
     }
+    pluginsRuntimeOnly(project(":instrumentation-declarations")) {
+        because("Property upgrades for core plugins reference types on plugin classpath and that is why interceptors need to be loaded from plugins' classpath.")
+    }
 }

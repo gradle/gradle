@@ -260,7 +260,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             task.setGroup(PLUGIN_DEVELOPMENT_GROUP);
             task.setDescription(VALIDATE_PLUGIN_TASK_DESCRIPTION);
 
-            task.getOutputFile().set(project.getLayout().getBuildDirectory().file("reports/plugin-development/validation-report.txt"));
+            task.getOutputFile().set(project.getLayout().getBuildDirectory().file("reports/plugin-development/validation-report.json"));
 
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());

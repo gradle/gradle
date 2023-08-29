@@ -33,9 +33,9 @@ tasks.register<Delete>("removeOutput") {
 
 // tag::reverse[]
 tasks.register<IncrementalReverseTask>("incrementalReverse") {
-    inputDir.set(file("inputs"))
-    outputDir.set(layout.buildDirectory.dir("outputs"))
-    inputProperty.set(project.findProperty("taskInputProperty") as String? ?: "original")
+    inputDir = file("inputs")
+    outputDir = layout.buildDirectory.dir("outputs")
+    inputProperty = project.findProperty("taskInputProperty") as String? ?: "original"
 }
 // end::reverse[]
 

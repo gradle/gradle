@@ -82,6 +82,8 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
     public abstract void visitListeners(Action<T> visitor);
 
+    public abstract void visitListenersUntyped(Action<Object> visitor);
+
     private static class ActionInvocationHandler implements Dispatch<MethodInvocation> {
         private final String methodName;
         private final Action<Object> action;
@@ -136,6 +138,10 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public void visitListeners(Action<T> visitor) {
+        }
+
+        @Override
+        public void visitListenersUntyped(Action<Object> visitor) {
         }
 
         @Override
@@ -253,6 +259,11 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public void visitListenersUntyped(Action<Object> visitor) {
+            visitor.execute(handler);
+        }
+
+        @Override
         public void dispatch(MethodInvocation message) {
             dispatch(message, dispatch);
         }
@@ -345,6 +356,13 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         public void visitListeners(Action<T> visitor) {
             for (SingletonDispatch<T> dispatcher : dispatchers) {
                 dispatcher.visitListeners(visitor);
+            }
+        }
+
+        @Override
+        public void visitListenersUntyped(Action<Object> visitor) {
+            for (SingletonDispatch<T> dispatcher : dispatchers) {
+                dispatcher.visitListenersUntyped(visitor);
             }
         }
 

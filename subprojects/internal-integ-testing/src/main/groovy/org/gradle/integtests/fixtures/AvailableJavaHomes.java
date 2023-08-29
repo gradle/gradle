@@ -92,6 +92,21 @@ public abstract class AvailableJavaHomes {
     }
 
     @Nullable
+    public static Jvm getJdk17() {
+        return getJdk(JavaVersion.VERSION_17);
+    }
+
+    @Nullable
+    public static Jvm getHighestSupportedLTS() {
+        return getJdk17();
+    }
+
+    @Nullable
+    public static Jvm getLowestSupportedLTS() {
+        return getJdk8();
+    }
+
+    @Nullable
     public static Jvm getJdk(final JavaVersion version) {
         return Iterables.getFirst(getAvailableJdks(version), null);
     }

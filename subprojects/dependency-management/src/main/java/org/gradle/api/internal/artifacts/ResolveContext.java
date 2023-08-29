@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.util.Path;
 
@@ -49,7 +49,7 @@ public interface ResolveContext extends DependencyMetaDataProvider {
      * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
      * called on a configuration that does not permit this usage.
      */
-    LocalComponentMetadata toRootComponentMetaData();
+    RootComponentMetadataBuilder.RootComponentState toRootComponent();
 
     AttributeContainerInternal getAttributes();
 

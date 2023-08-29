@@ -32,12 +32,17 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
 import org.gradle.api.internal.coerce.StringToEnumTransformer;
+import org.gradle.api.internal.provider.support.LazyGroovySupport;
+import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -108,15 +113,32 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         this.delegate = determineDelegate(bean);
     }
 
+    private static final MethodHandle ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD;
+
+    static {
+        try {
+            Class<?> metaClassHelperClass = Class.forName("org.gradle.internal.classpath.InstrumentedGroovyMetaClassHelper");
+            ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD = MethodHandles.lookup().findStatic(metaClassHelperClass, "addInvocationHooksToMetaClassIfInstrumented", MethodType.methodType(void.class, Class.class, String.class));
+        } catch (NoSuchMethodException e) {
+            throw new NoSuchMethodError(e.getMessage());
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessError(e.getMessage());
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public MetaClassAdapter determineDelegate(Object bean) {
         if (bean instanceof Class) {
             return new ClassAdapter((Class<?>) bean);
         } else if (bean instanceof Map) {
             return new MapAdapter();
-        } else if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
-            return new MetaClassAdapter();
+        } else {
+            if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
+                return new MetaClassAdapter();
+            }
+            return new GroovyObjectAdapter();
         }
-        return new GroovyObjectAdapter();
     }
 
     public BeanDynamicObject withNoProperties() {
@@ -220,6 +242,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return DynamicInvokeResult.notFound();
             }
 
+            maybeAddCallInterceptionHooksToMetaclass(name);
             MetaClass metaClass = getMetaClass();
 
             // First look for a property known to the meta-class
@@ -263,6 +286,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             return getOpaqueProperty(name);
+        }
+
+        private void maybeAddCallInterceptionHooksToMetaclass(String name) {
+            try {
+                ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD.invoke(bean.getClass(), name);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         }
 
         protected DynamicInvokeResult getOpaqueProperty(String name) {
@@ -337,7 +368,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
          */
         @Nullable
         protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
-            if (metaClass instanceof MetaClassImpl) {
+            boolean isInstrumented = metaClass instanceof InstrumentedMetaClass
+                && ((InstrumentedMetaClass) metaClass).interceptsPropertyAccess(name);
+
+            if (metaClass instanceof MetaClassImpl && !isInstrumented) {
                 try {
                     return (MetaProperty) META_PROP_METHOD.invoke(metaClass, name, false);
                 } catch (Throwable e) {
@@ -354,6 +388,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return DynamicInvokeResult.notFound();
             }
 
+            maybeAddCallInterceptionHooksToMetaclass(name);
+
             MetaClass metaClass = getMetaClass();
             MetaProperty property = lookupProperty(metaClass, name);
             if (property != null) {
@@ -369,10 +405,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                         if (metaBeanProperty.getSetter() == null) {
                             if (metaBeanProperty.getField() == null) {
-                                throw setReadOnlyProperty(name);
+                                trySetGetterOnlyProperty(name, value, metaBeanProperty);
+                            } else {
+                                value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
+                                metaBeanProperty.getField().setProperty(bean, value);
                             }
-                            value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
-                            metaBeanProperty.getField().setProperty(bean, value);
                         } else {
                             // Coerce the value to the type accepted by the property setter and invoke the setter directly
                             Class setterType = metaBeanProperty.getSetter().getParameterTypes()[0].getTheClass();
@@ -413,6 +450,19 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             return setOpaqueProperty(metaClass, name, value);
+        }
+
+        private void trySetGetterOnlyProperty(String name, Object value, MetaBeanProperty metaBeanProperty) {
+            Class<?> propertyType = metaBeanProperty.getType();
+            if (HasConfigurableValue.class.isAssignableFrom(propertyType)) {
+                Object propertyValue = metaBeanProperty.getGetter().invoke(bean, new Object[0]);
+                if (propertyValue instanceof LazyGroovySupport) {
+                    value = propertySetTransformer.transformValue(propertyType, value);
+                    ((LazyGroovySupport) propertyValue).setFromAnyValue(value);
+                    return;
+                }
+            }
+            throw setGetterOnlyProperty(name);
         }
 
         protected DynamicInvokeResult setOpaqueProperty(MetaClass metaClass, String name, Object value) {
@@ -483,6 +533,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         public DynamicInvokeResult invokeMethod(String name, Object... arguments) {
+            maybeAddCallInterceptionHooksToMetaclass(name);
+
             MetaClass metaClass = getMetaClass();
             MetaMethod metaMethod = lookupMethod(metaClass, name, inferTypes(arguments));
             if (metaMethod != null) {

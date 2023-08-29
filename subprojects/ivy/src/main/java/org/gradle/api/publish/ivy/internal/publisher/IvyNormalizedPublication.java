@@ -25,31 +25,19 @@ import java.util.Set;
 public class IvyNormalizedPublication {
 
     private final String name;
-    private final IvyPublicationIdentity projectIdentity;
     private final File ivyDescriptorFile;
     private final Set<IvyArtifact> allArtifacts;
-    private final Set<IvyArtifact> mainArtifacts;
     private final ModuleVersionIdentifier coordinates;
 
-    public IvyNormalizedPublication(String name, ModuleVersionIdentifier coordinates, Set<IvyArtifact> mainArtifacts, IvyPublicationIdentity projectIdentity, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
+    public IvyNormalizedPublication(String name, ModuleVersionIdentifier coordinates, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
         this.name = name;
         this.coordinates = coordinates;
-        this.projectIdentity = projectIdentity;
         this.ivyDescriptorFile = ivyDescriptorFile;
-        this.mainArtifacts = mainArtifacts;
         this.allArtifacts = allArtifacts;
     }
 
     public String getName() {
         return name;
-    }
-
-    public IvyPublicationIdentity getProjectIdentity() {
-        return projectIdentity;
-    }
-
-    public IvyPublicationIdentity getIdentity() {
-        return getProjectIdentity();
     }
 
     public ModuleVersionIdentifier getCoordinates() {

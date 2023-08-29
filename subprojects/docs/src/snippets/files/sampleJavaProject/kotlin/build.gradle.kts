@@ -16,8 +16,8 @@ dependencies {
 val archivesDirPath = layout.buildDirectory.dir("archives")
 
 tasks.register<Zip>("packageClasses") {
-    archiveAppendix.set("classes")
-    destinationDirectory.set(archivesDirPath)
+    archiveAppendix = "classes"
+    destinationDirectory = archivesDirPath
 
     from(tasks.compileJava)
 }

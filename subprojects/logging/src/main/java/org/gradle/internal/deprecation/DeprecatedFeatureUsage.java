@@ -18,6 +18,7 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.gradle.api.problems.DocLink;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 
 import javax.annotation.Nullable;
@@ -29,7 +30,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
     private final String removalDetails;
     private final String advice;
     private final String contextualAdvice;
-    private final Documentation documentation;
+    private final DocLink documentation;
 
     private final Type type;
 
@@ -38,7 +39,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         String removalDetails,
         @Nullable String advice,
         @Nullable String contextualAdvice,
-        Documentation documentation,
+        DocLink documentation,
         Type type,
         Class<?> calledFrom
     ) {
@@ -128,9 +129,8 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
      *
      * @since 6.2
      */
-    @Nullable
-    public String getDocumentationUrl() {
-        return documentation.documentationUrl();
+    public DocLink getDocumentationUrl() {
+        return documentation;
     }
 
     public DeprecatedFeatureUsage.Type getType() {

@@ -20,8 +20,8 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
-import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.api.problems.Severity.ERROR
+import static org.gradle.api.problems.Severity.WARNING
 
 class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 

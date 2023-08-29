@@ -17,10 +17,12 @@
 package gradlebuild.docs;
 
 import dev.adamko.dokkatoo.DokkatooExtension;
+import dev.adamko.dokkatoo.dokka.parameters.DokkaSourceLinkSpec;
 import dev.adamko.dokkatoo.dokka.parameters.DokkaSourceSetSpec;
 import dev.adamko.dokkatoo.dokka.plugins.DokkaHtmlPluginParameters;
 import dev.adamko.dokkatoo.formats.DokkatooHtmlPlugin;
 import dev.adamko.dokkatoo.tasks.DokkatooGenerateTask;
+import gradlebuild.basics.BuildEnvironmentKt;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -28,6 +30,11 @@ import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
+
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
@@ -57,6 +64,14 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         setStyling(project, extension);
     }
 
+    private static void setStyling(Project project, GradleDocumentationExtension extension) {
+        getDokkatooExtension(project).getPluginsConfiguration().named("html", DokkaHtmlPluginParameters.class, config -> {
+            config.getCustomStyleSheets().from(extension.getSourceRoot().file("kotlin/styles/gradle.css"));
+            config.getCustomAssets().from(extension.getSourceRoot().file("kotlin/images/gradle-logo.svg"));
+            config.getFooterMessage().set("Gradle Kotlin DSL Reference");
+        });
+    }
+
     /**
      * The name of the module is part of the URI for deep links, changing it will break existing links.
      * The name of the module must match the first header of {@code kotlin/Module.md} file.
@@ -80,6 +95,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             spec.getClasspath().from(extension.getClasspath());
             spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
+            configureSourceLinks(project, extension, spec);
         });
 
         NamedDomainObjectContainer<DokkaSourceSetSpec> javaSourceSet = getDokkatooExtension(project).getDokkatooSourceSets();
@@ -88,15 +104,31 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             spec.getSourceRoots().from(extension.getDocumentedSource());
             spec.getClasspath().from(extension.getClasspath());
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
+            configureSourceLinks(project, extension, spec);
         });
     }
 
-    private static void setStyling(Project project, GradleDocumentationExtension extension) {
-        getDokkatooExtension(project).getPluginsConfiguration().named("html", DokkaHtmlPluginParameters.class, config -> {
-            config.getCustomStyleSheets().from(extension.getSourceRoot().file("kotlin/styles/gradle.css"));
-            config.getCustomAssets().from(extension.getSourceRoot().file("kotlin/images/gradle-logo.svg"));
-            config.getFooterMessage().set("Gradle Kotlin DSL Reference");
-        });
+    private static void configureSourceLinks(Project project, GradleDocumentationExtension extension, DokkaSourceSetSpec spec) {
+        extension.getSourceRoots().getFiles()
+            .forEach(
+                file -> {
+                    DokkaSourceLinkSpec sourceLinkSpec = project.getObjects().newInstance(DokkaSourceLinkSpec.class);
+                    sourceLinkSpec.getLocalDirectory().set(file);
+                    String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project).getGitCommitId().get();
+                    sourceLinkSpec.getRemoteUrl().set(toUri(project.getRootDir(), file, commitId));
+                    sourceLinkSpec.getRemoteLineSuffix().set("#L");
+                    spec.getSourceLinks().add(sourceLinkSpec);
+                }
+            );
+    }
+
+    private static URI toUri(File projectRootDir, File file, String commitId) {
+        try {
+            Path relativeLocation = projectRootDir.toPath().relativize(file.toPath());
+            return new URI("https://github.com/gradle/gradle/blob/" + commitId + "/" + relativeLocation);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static DokkatooExtension getDokkatooExtension(Project project) {

@@ -26,8 +26,11 @@ import spock.lang.Specification
 import javax.tools.JavaFileObject
 
 import static com.google.testing.compile.Compiler.javac
+import static org.junit.Assume.assumeTrue
 
 abstract class InstrumentationCodeGenTest extends Specification {
+
+    private static final List<String> COMPILE_OPTIONS = ["-Aorg.gradle.annotation.processing.instrumented.project=test-project"]
 
     protected static String fqName(JavaFileObject javaFile) {
         return javaFile.name.replace("/", ".").replace(".java", "");
@@ -49,9 +52,10 @@ abstract class InstrumentationCodeGenTest extends Specification {
     }
 
     private static com.google.testing.compile.Compiler getCompiler() {
+        assumeTrue("Java 20+ do not support --release=8", Jvm.current().javaVersion < JavaVersion.VERSION_20)
         if (Jvm.current().javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
-            return javac().withOptions("--release=8")
+            return javac().withOptions(COMPILE_OPTIONS + "--release=8")
         }
-        return javac()
+        return javac().withOptions(COMPILE_OPTIONS)
     }
 }

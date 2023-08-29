@@ -1,0 +1,64 @@
+// Copyright 2023 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[what_is_gradle]]
+= Gradle User Manual
+
+[[gradle_overview]]
+== Gradle Build Tool
+
+image:gradle.png[float=left] Gradle Build Tool is a fast, dependable, and adaptable open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool with an elegant and extensible declarative build language.
+
+In this User Manual, Gradle Build Tool is abbreviated **Gradle**.
+
+== Why Gradle?
+
+Gradle is a widely used and mature tool with an active community and a strong developer ecosystem.
+
+* Gradle is the most popular build system for the JVM and is the default system for Android and Kotlin Multi-Platform projects.
+It has a rich community plugin ecosystem.
+* Gradle can automate a wide range of software build scenarios using either its built-in functionality, third-party plugins, or custom build logic.
+* Gradle provides a high-level, declarative, and expressive build language that makes it easy to read and write build logic.
+* Gradle is fast, scalable, and can build projects of any size and complexity.
+* Gradle produces dependable results while benefiting from optimizations such as incremental builds, build caching, and parallel execution.
+
+Gradle, Inc. provides a free service called https://scans.gradle.com/[Build Scan®] that provides extensive information and insights about your builds.
+You can view scans to identify problems or share them for debugging help.
+
+=== Supported Languages and Frameworks
+Gradle supports Android, Java, Kotlin Multiplatform, Groovy, Scala, Javascript, and C/C++.
+
+image::userguide-languages.png[]
+
+=== Compatible IDEs
+All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
+
+image::userguide-ides.png[]
+
+You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface,command-line interface>> (CLI) in your terminal or through your continuous integration (CI) server.
+
+== Education
+The **<<about_manual.adoc#about_manual,Gradle User Manual>>** is the official documentation for the Gradle Build Tool.
+
+* **Getting Started Tutorial** — <<introduction#introduction,Learn Gradle basics>> and the benefits of building your App with Gradle.
+* **Training Courses** — Head over to the link:https://gradle.org/courses/[courses page] to sign up for free Gradle training.
+
+== Support
+* **Forum** — The fastest way to get help is through the link:https://discuss.gradle.org/[Gradle Forum].
+* **Slack** — Community members and core contributors answer questions directly on our link:https://gradle-community.slack.com/[Slack Channel].
+
+== Licenses
+[.legalnotice]
+Gradle Build Tool source code is open and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
+Gradle user manual and DSL reference manual are licensed under link:https://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
