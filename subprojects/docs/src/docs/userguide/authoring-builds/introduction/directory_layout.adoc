@@ -110,7 +110,7 @@ NOTE: Cache cleanup settings can only be configured via init scripts and should 
 This effectively couples the configuration of cache cleanup to the Gradle User Home those settings apply to and limits the possibility of different conflicting settings from different projects being applied to the same directory.
 
 [[dir:gradle_user_home:multi_version_cache_cleanup]]
-==== Sharing a Gradle User Home between multiple versions of Gradle
+==== Multiple versions of Gradle sharing a Gradle User Home
 
 It is common to share a single Gradle User Home between multiple versions of Gradle.
 

@@ -12,231 +12,230 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-[[writing_build_scripts]]
+[[tutorial_using_tasks]]
 = Tasks Basics
-
-
-== Tasks
 
 The work that Gradle can do on a project is defined by one or more _tasks_.
 
 A task represents some atomic piece of work which a build performs.
 This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 
-[[sec:declaring_variables]]
-== Declare Variables
+You run a Gradle build using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew' or `gradle.bat`) in your project directory.
 
-Build scripts can declare two kinds of variables: local variables and extra properties.
+As part of the build process, Gradle finds all the tasks in your project coded in plugins or build scripts.
 
-[[sec:local_variables]]
-=== Local Variables
+[[sec:hello_world]]
+== Hello world
 
-[.multi-language-text.lang-kotlin]
-Declare local variables with the `val` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Kotlin language.
-
-[.multi-language-text.lang-groovy]
-Declare local variables with the `def` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Groovy language.
+Let's take a look at a simple "Hello World" task in a build script:
 
 ====
-include::sample[dir="snippets/tutorial/localVariables/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
 ====
 
-[[sec:extra_properties]]
-=== Extra Properties
+You can execute the build script with `./gradlew -q hello`:
 
-All of Gradle's enhanced objects, including projects, tasks, and source sets, can hold user-defined properties.
-
-[.multi-language-text.lang-kotlin]
-Add, read, and set extra properties via the owning object's `extra` property. Alternatively, you can access extra properties via Kotlin delegated properties using `by extra`.
-
-[.multi-language-text.lang-groovy]
-Add, read, and set extra properties via the owning object's `ext` property. Alternatively, you can use an `ext` block to add multiple properties at once.
-
-.Use extra properties
 ====
-include::sample[dir="snippets/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
-include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
-
-.Output of **`gradle -q printProperties`**
 ----
-> gradle -q printProperties
-include::{snippetsPath}/tutorial/extraProperties/tests/extraProperties.out[]
+$ ./gradlew -q hello
+include::{snippetsPath}/tutorial/hello/tests/hello.out[]
 ----
 ====
-
-[.multi-language-text.lang-kotlin]
-This example adds two extra properties to the `project` object via `by extra`. Additionally, this example adds a property named `purpose` to each source set by setting `extra["purpose"]` to `null`. Once added, you can read and set all of these properties via `extra`.
-
-[.multi-language-text.lang-groovy]
-This example adds two extra properties to the `project` object via an `ext` block. Additionally, this example adds a property named `purpose` to each source set by setting `ext.purpose` to `null`. Once added, you can read and set all of these properties just like predefined properties.
-
-Gradle requires special syntax for adding a property so it can fail fast. For example, this allows Gradle to recognize
-when a script attempts to set a property that does not exist. You can access extra properties anywhere where you can
-access their owning object. This gives extra properties a wider scope than local variables.
-Subprojects can access extra properties on their parent projects.
-
-For more information about extra properties, see
-link:{groovyDslPath}/org.gradle.api.plugins.ExtraPropertiesExtension.html[ExtraPropertiesExtension] in the API documentation.
-
-[[sec:configuring_arbitrary_objects]]
-== Configure Arbitrary Objects
-
-Configure arbitrary objects with `configure()`:
-
-.Configure arbitrary objects
-====
-include::sample[dir="snippets/tutorial/configureObject/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
-
-.Output of **`gradle -q configure`**
-----
-> gradle -q configure
-include::{snippetsPath}/tutorial/configureObject/tests/configureObject.out[]
-----
-====
-
-[[sec:configuring_arbitrary_objects_using_an_external_script]]
-=== Configure Objects in an External Script
-
-You can also configure arbitrary objects using an external script:
-
-[CAUTION]
-.Not supported in Kotlin
-====
-The Kotlin DSL does not support arbitrary object configuration using an external script.
-For more information, see link:https://github.com/gradle/kotlin-dsl/issues/659[gradle/kotlin-dsl#659].
-====
-
-.Configure arbitrary objects using a script
-====
-include::sample[dir="snippets/tutorial/configureObjectUsingScript/groovy",files="build.gradle[];other.gradle[]"]
-
-.Output of `gradle -q configure`
-----
-> gradle -q configure
-include::{snippetsPath}/tutorial/configureObjectUsingScript/tests/configureObjectUsingScript.out[]
-----
-====
-
-[[groovy-dsl-basics]]
-== Helpful Groovy Syntax
-
-https://docs.groovy-lang.org/latest/html/documentation/index.html[Groovy] provides many features to help create DSLs. These features can help you write more idiomatic build scripts, plugins, and tasks.
 
 [TIP]
-Looking for helpful Kotlin syntax? Check out the link:https://kotlinlang.org/docs/reference/[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans].
-
-[[sec:groovy_jdk]]
-=== Convenience Methods
-
-Groovy adds convenience methods to the standard Java classes.
-For example, `Iterable` gets an `each` method, which iterates over the elements of the `Iterable`:
-
-.Groovy JDK methods
 ====
-include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=groovyJdk]"]
+The `-q` option suppresses Gradle's log messages, so that only the output of the tasks is shown.
 ====
 
-For more information, see https://groovy-lang.org/gdk.html[the GDK documentation].
+In the example, the build script defines a single task, called `hello`, and adds an action to it.
 
-[[sec:property_accessors]]
-=== Automatic Property Accessors
+When you run `./gradlew hello`, Gradle executes the `hello` task, which in turn executes the action you've provided.
+The action is simply a block containing some code to execute: `println("Hello world!")`.
 
-Groovy automatically converts property references into getter or setter method calls:
+== Available tasks
 
-.Property accessors
-====
-include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=propertyAccessors]"]
-====
+Even if your build script is empty, Gradle provides a number of default tasks for a project which are listed by running `./gradlew tasks`:
 
-[[sec:optional_parentheses_on_method_calls]]
-=== Optional Parentheses on Method Calls
-
-Groovy doesn't require parentheses for method calls:
-
-.Method call without parentheses
-====
-include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=methodCallWithoutParentheses]"]
-====
-
-[[sec:list_and_map_literals]]
-=== List and Map Instantiation Shortcuts
-
-Groovy provides shortcuts to define `List` and `Map` instances.
-For example, consider the “`apply`” method, which accepts a map parameter.
-When you apply a plugin (`apply plugin:'java'`), you don't use a map literal.
-Plugin application uses "named parameters" instead. Named parameters and map
-literals use similar syntax, but named parameters don't use wrapping brackets.
-When you call `apply`, Groovy converts the named parameter list to a map.
-
-.List and map literals
-====
-include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=listAndMapLiterals]"]
-====
-
-[[sec:closures_as_the_last_parameter_in_a_method]]
-=== Last Closure Parameter Syntax
-
-The Gradle DSL uses closures in many places.
-You can find out more about closures https://docs.groovy-lang.org/latest/html/documentation/index.html#_closures[here].
-When the last parameter of a method is a closure, you can place the closure after the method call:
-
-.Closure as method parameter
-====
-include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=closureAsLastParam]"]
-====
-
-[[sec:closure_delegate]]
-=== Closure Delegates
-
-Each closure has a `delegate` object. Groovy uses this delegate to look up variable and method
-references to nonlocal variables and closure parameters. Gradle uses this for _configuration closures_,
-where the `delegate` object refers to the object being configured.
-
-.Closure delegates
-====
-include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=closureDelegates]"]
-====
-
-[[script-default-imports]]
-== Default Imports
-
-To make build scripts more concise, Gradle automatically adds a set of import statements to scripts.
-As a result, instead of writing `throw new org.gradle.api.tasks.StopExecutionException()`,
-you can write `throw new StopExecutionException()` instead.
-
-Gradle implicitly adds the following imports to each script:
-
-.Gradle default imports
-[source,groovy]
+[source]
 ----
-include::default-imports.txt[]
+------------------------------------------------------------
+Tasks runnable from root project 'myTutorial'
+------------------------------------------------------------
+
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build.
+wrapper - Generates Gradle wrapper files.
+
+Help tasks
+----------
+buildEnvironment - Displays all buildscript dependencies declared in root project 'myTutorial'.
+...
 ----
 
-[[sec:groovy_script_variables]]
-== Groovy Script Variables
+Once we apply a plugin to our project such as the `application` plugin, the default tasks available include:
 
-Groovy has two types of script variables:
-
-- Variables declared with a type modifier or `def` are visible within closures but not visible within methods.
-- Variables declared without a modifier are visible anywhere in the script.
-
-Prefer declaring variables with `def` to make their scope explicit.
-
-
-[source,groovy]
-.scope.groovy
+[source]
 ----
-include::{snippetsPath}/tutorial/groovyScope/groovy/src/main/groovy/scope.groovy[]
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+
+...
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the main source code.
+
+...
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+
+...
 ----
 
-.Output of `groovy scope.groovy`
+This is because the `application` plugin code contains additional tasks which are now available in your project.
+
+== Task types
+
+There are two types of tasks:
+
+1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
+2. *Lifecycle tasks* are workflow tasks with no actions attached: `assemble`, `build`.
+
+== Built-in tasks
+
+Gradle provides many built-in tasks with common and popular functionality such as copying or deleting files.
+
+This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task:
+
+[source]
 ----
-> groovy scope.groovy
-include::{snippetsPath}/tutorial/groovyScope/tests/scope.out[]
+tasks.register("copyTask",Copy) {
+    from("source")
+    into("target")
+    include("*.war")
+}
 ----
 
-[TIP]
-For more information about Groovy syntax, see https://docs.groovy-lang.org/latest/html/documentation/index.html[the Groovy documentation].
+[[sec:task_dependencies]]
+== Task dependencies
+
+You can declare tasks that depend on other tasks:
+
+====
+include::sample[dir="snippets/tutorial/intro/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/intro/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q intro
+include::{snippetsPath}/tutorial/intro/tests/intro.out[]
+----
+====
+
+To add a dependency, the corresponding task does not need to exist:
+
+====
+include::sample[dir="snippets/tutorial/lazyDependsOn/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/lazyDependsOn/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q taskX
+include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out[]
+----
+====
+
+The dependency of `taskX` to `taskY` may be declared before `taskY` is defined.
+
+[[sec:dynamic_tasks]]
+== Flexible task registration
+
+Groovy or Kotlin can be used for more than defining what a task does.
+
+As an example, you can use it to register multiple tasks of the same type in a loop:
+
+====
+include::sample[dir="snippets/tutorial/dynamic/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/dynamic/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q task1
+include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out[]
+----
+====
+
+[[sec:manipulating_existing_tasks]]
+== Manipulating existing tasks
+
+Once tasks are registered, they can be accessed via an _API_.
+
+For instance, you can use this to dynamically add dependencies to a task, at runtime:
+
+====
+include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q task0
+include::{snippetsPath}/tutorial/dynamicDepends/tests/dynamicDepends.out[]
+----
+====
+
+Or you can add behavior to an existing task:
+
+====
+include::sample[dir="snippets/tutorial/helloEnhanced/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/helloEnhanced/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q hello
+include::{snippetsPath}/tutorial/helloEnhanced/tests/helloEnhanced.out[]
+----
+====
+
+The calls `doFirst` and `doLast` can be executed multiple times.
+They add an action to the beginning or the end of the task's actions list.
+When the task executes, the actions in the action list are executed in order.
+
+[[sec:using_methods]]
+== Using methods
+
+Gradle scales in how you can organize your build logic.
+
+The first level of organizing your build logic for the example above, is extracting a method:
+
+====
+include::sample[dir="snippets/tutorial/antLoadfileWithMethod/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/antLoadfileWithMethod/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q loadfile
+include::{snippetsPath}/tutorial/antLoadfileWithMethod/tests/antLoadfileWithMethod.out[]
+----
+====
+
+[[sec:default_tasks]]
+== Default tasks
+
+Gradle allows you to define one or more default tasks that are executed if no other tasks are specified:
+
+====
+include::sample[dir="snippets/tutorial/defaultTasks/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/defaultTasks/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q
+include::{snippetsPath}/tutorial/defaultTasks/tests/defaultTasks.out[]
+----
+====
+
+This is equivalent to running `gradle clean run`.
+If a subproject does not specify default tasks, the default tasks of the parent project are used (if defined).
