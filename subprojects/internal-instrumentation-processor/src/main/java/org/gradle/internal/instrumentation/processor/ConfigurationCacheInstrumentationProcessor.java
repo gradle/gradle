@@ -78,7 +78,7 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
             // Properties upgrade extensions
             new PropertyUpgradeAnnotatedMethodReader(processingEnv),
             (CodeGeneratorContributor) PropertyUpgradeClassSourceGenerator::new,
-            // Generate resource with insturmented properties
+            // Generate resource with instrumented properties
             (ResourceGeneratorContributor) InstrumentedPropertiesResourceGenerator::new,
 
             // Generate resource with instrumented types

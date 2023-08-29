@@ -79,18 +79,18 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
     private static String getFqName(CallInterceptionRequest request) {
         String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
         String containingType = request.getImplementationInfo().getOwner().getClassName();
-        return containingType + "." + propertyName;
+        return containingType + "#" + propertyName;
     }
 
     private static List<PropertyEntry> toPropertyEntries(Map<String, List<CallInterceptionRequest>> requests) {
         return requests.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
-            .map(e -> toPropertyEntry(e.getKey(), e.getValue()))
+            .map(e -> toPropertyEntry(e.getValue()))
             .collect(Collectors.toList());
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    private static PropertyEntry toPropertyEntry(String fqName, List<CallInterceptionRequest> requests) {
+    private static PropertyEntry toPropertyEntry(List<CallInterceptionRequest> requests) {
         CallInterceptionRequest request = requests.get(0);
         String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
         String containingType = request.getImplementationInfo().getOwner().getClassName();
@@ -99,35 +99,26 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
             .map(implementation -> new UpgradedMethod(implementation.getName(), implementation.getDescriptor()))
             .sorted()
             .collect(Collectors.toList());
-        return new PropertyEntry(fqName, propertyName, containingType, upgradedMethods);
+        return new PropertyEntry(containingType, propertyName, upgradedMethods);
     }
 
-    private static class PropertyEntry {
-        /**
-         * Fully qualified name of the property as "containingType.propertyName"
-         */
-        private final String fqName;
+    static class PropertyEntry {
         private final String propertyName;
         private final String containingType;
         private final List<UpgradedMethod> upgradedMethods;
 
-        public PropertyEntry(String fqName, String propertyName, String containingType, List<UpgradedMethod> upgradedMethods) {
-            this.fqName = fqName;
-            this.propertyName = propertyName;
+        public PropertyEntry(String containingType, String propertyName, List<UpgradedMethod> upgradedMethods) {
             this.containingType = containingType;
+            this.propertyName = propertyName;
             this.upgradedMethods = upgradedMethods;
-        }
-
-        public String getFqName() {
-            return fqName;
-        }
-
-        public String getPropertyName() {
-            return propertyName;
         }
 
         public String getContainingType() {
             return containingType;
+        }
+
+        public String getPropertyName() {
+            return propertyName;
         }
 
         public List<UpgradedMethod> getUpgradedMethods() {
@@ -135,7 +126,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         }
     }
 
-    private static class UpgradedMethod implements Comparable<UpgradedMethod> {
+    static class UpgradedMethod implements Comparable<UpgradedMethod> {
         private final String name;
         private final String descriptor;
 
