@@ -18,11 +18,12 @@ package org.gradle.internal.cc.impl.problems
 
 import org.gradle.internal.cc.impl.ConfigurationCacheError
 import org.gradle.internal.cc.impl.ConfigurationCacheThrowable
-import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import java.io.IOException
 
 
@@ -33,9 +34,15 @@ abstract class AbstractProblemsListener : ProblemsListener {
         if (error is IOException || error is ConfigurationCacheThrowable) {
             throw error
         }
+
+        val structuredMessage = StructuredMessage.build(message)
+        val cause = error.maybeUnwrapInvocationTargetException()
+
+        onProblem(PropertyProblem(trace, structuredMessage, cause))
+
         throw ConfigurationCacheError(
-            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message).render()}",
-            error.maybeUnwrapInvocationTargetException()
+            "Configuration cache state could not be cached: $trace: ${structuredMessage.render()}",
+            cause
         )
     }
 
