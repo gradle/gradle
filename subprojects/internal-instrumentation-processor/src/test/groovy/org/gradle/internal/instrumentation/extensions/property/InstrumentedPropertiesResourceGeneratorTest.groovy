@@ -55,16 +55,16 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
 
         then:
         def maxErrorMethods = [
-            new UpgradedMethod("getMaxErrors", ""),
-            new UpgradedMethod("setMaxErrors", "")
+            new UpgradedMethod("getMaxErrors", "()I"),
+            new UpgradedMethod("setMaxErrors", "(I)V")
         ]
         def sourceCompatibilityMethods = [
-            new UpgradedMethod("getSourceCompatibility", ""),
-            new UpgradedMethod("setSourceCompatibility", "")
+            new UpgradedMethod("getSourceCompatibility", "()Ljava/lang/String;"),
+            new UpgradedMethod("setSourceCompatibility", "(Ljava/lang/String;)V")
         ]
         def targetCompatibilityMethods = [
-            new UpgradedMethod("getTargetCompatibility", ""),
-            new UpgradedMethod("setTargetCompatibility", "")
+            new UpgradedMethod("getTargetCompatibility", "()Ljava/lang/String;"),
+            new UpgradedMethod("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;")
         ]
         def properties = [
             new PropertyEntry("org.gradle.test.Task", "maxErrors", maxErrorMethods),

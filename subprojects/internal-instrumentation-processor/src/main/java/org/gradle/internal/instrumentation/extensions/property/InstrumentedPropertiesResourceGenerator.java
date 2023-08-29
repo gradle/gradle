@@ -19,8 +19,10 @@ package org.gradle.internal.instrumentation.extensions.property;
 
 import com.google.gson.Gson;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Type;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -78,7 +80,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static String getFqName(CallInterceptionRequest request) {
         String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
-        String containingType = request.getImplementationInfo().getOwner().getClassName();
+        String containingType = request.getInterceptedCallable().getOwner().getType().getClassName();
         return containingType + "#" + propertyName;
     }
 
@@ -93,10 +95,16 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
     private static PropertyEntry toPropertyEntry(List<CallInterceptionRequest> requests) {
         CallInterceptionRequest request = requests.get(0);
         String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
-        String containingType = request.getImplementationInfo().getOwner().getClassName();
+        String containingType = request.getInterceptedCallable().getOwner().getType().getClassName();
         List<UpgradedMethod> upgradedMethods = requests.stream()
-            .map(CallInterceptionRequest::getImplementationInfo)
-            .map(implementation -> new UpgradedMethod(implementation.getName(), implementation.getDescriptor()))
+            .map(CallInterceptionRequest::getInterceptedCallable)
+            .map(intercepted -> {
+                Type returnType = intercepted.getReturnType().getType();
+                Type[] parameterTypes = intercepted.getParameters().stream()
+                    .map(ParameterInfo::getParameterType)
+                    .toArray(Type[]::new);
+                return new UpgradedMethod(intercepted.getCallableName(), Type.getMethodDescriptor(returnType, parameterTypes));
+            })
             .sorted()
             .collect(Collectors.toList());
         return new PropertyEntry(containingType, propertyName, upgradedMethods);
