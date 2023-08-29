@@ -19,6 +19,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.internal.DefaultProblemProgressDetails
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -107,7 +108,8 @@ abstract class AbstractIntegrationSpec extends Specification {
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
 
-    @Lazy private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+    @Lazy
+    private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
 
     def setup() {
         // Verify that the previous test (or fixtures) has cleaned up state correctly
@@ -730,6 +732,17 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     def disableProblemsApiCheck() {
         enableProblemsApiCheck = false
+    }
+
+    List<Map<String, Object>> getCollectedProblems() {
+        if (!enableProblemsApiCheck) {
+            throw new IllegalStateException('Problems API check is not enabled')
+        }
+        return buildOperationsFixture.all().collectMany {
+            it.progress(DefaultProblemProgressDetails.class)
+        }.collect {
+            it.details["problem"]
+        }
     }
 
     /**

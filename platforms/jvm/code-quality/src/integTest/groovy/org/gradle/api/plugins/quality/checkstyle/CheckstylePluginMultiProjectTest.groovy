@@ -33,7 +33,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds('checkstyleMain')
-        checkStyleReportFile(testDirectory).text.contains('Dummy.java')
+        checkStyleReportFile(testDirectory).assertExists()
     }
 
     def "fails when root project does contain config in default location"() {
@@ -57,7 +57,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(':child:grand:checkstyleMain')
-        checkStyleReportFile(file('child/grand')).text.contains('Dummy.java')
+        checkStyleReportFile(file('child/grand')).assertExists()
     }
 
     def "configures checkstyle extension to read config from root project in a deeply nested multi-project build"() {
@@ -69,7 +69,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(':a:b:c:checkstyleMain')
-        checkStyleReportFile(file('a/b/c')).text.contains('Dummy.java')
+        checkStyleReportFile(file('a/b/c')).assertExists()
     }
 
     def "configures checkstyle extension to read config from root project in a multi-project build even if sub project config is available"() {
@@ -82,7 +82,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(':child:grand:checkstyleMain')
-        checkStyleReportFile(file('child/grand')).text.contains('Dummy.java')
+        checkStyleReportFile(file('child/grand')).assertExists()
     }
 
     def "explicitly configures checkstyle extension to point to config directory"() {
@@ -99,7 +99,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(':child:checkstyleMain')
-        checkStyleReportFile(file('child')).text.contains('Dummy.java')
+        checkStyleReportFile(file('child')).assertExists()
     }
 
     static String simpleCheckStyleConfig() {

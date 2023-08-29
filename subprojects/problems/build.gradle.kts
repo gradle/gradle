@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.distribution.api-java")
 }
 
 description = """A problems description API
@@ -30,4 +30,11 @@ description = """A problems description API
 dependencies {
     implementation(project(":base-annotations"))
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
+
+    integTestImplementation(project(":internal-testing"))
+    integTestImplementation(testFixtures(project(":logging")))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    testFixturesImplementation(project(":enterprise-operations"))
 }

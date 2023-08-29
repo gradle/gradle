@@ -221,7 +221,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultModelRegistry(ruleExtractor, project.getPath(), run -> project.getOwner().applyToMutableState(p -> run.run()));
     }
 
-
     protected ScriptHandlerInternal createScriptHandler(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver) {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
             dependencyManagementServices,

@@ -80,6 +80,14 @@ It is a common practice to implement any custom build logic (like plugins and ta
 
 The GradleRunner uses the <<third_party_integration.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
 
+[NOTE]
+====
+GradleRunner supports the same range of Gradle versions as the Tooling API.
+At the time of writing Gradle 3.0 is the lowest supported version.
+To learn about the precise ranges, check the <<third_party_integration.adoc#sec:embedding_compatibility,compatibility matrix>>.
+Builds with older Gradle versions _may_ still work but there are no guarantees.
+====
+
 Starting with version 2.13, Gradle provides a conventional mechanism to inject the code under test into the test build.
 
 [[sub:test-kit-automatic-classpath-injection]]

@@ -25,7 +25,7 @@ dependencies {
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)
 
-    implementation(libs.futureKotlin("stdlib-jdk8"))
+    implementation(libs.futureKotlin("stdlib"))
     implementation(libs.futureKotlin("gradle-plugin"))
     implementation(libs.futureKotlin("sam-with-receiver"))
     implementation(libs.futureKotlin("assignment"))

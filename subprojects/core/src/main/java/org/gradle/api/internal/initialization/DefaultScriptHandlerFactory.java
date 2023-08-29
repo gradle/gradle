@@ -54,6 +54,6 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     @Override
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, projectFinder, context);
-        return new DefaultScriptHandler(scriptSource, services, classLoaderScope, scriptClassPathResolver);
+        return services.getObjectFactory().newInstance(DefaultScriptHandler.class, scriptSource, services, classLoaderScope, scriptClassPathResolver);
     }
 }

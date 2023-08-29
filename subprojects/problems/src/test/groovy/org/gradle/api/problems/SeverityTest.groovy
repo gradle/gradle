@@ -16,7 +16,7 @@
 
 package org.gradle.api.problems
 
-import org.gradle.api.problems.interfaces.Severity
+
 import spock.lang.Specification
 
 class SeverityTest extends Specification{

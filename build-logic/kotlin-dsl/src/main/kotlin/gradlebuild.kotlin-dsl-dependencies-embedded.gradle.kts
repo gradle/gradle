@@ -69,7 +69,7 @@ tasks {
 val embeddedKotlinBaseDependencies by configurations.creating
 
 dependencies {
-    embeddedKotlinBaseDependencies(libs.futureKotlin("stdlib-jdk8"))
+    embeddedKotlinBaseDependencies(libs.futureKotlin("stdlib"))
     embeddedKotlinBaseDependencies(libs.futureKotlin("reflect"))
 }
 

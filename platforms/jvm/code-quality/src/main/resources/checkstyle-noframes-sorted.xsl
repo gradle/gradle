@@ -1,4 +1,4 @@
-<xsl:stylesheet	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<?xml version="1.0"?>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -15,179 +15,155 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output method="html" indent="yes"/>
+    <xsl:param name="gradleVersion"/>
 
-<xsl:output method="html" indent="yes"/>
-<xsl:decimal-format decimal-separator="." grouping-separator="," />
+    <xsl:decimal-format decimal-separator="." grouping-separator="," />
 
-<xsl:key name="files" match="file" use="@name" />
+    <xsl:template match="checkstyle">
+        <html>
+            <head>
+                <title>Checkstyle Violations</title>
+                <!-- vaguely adapted from Gradle's CSS -->
+                <style type="text/css">
+                    body {
+                        background-color: #fff;
+                        color: #02303A;
+                    }
 
-<!-- Checkstyle XML Style Sheet by Stephane Bailliez <sbailliez@apache.org>         -->
-<!-- Part of the Checkstyle distribution found at http://checkstyle.sourceforge.net -->
-<!-- UsageContext (generates checkstyle_report.html):                                      -->
-<!--    <checkstyle failonviolation="false" config="${check.config}">               -->
-<!--      <fileset dir="${src.dir}" includes="**/*.java"/>                          -->
-<!--      <formatter type="xml" toFile="${doc.dir}/checkstyle_report.xml"/>         -->
-<!--    </checkstyle>                                                               -->
-<!--    <style basedir="${doc.dir}" destdir="${doc.dir}"                            -->
-<!--            includes="checkstyle_report.xml"                                    -->
-<!--            style="${doc.dir}/checkstyle-noframes-sorted.xsl"/>                 -->
+                    a {
+                        color: #1DA2BD;
+                    }
+                    a.link {
+                        color: #02303A;
+                    }
 
-<xsl:template match="checkstyle">
-	<html>
-		<head>
-		<style type="text/css">
-    .bannercell {
-      border: 0px;
-      padding: 0px;
-    }
-    body {
-      margin-left: 10;
-      margin-right: 10;
-      font:normal 80% arial,helvetica,sanserif;
-      background-color:#FFFFFF;
-      color:#000000;
-    }
-    .a td {
-      background: #efefef;
-    }
-    .b td {
-      background: #fff;
-    }
-    th, td {
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      font-weight:bold;
-      background: #ccc;
-      color: black;
-    }
-    table, th, td {
-      font-size:100%;
-      border: none
-    }
-    table.log tr td, tr th {
+                    p {
+                        font-size: 1rem;
+                    }
 
-    }
-    h2 {
-      font-weight:bold;
-      font-size:140%;
-      margin-bottom: 5;
-    }
-    h3 {
-      font-size:100%;
-      font-weight:bold;
-      background: #525D76;
-      color: white;
-      text-decoration: none;
-      padding: 5px;
-      margin-right: 2px;
-      margin-left: 2px;
-      margin-bottom: 0;
-    }
-		</style>
-		</head>
-		<body>
-			<a name="top"></a>
-      <!-- jakarta logo -->
-      <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr>
-        <td class="bannercell" rowspan="2">
-          <!--a href="http://jakarta.apache.org/">
-          <img src="http://jakarta.apache.org/images/jakarta-logo.gif" alt="http://jakarta.apache.org" align="left" border="0"/>
-          </a-->
-        </td>
-    		<td class="text-align:right"><h2>CheckStyle Audit</h2></td>
-    		</tr>
-    		<tr>
-    		<td class="text-align:right">Designed for use with <a href='http://checkstyle.sourceforge.net/'>CheckStyle</a> and <a href='http://jakarta.apache.org'>Ant</a>.</td>
-    		</tr>
-      </table>
-    	<hr size="1"/>
+                    h1 a[name] {
+                        margin: 0;
+                        padding: 0;
+                    }
 
-			<!-- Summary part -->
-			<xsl:apply-templates select="." mode="summary"/>
-			<hr size="1" width="100%" align="left"/>
+                    tr:nth-child(even) {
+                        background: white;
+                    }
 
-			<!-- Package List part -->
-			<xsl:apply-templates select="." mode="filelist"/>
-			<hr size="1" width="100%" align="left"/>
+                    th {
+                        font-weight:bold;
+                    }
+                    tr {
+                        background: #efefef;
+                    }
+                    table th, td, tr {
+                        font-size:100%;
+                        border: none;
+                        text-align: left;
+                        vertical-align: top;
+                    }
+                </style>
+            </head>
+            <body>
+                <p>
+                    <a name="top"><h1>Checkstyle Results</h1></a>
+                </p>
+                <hr align="left" width="95%" size="1"/>
+                <h2>Summary</h2>
+                <table class="summary" width="95%" >
+                    <tr>
+                        <th>Total files checked</th>
+                        <th>Total violations</th>
+                        <th>Files with violations</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <xsl:number level="any" value="count(descendant::file)"/>
+                        </td>
+                        <td>
+                            <xsl:number level="any" value="count(descendant::error)"/>
+                        </td>
+                        <td>
+                            <xsl:number level="any" value="count(descendant::file[error])"/>
+                        </td>
+                    </tr>
+                </table>
+                <hr align="left" width="95%" size="1"/>
+                <div class="violations">
+                    <h2>Violations</h2>
+                    <p>
+                        <xsl:choose>
+                            <xsl:when test="count(descendant::error) > 0">
+                                <table class="filelist" width="95%">
+                                    <tr>
+                                        <th>File</th>
+                                        <th>Total violations</th>
+                                    </tr>
+                                    <xsl:for-each select="file[error]">
+                                        <!-- sort by number of errors and then alphabetically -->
+                                        <xsl:sort data-type="number" order="descending" select="count(descendant::error)"/>
+                                        <xsl:sort select="@name"/>
+                                        <xsl:variable name="errors" select="count(descendant::error)"/>
+                                        <tr>
+                                            <td><a href="#{generate-id(@name)}"><xsl:value-of select="@name"/></a></td>
+                                            <td><xsl:value-of select="$errors"/></td>
+                                        </tr>
+                                    </xsl:for-each>
+                                </table>
+                                <p/>
+                                <xsl:apply-templates>
+                                    <!-- sort entries by file name alphabetically -->
+                                    <xsl:sort select="@name"/>
+                                </xsl:apply-templates>
+                                <p/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                No violations were found.
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </p>
+                </div>
+                <hr align="left" width="95%" size="1"/>
+                <p>Generated by <a href="https://gradle.org"><xsl:value-of select="$gradleVersion"/></a> with <a href="https://checkstyle.sourceforge.io/">Checkstyle <xsl:value-of select="@version"/></a>.</p>
+            </body>
+        </html>
+    </xsl:template>
 
-			<!-- For each package create its part -->
-            <xsl:apply-templates select="file[@name and generate-id(.) = generate-id(key('files', @name))]" />
+    <!-- A single file with violations -->
+    <xsl:template match="file[error]">
+        <div class="file-violation">
+            <h3>
+                <a class="link" name="{generate-id(@name)}"><xsl:value-of select="@name"/></a>
+            </h3>
+            <table class="violationlist" width="95%">
+                <tr>
+                    <th>Severity</th>
+                    <th>Description</th>
+                    <th>Line Number</th>
+                </tr>
+                <xsl:apply-templates select="error"/>
+            </table>
+            <p/>
+            <a href="#top">Back to top</a>
+            <p/>
+        </div>
+    </xsl:template>
 
-			<hr size="1" width="100%" align="left"/>
+    <!-- A single row in the list of violations -->
+    <xsl:template match="error">
+        <tr>
+            <td>
+                <xsl:value-of select="@severity"/>
+            </td>
+            <td>
+                <xsl:value-of select="@message"/>
+            </td>
+            <td>
+                <xsl:value-of select="@line"/>
+            </td>
+        </tr>
+    </xsl:template>
 
-
-		</body>
-	</html>
-</xsl:template>
-
-
-
-	<xsl:template match="checkstyle" mode="filelist">
-		<h3>Files</h3>
-		<table class="log" border="0" cellpadding="5" cellspacing="2" width="100%">
-      <tr>
-        <th>Name</th>
-        <th>Errors</th>
-      </tr>
-          <xsl:for-each select="file[@name and generate-id(.) = generate-id(key('files', @name))]">
-                <xsl:sort data-type="number" order="descending" select="count(key('files', @name)/error)"/>
-				<xsl:variable name="errorCount" select="count(error)"/>
-				<tr>
-          <xsl:call-template name="alternated-row"/>
-					<td><a href="#f-{@name}"><xsl:value-of select="@name"/></a></td>
-					<td><xsl:value-of select="$errorCount"/></td>
-				</tr>
-			</xsl:for-each>
-		</table>
-	</xsl:template>
-
-
-	<xsl:template match="file">
-    <a name="f-{@name}"></a>
-    <h3>File <xsl:value-of select="@name"/></h3>
-
-    <table class="log" border="0" cellpadding="5" cellspacing="2" width="100%">
-    	<tr>
-    	  <th>Error Description</th>
-    	  <th>Line</th>
-      </tr>
-        <xsl:for-each select="key('files', @name)/error">
-          <xsl:sort data-type="number" order="ascending" select="@line"/>
-    	<tr>
-        <xsl:call-template name="alternated-row"/>
-    	  <td><xsl:value-of select="@message"/></td>
-    	  <td><xsl:value-of select="@line"/></td>
-    	</tr>
-    	</xsl:for-each>
-    </table>
-    <a href="#top">Back to top</a>
-	</xsl:template>
-
-
-	<xsl:template match="checkstyle" mode="summary">
-		<h3>Summary</h3>
-        <xsl:variable name="fileCount" select="count(file[@name and generate-id(.) = generate-id(key('files', @name))])"/>
-		<xsl:variable name="errorCount" select="count(file/error)"/>
-		<table class="log" border="0" cellpadding="5" cellspacing="2" width="100%">
-		<tr>
-			<th>Files</th>
-			<th>Errors</th>
-		</tr>
-		<tr>
-		  <xsl:call-template name="alternated-row"/>
-			<td><xsl:value-of select="$fileCount"/></td>
-			<td><xsl:value-of select="$errorCount"/></td>
-		</tr>
-		</table>
-	</xsl:template>
-
-  <xsl:template name="alternated-row">
-    <xsl:attribute name="class">
-      <xsl:if test="position() mod 2 = 1">a</xsl:if>
-      <xsl:if test="position() mod 2 = 0">b</xsl:if>
-    </xsl:attribute>
-  </xsl:template>
 </xsl:stylesheet>

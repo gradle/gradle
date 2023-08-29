@@ -22,9 +22,10 @@ import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.problems.Problems
-import org.gradle.api.problems.interfaces.Problem
-import org.gradle.api.problems.interfaces.ProblemGroup
-import org.gradle.api.problems.interfaces.Severity
+import org.gradle.api.problems.Problem
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ReportableProblem
+import org.gradle.api.problems.Severity
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
@@ -58,8 +59,8 @@ class FlowParametersInstantiator(
         val problems = ImmutableList.builder<Problem>()
         inspection.propertyWalker.visitProperties(
             parameters,
-            object : ProblemRecordingTypeValidationContext(problemsService, type, { Optional.empty() }) {
-                override fun recordProblem(problem: Problem) {
+            object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }) {
+                override fun recordProblem(problem: ReportableProblem) {
                     problems.add(problem)
                 }
             },
@@ -76,9 +77,9 @@ class FlowParametersInstantiator(
                             override fun add(dependency: Any) {
                                 problems.add(
                                     problemsService.createProblemBuilder()
+                                        .label("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
                                         .undocumented()
                                         .noLocation()
-                                        .message("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
                                         .type("validation_type")
                                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                                         .severity(Severity.ERROR)

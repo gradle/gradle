@@ -33,9 +33,12 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Severity;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -214,15 +217,19 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
-        throw getProblemService().createProblemBuilder()
-            .undocumented()
-            .location(source.getFileName(), lineNumber)
-            .message(message)
-            .type("script_compilation_failed")
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(Severity.ERROR)
-            .withException(new ScriptCompilationException(message, e, source, lineNumber))
-            .throwIt();
+        throw getProblemService().throwing(new ProblemBuilderSpec() {
+            @Override
+            public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
+                return builder
+                    .label(message)
+                    .undocumented()
+                    .location(source.getFileName(), lineNumber)
+                    .type("script_compilation_failed")
+                    .group(ProblemGroup.GENERIC_ID)
+                    .severity(Severity.ERROR)
+                    .withException(new ScriptCompilationException(message, e, source, lineNumber));
+            }
+        });
     }
 
     private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {

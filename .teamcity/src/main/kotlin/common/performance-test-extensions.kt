@@ -92,6 +92,17 @@ fun BuildSteps.substDirOnWindows(os: Os) {
     }
 }
 
+fun BuildSteps.cleanUpPerformanceBuildDir(os: Os) {
+    if (os == Os.WINDOWS) {
+        script {
+            name = "CLEAN_UP_PERFORMANCE_BUILD_DIR"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = """rmdir /s /q p:\subprojects\performance\build\santaTrackerAndroidBuild && (echo Directory removed) || (echo Directory not found) """
+            skipConditionally()
+        }
+    }
+}
+
 fun BuildSteps.removeSubstDirOnWindows(os: Os) {
     if (os == Os.WINDOWS) {
         script {

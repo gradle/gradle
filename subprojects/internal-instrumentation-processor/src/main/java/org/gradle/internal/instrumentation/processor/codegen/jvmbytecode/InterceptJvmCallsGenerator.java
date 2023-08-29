@@ -82,6 +82,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         generateVisitMethodInsnCode(
             visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
         );
+        TypeSpec factoryClass = generateFactoryClass(className);
 
         return builder ->
             builder.addMethod(constructor)
@@ -95,7 +96,24 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .superclass(MethodVisitorScope.class)
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
-                .addFields(typeFieldByOwner.values());
+                .addFields(typeFieldByOwner.values())
+                .addType(factoryClass);
+    }
+
+    private static TypeSpec generateFactoryClass(String className) {
+        MethodSpec method = MethodSpec.methodBuilder("create")
+            .addModifiers(Modifier.PUBLIC)
+            .returns(JvmBytecodeCallInterceptor.class)
+            .addParameter(MethodVisitor.class, "methodVisitor")
+            .addParameter(InstrumentationMetadata.class, "metadata")
+            .addStatement("return new $L($N, $N)", className, "methodVisitor", "metadata")
+            .addAnnotation(Override.class)
+            .build();
+        return TypeSpec.classBuilder("Factory")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
+            .addMethod(method)
+            .build();
     }
 
 
@@ -123,13 +141,13 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                     implementationClassName.simpleName() :
                     implementationClassName.canonicalName();
                 String fullFieldName = camelToKebabCase(fieldTypeName).replace("-", "_").toUpperCase(Locale.US) + "_TYPE";
-                return FieldSpec.builder(Type.class, fullFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                    .initializer("$T.getType($T.class)", Type.class, implementationClassName)
+                return FieldSpec.builder(String.class, fullFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                    .initializer("$S", implementationClassName.canonicalName().replace(".", "/"))
                     .build();
             }, (u, v) -> u, LinkedHashMap::new));
     }
 
-    MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC)
+    MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE)
         .addParameter(MethodVisitor.class, "methodVisitor")
         .addParameter(InstrumentationMetadata.class, "metadata")
         .addStatement("super(methodVisitor)")

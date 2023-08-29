@@ -44,6 +44,7 @@ import org.gradle.internal.instrumentation.processor.modelreader.impl.Annotation
 import org.objectweb.asm.Type;
 
 import javax.annotation.Nonnull;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
@@ -59,6 +60,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
@@ -66,17 +69,47 @@ import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANCE_METHOD;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
+import static org.gradle.internal.instrumentation.processor.AbstractInstrumentationProcessor.PROJECT_NAME_OPTIONS;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
     private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.DefaultValue.class);
 
+    private final String projectName;
+
+    public PropertyUpgradeAnnotatedMethodReader(ProcessingEnvironment processingEnv) {
+        this.projectName = getProjectName(processingEnv);
+    }
+
+    private static String getProjectName(ProcessingEnvironment processingEnv) {
+        String projectName = processingEnv.getOptions().get(PROJECT_NAME_OPTIONS);
+        if (projectName == null || projectName.isEmpty()) {
+            return null;
+        }
+        return Stream.of(projectName.split("-"))
+            .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1))
+            .collect(Collectors.joining());
+    }
+
+    private String getGroovyInterceptorsClassName() {
+        return GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES + "_" + projectName;
+    }
+
+    private String getJavaInterceptorsClassName() {
+        return JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES + "_" + projectName;
+    }
+
     @Override
     public Collection<Result> readRequest(ExecutableElement method) {
         Optional<? extends AnnotationMirror> annotation = AnnotationUtils.findAnnotationMirror(method, UpgradedProperty.class);
         if (!annotation.isPresent()) {
             return Collections.emptySet();
+        }
+
+        if (projectName == null) {
+            // We validate project name here because we want to fail only if there is an @UpgradedProperty annotation used in the project
+            return Collections.singletonList(new InvalidRequest("Project name is not specified or is empty. Use -A" + PROJECT_NAME_OPTIONS + "=<projectName> compiler option to set the project name."));
         }
 
         try {
@@ -125,9 +158,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         }
     }
 
-    private static CallInterceptionRequest createGroovyPropertyInterceptionRequest(String propertyName, ExecutableElement method, Type originalType) {
+    private CallInterceptionRequest createGroovyPropertyInterceptionRequest(String propertyName, ExecutableElement method, Type originalType) {
         // TODO: Class name should be read from an annotation
-        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES));
+        String interceptorsClassName = getGroovyInterceptorsClassName();
+        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
         return new CallInterceptionRequestImpl(
             extractCallableInfo(GROOVY_PROPERTY_GETTER, method, originalType, propertyName, parameters),
@@ -136,7 +170,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    private static CallInterceptionRequest createJvmGetterInterceptionRequest(String propertyName, ExecutableElement method, Type originalType) {
+    private CallInterceptionRequest createJvmGetterInterceptionRequest(String propertyName, ExecutableElement method, Type originalType) {
         List<RequestExtra> extras = getJvmRequestExtras(method, false);
         String capitalize = propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
         String callableName = originalType.equals(Type.BOOLEAN_TYPE) ? "is" + capitalize : "get" + capitalize;
@@ -147,7 +181,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    private static CallInterceptionRequest createJvmSetterInterceptionRequest(ExecutableElement method, Type originalType, boolean isFluentSetter) {
+    private CallInterceptionRequest createJvmSetterInterceptionRequest(ExecutableElement method, Type originalType, boolean isFluentSetter) {
         Type returnType = isFluentSetter ? extractType(method.getEnclosingElement().asType()) : Type.VOID_TYPE;
         String callableName = method.getSimpleName().toString().replaceFirst("get", "set");
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
@@ -160,11 +194,12 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     @Nonnull
-    private static List<RequestExtra> getJvmRequestExtras(ExecutableElement method, boolean isFluentSetter) {
+    private List<RequestExtra> getJvmRequestExtras(ExecutableElement method, boolean isFluentSetter) {
+        String interceptorsClassName = getJavaInterceptorsClassName();
         List<RequestExtra> extras = new ArrayList<>();
         extras.add(new RequestExtra.OriginatingElement(method));
         // TODO: Class name should be read from an annotation
-        extras.add(new RequestExtra.InterceptJvmCalls(JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES));
+        extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
         UpgradedPropertyType upgradedPropertyType = UpgradedPropertyType.from(extractType(method.getReturnType()));
         extras.add(new PropertyUpgradeRequestExtra(isFluentSetter, implementationClass, method.getSimpleName().toString(), upgradedPropertyType));

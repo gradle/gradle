@@ -22,8 +22,9 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -55,7 +56,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.api.problems.interfaces.Severity.ERROR;
+import static org.gradle.api.problems.Severity.ERROR;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -121,7 +122,9 @@ public abstract class ValidatePlugins extends DefaultTask {
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
-                    problems.collectErrors(problemMessages.stream().map(Problem.class::cast).collect(toList()));
+                    for (Problem problem : problemMessages.stream().map(Problem.class::cast).collect(toList())) {
+                        ((InternalProblems) problems).reportAsProgressEvent(problem);
+                    }
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
                         .getWithExplanation(annotateTaskPropertiesDoc());

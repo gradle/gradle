@@ -85,6 +85,16 @@
          <trusted-key id="160a7a9cf46221a56b06ad64461a804f2609fd89" group="^com[.]github[.]shyiko($|([.].*))" regex="true"/>
          <trusted-key id="1616273079fe63e31c938f10f0df21d1d0a3c384" group="com.google.inject" name="guice" version="4.2.3"/>
          <trusted-key id="19beab2d799c020f17c69126b16698a4adf4d638" group="org.checkerframework" name="checker-qual"/>
+         <trusted-key id="1bd97a6a154e7810ee0bc832e2f38302c8075e3d">
+            <trusting group="com.gradle"/>
+            <trusting group="com.gradle" name="gradle-enterprise-gradle-plugin"/>
+            <trusting group="net.rubygrapefruit"/>
+            <trusting group="org.gradle"/>
+            <trusting group="org.gradle.exemplar"/>
+            <trusting group="org.gradle.profiler"/>
+            <trusting group="^com[.]gradle($|([.].*))" regex="true"/>
+            <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
+         </trusted-key>
          <trusted-key id="1fa37fbe4453c1073e7ef61d6449005f96bc97a3" group="de.undercouch"/>
          <trusted-key id="1fa868a348719e88b6d0de24c03ef1d7d692bcff" group="org.scala-lang"/>
          <trusted-key id="21f0942275ea159a501d375328852008a47bb995" group="^com[.]google($|([.].*))" regex="true"/>
@@ -93,6 +103,7 @@
             <trusting group="com.fasterxml.jackson.core"/>
             <trusting group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="29bea2a645f2d6ced7fb12e02b172e3e156466e8" group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
          <trusted-key id="2bcbdd0f23ea1cafcc11d4860374cf2e8dd1bdfd" group="org.sonatype.plexus"/>
          <trusted-key id="2be67ac00d699e04e840b7fe29967e804d85663f">
             <trusting group="com.eed3si9n" name="shaded-scalajson_2.13"/>
@@ -317,11 +328,11 @@
          <artifact name="android-studio-2022.3.1.18.linux.tar.gz">
             <sha256 value="24215e1324a6ac911810b2cc1afb2d735cf745dfbc06918a42b8d6fbc6bf7433" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2022.3.1.18.mac_arm.zip">
-            <sha256 value="ae39502b86dcb004b7732a6639edc97a4bd501400118e9d0f3441d5079903cac" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
          <artifact name="android-studio-2022.3.1.18.mac.zip">
             <sha256 value="f6c06282dca0ca9eefe82752c1703f15394aa0fd659a845b75e47a673fbf082f" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+         <artifact name="android-studio-2022.3.1.18.mac_arm.zip">
+            <sha256 value="ae39502b86dcb004b7732a6639edc97a4bd501400118e9d0f3441d5079903cac" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
          <artifact name="android-studio-2022.3.1.18.windows.zip">
             <sha256 value="ce23ee1647d25f4567895b7ab29aaa844ef02d0aecd218ec775f62be564189b3" origin="Verified" reason="Artifact is not signed"/>
@@ -1068,9 +1079,19 @@
             <pgp value="f254b35617dc255d9344bcfa873a8e86b4372146"/>
          </artifact>
       </component>
+      <component group="org.apache.maven.shared" name="maven-shared-utils" version="3.3.4">
+         <artifact name="maven-shared-utils-3.3.4.jar">
+            <pgp value="82c9ec0e52c47a936a849e0113d979595e6d01e1"/>
+         </artifact>
+      </component>
       <component group="org.apache.maven.wagon" name="wagon-provider-api" version="3.3.4">
          <artifact name="wagon-provider-api-3.3.4.jar">
             <pgp value="fa77dcfef2ee6eb2debedd2c012579464d01c06a"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven.wagon" name="wagon-provider-api" version="3.5.3">
+         <artifact name="wagon-provider-api-3.5.3.jar">
+            <pgp value="6a814b1f869c2bbeab7cb7271a2a1c94bde89688"/>
          </artifact>
       </component>
       <component group="org.apache.mina" name="mina-core" version="2.0.17">
@@ -1173,9 +1194,24 @@
             <pgp value="f254b35617dc255d9344bcfa873a8e86b4372146"/>
          </artifact>
       </component>
+      <component group="org.codehaus.plexus" name="plexus-cipher" version="2.0">
+         <artifact name="plexus-cipher-2.0.jar">
+            <pgp value="6a814b1f869c2bbeab7cb7271a2a1c94bde89688"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-classworlds" version="2.7.0">
+         <artifact name="plexus-classworlds-2.7.0.jar">
+            <pgp value="b91ab7d2121dc6b0a61aa182d7742d58455ecc7c"/>
+         </artifact>
+      </component>
       <component group="org.codehaus.plexus" name="plexus-interpolation" version="1.26">
          <artifact name="plexus-interpolation-1.26.jar">
             <pgp value="f254b35617dc255d9344bcfa873a8e86b4372146"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-sec-dispatcher" version="2.0">
+         <artifact name="plexus-sec-dispatcher-2.0.jar">
+            <pgp value="f3d15b8ff9902805de4be6b18dc6f3d0abdbd017"/>
          </artifact>
       </component>
       <component group="org.codehaus.woodstox" name="stax2-api" version="4.2.1">

@@ -28,10 +28,13 @@ class NoBuildDependenciesArtifactSetTest extends Specification {
         def selector = Stub(VariantSelector)
 
         given:
-        target.select(_, _) >> ResolvedArtifactSet.EMPTY
+        target.select(_, _, _) >> ResolvedArtifactSet.EMPTY
 
         expect:
-        new NoBuildDependenciesArtifactSet(target).select(spec, selector) == ResolvedArtifactSet.EMPTY
+        new NoBuildDependenciesArtifactSet(target).select(spec, selector, selectFromAllVariants) == ResolvedArtifactSet.EMPTY
+
+        where:
+        selectFromAllVariants << [false, true]
     }
 
     def "creates wrapper for non-empty set of selected artifacts"() {
@@ -42,13 +45,16 @@ class NoBuildDependenciesArtifactSetTest extends Specification {
         def visitor = Mock(TaskDependencyResolveContext)
 
         given:
-        target.select(_, _) >> selected
+        target.select(_, _, _) >> selected
 
         when:
-        def wrapper = new NoBuildDependenciesArtifactSet(target).select(spec,selector)
+        def wrapper = new NoBuildDependenciesArtifactSet(target).select(spec,selector, selectFromAllVariants)
         wrapper.visitDependencies(visitor)
 
         then:
         0 * visitor._
+
+        where:
+        selectFromAllVariants << [false, true]
     }
 }

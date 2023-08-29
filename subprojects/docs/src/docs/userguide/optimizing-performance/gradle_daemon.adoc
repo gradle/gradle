@@ -30,6 +30,13 @@ The Gradle Daemon reduces build times by:
 * Benefiting from continuous runtime optimization in the JVM
 * <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> to calculate exactly what needs to be rebuilt before you run a build
 
+[[understanding_wrapper]]
+== Understanding the Daemon
+
+The Gradle JVM client sends the Daemon build information such as command line arguments, project directories, and environment variables so that it can run the build.
+The Wrapper is responsible for resolving dependencies, executing build scripts, creating and running tasks; when it is done, it sends the client the output.
+Communication between the client and the Daemon happens via a local socket connection.
+
 Daemons use the JVM's default minimum heap size.
 
 If the requested build environment does not specify a maximum heap size, the Daemon uses up to 512MB of heap.
@@ -95,7 +102,12 @@ org.gradle.daemon=true
 [[sec:disabling_the_daemon]]
 == Disable Daemon
 
-You can disable the Daemon in multiple ways.
+You can disable the Daemon in multiple ways but there are important considerations:
+
+Single-use Deamon :: If the JVM args of the client process don't match what the build requires, a single-used Daemon (disposable JVM) is created.
+This means the Daemon is required for the build, so it is created, used, and then stopped at the end of the build.
+
+No Daemon :: If the `JAVA_OPTS` and `GRADLE_OPTS` match `org.gradle.jvmargs`, the Daemon will not be used at all since the build happens in the client JVM.
 
 === Disable for a build
 
@@ -134,8 +146,10 @@ There are two recommended ways to disable the Daemon globally across an environm
 * add `org.gradle.daemon=false` to the `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`/gradle.properties` file
 * add the flag `-Dorg.gradle.daemon=false` to the `GRADLE_OPTS` environment variable
 
+Don't forget to make sure your JVM arguments and `GRADLE_OPTS` / `JAVA_OPTS` match if you want to completely disable the Daemon and not simply invoke a single-use one.
+
 [[sec:stopping_an_existing_daemon]]
-== Stop Deamon
+== Stop Daemon
 
 It can be helpful to stop the Daemon when troubleshooting or debugging a failure.
 

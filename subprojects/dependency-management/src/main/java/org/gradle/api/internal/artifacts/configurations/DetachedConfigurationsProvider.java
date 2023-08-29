@@ -29,6 +29,11 @@ public class DetachedConfigurationsProvider implements ConfigurationsProvider {
     }
 
     @Override
+    public boolean isFixedSize() {
+        return true;
+    }
+
+    @Override
     public Set<ConfigurationInternal> getAll() {
         return ImmutableSet.of(theOnlyConfiguration);
     }

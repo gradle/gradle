@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 
-import static org.gradle.api.problems.interfaces.Severity.ERROR
+import static org.gradle.api.problems.Severity.ERROR
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
  *

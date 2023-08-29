@@ -37,8 +37,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
@@ -95,7 +95,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
-import static org.gradle.api.problems.interfaces.Severity.ERROR;
+import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class DefaultTransform implements Transform {
@@ -204,13 +204,13 @@ public class DefaultTransform implements Transform {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
+                        .label("is declared to be sensitive to absolute paths")
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .noLocation()
-                        .message("is declared to be sensitive to absolute paths")
                         .type(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY.name())
                         .group(ProblemGroup.GENERIC_ID)
                         .severity(ERROR)
-                        .description("This is not allowed for cacheable transforms")
+                        .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
             }
         }
@@ -360,13 +360,13 @@ public class DefaultTransform implements Transform {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
+                            .label("declares an output")
                             .documentedAt(userManual("validation_problems", "artifact_transform_should_not_declare_output"))
                             .noLocation()
-                            .message("declares an output")
                             .type(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.name())
                             .group(ProblemGroup.TYPE_VALIDATION_ID)
                             .severity(ERROR)
-                            .description("is annotated with an output annotation")
+                            .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
                     );
                 }
