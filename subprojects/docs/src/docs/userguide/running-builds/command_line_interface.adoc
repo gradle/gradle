@@ -87,7 +87,7 @@ To execute a task called `myTask` on the root project, type:
 $ gradle :myTask
 ----
 
-This will run the single `myTask` and all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,dependencies>>.
+This will run the single `myTask` and all of its <<writing_tasks.adoc#sec:task_dependencies,dependencies>>.
 
 [[sec:disambiguate_task_options_from_built_in_options]]
 === Specify options for tasks

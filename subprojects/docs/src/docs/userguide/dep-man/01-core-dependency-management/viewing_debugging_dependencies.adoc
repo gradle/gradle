@@ -24,7 +24,7 @@ Your build file lists direct dependencies, but the `dependencies` task can help 
 
 [NOTE]
 ====
-Graph of dependencies <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declared in the `buildscript` `classpath` configuration>>
+Graph of dependencies <<writing_build_scripts#sec:build_script_external_dependencies, declared in the `buildscript` `classpath` configuration>>
 can be rendered using <<command_line_interface.adoc#sec:listing_project_dependencies, task `buildEnvironment`>>.
 ====
 

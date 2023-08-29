@@ -297,7 +297,7 @@ Previously, the buildSrc project was built before applying the project's setting
 Now, buildSrc is built after the settings script and its classes are not visible to it.
 The buildSrc classes remain visible to project build scripts and script plugins.
 
-Custom logic can be used from a settings script by <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declaring external dependencies>>.
+Custom logic can be used from a settings script by <<writing_build_scripts.adoc#sec:build_script_external_dependencies, declaring external dependencies>>.
 
 ==== The `pluginManagement` block in settings scripts is now isolated
 
