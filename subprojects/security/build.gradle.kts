@@ -8,6 +8,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":resources"))
     implementation(project(":base-services"))
+    implementation(project(":functional"))
     implementation(project(":logging"))
     implementation(project(":process-services"))
     implementation(project(":resources-http"))
