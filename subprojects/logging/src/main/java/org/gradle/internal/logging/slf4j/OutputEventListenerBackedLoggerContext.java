@@ -48,6 +48,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     }
 
     private void applyDefaultLoggersConfig() {
+        addNoOpLogger("java.lang.ProcessBuilder");
         addNoOpLogger(HTTP_CLIENT_WIRE_LOGGER_NAME);
         addNoOpLogger("org.apache.http.headers");
         addNoOpLogger(META_INF_EXTENSION_MODULE_LOGGER_NAME);
