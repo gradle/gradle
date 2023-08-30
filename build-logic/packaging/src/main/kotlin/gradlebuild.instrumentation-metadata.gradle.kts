@@ -15,15 +15,15 @@
  */
 
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension
-import gradlebuild.instrumentation.tasks.FindInstrumentedSuperTypesTask
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTATION_METADATA
+import gradlebuild.instrumentation.tasks.InstrumentedMetadataMergeTask
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.INSTRUMENTATION_METADATA
 
 /**
  * A plugin that configures tasks and transforms to generate metadata that is needed for code instrumentation.
  */
 dependencies {
-    registerTransform(CollectDirectClassSuperTypesTransform::class) {
+    registerTransform(InstrumentationMetadataTransform::class) {
         from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JVM_CLASS_DIRECTORY)
         to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, INSTRUMENTATION_METADATA)
     }
@@ -37,7 +37,7 @@ val extension = extensions.create<InstrumentationMetadataExtension>("instrumenta
     upgradedPropertiesHashFile.convention(layout.buildDirectory.file("instrumentation/upgraded-properties-hash.txt"))
 }
 
-tasks.register<FindInstrumentedSuperTypesTask>("findInstrumentedSuperTypes") {
+tasks.register<InstrumentedMetadataMergeTask>("findInstrumentedSuperTypes") {
     instrumentationMetadataDirs = extension.classpathToInspect
     instrumentedSuperTypes = extension.superTypesOutputFile
     instrumentedSuperTypesHash = extension.superTypesHashFile

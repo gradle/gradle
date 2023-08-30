@@ -37,7 +37,7 @@ import javax.inject.Inject
 
 
 @CacheableTransform
-abstract class CollectDirectClassSuperTypesTransform : TransformAction<TransformParameters.None> {
+abstract class InstrumentationMetadataTransform : TransformAction<TransformParameters.None> {
 
     companion object {
         const val INSTRUMENTATION_METADATA = "instrumentationMetadata"

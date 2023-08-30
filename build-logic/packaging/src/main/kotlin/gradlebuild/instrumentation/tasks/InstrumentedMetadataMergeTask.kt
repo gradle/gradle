@@ -19,9 +19,9 @@ package gradlebuild.instrumentation.tasks
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.DIRECT_SUPER_TYPES_FILE
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTED_CLASSES_FILE
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.UPGRADED_PROPERTIES_FILE
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.DIRECT_SUPER_TYPES_FILE
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.INSTRUMENTED_CLASSES_FILE
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.UPGRADED_PROPERTIES_FILE
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
@@ -40,7 +40,7 @@ import java.util.Queue
 
 
 @CacheableTask
-abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
+abstract class InstrumentedMetadataMergeTask : DefaultTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -85,7 +85,7 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
     /**
      * Finds all instrumented classes from `instrumented-classes.txt` file.
      * That file is created by instrumentation annotation processor and artifact transform.
-     * See :internal-instrumentation-processor project and [gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform].
+     * See :internal-instrumentation-processor project and [gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform].
      */
     private
     fun findInstrumentedClasses(): Set<String> {
