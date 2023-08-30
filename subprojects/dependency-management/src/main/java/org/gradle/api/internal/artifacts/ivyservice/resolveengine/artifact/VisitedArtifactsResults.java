@@ -24,10 +24,10 @@ public interface VisitedArtifactsResults {
     /**
      * Selects the artifacts for the matching variant of each node seen during traversal. The implementation should attempt to select artifacts eagerly, but may be lazy where the selection cannot happen until the results are queried.
      */
-    SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector);
+    SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector, boolean selectFromAllVariants);
 
     /**
      * Selects the artifacts for the matching variant of each node seen during traversal, ignoring artifacts that are resolved, but unavailable. The implementation should attempt to select artifacts eagerly, but may be lazy where the selection cannot happen until the results are queried.
      */
-    SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector);
+    SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector, boolean selectFromAllVariants);
 }

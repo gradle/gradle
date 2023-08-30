@@ -32,8 +32,8 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
-import org.gradle.internal.component.AmbiguousConfigurationSelectionException
-import org.gradle.internal.component.IncompatibleConfigurationSelectionException
+import org.gradle.internal.component.AmbiguousGraphVariantsException
+import org.gradle.internal.component.IncompatibleGraphVariantsException
 import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.util.AttributeTestUtil
@@ -117,7 +117,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectVariants(configurationSelector, attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
-        def e = thrown(IncompatibleConfigurationSelectionException)
+        def e = thrown(IncompatibleGraphVariantsException)
         e.message == toPlatformLineSeparators("""Configuration 'default' in [target] does not match the consumer attributes
 Configuration 'default':
   - Incompatible because this component declares attribute 'key' with value 'nothing' and the consumer needed attribute 'key' with value 'other'""")
@@ -141,7 +141,7 @@ Configuration 'default':
         dep.selectVariants(configurationSelector, attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
-        def e = thrown(IncompatibleConfigurationSelectionException)
+        def e = thrown(IncompatibleGraphVariantsException)
         e.message == toPlatformLineSeparators("""Configuration 'bar' in [target] does not match the consumer attributes
 Configuration 'bar':
   - Incompatible because this component declares attribute 'key' with value 'something else' and the consumer needed attribute 'key' with value 'something'""")
@@ -179,7 +179,7 @@ Configuration 'bar':
                 throw new Exception("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
-        } catch (AmbiguousConfigurationSelectionException e) {
+        } catch (AmbiguousGraphVariantsException e) {
             if (expected == null) {
                 assert e.message.startsWith(toPlatformLineSeparators("The consumer was configured to find attribute 'platform' with value '${queryAttributes.platform}'${queryAttributes.flavor?", attribute 'flavor' with value '$queryAttributes.flavor'":""}. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
@@ -239,7 +239,7 @@ Configuration 'bar':
                 throw new Exception("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
-        } catch (AmbiguousConfigurationSelectionException e) {
+        } catch (AmbiguousGraphVariantsException e) {
             if (expected == null) {
                 assert e.message.startsWith(toPlatformLineSeparators("The consumer was configured to find attribute 'platform' with value '${queryAttributes.platform}'${queryAttributes.flavor?", attribute 'flavor' with value '${queryAttributes.flavor}'":""}. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {

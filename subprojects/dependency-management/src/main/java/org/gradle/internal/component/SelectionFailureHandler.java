@@ -79,9 +79,9 @@ public class SelectionFailureHandler {
     }
 
     // region Variant Selection Failures
-    public NoMatchingArtifactVariantSelectionException noMatchingVariantsSelectionFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
+    public NoMatchingArtifactVariantsException noMatchingVariantsSelectionFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
         String message = buildNoMatchingVariantsFailureMsg(displayName, componentRequested, variants, matcher, attributeDescriber);
-        NoMatchingArtifactVariantSelectionException e = new NoMatchingArtifactVariantSelectionException(message);
+        NoMatchingArtifactVariantsException e = new NoMatchingArtifactVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("No matching variants found")
@@ -96,9 +96,9 @@ public class SelectionFailureHandler {
         return e;
     }
 
-    public AmbiguousArtifactVariantSelectionException ambiguousVariantSelectionFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded, AttributeDescriber attributeDescriber) {
+    public AmbiguousArtifactVariantsException ambiguousVariantSelectionFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded, AttributeDescriber attributeDescriber) {
         String message = buildMultipleMatchingVariantsFailureMsg(attributeDescriber, displayName, componentRequested, matches, matcher, discarded);
-        AmbiguousArtifactVariantSelectionException e = new AmbiguousArtifactVariantSelectionException(message);
+        AmbiguousArtifactVariantsException e = new AmbiguousArtifactVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("Multiple matching variants found")
@@ -233,12 +233,12 @@ public class SelectionFailureHandler {
     // endregion Variant Selection Failures
 
     // region Configuration Selection Failures
-    public AmbiguousConfigurationSelectionException ambiguousConfigurationSelectionFailure(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
-                                                                                           AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches,
-                                                                                           ComponentGraphResolveMetadata targetComponent, boolean variantAware,
-                                                                                           Set<VariantGraphResolveState> discarded) {
+    public AmbiguousGraphVariantsException ambiguousConfigurationSelectionFailure(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
+                                                                                  AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches,
+                                                                                  ComponentGraphResolveMetadata targetComponent, boolean variantAware,
+                                                                                  Set<VariantGraphResolveState> discarded) {
         String message = buildAmbiguousConfigurationSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware, discarded);
-        AmbiguousConfigurationSelectionException e = new AmbiguousConfigurationSelectionException(message);
+        AmbiguousGraphVariantsException e = new AmbiguousGraphVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("Multiple matching configurations found")
@@ -253,14 +253,14 @@ public class SelectionFailureHandler {
         return e;
     }
 
-    public IncompatibleConfigurationSelectionException incompatibleConfigurationSelectionFailure(AttributeContainerInternal fromConfigurationAttributes,
-                                                                                                 AttributeMatcher attributeMatcher,
-                                                                                                 ComponentGraphResolveMetadata targetComponent,
-                                                                                                 ConfigurationGraphResolveState targetConfiguration,
-                                                                                                 boolean variantAware,
-                                                                                                 AttributeDescriber describer) {
+    public IncompatibleGraphVariantsException incompatibleConfigurationSelectionFailure(AttributeContainerInternal fromConfigurationAttributes,
+                                                                                        AttributeMatcher attributeMatcher,
+                                                                                        ComponentGraphResolveMetadata targetComponent,
+                                                                                        ConfigurationGraphResolveState targetConfiguration,
+                                                                                        boolean variantAware,
+                                                                                        AttributeDescriber describer) {
         String message = buildIncompatibleConfigurationSelectionFailureMsg(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware, describer);
-        IncompatibleConfigurationSelectionException e = new IncompatibleConfigurationSelectionException(message);
+        IncompatibleGraphVariantsException e = new IncompatibleGraphVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("Configuration does not match consumer attributes")
@@ -275,13 +275,13 @@ public class SelectionFailureHandler {
         return e;
     }
 
-    public NoMatchingConfigurationSelectionException noMatchingConfigurationSelectionFailure(AttributeDescriber describer,
-                                                                                             AttributeContainerInternal fromConfigurationAttributes,
-                                                                                             AttributeMatcher attributeMatcher,
-                                                                                             ComponentGraphResolveMetadata targetComponent,
-                                                                                             GraphSelectionCandidates candidates) {
+    public NoMatchingGraphVariantsException noMatchingConfigurationSelectionFailure(AttributeDescriber describer,
+                                                                                    AttributeContainerInternal fromConfigurationAttributes,
+                                                                                    AttributeMatcher attributeMatcher,
+                                                                                    ComponentGraphResolveMetadata targetComponent,
+                                                                                    GraphSelectionCandidates candidates) {
         String message = buildNoMatchingConfigurationSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
-        NoMatchingConfigurationSelectionException e = new NoMatchingConfigurationSelectionException(message);
+        NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("No matching configuration found")

@@ -16,8 +16,8 @@
 
 package org.gradle.internal.component;
 
-public class IncompatibleConfigurationSelectionException extends AbstractConfigurationSelectionException {
-    public IncompatibleConfigurationSelectionException(String message) {
+public class AmbiguousArtifactVariantsException extends ArtifactVariantSelectionException {
+    public AmbiguousArtifactVariantsException(String message) {
         super(message);
     }
 }

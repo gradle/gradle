@@ -26,8 +26,8 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
-import org.gradle.internal.component.AmbiguousArtifactVariantSelectionException
-import org.gradle.internal.component.NoMatchingArtifactVariantSelectionException
+import org.gradle.internal.component.AmbiguousArtifactVariantsException
+import org.gradle.internal.component.NoMatchingArtifactVariantsException
 import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
@@ -97,7 +97,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         visit(result)
 
         then:
-        def e = thrown(AmbiguousArtifactVariantSelectionException)
+        def e = thrown(AmbiguousArtifactVariantsException)
         e.message == toPlatformLineSeparators("""The consumer was configured to find attribute 'artifactType' with value 'classes'. However we cannot choose between the following variants of <component>:
   - <variant1> declares attribute 'artifactType' with value 'classes'
   - <variant2> declares attribute 'artifactType' with value 'jar'""")
@@ -193,7 +193,7 @@ Found the following transforms:
         visit(result)
 
         then:
-        def e = thrown(NoMatchingArtifactVariantSelectionException)
+        def e = thrown(NoMatchingArtifactVariantsException)
         e.message == toPlatformLineSeparators("""No variants of  match the consumer attributes:
   - <variant1>:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'

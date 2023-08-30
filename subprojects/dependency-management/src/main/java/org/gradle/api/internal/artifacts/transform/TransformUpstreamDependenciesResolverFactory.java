@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * ResolvedArtifactTransformer for {@link TransformUpstreamDependenciesResolver} that relies on the information provided to its {@code create} method.
+ * Factory for {@link TransformUpstreamDependenciesResolver} that relies on the information provided to its {@code create} method.
  */
 public interface TransformUpstreamDependenciesResolverFactory {
     /**

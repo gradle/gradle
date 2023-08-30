@@ -18,8 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
-import org.gradle.api.internal.artifacts.transform.VariantSelector
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.model.ComponentArtifactResolveState
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
@@ -37,7 +38,7 @@ class VariantResolvingArtifactSetTest extends Specification {
     VariantGraphResolveState variant
     DependencyGraphEdge dependency
 
-    def selector = Mock(VariantSelector)
+    def selector = Mock(ArtifactVariantSelector)
 
     def setup() {
         variantResolver = Mock(VariantArtifactResolver)
@@ -88,9 +89,9 @@ class VariantResolvingArtifactSetTest extends Specification {
 
         when:
         def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency)
-        artifactSet.select({ true }, new VariantSelector() {
+        artifactSet.select({ true }, new ArtifactVariantSelector() {
             @Override
-            ResolvedArtifactSet select(ResolvedVariantSet candidates, VariantSelector.Factory factory) {
+            ResolvedArtifactSet select(ResolvedVariantSet candidates, ArtifactVariantSelector.ResolvedArtifactTransformer factory) {
                 assert candidates.variants.size() == 2
                 // select the first variant
                 return candidates.variants[0].artifacts
@@ -99,6 +100,11 @@ class VariantResolvingArtifactSetTest extends Specification {
             @Override
             ImmutableAttributes getRequestedAttributes() {
                 return ImmutableAttributes.EMPTY
+            }
+
+            @Override
+            SelectionFailureHandler getFailureProcessor() {
+                return null
             }
         }, false)
 

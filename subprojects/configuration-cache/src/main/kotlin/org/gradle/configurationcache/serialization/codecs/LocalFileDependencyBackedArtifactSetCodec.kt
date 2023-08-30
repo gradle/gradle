@@ -150,7 +150,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
         }
 
         val selector = if (!requestedAttributes) {
-            NoTransformsSelectorArtifact()
+            NoTransformsArtifactVariantSelector()
         } else {
             val matchingOnArtifactFormat = readBoolean()
             val transforms = readNonNull<Map<ImmutableAttributes, MappingSpec>>()
@@ -288,7 +288,7 @@ class FixedArtifactVariantSelector(
 
 
 private
-class NoTransformsSelectorArtifact : ArtifactVariantSelector {
+class NoTransformsArtifactVariantSelector : ArtifactVariantSelector {
     override fun getRequestedAttributes() = throw UnsupportedOperationException("Should not be called")
     override fun getFailureProcessor() = throw UnsupportedOperationException("Should not be called")
 
