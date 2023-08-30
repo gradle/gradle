@@ -31,7 +31,7 @@ import java.io.File;
  * @since 4.1
  */
 @ServiceScope(Scopes.Project.class)
-public interface ProjectLayout {
+public interface ProjectLayout extends FileSystemLayout {
     /**
      * Returns the project directory.
      */

@@ -22,6 +22,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.DefaultCacheConfigurations;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.file.DefaultFileSystemLayout;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
@@ -51,6 +52,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
                 pluginServiceRegistry.registerSettingsServices(registration);
             }
             registration.add(DefaultProjectDescriptorRegistry.class);
+            registration.add(DefaultFileSystemLayout.class);
         });
     }
 
