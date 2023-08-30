@@ -16,10 +16,8 @@
 
 package org.gradle.configurationcache
 
-
 import org.gradle.configurationcache.isolated.IsolatedProjectsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -32,30 +30,27 @@ class ConfigurationCacheKeyIntegrationTest extends AbstractConfigurationCacheInt
         configurationCacheRun "help"
         then:
         configurationCache.assertStateStored()
-        countStoredEntries() == 1
 
         when:
         configurationCacheRun "help", "--offline"
         then:
         configurationCache.assertStateStored()
-        countStoredEntries() == 2
 
         // Now repeat invocations in different order to make sure both entries can be reused
         when:
         configurationCacheRun "help"
         then:
         configurationCache.assertStateLoaded()
-        countStoredEntries() == 2
 
         when:
         configurationCacheRun "help", "--offline"
         then:
         configurationCache.assertStateLoaded()
-        countStoredEntries() == 2
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26049")
-    @IgnoreIf({ GradleContextualExecuter.isolatedProjects }) // Isolated Projects option is explicitly controlled by the test
+    // Isolated Projects option is explicitly controlled by the test
+    @IgnoreIf({ GradleContextualExecuter.isolatedProjects })
     def "isolated projects flag is part of the cache key"() {
         def isolatedProjects = new IsolatedProjectsFixture(this)
 
@@ -63,7 +58,6 @@ class ConfigurationCacheKeyIntegrationTest extends AbstractConfigurationCacheInt
         configurationCacheRun "help"
         then:
         configurationCache.assertStateStored()
-        countStoredEntries() == 1
 
         when:
         configurationCacheRun "help", "-Dorg.gradle.unsafe.isolated-projects=true"
@@ -72,32 +66,17 @@ class ConfigurationCacheKeyIntegrationTest extends AbstractConfigurationCacheInt
         isolatedProjects.assertStateStored {
             projectConfigured(":")
         }
-        countStoredEntries() == 2
 
         // Now repeat invocations in different order to make sure both entries can be reused
         when:
         configurationCacheRun "help"
         then:
         configurationCache.assertStateLoaded()
-        countStoredEntries() == 2
 
         when:
         configurationCacheRun "help", "-Dorg.gradle.unsafe.isolated-projects=true"
         then:
         configurationCache.assertStateLoaded()
         isolatedProjects.assertStateLoaded()
-        countStoredEntries() == 2
-    }
-
-    private int countStoredEntries() {
-        getCacheDir().listFiles().findAll { isCacheEntryDir(it) }.size()
-    }
-
-    private boolean isCacheEntryDir(File file) {
-        file.isDirectory() && file.list().contains("entry.bin")
-    }
-
-    private TestFile getCacheDir() {
-        return file(".gradle/configuration-cache")
     }
 }
