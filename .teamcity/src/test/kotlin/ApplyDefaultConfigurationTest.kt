@@ -119,6 +119,7 @@ class ApplyDefaultConfigurationTest {
         assertEquals(
             listOf(
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+                "CLEAN_UP_PERFORMANCE_BUILD_DIR",
                 "GRADLE_RUNNER",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME"
