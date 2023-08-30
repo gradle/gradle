@@ -102,8 +102,8 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].where.path == "location"
         deserialized[0].where.line == 1
         deserialized[0].where.column == 1
-        deserialized[0].documentationLink.url() == "url"
-        deserialized[0].documentationLink.consultDocumentationMessage() == "consult"
+        deserialized[0].documentationLink.getUrl() == "url"
+        deserialized[0].documentationLink.getConsultDocumentationMessage() == "consult"
     }
 
     /**
@@ -113,12 +113,12 @@ class ValidationProblemSerializationTest extends Specification {
     class TestDocLink implements DocLink {
 
         @Override
-        String url() {
+        String getUrl() {
             return "url"
         }
 
         @Override
-        String consultDocumentationMessage() {
+        String getConsultDocumentationMessage() {
             return "consult"
         }
     }

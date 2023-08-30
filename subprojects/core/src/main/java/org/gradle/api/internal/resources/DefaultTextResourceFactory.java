@@ -95,7 +95,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
         throw new InsecureProtocolException(
             "Loading a TextResource from an insecure URI, without explicit opt-in, is unsupported. " + String.format("The provided URI '%s' uses an insecure protocol (HTTP). ", rootUri),
             String.format("Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning. ", GUtil.toSecureUrl(rootUri), rootUri),
-            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
+            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
         );
     }
 
@@ -103,7 +103,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
         throw new InsecureProtocolException(
             "Loading a TextResource from an insecure redirect, without explicit opt-in, is unsupported. " + String.format("'%s' redirects to insecure '%s'.", uri, redirect),
             "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.",
-            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
+            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
         );
     }
 }

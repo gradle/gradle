@@ -35,12 +35,12 @@ public interface DocLink {
      * The URL to the documentation page.
      */
     @Nullable
-    String url();
+    String getUrl();
 
     /**
      * A message that tells the user to consult the documentation.
      * There are currently 2 different messages used for this, hence this method.
      */
     @Nullable
-    String consultDocumentationMessage();
+    String getConsultDocumentationMessage();
 }
