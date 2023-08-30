@@ -30,8 +30,9 @@ import org.gradle.test.fixtures.file.TestFile
  * declares itself as incremental, but doesn't honor that contract.
  */
 @CompileStatic
-abstract class AnnotationProcessorFixture {
+class AnnotationProcessorFixture {
     protected final String annotationName
+    protected final String supportedAnnotationTypes;
     protected final String annotationPackageName
     protected final String fqAnnotationName
     IncrementalAnnotationProcessorType declaredType
@@ -40,8 +41,9 @@ abstract class AnnotationProcessorFixture {
         this('', annotationName)
     }
 
-    AnnotationProcessorFixture(String annotationPackageName, String annotationName) {
+    AnnotationProcessorFixture(String annotationPackageName, String annotationName, boolean processAllCode = false) {
         this.annotationName = annotationName
+        this.supportedAnnotationTypes = processAllCode ? '"*"' : "${annotationName}.class.getName()"
         this.annotationPackageName = annotationPackageName
         this.fqAnnotationName = annotationPackageName.empty ? annotationName : "${annotationPackageName}.${annotationName}"
     }
@@ -99,7 +101,7 @@ abstract class AnnotationProcessorFixture {
 
                 @Override
                 public Set<String> getSupportedAnnotationTypes() {
-                    return Collections.singleton(${annotationName}.class.getName());
+                    return Collections.singleton(${supportedAnnotationTypes});
                 }
 
                 ${supportedOptionsBlock}
@@ -150,8 +152,9 @@ abstract class AnnotationProcessorFixture {
         }
     }
 
-    protected abstract String getGeneratorCode();
-
+    protected String getGeneratorCode() {
+        ""
+    }
     protected String getSupportedOptionsBlock() {
         ""
     }

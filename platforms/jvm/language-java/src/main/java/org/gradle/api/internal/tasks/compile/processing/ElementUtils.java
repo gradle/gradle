@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.processing;
 
 import com.google.common.collect.Sets;
 
+import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -67,6 +68,7 @@ public class ElementUtils {
         throw new IllegalArgumentException("Unexpected element " + originatingElement);
     }
 
+    @Nullable
     public static String getElementName(Element current) {
         if (current instanceof PackageElement) {
             String packageName = ((PackageElement) current).getQualifiedName().toString();
@@ -80,7 +82,7 @@ public class ElementUtils {
             TypeElement typeElement = (TypeElement) current;
             return typeElement.getQualifiedName().toString();
         }
-        return null;
+        return null; // for ModuleElement, which is a top level element, this method currently returns 'null'
     }
 
     public static Element getTopLevelType(Element originatingElement) {
