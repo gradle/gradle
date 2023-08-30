@@ -51,7 +51,8 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
     def fileLockManager = Stub(FileLockManager)
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentingTypeRegistry) {
-        getInstrumentedFileHash() >> Optional.empty()
+        getInstrumentedTypesHash() >> Optional.empty()
+        getUpgradedPropertiesHash() >> Optional.empty()
     }
     def typeRegistry = Stub(InstrumentingTypeRegistry)
 
