@@ -18,6 +18,7 @@ package gradlebuild.instrumentation.tasks
 
 import com.google.gson.Gson
 import com.google.gson.JsonArray
+import com.google.gson.JsonParser
 import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.DIRECT_SUPER_TYPES_FILE
 import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTED_CLASSES_FILE
 import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.UPGRADED_PROPERTIES_FILE
@@ -32,6 +33,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.hash.Hashing
 import java.io.File
+import java.io.FileReader
 import java.util.ArrayDeque
 import java.util.Properties
 import java.util.Queue
@@ -165,27 +167,26 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
     private
     fun mergeAndWriteUpgradedProperties() {
         // Merge and find all upgraded properties
-        val gson = Gson()
-        val mergedUpgradedProperties = mergeProperties(gson)
+        val mergedUpgradedProperties = mergeProperties()
         if (mergedUpgradedProperties.isEmpty) {
             upgradedProperties.asFile.get().toEmptyFile()
             upgradedPropertiesHash.asFile.get().toEmptyFile()
             return
         }
 
-        upgradedProperties.asFile.get().writer().use { gson.toJson(mergedUpgradedProperties, it) }
+        upgradedProperties.asFile.get().writer().use { Gson().toJson(mergedUpgradedProperties, it) }
         val hash = Hashing.defaultFunction().hashFile(upgradedProperties.asFile.get())
         upgradedPropertiesHash.asFile.get().outputStream().use { it.write(hash.toByteArray()) }
     }
 
     private
-    fun mergeProperties(gson: Gson): JsonArray {
+    fun mergeProperties(): JsonArray {
         val merged = JsonArray()
         instrumentationMetadataDirs
             .map { it.resolve(UPGRADED_PROPERTIES_FILE) }
             .filter { it.exists() }
             .sorted()
-            .map { gson.toJsonTree(it).asJsonArray }
+            .map { JsonParser.parseReader(FileReader(it)).asJsonArray }
             .forEach { merged.addAll(it) }
         return merged
     }

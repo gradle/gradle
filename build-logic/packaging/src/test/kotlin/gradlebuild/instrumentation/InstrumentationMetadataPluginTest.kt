@@ -16,12 +16,14 @@
 
 package gradlebuild.instrumentation
 
+import com.google.gson.JsonParser
 import org.gradle.internal.hash.HashCode
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.io.FileReader
 import java.util.Properties
 
 
@@ -57,17 +59,32 @@ class InstrumentationMetadataPluginTest {
         assert(instrumentedSuperTypes == expectedSuperTypes) {
             "Expected instrumented-super-types.properties to be equal to:\n$expectedSuperTypes but was:\n$instrumentedSuperTypes"
         }
-        val hashBytes = instrumentedSuperTypesHash.readBytes()
-        assert(hashBytes.isNotEmpty()) {
-            "Expected instrumented-super-types-hash.txt to not be empty"
-        }
-        assert(HashCode.fromBytes(hashBytes).toString() == "013efe852ca15532a60e3e133c783a81") {
-            "Expected instrumented-super-types-hash.txt hash code to be: 013efe852ca15532a60e3e133c783a81, but was ${HashCode.fromBytes(hashBytes)}"
-        }
+        instrumentedSuperTypesHash.assertIsNotEmpty()
+        HashCode.fromBytes(instrumentedSuperTypesHash.readBytes()).assertIsEqualTo("013efe852ca15532a60e3e133c783a81")
     }
 
     @Test
-    fun `should output empty instrumented-super-types properties file and empty hash file if none of types is instrumented`() {
+    fun `should output merged upgraded properties json file`() {
+        // When
+        assertSucceeds()
+
+        // Then
+        val upgradedProperties = JsonParser.parseReader(FileReader(File(projectRoot, "distribution/build/instrumentation/upgraded-properties.json"))).asJsonArray
+        val upgradedPropertiesHash = File(projectRoot, "distribution/build/instrumentation/upgraded-properties-hash.txt")
+        assert(upgradedProperties.size() == 2) {
+            "Expected upgraded-properties.json has size equal to 2 but was:\n${upgradedProperties.size()}"
+        }
+        val properties = upgradedProperties.map { it.asJsonObject.get("containingType").asString + "#" + it.asJsonObject.get("propertyName").asString }
+        val expectedProperties = listOf("org.gradle.api.plugins.quality.Checkstyle#maxErrors", "org.gradle.api.Task#enabled")
+        assert(properties == expectedProperties) {
+            "Expected properties to be $expectedProperties, but were $properties"
+        }
+        upgradedPropertiesHash.assertIsNotEmpty()
+        HashCode.fromBytes(upgradedPropertiesHash.readBytes()).assertIsEqualTo("1b26e1853aff264e63a54a69dfe5d4c7")
+    }
+
+    @Test
+    fun `should output empty instrumentation files if none of types is instrumented`() {
         // Given
         // Override the build.gradle file to not write instrumented-classes.txt file
         File(projectRoot, "core/build.gradle").writeText("""
@@ -80,13 +97,40 @@ class InstrumentationMetadataPluginTest {
         assertSucceeds()
 
         // Then
-        val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties").readPropertiesFileToSorterMap()
+        val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties")
         val instrumentedSuperTypesHash = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types-hash.txt")
-        assert(instrumentedSuperTypes.isEmpty()) {
-            "Expected instrumented-super-types.properties to be empty but contained $instrumentedSuperTypes"
+        val upgradedProperties = File(projectRoot, "distribution/build/instrumentation/upgraded-properties.json")
+        val upgradedPropertiesHash = File(projectRoot, "distribution/build/instrumentation/upgraded-properties-hash.txt")
+        instrumentedSuperTypes.assertExistsAndIsEmpty()
+        instrumentedSuperTypesHash.assertExistsAndIsEmpty()
+        upgradedProperties.assertExistsAndIsEmpty()
+        upgradedPropertiesHash.assertExistsAndIsEmpty()
+    }
+
+    private
+    fun File.assertExistsAndIsEmpty() {
+        assert(this.exists()) {
+            "Expected ${this.name} to exist, but it didn't"
         }
-        assert(instrumentedSuperTypesHash.length() == 0L) {
-            "Expected instrumented-super-types-hash.txt to be empty but had length ${instrumentedSuperTypesHash.length()}"
+        assert(this.length() == 0L) {
+            "Expected ${this.name} to be empty but had length ${this.length()}"
+        }
+    }
+
+    private
+    fun File.assertIsNotEmpty() {
+        assert(this.exists()) {
+            "Expected ${this.name} to exist, but it didn't"
+        }
+        assert(this.length() != 0L) {
+            "Expected ${this.name} to not be empty but was"
+        }
+    }
+
+    private
+    fun HashCode.assertIsEqualTo(hash: String) {
+        assert(this.toString() == hash) {
+            "Expected instrumented-super-types-hash.txt hash code to be: $hash, but was $this"
         }
     }
 
@@ -102,7 +146,7 @@ class InstrumentationMetadataPluginTest {
         .withProjectDir(projectRoot)
         .withPluginClasspath()
         .forwardOutput()
-        .withArguments(":distribution:findInstrumentedSuperTypes")
+        .withArguments(":distribution:findInstrumentedSuperTypes", "--stacktrace")
 
     private
     fun assertSucceeds() {
@@ -134,6 +178,8 @@ class InstrumentationMetadataPluginTest {
                     // Simulate annotation processor output
                     file("build/classes/java/main/org/gradle/internal/instrumentation").mkdirs()
                     file("build/classes/java/main/org/gradle/internal/instrumentation/instrumented-classes.txt") << "org/gradle/api/Task\norg/gradle/api/DefaultTask"
+                    file("build/classes/java/main/META-INF/upgrades").mkdirs()
+                    file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json") << '[{"propertyName":"enabled","containingType":"org.gradle.api.Task"}]'
                 }
             }
         """)
@@ -160,6 +206,13 @@ class InstrumentationMetadataPluginTest {
             }
             dependencies {
                 implementation(project(":core"))
+            }
+            tasks.named("compileJava") {
+                doLast {
+                    // Simulate annotation processor output
+                    file("build/classes/java/main/META-INF/upgrades").mkdirs()
+                    file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json") << '[{"propertyName":"maxErrors","containingType":"org.gradle.api.plugins.quality.Checkstyle"}]'
+                }
             }
         """)
         File(codeQualityDir, "src/main/java/org/gradle/quality").mkdirs()
@@ -191,8 +244,6 @@ class InstrumentationMetadataPluginTest {
 
             instrumentationMetadata {
                 classpathToInspect = createInstrumentationMetadataViewOf(configurations.runtimeClasspath)
-                superTypesOutputFile = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
-                superTypesHashFile = layout.buildDirectory.file("instrumentation/instrumented-super-types-hash.txt")
             }
         """)
     }

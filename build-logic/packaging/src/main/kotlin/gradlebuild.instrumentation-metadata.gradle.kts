@@ -40,6 +40,7 @@ val extension = extensions.create<InstrumentationMetadataExtension>("instrumenta
 tasks.register<FindInstrumentedSuperTypesTask>("findInstrumentedSuperTypes") {
     instrumentationMetadataDirs = extension.classpathToInspect
     instrumentedSuperTypes = extension.superTypesOutputFile
+    instrumentedSuperTypesHash = extension.superTypesHashFile
     upgradedProperties = extension.upgradedPropertiesFile
     upgradedPropertiesHash = extension.upgradedPropertiesHashFile
 }
