@@ -67,9 +67,9 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
             new UpgradedMethod("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;")
         ]
         def properties = [
-            new PropertyEntry("org.gradle.test.Task", "maxErrors", maxErrorMethods),
-            new PropertyEntry("org.gradle.test.Task", "sourceCompatibility", sourceCompatibilityMethods),
-            new PropertyEntry("org.gradle.test.Task", "targetCompatibility", targetCompatibilityMethods)
+            new PropertyEntry("31981d9f5fab0f1ed8296f996b520f5d", "org.gradle.test.Task", "maxErrors", maxErrorMethods),
+            new PropertyEntry("1172b619deb2619ee8b9934e50ec2fcf", "org.gradle.test.Task", "sourceCompatibility", sourceCompatibilityMethods),
+            new PropertyEntry("a5d93ee372904e9bdd88614e046a351c", "org.gradle.test.Task", "targetCompatibility", targetCompatibilityMethods)
         ]
         assertThat(compilation)
             .generatedFile(CLASS_OUTPUT, "META-INF/instrumentation/upgraded-properties.json")

@@ -18,6 +18,7 @@ package gradlebuild.instrumentation
 
 import com.google.gson.JsonParser
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,6 +29,12 @@ import java.util.Properties
 
 
 class InstrumentationMetadataPluginTest {
+
+    companion object {
+        const val FIRST_HASH = "1172b619deb2619ee8b9934e50ec2fcf"
+        const val SECOND_HASH = "31981d9f5fab0f1ed8296f996b520f5d"
+    }
+
     @TempDir
     private
     lateinit var temporaryFolder: File
@@ -80,7 +87,11 @@ class InstrumentationMetadataPluginTest {
             "Expected properties to be $expectedProperties, but were $properties"
         }
         upgradedPropertiesHash.assertIsNotEmpty()
-        HashCode.fromBytes(upgradedPropertiesHash.readBytes()).assertIsEqualTo("1b26e1853aff264e63a54a69dfe5d4c7")
+        val expectedHash = Hashing.newHasher().apply {
+            putString(FIRST_HASH)
+            putString(SECOND_HASH)
+        }.hash().toString()
+        HashCode.fromBytes(upgradedPropertiesHash.readBytes()).assertIsEqualTo(expectedHash)
     }
 
     @Test
@@ -179,7 +190,7 @@ class InstrumentationMetadataPluginTest {
                     file("build/classes/java/main/org/gradle/internal/instrumentation").mkdirs()
                     file("build/classes/java/main/org/gradle/internal/instrumentation/instrumented-classes.txt") << "org/gradle/api/Task\norg/gradle/api/DefaultTask"
                     file("build/classes/java/main/META-INF/upgrades").mkdirs()
-                    file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json") << '[{"propertyName":"enabled","containingType":"org.gradle.api.Task"}]'
+                    file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json") << '[{"hash":"$FIRST_HASH","propertyName":"enabled","containingType":"org.gradle.api.Task"}]'
                 }
             }
         """)
@@ -211,7 +222,7 @@ class InstrumentationMetadataPluginTest {
                 doLast {
                     // Simulate annotation processor output
                     file("build/classes/java/main/META-INF/upgrades").mkdirs()
-                    file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json") << '[{"propertyName":"maxErrors","containingType":"org.gradle.api.plugins.quality.Checkstyle"}]'
+                    file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json") << '[{"hash":"$SECOND_HASH","propertyName":"maxErrors","containingType":"org.gradle.api.plugins.quality.Checkstyle"}]'
                 }
             }
         """)

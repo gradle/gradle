@@ -175,8 +175,9 @@ abstract class InstrumentedMetadataMergeTask : DefaultTask() {
         }
 
         upgradedProperties.asFile.get().writer().use { Gson().toJson(mergedUpgradedProperties, it) }
-        val hash = Hashing.defaultFunction().hashFile(upgradedProperties.asFile.get())
-        upgradedPropertiesHash.asFile.get().outputStream().use { it.write(hash.toByteArray()) }
+        val hasher = Hashing.newHasher()
+        mergedUpgradedProperties.map { it.asJsonObject.get("hash").asString }.sorted().forEach { hasher.putString(it) }
+        upgradedPropertiesHash.asFile.get().outputStream().use { it.write(hasher.hash().toByteArray()) }
     }
 
     private

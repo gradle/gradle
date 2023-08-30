@@ -18,10 +18,11 @@ package org.gradle.internal.instrumentation.extensions.property;
 
 
 import com.google.gson.Gson;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -93,6 +95,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static PropertyEntry toPropertyEntry(List<CallInterceptionRequest> requests) {
+        Hasher hasher = Hashing.defaultFunction().newHasher();
         CallInterceptionRequest request = requests.get(0);
         String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
         String containingType = request.getInterceptedCallable().getOwner().getType().getClassName();
@@ -105,20 +108,30 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
                     .toArray(Type[]::new);
                 return new UpgradedMethod(intercepted.getCallableName(), Type.getMethodDescriptor(returnType, parameterTypes));
             })
-            .sorted()
+            .sorted(Comparator.comparing((UpgradedMethod o) -> o.name).thenComparing(o -> o.descriptor))
+            .peek(upgradedMethod -> {
+                hasher.putString(upgradedMethod.name);
+                hasher.putString(upgradedMethod.descriptor);
+            })
             .collect(Collectors.toList());
-        return new PropertyEntry(containingType, propertyName, upgradedMethods);
+        return new PropertyEntry(hasher.hash().toString(), containingType, propertyName, upgradedMethods);
     }
 
     static class PropertyEntry {
+        private final String hash;
         private final String propertyName;
         private final String containingType;
         private final List<UpgradedMethod> upgradedMethods;
 
-        public PropertyEntry(String containingType, String propertyName, List<UpgradedMethod> upgradedMethods) {
+        public PropertyEntry(String hash, String containingType, String propertyName, List<UpgradedMethod> upgradedMethods) {
+            this.hash = hash;
             this.containingType = containingType;
             this.propertyName = propertyName;
             this.upgradedMethods = upgradedMethods;
+        }
+
+        public String getHash() {
+            return hash;
         }
 
         public String getContainingType() {
@@ -134,7 +147,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         }
     }
 
-    static class UpgradedMethod implements Comparable<UpgradedMethod> {
+    static class UpgradedMethod {
         private final String name;
         private final String descriptor;
 
@@ -149,12 +162,6 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
         public String getDescriptor() {
             return descriptor;
-        }
-
-        @Override
-        public int compareTo(@NotNull InstrumentedPropertiesResourceGenerator.UpgradedMethod o) {
-            int nameComparison = name.compareTo(o.name);
-            return nameComparison != 0 ? nameComparison : descriptor.compareTo(o.descriptor);
         }
     }
 }
