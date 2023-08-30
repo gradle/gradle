@@ -137,6 +137,11 @@ class ConfigurationCacheStartParameter(
     val isNoBuildScan: Boolean
         get() = startParameter.isNoBuildScan
 
+    /**
+     * Determines whether Isolated Projects option was enabled.
+     *
+     * Uses a build model parameter rather than a start parameter as the latter is not final and can be affected by other options of the build.
+     */
     val isIsolatedProjects: Boolean
         get() = modelParameters.isIsolatedProjects
 }
