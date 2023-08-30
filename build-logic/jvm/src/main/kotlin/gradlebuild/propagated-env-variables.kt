@@ -43,6 +43,7 @@ val propagatedEnvironmentVariables = listOf(
     "USERDOMAIN",
     "USERPROFILE",
     "LOCALAPPDATA",
+    "GRADLE_ENTERPRISE_ACCESS_KEY=",
 
     // Used by Gradle test infrastructure
     "REPO_MIRROR_URLS",

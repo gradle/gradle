@@ -25,6 +25,7 @@ class ApplyGradleEnterprisePluginFixture {
     private static final String APPLY_ENTERPRISE_PLUGIN = """
         plugins {
             id('${AutoAppliedGradleEnterprisePlugin.ID}') version('${AutoAppliedGradleEnterprisePlugin.VERSION}')
+            id('io.github.gradle.gradle-enterprise-conventions-plugin') version('0.7.6')
         }
     """
 

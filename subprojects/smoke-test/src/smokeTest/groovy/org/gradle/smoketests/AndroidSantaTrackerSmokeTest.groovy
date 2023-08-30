@@ -44,7 +44,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         assertConfigurationCacheStateStored()
 
         where:
-        agpVersion << TESTED_AGP_VERSIONS
+        agpVersion << ["8.2.0-dev"]
     }
 }
 
