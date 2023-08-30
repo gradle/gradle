@@ -90,12 +90,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["documentationLink"] == [
-            "properties": [
-                "page": "test-id",
-                "section": "test-section"
-            ]
-        ]
+        def link = this.collectedProblems[0]["documentationLink"]
+        link["properties"]["page"] == "test-id"
+        link["properties"]["section"] == "test-section"
+        link["url"].startsWith("https://docs.gradle.org")
+        link["consultDocumentationMessage"].startsWith("For more information, please refer to https://docs.gradle.org")
     }
 
     def "can emit a problem with upgrade-guide documentation"() {
@@ -128,12 +127,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["documentationLink"] == [
-            "properties": [
-                "page": "upgrading_version_8",
-                "section": "test-section"
-            ]
-        ]
+        def link = this.collectedProblems[0]["documentationLink"]
+        link["properties"]["page"] == "upgrading_version_8"
+        link["properties"]["section"] == "test-section"
+        link["url"].startsWith("https://docs.gradle.org")
+        link["consultDocumentationMessage"].startsWith("Consult the upgrading guide for further information: https://docs.gradle.org")
     }
 
     def "can emit a problem with dsl-reference documentation"() {
@@ -166,12 +164,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["documentationLink"] == [
-            "properties": [
-                "targetClass": Problem.class.name,
-                "property": "label",
-            ]
-        ]
+        def link = this.collectedProblems[0]["documentationLink"]
+        link["properties"]["targetClass"] == Problem.class.name
+        link["properties"]["property"] == "label"
     }
 
     def "can emit a problem with partially specified location"() {
