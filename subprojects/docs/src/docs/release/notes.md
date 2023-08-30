@@ -50,6 +50,56 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Introduce Role-Locked Configuration Factory Methods
+
+The [ConfigurationContainer](javadoc/org/gradle/api/artifacts/ConfigurationContainer.html) now exposes factory methods to lazily create [Configurations](javadoc/org/gradle/api/artifacts/Configuration.html) that are only intended for a single purpose.
+Previously, the only way to specify the role of a Configuration would be by mutating the `canBeConsumed`, `canBeResolved`, and `canBeDeclared` properties. 
+Now, the new factory methods provide the ability to create Configurations with an immutable role, specified upon creation.
+The ConfigurationContainer defines three concrete Configuration types:
+- **Consumable** - Models the outgoing variants of a project component.
+- **Resolvable** - Acts as the root of a dependency graph.
+- **Dependency Scope** - Collects dependencies, constraints, and exclude rules to be used by Consumable and Resolvable configurations. 
+
+Dependencies cannot be declared on Configurations created with the `consumable` and `resolvable` factory methods. 
+A Configuration with one role cannot perform the functions of another.
+
+These factory methods are primarily targeted towards plugin authors.
+By using these factory methods, plugin authors can ensure that the Configurations are used for their intended purpose. 
+Gradle will be migrating its own Configurations to use role-locked Configurations in Gradle 9.0.
+
+Code which previously used the mutable role properties:
+```kotlin
+configurations {
+    create("implementation") {
+        isCanBeConsumed = false
+        isCanBeResolved = false
+    }
+    create("runtimeClasspath") {
+        isCanBeConsumed = false
+        isCanBeDeclared = false
+        extendsFrom(configurations["implementation"])
+    }
+    create("runtimeElements") {
+        isCanBeResolved = false
+        isCanBeDeclared = false
+        extendsFrom(configurations["implementation"])
+    }
+}
+```
+
+May now use the factory methods:
+```kotlin
+configurations {
+    dependencyScope("implementation")
+    consumable("apiElements") {
+        extendsFrom(configurations["implementation"])
+    }
+    resolvable("runtimeClasspath") {
+        extendsFrom(configurations["apiElements"])
+    }
+}
+```
+
 ### Introduce JetBrains as a known JVM vendor
 
 It is now possible to use JetBrains as a known JVM vendor when referring to [JetBrains Runtime](https://www.jetbrains.com/jetbrains-runtime) when using [Toolchains](userguide/toolchains.html):
