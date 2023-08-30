@@ -72,7 +72,7 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
             new PropertyEntry("org.gradle.test.Task", "targetCompatibility", targetCompatibilityMethods)
         ]
         assertThat(compilation)
-            .generatedFile(CLASS_OUTPUT, "META-INF/upgrades/upgraded-properties.json")
+            .generatedFile(CLASS_OUTPUT, "META-INF/instrumentation/upgraded-properties.json")
             .contentsAsString(StandardCharsets.UTF_8)
             .isEqualTo(GSON.toJson(properties))
     }

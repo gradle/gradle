@@ -60,7 +60,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
             @Override
             public String getName() {
-                return "META-INF/upgrades/upgraded-properties.json";
+                return "META-INF/instrumentation/upgraded-properties.json";
             }
 
             @Override

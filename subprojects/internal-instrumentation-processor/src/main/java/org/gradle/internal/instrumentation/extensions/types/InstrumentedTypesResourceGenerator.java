@@ -44,12 +44,12 @@ public class InstrumentedTypesResourceGenerator implements InstrumentationResour
         return new GenerationResult.CanGenerateResource() {
             @Override
             public String getPackageName() {
-                return "org.gradle.internal.instrumentation";
+                return "";
             }
 
             @Override
             public String getName() {
-                return "instrumented-classes.txt";
+                return "META-INF/instrumentation/instrumented-classes.txt";
             }
 
             @Override
