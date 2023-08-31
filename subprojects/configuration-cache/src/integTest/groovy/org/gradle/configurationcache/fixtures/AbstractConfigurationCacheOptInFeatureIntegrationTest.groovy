@@ -37,10 +37,4 @@ abstract class AbstractConfigurationCacheOptInFeatureIntegrationTest extends Abs
         assert System.getProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME) == null
         assert System.getProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME) == null
     }
-
-    abstract void configurationCacheRun(String... tasks)
-
-    abstract void configurationCacheRunLenient(String... tasks)
-
-    abstract void configurationCacheFails(String... tasks)
 }

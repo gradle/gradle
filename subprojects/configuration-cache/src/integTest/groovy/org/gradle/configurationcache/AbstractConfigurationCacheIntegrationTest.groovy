@@ -41,17 +41,14 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
         buildKotlinFile << script
     }
 
-    @Override
     void configurationCacheRun(String... tasks) {
         run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, *tasks)
     }
 
-    @Override
     void configurationCacheRunLenient(String... tasks) {
         run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, WARN_PROBLEMS_CLI_OPT, *tasks)
     }
 
-    @Override
     void configurationCacheFails(String... tasks) {
         fails(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, *tasks)
     }
