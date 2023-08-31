@@ -1,7 +1,10 @@
+import com.gradleup.gr8.EmbeddedJarTask
+import com.gradleup.gr8.Gr8Task
 import java.util.jar.Attributes
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("com.gradleup.gr8") version "0.9"
 }
 
 description = "Bootstraps a Gradle build initiated by the gradlew script"
@@ -33,7 +36,7 @@ dependencies {
 }
 
 val executableJar by tasks.registering(Jar::class) {
-    archiveFileName = "gradle-wrapper.jar"
+    archiveFileName = "gradle-wrapper-executable.jar"
     manifest {
         attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
@@ -44,6 +47,21 @@ val executableJar by tasks.registering(Jar::class) {
     }.files)
 }
 
+gr8 {
+    create("gr8") {
+        // TODO This should work by passing `executableJar` directly to th Gr8 plugin
+        programJar(executableJar.flatMap { it.archiveFile })
+        archiveName("gradle-wrapper.jar")
+        configuration("runtimeClasspath")
+        proguardFile("src/main/proguard/wrapper.pro")
+    }
+}
+
+// TODO This dependency should be configured by the Gr8 plugin
+tasks.named<EmbeddedJarTask>("gr8EmbeddedJar") {
+    dependsOn(executableJar)
+}
+
 tasks.jar {
-    from(executableJar)
+    from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
 }
