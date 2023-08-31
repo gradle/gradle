@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
 import org.gradle.api.provider.Property;
 
-abstract public class KotlinTestToolchain extends AbstractJUnitPlatformTestEngineToolchain<KotlinTestToolchain.Parameters> {
-    public static final String DEFAULT_VERSION = "1.9.0";
-    private static final String GROUP_NAME = "org.jetbrains.kotlin:kotlin-test-junit5";
+abstract public class SpockToolchain extends AbstractJUnitPlatformTestEngineToolchain<SpockToolchain.Parameters> {
+    public static final String DEFAULT_VERSION = "2.2-groovy-3.0";
+    private static final String GROUP_NAME = "org.spockframework:spock-core";
 
-    public KotlinTestToolchain() {
+    public SpockToolchain() {
         super(GROUP_NAME);
     }
 
     @Override
     protected String getVersion() {
-        return getParameters().getKotlinTestVersion().get();
+        return getParameters().getSpockVersion().get();
     }
 
     public interface Parameters extends JUnitPlatformToolchain.Parameters {
-        Property<String> getKotlinTestVersion();
+        Property<String> getSpockVersion();
     }
 }

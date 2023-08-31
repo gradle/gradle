@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
-import org.gradle.api.provider.Property;
+import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.tasks.testing.Test;
 
-import javax.inject.Inject;
 import java.util.Collections;
 
-abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchain.Parameters> extends AbstractJVMTestToolchain<T> {
-    private static final String GROUP_NAME = "org.junit.platform:junit-platform-launcher";
-
+abstract public class LegacyJUnit4TestToolchain extends AbstractJVMTestToolchain<JVMTestToolchain.Parameters.None> {
     @Override
     public TestFramework initializeTestFramework(Test task) {
-        return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false, task.getDryRun());
+        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true);
     }
 
     @Override
@@ -42,18 +37,11 @@ abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchain.Pa
 
     @Override
     public Iterable<Dependency> getRuntimeOnlyDependencies() {
-        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + getParameters().getPlatformVersion().map(version -> ":" + version).getOrElse("")));
+        return Collections.emptyList();
     }
-
-    @Inject
-    protected abstract DependencyFactory getDependencyFactory();
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
         return Collections.emptyList();
-    }
-
-    public interface Parameters extends JVMTestToolchain.Parameters {
-        Property<String> getPlatformVersion();
     }
 }

@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.tasks.testing.Test;
 
-import javax.inject.Inject;
+import java.util.Collections;
 
-public interface JVMTestToolchain<T extends JVMTestToolchain.Parameters> {
-    TestFramework createTestFramework(Test task);
+abstract class AbstractJUnitPlatformTestEngineToolchain<T extends JUnitPlatformToolchain.Parameters> extends JUnitPlatformToolchain<T> {
+    private final String groupName;
 
-    Iterable<Dependency> getCompileOnlyDependencies();
+    public AbstractJUnitPlatformTestEngineToolchain(String groupName) {
+        super();
+        this.groupName = groupName;
+    }
 
-    Iterable<Dependency> getRuntimeOnlyDependencies();
+    protected abstract String getVersion();
 
-    Iterable<Dependency> getImplementationDependencies();
-
-    @Inject
-    T getParameters();
-
-    interface Parameters {
-        final class None implements Parameters { }
+    @Override
+    public Iterable<Dependency> getImplementationDependencies() {
+        return Collections.singletonList(getDependencyFactory().create(groupName + ":" + getVersion()));
     }
 }

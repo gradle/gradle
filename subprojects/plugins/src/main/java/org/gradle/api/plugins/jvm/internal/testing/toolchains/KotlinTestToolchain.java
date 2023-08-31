@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
 import org.gradle.api.provider.Property;
 
-public abstract class JUnitJupiterToolchain extends AbstractJUnitPlatformTestEngineToolchain<JUnitJupiterToolchain.Parameters> {
-    public static final String DEFAULT_VERSION = "5.8.2";
-    private static final String GROUP_NAME = "org.junit.jupiter:junit-jupiter";
+abstract public class KotlinTestToolchain extends AbstractJUnitPlatformTestEngineToolchain<KotlinTestToolchain.Parameters> {
+    public static final String DEFAULT_VERSION = "1.9.0";
+    private static final String GROUP_NAME = "org.jetbrains.kotlin:kotlin-test-junit5";
 
-    public JUnitJupiterToolchain() {
+    public KotlinTestToolchain() {
         super(GROUP_NAME);
     }
 
     @Override
     protected String getVersion() {
-        return getParameters().getJupiterVersion().get();
+        return getParameters().getKotlinTestVersion().get();
     }
 
     public interface Parameters extends JUnitPlatformToolchain.Parameters {
-        Property<String> getJupiterVersion();
+        Property<String> getKotlinTestVersion();
     }
 }

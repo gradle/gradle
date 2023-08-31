@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
 import org.gradle.api.provider.Property;
 
-abstract public class SpockToolchain extends AbstractJUnitPlatformTestEngineToolchain<SpockToolchain.Parameters> {
-    public static final String DEFAULT_VERSION = "2.2-groovy-3.0";
-    private static final String GROUP_NAME = "org.spockframework:spock-core";
+public abstract class JUnitJupiterToolchain extends AbstractJUnitPlatformTestEngineToolchain<JUnitJupiterToolchain.Parameters> {
+    public static final String DEFAULT_VERSION = "5.8.2";
+    private static final String GROUP_NAME = "org.junit.jupiter:junit-jupiter";
 
-    public SpockToolchain() {
+    public JUnitJupiterToolchain() {
         super(GROUP_NAME);
     }
 
     @Override
     protected String getVersion() {
-        return getParameters().getSpockVersion().get();
+        return getParameters().getJupiterVersion().get();
     }
 
     public interface Parameters extends JUnitPlatformToolchain.Parameters {
-        Property<String> getSpockVersion();
+        Property<String> getJupiterVersion();
     }
 }

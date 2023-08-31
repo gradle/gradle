@@ -19,11 +19,11 @@ package org.gradle.testing.testsuites
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework
-import org.gradle.api.plugins.jvm.internal.JUnit4TestToolchain
-import org.gradle.api.plugins.jvm.internal.JUnitJupiterToolchain
-import org.gradle.api.plugins.jvm.internal.KotlinTestToolchain
-import org.gradle.api.plugins.jvm.internal.SpockToolchain
-import org.gradle.api.plugins.jvm.internal.TestNGToolchain
+import org.gradle.api.plugins.jvm.internal.testing.toolchains.JUnit4TestToolchain
+import org.gradle.api.plugins.jvm.internal.testing.toolchains.JUnitJupiterToolchain
+import org.gradle.api.plugins.jvm.internal.testing.toolchains.KotlinTestToolchain
+import org.gradle.api.plugins.jvm.internal.testing.toolchains.SpockToolchain
+import org.gradle.api.plugins.jvm.internal.testing.toolchains.TestNGToolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import spock.lang.Issue
