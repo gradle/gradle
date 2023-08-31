@@ -375,9 +375,6 @@ public abstract class CompileOptions extends AbstractOptions {
         return this;
     }
 
-    @Incubating
-    @Internal
-    @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
     /**
      * Returns whether incremental compilation is enabled.
      *
@@ -385,6 +382,9 @@ public abstract class CompileOptions extends AbstractOptions {
      *
      * @since 8.3
      */
+    @Incubating
+    @Internal
+    @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
     public abstract Property<Boolean> getIncremental();
 
     /**
