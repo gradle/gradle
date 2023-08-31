@@ -143,7 +143,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         append(outputBuilder, removalDetails);
         append(outputBuilder, contextualAdvice);
         append(outputBuilder, advice);
-        append(outputBuilder, documentation.consultDocumentationMessage());
+        append(outputBuilder, documentation.getConsultDocumentationMessage());
         return outputBuilder.toString();
     }
 

@@ -42,7 +42,7 @@ class DeprecatedFeatureUsageTest extends Specification {
         def featureUsage = new DeprecatedFeatureUsage("summary", "removalDetails", "advice", "contextualAdvice", documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass())
 
         expect:
-        featureUsage.getDocumentationUrl().url() == expected
+        featureUsage.getDocumentationUrl().getUrl() == expected
 
         where:
         documentationReference                 | expected
