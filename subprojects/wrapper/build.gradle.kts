@@ -42,9 +42,6 @@ val executableJar by tasks.registering(Jar::class) {
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
     }
     from(sourceSets.main.get().output)
-    from(configurations.runtimeClasspath.get().incoming.artifactView {
-        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
-    }.files)
 }
 
 gr8 {
@@ -54,6 +51,8 @@ gr8 {
         archiveName("gradle-wrapper.jar")
         configuration("runtimeClasspath")
         proguardFile("src/main/proguard/wrapper.pro")
+        // Exclude anything from Guava etc. except the actual manifest
+        exclude("META-INF/(?!MANIFEST.MF).*")
     }
 }
 

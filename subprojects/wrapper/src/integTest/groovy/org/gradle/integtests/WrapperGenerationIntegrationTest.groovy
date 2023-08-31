@@ -155,7 +155,8 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def contents = file('contents')
-        file("gradle/wrapper/gradle-wrapper.jar").unzipTo(contents)
+        // ProGuard removes parent directory entries to keep JARs smaller
+        file("gradle/wrapper/gradle-wrapper.jar").unzipToWithoutCheckingParentDirs(contents)
 
         Manifest manifest = contents.file('META-INF/MANIFEST.MF').withInputStream { new Manifest(it) } as Manifest
         with(manifest.mainAttributes) {
