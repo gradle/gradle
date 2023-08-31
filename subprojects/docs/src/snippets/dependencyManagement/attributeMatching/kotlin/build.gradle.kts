@@ -1,47 +1,65 @@
-plugins {
-    `java-library`
+// tag::declare-configuration[]
+configurations {
+    // Declare two dependency scope configurations, named `implementation` and `runtimeOnly`
+    create("implementation") {
+        // This configuration is only meant to declare dependencies.
+        // It should not be resolved or consumed
+        isCanBeResolved = false
+        isCanBeConsumed = false
+    }
+    create("runtimeOnly") {
+        isCanBeResolved = false
+        isCanBeConsumed = false
+    }
 }
 
-// tag::declare-configuration[]
-// declare a "configuration" named "someConfiguration"
-val someConfiguration by configurations.creating
-
+val implementation by configurations.existing
+val runtimeOnly by configurations.existing
 dependencies {
-    // add a project dependency to the "someConfiguration" configuration
-    someConfiguration(project(":lib"))
+    // Declare that our project's API depends on artifacts from the `lib` project
+    implementation(project(":lib"))
+    // Declare that our project's implementation depends on artifacts from the `anotherLib` project
+    runtimeOnly(project(":anotherLib"))
 }
 // end::declare-configuration[]
 
-// tag::concrete-classpath[]
+// tag::resolvable-configurations[]
 configurations {
-    // declare a configuration that is going to resolve the compile classpath of the application
-    compileClasspath {
-        extendsFrom(someConfiguration)
+    // Declare two resolvable configurations, named `compileClasspath` and `runtimeClasspath`
+    create("compileClasspath") {
+        // This configuration is not meant to be consumed and
+        // should not allow dependencies to be declared on it
+        isCanBeConsumed = false
+        isCanBeDeclared = false
+        extendsFrom(implementation)
     }
-
-    // declare a configuration that is going to resolve the runtime classpath of the application
-    runtimeClasspath {
-        extendsFrom(someConfiguration)
+    create("runtimeClasspath") {
+        isCanBeConsumed = false
+        isCanBeDeclared = false
+        extendsFrom(implementation)
+        extendsFrom(runtimeOnly)
     }
 }
-// end::concrete-classpath[]
+// end::resolvable-configurations[]
 
-// tag::setup-configurations[]
+// tag::consumable-configurations[]
 configurations {
-    // A configuration meant for consumers that need the API of this component
-    create("exposedApi") {
-        // This configuration is an "outgoing" configuration, it's not meant to be resolved
+    // Declare two consumable configurations, named `apiElements` and `runtimeElements`
+    create("apiElements") {
+        // This configuration is not meant to be resolved and
+        // should not allow dependencies to be declared on it
         isCanBeResolved = false
-        // As an outgoing configuration, explain that consumers may want to consume it
-        assert(isCanBeConsumed)
+        isCanBeDeclared = false
+        extendsFrom(implementation)
     }
-    // A configuration meant for consumers that need the implementation of this component
-    create("exposedRuntime") {
+    create("runtimeElements") {
         isCanBeResolved = false
-        assert(isCanBeConsumed)
+        isCanBeDeclared = false
+        extendsFrom(implementation)
+        extendsFrom(runtimeOnly)
     }
 }
-// end::setup-configurations[]
+// end::consumable-configurations[]
 
 // tag::define_attribute[]
 // An attribute of type `String`
@@ -60,7 +78,7 @@ dependencies.attributesSchema {
 
 // tag::attributes-on-configurations[]
 configurations {
-    create("myConfiguration") {
+    named("apiElements") {
         attributes {
             attribute(myAttribute, "my-value")
         }
@@ -70,7 +88,7 @@ configurations {
 
 // tag::named-attributes[]
 configurations {
-    "myConfiguration" {
+    named("runtimeElements") {
         attributes {
             attribute(myUsage, project.objects.named(Usage::class.java, "my-value"))
         }

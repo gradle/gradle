@@ -103,9 +103,9 @@ include::sample[dir="snippets/cpp/basic/kotlin",files="build.gradle.kts[tags=cpp
 include::sample[dir="snippets/cpp/basic/groovy",files="build.gradle[tags=cpp-dependency-mgmt]"]
 ====
 
-The Gradle terminology for the three elements is as follows:
+The Gradle terminology for the two elements is as follows:
 
- * _Configuration_ (ex: `implementation`) - a named collection of dependencies, grouped together for a specific goal such as compiling or linking a module
+ * _Dependency Scope Configuration_ (ex: `implementation`) - a named collection of dependencies, grouped together for a specific goal such as compiling or linking a module
  * _Project reference_ (ex: `project(':common')`) - the project referenced by the specified path
 
 You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#dependency_management_terminology,here>>.

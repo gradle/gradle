@@ -40,7 +40,7 @@ One such type is a _module dependency_.
 A <<declaring_dependencies.adoc#sub:module_dependencies,module dependency>> represents a dependency on a module with a specific version built outside the current build.
 Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
 
-To define an module dependency, you add it to a <<#sec:configurations_java_tutorial,dependency configuration>>:
+To define an module dependency, you add it to a <<#sec:configurations_java_tutorial,Dependency Scope Configuration>>:
 
 .Definition of a module dependency
 ====
@@ -53,14 +53,14 @@ To find out more about defining dependencies, have a look at <<declaring_depende
 [[sec:configurations_java_tutorial]]
 == Using dependency configurations
 
-A link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration] is a named set of dependencies and artifacts. There are three main purposes for a _configuration_:
+A link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration] is a named multi-role type. There are three distinct purposes for a _Configuration_:
 
 Declaring dependencies::
-A plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin. For example a plugin may need the Spring web framework dependency to compile the source code.
+A plugin uses a _Dependency Scope Configuration_ to allow build authors to declare what other Gradle Projects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin. For example a plugin may need the Spring web framework dependency to compile the source code.
 Resolving dependencies::
-A plugin uses configurations to find (and possibly download) inputs to the tasks it defines. For example Gradle needs to download Spring web framework JAR files from Maven Central.
+A plugin uses a _Resolvable Configuration_ to find (and possibly download) inputs to the tasks it defines. For example Gradle needs to download Spring web framework JAR files from Maven Central.
 Exposing artifacts for consumption::
-A plugin uses configurations to define what _artifacts_ it generates for other projects to consume. For example the project would like to publish its compiled source code packaged in the JAR file to an in-house Artifactory repository.
+A plugin uses a _Consumable Configuration_ to define what _artifacts_ it generates for other projects to consume. For example the project would like to publish its compiled source code packaged in the JAR file to an in-house Artifactory repository.
 
 With those three purposes in mind, let's take a look at a few of the <<java_library_plugin.adoc#sec:java_library_configurations_graph,standard configurations defined by the Java Library Plugin>>.
 

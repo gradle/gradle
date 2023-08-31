@@ -51,9 +51,17 @@ It may also define additional variants, for example _sources_ and _Javadoc_, wit
 [[sub:terminology_configuration]]
 == Configuration
 
-A configuration is a named set of <<#sub:terminology_dependency,dependencies>> grouped together for a specific goal.
-Configurations provide access to the underlying, resolved <<#sub:terminology_module,modules>> and their artifacts.
-For more information, see the sections on <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> as well as <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolvable and consumable configurations>>.
+A Configuration is a muli-role named object used for declaring <<#sub:terminology_dependency,dependencies>>, resolving dependency graphs, and advertising artifacts to external consumers.
+There are three distinct types of _Configurations_.
+
+<<declaring_dependencies.adoc#sec:resolvable-consumable-configs,Resolvable Configurations>>::
+Acts as the root of a dependency graph, providing functionality for analyzing dependency graphs, and resolving them to their artifacts.
+<<declaring_dependencies.adoc#sec:resolvable-consumable-configs,Consumable Configurations>>::
+Acts as a <<#sub:terminology_variant, variant>> of a Project's implicit <<#sub:terminology_component, component>>.
+Consumable Configurations advertise a set of artifacts, along with their corresponding dependencies and other metadata, to external consumers.
+<<declaring_dependencies.adoc#sec:what-are-dependency-configurations,Dependency Scope Configurations>>::
+A named collection of dependencies, dependency constraints, and exclude rules, accessible from the Project's _dependencies_ block.
+Consumable and Resolvable Configurations leverage Dependency Scope Configurations as a source of these elements.
 
 [NOTE]
 ====

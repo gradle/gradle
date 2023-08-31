@@ -1,0 +1,20 @@
+// tag::declare-configurations[]
+configurations {
+    dependencyScope("implementation")
+    dependencyScope("runtimeOnly")
+    resolvable("compileClasspath") {
+        extendsFrom(implementation)
+    }
+    resolvable("runtimeClasspath") {
+        extendsFrom(implementation)
+        extendsFrom(runtimeOnly)
+    }
+    consumable("apiElements") {
+        extendsFrom(implementation)
+    }
+    consumable("runtimeElements") {
+        extendsFrom(implementation)
+        extendsFrom(runtimeOnly)
+    }
+}
+// end::declare-configurations[]

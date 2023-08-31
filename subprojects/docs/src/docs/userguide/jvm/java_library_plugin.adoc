@@ -140,102 +140,88 @@ The role of each configuration is described in the following tables:
 .Java Library plugin - configurations used to declare dependencies
 [%header%autowidth,compact]
 |===
-| Configuration name | Role | Consumable? | Resolvable? | Description
+| Configuration name | Role | Type | Description
 
 | `api`
 | Declaring API dependencies
-| no
-| no
+| Dependency Scope
 | This is where you declare dependencies which are transitively exported to consumers, for compile time and runtime.
 
 | `implementation`
 | Declaring implementation dependencies
-| no
-| no
+| Dependency Scope
 | This is where you declare dependencies which are purely internal and not meant to be exposed to consumers (they are still exposed to consumers at runtime).
 
 | `compileOnly`
 | Declaring compile only dependencies
-| no
-| no
+| Dependency Scope
 | This is where you declare dependencies which are required at compile time, but not at runtime. This typically includes dependencies which are shaded when found at runtime.
 
 | `compileOnlyApi`
 | Declaring compile only API dependencies
-| no
-| no
+| Dependency Scope
 | This is where you declare dependencies which are required at compile time by your module and consumers, but not at runtime. This typically includes dependencies which are shaded when found at runtime.
 
 | `runtimeOnly`
 | Declaring runtime dependencies
-| no
-| no
+| Dependency Scope
 | This is where you declare dependencies which are only required at runtime, and not at compile time.
 
 | `testImplementation`
 | Test dependencies
-| no
-| no
+| Dependency Scope
 | This is where you declare dependencies which are used to compile tests.
 
 | `testCompileOnly`
 | Declaring test compile only dependencies
-| no
-| no
+| Dependency Scope
 | This is where you declare dependencies which are only required at test compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
 
 | `testRuntimeOnly`
 | Declaring test runtime dependencies
-| no
-| no
+| Dependency Scope
 | This is where you declare dependencies which are only required at test runtime, and not at test compile time.
 |===
 
 .Java Library plugin — configurations used by consumers
 [%header%autowidth,compact]
 |===
-| Configuration name | Role | Consumable? | Resolvable? | Description
+| Configuration name | Role | Type | Description
 
 | `apiElements`
 | For compiling against this library
-| yes
-| no
+| Consumable
 | This configuration is meant to be used by consumers, to retrieve all the elements necessary to compile against this library.
 
 | `runtimeElements`
 | For executing this library
-| yes
-| no
+| Consumable
 | This configuration is meant to be used by consumers, to retrieve all the elements necessary to run against this library.
 |===
 
 .Java Library plugin - configurations used by the library itself
 [%header%autowidth,compact]
 |===
-| Configuration name | Role | Consumable? | Resolvable? | Description
+| Configuration name | Role | Type | Description
 
 | compileClasspath
 | For compiling this library
-| no
-| yes
+| Resolvable
 | This configuration contains the compile classpath of this library, and is therefore used when invoking the java compiler to compile it.
 
 | runtimeClasspath
 | For executing this library
-| no
-| yes
+| Resolvable
 | This configuration contains the runtime classpath of this library
 
 | testCompileClasspath
 | For compiling the tests of this library
-| no
-| yes
+| Resolvable
 | This configuration contains the test compile classpath of this library.
 
 | testRuntimeClasspath
 | For executing tests of this library
-| no
-| yes
+| Resolvable
 | This configuration contains the test runtime classpath of this library
 |===
 

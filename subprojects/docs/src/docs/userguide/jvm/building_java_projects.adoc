@@ -146,7 +146,7 @@ include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-d
 The Gradle terminology for the three elements is as follows:
 
  * _Repository_ (ex: `mavenCentral()`) — where to look for the modules you declare as dependencies
- * _Configuration_ (ex: `implementation`) — a named collection of dependencies, grouped together for a specific goal such as compiling or running a module — a more flexible form of Maven scopes
+ * _Dependency Scope Configuration_ (ex: `implementation`) — a named collection of dependencies, grouped together for a specific goal such as compiling or running a module — a more flexible form of Maven scopes
  * _Module coordinate_ (ex: `org.hibernate:hibernate-core-3.6.7.Final`) — the ID of the dependency, usually in the form '__<group>__:__<module>__:__<version>__' (or '__<groupId>__:__<artifactId>__:__<version>__' in Maven terminology)
 
 You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#dependency_management_terminology,here>>.
