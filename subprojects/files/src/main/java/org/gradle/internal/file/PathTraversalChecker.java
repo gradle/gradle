@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.util.internal;
-
-import org.gradle.api.NonNullApi;
+package org.gradle.internal.file;
 
 import java.io.File;
 import java.util.Locale;
 
 import static java.lang.String.format;
 
-@NonNullApi
 public class PathTraversalChecker {
 
     /**
