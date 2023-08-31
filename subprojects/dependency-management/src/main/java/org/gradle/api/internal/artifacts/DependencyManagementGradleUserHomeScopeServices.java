@@ -21,20 +21,15 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
-import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.ToPlannedTransformStepConverter;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
-import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -98,26 +93,6 @@ public class DependencyManagementGradleUserHomeScopeServices {
             inMemoryCacheDecoratorFactory,
             stringInterner,
             classLoaderHasher
-        );
-    }
-
-    ImmutableTransformWorkspaceServices createTransformWorkspaceServices(
-        ArtifactCachesProvider artifactCaches,
-        BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory,
-        CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore,
-        CacheConfigurationsInternal cacheConfigurations
-    ) {
-        return new ImmutableTransformWorkspaceServices(
-            buildTreeScopedCacheBuilderFactory
-                .createCacheBuilder("immutable-artifact-transforms")
-                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withDisplayName("Artifact transforms cache"),
-            fileAccessTimeJournal,
-            executionHistoryStore,
-            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
-            cacheConfigurations
         );
     }
 }
