@@ -22,6 +22,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -37,7 +38,6 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.Describables;
-import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.util.Path;
@@ -48,6 +48,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static org.gradle.util.Path.path;
 
 @SuppressWarnings("deprecation")
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
@@ -206,7 +208,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         @Override
         public TaskSelection getSelection(String taskPath) {
             // We assume taskPath is valid since the selector has been used before
-            Path path = Path.path(taskPath);
+            Path path = path(taskPath);
             Path projectPath = path.getParent();
             String taskName = path.getName();
             ProjectInternal project = findProject(projectPath, gradle.getOwner());
@@ -224,26 +226,39 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         public GradleInternal getGradle() {
             return gradle;
         }
-    }
 
-    @Nullable
-    private static ProjectInternal findProject(Path path, BuildState target) {
-        assert path.isAbsolute();
-        // Either the project is available at the current target
-        ProjectState targetProject = target.getProjects().findProject(path);
-        if (targetProject != null) {
-            return targetProject.getMutableModel();
-        }
-        // Or it must be from an included build.
-        String includedBuildName = path.segment(0);
-        for (IncludedBuildInternal includedBuild : target.getMutableModel().includedBuilds()) {
-            if (includedBuild.getName().equals(includedBuildName)) {
-                return findProject(path.removeFirstSegments(1), includedBuild.getTarget());
+
+        @Nullable
+        private ProjectInternal findProject(Path path, BuildState target) {
+            assert path.isAbsolute();
+
+            // Either the project is available at the current target
+            ProjectState targetProject = target.getProjects().findProject(path);
+            if (targetProject != null) {
+                return targetProject.getMutableModel();
             }
-        }
-        return null;
-    }
 
+            // Or it must be from an included build.
+            Path includedBuildPath = path(":" + path.segment(0));
+            Path projectPath = path.removeFirstSegments(1);
+
+            DefaultBuildIdentifier includedBuildIdentifier = new DefaultBuildIdentifier(includedBuildPath);
+            BuildState includedBuild = getBuildStateRegistry().findBuild(includedBuildIdentifier);
+            if (includedBuild == null) {
+                return null;
+            }
+
+            ProjectState project = includedBuild.getProjects().findProject(projectPath);
+            if (project == null) {
+                return null;
+            }
+            return project.getMutableModel();
+        }
+
+        private BuildStateRegistry getBuildStateRegistry() {
+            return gradle.getServices().get(BuildStateRegistry.class);
+        }
+    }
 
     @Override
     public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {

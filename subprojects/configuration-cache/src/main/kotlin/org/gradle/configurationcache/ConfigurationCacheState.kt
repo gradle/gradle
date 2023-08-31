@@ -202,17 +202,24 @@ class ConfigurationCacheState(
     private
     fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
         return graph.scheduleWork { builder ->
+
+            graphBuilder?.run {
+                invoke(builder, rootBuildState())
+            }
+
             for (build in builds) {
                 if (build is BuildWithWork) {
-                    val buildState = build.build.state
-                    graphBuilder?.invoke(builder, buildState)
-                    builder.withWorkGraph(buildState) {
+                    builder.withWorkGraph(build.build.state) {
                         it.setScheduledNodes(build.workGraph)
                     }
                 }
             }
         }
     }
+
+    private
+    fun rootBuildState() =
+        host.service<BuildState>()
 
     private
     suspend fun DefaultWriteContext.writeRootBuild(rootBuild: VintageGradleBuild) {
