@@ -120,7 +120,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         if (producerProject == null) {
             return immutableWorkspaceProvider;
         }
-        return producerProject.getServices().get(TransformWorkspaceServices.class);
+        return producerProject.getServices().get(MutableTransformWorkspaceServices.class);
     }
 
     @Nullable

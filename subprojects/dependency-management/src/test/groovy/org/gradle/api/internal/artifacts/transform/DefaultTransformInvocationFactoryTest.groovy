@@ -102,7 +102,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionSnapshotter, fileCollectionFingerprinterRegistry, valueSnapshotter)
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
-        get(TransformWorkspaceServices) >> new TestTransformWorkspaceServices(mutableTransformsStoreDirectory, executionHistoryStore)
+        get(MutableTransformWorkspaceServices) >> new TestTransformWorkspaceServices(mutableTransformsStoreDirectory, executionHistoryStore)
     }
 
     def childProject = Stub(ProjectInternal) {
