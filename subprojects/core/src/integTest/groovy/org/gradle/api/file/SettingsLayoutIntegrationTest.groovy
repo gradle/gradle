@@ -37,6 +37,7 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
                     println "settings root dir: " + layout.rootDirectory
                     println "settings dir: " + layout.settingsDirectory
                     println "settings source file: " + layout.dir(providers.provider { s.buildscript.sourceFile }).get()
+                    println "settings relative location: " + layout.file(providers.provider { new File("somefile.txt") }).get()
                     println "layout implementation: " + layout.class.name
                 }
             }
@@ -51,6 +52,7 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings root dir: " + testDirectory)
         outputContains("settings dir: " + testDirectory)
         outputContains("settings source file: " + settingsFile)
+        outputContains("settings relative location: " + testDirectory.file("somefile.txt"))
         outputContains("layout implementation: " + DefaultSettingsLayout.class.name)
     }
 
@@ -64,6 +66,7 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
             println "settings root dir: " + layout.rootDirectory
             println "settings dir: " + layout.settingsDirectory
             println "settings source file: " + layout.dir(providers.provider { buildscript.sourceFile }).get()
+            println "settings relative location: " + layout.file(providers.provider { new File("somefile.txt") }).get()
             println "layout implementation: " + layout.class.name
 """
 
@@ -74,6 +77,7 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings root dir: " + testDirectory)
         outputContains("settings dir: " + testDirectory)
         outputContains("settings source file: " + settingsFile)
+        outputContains("settings relative location: " + testDirectory.file("somefile.txt"))
         outputContains("layout implementation: " + DefaultSettingsLayout.class.name)
     }
 }
