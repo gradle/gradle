@@ -18,6 +18,7 @@ package org.gradle.internal.nativeintegration.services
 
 import net.rubygrapefruit.platform.Native
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.internal.Factory
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.reflect.JavaMethod
 import org.gradle.internal.service.ServiceRegistry
@@ -33,6 +34,7 @@ class NativeServicesInitializationTest extends Specification {
         // Construct an isolated classloader so we can load a pristine NativeServices class
         // that's guaranteed not to have been initialized before
         URL[] jars = [
+            jar(Factory),
             jar(NativeServices),
             jar(ServiceRegistry),
             jar(Native),

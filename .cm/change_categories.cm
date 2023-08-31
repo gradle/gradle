@@ -119,11 +119,14 @@ platforms:
       - 'subprojects/instrumentation-agent'
       - 'subprojects/internal-instrumentation-api/'
       - 'subprojects/internal-instrumentation-processor/'
+      - 'subprojects/internal-instrumentation-call-interception-tool/'
       - 'subprojects/model-core/'
       - 'subprojects/model-groovy/'
   - core_execution:
     name: 'core_execution'
     subprojects:
+      - 'subprojects/base-common-utils/'
+      - 'subprojects/base-instrumentation-utils/'
       - 'subprojects/build-cache/'
       - 'subprojects/build-cache-base/'
       - 'subprojects/build-cache-http/'
@@ -135,6 +138,7 @@ platforms:
       - 'subprojects/files/'
       - 'subprojects/functional/'
       - 'subprojects/hashing/'
+      - 'subprojects/internal-instrumentation-property-upgrades/'
       - 'subprojects/snapshots/'
       - 'subprojects/worker-processes/'
       - 'subprojects/workers/'

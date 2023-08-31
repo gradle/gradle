@@ -28,9 +28,23 @@
     "crossVersionTests": false
   },
   {
+    "name": "base-common-utils",
+    "path": "subprojects/base-common-utils",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "base-ide-plugins",
     "path": "platforms/ide/base-ide-plugins",
     "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "base-instrumentation-utils",
+    "path": "subprojects/base-instrumentation-utils",
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -420,8 +434,22 @@
     "crossVersionTests": false
   },
   {
+    "name": "internal-instrumentation-call-interception-tool",
+    "path": "subprojects/internal-instrumentation-call-interception-tool",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "internal-instrumentation-processor",
     "path": "subprojects/internal-instrumentation-processor",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "internal-instrumentation-property-upgrades",
+    "path": "subprojects/internal-instrumentation-property-upgrades",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

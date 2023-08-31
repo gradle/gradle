@@ -18,13 +18,15 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
-description = "Internal APIs related to instrumentation and the call interception tool"
+description = "The implementation of the tool that generates code for intercepting specific calls in JVM bytecode and Groovy"
 
 dependencies {
+    api(project(":internal-instrumentation-api"))
     implementation(project(":base-annotations"))
+    implementation(project(":base-common-utils"))
+    implementation(project(":base-instrumentation-utils"))
 
-    implementation(libs.groovy)
+    implementation(libs.javaPoet)
     implementation(libs.asm)
-    implementation(libs.asmTree)
     implementation(libs.asmCommons)
 }

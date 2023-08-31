@@ -100,6 +100,8 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-common-utils").getImplementationClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-instrumentation-utils").getImplementationClasspath());
         this.antAdapterLoader = VisitableURLClassLoader.fromClassPath("gradle-core-loader", baseAntLoader, gradleCoreUrls);
 
         gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());

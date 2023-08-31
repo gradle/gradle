@@ -45,6 +45,8 @@ dependencies {
 
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":base-services"))
+    manifestClasspath(project(":base-common-utils"))
+    manifestClasspath(project(":base-instrumentation-utils"))
     manifestClasspath(project(":worker-services"))
     manifestClasspath(project(":core-api"))
     manifestClasspath(project(":core"))

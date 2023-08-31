@@ -15,16 +15,16 @@
  */
 
 plugins {
-    id("gradlebuild.internal.java")
+    id("gradlebuild.distribution.api-java")
 }
 
-description = "Internal APIs related to instrumentation and the call interception tool"
+description = "The utilities commonly reused across the codebase"
+
+gradlebuildJava.usedForStartup()
 
 dependencies {
     implementation(project(":base-annotations"))
 
-    implementation(libs.groovy)
-    implementation(libs.asm)
-    implementation(libs.asmTree)
-    implementation(libs.asmCommons)
+    implementation(libs.jsr305)
+    implementation(libs.guava)
 }
