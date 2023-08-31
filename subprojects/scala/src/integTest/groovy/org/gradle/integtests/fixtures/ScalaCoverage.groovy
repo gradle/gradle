@@ -17,35 +17,53 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
+import org.gradle.test.fixtures.VersionCoverage
 
 class ScalaCoverage {
 
-    private static final Map<String, JavaVersion> SCALA_2_VERSIONS = [
-        "2.11.12": JavaVersion.VERSION_1_8,
-        "2.12.18": JavaVersion.VERSION_1_8,
-        "2.13.11": JavaVersion.VERSION_20,
-    ]
-    private static final Map<String, JavaVersion> SCALA_3_VERSIONS = [
-        "3.1.3": JavaVersion.VERSION_18,
-        "3.2.2": JavaVersion.VERSION_19,
-        "3.3.0": JavaVersion.VERSION_20,
-    ]
-    static final String[] SCALA_2 = SCALA_2_VERSIONS.keySet().toArray(new String[0])
-    static final String[] SCALA_3 = SCALA_3_VERSIONS.keySet().toArray(new String[0])
+    static final String LATEST_SCALA_2 = "2.13.11"
+    private static final Set<String> SCALA_2 = [
+        "2.11.12",
+        "2.12.18",
+    ] + [LATEST_SCALA_2]
+    private static final String LATEST_SCALA_3 = "3.3.0"
+    private static final Set<String> SCALA_3 = [
+        "3.1.3",
+        "3.2.2",
+    ] + [LATEST_SCALA_3]
 
-    static final String[] DEFAULT = SCALA_2 + SCALA_3
-    static final String[] LATEST_IN_MAJOR = [SCALA_2.last(), SCALA_3.last()]
 
-    static JavaVersion getMaximumJavaVersionForScalaVersion(Object scalaVersion) {
-        def v2 = SCALA_2_VERSIONS.get(scalaVersion)
-        if (v2 != null) {
-            return v2
+    static final Set<String> SUPPORTED_BY_JDK = scalaVersionsSupportedByJdk(JavaVersion.current())
+    static final Set<String> LATEST_IN_MAJOR = SUPPORTED_BY_JDK.findAll {
+        it == LATEST_SCALA_2 || it == LATEST_SCALA_3
+    }
+
+    static Set<String> scalaVersionsSupportedByJdk(JavaVersion javaVersion) {
+        return scala2VersionsSupportedByJdk(javaVersion) + scala3VersionsSupportedByJdk(javaVersion)
+    }
+
+    private static Set<String> scala2VersionsSupportedByJdk(JavaVersion javaVersion) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
+            return VersionCoverage.versionsAtLeast(SCALA_2, "2.13.11")
         }
-        def v3 = SCALA_3_VERSIONS.get(scalaVersion)
-        if (v3 != null) {
-            return v3
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
+            return VersionCoverage.versionsBetweenRange(SCALA_2, "2.11.12", "2.12.0") +
+                VersionCoverage.versionsAtMost(SCALA_2, "2.12.18")
         }
-        throw new IllegalArgumentException("Unknown Scala version: " + scalaVersion)
+        return SCALA_2
+    }
+
+    private static Set<String> scala3VersionsSupportedByJdk(JavaVersion javaVersion) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
+            return VersionCoverage.versionsAtLeast(SCALA_3, "3.3.0")
+        }
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_19)) {
+            return VersionCoverage.versionsAtLeast(SCALA_3, "3.2.2")
+        }
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
+            return VersionCoverage.versionsAtLeast(SCALA_3, "3.1.3")
+        }
+        return SCALA_3
     }
 
 }

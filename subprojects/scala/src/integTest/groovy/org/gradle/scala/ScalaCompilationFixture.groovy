@@ -41,7 +41,7 @@ class ScalaCompilationFixture {
         this.analysisFile = this.root.file("build/tmp/scala/compilerAnalysis/compileScala.analysis")
         this.sourceSet = 'main'
         this.sourceDir = 'src/main/scala'
-        this.scalaVersion = ScalaCoverage.SCALA_2.last()
+        this.scalaVersion = ScalaCoverage.LATEST_SCALA_2
         this.zincVersion = ScalaBasePlugin.DEFAULT_ZINC_VERSION
         this.sourceCompatibility = '1.8'
         basicClassSource = new ScalaClass(

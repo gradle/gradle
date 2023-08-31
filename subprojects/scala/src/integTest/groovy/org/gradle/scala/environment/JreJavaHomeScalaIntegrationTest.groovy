@@ -26,7 +26,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
+@TargetCoverage({ScalaCoverage.SUPPORTED_BY_JDK})
 class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
