@@ -31,6 +31,7 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.Try;
@@ -102,15 +103,15 @@ public class DependencyManagementGradleUserHomeScopeServices {
 
     ImmutableTransformWorkspaceServices createTransformWorkspaceServices(
         ArtifactCachesProvider artifactCaches,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
+        BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory,
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
         CacheConfigurationsInternal cacheConfigurations
     ) {
         return new ImmutableTransformWorkspaceServices(
-            unscopedCacheBuilderFactory
-                .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
+            buildTreeScopedCacheBuilderFactory
+                .createCacheBuilder("immutable-artifact-transforms")
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
                 .withDisplayName("Artifact transforms cache"),
             fileAccessTimeJournal,
