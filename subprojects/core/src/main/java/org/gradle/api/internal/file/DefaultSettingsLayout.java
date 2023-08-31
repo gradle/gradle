@@ -18,26 +18,24 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.SettingsLayout;
+import org.gradle.api.internal.SettingsInternal;
 
-import java.io.File;
 
 public class DefaultSettingsLayout extends AbstractFileSystemLayout implements SettingsLayout {
-    private final Directory settingsDir;
-    private final Directory rootDir;
+    private final SettingsInternal settings;
 
-    public DefaultSettingsLayout(File settingsDir, File rootDir, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
+    public DefaultSettingsLayout(SettingsInternal settings, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
         super(fileResolver, fileCollectionFactory, fileFactory);
-        this.settingsDir = fileFactory.dir(settingsDir);
-        this.rootDir = fileFactory.dir(rootDir);
+        this.settings = settings;
     }
 
     @Override
     public Directory getSettingsDirectory() {
-        return settingsDir;
+        return fileFactory.dir(settings.getSettingsDir());
     }
 
     @Override
     public Directory getRootDirectory() {
-        return rootDir;
+        return fileFactory.dir(settings.getRootDir());
     }
 }

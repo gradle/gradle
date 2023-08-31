@@ -59,7 +59,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsLayout createSettingsLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
-        return new DefaultSettingsLayout(settings.getSettingsDir(), settings.getRootDir(), fileResolver, fileCollectionFactory, fileFactory);
+        return new DefaultSettingsLayout(settings, fileResolver, fileCollectionFactory, fileFactory);
     }
 
     protected FileResolver createFileResolver(FileLookup fileLookup) {
