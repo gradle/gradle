@@ -1,6 +1,3 @@
-# Ignore missing annotations
--ignorewarnings
-
 # Keep class names
 -dontobfuscate
 

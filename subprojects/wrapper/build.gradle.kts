@@ -12,6 +12,7 @@ description = "Bootstraps a Gradle build initiated by the gradlew script"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
+    implementation(project(":base-annotations"))
     implementation(project(":cli"))
     implementation(project(":wrapper-shared"))
 
@@ -42,6 +43,8 @@ val executableJar by tasks.registering(Jar::class) {
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
     }
     from(sourceSets.main.get().output)
+    exclude("gradle-*-classpath.properties")
+    exclude("gradle-*-parameter-names.properties")
 }
 
 gr8 {
@@ -53,6 +56,9 @@ gr8 {
         proguardFile("src/main/proguard/wrapper.pro")
         // Exclude anything from Guava etc. except the actual manifest
         exclude("META-INF/(?!MANIFEST.MF).*")
+        // Exclude classpath.properties files
+        exclude("gradle-.*-classpath.properties")
+        exclude("gradle-.*-parameter-names.properties")
     }
 }
 
