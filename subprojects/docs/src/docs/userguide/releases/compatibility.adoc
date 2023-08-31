@@ -52,7 +52,7 @@ See the table below for the Java version supported by a specific Gradle release:
 
 [[kotlin]]
 == Kotlin
-Gradle is tested with Kotlin 1.6.10 through 1.9.0.
+Gradle is tested with Kotlin 1.6.10 through 1.9.10.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -79,6 +79,7 @@ Beta and RC versions may or may not work.
 | 8.0 | 1.8.10 | 1.8
 | 8.2 | 1.8.20 | 1.8
 | 8.3 | 1.9.0  | 1.8
+| 8.4 | 1.9.10 | 1.8
 |===
 
 == Groovy
