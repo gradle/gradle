@@ -2221,7 +2221,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     Set<TestFile> gradleUserHomeOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(cacheDir.absolutePath), "\\w+", "transformed"]
+        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", ".gradle", ".*", "transformed", "\\w+", "transformed"]
         outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 

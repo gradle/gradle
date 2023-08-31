@@ -232,7 +232,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ) {
             return new ImmutableTransformWorkspaceServices(
                 buildTreeScopedCacheBuilderFactory
-                    .createCacheBuilder("immutable-artifact-transforms")
+                    .createCacheBuilder("transformed")
                     .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
                     .withDisplayName("Artifact transforms cache"),
                 fileAccessTimeJournal,
