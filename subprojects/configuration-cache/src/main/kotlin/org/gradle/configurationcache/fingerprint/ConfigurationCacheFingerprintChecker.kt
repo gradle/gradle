@@ -214,7 +214,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 if (jvmFingerprint() != jvm) {
                     return "JVM has changed"
                 }
-                if (host.startParameterProperties != startParameterProperties) {
+                if (host.startParameterProperties.filter { it.key != "org.gradle.kotlin.dsl.provider.cid" } != startParameterProperties.filter { it.key != "org.gradle.kotlin.dsl.provider.cid" }) {
                     return "the set of Gradle properties has changed"
                 }
                 if (host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting) {

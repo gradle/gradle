@@ -350,7 +350,9 @@ class DefaultConfigurationCache internal constructor(
                     problems.failingBuildDueToSerializationError()
                     throw error
                 } finally {
-                    scopeRegistryListener.dispose()
+                    if (stateType != StateType.Work) {
+                        scopeRegistryListener.dispose()
+                    }
                 }
             }
         }

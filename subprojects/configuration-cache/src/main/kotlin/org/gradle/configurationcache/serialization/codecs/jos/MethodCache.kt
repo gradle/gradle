@@ -19,6 +19,7 @@ package org.gradle.configurationcache.serialization.codecs.jos
 import org.gradle.internal.reflect.ClassInspector
 
 import java.lang.reflect.Method
+import java.util.concurrent.ConcurrentHashMap
 
 
 internal
@@ -29,7 +30,7 @@ class MethodCache(
 
 ) {
     private
-    val methodCache = hashMapOf<Class<*>, Method?>()
+    val methodCache = ConcurrentHashMap<Class<*>, Method?>()
 
     fun forObject(value: Any) =
         forClass(value.javaClass)

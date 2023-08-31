@@ -537,7 +537,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
-        if (host.cacheIntermediateModels && consumingProject != null) {
+        if (false && consumingProject != null) {
             val dependency = ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProject.identityPath)
             if (projectDependencies.add(dependency)) {
                 projectScopedWriter.write(dependency)
@@ -549,7 +549,7 @@ class ConfigurationCacheFingerprintWriter(
         if (referrer.identityPath == target.identityPath)
             return
 
-        if (host.cacheIntermediateModels) {
+        if (false) {
             val dependency = ProjectSpecificFingerprint.CoupledProjects(referrer.identityPath, target.identityPath)
             if (projectDependencies.add(dependency)) {
                 projectScopedWriter.write(dependency)
