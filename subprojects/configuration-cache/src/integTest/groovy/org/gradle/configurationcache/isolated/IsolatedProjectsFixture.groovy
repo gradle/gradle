@@ -18,7 +18,7 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
-import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
+import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
@@ -28,12 +28,12 @@ import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.tooling.provider.model.internal.QueryToolingModelBuildOperationType
 
 class IsolatedProjectsFixture {
-    private final AbstractOptInFeatureIntegrationTest spec
+    private final AbstractConfigurationCacheOptInFeatureIntegrationTest spec
     private final ConfigurationCacheFixture fixture
     private final BuildOperationsFixture buildOperations
     private final ConfigurationCacheBuildOperationsFixture configurationCacheBuildOperations
 
-    IsolatedProjectsFixture(AbstractOptInFeatureIntegrationTest spec) {
+    IsolatedProjectsFixture(AbstractConfigurationCacheOptInFeatureIntegrationTest spec) {
         this.spec = spec
         this.fixture = new ConfigurationCacheFixture(spec)
         this.buildOperations = fixture.buildOperations

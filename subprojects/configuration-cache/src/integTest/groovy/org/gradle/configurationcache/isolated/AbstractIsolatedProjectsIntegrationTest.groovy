@@ -16,11 +16,11 @@
 
 package org.gradle.configurationcache.isolated
 
-import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
+import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 
 import static org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME
 
-abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractOptInFeatureIntegrationTest {
+abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
     public static final String ENABLE_CLI = "-D${PROPERTY_NAME}=true"
     final def fixture = new IsolatedProjectsFixture(this)
 

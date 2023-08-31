@@ -20,7 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 
-abstract class AbstractOptInFeatureIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractConfigurationCacheOptInFeatureIntegrationTest extends AbstractIntegrationSpec {
     static final String WARN_PROBLEMS_CLI_OPT = "--${StartParameterBuildOptions.ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
 
     protected ConfigurationCacheProblemsFixture problems

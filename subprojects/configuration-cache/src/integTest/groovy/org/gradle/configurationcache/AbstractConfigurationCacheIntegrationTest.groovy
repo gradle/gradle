@@ -16,13 +16,13 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
+import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.intellij.lang.annotations.Language
 
-abstract class AbstractConfigurationCacheIntegrationTest extends AbstractOptInFeatureIntegrationTest {
+abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
 
     static final String ENABLE_CLI_OPT = "--${ConfigurationCacheOption.LONG_OPTION}"
     static final String ENABLE_GRADLE_PROP = "${ConfigurationCacheOption.PROPERTY_NAME}=true"
