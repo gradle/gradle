@@ -16,10 +16,10 @@
 
 package org.gradle.api.file
 
-import org.gradle.api.internal.file.DefaultFileSystemLayout
+import org.gradle.api.internal.file.DefaultSettingsLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class FileSystemLayoutIntegrationTest extends AbstractIntegrationSpec {
+class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
     def "layout is available for injection"() {
         settingsFile """
             import javax.inject.Inject
@@ -28,14 +28,14 @@ class FileSystemLayoutIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.initialization.Settings
             abstract class SomePlugin implements Plugin<Settings> {
                 @Inject
-                abstract FileSystemLayout getLayout()
+                abstract SettingsLayout getLayout()
 
                 @Inject
                 abstract ProviderFactory getProviders()
 
                 void apply(Settings s) {
-                    println "settings root dir: " + layout.dir(providers.provider { s.rootDir }).get()
-                    println "settings dir: " + layout.dir(providers.provider { s.settingsDir }).get()
+                    println "settings root dir: " + layout.rootDirectory
+                    println "settings dir: " + layout.settingsDirectory
                     println "settings source file: " + layout.dir(providers.provider { s.buildscript.sourceFile }).get()
                     println "layout implementation: " + layout.class.name
                 }
@@ -51,24 +51,18 @@ class FileSystemLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings root dir: " + testDirectory)
         outputContains("settings dir: " + testDirectory)
         outputContains("settings source file: " + settingsFile)
-        outputContains("layout implementation: " + DefaultFileSystemLayout.class.name)
+        outputContains("layout implementation: " + DefaultSettingsLayout.class.name)
     }
 
     def "layout is available for scripts"() {
         settingsFile """
             import javax.inject.Inject
-            import org.gradle.api.file.FileSystemLayout
+            import org.gradle.api.file.SettingsLayout
             import org.gradle.api.provider.ProviderFactory
             import org.gradle.api.initialization.Settings
 
-            interface Services {
-                @Inject FileSystemLayout getLayout()
-            }
-
-            def layout = extensions.create("fileSystemLayout", Services).layout
-
-            println "settings root dir: " + layout.dir(providers.provider { rootDir }).get()
-            println "settings dir: " + layout.dir(providers.provider { settingsDir }).get()
+            println "settings root dir: " + layout.rootDirectory
+            println "settings dir: " + layout.settingsDirectory
             println "settings source file: " + layout.dir(providers.provider { buildscript.sourceFile }).get()
             println "layout implementation: " + layout.class.name
 """
@@ -80,6 +74,6 @@ class FileSystemLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings root dir: " + testDirectory)
         outputContains("settings dir: " + testDirectory)
         outputContains("settings source file: " + settingsFile)
-        outputContains("layout implementation: " + DefaultFileSystemLayout.class.name)
+        outputContains("layout implementation: " + DefaultSettingsLayout.class.name)
     }
 }
