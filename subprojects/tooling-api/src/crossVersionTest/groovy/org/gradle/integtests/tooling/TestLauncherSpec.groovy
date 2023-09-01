@@ -63,8 +63,12 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
     }
 
     void launchTests(Closure configurationClosure) {
+        launchTests(null, configurationClosure)
+    }
+
+    void launchTests(ResultHandler<Void> resultHandler, Closure configurationClosure) {
         withConnection { ProjectConnection connection ->
-            launchTests(connection, null, cancellationTokenSource.token(), configurationClosure)
+            launchTests(connection, resultHandler, cancellationTokenSource.token(), configurationClosure)
         }
     }
 
