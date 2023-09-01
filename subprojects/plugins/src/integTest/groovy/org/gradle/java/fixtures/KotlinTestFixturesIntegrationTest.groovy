@@ -56,12 +56,6 @@ class KotlinTestFixturesIntegrationTest extends AbstractTestFixturesIntegrationT
                 testImplementation('junit:junit:4.13')
                 testImplementation(testFixtures(project(":sub")))
             }
-
-            kotlin {
-                compilerOptions {
-                    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
-                }
-            }
         """
 
         // the test will live in the current project, instead of "sub"
