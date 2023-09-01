@@ -49,12 +49,12 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema
     ImmutableAttributesFactory factory
-    GraphVariantSelector configurationSelector
+    GraphVariantSelector variantSelector
 
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
-        configurationSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+        variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
     }
 
     def "returns this when same target requested"() {
@@ -71,7 +71,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def toConfig = consumableConfiguration(toComponent, "to")
 
         expect:
-        dep.selectVariants(configurationSelector, attributes([:]), toComponent, attributesSchema, [] as Set).variants == [toConfig]
+        dep.selectVariants(variantSelector, attributes([:]), toComponent, attributesSchema, [] as Set).variants == [toConfig]
     }
 
     @Unroll("selects variant '#expected' from target component (#scenario)")
@@ -90,7 +90,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         attributesSchema.attribute(Attribute.of('extra', String))
 
         expect:
-        dep.selectVariants(configurationSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set == [expected] as Set
+        dep.selectVariants(variantSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set == [expected] as Set
 
         where:
         scenario                                         | queryAttributes                 | expected
@@ -114,7 +114,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         attributesSchema.attribute(Attribute.of('will', String))
 
         when:
-        dep.selectVariants(configurationSelector, attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(variantSelector, attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleGraphVariantsException)
@@ -138,7 +138,7 @@ Configuration 'default':
         attributesSchema.attribute(Attribute.of('key', String))
 
         when:
-        dep.selectVariants(configurationSelector, attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(variantSelector, attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleGraphVariantsException)
@@ -174,7 +174,7 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectVariants(configurationSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
+            def result = dep.selectVariants(variantSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
             if (expected == null && result) {
                 throw new Exception("Expected an ambiguous result, but got $result")
             }
@@ -234,7 +234,7 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectVariants(configurationSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
+            def result = dep.selectVariants(variantSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
             if (expected == null && result) {
                 throw new Exception("Expected an ambiguous result, but got $result")
             }
@@ -279,7 +279,7 @@ Configuration 'bar':
         toState.getConfiguration("to") >> null
 
         when:
-        dep.selectVariants(configurationSelector, attributes([:]), toState, attributesSchema,[] as Set)
+        dep.selectVariants(variantSelector, attributes([:]), toState, attributesSchema,[] as Set)
 
         then:
         def e = thrown(ConfigurationNotFoundException)
@@ -350,7 +350,7 @@ Configuration 'bar':
         attributeSchemaWithCompatibility.attribute(Attribute.of('extra', String))
 
         expect:
-        dep.selectVariants(configurationSelector, attributes(queryAttributes), toState, attributeSchemaWithCompatibility, [] as Set).variants.name as Set == [expected] as Set
+        dep.selectVariants(variantSelector, attributes(queryAttributes), toState, attributeSchemaWithCompatibility, [] as Set).variants.name as Set == [expected] as Set
 
         where:
         scenario                     | queryAttributes                 | expected

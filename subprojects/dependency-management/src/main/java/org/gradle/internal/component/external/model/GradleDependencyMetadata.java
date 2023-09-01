@@ -125,8 +125,8 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
      * Always use attribute matching to choose a target variant.
      */
     @Override
-    public GraphVariantSelectionResult selectVariants(GraphVariantSelector configurationSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        return configurationSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
+    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+        return variantSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
     }
 
     @Override

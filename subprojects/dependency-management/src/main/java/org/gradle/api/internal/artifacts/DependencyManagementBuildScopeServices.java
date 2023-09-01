@@ -385,7 +385,7 @@ class DependencyManagementBuildScopeServices {
         return new SelectionFailureHandler(problems);
     }
 
-    GraphVariantSelector createAttributeConfigurationSelector(SelectionFailureHandler selectionFailureHandler) {
+    GraphVariantSelector createGraphVariantSelector(SelectionFailureHandler selectionFailureHandler) {
         return new GraphVariantSelector(selectionFailureHandler);
     }
 

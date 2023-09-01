@@ -91,7 +91,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = Maps.newHashMap();
     private final AttributeDesugaring attributeDesugaring;
     private final ResolutionConflictTracker conflictTracker;
-    private final GraphVariantSelector configurationSelector;
+    private final GraphVariantSelector variantSelector;
 
     public ResolveState(
         ComponentIdGenerator idGenerator,
@@ -113,7 +113,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         ConflictResolution conflictResolution,
         List<? extends DependencyMetadata> syntheticDependencies,
         ResolutionConflictTracker conflictTracker,
-        GraphVariantSelector configurationSelector
+        GraphVariantSelector variantSelector
     ) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
@@ -136,7 +136,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = attributeDesugaring;
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
-        this.configurationSelector = configurationSelector;
+        this.variantSelector = variantSelector;
 
         LocalComponentGraphResolveState rootComponentState = root.getRootComponent();
         ComponentGraphResolveMetadata rootComponentMetadata = rootComponentState.getMetadata();
@@ -306,7 +306,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     public GraphVariantSelector getAttributeConfigurationSelector() {
-        return configurationSelector;
+        return variantSelector;
     }
 
     private static class SelectorCacheKey {

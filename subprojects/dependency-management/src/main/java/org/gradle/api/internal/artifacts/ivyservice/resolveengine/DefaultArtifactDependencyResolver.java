@@ -99,7 +99,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final AttributeDesugaring attributeDesugaring;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final ComponentIdGenerator idGenerator;
-    private final GraphVariantSelector configurationSelector;
+    private final GraphVariantSelector variantSelector;
 
     public DefaultArtifactDependencyResolver(
         BuildOperationExecutor buildOperationExecutor,
@@ -120,7 +120,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         AttributeDesugaring attributeDesugaring,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
         ComponentIdGenerator idGenerator,
-        GraphVariantSelector configurationSelector
+        GraphVariantSelector variantSelector
     ) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
@@ -140,7 +140,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.attributeDesugaring = attributeDesugaring;
         this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.idGenerator = idGenerator;
-        this.configurationSelector = configurationSelector;
+        this.variantSelector = variantSelector;
     }
 
     @Override
@@ -215,7 +215,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
             versionComparator.asVersionComparator(),
             idGenerator,
             versionParser,
-            configurationSelector
+            variantSelector
         );
     }
 

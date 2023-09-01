@@ -47,14 +47,14 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         this.artifactsById = artifactsById;
     }
 
-    private SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector, Function<ResolvedArtifactSet, ResolvedArtifactSet> artifactSetHandler, boolean selectFromAllVariants) {
+    private SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, Function<ResolvedArtifactSet, ResolvedArtifactSet> artifactSetHandler, boolean selectFromAllVariants) {
         if (artifactsById.isEmpty()) {
             return NoArtifactResults.INSTANCE;
         }
 
         List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<>(artifactsById.size());
         for (ArtifactSet artifactSet : artifactsById) {
-            ResolvedArtifactSet resolvedArtifacts = artifactSet.select(componentFilter, selector, selectFromAllVariants);
+            ResolvedArtifactSet resolvedArtifacts = artifactSet.select(componentFilter, variantSelector, selectFromAllVariants);
             resolvedArtifactSets.add(artifactSetHandler.apply(resolvedArtifacts));
         }
 
@@ -67,13 +67,13 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     }
 
     @Override
-    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector, boolean selectFromAllVariants) {
-        return select(componentFilter, selector, DO_NOTHING, selectFromAllVariants);
+    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants) {
+        return select(componentFilter, variantSelector, DO_NOTHING, selectFromAllVariants);
     }
 
     @Override
-    public SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector, boolean selectFromAllVariants) {
-        return select(componentFilter, selector, ALLOW_UNAVAILABLE, selectFromAllVariants);
+    public SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants) {
+        return select(componentFilter, variantSelector, ALLOW_UNAVAILABLE, selectFromAllVariants);
     }
 
     private static class NoArtifactResults implements SelectedArtifactResults {

@@ -59,14 +59,14 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
 
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
-    private final ArtifactVariantSelector selector;
+    private final ArtifactVariantSelector variantSelector;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector selector, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
-        this.selector = selector;
+        this.variantSelector = variantSelector;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
@@ -83,8 +83,8 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
         return componentFilter;
     }
 
-    public ArtifactVariantSelector getSelector() {
-        return selector;
+    public ArtifactVariantSelector getVariantSelector() {
+        return variantSelector;
     }
 
     @Override
@@ -124,7 +124,7 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
 
             ImmutableAttributes variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata, calculatedValueContainerFactory);
-            selectedArtifacts.add(selector.select(variant, this));
+            selectedArtifacts.add(variantSelector.select(variant, this));
         }
         CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(listener);
     }

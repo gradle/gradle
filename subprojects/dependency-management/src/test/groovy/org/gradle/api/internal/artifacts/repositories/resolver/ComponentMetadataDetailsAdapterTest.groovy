@@ -160,9 +160,9 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentSelector, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
-        def configurationSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+        def variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
 
-        def variant = consumer.selectVariants(configurationSelector, attributes, state, schema, [] as Set).variants[0]
+        def variant = consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0]
         variant.metadata.dependencies
     }
 }

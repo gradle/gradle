@@ -116,13 +116,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
      * @return A List containing a single `ConfigurationMetadata` representing the target variant.
      */
     @Override
-    public GraphVariantSelectionResult selectVariants(GraphVariantSelector configurationSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || candidates.isUseVariants());
         if (useConfigurationAttributes) {
-            return configurationSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
+            return variantSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
         }
 
         String targetConfiguration = getDependencyConfiguration();
@@ -136,7 +136,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
             AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
-                throw configurationSelector.getFailureProcessor().incompatibleConfigurationSelectionFailure(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, toConfiguration, false, DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
+                throw variantSelector.getFailureProcessor().incompatibleConfigurationSelectionFailure(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, toConfiguration, false, DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
             }
         }
         return new GraphVariantSelectionResult(ImmutableList.of(toConfiguration.asVariant()), false);

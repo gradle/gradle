@@ -102,11 +102,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
      * otherwise revert to legacy selection of target configurations.
      */
     @Override
-    public GraphVariantSelectionResult selectVariants(GraphVariantSelector configurationSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         // This is a slight different condition than that used for a dependency declared in a Gradle project,
         // which is (targetHasVariants || consumerHasAttributes), relying on the fallback to 'default' for consumer attributes without any variants.
         if (alwaysUseAttributeMatching || targetComponentState.getCandidatesForGraphVariantSelection().isUseVariants()) {
-            return configurationSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
+            return variantSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
         }
         return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponentState);
     }

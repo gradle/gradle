@@ -131,7 +131,7 @@ class DependencyGraphBuilderTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
-    def configurationSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+    def variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
 
     DependencyGraphBuilder builder
 
@@ -144,7 +144,7 @@ class DependencyGraphBuilderTest extends Specification {
             getRootVariant() >> rootComponentState.getConfiguration('root').asVariant()
         }
 
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, versionComparator.asVersionComparator(), new ComponentIdGenerator(), new VersionParser(), configurationSelector)
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, versionComparator.asVersionComparator(), new ComponentIdGenerator(), new VersionParser(), variantSelector)
     }
 
     private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
@@ -595,7 +595,7 @@ class DependencyGraphBuilderTest extends Specification {
     def "does not include filtered dependencies"() {
         given:
         def spec = { DependencyMetadata dep -> dep.selector.module != 'c' }
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, spec, attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, Stub(Comparator), new ComponentIdGenerator(), new VersionParser(), configurationSelector)
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, spec, attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, Stub(Comparator), new ComponentIdGenerator(), new VersionParser(), variantSelector)
 
         def a = revision('a')
         def b = revision('b')

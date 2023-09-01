@@ -463,8 +463,8 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        GraphVariantSelector configurationSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
-        selected = configurationSelector.selectVariants(
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+        selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,
             targetState,

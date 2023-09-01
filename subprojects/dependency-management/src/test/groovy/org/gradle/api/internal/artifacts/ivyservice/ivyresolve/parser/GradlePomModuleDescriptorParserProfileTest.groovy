@@ -222,8 +222,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -418,8 +418,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -488,7 +488,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'imported' }, _, MAVEN_POM) >> asResource(imported)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'imported' }, _, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
@@ -649,8 +649,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -734,8 +734,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -803,7 +803,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'imported' }, _, MAVEN_POM) >> asResource(imported)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'imported' }, _, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
@@ -1022,8 +1022,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -1224,8 +1224,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -1296,7 +1296,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'imported' }, _, MAVEN_POM) >> asResource(imported)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'imported' }, _, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
@@ -1462,8 +1462,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -1549,8 +1549,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'grandparent' }, _, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -1620,7 +1620,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'imported' }, _, MAVEN_POM) >> asResource(imported)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'imported' }, _, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
@@ -1704,7 +1704,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
 
         when:
         def metaData = parseMetaData()
