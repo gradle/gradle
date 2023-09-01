@@ -17,8 +17,8 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.isolated.IsolatedProjectsFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 class ConfigurationCacheKeyIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -50,7 +50,7 @@ class ConfigurationCacheKeyIntegrationTest extends AbstractConfigurationCacheInt
 
     @Issue("https://github.com/gradle/gradle/issues/26049")
     // Isolated Projects option is explicitly controlled by the test
-    @IgnoreIf({ GradleContextualExecuter.isolatedProjects })
+    @Requires(IntegTestPreconditions.NotIsolatedProjects)
     def "isolated projects flag is part of the cache key"() {
         def isolatedProjects = new IsolatedProjectsFixture(this)
 
