@@ -23,7 +23,7 @@ import javax.annotation.Nullable
 
 class GroovyCoverage {
     private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.17']
-    private static final String[] FUTURE = ['4.0.8', '4.0.9']
+    private static final String[] FUTURE = ['4.0.14']
 
     static final Set<String> SUPPORTED_BY_JDK
 
