@@ -16,18 +16,16 @@
 
 package org.gradle.testkit.runner.enduser
 
-
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
-import org.gradle.util.internal.TextUtil
 import org.gradle.util.UsesNativeServices
-import spock.lang.IgnoreIf
+import org.gradle.util.internal.TextUtil
 
 @NonCrossVersion
 @UsesNativeServices
-@IgnoreIf({ GradleContextualExecuter.embedded })
-// These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = BaseTestKitEndUserIntegrationTest.NOT_EMBEDDED_REASON)
 class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerIntegrationTest implements TestKitDependencyBlock {
 
     def setup() {

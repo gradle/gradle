@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling
 
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -28,6 +27,8 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
@@ -36,7 +37,6 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Assume
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Retry
 
@@ -47,10 +47,11 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Issue("GRADLE-1933")
 @Retry(condition = { onWindowsSocketDisappearance(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-@IgnoreIf({ GradleContextualExecuter.embedded }) // concurrent tooling api is only supported for forked mode
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "concurrent tooling api is only supported for forked mode")
 class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+    @Rule
+    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
 
@@ -86,7 +87,7 @@ class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         concurrent.start { useToolingApi(toolingApi) }
-        concurrent.start { useToolingApi(oldDistApi)}
+        concurrent.start { useToolingApi(oldDistApi) }
 
         then:
         concurrent.finished()
@@ -204,7 +205,7 @@ project.description = text
 
         concurrent.start {
             def connector = toolingApi.connector(build1)
-            distributionOperation(connector, { it.description = "download for 1"; Thread.sleep(500) } )
+            distributionOperation(connector, { it.description = "download for 1"; Thread.sleep(500) })
 
             toolingApi.withConnection(connector) { connection ->
                 def build = connection.newBuild()
@@ -218,7 +219,7 @@ project.description = text
 
         concurrent.start {
             def connector = toolingApi.connector(build2)
-            distributionOperation(connector, { it.description = "download for 2"; Thread.sleep(500) } )
+            distributionOperation(connector, { it.description = "download for 2"; Thread.sleep(500) })
 
             def connection = connector.connect()
 
@@ -274,11 +275,11 @@ project.description = text
     }
 
     static void distributionProgressMessage(connector, String message) {
-        connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message} )
+        connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message })
     }
 
     static void distributionOperation(connector, Closure operation) {
-        connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation )
+        connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation)
     }
 
     static class ConfigurableDistribution implements Distribution {

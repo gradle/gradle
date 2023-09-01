@@ -17,9 +17,9 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
@@ -28,7 +28,7 @@ import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildS
 
 // Note: most of the other tests are structure to implicitly also exercise configuration caching
 // This tests some specific aspects, and serves as an early smoke test.
-@IgnoreIf({ GradleContextualExecuter.configCache })
+@Requires(IntegTestPreconditions.NotConfigCached)
 class GradleEnterprisePluginConfigurationCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())

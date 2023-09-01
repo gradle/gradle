@@ -19,13 +19,12 @@ package org.gradle.api.plugins.quality.codenarc
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
@@ -73,7 +72,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         report("test").exists()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "is incremental"() {
         given:
         goodCode()
@@ -93,7 +92,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         executedAndNotSkipped(":codenarcMain")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "can generate multiple reports"() {
         given:
         buildFile << """

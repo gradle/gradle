@@ -17,9 +17,9 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
@@ -789,8 +789,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("from custom task")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
-    // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution")
     def "can write tests for precompiled script plugins"() {
         given:
         pluginWithSampleTask("src/main/groovy/test-plugin.gradle")

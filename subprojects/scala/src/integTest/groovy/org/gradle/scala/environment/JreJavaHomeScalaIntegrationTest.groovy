@@ -22,16 +22,16 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
 class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
-    @IgnoreIf({ AvailableJavaHomes.bestJre == null})
+    @Requires(IntegTestPreconditions.BestJreAvailable)
     def "scala java cross compilation works when JAVA_HOME is set to JRE"() {
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre

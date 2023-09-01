@@ -17,15 +17,15 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.util.jar.Attributes
@@ -168,7 +168,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     HttpServer httpServer = new HttpServer()
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "wrapper task fails if http distribution url from command-line is invalid"() {
         given:
         def path = "/distributions/8.0-RC-5"
@@ -200,7 +200,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "wrapper task fails if file distribution url from command-line is invalid"() {
         given:
         def target = file("/distributions/8.0-rc-5")

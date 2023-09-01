@@ -16,12 +16,13 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // This tests class loader isolation which is not given in embedded mode
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // This tests class loader isolation which is not given in embedded mode
 class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     @Issue("GRADLE-3456")

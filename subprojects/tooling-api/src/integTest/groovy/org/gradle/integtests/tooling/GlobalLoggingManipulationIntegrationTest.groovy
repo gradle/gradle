@@ -17,21 +17,21 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RedirectStdIn
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.BlockingResultHandler
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 import java.util.logging.LogManager
 
 import static java.util.logging.Level.OFF
 
 @RedirectStdIn
-@IgnoreIf({ GradleContextualExecuter.embedded }) // because toolingApi.requireIsolatedToolingApi()
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "because toolingApi.requireIsolatedToolingApi()")
 class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

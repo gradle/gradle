@@ -18,8 +18,8 @@ package org.gradle.testing.junit.platform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
@@ -89,7 +89,7 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
     // When running embedded with test distribution, the remote distribution has a newer version of
     // junit-platform-launcher which is not compatible with the junit jupiter jars we test against.
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "automatically loads framework dependencies from distribution"() {
         given:
         buildFile << """
