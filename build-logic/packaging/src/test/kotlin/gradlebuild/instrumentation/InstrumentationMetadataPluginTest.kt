@@ -255,6 +255,10 @@ class InstrumentationMetadataPluginTest {
 
             instrumentationMetadata {
                 classpathToInspect = createInstrumentationMetadataViewOf(configurations.runtimeClasspath)
+                superTypesOutputFile = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
+                superTypesHashFile = layout.buildDirectory.file("instrumentation/instrumented-super-types-hash.txt")
+                upgradedPropertiesFile = layout.buildDirectory.file("instrumentation/upgraded-properties.json")
+                upgradedPropertiesHashFile = layout.buildDirectory.file("instrumentation/upgraded-properties-hash.txt")
             }
         """)
     }

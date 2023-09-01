@@ -29,13 +29,7 @@ dependencies {
     }
 }
 
-val extension = extensions.create<InstrumentationMetadataExtension>("instrumentationMetadata").apply {
-    classpathToInspect = files()
-    superTypesOutputFile.convention(layout.buildDirectory.file("instrumentation/instrumented-super-types.properties"))
-    superTypesHashFile.convention(layout.buildDirectory.file("instrumentation/instrumented-super-types-hash.txt"))
-    upgradedPropertiesFile.convention(layout.buildDirectory.file("instrumentation/upgraded-properties.json"))
-    upgradedPropertiesHashFile.convention(layout.buildDirectory.file("instrumentation/upgraded-properties-hash.txt"))
-}
+val extension = extensions.create<InstrumentationMetadataExtension>("instrumentationMetadata")
 
 tasks.register<InstrumentedMetadataMergeTask>("findInstrumentedSuperTypes") {
     instrumentationMetadataDirs = extension.classpathToInspect
