@@ -47,6 +47,9 @@ dependencies {
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platform-base")))
+    testImplementation(libs.nativePlatform) {
+        because("Required for SystemInfo")
+    }
 
     testFixturesApi(testFixtures(project(":language-jvm")))
     testFixturesImplementation(project(":base-services"))
