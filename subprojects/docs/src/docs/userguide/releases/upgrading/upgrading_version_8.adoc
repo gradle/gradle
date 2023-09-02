@@ -38,6 +38,12 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
 
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 1.9.10
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.10[Kotlin 1.9.10].
+
 === Deprecations
 
 [[generate_maven_pom_method_deprecations]]
