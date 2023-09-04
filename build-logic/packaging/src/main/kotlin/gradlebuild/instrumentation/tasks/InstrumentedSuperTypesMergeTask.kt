@@ -16,12 +16,8 @@
 
 package gradlebuild.instrumentation.tasks
 
-import com.google.gson.Gson
-import com.google.gson.JsonArray
-import com.google.gson.JsonParser
 import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.DIRECT_SUPER_TYPES_FILE
 import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.INSTRUMENTED_CLASSES_FILE
-import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.UPGRADED_PROPERTIES_FILE
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
@@ -33,14 +29,16 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.hash.Hashing
 import java.io.File
-import java.io.FileReader
 import java.util.ArrayDeque
 import java.util.Properties
 import java.util.Queue
 
 
+/**
+ * Merges all instrumented super types from multiple projects in to one file.
+ */
 @CacheableTask
-abstract class InstrumentedMetadataMergeTask : DefaultTask() {
+abstract class InstrumentedSuperTypesMergeTask : DefaultTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -59,38 +57,15 @@ abstract class InstrumentedMetadataMergeTask : DefaultTask() {
     @get:OutputFile
     abstract val instrumentedSuperTypesHash: RegularFileProperty
 
-    /**
-     * Output with all upgraded properties, merged from multiple projects in to one file.
-     */
-    @get:OutputFile
-    abstract val upgradedProperties: RegularFileProperty
-
-    /**
-     * Calculated hash for [upgradedProperties] file used for invalidating instrumentation cache,
-     * more specifically used in: InstrumentingClasspathFileTransformer.
-     *
-     * We calculate a hash in a separate file we want to generate "normalized" hash for json not influenced by order of properties.
-     */
-    @get:OutputFile
-    abstract val upgradedPropertiesHash: RegularFileProperty
-
     @TaskAction
-    fun run() {
+    fun mergeInstrumentedSuperTypes() {
         val instrumentedClasses = findInstrumentedClasses()
         if (instrumentedClasses.isEmpty()) {
             instrumentedSuperTypes.asFile.get().toEmptyFile()
             instrumentedSuperTypesHash.asFile.get().toEmptyFile()
-            upgradedProperties.asFile.get().toEmptyFile()
-            upgradedPropertiesHash.asFile.get().toEmptyFile()
             return
         }
 
-        mergeAndWriteInstrumentedSuperTypes(instrumentedClasses)
-        mergeAndWriteUpgradedProperties()
-    }
-
-    private
-    fun mergeAndWriteInstrumentedSuperTypes(instrumentedClasses: Set<String>) {
         // Merge and find all transitive super types
         val superTypes = mergeSuperTypes()
         // Keep only instrumented super types as we don't need to others for instrumentation
@@ -178,34 +153,6 @@ abstract class InstrumentedMetadataMergeTask : DefaultTask() {
                 .forEach { hasher.putString(it.key + "=" + it.value.sorted().joinToString(",")) }
             outputHashFile.outputStream().use { it.write(hasher.hash().toByteArray()) }
         }
-    }
-
-    private
-    fun mergeAndWriteUpgradedProperties() {
-        // Merge and find all upgraded properties
-        val mergedUpgradedProperties = mergeProperties()
-        if (mergedUpgradedProperties.isEmpty) {
-            upgradedProperties.asFile.get().toEmptyFile()
-            upgradedPropertiesHash.asFile.get().toEmptyFile()
-            return
-        }
-
-        upgradedProperties.asFile.get().writer().use { Gson().toJson(mergedUpgradedProperties, it) }
-        val hasher = Hashing.newHasher()
-        mergedUpgradedProperties.map { it.asJsonObject.get("hash").asString }.sorted().forEach { hasher.putString(it) }
-        upgradedPropertiesHash.asFile.get().outputStream().use { it.write(hasher.hash().toByteArray()) }
-    }
-
-    private
-    fun mergeProperties(): JsonArray {
-        val merged = JsonArray()
-        instrumentationMetadataDirs
-            .map { it.resolve(UPGRADED_PROPERTIES_FILE) }
-            .filter { it.exists() }
-            .sorted()
-            .map { JsonParser.parseReader(FileReader(it)).asJsonArray }
-            .forEach { merged.addAll(it) }
-        return merged
     }
 
     private

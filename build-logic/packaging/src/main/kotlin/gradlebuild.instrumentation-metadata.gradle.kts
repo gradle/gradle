@@ -15,7 +15,11 @@
  */
 
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension
-import gradlebuild.instrumentation.tasks.InstrumentedMetadataMergeTask
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_METADATA_EXTENSION
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_SUPER_TYPES_MERGE_TASK
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.UPGRADED_PROPERTIES_MERGE_TASK
+import gradlebuild.instrumentation.tasks.InstrumentedSuperTypesMergeTask
+import gradlebuild.instrumentation.tasks.UpgradedPropertiesMergeTask
 import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform
 import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.INSTRUMENTATION_METADATA
 
@@ -29,12 +33,16 @@ dependencies {
     }
 }
 
-val extension = extensions.create<InstrumentationMetadataExtension>("instrumentationMetadata")
+val extension = extensions.create<InstrumentationMetadataExtension>(INSTRUMENTED_METADATA_EXTENSION)
 
-tasks.register<InstrumentedMetadataMergeTask>("findInstrumentedSuperTypes") {
+tasks.register<InstrumentedSuperTypesMergeTask>(INSTRUMENTED_SUPER_TYPES_MERGE_TASK) {
     instrumentationMetadataDirs = extension.classpathToInspect
     instrumentedSuperTypes = extension.superTypesOutputFile
     instrumentedSuperTypesHash = extension.superTypesHashFile
+}
+
+tasks.register<UpgradedPropertiesMergeTask>(UPGRADED_PROPERTIES_MERGE_TASK) {
+    instrumentationMetadataDirs = extension.classpathToInspect
     upgradedProperties = extension.upgradedPropertiesFile
     upgradedPropertiesHash = extension.upgradedPropertiesHashFile
 }

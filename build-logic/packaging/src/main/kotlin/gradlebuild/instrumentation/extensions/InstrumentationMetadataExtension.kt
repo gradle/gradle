@@ -28,6 +28,12 @@ import org.gradle.api.file.RegularFileProperty
 
 abstract class InstrumentationMetadataExtension(private val configurations: ConfigurationContainer) {
 
+    companion object {
+        const val INSTRUMENTED_SUPER_TYPES_MERGE_TASK = "mergeInstrumentedSuperTypes"
+        const val UPGRADED_PROPERTIES_MERGE_TASK = "mergeUpgradedProperties"
+        const val INSTRUMENTED_METADATA_EXTENSION = "instrumentationMetadata"
+    }
+
     abstract val classpathToInspect: ConfigurableFileCollection
     abstract val superTypesOutputFile: RegularFileProperty
     abstract val superTypesHashFile: RegularFileProperty

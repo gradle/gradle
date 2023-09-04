@@ -97,10 +97,18 @@ class InstrumentationMetadataPluginTest {
     @Test
     fun `should output empty instrumentation files if none of types is instrumented`() {
         // Given
-        // Override the build.gradle file to not write instrumented-classes.txt file
+        // Override the build.gradle files to not write instrumented-classes.txt or upgraded-properties.json file
         File(projectRoot, "core/build.gradle").writeText("""
             plugins {
                 id("java-library")
+            }
+        """)
+        File(projectRoot, "code-quality/build.gradle").writeText("""
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(project(":core"))
             }
         """)
 
@@ -157,7 +165,7 @@ class InstrumentationMetadataPluginTest {
         .withProjectDir(projectRoot)
         .withPluginClasspath()
         .forwardOutput()
-        .withArguments(":distribution:findInstrumentedSuperTypes", "--stacktrace")
+        .withArguments(":distribution:mergeInstrumentedSuperTypes", ":distribution:mergeUpgradedProperties", "--stacktrace")
 
     private
     fun assertSucceeds() {
