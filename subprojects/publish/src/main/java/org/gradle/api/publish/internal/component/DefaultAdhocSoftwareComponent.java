@@ -25,22 +25,24 @@ import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.reflect.Instantiator;
 
+import javax.inject.Inject;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
     private final String componentName;
     private final Map<Configuration, ConfigurationVariantMapping> variants = Maps.newLinkedHashMapWithExpectedSize(4);
-    private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
 
     private Set<UsageContext> cachedVariants;
 
-    public DefaultAdhocSoftwareComponent(String componentName, Instantiator instantiator) {
+    @Inject
+    public DefaultAdhocSoftwareComponent(String componentName, ObjectFactory objectFactory) {
         this.componentName = componentName;
-        this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -51,7 +53,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
         checkNotObserved();
-        variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator));
+        variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, objectFactory));
     }
 
     @Override
@@ -68,7 +70,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
         if (cachedVariants == null) {
             ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
             for (ConfigurationVariantMapping variant : variants.values()) {
-                variant.collectVariants(builder);
+                variant.collectVariants(builder::add);
             }
             cachedVariants = builder.build();
         }

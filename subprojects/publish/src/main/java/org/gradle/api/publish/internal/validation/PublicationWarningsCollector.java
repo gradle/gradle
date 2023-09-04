@@ -32,9 +32,7 @@ public class PublicationWarningsCollector {
     private final String incompatibleFeature;
     private final String footer;
     private final String disableMethod;
-    private final Map<String, CollectedWarnings> variantToWarnings;
-    private String currentVariant;
-    private CollectedWarnings currentWarnings;
+    private final Map<String, VariantWarningCollector> variantToWarnings;
 
     public PublicationWarningsCollector(Logger logger, String unsupportedFeature, String incompatibleFeature, String footer, String disableMethod) {
         this.footer = footer;
@@ -45,18 +43,9 @@ public class PublicationWarningsCollector {
         this.incompatibleFeature = incompatibleFeature;
     }
 
-    public void addUnsupported(String text) {
-        currentWarnings.addUnsupported(text);
-    }
-
-    public void addIncompatible(String text) {
-        currentWarnings.addIncompatible(text);
-    }
-
     public void complete(String header, Set<String> silencedVariants) {
-        saveVariantWarnings();
-
         variantToWarnings.keySet().removeAll(silencedVariants);
+        variantToWarnings.values().removeIf(VariantWarningCollector::isEmpty);
         if (!variantToWarnings.isEmpty()) {
             TreeFormatter treeFormatter = new TreeFormatter();
             treeFormatter.node(header + " warnings (silence with '" + disableMethod + "(variant)')");
@@ -87,19 +76,7 @@ public class PublicationWarningsCollector {
         }
     }
 
-    public void newContext(String name) {
-        saveVariantWarnings();
-        currentVariant = name;
-        currentWarnings = new CollectedWarnings();
-    }
-
-    private void saveVariantWarnings() {
-        if (currentVariant != null && !currentWarnings.isEmpty()) {
-            variantToWarnings.put(currentVariant, currentWarnings);
-        }
-    }
-
-    public void addVariantUnsupported(String text) {
-        currentWarnings.addVariantUnsupported(text);
+    public VariantWarningCollector warningCollectorFor(String name) {
+        return variantToWarnings.computeIfAbsent(name, k -> new VariantWarningCollector());
     }
 }

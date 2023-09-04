@@ -37,7 +37,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 @NotThreadSafe
-class InvalidPublicationChecker {
+public class InvalidPublicationChecker {
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 

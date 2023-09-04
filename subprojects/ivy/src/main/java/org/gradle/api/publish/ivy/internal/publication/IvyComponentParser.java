@@ -21,27 +21,26 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.publish.internal.component.IvyPublishingAwareVariant;
+import org.gradle.api.publish.internal.mapping.DefaultVariantDependencyResolverFactory;
+import org.gradle.api.publish.internal.mapping.VariantDependencyResolver;
+import org.gradle.api.publish.internal.mapping.VariantDependencyResolverFactory;
 import org.gradle.api.publish.internal.validation.PublicationErrorChecker;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
-import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
+import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -53,10 +52,7 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.util.Path;
 
-import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -86,13 +82,10 @@ public class IvyComponentParser {
 
     private final Instantiator instantiator;
     private final PlatformSupport platformSupport;
-    private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
     private final DocumentationRegistry documentationRegistry;
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-
-    private final PublicationWarningsCollector publicationWarningsCollector =
-        new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
+    private final VariantDependencyResolverFactory variantDependencyResolverFactory;
 
     public IvyComponentParser(
         Instantiator instantiator,
@@ -100,14 +93,15 @@ public class IvyComponentParser {
         ProjectDependencyPublicationResolver projectDependencyResolver,
         NotationParser<Object, IvyArtifact> ivyArtifactParser,
         DocumentationRegistry documentationRegistry,
+        VersionMappingStrategyInternal versionMappingStrategy,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         this.instantiator = instantiator;
         this.platformSupport = platformSupport;
-        this.projectDependencyResolver = projectDependencyResolver;
         this.ivyArtifactParser = ivyArtifactParser;
         this.documentationRegistry = documentationRegistry;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
+        this.variantDependencyResolverFactory = new DefaultVariantDependencyResolverFactory(projectDependencyResolver, versionMappingStrategy);
     }
 
     public IvyConfigurationContainer parseConfigurations(SoftwareComponentInternal component) {
@@ -177,50 +171,48 @@ public class IvyComponentParser {
         return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
     }
 
-    public DependencyResult parseDependencies(
-        SoftwareComponentInternal component,
-        VersionMappingStrategyInternal versionMappingStrategy
-    ) {
+    public ParsedDependencyResult parseDependencies(SoftwareComponentInternal component) {
         PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
         DefaultIvyDependencySet ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
 
-        for (SoftwareComponentVariant variant : component.getUsages()) {
-            publicationWarningsCollector.newContext(variant.getName());
+        PublicationWarningsCollector publicationWarningsCollector =
+            new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
 
-            ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
-            VariantVersionMappingStrategyInternal variantVersionMappingStrategy = versionMappingStrategy.findStrategyForVariant(attributes);
-            VariantDependencyFactory dependencyFactory = new VariantDependencyFactory(projectDependencyResolver, variantVersionMappingStrategy, publicationWarningsCollector);
+        for (SoftwareComponentVariant variant : component.getUsages()) {
+            VariantWarningCollector warnings = publicationWarningsCollector.warningCollectorFor(variant.getName());
+
+            VariantDependencyResolver dependencyResolver = variantDependencyResolverFactory.createResolver(variant, (organization, module, declaredVersion) -> {
+                if (declaredVersion == null) {
+                    // Version mapping is disabled or did not discover coordinates.
+                    warnings.addUnsupported(String.format("%s:%s declared without version", organization, module));
+                }
+                return declaredVersion;
+            });
+
+            VariantDependencyFactory dependencyFactory = new VariantDependencyFactory(dependencyResolver, warnings);
 
             for (ModuleDependency dependency : variant.getDependencies()) {
                 String confMapping = confMappingFor(variant, dependency);
-                if (!dependency.getAttributes().isEmpty()) {
-                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                if (platformSupport.isTargetingPlatform(dependency)) {
+                    warnings.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                 }
-                if (dependency instanceof ProjectDependency) {
-                    ivyDependencies.add(dependencyFactory.asProjectDependency((ProjectDependency) dependency, confMapping));
-                } else {
-                    ExternalDependency externalDependency = (ExternalDependency) dependency;
-                    if (platformSupport.isTargetingPlatform(dependency)) {
-                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-                    }
-                    ivyDependencies.add(dependencyFactory.asExternalDependency(externalDependency, confMapping));
-                }
+                ivyDependencies.add(dependencyFactory.convertDependency(dependency, confMapping));
             }
 
             if (!variant.getDependencyConstraints().isEmpty()) {
                 for (DependencyConstraint constraint : variant.getDependencyConstraints()) {
-                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+                    warnings.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
                 }
             }
             if (!variant.getCapabilities().isEmpty()) {
                 for (Capability capability : variant.getCapabilities()) {
-                    publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Ivy", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    warnings.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Ivy", capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
         }
 
-        return new DependencyResult(
+        return new ParsedDependencyResult(
             ivyDependencies,
             publicationWarningsCollector
         );
@@ -279,75 +271,50 @@ public class IvyComponentParser {
 
     private static class VariantDependencyFactory {
 
-        private final ProjectDependencyPublicationResolver projectDependencyResolver;
-        private final VariantVersionMappingStrategyInternal versionMappingStrategy;
-        private final PublicationWarningsCollector publicationWarningsCollector;
+        private final VariantDependencyResolver dependencyResolver;
+        private final VariantWarningCollector warnings;
 
         public VariantDependencyFactory(
-            ProjectDependencyPublicationResolver projectDependencyResolver,
-            VariantVersionMappingStrategyInternal versionMappingStrategy,
-            PublicationWarningsCollector publicationWarningsCollector
+            VariantDependencyResolver dependencyResolver,
+            VariantWarningCollector warnings
         ) {
-            this.projectDependencyResolver = projectDependencyResolver;
-            this.versionMappingStrategy = versionMappingStrategy;
-            this.publicationWarningsCollector = publicationWarningsCollector;
+            this.dependencyResolver = dependencyResolver;
+            this.warnings = warnings;
         }
 
-        private IvyDependency asProjectDependency(ProjectDependency dependency, String confMapping) {
-            Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
-            return new DefaultIvyDependency(
-                identifier.getGroup(),
-                identifier.getName(),
-                identifier.getVersion(),
-                confMapping,
-                dependency.isTransitive(),
-                resolveCoordinates(identityPath),
-                Collections.emptySet(),
-                dependency.getExcludeRules()
-            );
-        }
+        private IvyDependency convertDependency(ModuleDependency dependency, String confMapping) {
+            VariantDependencyResolver.Coordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
 
-        private IvyDependency asExternalDependency(ExternalDependency dependency, String confMapping) {
+            String revConstraint = null;
+            if (!(dependency instanceof ProjectDependency) &&
+                dependency.getVersion() != null &&
+                isDynamicVersion(dependency.getVersion())
+            ) {
+                revConstraint = dependency.getVersion();
+            }
+
             return new DefaultIvyDependency(
-                dependency.getGroup(),
-                dependency.getName(),
-                nullToEmpty(dependency.getVersion()),
+                coordinates.getGroup(),
+                coordinates.getName(),
+                nullToEmpty(coordinates.getVersion()),
                 confMapping,
                 dependency.isTransitive(),
-                resolveCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion(), null),
+                revConstraint,
                 dependency.getArtifacts(),
                 dependency.getExcludeRules()
             );
         }
 
-        @Nullable
-        private ModuleVersionIdentifier resolveCoordinates(Path identityPath) {
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
-            return resolveCoordinates(identifier.getGroup(), identifier.getName(), identifier.getVersion(), identityPath);
-        }
-
-        @Nullable
-        private ModuleVersionIdentifier resolveCoordinates(String organization, String module, @Nullable String revision, @Nullable Path identityPath) {
-            ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.maybeResolveVersion(organization, module, identityPath);
-            if (resolvedVersion != null) {
-                return resolvedVersion;
-            }
-
-            // Version mapping is disabled or did not discover coordinates.
-            if (revision == null) {
-                publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", organization, module));
-            }
-
-            return null;
+        private static boolean isDynamicVersion(String version) {
+            return !ExactVersionSelector.isExact(version);
         }
     }
 
-    public static class DependencyResult {
+    public static class ParsedDependencyResult {
         private final DefaultIvyDependencySet dependencies;
         private final PublicationWarningsCollector warnings;
 
-        public DependencyResult(
+        public ParsedDependencyResult(
             DefaultIvyDependencySet ivyDependencies,
             PublicationWarningsCollector warnings
         ) {
