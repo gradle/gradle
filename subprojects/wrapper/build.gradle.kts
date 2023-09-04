@@ -47,6 +47,9 @@ val executableJar by tasks.registering(Jar::class) {
     exclude("gradle-*-parameter-names.properties")
 }
 
+// Using Gr8 plugin with ProGuard to minify the wrapper JAR.
+// This minified JAR is added to the project root when the wrapper task is used.
+// It is embedded in the main JAR as a resource called `/gradle-wrapper.jar.`
 gr8 {
     create("gr8") {
         // TODO This should work by passing `executableJar` directly to th Gr8 plugin
