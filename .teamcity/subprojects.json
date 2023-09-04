@@ -28,6 +28,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "base-ide-plugins",
+    "path": "platforms/ide/base-ide-plugins",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "base-services",
     "path": "subprojects/base-services",
     "unitTests": true,
@@ -109,13 +116,6 @@
     "path": "subprojects/build-profile",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "build-scan-performance",
-    "path": "subprojects/build-scan-performance",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -267,28 +267,35 @@
   },
   {
     "name": "enterprise",
-    "path": "subprojects/enterprise",
+    "path": "platforms/enterprise/enterprise",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "enterprise-logging",
-    "path": "subprojects/enterprise-logging",
+    "path": "platforms/enterprise/enterprise-logging",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "enterprise-operations",
-    "path": "subprojects/enterprise-operations",
+    "path": "platforms/enterprise/enterprise-operations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "enterprise-plugin-performance",
+    "path": "platforms/enterprise/enterprise-plugin-performance",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "enterprise-workers",
-    "path": "subprojects/enterprise-workers",
+    "path": "platforms/enterprise/enterprise-workers",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -347,7 +354,7 @@
     "path": "subprojects/ide",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": true
+    "crossVersionTests": false
   },
   {
     "name": "ide-native",
@@ -355,6 +362,13 @@
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
+  },
+  {
+    "name": "ide-plugins",
+    "path": "platforms/ide/ide-plugins",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "installation-beacon",
@@ -455,6 +469,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-platform",
+    "path": "platforms/jvm/java-platform",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "jvm-services",
     "path": "subprojects/jvm-services",
     "unitTests": true,
@@ -463,63 +484,63 @@
   },
   {
     "name": "kotlin-dsl",
-    "path": "subprojects/kotlin-dsl",
+    "path": "platforms/core-configuration/kotlin-dsl",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-integ-tests",
-    "path": "subprojects/kotlin-dsl-integ-tests",
+    "path": "platforms/core-configuration/kotlin-dsl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "kotlin-dsl-plugins",
-    "path": "subprojects/kotlin-dsl-plugins",
+    "path": "platforms/core-configuration/kotlin-dsl-plugins",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-provider-plugins",
-    "path": "subprojects/kotlin-dsl-provider-plugins",
+    "path": "platforms/core-configuration/kotlin-dsl-provider-plugins",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-tooling-builders",
-    "path": "subprojects/kotlin-dsl-tooling-builders",
+    "path": "platforms/core-configuration/kotlin-dsl-tooling-builders",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "kotlin-dsl-tooling-models",
-    "path": "subprojects/kotlin-dsl-tooling-models",
+    "path": "platforms/core-configuration/kotlin-dsl-tooling-models",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "language-groovy",
-    "path": "subprojects/language-groovy",
+    "path": "platforms/jvm/language-groovy",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "language-java",
-    "path": "subprojects/language-java",
+    "path": "platforms/jvm/language-java",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "language-jvm",
-    "path": "subprojects/language-jvm",
+    "path": "platforms/jvm/language-jvm",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -619,7 +640,7 @@
     "name": "platform-jvm",
     "path": "subprojects/platform-jvm",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -661,7 +682,7 @@
     "name": "problems",
     "path": "subprojects/problems",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -809,6 +830,13 @@
     "path": "subprojects/testing-native",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "toolchains-jvm",
+    "path": "platforms/jvm/toolchains-jvm",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

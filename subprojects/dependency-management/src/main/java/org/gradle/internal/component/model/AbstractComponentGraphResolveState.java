@@ -24,20 +24,16 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -53,6 +49,10 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         this.graphMetadata = graphMetadata;
         this.artifactMetadata = artifactMetadata;
         this.attributeDesugaring = attributeDesugaring;
+    }
+    @Override
+    public String toString() {
+        return getId().toString();
     }
 
     @Override
@@ -80,6 +80,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return new DefaultGraphSelectionCandidates(variants);
     }
 
+    @Override
+    public boolean isAdHoc() {
+        return false;
+    }
+
     protected abstract Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal();
 
     @Nullable
@@ -97,11 +102,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         artifactResolver.resolveArtifactsWithType(getResolveMetadata(), artifactType, result);
     }
 
-    @Override
-    public ArtifactSet prepareForArtifactResolution(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return artifactSelector.resolveArtifacts(getResolveMetadata(), artifacts, overriddenAttributes);
-    }
-
     protected List<? extends Capability> capabilitiesFor(CapabilitiesMetadata variantCapabilities) {
         List<? extends Capability> capabilities = variantCapabilities.getCapabilities();
         if (capabilities.isEmpty()) {
@@ -117,6 +117,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
         public AbstractVariantGraphResolveState() {
             this.publicView = Lazy.locking().of(() -> createVariantResult(null));
+        }
+
+        @Override
+        public boolean isAdHoc() {
+            return AbstractComponentGraphResolveState.this.isAdHoc();
         }
 
         @Override

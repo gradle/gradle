@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -25,9 +24,12 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousVariantSelectionException
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
+
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 
 class AttributeMatchingVariantSelectorSpec extends Specification {
 
@@ -56,12 +58,13 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     }
 
     def factory = Mock(VariantSelector.Factory)
+    def failureProcessor = new SelectionFailureHandler(createTestProblems())
 
     def 'direct match on variant means no finder interaction'() {
         given:
         def resolvedArtifactSet = Mock(ResolvedArtifactSet)
         def variants = [variant]
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSetOf(variants), factory)
@@ -76,7 +79,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     def 'multiple match on variant results in ambiguous exception'() {
         given:
         def variantSet = variantSetOf([variant, otherVariant])
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSet, factory)
@@ -97,7 +100,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSetOf(variants), factory)
@@ -116,7 +119,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant, otherVariant, yetAnotherVariant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSetOf(variants), factory)
@@ -137,7 +140,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         given:
         def variants = [variant, otherVariant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSetOf(variants), factory)

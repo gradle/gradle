@@ -16,20 +16,22 @@
 
 package org.gradle.internal.classpath
 
-
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import java.util.stream.Collectors
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
     static final int MAX_CACHE_AGE_IN_DAYS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
@@ -96,7 +98,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
-    @IgnoreIf({ AbstractGradleExecuter.agentInstrumentationEnabled }) // Agent-based instrumentation doesn't expose cached JARs
+    // Agent-based instrumentation doesn't expose cached JARs
+    @Requires(IntegTestPreconditions.AgentInstrumentationDisabled)
     def "build script classloader copies jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
@@ -317,7 +320,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         noExceptionThrown()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.getJdk11() == null || AvailableJavaHomes.getJdk8() == null })
+    @Requires([IntegTestPreconditions.Java8HomeAvailable, IntegTestPreconditions.Java11HomeAvailable])
     def "proper version is selected for multi-release jar"() {
         given:
         createDir("mrjar") {
@@ -459,6 +462,48 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         3200        || 3
     }
 
+    def "transformation normalizes input jars before fingerprinting"() {
+        requireOwnGradleUserHomeDir() // inspects cached content
+
+        given:
+        def buildClassSource = '''
+            package org.gradle.test;
+            public class BuildClass {
+                public String message() { return "hello world"; }
+            }
+        '''
+        def reproducibleJar = file("reproducible/testClasses.jar")
+        def currentTimestampJar = file("current/testClasses.jar")
+        artifactBuilder().tap {
+            preserveTimestamps(false)
+            sourceFile("org/gradle/test/BuildClass.java").text = buildClassSource
+            buildJar(reproducibleJar)
+        }
+        artifactBuilder().tap {
+            preserveTimestamps(true)
+            sourceFile("org/gradle/test/BuildClass.java").text = buildClassSource
+            buildJar(currentTimestampJar)
+        }
+
+        Closure<String> subprojectSource = {File jarPath -> """
+            buildscript { dependencies { classpath files("${TextUtil.normaliseFileSeparators(jarPath.absolutePath)}") } }
+
+            tasks.register("printMessage") { doLast { println (new org.gradle.test.BuildClass().message()) } }
+        """}
+
+        settingsScript("""
+            include "reproducible", "current"
+        """)
+
+        file("reproducible/build.gradle").text = subprojectSource(reproducibleJar)
+        file("current/build.gradle").text = subprojectSource(currentTimestampJar)
+
+        expect:
+        succeeds("printMessage")
+
+        getCachedTransformedJarsByName("testClasses.jar").size() == 1
+    }
+
     void notInJarCache(String filename) {
         inJarCache(filename, false)
     }
@@ -477,5 +522,28 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         return userHomeCacheDir.file(DefaultClasspathTransformerCacheFactory.CACHE_KEY)
     }
 
+    /**
+     * Finds all cached transformed JARs named {@code jarName}.
+     * @param jarName the name of the JAR to look
+     * @return the list of transformed JARs in the cache
+     */
+    List<File> getCachedTransformedJarsByName(String jarName) {
+        Arrays.stream(cacheDir.listFiles()).filter {
+            File cacheChild -> isCachedTransformedEntryDir(cacheChild)
+        }.map {
+            File cacheChild -> new File(cacheChild, jarName)
+        }.filter {
+            it.exists()
+        }.collect(Collectors.toList())
+    }
 
+    private static boolean isCachedTransformedEntryDir(File cacheChild) {
+        return cacheChild.isDirectory() && !isCachedOriginalEntryDir(cacheChild)
+    }
+
+    private static boolean isCachedOriginalEntryDir(File cacheChild) {
+        // Cached original JARs live in directories named like o_cc87da7c824fed55002d15744c8fba93, where the name is the fingerprint of the original JAR with "o_" prefix.
+        // See CopyingClasspathFileTransformer.
+        return cacheChild.isDirectory() && cacheChild.name.startsWith("o_")
+    }
 }

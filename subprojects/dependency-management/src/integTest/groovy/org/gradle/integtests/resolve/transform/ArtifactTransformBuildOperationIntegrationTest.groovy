@@ -17,6 +17,14 @@
 package org.gradle.integtests.resolve.transform
 
 import groovy.transform.EqualsAndHashCode
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Input
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
@@ -26,6 +34,9 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode
 import org.gradle.internal.taskgraph.NodeIdentity
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
+import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType
+import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails
+import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
 
@@ -1196,6 +1207,211 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         outputDoesNotContain("processing [producer.jar]")
         checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), ["FROM-CACHE"])
+    }
+
+    def "build operation for planned steps executed non-planned"() {
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithChainedColorTransform()
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+
+
+            class ShowFileCollectionWithoutDependencies extends DefaultTask {
+                @Internal
+                final ConfigurableFileCollection files = project.objects.fileCollection()
+
+                ShowFileCollectionWithoutDependencies() {
+                    outputs.upToDateWhen { false }
+                }
+
+                @TaskAction
+                def go() {
+                    println "result = \${files.files.name}"
+                }
+            }
+
+            project(":consumer") {
+                tasks.register("resolveWithoutDependencies", ShowFileCollectionWithoutDependencies) {
+                    def view = configurations.resolver.incoming.artifactView {
+                        attributes.attribute(color, 'green')
+                    }.files
+                    files.from(view)
+                    dependsOn(":producer:producer")
+                }
+            }
+        """
+
+        when:
+        run ":consumer:resolveWithoutDependencies"
+
+        then:
+        executedAndNotSkipped(":consumer:resolveWithoutDependencies")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolveWithoutDependencies', deps=[Task :producer:producer])]")
+
+        result.groupedOutput.transform("MakeColor")
+            .assertOutputContains("processing [producer.jar]")
+            .assertOutputContains("processing [producer.jar.red]")
+
+        result.groupedOutput.task(":consumer:resolveWithoutDependencies")
+            .assertOutputContains("result = [producer.jar.red.green, test-4.2.jar]")
+
+        getPlannedNodes(0)
+        getExecutePlannedStepOperations(2).each {
+            checkExecuteTransformWorkOperations(it, 1)
+        }
+    }
+
+    def "planned transform steps from script plugin buildscript block are ignored"() {
+        setupProjectTransformInBuildScriptBlock(true)
+
+        when:
+        run "consumer:hello"
+        then:
+        executedAndNotSkipped(":consumer:hello")
+
+        outputContains("processing [nested-producer.jar]")
+        outputContains("processing [nested-producer.jar.red]")
+        outputContains("Task-only execution plan: [PlannedTask('Task :consumer:hello', deps=[])]")
+
+        getPlannedNodes(0)
+        getExecutePlannedStepOperations(0).empty
+
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
+        // The execution engine in DependencyManagementBuildScopeServices doesn't fire build operations
+        buildOperations.none(ExecuteWorkBuildOperationType)
+        buildOperations.none(SnapshotTransformInputsBuildOperationType)
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
+    }
+
+    def "planned transform steps from project buildscript context are captured"() {
+        setupProjectTransformInBuildScriptBlock(false)
+
+        when:
+        run "consumer:hello"
+        then:
+        executedAndNotSkipped(":consumer:hello")
+
+        result.groupedOutput.transform("MakeColor")
+            .assertOutputContains("processing [nested-producer.jar]")
+            .assertOutputContains("processing [nested-producer.jar.red]")
+
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :consumer:hello', deps=[])]")
+
+        getPlannedNodes(0)
+        getExecutePlannedStepOperations(2)
+
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
+        // The execution engine in DependencyManagementBuildScopeServices doesn't fire build operations
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 0
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 0
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
+    }
+
+    private void setupProjectTransformInBuildScriptBlock(boolean inExternalScript) {
+        setupBuildWithChainedColorTransform()
+
+        file("included/settings.gradle") << """
+            include 'nested-producer'
+        """
+        setupBuildWithColorAttributes(file("included/build.gradle"))
+
+        settingsFile << """
+            includeBuild("included") {
+                dependencySubstitution {
+                    substitute(module("test:test")).using(project(":nested-producer"))
+                }
+            }
+        """
+
+        settingsFile << """
+            include 'consumer'
+        """
+
+        // Can't define classes in buildscript block, so let's do it in buildSrc
+        file("buildSrc/src/main/groovy/TargetColor.groovy") << """
+            import ${TransformParameters.name}
+            import ${Property.name}
+            import ${Input.name}
+
+            interface TargetColor extends TransformParameters {
+                @Input
+                Property<String> getTargetColor()
+            }
+        """
+
+        file("buildSrc/src/main/groovy/MakeColor.groovy") << """
+            import ${TransformAction.name}
+            import ${TransformOutputs.name}
+            import ${Provider.name}
+            import ${FileSystemLocation.name}
+            import ${InputArtifact.name}
+
+            abstract class MakeColor implements TransformAction<TargetColor> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    def output = outputs.file(input.name + "." + parameters.targetColor.get())
+                    if (input.file) {
+                        output.text = input.text + "-" + parameters.targetColor.get()
+                    } else {
+                        output.text = "missing-" + parameters.targetColor.get()
+                    }
+                }
+            }
+        """
+
+        def consumerBuildFile = file('consumer/build.gradle')
+        def buildscriptDestination = inExternalScript
+            ? file('consumer/my-script.gradle')
+            : consumerBuildFile
+        buildscriptDestination << """
+            buildscript {
+                // Can't use color, since we need to use the configuration directly and
+                // can't go via an artifact view
+                def artifactType = Attribute.of('artifactType', String)
+                dependencies {
+                    classpath("test:test:1.0")
+
+                    registerTransform(MakeColor) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'red')
+                        parameters.targetColor.set('red')
+                    }
+                    registerTransform(MakeColor) {
+                        from.attribute(artifactType, 'red')
+                        to.attribute(artifactType, 'green')
+                        parameters.targetColor.set('green')
+                    }
+                }
+                configurations.classpath.attributes.attribute(artifactType, 'green')
+            }
+        """
+        if (inExternalScript) {
+            consumerBuildFile << """
+                apply from: 'my-script.gradle'
+            """
+        }
+        consumerBuildFile << """
+            task hello {
+                doLast {
+                    println "Hello"
+                }
+            }
+        """
     }
 
     void checkExecutionPlanMatchingDependencies(List<PlannedNode> plannedNodes, List<NodeMatcher> nodeMatchers) {

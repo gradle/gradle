@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.problems.DocLink;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GradleVersion;
@@ -25,14 +26,9 @@ import org.gradle.util.GradleVersion;
  */
 @ServiceScope(Scope.Global.class)
 public class DocumentationRegistry {
-    public final static String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
-    public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
+    public static final String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
     public static final String LEARN_MORE_STRING = "To learn more about Gradle by exploring our Samples at ";
-
-    public DocumentationRegistry() {
-    }
-
 
     /**
      * Returns the location of the documentation for the given feature, referenced by id. The location may be local or remote.
@@ -81,6 +77,14 @@ public class DocumentationRegistry {
     public String getDocumentationRecommendationFor(String topic, String id, String section) {
         return getRecommendationString(topic, getDocumentationFor(id, section));
     }
+
+    public String getDocumentationRecommendationFor(String topic, DocLink docLink) {
+        String url = docLink.getUrl();
+        return getRecommendationString(topic, url == null ? "<N/A>" : url);
+    }
+
+
+    public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
 
     private static String getRecommendationString(String topic, String url) {
         return String.format(RECOMMENDATION, topic.trim(), url);

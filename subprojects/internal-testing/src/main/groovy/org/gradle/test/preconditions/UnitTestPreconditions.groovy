@@ -133,6 +133,13 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class NotJava8OnMacOs implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return notSatisfied(MacOs) && JavaVersion.current() != JavaVersion.VERSION_1_8
+        }
+    }
+
     static final class MacOsM1 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
@@ -523,6 +530,20 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class IsGroovy3 implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            GroovySystem.version.startsWith("3.")
+        }
+    }
+
+    static final class IsGroovy4 implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            GroovySystem.version.startsWith("4.")
+        }
+    }
+
     static final class OnRemoteTestDistributionExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
@@ -530,4 +551,10 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class NotInGradleceptionBuild implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return System.getenv("BUILD_TYPE_ID")?.contains("Check_Gradleception") != true
+        }
+    }
 }

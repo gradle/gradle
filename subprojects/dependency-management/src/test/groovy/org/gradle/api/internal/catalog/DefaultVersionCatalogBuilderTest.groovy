@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.catalog
 
-import com.google.common.collect.Interners
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
@@ -24,16 +23,8 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
-import org.gradle.util.TestUtil
-import spock.lang.Specification
-import spock.lang.Subject
 
-import java.util.function.Supplier
-
-class DefaultVersionCatalogBuilderTest extends Specification implements VersionCatalogErrorMessages {
-
-    @Subject
-    DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), Stub(Supplier))
+class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implements VersionCatalogErrorMessages {
 
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION
@@ -88,13 +79,13 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         })
 
         where:
-        name                  | prefix
-        "bundles"             | "bundles"
-        "versions"            | "versions"
-        "plugins"             | "plugins"
-        "bundles-my"          | "bundles"
-        "versions_my"         | "versions"
-        "plugins.my"          | "plugins"
+        name          | prefix
+        "bundles"     | "bundles"
+        "versions"    | "versions"
+        "plugins"     | "plugins"
+        "bundles-my"  | "bundles"
+        "versions_my" | "versions"
+        "plugins.my"  | "plugins"
     }
 
     @VersionCatalogProblemTestFor(

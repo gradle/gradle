@@ -19,9 +19,11 @@ package org.gradle.caching
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3916")
 class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Rule

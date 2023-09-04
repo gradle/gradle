@@ -19,14 +19,14 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.nio.charset.Charset
 
-@IgnoreIf({ GradleContextualExecuter.isDaemon() })
+@Requires(IntegTestPreconditions.NotDaemonExecutor)
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -80,7 +80,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         daemons.daemon.stops()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "forks build with default daemon JVM args when java home from gradle properties does not match current process"() {
         def javaHome = AvailableJavaHomes.differentJdk.javaHome.canonicalFile
 
@@ -101,7 +101,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         daemons.daemon.stops()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not fork build when java home from gradle properties matches current process"() {
         def javaHome = AvailableJavaHomes.differentJdk.javaHome
 

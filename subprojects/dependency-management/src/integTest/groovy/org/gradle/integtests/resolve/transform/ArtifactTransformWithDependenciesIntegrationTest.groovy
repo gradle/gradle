@@ -26,15 +26,15 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import javax.annotation.Nonnull
 import java.util.regex.Pattern
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
 
     def setup() {

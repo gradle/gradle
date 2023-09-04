@@ -21,6 +21,8 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.maven.MavenPomMailingList;
 
+import javax.inject.Inject;
+
 public class DefaultMavenPomMailingList implements MavenPomMailingList {
 
     private final Property<String> name;
@@ -30,6 +32,7 @@ public class DefaultMavenPomMailingList implements MavenPomMailingList {
     private final Property<String> archive;
     private final SetProperty<String> otherArchives;
 
+    @Inject
     public DefaultMavenPomMailingList(ObjectFactory objectFactory) {
         name = objectFactory.property(String.class);
         subscribe = objectFactory.property(String.class);

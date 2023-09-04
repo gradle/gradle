@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts
 
+
 import org.gradle.util.Matchers
 import org.gradle.util.Path
 import spock.lang.Specification
 
-
 class DefaultBuildIdentifierTest extends Specification {
+
     def "create build from name"() {
         expect:
         def id = new DefaultBuildIdentifier(Path.path(":thing"))

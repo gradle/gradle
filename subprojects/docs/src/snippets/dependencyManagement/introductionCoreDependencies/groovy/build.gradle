@@ -8,6 +8,6 @@ repositories { // <1>
 }
 
 dependencies { // <3>
-    implementation 'com.google.guava:guava:31.1-jre' // <4>
+    implementation 'com.google.guava:guava:32.1.2-jre' // <4>
     testImplementation 'junit:junit:4.13.2'
 }

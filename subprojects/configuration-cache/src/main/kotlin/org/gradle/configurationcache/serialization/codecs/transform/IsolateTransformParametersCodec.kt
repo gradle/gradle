@@ -26,6 +26,7 @@ import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.ownerService
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -60,7 +61,7 @@ class IsolateTransformParametersCodec(
             buildOperationExecutor,
             classLoaderHierarchyHasher,
             fileCollectionFactory,
-            documentationRegistry
+            ownerService()
         )
     }
 }

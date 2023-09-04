@@ -28,8 +28,8 @@ class DocumentationTest extends Specification {
         def documentationReference = Documentation.NO_DOCUMENTATION
 
         then:
-        documentationReference.documentationUrl() == null
-        documentationReference.consultDocumentationMessage() == null
+        documentationReference.getUrl() == null
+        documentationReference.getConsultDocumentationMessage() == null
     }
 
     def "formats message for documentation id #documentationId, section #documentationSection"() {
@@ -37,7 +37,7 @@ class DocumentationTest extends Specification {
         def documentationReference = Documentation.userManual(documentationId, documentationSection)
 
         expect:
-        documentationReference.consultDocumentationMessage() == expectedUrl
+        documentationReference.getConsultDocumentationMessage() == expectedUrl
 
         where:
         documentationId | documentationSection | expectedUrl
@@ -51,8 +51,8 @@ class DocumentationTest extends Specification {
 
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_11", "section")
-        documentationReference.documentationUrl() == expectedUrl
-        documentationReference.consultDocumentationMessage() == "Consult the upgrading guide for further information: ${expectedUrl}"
+        documentationReference.getUrl() == expectedUrl
+        documentationReference.getConsultDocumentationMessage() == "Consult the upgrading guide for further information: ${expectedUrl}"
     }
 
     def "creates dsl reference for property"() {
@@ -61,8 +61,8 @@ class DocumentationTest extends Specification {
 
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForProperty(Documentation, "property")
-        documentationReference.documentationUrl() == expectedUrl
-        documentationReference.consultDocumentationMessage() == "For more information, please refer to ${expectedUrl} in the Gradle documentation."
+        documentationReference.getUrl() == expectedUrl
+        documentationReference.getConsultDocumentationMessage() == "For more information, please refer to ${expectedUrl} in the Gradle documentation."
     }
 
 }

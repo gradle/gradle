@@ -92,6 +92,19 @@ fun BuildSteps.substDirOnWindows(os: Os) {
     }
 }
 
+fun BuildType.cleanUpPerformanceBuildDir(os: Os) {
+    if (os == Os.WINDOWS) {
+        steps {
+            script {
+                name = "CLEAN_UP_PERFORMANCE_BUILD_DIR"
+                executionMode = BuildStep.ExecutionMode.ALWAYS
+                scriptContent = """rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo Directory removed) || (echo Directory not found) """
+                skipConditionally()
+            }
+        }
+    }
+}
+
 fun BuildSteps.removeSubstDirOnWindows(os: Os) {
     if (os == Os.WINDOWS) {
         script {

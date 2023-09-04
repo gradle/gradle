@@ -20,6 +20,7 @@ import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.FlushOutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.UpdateNowEvent
+import org.gradle.internal.time.Clock
 import org.gradle.internal.time.MockClock
 import org.gradle.util.internal.MockExecutor
 import spock.lang.Subject
@@ -154,5 +155,25 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
 
         then:
         executor.isShutdown()
+    }
+
+    def "throwables are not propagated out of the run method of the output loop"() {
+        given:
+        def executor = new MockExecutor()
+        new ThrottlingOutputEventListener(listener, 100, executor, Mock(Clock))
+        def checks = executor.shutdownNow()
+
+        when:
+        checks*.run()
+
+        then:
+        1 * _ >> { throw throwable }
+        noExceptionThrown()
+
+        where:
+        throwable              | _
+        new Exception()        | _
+        new RuntimeException() | _
+        new Error()            | _
     }
 }

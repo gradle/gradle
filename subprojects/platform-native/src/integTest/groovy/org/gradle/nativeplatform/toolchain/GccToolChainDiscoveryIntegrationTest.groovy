@@ -17,13 +17,13 @@
 package org.gradle.nativeplatform.toolchain
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers
-import spock.lang.IgnoreIf
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
@@ -125,7 +125,7 @@ model {
       - Could not find C compiler 'does-not-exist'""")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @ToBeFixedForConfigurationCache
     def "fails when required language tool is not available but other language tools are available"() {
         when:

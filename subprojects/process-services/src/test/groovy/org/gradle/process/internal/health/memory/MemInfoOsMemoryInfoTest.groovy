@@ -24,8 +24,9 @@ class MemInfoOsMemoryInfoTest extends Specification {
         def snapshot = new MemInfoOsMemoryInfo().getOsSnapshotFromMemInfo(meminfoLinux3())
 
         expect:
-        snapshot.freePhysicalMemory == 32_343_658_496L
-        snapshot.totalPhysicalMemory == 50_650_296_320L
+        snapshot.physicalMemory.free == 32_343_658_496L
+        snapshot.physicalMemory.total == 50_650_296_320L
+        snapshot.virtualMemory instanceof OsMemoryStatusAspect.Unavailable
     }
 
     def "parses memory from /proc/meminfo on Linux 4.x"() {
@@ -33,8 +34,9 @@ class MemInfoOsMemoryInfoTest extends Specification {
         def snapshot = new MemInfoOsMemoryInfo().getOsSnapshotFromMemInfo(meminfoLinux4())
 
         expect:
-        snapshot.freePhysicalMemory == 2_163_265_536L
-        snapshot.totalPhysicalMemory == 33_594_605_568L
+        snapshot.physicalMemory.free == 2_163_265_536L
+        snapshot.physicalMemory.total == 33_594_605_568L
+        snapshot.virtualMemory instanceof OsMemoryStatusAspect.Unavailable
     }
 
     def "throws unsupported operation exception when non-numeric values are provided"() {

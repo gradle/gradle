@@ -15,16 +15,18 @@
  */
 
 package org.gradle.launcher
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
+
     def buildSucceeds(String script) {
         file('build.gradle') << script
         executer.withArguments("--info").useOnlyRequestedJvmOpts().run()
@@ -104,7 +106,7 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
         return javaHome.canonicalPath
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "honours java home specified in gradle.properties"() {
         given:
         String javaPath = useAlternativeJavaPath()
@@ -113,10 +115,9 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
         buildSucceeds "assert System.getProperty('java.home').startsWith('${TextUtil.escapeString(javaPath)}')"
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentVersion == null || System.getProperty('java.runtime.version') == null})
+    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.JavaRuntimeVersionSystemPropertyAvailable])
     def "does not alter java.runtime.version"() {
         given:
-
         useAlternativeJavaPath(AvailableJavaHomes.differentVersion)
         String javaRuntimeVersion = System.getProperty('java.runtime.version')
 

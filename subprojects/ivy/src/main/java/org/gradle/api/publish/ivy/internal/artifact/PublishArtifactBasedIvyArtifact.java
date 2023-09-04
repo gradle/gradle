@@ -19,24 +19,24 @@ package org.gradle.api.publish.ivy.internal.artifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 
 public class PublishArtifactBasedIvyArtifact extends AbstractIvyArtifact {
     private final PublishArtifact artifact;
-    private final IvyPublicationIdentity identity;
+    private final IvyPublicationCoordinates coordinates;
 
-    public PublishArtifactBasedIvyArtifact(PublishArtifact artifact, IvyPublicationIdentity identity, TaskDependencyFactory taskDependencyFactory) {
+    public PublishArtifactBasedIvyArtifact(PublishArtifact artifact, IvyPublicationCoordinates coordinates, TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.artifact = artifact;
-        this.identity = identity;
+        this.coordinates = coordinates;
     }
 
     @Override
     protected String getDefaultName() {
-        return identity.getModule();
+        return coordinates.getModule().get();
     }
 
     @Override

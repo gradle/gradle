@@ -27,7 +27,7 @@ internal
 object NotImplementedCodec : Codec<Any> {
 
     override suspend fun WriteContext.encode(value: Any) {
-        val javaClass = GeneratedSubclasses.unpack(value.javaClass)
+        val javaClass = GeneratedSubclasses.unpackType(value)
         writeClass(javaClass)
         logNotImplemented(javaClass)
     }

@@ -276,7 +276,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         withBuildCache().fails("jar")
             .assertHasCause("Using insecure protocols with remote build cache, without explicit opt-in, is unsupported.")
             .assertHasResolution("Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols.")
-            .assertHasResolution(Documentation.dslReference(HttpBuildCache, "allowInsecureProtocol").consultDocumentationMessage())
+            .assertHasResolution(Documentation.dslReference(HttpBuildCache, "allowInsecureProtocol").getConsultDocumentationMessage())
     }
 
     def "ssl certificate is validated"() {

@@ -105,8 +105,10 @@ public class ProviderConnection {
     private final FileCollectionFactory fileCollectionFactory;
     private GradleVersion consumerVersion;
 
-    public ProviderConnection(ServiceRegistry sharedServices, BuildLayoutFactory buildLayoutFactory, DaemonClientFactory daemonClientFactory,
-                              BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector, FileCollectionFactory fileCollectionFactory) {
+    public ProviderConnection(
+        ServiceRegistry sharedServices, BuildLayoutFactory buildLayoutFactory, DaemonClientFactory daemonClientFactory,
+        BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector, FileCollectionFactory fileCollectionFactory
+    ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
         this.embeddedExecutor = embeddedExecutor;
@@ -170,10 +172,12 @@ public class ProviderConnection {
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
-    public Object runPhasedAction(InternalPhasedAction clientPhasedAction,
-                                  PhasedActionResultListener resultListener,
-                                  BuildCancellationToken cancellationToken,
-                                  ProviderOperationParameters providerParameters) {
+    public Object runPhasedAction(
+        InternalPhasedAction clientPhasedAction,
+        PhasedActionResultListener resultListener,
+        BuildCancellationToken cancellationToken,
+        ProviderOperationParameters providerParameters
+    ) {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientPhasedAction);
         Parameters params = initParams(providerParameters);
@@ -212,11 +216,13 @@ public class ProviderConnection {
         ((ShutdownCoordinator) clientServices.find(ShutdownCoordinator.class)).stop();
     }
 
-    private Object run(BuildAction action, BuildCancellationToken cancellationToken,
-                       ProgressListenerConfiguration progressListenerConfiguration,
-                       BuildEventConsumer buildEventConsumer,
-                       ProviderOperationParameters providerParameters,
-                       Parameters parameters) {
+    private Object run(
+        BuildAction action, BuildCancellationToken cancellationToken,
+        ProgressListenerConfiguration progressListenerConfiguration,
+        BuildEventConsumer buildEventConsumer,
+        ProviderOperationParameters providerParameters,
+        Parameters parameters
+    ) {
         try {
             BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer = createExecuter(providerParameters, parameters);
             boolean interactive = providerParameters.getStandardInput() != null;
@@ -380,6 +386,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
             .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
             .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
+            .put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS)
             .build();
 
         private final BuildEventSubscriptions clientSubscriptions;
@@ -428,7 +435,7 @@ public class ProviderConnection {
                         operationTypes.add(OperationType.WORK_ITEM);
                     }
                 }
-                if(consumerVersion.compareTo(GradleVersion.version("7.3")) < 0) {
+                if (consumerVersion.compareTo(GradleVersion.version("7.3")) < 0) {
                     // Some types were split out of 'generic' type in 7.3, so include these when an older consumer requests 'generic'
                     if (operationTypes.contains(OperationType.GENERIC)) {
                         operationTypes.add(OperationType.FILE_DOWNLOAD);

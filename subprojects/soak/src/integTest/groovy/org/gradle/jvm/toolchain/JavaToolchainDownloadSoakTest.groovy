@@ -29,7 +29,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     private static final String ECLIPSE_DISTRO_NAME = "eclipse_adoptium"
     public static final String FOOJAY_PLUGIN_SECTION = """
             plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.4.0'
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
             }
         """
 

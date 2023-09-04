@@ -19,6 +19,7 @@ package org.gradle.java.compile
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.classanalysis.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
@@ -198,21 +199,23 @@ compileJava {
 """
     }
 
-    @Requires(IntegTestPreconditions.Java14HomeAvailable)
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def 'computes target jvm version when using toolchain'() {
         given:
+        def jdk = AvailableJavaHomes.differentVersion
+        def javaVersion = jdk.javaVersion.getMajorVersion()
         goodCode()
         buildFile << """
 java.toolchain {
-    languageVersion = JavaLanguageVersion.of(14)
+    languageVersion = JavaLanguageVersion.of(${javaVersion})
 }
 
 compileJava {
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 14
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 14
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 14
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 14
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
     }
 }
 """

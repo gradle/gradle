@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -36,8 +35,6 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Cast;
-import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.workers.ForkingWorkerSpec;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -46,8 +43,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
-    private static final String OPEN_MODULES_ARG = "java.prefs/java.util.prefs=ALL-UNNAMED";
-
     protected static ConventionMapping conventionMappingOf(Object object) {
         return ((IConventionAware) object).getConventionMapping();
     }
@@ -97,8 +92,9 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     protected void beforeApply() {
     }
 
+    @SuppressWarnings("deprecation")
     protected void createConfigurations() {
-        Configuration configuration = project.getConfigurations().resolvableBucket(getConfigurationName());
+        Configuration configuration = project.getConfigurations().resolvableDependencyScopeUnlocked(getConfigurationName());
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
@@ -237,10 +233,4 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     @Inject
     protected abstract JvmPluginServices getJvmPluginServices();
-
-    public static void maybeAddOpensJvmArgs(JavaLauncher javaLauncher, ForkingWorkerSpec spec) {
-        if (JavaVersion.toVersion(javaLauncher.getMetadata().getJavaRuntimeVersion()).isJava9Compatible()) {
-            spec.getForkOptions().jvmArgs("--add-opens", OPEN_MODULES_ARG);
-        }
-    }
 }

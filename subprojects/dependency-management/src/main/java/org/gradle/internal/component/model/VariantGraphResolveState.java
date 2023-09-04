@@ -43,6 +43,13 @@ public interface VariantGraphResolveState extends HasAttributes {
     VariantGraphResolveMetadata getMetadata();
 
     /**
+     * Does this instance represent some temporary or mutated view of the variant?
+     *
+     * See {@link ComponentGraphResolveState#isAdHoc()} for a definition of "ad hoc".
+     */
+    boolean isAdHoc();
+
+    /**
      * Returns the public view for this variant.
      */
     ResolvedVariantResult getVariantResult(@Nullable ResolvedVariantResult externalVariant);

@@ -17,49 +17,21 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.model.CalculatedValueContainer;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.model.ModelContainer;
-
-import java.util.Collection;
-import java.util.List;
+import org.gradle.internal.model.CalculatedValue;
 
 /**
  * Implementation of {@link VariantResolveMetadata} which allows variant artifacts to be calculated lazily
  * while holding a project lock.
  */
 public final class LocalVariantMetadata extends DefaultVariantMetadata {
-    private final CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> artifacts;
+    private final CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts;
 
-    public LocalVariantMetadata(String name, Identifier identifier, ComponentIdentifier componentId, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> sourceArtifacts, ImmutableCapabilities capabilities, ModelContainer<?> model, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        this(name, identifier, displayName, attributes, capabilities, calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), context -> {
-            if (sourceArtifacts.isEmpty()) {
-                return ImmutableList.of();
-            } else {
-                return model.fromMutableState(m -> {
-                    ImmutableList.Builder<LocalComponentArtifactMetadata> result = ImmutableList.builderWithExpectedSize(sourceArtifacts.size());
-                    for (PublishArtifact sourceArtifact : sourceArtifacts) {
-                        result.add(new PublishArtifactLocalArtifactMetadata(componentId, sourceArtifact));
-                    }
-                    return result.build();
-                });
-            }
-        }));
-    }
-
-    public LocalVariantMetadata(String name, Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, List<LocalComponentArtifactMetadata> artifacts, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        this(name, identifier, displayName, attributes, capabilities, calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), ImmutableList.copyOf(artifacts)));
-    }
-
-    private LocalVariantMetadata(String name, Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> artifacts) {
+    public LocalVariantMetadata(String name, Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts) {
         super(name, identifier, displayName, attributes, ImmutableList.of(), capabilities);
         this.artifacts = artifacts;
     }

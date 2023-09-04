@@ -16,10 +16,10 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperUpgradeIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "can run the wrapper task when the build was started with the wrapper"() {

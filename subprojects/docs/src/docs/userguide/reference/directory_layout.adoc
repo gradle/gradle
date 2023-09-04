@@ -68,7 +68,7 @@ If using `--no-daemon`, it runs in the foreground after the build session with a
 
 The following cleanup strategies are applied periodically (by default, once every 24 hours):
 
-- Version-specific caches in `caches/<gradle-version>/` are checked for whether they are still in use.  If not, directories for release versions are deleted after 30 days of inactivity, snapshot versions after 7 days of inactivity.
+- Version-specific caches in `caches/{gradleVersion}/` are checked for whether they are still in use.  If not, directories for release versions are deleted after 30 days of inactivity, snapshot versions after 7 days of inactivity.
 - Shared caches in `caches/` (e.g. `jars-*`) are checked for whether they are still in use.  If there's no Gradle version that still uses them, they are deleted.
 - Files in shared caches used by the current Gradle version in `caches/` (e.g. `jars-3` or `modules-2`) are checked for when they were last accessed.  Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
 - Gradle distributions in `wrapper/dists/` are checked for whether they are still in use, i.e. whether there's a corresponding version-specific cache directory.  Unused distributions are deleted.
@@ -194,5 +194,5 @@ Overall, the anatomy of a typical project root directory looks roughly as follow
 === Project cache cleanup
 
 From version 4.10 onwards, Gradle automatically cleans the project-specific cache directory.
-After building the project, version-specific cache directories in `.gradle/<gradle-version>/` are checked periodically (at most every 24 hours) for whether they are still in use.
+After building the project, version-specific cache directories in `.gradle/{gradleVersion}/` are checked periodically (at most every 24 hours) for whether they are still in use.
 They are deleted if they haven't been used for 7 days.

@@ -19,6 +19,9 @@ package org.gradle.api.internal.tasks.properties;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Severity;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -29,7 +32,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public enum ValidationActions implements ValidationAction {
     NO_OP("file collection") {
@@ -152,77 +155,95 @@ public enum ValidationActions implements ValidationAction {
     private static void reportMissingInput(PropertyValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
-            problem.withId(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST)
+            problem
                 .forProperty(propertyName)
-                .reportAs(ERROR)
-                .withDescription(() -> "specifies " + lowerKind + " '" + input + "' which doesn't exist")
-                .happensBecause("An input file was expected to be present but it doesn't exist")
-                .addPossibleSolution(() -> "Make sure the " + lowerKind + " exists before the task is called")
-                .addPossibleSolution(() -> "Make sure that the task which produces the " + lowerKind + " is declared as an input")
-                .documentedAt("validation_problems", "input_file_does_not_exist");
+                .label("specifies " + lowerKind + " '" + input + "' which doesn't exist")
+                .documentedAt(userManual("validation_problems", "input_file_does_not_exist"))
+                .noLocation()
+                .type(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .severity(Severity.ERROR)
+                .details("An input file was expected to be present but it doesn't exist")
+                .solution("Make sure the " + lowerKind + " exists before the task is called")
+                .solution("Make sure that the task which produces the " + lowerKind + " is declared as an input");
         });
     }
 
     private static void reportUnexpectedInputKind(PropertyValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
-            problem.withId(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE)
+            problem
                 .forProperty(propertyName)
-                .reportAs(ERROR)
-                .withDescription(() -> lowerKind + " '" + input + "' is not a " + lowerKind)
-                .happensBecause(() -> "Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
-                .addPossibleSolution(() -> "Use a " + lowerKind + " as an input")
-                .addPossibleSolution(() -> "Declare the input as a " + actualKindOf(input) + " instead")
-                .documentedAt("validation_problems", "unexpected_input_file_type");
+                .label(lowerKind + " '" + input + "' is not a " + lowerKind)
+                .documentedAt(userManual("validation_problems", "unexpected_input_file_type"))
+                .noLocation()
+                .type(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .severity(Severity.ERROR)
+                .details("Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
+                .solution("Use a " + lowerKind + " as an input")
+                .solution("Declare the input as a " + actualKindOf(input) + " instead");
         });
     }
 
     private static void reportCannotWriteToDirectory(String propertyName, PropertyValidationContext context, File directory, String cause) {
         context.visitPropertyProblem(problem ->
-            problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
-                .reportAs(ERROR)
+            problem
                 .forProperty(propertyName)
-                .withDescription(() -> "is not writable because " + cause)
-                .happensBecause(() -> "Expected '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
-                .addPossibleSolution("Make sure that the '" + propertyName + "' is configured to a directory")
-                .documentedAt("validation_problems", "cannot_write_output")
+                .label("is not writable because " + cause)
+                .documentedAt(userManual("validation_problems", "cannot_write_output"))
+                .noLocation()
+                .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .severity(Severity.ERROR)
+                .details("Expected '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
+                .solution("Make sure that the '" + propertyName + "' is configured to a directory")
         );
     }
 
     private static void reportFileTreeWithFileRoot(String propertyName, PropertyValidationContext context, File directory) {
         context.visitPropertyProblem(problem ->
-            problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
-                .reportAs(ERROR)
+            problem
                 .forProperty(propertyName)
-                .withDescription(() -> "is not writable because '" + directory + "' is not a directory")
-                .happensBecause(() -> "Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
-                .addPossibleSolution("Make sure that the root of the file tree '" + propertyName + "' is configured to a directory")
-                .documentedAt("validation_problems", "cannot_write_output")
+                .label("is not writable because '" + directory + "' is not a directory")
+                .documentedAt(userManual("validation_problems", "cannot_write_output"))
+                .noLocation()
+                .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .severity(Severity.ERROR)
+                .details("Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
+                .solution("Make sure that the root of the file tree '" + propertyName + "' is configured to a directory")
         );
     }
 
     private static void reportCannotWriteFileToDirectory(String propertyName, PropertyValidationContext context, File file) {
         context.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
-                    .reportAs(ERROR)
-                    .forProperty(propertyName)
-                    .withDescription(() -> "is not writable because '" + file + "' is not a file")
-                    .happensBecause(() -> "Cannot write a file to a location pointing at a directory")
-                    .addPossibleSolution(() -> "Configure '" + propertyName + "' to point to a file, not a directory")
-                    .addPossibleSolution(() -> "Annotate '" + propertyName + "' with @OutputDirectory instead of @OutputFiles")
-                    .documentedAt("validation_problems", "cannot_write_output")
+            problem
+                .forProperty(propertyName)
+                .label("is not writable because '" + file + "' is not a file")
+                .documentedAt(userManual("validation_problems", "cannot_write_output"))
+                .noLocation()
+                .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .details("Cannot write a file to a location pointing at a directory")
+                .severity(Severity.ERROR)
+                .solution("Configure '" + propertyName + "' to point to a file, not a directory")
+                .solution("Annotate '" + propertyName + "' with @OutputDirectory instead of @OutputFiles")
         );
     }
 
     private static void reportCannotCreateParentDirectories(String propertyName, PropertyValidationContext context, File file, File ancestor) {
         context.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
-                    .reportAs(ERROR)
-                    .forProperty(propertyName)
-                    .withDescription(() -> "is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
-                    .happensBecause(() -> "Cannot create parent directories that are existing as file")
-                    .addPossibleSolution(() -> "Configure '" + propertyName + "' to point to the correct location")
-                    .documentedAt("validation_problems", "cannot_write_output")
+            problem
+                .forProperty(propertyName)
+                .label("is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
+                .documentedAt(userManual("validation_problems", "cannot_write_output"))
+                .noLocation()
+                .type(ValidationProblemId.CANNOT_WRITE_OUTPUT.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .severity(Severity.ERROR)
+                .details("Cannot create parent directories that are existing as file")
+                .solution("Configure '" + propertyName + "' to point to the correct location")
         );
     }
 
@@ -239,13 +260,16 @@ public enum ValidationActions implements ValidationAction {
     private static void validateNotInReservedFileSystemLocation(String propertyName, PropertyValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {
             context.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION)
+                problem
                     .forProperty(propertyName)
-                    .reportAs(ERROR)
-                    .withDescription(() -> "points to '" + location + "' which is managed by Gradle")
-                    .happensBecause("Trying to write an output to a read-only location which is for Gradle internal use only")
-                    .addPossibleSolution("Select a different output location")
-                    .documentedAt("validation_problems", "cannot_write_to_reserved_location")
+                    .label("points to '" + location + "' which is managed by Gradle")
+                    .documentedAt(userManual("validation_problems", "cannot_write_to_reserved_location"))
+                    .noLocation()
+                    .type(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION.name())
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
+                    .severity(Severity.ERROR)
+                    .details("Trying to write an output to a read-only location which is for Gradle internal use only")
+                    .solution("Select a different output location")
             );
         }
     }
@@ -269,17 +293,20 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportUnsupportedValue(String propertyName, PropertyValidationContext context, String targetType, Object value, Collection<String> candidates) {
         context.visitPropertyProblem(problem -> {
-                problem.withId(ValidationProblemId.UNSUPPORTED_NOTATION)
+                ProblemBuilder describedProblem = problem
                     .forProperty(propertyName)
-                    .reportAs(ERROR)
-                    .withDescription(() -> "has unsupported value '" + value + "'")
-                    .happensBecause(() -> "Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
+                    .label("has unsupported value '" + value + "'")
+                    .documentedAt(userManual("validation_problems", "unsupported_notation"))
+                    .noLocation()
+                    .type(ValidationProblemId.UNSUPPORTED_NOTATION.name())
+                    .group(ProblemGroup.TYPE_VALIDATION_ID)
+                    .severity(Severity.ERROR)
+                    .details("Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
                 if (candidates.isEmpty()) {
-                    problem.addPossibleSolution(() -> "Use a value of type '" + targetType + "'");
+                    describedProblem.solution("Use a value of type '" + targetType + "'");
                 } else {
-                    candidates.forEach(candidate -> problem.addPossibleSolution(() -> toCandidateSolution(candidate)));
+                    candidates.forEach(candidate -> describedProblem.solution(toCandidateSolution(candidate)));
                 }
-                problem.documentedAt("validation_problems", "unsupported_notation");
             }
         );
     }

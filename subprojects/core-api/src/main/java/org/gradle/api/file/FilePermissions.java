@@ -36,7 +36,7 @@ import org.gradle.api.Incubating;
  * <p>
  * The default permissions used differ between files and directories and are as follows:
  * <ul>
- *     <li>FILE: read &amp; write for OWNER, read for GROUP, read for OTHER (0644, r-wr--r--)</li>
+ *     <li>FILE: read &amp; write for OWNER, read for GROUP, read for OTHER (0644, rw-r--r--)</li>
  *     <li>DIRECTORY: read, write &amp; execute for OWNER, read &amp; execute for GROUP, read &amp; execute for OTHER (0755, rwxr-xr-x)</li>
  * </ul>
  *

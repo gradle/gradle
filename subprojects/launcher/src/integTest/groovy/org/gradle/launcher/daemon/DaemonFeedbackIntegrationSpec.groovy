@@ -31,6 +31,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @LeaksFileHandles
 class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
+
     def "daemon keeps logging to the file even if the build is stopped"() {
         given:
         file("build.gradle") << """

@@ -23,25 +23,28 @@ import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
+import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.MavenArtifact
-import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity
+import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
 import org.gradle.api.tasks.TaskProvider
@@ -49,6 +52,7 @@ import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -57,20 +61,18 @@ class DefaultMavenPublicationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
-    MutableMavenProjectIdentity module
+    DependencyMetaDataProvider module
     NotationParser<Object, MavenArtifact> notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     TestFile pomDir
     TestFile pomFile
     TestFile gradleMetadataFile
     File artifactFile
-    def featurePreviews = TestUtil.featurePreviews()
 
     def "setup"() {
-        module = new WritableMavenProjectIdentity(TestUtil.objectFactory())
-        module.groupId.set("group")
-        module.artifactId.set("name")
-        module.version.set("version")
+        module = Mock(DependencyMetaDataProvider) {
+            getModule() >> new DefaultModule("group", "name", "version")
+        }
         pomDir = testDirectoryProvider.testDirectory
         pomFile = pomDir.createFile("pom-file")
         gradleMetadataFile = pomDir.createFile("module-file")
@@ -84,9 +86,9 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.name == "pub-name"
-        publication.mavenProjectIdentity.groupId.get() == "group"
-        publication.mavenProjectIdentity.artifactId.get() == "name"
-        publication.mavenProjectIdentity.version.get() == "version"
+        publication.pom.coordinates.groupId.get() == "group"
+        publication.pom.coordinates.artifactId.get() == "name"
+        publication.pom.coordinates.version.get() == "version"
     }
 
     def "publication coordinates are live"() {
@@ -99,19 +101,14 @@ class DefaultMavenPublicationTest extends Specification {
         publication.version = "version2"
 
         then:
-        module.groupId.get() == "group2"
-        module.artifactId.get() == "name2"
-        module.version.get() == "version2"
+        publication.pom.coordinates.groupId.get() == "group2"
+        publication.pom.coordinates.artifactId.get() == "name2"
+        publication.pom.coordinates.version.get() == "version2"
 
         and:
         publication.groupId == "group2"
         publication.artifactId == "name2"
         publication.version == "version2"
-
-        and:
-        publication.mavenProjectIdentity.groupId.get() == "group2"
-        publication.mavenProjectIdentity.artifactId.get() == "name2"
-        publication.mavenProjectIdentity.version.get() == "version2"
     }
 
     def "packaging is taken from first added artifact without extension"() {
@@ -177,7 +174,7 @@ class DefaultMavenPublicationTest extends Specification {
         then:
         publication.publishableArtifacts.files.files == [pomFile] as Set
         publication.artifacts.empty
-        publication.pom.dependencies.get().runtimeDependencies.empty
+        !publication.pom.dependencies.isPresent()
     }
 
     def "artifacts are taken from added component"() {
@@ -201,7 +198,7 @@ class DefaultMavenPublicationTest extends Specification {
         then:
         publication.publishableArtifacts.files.files == [pomFile, gradleMetadataFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
-        publication.pom.dependencies.get().runtimeDependencies.empty
+        publication.pom.dependencies.get().dependencies.empty
 
         when:
         def task = Mock(Task)
@@ -223,10 +220,8 @@ class DefaultMavenPublicationTest extends Specification {
         artifact2.file >> artifactFile
         artifact2.classifier >> ""
         artifact2.extension >> "jar"
-        def variant1 = Stub(UsageContext) { getName() >> 'api' }
-        variant1.artifacts >> [artifact1]
-        def variant2 = Stub(UsageContext) { getName() >> 'runtime' }
-        variant2.artifacts >> [artifact2]
+        def variant1 = createVariant([artifact1], [], 'api')
+        def variant2 = createVariant([artifact2], [], 'runtime')
         def component = Stub(SoftwareComponentInternal)
         component.usages >> [variant1, variant2]
         def mavenArtifact = Mock(MavenArtifact)
@@ -245,7 +240,11 @@ class DefaultMavenPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def moduleDependency = Mock(ModuleDependency)
-        def artifact = Mock(DependencyArtifact)
+        def artifact = Mock(DependencyArtifact) {
+            getName() >> "artifact-name"
+            getClassifier() >> "artifact-classifier"
+            getType() >> "artifact-type"
+        }
         def excludeRule = Mock(ExcludeRule)
 
         when:
@@ -261,13 +260,15 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(moduleDependency))
 
         then:
-        publication.pom.dependencies.get().runtimeDependencies.size() == 1
-        with(publication.pom.dependencies.get().runtimeDependencies.asList().first()) {
+        publication.pom.dependencies.get().dependencies.size() == 1
+        with(publication.pom.dependencies.get().dependencies.first()) {
             groupId == "dep-group"
-            artifactId == "dep-name"
-            version == "dep-version"
-            artifacts == [artifact]
-            excludeRules == [excludeRule]
+            artifactId == "artifact-name"
+            version == "mapped-dep-version"
+            type == "artifact-type"
+            classifier == "artifact-classifier"
+            scope == "runtime"
+            excludeRules == [excludeRule] as Set
         }
     }
 
@@ -290,13 +291,17 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(moduleDependency))
 
         then:
-        publication.pom.dependencies.get().runtimeDependencies.size() == 0
+        publication.pom.dependencies.get().dependencies.size() == 0
     }
 
     def "respects self referencing module dependency with custom artifact from added component"() {
         given:
         def publication = createPublication()
-        def artifact = Mock(DependencyArtifact)
+        def artifact = Mock(DependencyArtifact) {
+            getName() >> "artifact-name"
+            getClassifier() >> "artifact-classifier"
+            getType() >> "artifact-type"
+        }
         def moduleDependency = Mock(ModuleDependency)
         def excludeRule = Mock(ExcludeRule)
 
@@ -314,13 +319,15 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(moduleDependency))
 
         then:
-        publication.pom.dependencies.get().runtimeDependencies.size() == 1
-        with(publication.pom.dependencies.get().runtimeDependencies.asList().first()) {
+        publication.pom.dependencies.get().dependencies.size() == 1
+        with(publication.pom.dependencies.get().dependencies.asList().first()) {
             groupId == "group"
-            artifactId == "name"
-            version == "version"
-            artifacts == [artifact]
-            excludeRules == [excludeRule]
+            artifactId == "artifact-name"
+            version == "mapped-version"
+            type == "artifact-type"
+            classifier == "artifact-classifier"
+            scope == "runtime"
+            excludeRules == [excludeRule] as Set
         }
     }
 
@@ -328,7 +335,11 @@ class DefaultMavenPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def moduleDependency = Mock(ModuleDependency)
-        def artifact = Mock(DependencyArtifact)
+        def artifact = Mock(DependencyArtifact) {
+            getName() >> "artifact-name"
+            getClassifier() >> "artifact-classifier"
+            getType() >> "artifact-type"
+        }
         def excludeRule = Mock(ExcludeRule)
 
         when:
@@ -344,13 +355,15 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(moduleDependency))
 
         then:
-        publication.pom.dependencies.get().runtimeDependencies.size() == 1
-        with(publication.pom.dependencies.get().runtimeDependencies.asList().first()) {
+        publication.pom.dependencies.get().dependencies.size() == 1
+        with(publication.pom.dependencies.get().dependencies.asList().first()) {
             groupId == "dep-group"
-            artifactId == "dep-name"
-            version == "dep-version"
-            artifacts == [artifact]
-            excludeRules != [excludeRule]
+            artifactId == "artifact-name"
+            version == "mapped-dep-version"
+            type == "artifact-type"
+            classifier == "artifact-classifier"
+            scope == "runtime"
+            excludeRules != [excludeRule] as Set
             excludeRules.size() == 1
             excludeRules[0].group == '*'
             excludeRules[0].module == '*'
@@ -375,13 +388,15 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(createComponent([], [moduleDependency], scope))
 
         then:
-        publication.pom.dependencies.get().importDependencyManagement.size() == 1
-        with(publication.pom.dependencies.get().importDependencyManagement.asList().first()) {
+        publication.pom.dependencies.get().dependencyManagement.size() == 1
+        with(publication.pom.dependencies.get().dependencyManagement.asList().first()) {
             groupId == "plat-group"
             artifactId == "plat-name"
-            version == "plat-version"
-            artifacts == []
-            excludeRules == []
+            version == "mapped-plat-version"
+            type == "pom"
+            classifier == null
+            getScope() == "import"
+            excludeRules == [] as Set
         }
 
         where:
@@ -391,8 +406,9 @@ class DefaultMavenPublicationTest extends Specification {
     def "maps project dependency to maven dependency"() {
         given:
         def publication = createPublication()
-        def projectDependency = Mock(ProjectDependency) {
+        def projectDependency = Mock(ProjectDependencyInternal) {
             getDependencyProject() >> Mock(Project)
+            getIdentityPath() >> Mock(Path)
         }
 
         and:
@@ -401,25 +417,29 @@ class DefaultMavenPublicationTest extends Specification {
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "pub-group"
         projectDependency.getName() >> "pub-name"
-        projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
+        projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
 
         when:
         publication.from(componentWithDependency(projectDependency))
 
         then:
-        publication.pom.dependencies.get().runtimeDependencies.size() == 1
-        with(publication.pom.dependencies.get().runtimeDependencies.asList().first()) {
+        publication.pom.dependencies.get().dependencies.size() == 1
+        with(publication.pom.dependencies.get().dependencies.asList().first()) {
             groupId == "pub-group"
             artifactId == "pub-name"
-            version == "pub-version"
-            artifacts == []
+            version == "mapped-pub-version"
+            type == null
+            classifier == null
+            scope == "runtime"
         }
     }
 
     def "ignores self project dependency"() {
         given:
         def publication = createPublication()
-        def projectDependency = Mock(ProjectDependency)
+        def projectDependency = Mock(ProjectDependencyInternal) {
+            getIdentityPath() >> Mock(Path)
+        }
 
         and:
         projectDependency.excludeRules >> []
@@ -427,13 +447,13 @@ class DefaultMavenPublicationTest extends Specification {
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "group"
         projectDependency.getName() >> "name"
-        projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
+        projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
 
         when:
         publication.from(componentWithDependency(projectDependency))
 
         then:
-        publication.pom.dependencies.get().runtimeDependencies.size() == 0
+        publication.pom.dependencies.get().dependencies.empty
     }
 
     def "cannot add multiple components"() {
@@ -559,11 +579,17 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def instantiator = TestUtil.instantiatorFactory().decorateLenient()
         def objectFactory = TestUtil.objectFactory()
-        def publication = objectFactory.newInstance(DefaultMavenPublication.class, "pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(),
-            AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, Mock(VersionMappingStrategyInternal), DependencyManagementTestUtil.platformSupport(),
-            Mock(DocumentationRegistry), TestFiles.taskDependencyFactory())
+        def versionRangeMapper = Mock(VersionRangeMapper) {
+            map(_) >> { "mapped-" + it[0] }
+        }
+
+        def versionMappingStrategy = Mock(VersionMappingStrategyInternal) {
+            findStrategyForVariant(_) >> Mock(VariantVersionMappingStrategyInternal)
+        }
+        def publication = objectFactory.newInstance(DefaultMavenPublication.class, "pub-name", module, notationParser, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(),
+            AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, versionMappingStrategy, DependencyManagementTestUtil.platformSupport(),
+            versionRangeMapper, Mock(DocumentationRegistry), TestFiles.taskDependencyFactory())
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))
         return publication
@@ -593,16 +619,18 @@ class DefaultMavenPublicationTest extends Specification {
         return createComponent(artifacts, dependencies, 'runtime')
     }
 
-    def createComponent(def artifacts, def dependencies, def scope) {
-        def variant = Stub(UsageContext) {
-            getName() >> scope
-            getArtifacts() >> artifacts
-            getDependencies() >> dependencies
-        }
+    def createComponent(Collection<? extends PublishArtifact> artifacts, Collection<? extends ModuleDependency> dependencies, String scope) {
+        def variant = createVariant(artifacts, dependencies, scope)
         def component = Stub(SoftwareComponentInternal) {
             getUsages() >> [variant]
         }
         return component
+    }
+
+    def createVariant(Collection<? extends PublishArtifact> artifacts, Collection<? extends ModuleDependency> dependencies, String scope) {
+        new DefaultSoftwareComponentVariant(
+            scope, ImmutableAttributes.EMPTY, artifacts as Set, dependencies as Set, [] as Set, [] as Set, [] as Set
+        )
     }
 
     def otherPublication(String name, String group, String artifactId, String version) {

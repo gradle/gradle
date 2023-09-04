@@ -28,6 +28,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static org.gradle.problems.internal.RenderingUtils.oxfordJoin;
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
+
 /**
  * A {@code WorkValidationException} is thrown when there is some validation problem with a work item.
  */
@@ -62,7 +66,7 @@ public class WorkValidationException extends GradleException {
         public Builder(Collection<String> problems) {
             this.problems = problems.stream()
                     .limit(Integer.getInteger(MAX_ERR_COUNT_PROPERTY, DEFAULT_MAX_ERR_COUNT)) // Only retrieve the property upon building an error report
-                    .collect(ImmutableList.toImmutableList());
+                    .collect(toImmutableList());
         }
 
         public Builder limitTo(int maxProblems) {
@@ -75,7 +79,7 @@ public class WorkValidationException extends GradleException {
         }
 
         public BuilderWithSummary withSummaryForPlugin() {
-            String summary = "Plugin validation failed with " + problems.size() + " problem" + (problems.size() == 1 ? "" : "s");
+            String summary = "Plugin validation failed with " + problems.size() + " problem" + getPluralEnding(problems);
             return new BuilderWithSummary(problems, summary);
         }
 
@@ -87,9 +91,9 @@ public class WorkValidationException extends GradleException {
         }
 
         private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
-            return types.size() == 1
-                    ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
-                    : "types '" + types.stream().map(this::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
+            return "type" + getPluralEnding(types) + " " + types.stream()
+                .map(s -> "'" + this.getTypeDisplayName(s) + "'")
+                .collect(oxfordJoin("and"));
         }
 
         private String getTypeDisplayName(Class<?> type) {

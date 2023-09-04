@@ -27,7 +27,7 @@ public interface TypeValidationContext {
      *
      * @param problemSpec the problem builder
      */
-    void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec);
+    void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec);
 
     /**
      * Visits a validation problem associated with the given property.
@@ -36,14 +36,14 @@ public interface TypeValidationContext {
      *
      * @param problemSpec the problem builder
      */
-    void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec);
+    void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec);
 
     TypeValidationContext NOOP = new TypeValidationContext() {
         @Override
-        public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {}
+        public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
 
         @Override
-        public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {}
+        public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
     };
 
 }

@@ -30,15 +30,15 @@ plugins {
 
 java {
     toolchain { // <1>
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion = JavaLanguageVersion.of(8)
     }
 }
 
 tasks.register<CustomTaskUsingToolchains>("showDefaultToolchain") // <2>
 
 tasks.register<CustomTaskUsingToolchains>("showCustomToolchain") {
-    launcher.set(javaToolchains.launcherFor { // <3>
-        languageVersion.set(JavaLanguageVersion.of(17))
-    })
+    launcher = javaToolchains.launcherFor { // <3>
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 // end::custom-toolchain-task-with-java-usage[]

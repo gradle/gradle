@@ -15,7 +15,7 @@ sourceSets {
     main {
         java {
             srcDirs = [ ant.properties['src.dir'] ]
-            destinationDirectory.set(file(ant.properties['classes.dir']))
+            destinationDirectory = file(ant.properties['classes.dir'])
         }
     }
 }

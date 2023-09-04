@@ -17,9 +17,9 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.JarTestFixture
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
@@ -301,7 +301,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds("assemble")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // ProjectBuilder needs full distribution
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // ProjectBuilder needs full distribution
     @Issue("https://github.com/gradle/gradle/issues/18647")
     def "can test plugin with ProjectBuilder without warnings or errors"() {
         given:
@@ -330,6 +330,31 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         succeeds "test"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25732")
+    def "can set tags with Groovy = assignment"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                        tags = ["first", "second", "third"]
+                    }
+                }
+            }
+
+            gradlePlugin.plugins.all {
+                assert it.tags.get() == ["first", "second", "third"] as Set<String>
+            }
+        """
+
+        expect:
+        succeeds "jar"
     }
 
     def buildFile() {

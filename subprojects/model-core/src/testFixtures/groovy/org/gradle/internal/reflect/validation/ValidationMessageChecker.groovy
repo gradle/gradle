@@ -403,7 +403,8 @@ trait ValidationMessageChecker {
     )
     String dummyValidationProblem(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         display(SimpleMessage, 'dummy') {
-            type('InvalidTask').property('dummy')
+            type('InvalidTask')
+            property('dummy')
             description('test problem')
             reason('this is a test')
             spec.delegate = delegate

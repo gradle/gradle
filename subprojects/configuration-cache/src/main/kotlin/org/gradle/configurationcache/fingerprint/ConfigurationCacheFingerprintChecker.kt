@@ -51,6 +51,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
+        val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
         fun gradleProperty(propertyName: String): String?
@@ -215,6 +216,9 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 if (host.startParameterProperties != startParameterProperties) {
                     return "the set of Gradle properties has changed"
+                }
+                if (host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting) {
+                    return "the set of ignored configuration inputs has changed"
                 }
                 if (host.instrumentationAgentUsed != instrumentationAgentUsed) {
                     val statusChangeString = when (instrumentationAgentUsed) {

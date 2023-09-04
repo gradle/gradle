@@ -16,17 +16,24 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.WithNoSourceTaskOutcome
-import spock.lang.IgnoreIf
 
-import static org.gradle.testkit.runner.TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.FAILED
+import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
+import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
+import static org.gradle.testkit.runner.TaskOutcome.SKIPPED
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+
 /**
  * Tests more intricate aspects of the BuildResult object
  */
 @InspectsExecutedTasks
-@IgnoreIf({ GradleContextualExecuter.embedded }) // Test causes builds to hang
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Test causes builds to hang")
 class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def "execute task actions marked as up-to-date or skipped"() {

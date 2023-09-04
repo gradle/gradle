@@ -33,12 +33,14 @@ import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierar
 import org.gradle.internal.snapshot.SnapshotUtil
 import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Specification
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3916")
 class NextGenBuildCacheControllerTest extends Specification {
 
     @Rule

@@ -30,7 +30,7 @@ import org.gradle.internal.component.external.model.ExternalDependencyDescriptor
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ConfigurationNotFoundException;
+import org.gradle.internal.component.model.ExternalConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -204,7 +204,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
         ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
-            throw new ConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
+            throw new ExternalConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
         }
         maybeAddConfiguration(targetConfigurations, configuration);
     }

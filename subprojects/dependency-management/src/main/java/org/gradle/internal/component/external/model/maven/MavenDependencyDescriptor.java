@@ -25,7 +25,7 @@ import org.gradle.internal.component.external.model.ExternalDependencyDescriptor
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ConfigurationNotFoundException;
+import org.gradle.internal.component.model.ExternalConfigurationNotFoundException;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -110,7 +110,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
         if (configuration == null) {
             configuration = targetComponent.getConfiguration("default");
             if (configuration == null) {
-                throw new ConfigurationNotFoundException(fromComponentId, fromConfiguration.getName(), target, targetComponent.getId());
+                throw new ExternalConfigurationNotFoundException(fromComponentId, fromConfiguration.getName(), target, targetComponent.getId());
             }
         }
         return configuration;

@@ -26,6 +26,7 @@ import org.gradle.internal.instrumentation.processor.extensibility.ClassLevelAnn
 import org.gradle.internal.instrumentation.processor.extensibility.CodeGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.InstrumentationProcessorExtension;
 import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
+import org.gradle.internal.instrumentation.processor.extensibility.ResourceGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 
@@ -45,9 +46,11 @@ import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,11 +62,13 @@ import java.util.stream.Stream;
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public abstract class AbstractInstrumentationProcessor extends AbstractProcessor {
 
+    public static final String PROJECT_NAME_OPTIONS = "org.gradle.annotation.processing.instrumented.project";
+
     protected abstract Collection<InstrumentationProcessorExtension> getExtensions();
 
     @Override
     public Set<String> getSupportedOptions() {
-        return Collections.singleton("org.gradle.annotation.processing.aggregating");
+        return new HashSet<>(Arrays.asList("org.gradle.annotation.processing.aggregating", PROJECT_NAME_OPTIONS));
     }
 
     @Override
@@ -169,7 +174,8 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
             processingEnv.getMessager(),
             new CompositeInstrumentationCodeGenerator(
                 getExtensionsByType(CodeGeneratorContributor.class).stream().map(CodeGeneratorContributor::contributeCodeGenerator).collect(Collectors.toList())
-            )
+            ),
+            getExtensionsByType(ResourceGeneratorContributor.class).stream().map(ResourceGeneratorContributor::contributeResourceGenerator).collect(Collectors.toList())
         );
 
         generatorHost.generateCodeForRequestedInterceptors(requests);

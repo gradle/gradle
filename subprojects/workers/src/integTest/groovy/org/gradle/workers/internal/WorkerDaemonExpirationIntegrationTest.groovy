@@ -45,17 +45,17 @@ class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
                     def memoryManager = services.get(MemoryManager.class)
                     memoryManager.addListener(new OsMemoryStatusListener() {
                         public void onOsMemoryStatus(OsMemoryStatus osMemoryStatus) {
-                            freeMemory = osMemoryStatus.getFreePhysicalMemory()
+                            freeMemory = osMemoryStatus.getPhysicalMemory().getFree()
                             latch.countDown()
                         }
                     })
                     latch.await()
-                   
+
                     // Force worker daemon expiration to occur
                     memoryManager.requestFreeMemory(freeMemory * 2)
                 }
             }
-            
+
             subprojects { p ->
                 apply plugin: 'java'
                 tasks.withType(JavaCompile) { task ->

@@ -17,10 +17,13 @@
 package org.gradle.plugin.devel.tasks
 
 import groovy.transform.CompileStatic
-import org.gradle.internal.reflect.validation.Severity
+import org.gradle.api.problems.Severity
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
+import org.gradle.plugin.devel.tasks.internal.ValidationProblemSerialization
 
 @CompileStatic
 class TaskValidationReportFixture {
+    public static final String PROBLEM_SEPARATOR = "\n--------\n"
     private final File reportFile
 
     TaskValidationReportFixture(File reportFile) {
@@ -32,8 +35,18 @@ class TaskValidationReportFixture {
             .collect { message, severity ->
                 "$severity: $message"
             }
-            .join("\n--------\n").replaceAll("\n+", "\n")
-        def reportText = reportFile.text.replaceAll("\r\n", "\n").replaceAll("\n+", "\n")
-        assert reportText == expectedReportContents
+            .join(PROBLEM_SEPARATOR)
+            .replaceAll("\n+", "\n")
+        def reportText =
+            ValidationProblemSerialization.parseMessageList(reportFile.text)
+                .collect {it.severity.toString() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(it)}
+                .sort()
+                .join(PROBLEM_SEPARATOR)
+                .replaceAll("\r\n", "\n")
+                .replaceAll("\n+", "\n")
+
+
+        def actualText = reportText
+        assert actualText == expectedReportContents
     }
 }

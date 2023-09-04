@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
+import org.gradle.api.problems.Problems;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -132,11 +133,12 @@ public class ExecutionGradleServices {
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem,
-        DocumentationRegistry documentationRegistry
+        DocumentationRegistry documentationRegistry,
+        Problems problems
     ) {
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
         // @formatter:off
-        return new DefaultExecutionEngine(documentationRegistry,
+        return new DefaultExecutionEngine(problems,
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
@@ -147,7 +149,7 @@ public class ExecutionGradleServices {
             new RemoveUntrackedExecutionStateStep<>(
             new SkipEmptyWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,

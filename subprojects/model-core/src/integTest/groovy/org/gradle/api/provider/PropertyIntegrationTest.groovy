@@ -16,11 +16,10 @@
 
 package org.gradle.api.provider
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -529,7 +528,7 @@ project.extensions.create("some", SomeExtension)
         'prop5' | 'fileProperty()'      | 'RegularFile' | ''
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @Issue("https://github.com/gradle/gradle/issues/12811")
     def "multiple tasks can have property values calculated from a shared finalize on read property instance with value derived from dependency resolution"() {
         settingsFile << """
@@ -585,7 +584,7 @@ project.extensions.create("some", SomeExtension)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12969")
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "task can have property value derived from dependency resolution result when another task has input files derived from same result"() {
         settingsFile << """
             include 'producer'
@@ -887,5 +886,68 @@ project.extensions.create("some", SomeExtension)
 
         where:
         fieldModifier << ["", "final"]
+    }
+
+    def "can use a filtered value provider"() {
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract ListProperty<String> getStrings()
+
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                def action() {
+                    def outputFile = output.get().asFile
+                    outputFile.write(strings.get().join(","))
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                strings.add(providers.gradleProperty("my").filter { it.contains("value") })
+                output = layout.buildDirectory.file("myTask.txt")
+            }
+        """
+
+        when:
+        run 'myTask', "-Pmy=value1"
+        then:
+        executedAndNotSkipped(":myTask")
+        file("build/myTask.txt").text == "value1"
+
+        when:
+        run 'myTask', "-Pmy=value1"
+        then:
+        skipped(":myTask")
+        file("build/myTask.txt").text == "value1"
+
+        when:
+        fails('myTask', "-Pmy=trash")
+        then:
+        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+
+        when:
+        fails('myTask')
+        then:
+        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+    }
+
+    def "filter is evaluated lazily"() {
+        buildKotlinFile << """
+            tasks.register("printer") {
+                val someValue = objects.property<String>().convention("some value")
+                doLast {
+                    val filtered = someValue.filter { it.contains("value") }
+                    someValue.set("trash")
+                    println("filter: ${'$'}{filtered.getOrNull()}")
+                }
+            }
+        """
+
+        when:
+        run 'printer'
+        then:
+        outputContains("filter: null")
     }
 }

@@ -21,11 +21,14 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomIssueManagement;
 
+import javax.inject.Inject;
+
 public class DefaultMavenPomProjectManagement implements MavenPomCiManagement, MavenPomIssueManagement {
 
     private final Property<String> system;
     private final Property<String> url;
 
+    @Inject
     public DefaultMavenPomProjectManagement(ObjectFactory objectFactory) {
         system = objectFactory.property(String.class);
         url = objectFactory.property(String.class);

@@ -18,11 +18,10 @@ package org.gradle.testing.junit
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
-import spock.lang.IgnoreIf
 
 /**
  * This class contains tests that don't fit well into other function-specific test classes.
@@ -109,7 +108,7 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
         result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "can have multiple test task instances"() {
         given:
         file('src/test/java/org/gradle/Test1.java') << """

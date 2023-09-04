@@ -16,5 +16,11 @@ dependencies {
     pluginsRuntimeOnly(project(":code-quality"))
     pluginsRuntimeOnly(project(":jacoco"))
     pluginsRuntimeOnly(project(":ide"))
+    pluginsRuntimeOnly(project(":base-ide-plugins"))
+    pluginsRuntimeOnly(project(":ide-plugins"))
     pluginsRuntimeOnly(project(":war"))
+
+    pluginsRuntimeOnly(project(":java-platform")) {
+        because("Aspirationally, we likely need a platform-base plugin that would ship in the same distribution as dependency-management, and isn't java specific - unfortunately this plugin applies the JvmEcosystemPlugin.")
+    }
 }

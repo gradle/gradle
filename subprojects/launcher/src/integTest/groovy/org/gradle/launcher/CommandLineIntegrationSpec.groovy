@@ -18,25 +18,25 @@ package org.gradle.launcher
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
 
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "reasonable failure message when --max-workers=#value"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
 
         when:
-        args("--max-workers=$value")
+        executer.withArgument("--max-workers=$value")
 
         then:
         fails "help"
@@ -53,7 +53,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure
 
         when:
-        args("-Dorg.gradle.workers.max=$value")
+        executer.withArgument("-Dorg.gradle.workers.max=$value")
 
         then:
         fails "help"
@@ -65,9 +65,10 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
-    @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() || GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "can debug with org.gradle.debug=true"() {
         given:
+        Assume.assumeTrue(debugPortIsFree())
         executer.requireDaemon().requireIsolatedDaemons()
         JDWPUtil jdwpClient = new JDWPUtil(5005)
 
@@ -83,7 +84,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     @Flaky(because = "Sometimes it hangs for hours")
     def "can debug on selected port with org.gradle.debug.port"() {
         given:
@@ -91,7 +92,10 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         JDWPUtil jdwpClient = new JDWPUtil()
 
         when:
-        def gradle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
+        def gradle = executer
+            .withArgument("-Dorg.gradle.debug=true")
+            .withArgument("-Dorg.gradle.debug.port=${jdwpClient.port}")
+            .withTasks("help").start()
 
         then:
         ConcurrentTestUtil.poll() {
@@ -114,13 +118,12 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         Assume.assumeNotNull(jdwpHost)
         jdwpClient.host = jdwpHost
 
+
+        def port = jdwpClient.port
+
+        def host = jdwpClient.host
         when:
-        def gradle = executer.withArguments(
-                "-Dorg.gradle.debug=true",
-                "-Dorg.gradle.debug.port=" + jdwpClient.port,
-                "-Dorg.gradle.debug.host=" + jdwpClient.host).
-                withTasks("help").
-                start()
+        def gradle = startWithDebug(port, host)
 
         then:
         ConcurrentTestUtil.poll() {
@@ -131,6 +134,14 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         cleanup:
         jdwpClient.close()
+    }
+
+    private startWithDebug(int port, String host) {
+        executer.withArgument("-Dorg.gradle.debug=true")
+            .withArgument("-Dorg.gradle.debug.port=" + port)
+            .withArgument("-Dorg.gradle.debug.host=" + host)
+            .withTasks("help")
+            .start()
     }
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
@@ -145,12 +156,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         jdwpClient.host = address
 
         when:
-        def gradle = executer.withArguments(
-                "-Dorg.gradle.debug=true",
-                "-Dorg.gradle.debug.port=" + jdwpClient.port,
-                "-Dorg.gradle.debug.host=*").
-                withTasks("help").
-                start()
+        def gradle = startWithDebug(jdwpClient.port, "*")
 
         then:
         ConcurrentTestUtil.poll() {
@@ -194,7 +200,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     @Flaky(because = "Sometimes it hangs for hours")
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     @Timeout(30)
     def "can debug with org.gradle.debug.server=false"() {
         given:
@@ -218,7 +224,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     @Timeout(30)
     def "can debug with org.gradle.debug.suspend=false"() {
         given:

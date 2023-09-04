@@ -19,7 +19,8 @@ package org.gradle.jvm.toolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
@@ -51,7 +52,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("installations:[]")
     }
 
-    @IgnoreIf({ AvailableJavaHomes.availableJvms.size() < 2 })
+    @Requires(IntegTestPreconditions.MoreThanOneJavaHomeAvailable)
     def "installation registry is populated by environment"() {
         def firstJavaHome = AvailableJavaHomes.availableJvms[0].javaHome.absolutePath
         def secondJavaHome = AvailableJavaHomes.availableJvms[1].javaHome.absolutePath

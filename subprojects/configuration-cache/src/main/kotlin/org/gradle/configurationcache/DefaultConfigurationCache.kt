@@ -335,12 +335,11 @@ class DefaultConfigurationCache internal constructor(
     private
     fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit) {
 
-        // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
-        // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
-        // can cause the provider value to incorrectly be treated as a task graph input
-        Instrumented.discardListener()
-
         cacheEntryRequiresCommit = true
+
+        if (startParameter.isIgnoreInputsInTaskGraphSerialization) {
+            Instrumented.discardListener()
+        }
 
         buildOperationExecutor.withStoreOperation(cacheKey.string) {
             store.useForStore { layout ->

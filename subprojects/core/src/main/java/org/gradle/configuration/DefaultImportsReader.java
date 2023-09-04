@@ -32,14 +32,18 @@ import java.util.Map;
 
 public class DefaultImportsReader implements ImportsReader {
 
-    private static final String RESOURCE = "/default-imports.txt";
+    public static final String RESOURCE = "/default-imports.txt";
     private static final String MAPPING_RESOURCE = "/api-mapping.txt";
     private final String[] importPackages;
     private final Map<String, List<String>> simpleNameToFQCN;
 
     public DefaultImportsReader() {
+        this(DefaultImportsReader.class.getResource(RESOURCE));
+    }
+
+    public DefaultImportsReader(URL url) {
         try {
-            this.importPackages = generateImportPackages();
+            this.importPackages = generateImportPackages(url);
             this.simpleNameToFQCN = generateSimpleNameToFQCN();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -60,8 +64,7 @@ public class DefaultImportsReader implements ImportsReader {
      * @implNote Logic is duplicated in {@link gradlebuild.integrationtests.action.AnnotationGeneratorWorkAction}.
      * Please keep this code in sync.
      */
-    private static String[] generateImportPackages() throws IOException {
-        URL url = DefaultImportsReader.class.getResource(RESOURCE);
+    private static String[] generateImportPackages(URL url) throws IOException {
         if (url == null) {
             throw new IllegalStateException("Could not load default imports resource: " + RESOURCE);
         }
@@ -94,7 +97,7 @@ public class DefaultImportsReader implements ImportsReader {
                 boolean process = !StringUtils.isEmpty(line);
                 if (process) {
                     String[] split = line.split(":");
-                    if (split.length==2) {
+                    if (split.length == 2) {
                         String simpleName = split[0];
                         List<String> fqcns = Splitter.on(';').omitEmptyStrings().splitToList(split[1]);
                         builder.put(simpleName, fqcns);

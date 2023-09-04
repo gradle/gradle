@@ -16,10 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.resolve.resolver.ArtifactSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * State that is used for artifact resolution based on a variant that is selected during graph resolution.
@@ -28,20 +29,16 @@ import org.gradle.internal.resolve.resolver.ArtifactSelector;
  */
 public interface VariantArtifactResolveState {
     /**
-     * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.
+     * Resolve the artifacts specified by the given {@link IvyArtifactName}s.
      *
-     * This is used to create a ComponentArtifactMetadata from an artifact declared as part of a dependency.
-     * The reason to do this lookup is that for a local component artifact, the file is part of the artifact metadata.
-     * (For external module components, we just instantiate a new artifact metadata).
+     * This is used to resolve artifacts declared as part of a dependency.
      *
      * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
      */
-    ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact);
+    ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts);
 
     /**
-     * Creates a set that will resolve the artifacts of this variant, minus those artifacts that are excluded.
-     *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
+     * Get all artifact variants, or "sub-variants" of this variant.
      */
-    ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
+    Set<? extends VariantResolveMetadata> getArtifactVariants();
 }

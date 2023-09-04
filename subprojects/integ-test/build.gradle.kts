@@ -17,6 +17,7 @@ dependencies {
     integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":bootstrap"))
     integTestImplementation(project(":launcher"))
+    integTestImplementation(project(":ide-plugins"))
     integTestImplementation(libs.groovy)
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
@@ -41,8 +42,10 @@ dependencies {
     crossVersionTestImplementation(project(":war"))
     crossVersionTestImplementation(project(":testing-jvm"))
     crossVersionTestImplementation(project(":ide"))
+    crossVersionTestImplementation(project(":ide-plugins"))
     crossVersionTestImplementation(project(":code-quality"))
     crossVersionTestImplementation(project(":signing"))
+    crossVersionTestImplementation(project(":functional"))
 
     integTestImplementation(testFixtures(project(":core")))
     integTestImplementation(testFixtures(project(":diagnostics")))

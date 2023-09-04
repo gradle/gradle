@@ -45,9 +45,9 @@ import org.gradle.internal.component.external.model.maven.MavenDependencyDescrip
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ConfigurationMetadata
-import org.gradle.internal.component.model.ConfigurationNotFoundException
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
+import org.gradle.internal.component.model.ExternalConfigurationNotFoundException
 import org.gradle.internal.component.model.ModuleConfigurationMetadata
 
 class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
@@ -202,7 +202,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent)
 
         then:
-        thrown(ConfigurationNotFoundException)
+        thrown(ExternalConfigurationNotFoundException)
     }
 
     def "fails when runtime configuration is not defined in target component"() {
@@ -218,7 +218,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent)
 
         then:
-        thrown(ConfigurationNotFoundException)
+        thrown(ExternalConfigurationNotFoundException)
     }
 
     private static MavenDependencyDescriptor mavenDependencyMetadata(MavenScope scope, ModuleComponentSelector selector, List<ExcludeMetadata> excludes) {
