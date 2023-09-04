@@ -43,6 +43,7 @@ val executableJar by tasks.registering(Jar::class) {
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
     }
     from(sourceSets.main.get().output)
+    // Exclude properties files from this project as they are not needed for the executable JAR
     exclude("gradle-*-classpath.properties")
     exclude("gradle-*-parameter-names.properties")
 }
@@ -57,9 +58,9 @@ gr8 {
         archiveName("gradle-wrapper.jar")
         configuration("runtimeClasspath")
         proguardFile("src/main/proguard/wrapper.pro")
-        // Exclude anything from Guava etc. except the actual manifest
-        exclude("META-INF/(?!MANIFEST.MF).*")
-        // Exclude classpath.properties files
+        // Exclude META-INF resources from Guava etc. added via transitive dependencies
+        exclude("META-INF/.*")
+        // Exclude properties files from dependency subprojects
         exclude("gradle-.*-classpath.properties")
         exclude("gradle-.*-parameter-names.properties")
     }
