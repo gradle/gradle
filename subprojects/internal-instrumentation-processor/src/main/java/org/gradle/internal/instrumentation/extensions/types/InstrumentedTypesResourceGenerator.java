@@ -49,7 +49,7 @@ public class InstrumentedTypesResourceGenerator implements InstrumentationResour
 
             @Override
             public String getName() {
-                return "META-INF/instrumentation/instrumented-classes.txt";
+                return "META-INF/gradle/instrumentation/instrumented-classes.txt";
             }
 
             @Override
