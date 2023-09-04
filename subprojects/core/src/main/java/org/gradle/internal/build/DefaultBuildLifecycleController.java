@@ -232,27 +232,31 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         private ProjectInternal findProject(Path path, BuildState target) {
             assert path.isAbsolute();
 
-            // Either the project is available at the current target
-            ProjectState targetProject = target.getProjects().findProject(path);
-            if (targetProject != null) {
-                return targetProject.getMutableModel();
+            BuildState selectedBuild = target;
+
+            // Find a build assuming the first path segments always represent a build path
+            int buildPathSegments = 1;
+            while (buildPathSegments <= path.segmentCount()) {
+                BuildState existingBuild = findBuild(path.takeFirstSegments(buildPathSegments));
+                if (existingBuild == null) {
+                    break;
+                }
+                selectedBuild = existingBuild;
+                buildPathSegments++;
             }
 
-            // Or it must be from an included build.
-            Path includedBuildPath = path(":" + path.segment(0));
-            Path projectPath = path.removeFirstSegments(1);
-
-            DefaultBuildIdentifier includedBuildIdentifier = new DefaultBuildIdentifier(includedBuildPath);
-            BuildState includedBuild = getBuildStateRegistry().findBuild(includedBuildIdentifier);
-            if (includedBuild == null) {
-                return null;
+            Path projectPath = path.removeFirstSegments(selectedBuild.getIdentityPath().segmentCount());
+            ProjectState project = selectedBuild.getProjects().findProject(projectPath);
+            if (project != null) {
+                return project.getMutableModel();
             }
 
-            ProjectState project = includedBuild.getProjects().findProject(projectPath);
-            if (project == null) {
-                return null;
-            }
-            return project.getMutableModel();
+            return null;
+        }
+
+        @Nullable
+        private BuildState findBuild(Path buildPath) {
+            return getBuildStateRegistry().findBuild(new DefaultBuildIdentifier(buildPath));
         }
 
         private BuildStateRegistry getBuildStateRegistry() {
