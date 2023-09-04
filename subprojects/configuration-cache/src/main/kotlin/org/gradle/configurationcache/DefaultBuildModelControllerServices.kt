@@ -18,17 +18,14 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentInAnotherBuildProvider
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DynamicCallContextTracker
@@ -56,7 +53,6 @@ import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
@@ -112,6 +108,10 @@ class DefaultBuildModelControllerServices(
 
         fun createBuildLifecycleController(buildLifecycleControllerFactory: BuildLifecycleControllerFactory): BuildLifecycleController {
             return buildLifecycleControllerFactory.newInstance(buildDefinition, buildScopeServices)
+        }
+
+        fun createLocalComponentRegistry(currentBuild: BuildState, componentProvider: BuildTreeLocalComponentProvider): DefaultLocalComponentRegistry {
+            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, componentProvider)
         }
     }
 
@@ -194,18 +194,6 @@ class DefaultBuildModelControllerServices(
             val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationExecutor, cachingServiceLocator, scriptPluginFactory, cancellationToken)
             return ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
         }
-
-        fun createLocalComponentRegistry(
-            currentBuild: BuildState,
-            projectStateRegistry: ProjectStateRegistry,
-            calculatedValueContainerFactory: CalculatedValueContainerFactory,
-            cache: BuildTreeConfigurationCache,
-            provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider
-        ): LocalComponentRegistry {
-            val effectiveProvider = ConfigurationCacheAwareLocalComponentProvider(provider, cache)
-            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider)
-        }
     }
 
     private
@@ -222,16 +210,6 @@ class DefaultBuildModelControllerServices(
                 DelayedConfigurationActions()
             )
             return LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator, cancellationToken)
-        }
-
-        fun createLocalComponentRegistry(
-            currentBuild: BuildState,
-            projectStateRegistry: ProjectStateRegistry,
-            calculatedValueContainerFactory: CalculatedValueContainerFactory,
-            provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider
-        ): DefaultLocalComponentRegistry {
-            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider)
         }
     }
 }
