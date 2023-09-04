@@ -64,6 +64,7 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
     }
 
     @Issue('https://github.com/gradle/gradle/issues/26206')
+    @Issue('https://github.com/gradle/gradle/issues/24550')
     def "Can run tasks from included builds when configuration cache is enabled"() {
         given:
         def runTestClass = withIncludedBuildTest(api)
@@ -90,7 +91,12 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
         onlyTestClass2In(output2)
 
         and:
-        configurationCacheReusedIn(output2)
+        if (api == LauncherApi.BUILD_LAUNCHER) {
+            // Remove distinction once https://github.com/gradle/gradle/issues/24550 is fixed
+            assert noConfigurationCacheAvailableIn(output2)
+        } else {
+            assert configurationCacheReusedIn(output2)
+        }
 
         where:
         api << LauncherApi.values()
@@ -149,7 +155,12 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
         onlyTestClass2In(output2)
 
         and:
-        configurationCacheReusedIn(output2)
+        if (api == LauncherApi.BUILD_LAUNCHER) {
+            // Remove distinction once https://github.com/gradle/gradle/issues/24550 is fixed
+            assert noConfigurationCacheAvailableIn(output2)
+        } else {
+            assert configurationCacheReusedIn(output2)
+        }
 
         where:
         api << LauncherApi.values()
@@ -244,5 +255,9 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
 
     private boolean configurationCacheReusedIn(String output) {
         output.contains('Reusing configuration cache.')
+    }
+
+    private boolean noConfigurationCacheAvailableIn(String output) {
+        output.contains('Calculating task graph as no configuration cache is available')
     }
 }
