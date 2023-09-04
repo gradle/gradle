@@ -66,6 +66,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_SIGNATURES;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEYRING_FORMAT;
 
 public class DependencyVerificationsXmlWriter {
     private static final String SPACES = "   ";
@@ -110,6 +111,17 @@ public class DependencyVerificationsXmlWriter {
         writeTrustedArtifacts(configuration);
         writIgnoredKeys(configuration);
         writeGloballyTrustedKeys(configuration);
+        writeKeyRingFormat(configuration);
+        writer.endElement();
+    }
+
+    private void writeKeyRingFormat(DependencyVerificationConfiguration configuration) throws IOException {
+        String keyRingFormat = configuration.getKeyRingFormat();
+        if (keyRingFormat == "") {
+            return;
+        }
+        writer.startElement(KEYRING_FORMAT);
+        writer.write(String.valueOf(keyRingFormat));
         writer.endElement();
     }
 

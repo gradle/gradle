@@ -37,6 +37,7 @@ public class DependencyVerificationConfiguration {
     private final List<URI> keyServers;
     private final Set<IgnoredKey> ignoredKeys;
     private final List<TrustedKey> trustedKeys;
+    private final String keyRingFormat;
 
     public DependencyVerificationConfiguration(boolean verifyMetadata,
                                                boolean verifySignatures,
@@ -44,7 +45,8 @@ public class DependencyVerificationConfiguration {
                                                boolean useKeyServers,
                                                List<URI> keyServers,
                                                Set<IgnoredKey> ignoredKeys,
-                                               List<TrustedKey> trustedKeys) {
+                                               List<TrustedKey> trustedKeys,
+                                               String keyRingFormat) {
         this.verifyMetadata = verifyMetadata;
         this.verifySignatures = verifySignatures;
         this.trustedArtifacts = ImmutableList.copyOf(trustedArtifacts);
@@ -52,6 +54,11 @@ public class DependencyVerificationConfiguration {
         this.keyServers = keyServers;
         this.ignoredKeys = ignoredKeys;
         this.trustedKeys = trustedKeys;
+        this.keyRingFormat = keyRingFormat;
+    }
+
+    public String getKeyRingFormat() {
+        return keyRingFormat;
     }
 
     public boolean isVerifySignatures() {

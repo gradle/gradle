@@ -73,6 +73,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_SIGNATURES;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEYRING_FORMAT;;
 
 public class DependencyVerificationsXmlReader {
     public static void readFromXml(InputStream in, DependencyVerifierBuilder builder) {
@@ -121,6 +122,7 @@ public class DependencyVerificationsXmlReader {
         private boolean inTrustedKeys;
         private boolean inTrustedKey;
         private String currentTrustedKey;
+        private boolean inKeyRingFormat;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
         private ChecksumKind currentChecksum;
@@ -210,6 +212,10 @@ public class DependencyVerificationsXmlReader {
                         addIgnoredKey(attributes);
                     }
                     break;
+                case KEYRING_FORMAT:
+                    assertInConfiguration(KEYRING_FORMAT);
+                    inKeyRingFormat = true;
+                    break;
                 default:
                     if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
                         builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null, null);
@@ -289,6 +295,8 @@ public class DependencyVerificationsXmlReader {
                 builder.setVerifyMetadata(readBoolean(ch, start, length));
             } else if (inVerifySignatures) {
                 builder.setVerifySignatures(readBoolean(ch, start, length));
+            } else if (inKeyRingFormat) {
+                builder.setKeyRingFormat(new String(ch, start, length));
             }
         }
 
@@ -362,6 +370,9 @@ public class DependencyVerificationsXmlReader {
                     break;
                 case IGNORED_KEYS:
                     inIgnoredKeys = false;
+                    break;
+                case KEYRING_FORMAT:
+                    inKeyRingFormat = false;
                     break;
             }
         }

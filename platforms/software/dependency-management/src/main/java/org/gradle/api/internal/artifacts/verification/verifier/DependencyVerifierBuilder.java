@@ -56,6 +56,22 @@ public class DependencyVerifierBuilder {
     private boolean isVerifySignatures = false;
     private boolean useKeyServers = true;
     private final List<String> topLevelComments = Lists.newArrayList();
+    private String keyRingFormat = "";
+
+    public void setKeyRingFormat(String newKeyRingFormat) {
+        validateKeyRingFormat(newKeyRingFormat);
+        this.keyRingFormat = newKeyRingFormat;
+    }
+    
+    private void validateKeyRingFormat(String keyRingFormat) {
+        if (!(keyRingFormat.equals("text") || keyRingFormat.equals("gpg"))) {
+            throw new DependencyVerificationException("Invalid key ring format: The key ring format should be either 'text' or 'gpg', which determine how keys are stored. Please choose a valid format or leave it unset to generate both.");
+        }
+    }
+
+    public String getKeyRingFormat() {
+        return keyRingFormat;
+    }
 
     public void addTopLevelComment(String comment) {
         topLevelComments.add(comment);
@@ -141,7 +157,7 @@ public class DependencyVerifierBuilder {
         byComponent.entrySet().stream()
             .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
             .forEachOrdered(entry -> builder.put(entry.getKey(), entry.getValue().build()));
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys)), topLevelComments);
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys), keyRingFormat), topLevelComments);
     }
 
     public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {

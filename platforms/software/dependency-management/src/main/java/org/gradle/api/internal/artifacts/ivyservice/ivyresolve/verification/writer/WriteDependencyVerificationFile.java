@@ -102,6 +102,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static final Set<String> SECURE_CHECKSUMS = ImmutableSet.of(SHA256, SHA512, PGP);
     private static final String PGP_VERIFICATION_FAILED = "PGP verification failed";
     private static final String KEY_NOT_DOWNLOADED = "Key couldn't be downloaded from any key server";
+    private static final String TEXT_KEYRING_FORMAT = "text";
+    private static final String GPG_KEYRING_FORMAT = "gpg";
 
     private final DependencyVerifierBuilder verificationsBuilder = new DependencyVerifierBuilder();
     private final BuildOperationExecutor buildOperationExecutor;
@@ -513,11 +515,21 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
         Collection<PGPPublicKeyRing> allKeyRings = uniqueKeyRings(Stream.concat(keysSeenInVerifier, existingRings.stream()));
 
-        File keyringFile = keyrings.getBinaryKeyringsFile();
-        writeBinaryKeyringFile(keyringFile, allKeyRings);
         File asciiArmoredFile = keyrings.getAsciiKeyringsFile();
-        writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
-        LOGGER.lifecycle("Exported {} keys to {} and {}", allKeyRings.size(), keyringFile, asciiArmoredFile);
+        File keyringFile = keyrings.getBinaryKeyringsFile();
+
+        String keyRingFormat = verificationsBuilder.getKeyRingFormat();
+        if (keyRingFormat.equals(TEXT_KEYRING_FORMAT)) {
+            writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
+            LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), asciiArmoredFile);
+        } else if (keyRingFormat.equals(GPG_KEYRING_FORMAT)) {
+            writeBinaryKeyringFile(keyringFile, allKeyRings);
+            LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), keyringFile);
+        } else {
+            writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
+            writeBinaryKeyringFile(keyringFile, allKeyRings);
+            LOGGER.lifecycle("Exported {} keys to {} and {}", allKeyRings.size(), keyringFile, asciiArmoredFile);
+        }
     }
 
     private static Collection<PGPPublicKeyRing> uniqueKeyRings(Stream<PGPPublicKeyRing> keyRings) {

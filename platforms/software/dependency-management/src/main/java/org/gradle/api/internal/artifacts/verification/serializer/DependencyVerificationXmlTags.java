@@ -45,4 +45,5 @@ abstract class DependencyVerificationXmlTags {
     static final String VERIFY_METADATA = "verify-metadata";
     static final String VERIFY_SIGNATURES = "verify-signatures";
     static final String VERSION = "version";
+    static final String KEYRING_FORMAT = "keyring-format";
 }
