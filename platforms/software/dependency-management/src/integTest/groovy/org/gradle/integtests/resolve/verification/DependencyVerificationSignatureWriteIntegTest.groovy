@@ -342,6 +342,124 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyringsAscii.find { it.publicKey.keyID == keyring.publicKey.keyID }
     }
 
+    def "can export PGP keys in binary format only"() {
+        def keyring = newKeyRing()
+        def pkId = Fingerprint.of(keyring.publicKey)
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            keyRingFormat("gpg")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        writeVerificationMetadata()
+
+        succeeds ":help", "--export-keys"
+
+        then:
+        assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <key-servers>
+         <key-server uri="${keyServerFixture.uri}"/>
+      </key-servers>
+      <keyring-format>gpg</keyring-format>
+      <trusted-keys>
+         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo" version="1.0"/>
+         <trusted-key id="$pkId" group="org" name="foo" version="1.0"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        def exportedKeyRing = file("gradle/verification-keyring.gpg")
+        exportedKeyRing.exists()
+        def keyrings = SecuritySupport.loadKeyRingFile(exportedKeyRing)
+        keyrings.size() == 2
+        keyrings.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        keyrings.find { it.publicKey.keyID == keyring.publicKey.keyID }
+
+        and: "does not generate an ascii armored keyring file"
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        !exportedKeyRingAscii.exists()
+    }
+
+    def "can export PGP keys in text format only"() {
+        def keyring = newKeyRing()
+        def pkId = Fingerprint.of(keyring.publicKey)
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            keyRingFormat("text")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        writeVerificationMetadata()
+
+        succeeds ":help", "--export-keys"
+
+        then:
+        assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <key-servers>
+         <key-server uri="${keyServerFixture.uri}"/>
+      </key-servers>
+      <keyring-format>text</keyring-format>
+      <trusted-keys>
+         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo" version="1.0"/>
+         <trusted-key id="$pkId" group="org" name="foo" version="1.0"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 2
+        keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        keyringsAscii.find { it.publicKey.keyID == keyring.publicKey.keyID }
+
+        and: "does not generate an binary keyring file"
+        def exportedKeyRingBinary = file("gradle/verification-keyring.gpg")
+        !exportedKeyRingBinary.exists()
+    }
+
     @UnsupportedWithConfigurationCache
     def "can generate configuration for dependencies resolved in a buildFinished hook"() {
         createMetadataFile {

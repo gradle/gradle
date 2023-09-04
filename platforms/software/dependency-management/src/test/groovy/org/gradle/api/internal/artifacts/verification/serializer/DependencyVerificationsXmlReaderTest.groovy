@@ -206,6 +206,36 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         verifier.configuration.ignoredKeys == [key("ABCDEF"), key("012345", "nope")] as Set
     }
 
+    def "can parse keyring format"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <keyring-format>text</keyring-format>
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        verifier.configuration.keyRingFormat == "text"
+    }
+
+    def "reasonable error message when invalid invalid keyring format given"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <keyring-format>invalid_format</keyring-format>
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        DependencyVerificationException e = thrown()
+        e.message == "Unable to read dependency verification metadata"
+        e.cause.message == "Invalid key ring format: The key ring format should be either 'text' or 'gpg', which determine how keys are stored. Please choose a valid format or leave it unset to generate both."
+    }
+
     def "can parse trusted keys"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>

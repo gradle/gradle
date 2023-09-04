@@ -223,6 +223,24 @@ on two lines -->
 """
     }
 
+    def "can declare keyring format"() {
+        when:
+        builder.setKeyRingFormat("text")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <keyring-format>text</keyring-format>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+    }
+
     def "entries are sorted"() {
         given:
         declareChecksum("org:foo:1.0", "sha1", "abc")

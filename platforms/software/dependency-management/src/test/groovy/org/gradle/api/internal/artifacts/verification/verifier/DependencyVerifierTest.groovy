@@ -39,7 +39,7 @@ import spock.lang.Subject
 
 class DependencyVerifierTest extends Specification {
     @Subject
-    DependencyVerifier verifier = new DependencyVerifier([:], new DependencyVerificationConfiguration(true, true, [], true, [], [] as Set, []), [])
+    DependencyVerifier verifier = new DependencyVerifier([:], new DependencyVerificationConfiguration(true, true, [], true, [], [] as Set, [], ""), [])
 
     ChecksumService checksumService = Mock(ChecksumService)
     PublicKeyService publicKeyService = Mock(PublicKeyService)
@@ -78,7 +78,7 @@ class DependencyVerifierTest extends Specification {
         def defaultModuleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "foo"), "1.0")
         def checksum = new Checksum(ChecksumKind.md5, "my-checksum", [] as Set<String>, "", "")
         def verificationMetadata = new ImmutableComponentVerificationMetadata(defaultModuleComponentIdentifier, [new ImmutableArtifactVerificationMetadata("foo-1.0.jar", [checksum], [] as Set, [] as Set)])
-        verifier = new DependencyVerifier([(defaultModuleComponentIdentifier): verificationMetadata], new DependencyVerificationConfiguration(true, false, [], true, [], [] as Set, []), [])
+        verifier = new DependencyVerifier([(defaultModuleComponentIdentifier): verificationMetadata], new DependencyVerificationConfiguration(true, false, [], true, [], [] as Set, [], ""), [])
         def hashCode = Mock(HashCode) { toString() >> "my-checksum" }
 
         when:

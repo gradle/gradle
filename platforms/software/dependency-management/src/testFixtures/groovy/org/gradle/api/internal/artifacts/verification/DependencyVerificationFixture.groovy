@@ -244,6 +244,10 @@ class DependencyVerificationFixture {
             builder.addKeyServer(uri)
         }
 
+        void keyRingFormat(String keyRingFormat) {
+            builder.setKeyRingFormat(keyRingFormat);
+        }
+
         void trust(String group, String name = null, String version = null, String fileName = null, boolean regex = false, String reason = null) {
             builder.addTrustedArtifact(group, name, version, fileName, regex, reason)
         }
