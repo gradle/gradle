@@ -24,7 +24,7 @@ import org.gradle.api.initialization.Settings;
  *
  * <p>An instance of this type can be injected into a plugin or other object by annotating a public constructor or method with {@code javax.inject.Inject}. It is also available via {@link Settings#getLayout()}.
  *
- * @since 8.4
+ * @since 8.5
  */
 @Incubating
 public interface SettingsLayout extends FileSystemLayout {

@@ -200,7 +200,7 @@ public interface Settings extends PluginAware, ExtensionAware {
     /**
      * Provides access to various important directories for this settings object.
      *
-     * @since 8.4
+     * @since 8.5
      */
     @Incubating
     SettingsLayout getLayout();
