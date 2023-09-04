@@ -338,8 +338,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["cause"]["message"] == "test"
-        !(this.collectedProblems[0]["cause"]["stackTrace"] as List<String>).isEmpty()
+        this.collectedProblems[0]["exception"]["message"] == "test"
+        !(this.collectedProblems[0]["exception"]["stackTrace"] as List<String>).isEmpty()
     }
 
     def "can emit a problem with additional data"() {
@@ -403,7 +403,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["cause"]["message"] == "test"
+        this.collectedProblems[0]["exception"]["message"] == "test"
     }
 
     def "can rethrow a problem with a wrapper exception"() {
@@ -432,7 +432,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["cause"]["message"] == "test"
+        this.collectedProblems[0]["exception"]["message"] == "test"
     }
 
     def "can rethrow a problem with a wrapper exception"() {
