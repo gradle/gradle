@@ -380,12 +380,25 @@ public abstract class CompileOptions extends AbstractOptions {
      *
      * @return {@code true} if incremental compilation is enabled, {@code false} otherwise.
      *
-     * @since 8.3
+     * @since 8.5
      */
     @Incubating
     @Internal
     @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
     public abstract Property<Boolean> getIncremental();
+
+    /**
+     * Added for Kotlin source compatibility, should be removed.
+     *
+     * TODO: Add deprecation warning
+     *
+     * @since 8.5
+     */
+    @Incubating
+    @ReplacedBy("incremental")
+    public Property<Boolean> getIsIncremental() {
+        return getIncremental();
+    }
 
     /**
      * Used to enable or disable incremental compilation after a failure.
