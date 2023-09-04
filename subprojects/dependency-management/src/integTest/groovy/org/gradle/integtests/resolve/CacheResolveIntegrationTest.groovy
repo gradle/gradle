@@ -181,7 +181,7 @@ dependencies { implementation 'org.spring:core:1.0@/../../../../boot/2.0/$hashOf
         fails('compileJava')
 
         then:
-        failureCauseContains('path after token expansion contains an illegal sequence')
+        failureCauseContains('is not a safe archive entry or path name')
         // If the build did not fail, Gradle would effectively write a file inside org.spring/boot/2.0 instead of inside org.spring/core/1.0
         // If we have the real hash of a JAR in those other coordinates, Gradle could overwrite and replace the real JAR with a malicious one
         !invalidLocation.exists()
@@ -213,7 +213,7 @@ dependencies { implementation 'org.spring/../../../../../:core:1.0@/../../../../
         fails('compileJava')
 
         then:
-        failureCauseContains('path after token expansion contains an illegal sequence')
+        failureCauseContains('is not a safe archive entry or path name')
         // If the build did not fail, Gradle would effectively write a file inside a folder that is a sibling to the Gradle User Home
         // If this was ~/.gradle, Gradle would have written in ~/.ssh
         !invalidLocation.exists()
