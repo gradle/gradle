@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.repositories.PatternHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -85,9 +85,9 @@ public class M2ResourcePattern extends AbstractResourcePattern {
 
     @Override
     protected String substituteTokens(String pattern, Map<String, String> attributes) {
-        String org = attributes.get(IvyPatternHelper.ORGANISATION_KEY);
+        String org = attributes.get(PatternHelper.ORGANISATION_KEY);
         if (org != null) {
-            attributes.put(IvyPatternHelper.ORGANISATION_KEY, org.replace(".", "/"));
+            attributes.put(PatternHelper.ORGANISATION_KEY, org.replace(".", "/"));
         }
         return super.substituteTokens(pattern, attributes);
     }
