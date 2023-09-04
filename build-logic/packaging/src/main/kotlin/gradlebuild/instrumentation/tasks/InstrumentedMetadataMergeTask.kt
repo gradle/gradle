@@ -46,15 +46,31 @@ abstract class InstrumentedMetadataMergeTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val instrumentationMetadataDirs: ConfigurableFileCollection
 
+    /**
+     * Output with all instrumented super types, merged from multiple projects in to one file.
+     */
     @get:OutputFile
     abstract val instrumentedSuperTypes: RegularFileProperty
 
+    /**
+     * Calculated hash for [instrumentedSuperTypes] file used for invalidating instrumentation cache,
+     * more specifically used in: InstrumentingClasspathFileTransformer.
+     */
     @get:OutputFile
     abstract val instrumentedSuperTypesHash: RegularFileProperty
 
+    /**
+     * Output with all upgraded properties, merged from multiple projects in to one file.
+     */
     @get:OutputFile
     abstract val upgradedProperties: RegularFileProperty
 
+    /**
+     * Calculated hash for [upgradedProperties] file used for invalidating instrumentation cache,
+     * more specifically used in: InstrumentingClasspathFileTransformer.
+     *
+     * We calculate a hash in a separate file we want to generate "normalized" hash for json not influenced by order of properties.
+     */
     @get:OutputFile
     abstract val upgradedPropertiesHash: RegularFileProperty
 
