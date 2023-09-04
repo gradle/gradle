@@ -138,6 +138,37 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
         modifiedMetaClasses.every()
     }
 
+    def 'closure does not erroneously become effectively instrumented after it threw an exception'() {
+        given:
+        def transformedThrowingClosure = instrumentedClasses.instrumentedClosure {
+            throw new RuntimeException()
+        }
+        transformedThrowingClosure.delegate = new InterceptorTestReceiver()
+        def transformedInterceptedClosure = instrumentedClasses.instrumentedClosure {
+            test()
+        }
+        transformedInterceptedClosure.delegate = new FalseInterceptorTestReceiver()
+
+        when: 'a closure throwing an exception is called'
+        transformedThrowingClosure()
+
+        then: 'the exception is thrown, but despite that, the closure must have been removed from the closure control flow tracker, which is checked below'
+        thrown(RuntimeException)
+
+        when: 'another closure is called that makes a potentially intercepted call, which should turn all closures "on the stack" into effectively instrumented ones'
+        transformedInterceptedClosure()
+
+        then: 'the closure that threw an exception should not have become effectively instrumented'
+        !(GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass)
+    }
+
+    /**
+     * Features some APIs similar to {@link InterceptorTestReceiver}, but we don't have interceptors for this class as a receiver.
+     */
+    private class FalseInterceptorTestReceiver {
+        void test() { }
+    }
+
     def 'invoking an intercepted method on a BeanDynamicObject replaces the metaclass of the bean'() {
         when:
         instrumentedClasses.instrumentedClosure { receiver ->
