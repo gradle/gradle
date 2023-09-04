@@ -84,9 +84,11 @@ public interface Problem {
 
     /**
      * The exception that caused the problem.
+     *
+     * @since 8.5
      */
     @Nullable
-    Throwable getCause();
+    Throwable getException();
 
     /**
      * Additional Data about the problem.

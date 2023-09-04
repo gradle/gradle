@@ -145,7 +145,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
         deserialized[0].where == null
         deserialized[0].documentationLink == null
-        deserialized[0].cause.message == "cause"
+        deserialized[0].exception.message == "cause"
     }
 
     def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
