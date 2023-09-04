@@ -115,7 +115,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                          * enterInstrumentedClosure(this);
                          * try {
                          *     return doCall$original(<args>);
-                         * } finally { // but with inlining the handler
+                         * } finally { // similar to what javac produces, this block is inlined at the normal return and catch+rethrow exit points;
                          *     leaveInstrumentedClosure(this);
                          * }
                          */
@@ -139,7 +139,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                         _INVOKESPECIAL(clazz.className, methodNameToVisit, methodData.descriptor, false);
                         mv.visitLabel(tryBlockEnd);
 
-                        // finally:
+                        // finally block inlined before normal return:
                         _ALOAD(0);
                         _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "leaveInstrumentedClosure", enterLeaveDescriptor, false);
                         // and return:
@@ -151,7 +151,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                         // Must use an F_NEW frame, as we may encounter class versions <= V1_5, see ASM MethodWriter
                         mv.visitFrame(Opcodes.F_NEW, 1, locals, 1, new Object[]{"java/lang/Throwable"});
 
-                        // finally:
+                        // finally block inlined before rethrowing a caught exception:
                         _ALOAD(0);
                         _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "leaveInstrumentedClosure", enterLeaveDescriptor, false);
                         // and rethrow:

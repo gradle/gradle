@@ -149,11 +149,13 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
         }
         transformedInterceptedClosure.delegate = new FalseInterceptorTestReceiver()
 
-        when: 'a closure throwing an exception is called, then a closure that hits an instrumented call is called'
-        try {
-            transformedThrowingClosure()
-            // this calls throws an exception, but we expect the closure to be still correctly removed from control flow tracking
-        } catch (RuntimeException ignored) {}
+        when: 'a closure throwing an exception is called'
+        transformedThrowingClosure()
+
+        then: 'the exception is thrown, but despite that, the closure must have been removed from the closure control flow tracker, which is checked below'
+        thrown(RuntimeException)
+
+        when: 'another closure is called that makes a potentially intercepted call, which should turn all closures "on the stack" into effectively instrumented ones'
         transformedInterceptedClosure()
 
         then: 'the closure that threw an exception should not have become effectively instrumented'
