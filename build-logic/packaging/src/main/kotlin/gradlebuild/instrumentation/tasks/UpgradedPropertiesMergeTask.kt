@@ -29,7 +29,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.hash.Hashing
 import java.io.File
 import java.io.FileReader
 
@@ -46,32 +45,19 @@ abstract class UpgradedPropertiesMergeTask : DefaultTask() {
 
     /**
      * Output with all upgraded properties, merged from multiple projects in to one file.
+     * This is also used in InstrumentingClasspathFileTransformer to invalidate instrumentation cache on changes. So output must be stable.
      */
     @get:OutputFile
     abstract val upgradedProperties: RegularFileProperty
-
-    /**
-     * Calculated hash for [upgradedProperties] file used for invalidating instrumentation cache,
-     * more specifically used in: InstrumentingClasspathFileTransformer.
-     *
-     * We calculate a hash in a separate file we want to generate "normalized" hash for json not influenced by order of properties.
-     */
-    @get:OutputFile
-    abstract val upgradedPropertiesHash: RegularFileProperty
 
     @TaskAction
     fun mergeUpgradedProperties() {
         val mergedUpgradedProperties = mergeProperties()
         if (mergedUpgradedProperties.isEmpty) {
             upgradedProperties.asFile.get().toEmptyFile()
-            upgradedPropertiesHash.asFile.get().toEmptyFile()
-            return
+        } else {
+            upgradedProperties.asFile.get().writer().use { Gson().toJson(mergedUpgradedProperties, it) }
         }
-
-        upgradedProperties.asFile.get().writer().use { Gson().toJson(mergedUpgradedProperties, it) }
-        val hasher = Hashing.newHasher()
-        mergedUpgradedProperties.map { it.asJsonObject.get("hash").asString }.sorted().forEach { hasher.putString(it) }
-        upgradedPropertiesHash.asFile.get().outputStream().use { it.write(hasher.hash().toByteArray()) }
     }
 
     private

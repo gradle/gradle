@@ -27,7 +27,7 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.asmCommons)
-    implementation(libs.gson)
+    implementation(libs.jacksonDatabind)
 
     testImplementation(libs.compileTesting)
     testImplementation(project(":core"))

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.extensions.property
 
-import com.google.gson.Gson
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
 
@@ -29,7 +29,7 @@ import static org.gradle.internal.instrumentation.extensions.property.Instrument
 
 class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGenTest {
 
-    private static final Gson GSON = new Gson()
+    private static final ObjectMapper MAPPER = new ObjectMapper()
 
     def "should generate a resource with upgraded properties sorted alphabetically"() {
         given:
@@ -55,25 +55,54 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
 
         then:
         def maxErrorMethods = [
+            // Order is important
             new UpgradedMethod("getMaxErrors", "()I"),
             new UpgradedMethod("setMaxErrors", "(I)V")
         ]
         def sourceCompatibilityMethods = [
+            // Order is important
             new UpgradedMethod("getSourceCompatibility", "()Ljava/lang/String;"),
             new UpgradedMethod("setSourceCompatibility", "(Ljava/lang/String;)V")
         ]
         def targetCompatibilityMethods = [
+            // Order is important
             new UpgradedMethod("getTargetCompatibility", "()Ljava/lang/String;"),
             new UpgradedMethod("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;")
         ]
         def properties = [
-            new PropertyEntry("31981d9f5fab0f1ed8296f996b520f5d", "org.gradle.test.Task", "maxErrors", maxErrorMethods),
-            new PropertyEntry("1172b619deb2619ee8b9934e50ec2fcf", "org.gradle.test.Task", "sourceCompatibility", sourceCompatibilityMethods),
-            new PropertyEntry("a5d93ee372904e9bdd88614e046a351c", "org.gradle.test.Task", "targetCompatibility", targetCompatibilityMethods)
+            // Order is important
+            new PropertyEntry("org.gradle.test.Task", "maxErrors", maxErrorMethods),
+            new PropertyEntry("org.gradle.test.Task", "sourceCompatibility", sourceCompatibilityMethods),
+            new PropertyEntry("org.gradle.test.Task", "targetCompatibility", targetCompatibilityMethods)
         ]
         assertThat(compilation)
             .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/upgraded-properties.json")
             .contentsAsString(StandardCharsets.UTF_8)
-            .isEqualTo(GSON.toJson(properties))
+            .isEqualTo(MAPPER.writeValueAsString(properties))
+    }
+
+    def "should generate json properties ordered alphabetically"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+
+            public abstract class Task {
+                @UpgradedProperty
+                public abstract Property<String> getSourceCompatibility();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        assertThat(compilation)
+            .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/upgraded-properties.json")
+            .contentsAsString(StandardCharsets.UTF_8)
+            .isEqualTo("[{\"containingType\":\"org.gradle.test.Task\",\"propertyName\":\"sourceCompatibility\",\"upgradedMethods\":[{\"descriptor\":\"()Ljava/lang/String;\",\"name\":\"getSourceCompatibility\"},{\"descriptor\":\"(Ljava/lang/String;)V\",\"name\":\"setSourceCompatibility\"}]}]")
     }
 }

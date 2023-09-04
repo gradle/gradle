@@ -17,9 +17,8 @@
 package org.gradle.internal.instrumentation.extensions.property;
 
 
-import com.google.gson.Gson;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
@@ -43,7 +42,7 @@ import static java.util.stream.Collectors.groupingBy;
  */
 public class InstrumentedPropertiesResourceGenerator implements InstrumentationResourceGenerator {
 
-    private final Gson gson = new Gson();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public Collection<CallInterceptionRequest> filterRequestsForResource(Collection<CallInterceptionRequest> interceptionRequests) {
@@ -71,7 +70,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
                     .collect(groupingBy(InstrumentedPropertiesResourceGenerator::getFqName));
                 List<PropertyEntry> entries = toPropertyEntries(requests);
                 try (Writer writer = new OutputStreamWriter(outputStream)) {
-                    writer.write(gson.toJson(entries));
+                    writer.write(mapper.writeValueAsString(entries));
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -95,7 +94,6 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static PropertyEntry toPropertyEntry(List<CallInterceptionRequest> requests) {
-        Hasher hasher = Hashing.defaultFunction().newHasher();
         CallInterceptionRequest request = requests.get(0);
         String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
         String containingType = request.getInterceptedCallable().getOwner().getType().getClassName();
@@ -109,29 +107,20 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
                 return new UpgradedMethod(intercepted.getCallableName(), Type.getMethodDescriptor(returnType, parameterTypes));
             })
             .sorted(Comparator.comparing((UpgradedMethod o) -> o.name).thenComparing(o -> o.descriptor))
-            .peek(upgradedMethod -> {
-                hasher.putString(upgradedMethod.name);
-                hasher.putString(upgradedMethod.descriptor);
-            })
             .collect(Collectors.toList());
-        return new PropertyEntry(hasher.hash().toString(), containingType, propertyName, upgradedMethods);
+        return new PropertyEntry(containingType, propertyName, upgradedMethods);
     }
 
+    @JsonPropertyOrder(alphabetic = true)
     static class PropertyEntry {
-        private final String hash;
         private final String propertyName;
         private final String containingType;
         private final List<UpgradedMethod> upgradedMethods;
 
-        public PropertyEntry(String hash, String containingType, String propertyName, List<UpgradedMethod> upgradedMethods) {
-            this.hash = hash;
+        public PropertyEntry(String containingType, String propertyName, List<UpgradedMethod> upgradedMethods) {
             this.containingType = containingType;
             this.propertyName = propertyName;
             this.upgradedMethods = upgradedMethods;
-        }
-
-        public String getHash() {
-            return hash;
         }
 
         public String getContainingType() {
@@ -147,6 +136,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         }
     }
 
+    @JsonPropertyOrder(alphabetic = true)
     static class UpgradedMethod {
         private final String name;
         private final String descriptor;

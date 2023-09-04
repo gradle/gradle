@@ -38,11 +38,9 @@ val extension = extensions.create<InstrumentationMetadataExtension>(INSTRUMENTED
 tasks.register<InstrumentedSuperTypesMergeTask>(INSTRUMENTED_SUPER_TYPES_MERGE_TASK) {
     instrumentationMetadataDirs = extension.classpathToInspect
     instrumentedSuperTypes = extension.superTypesOutputFile
-    instrumentedSuperTypesHash = extension.superTypesHashFile
 }
 
 tasks.register<UpgradedPropertiesMergeTask>(UPGRADED_PROPERTIES_MERGE_TASK) {
     instrumentationMetadataDirs = extension.classpathToInspect
     upgradedProperties = extension.upgradedPropertiesFile
-    upgradedPropertiesHash = extension.upgradedPropertiesHashFile
 }

@@ -145,9 +145,7 @@ val upgradedPropertiesMergeTask = tasks.named(UPGRADED_PROPERTIES_MERGE_TASK)
 extensions.configure<InstrumentationMetadataExtension>(INSTRUMENTED_METADATA_EXTENSION) {
     classpathToInspect = runtimeClasspath.toInstrumentationMetadataView()
     superTypesOutputFile = generatedPropertiesFileFor("instrumented-super-types")
-    superTypesHashFile = generatedTxtFileFor("instrumented-super-types-hash")
     upgradedPropertiesFile = generatedJsonFileFor("upgraded-properties")
-    upgradedPropertiesHashFile = generatedTxtFileFor("upgraded-properties-hash")
 }
 
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'

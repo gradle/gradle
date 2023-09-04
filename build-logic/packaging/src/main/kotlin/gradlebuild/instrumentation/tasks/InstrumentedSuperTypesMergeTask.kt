@@ -27,7 +27,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.hash.Hashing
 import java.io.File
 import java.util.ArrayDeque
 import java.util.Properties
@@ -50,19 +49,11 @@ abstract class InstrumentedSuperTypesMergeTask : DefaultTask() {
     @get:OutputFile
     abstract val instrumentedSuperTypes: RegularFileProperty
 
-    /**
-     * Calculated hash for [instrumentedSuperTypes] file used for invalidating instrumentation cache,
-     * more specifically used in: InstrumentingClasspathFileTransformer.
-     */
-    @get:OutputFile
-    abstract val instrumentedSuperTypesHash: RegularFileProperty
-
     @TaskAction
     fun mergeInstrumentedSuperTypes() {
         val instrumentedClasses = findInstrumentedClasses()
         if (instrumentedClasses.isEmpty()) {
             instrumentedSuperTypes.asFile.get().toEmptyFile()
-            instrumentedSuperTypesHash.asFile.get().toEmptyFile()
             return
         }
 
@@ -135,23 +126,15 @@ abstract class InstrumentedSuperTypesMergeTask : DefaultTask() {
     private
     fun writeSuperTypes(onlyInstrumentedSuperTypes: Map<String, Set<String>>) {
         val outputFile = instrumentedSuperTypes.asFile.get()
-        val outputHashFile = instrumentedSuperTypesHash.asFile.get()
         if (onlyInstrumentedSuperTypes.isEmpty()) {
             // If there is no instrumented types just create an empty file
             outputFile.toEmptyFile()
-            outputHashFile.toEmptyFile()
         } else {
-            val properties = Properties()
-            onlyInstrumentedSuperTypes.forEach { (className, superTypes) ->
-                properties.setProperty(className, superTypes.joinToString(","))
+            outputFile.writer().use {
+                onlyInstrumentedSuperTypes.toSortedMap().forEach { (className, superTypes) ->
+                    it.write("$className=${superTypes.sorted().joinToString(",")}\n")
+                }
             }
-            outputFile.outputStream().use { properties.store(it, null) }
-
-            val hasher = Hashing.defaultFunction().newHasher()
-            onlyInstrumentedSuperTypes.entries
-                .sortedBy { it.key }
-                .forEach { hasher.putString(it.key + "=" + it.value.sorted().joinToString(",")) }
-            outputHashFile.outputStream().use { it.write(hasher.hash().toByteArray()) }
         }
     }
 

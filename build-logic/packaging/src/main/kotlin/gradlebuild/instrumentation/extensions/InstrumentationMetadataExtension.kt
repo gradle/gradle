@@ -36,9 +36,7 @@ abstract class InstrumentationMetadataExtension(private val configurations: Conf
 
     abstract val classpathToInspect: ConfigurableFileCollection
     abstract val superTypesOutputFile: RegularFileProperty
-    abstract val superTypesHashFile: RegularFileProperty
     abstract val upgradedPropertiesFile: RegularFileProperty
-    abstract val upgradedPropertiesHashFile: RegularFileProperty
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun createInstrumentationMetadataViewOf(other: Configuration): FileCollection {
