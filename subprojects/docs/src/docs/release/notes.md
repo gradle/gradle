@@ -63,7 +63,14 @@ java {
 }
 ```
 
-### Links to GitHub sources in Kotlin DSL Reference
+### Kotlin DSL improvements
+
+<a name="kotlin_1.9.10"></a>
+#### The embedded Kotlin has been upgraded to 1.9.10
+
+The embedded Kotlin has been updated from 1.9.0 to [Kotlin 1.9.10](https://github.com/JetBrains/kotlin/releases/tag/v1.9.10).
+
+#### Links to GitHub sources in Kotlin DSL Reference
 
 The Kotlin DSL Reference guide now contains links to the source code of all Kotlin and Java types, functions and properties.
 The links point to GitHub and are specific to the version of the code the guide is documenting.
