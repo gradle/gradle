@@ -16,13 +16,8 @@
 
 package org.gradle.internal.component;
 
-<<<<<<<< HEAD:subprojects/dependency-management/src/main/java/org/gradle/internal/component/NoMatchingArtifactVariantsException.java
 public class NoMatchingArtifactVariantsException extends ArtifactVariantSelectionException {
     public NoMatchingArtifactVariantsException(String message) {
-========
-public class AmbiguousArtifactVariantSelectionException extends ArtifactVariantSelectionException {
-    public AmbiguousArtifactVariantSelectionException(String message) {
->>>>>>>> d0a6bffd6df (Rename and document variant selection classes for clarity):subprojects/dependency-management/src/main/java/org/gradle/internal/component/AmbiguousArtifactVariantSelectionException.java
         super(message);
     }
 }

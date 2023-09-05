@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 
 /**
- * ResolvedArtifactTransformer for {@link org.gradle.api.artifacts.repositories.ArtifactRepository} implementations.
+ * Factory for {@link org.gradle.api.artifacts.repositories.ArtifactRepository} implementations.
  */
 public interface BaseRepositoryFactory {
 

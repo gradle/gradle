@@ -37,6 +37,7 @@ import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
