@@ -116,7 +116,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -491,8 +491,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new SelectionFailureHandler(problems);
         }
 
-        AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(SelectionFailureHandler selectionFailureHandler) {
-            return new AttributeMatchingConfigurationSelector(selectionFailureHandler);
+        GraphVariantSelector createGraphVariantSelector(SelectionFailureHandler selectionFailureHandler) {
+            return new GraphVariantSelector(selectionFailureHandler);
         }
 
         ConfigurationResolver createDependencyResolver(

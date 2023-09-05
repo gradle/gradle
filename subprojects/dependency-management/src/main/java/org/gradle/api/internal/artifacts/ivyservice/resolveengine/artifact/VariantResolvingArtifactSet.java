@@ -21,10 +21,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
-import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
@@ -45,7 +45,7 @@ import java.util.function.Consumer;
  * An {@link ArtifactSet} representing the artifacts contributed by a single variant in a dependency
  * graph, in the context of the dependency referencing it.
  */
-public class VariantResolvingArtifactSet implements ArtifactSet, VariantSelector.Factory {
+public class VariantResolvingArtifactSet implements ArtifactSet, ArtifactVariantSelector.ResolvedArtifactTransformer {
 
     private final VariantArtifactResolver variantResolver;
     private final ComponentGraphResolveState component;
@@ -75,7 +75,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet, VariantSelector
     }
 
     @Override
-    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, boolean selectFromAllVariants) {
+    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants) {
         if (!componentFilter.isSatisfiedBy(componentId)) {
             return ResolvedArtifactSet.EMPTY;
         } else {
@@ -92,7 +92,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet, VariantSelector
             } catch (Exception e) {
                 return new BrokenResolvedArtifactSet(e);
             }
-            return selector.select(variants, this);
+            return variantSelector.select(variants, this);
         }
     }
 

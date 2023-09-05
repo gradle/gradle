@@ -16,12 +16,14 @@
 
 package org.gradle.internal.component;
 
+import org.gradle.internal.component.model.GraphVariantSelector;
+
 /**
  * Abstract base class of exceptions thrown by the {@link SelectionFailureHandler} when a variant of a component cannot be selected
- * by the {@link org.gradle.internal.component.model.AttributeMatchingConfigurationSelector AttributeMatchingConfigurationSelector}.
+ * by the {@link GraphVariantSelector}.
  */
-public abstract class AbstractConfigurationSelectionException extends AbstractSelectionException {
-    public AbstractConfigurationSelectionException(String message) {
+public abstract class AbstractGraphVariantSelectionException extends AbstractVariantSelectionException {
+    public AbstractGraphVariantSelectionException(String message) {
         super(message);
     }
 }
