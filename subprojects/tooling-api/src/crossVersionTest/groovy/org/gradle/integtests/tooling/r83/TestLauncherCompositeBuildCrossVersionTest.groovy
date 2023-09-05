@@ -228,11 +228,14 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
             repositories {
                 mavenCentral()
             }
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                    }
+                }
             }
             tasks.named('test') {
-                useJUnitPlatform()
                 testLogging {
                     showStandardStreams = true
                 }
@@ -246,7 +249,7 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
         projectDir.file("src/test/java/${testClassName}.java") << """
             public class $testClassName {
                 @org.junit.jupiter.api.Test
-                public void testMethod() {
+                void testMethod() {
                     System.out.println("${testClassName}.testMethod");
                 }
             }
