@@ -66,7 +66,7 @@ import static org.gradle.internal.component.external.model.maven.DefaultMavenMod
 public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
     /**
-     * Factory method to transform a {@link DefaultMavenModuleResolveMetadata}, which is lazy, into a realised version.
+     * ResolvedArtifactTransformer method to transform a {@link DefaultMavenModuleResolveMetadata}, which is lazy, into a realised version.
      *
      * @param metadata the lazy metadata to transform
      * @return the realised version of the metadata

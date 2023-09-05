@@ -305,7 +305,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return resolveOptimizations;
     }
 
-    public GraphVariantSelector getAttributeConfigurationSelector() {
+    public GraphVariantSelector getVariantSelector() {
         return variantSelector;
     }
 

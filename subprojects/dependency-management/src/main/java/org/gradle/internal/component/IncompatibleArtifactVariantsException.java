@@ -15,8 +15,13 @@
  */
 package org.gradle.internal.component;
 
+<<<<<<<< HEAD:subprojects/dependency-management/src/main/java/org/gradle/internal/component/IncompatibleArtifactVariantsException.java
 public class IncompatibleArtifactVariantsException extends ArtifactVariantSelectionException {
     public IncompatibleArtifactVariantsException(String message) {
+========
+public class IncompatibleArtifactVariantSelectionException extends ArtifactVariantSelectionException {
+    public IncompatibleArtifactVariantSelectionException(String message) {
+>>>>>>>> d0a6bffd6df (Rename and document variant selection classes for clarity):subprojects/dependency-management/src/main/java/org/gradle/internal/component/IncompatibleArtifactVariantSelectionException.java
         super(message);
     }
 }
