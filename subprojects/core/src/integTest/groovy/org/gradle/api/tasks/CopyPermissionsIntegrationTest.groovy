@@ -44,9 +44,11 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         file("build/tmp/${testFileName}").mode == mode
+
         where:
-        mode << [0746, 0746]
-        testFileName << ["reference.txt", "\u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.txt"]
+        mode | testFileName
+        0746 | "reference.txt"
+        0746 | "\u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.txt"
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
@@ -75,6 +77,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     @Requires(UnitTestPreconditions.Symlinks)
     def "symlinked file permissions are preserved in copy action"() {
         given:
+        def mode = 0746
         def testSourceFile = file(testFileName)
         testSourceFile << "test file content"
         testSourceFile.mode = mode
@@ -98,7 +101,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         file("build/tmp/${testFileName}_link").mode == mode
 
         where:
-        mode << [0746, 0746]
         testFileName << ["reference.txt", "\u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.txt"]
     }
 
