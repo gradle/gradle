@@ -62,8 +62,8 @@ import static org.gradle.internal.exceptions.StyledException.style;
  * Provides a central location for logging and reporting variant selection failures appearing during
  * each stage of the selection process.
  *
- * All variant selection failures encountered during selection by the {@link GraphVariantSelector GraphVariantSelector} or
- * {@link AttributeMatchingArtifactVariantSelector AttributeMatchingArtifactVariantSelector}
+ * All variant selection failures encountered during selection by the {@link GraphVariantSelector} or
+ * {@link AttributeMatchingArtifactVariantSelector}
  * should be routed through this class.
  *
  * This class reports failures to the {@link Problems} service.  It is a
