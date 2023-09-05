@@ -22,13 +22,13 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.provider.Property;
+import org.gradle.api.plugins.jvm.testing.toolchains.JUnit4ToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
 import java.util.Collections;
 
-abstract public class JUnit4TestToolchain implements JVMTestToolchain<JUnit4TestToolchain.Parameters> {
+abstract public class JUnit4TestToolchain implements JVMTestToolchain<JUnit4ToolchainParameters> {
     public static final String DEFAULT_VERSION = "4.13.2";
     private static final String GROUP_NAME = "junit:junit";
 
@@ -55,7 +55,4 @@ abstract public class JUnit4TestToolchain implements JVMTestToolchain<JUnit4Test
         return ImmutableSet.of(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getVersion().get()));
     }
 
-    public interface Parameters extends JVMTestToolchain.Parameters {
-        Property<String> getVersion();
-    }
 }

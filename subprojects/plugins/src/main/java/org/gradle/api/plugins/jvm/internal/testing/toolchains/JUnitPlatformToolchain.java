@@ -24,16 +24,14 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.plugins.jvm.internal.testing.engines.JUnitPlatformTestEngine;
-import org.gradle.api.plugins.jvm.internal.testing.engines.JUnitPlatformTestEngineFactory;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
+import org.gradle.api.plugins.jvm.testing.toolchains.JUnitPlatformToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchain.Parameters> implements JVMTestToolchain<T> {
+abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchainParameters> implements JVMTestToolchain<T> {
     public static final String DEFAULT_VERSION = "1.10.0";
     private static final String GROUP_NAME = "org.junit.platform:junit-platform-launcher";
 
@@ -70,12 +68,4 @@ abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchain.Pa
     @Inject
     protected abstract DependencyFactory getDependencyFactory();
 
-    public interface Parameters extends JVMTestToolchain.Parameters {
-        Property<String> getPlatformVersion();
-
-        SetProperty<JUnitPlatformTestEngine<?>> getEngines();
-
-        @Inject
-        JUnitPlatformTestEngineFactory getEngineFactory();
-    }
 }

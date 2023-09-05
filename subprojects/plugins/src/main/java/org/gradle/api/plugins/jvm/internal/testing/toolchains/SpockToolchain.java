@@ -16,9 +16,9 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
-import org.gradle.api.provider.Property;
+import org.gradle.api.plugins.jvm.testing.toolchains.SpockToolchainParameters;
 
-abstract public class SpockToolchain extends AbstractJUnitPlatformTestEngineToolchain<SpockToolchain.Parameters> {
+abstract public class SpockToolchain extends AbstractJUnitPlatformTestEngineToolchain<SpockToolchainParameters> {
     public static final String DEFAULT_VERSION = "2.2-groovy-3.0";
     private static final String GROUP_NAME = "org.spockframework:spock-core";
 
@@ -31,7 +31,4 @@ abstract public class SpockToolchain extends AbstractJUnitPlatformTestEngineTool
         return getParameters().getSpockVersion().get();
     }
 
-    public interface Parameters extends JUnitPlatformToolchain.Parameters {
-        Property<String> getSpockVersion();
-    }
 }

@@ -16,9 +16,9 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
-import org.gradle.api.provider.Property;
+import org.gradle.api.plugins.jvm.testing.toolchains.JUnitJupiterToolchainParameters;
 
-public abstract class JUnitJupiterToolchain extends AbstractJUnitPlatformTestEngineToolchain<JUnitJupiterToolchain.Parameters> {
+public abstract class JUnitJupiterToolchain extends AbstractJUnitPlatformTestEngineToolchain<JUnitJupiterToolchainParameters> {
     public static final String DEFAULT_VERSION = "5.8.2";
     private static final String GROUP_NAME = "org.junit.jupiter:junit-jupiter";
 
@@ -31,7 +31,4 @@ public abstract class JUnitJupiterToolchain extends AbstractJUnitPlatformTestEng
         return getParameters().getJupiterVersion().get();
     }
 
-    public interface Parameters extends JUnitPlatformToolchain.Parameters {
-        Property<String> getJupiterVersion();
-    }
 }

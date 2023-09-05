@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm.internal.testing.toolchains;
+package org.gradle.api.plugins.jvm.testing.toolchains;
 
-import org.gradle.api.plugins.jvm.testing.toolchains.BasicJUnitPlatformToolchainParameters;
+import org.gradle.api.plugins.jvm.internal.testing.toolchains.JVMTestToolchain;
 
-abstract public class BasicJUnitPlatformToolchain extends JUnitPlatformToolchain<BasicJUnitPlatformToolchainParameters> {
+public interface JVMTestToolchainParameters {
+    final class None implements JVMTestToolchainParameters {}
 }

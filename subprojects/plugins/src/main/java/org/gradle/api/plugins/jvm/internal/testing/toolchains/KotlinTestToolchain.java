@@ -16,9 +16,9 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
-import org.gradle.api.provider.Property;
+import org.gradle.api.plugins.jvm.testing.toolchains.KotlinTestToolchainParameters;
 
-abstract public class KotlinTestToolchain extends AbstractJUnitPlatformTestEngineToolchain<KotlinTestToolchain.Parameters> {
+abstract public class KotlinTestToolchain extends AbstractJUnitPlatformTestEngineToolchain<KotlinTestToolchainParameters> {
     public static final String DEFAULT_VERSION = "1.9.0";
     private static final String GROUP_NAME = "org.jetbrains.kotlin:kotlin-test-junit5";
 
@@ -31,7 +31,4 @@ abstract public class KotlinTestToolchain extends AbstractJUnitPlatformTestEngin
         return getParameters().getKotlinTestVersion().get();
     }
 
-    public interface Parameters extends JUnitPlatformToolchain.Parameters {
-        Property<String> getKotlinTestVersion();
-    }
 }

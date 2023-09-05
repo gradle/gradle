@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm.internal.testing.toolchains;
+package org.gradle.api.plugins.jvm.testing.toolchains;
 
-import org.gradle.api.plugins.jvm.testing.toolchains.BasicJUnitPlatformToolchainParameters;
+import org.gradle.api.provider.Property;
 
-abstract public class BasicJUnitPlatformToolchain extends JUnitPlatformToolchain<BasicJUnitPlatformToolchainParameters> {
+abstract public class KotlinTestToolchainParameters extends JUnitPlatformToolchainParameters {
+    abstract public Property<String> getKotlinTestVersion();
 }

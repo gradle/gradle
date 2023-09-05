@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm.internal.testing.engines;
 
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngineParameters;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.service.ServiceLookup;
@@ -37,15 +38,15 @@ public class JUnitPlatformTestEngineFactory {
         this.parentServices = parentServices;
     }
 
-    public <T extends JUnitPlatformTestEngine.Parameters> JUnitPlatformTestEngine<T> create(Class<? extends JUnitPlatformTestEngine<T>> engineClass) {
-        IsolationScheme<JUnitPlatformTestEngine<?>, JUnitPlatformTestEngine.Parameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JUnitPlatformTestEngine.class), JUnitPlatformTestEngine.Parameters.class, JUnitPlatformTestEngine.Parameters.None.class);
+    public <T extends JUnitPlatformTestEngineParameters> JUnitPlatformTestEngine<T> create(Class<? extends JUnitPlatformTestEngine<T>> engineClass) {
+        IsolationScheme<JUnitPlatformTestEngine<?>, JUnitPlatformTestEngineParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JUnitPlatformTestEngine.class), JUnitPlatformTestEngineParameters.class, JUnitPlatformTestEngineParameters.None.class);
         Class<T> parametersType = isolationScheme.parameterTypeFor(engineClass);
         T parameters = parametersType == null ? null : objectFactory.newInstance(parametersType);
         ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.emptyList(), p -> true);
         return instantiatorFactory.decorate(lookup).newInstance(engineClass);
     }
 
-    public <T extends JUnitPlatformTestEngine.Parameters> JUnitPlatformTestEngine<T> create(Class<? extends JUnitPlatformTestEngine<T>> engineClass, Action<T> paramsAction) {
+    public <T extends JUnitPlatformTestEngineParameters> JUnitPlatformTestEngine<T> create(Class<? extends JUnitPlatformTestEngine<T>> engineClass, Action<T> paramsAction) {
         JUnitPlatformTestEngine<T> engine = create(engineClass);
         paramsAction.execute(engine.getParameters());
         return engine;

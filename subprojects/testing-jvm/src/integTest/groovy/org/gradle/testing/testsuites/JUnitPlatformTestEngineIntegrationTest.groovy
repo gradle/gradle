@@ -66,7 +66,7 @@ class JUnitPlatformTestEngineIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     test {
                         useJUnitJupiter {
-                            engines.add(engineFactory.create(JUnitPlatformSuiteEngine))
+                            addEngine(JUnitPlatformSuiteEngine)
                         }
                         targets.all {
                             testTask.configure {
@@ -139,10 +139,10 @@ class JUnitPlatformTestEngineIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     test {
                         useJUnitPlatform {
-                            engines.add(engineFactory.create(JUnitVintageEngine) { params ->
-                                params.apiVersion = '4.13.2'
-                                params.engineVersion = '5.9.2'
-                            })
+                            addEngine(JUnitVintageEngine) {
+                                apiVersion = '4.13.2'
+                                engineVersion = '5.9.2'
+                            }
                         }
                     }
                 }

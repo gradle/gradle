@@ -19,12 +19,13 @@ package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.plugins.jvm.testing.toolchains.JVMTestToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.Path;
 
 import java.util.Map;
 
-public class FrameworkCachingJVMTestToolchain <T extends JVMTestToolchain.Parameters> implements JVMTestToolchain<T> {
+public class FrameworkCachingJVMTestToolchain <T extends JVMTestToolchainParameters> implements JVMTestToolchain<T> {
     private final JVMTestToolchain<T> delegate;
     private final Map<Path, TestFramework> testFrameworks = Maps.newHashMap();
 

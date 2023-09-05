@@ -18,10 +18,11 @@ package org.gradle.api.plugins.jvm.internal.testing.engines;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngineParameters;
 
 import javax.inject.Inject;
 
-public interface JUnitPlatformTestEngine<T extends JUnitPlatformTestEngine.Parameters> {
+public interface JUnitPlatformTestEngine<T extends JUnitPlatformTestEngineParameters> {
     /**
      * Returns the implementation dependencies required by this test engine.
      */
@@ -47,7 +48,4 @@ public interface JUnitPlatformTestEngine<T extends JUnitPlatformTestEngine.Param
     @Inject
     T getParameters();
 
-    interface Parameters {
-        final class None implements Parameters { }
-    }
 }

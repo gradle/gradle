@@ -17,10 +17,11 @@
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.plugins.jvm.testing.toolchains.JUnitPlatformToolchainParameters;
 
 import java.util.Collections;
 
-abstract class AbstractJUnitPlatformTestEngineToolchain<T extends JUnitPlatformToolchain.Parameters> extends JUnitPlatformToolchain<T> {
+abstract class AbstractJUnitPlatformTestEngineToolchain<T extends JUnitPlatformToolchainParameters> extends JUnitPlatformToolchain<T> {
     private final String groupName;
 
     public AbstractJUnitPlatformTestEngineToolchain(String groupName) {

@@ -18,11 +18,12 @@ package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.plugins.jvm.testing.toolchains.JVMTestToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
 
-public interface JVMTestToolchain<T extends JVMTestToolchain.Parameters> {
+public interface JVMTestToolchain<T extends JVMTestToolchainParameters> {
     TestFramework createTestFramework(Test task);
 
     Iterable<Dependency> getCompileOnlyDependencies();
@@ -34,7 +35,4 @@ public interface JVMTestToolchain<T extends JVMTestToolchain.Parameters> {
     @Inject
     T getParameters();
 
-    interface Parameters {
-        final class None implements Parameters { }
-    }
 }
