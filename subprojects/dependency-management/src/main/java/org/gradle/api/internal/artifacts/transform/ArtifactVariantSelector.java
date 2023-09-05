@@ -50,13 +50,6 @@ public interface ArtifactVariantSelector {
 
     ImmutableAttributes getRequestedAttributes();
 
-    /**
-     * Returns the failure processor which must be used to report failures during variant selection.
-     *
-     * @return the failure processor
-     */
-    SelectionFailureHandler getFailureProcessor();
-
     interface ResolvedArtifactTransformer {
         ResolvedArtifactSet asTransformed(
             ResolvedVariant sourceVariant,
