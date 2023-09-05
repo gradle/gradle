@@ -24,7 +24,7 @@ import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.model.GraphVariantSelector;
 
 /**
- * Selects artifacts from a set of resolved variants, this can but does not necessarily require an additional
+ * Selects artifacts from a set of resolved variants. This can but does not necessarily require an additional
  * round of attribute matching to select a variant containing artifacts.
  *
  * This class is intentionally named similarly to {@link GraphVariantSelector}, as it has a
