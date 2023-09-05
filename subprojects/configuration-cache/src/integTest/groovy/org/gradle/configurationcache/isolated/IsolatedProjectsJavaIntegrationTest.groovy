@@ -31,7 +31,7 @@ class IsolatedProjectsJavaIntegrationTest extends AbstractIsolatedProjectsIntegr
         """
 
         when:
-        configurationCacheRun("b:assemble")
+        isolatedProjectsRun("b:assemble")
 
         then:
         fixture.assertStateStored {
@@ -39,7 +39,7 @@ class IsolatedProjectsJavaIntegrationTest extends AbstractIsolatedProjectsIntegr
         }
 
         when:
-        configurationCacheRun("b:assemble")
+        isolatedProjectsRun("b:assemble")
 
         then:
         fixture.assertStateLoaded()

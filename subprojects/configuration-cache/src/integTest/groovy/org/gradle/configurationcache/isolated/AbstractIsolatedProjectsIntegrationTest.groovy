@@ -16,26 +16,19 @@
 
 package org.gradle.configurationcache.isolated
 
-import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
+import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 
 import static org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME
 
-abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractOptInFeatureIntegrationTest {
+abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
     public static final String ENABLE_CLI = "-D${PROPERTY_NAME}=true"
     final def fixture = new IsolatedProjectsFixture(this)
 
-    @Override
-    void configurationCacheRun(String... tasks) {
+    void isolatedProjectsRun(String... tasks) {
         run(ENABLE_CLI, *tasks)
     }
 
-    @Override
-    void configurationCacheRunLenient(String... tasks) {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    void configurationCacheFails(String... tasks) {
+    void isolatedProjectsFails(String... tasks) {
         fails(ENABLE_CLI, *tasks)
     }
 }
