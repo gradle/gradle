@@ -22,6 +22,7 @@ abstract class AbstractCompilerContinuousIntegrationTest extends AbstractContinu
 
     def setup() {
         executer.withWorkerDaemonsExpirationDisabled()
+        executer.requireIsolatedDaemons()
     }
 
     abstract String getCompileTaskName()
