@@ -20,7 +20,7 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 
 /**
  * Abstract base class of exceptions thrown by the {@link SelectionFailureHandler} when a variant of a component cannot be selected
- * by the {@link GraphVariantSelector GraphVariantSelector}.
+ * by the {@link GraphVariantSelector}.
  */
 public abstract class AbstractGraphVariantSelectionException extends AbstractVariantSelectionException {
     public AbstractGraphVariantSelectionException(String message) {
