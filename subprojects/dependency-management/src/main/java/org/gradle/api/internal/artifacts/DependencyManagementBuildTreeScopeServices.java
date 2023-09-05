@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
@@ -217,7 +218,7 @@ class DependencyManagementBuildTreeScopeServices {
     ) {
         return new ImmutableTransformWorkspaceServices(
             buildTreeScopedCacheBuilderFactory
-                .createCacheBuilder("transformed")
+                .createCacheBuilder(CacheLayout.TRANSFORMS.getKey())
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
                 .withDisplayName("Artifact transforms cache"),
             fileAccessTimeJournal,

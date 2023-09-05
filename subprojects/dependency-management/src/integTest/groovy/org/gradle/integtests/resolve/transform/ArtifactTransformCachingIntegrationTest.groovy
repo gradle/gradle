@@ -30,6 +30,7 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -2240,11 +2241,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     TestFile gradleUserHomeOutputDir(String from, String to, Closure<String> stream = { output }) {
-        outputDir(from, to, this.&gradleUserHomeOutputDirs, stream)
+        outputDir(from, to, this.&gradleTreeScopeOutputDirs, stream)
     }
 
     Set<TestFile> allOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        return projectOutputDirs(from, to, stream) + gradleUserHomeOutputDirs(from, to, stream)
+        return projectOutputDirs(from, to, stream) + gradleTreeScopeOutputDirs(from, to, stream)
     }
 
     Set<TestFile> projectOutputDirs(String from, String to, Closure<String> stream = { output }) {
@@ -2252,8 +2253,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         return outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 
-    Set<TestFile> gradleUserHomeOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", ".gradle", ".*", "transformed", "\\w+", "transformed"]
+    Set<TestFile> gradleTreeScopeOutputDirs(String from, String to, Closure<String> stream = { output }) {
+        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", ".gradle", ".*", CacheLayout.TRANSFORMS.getKey(), "\\w+", "transformed"]
         outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 
@@ -2276,7 +2277,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     TestFile getCacheDir() {
-        return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
+        return temporaryFolder.getTestDirectory().file(".gradle/${GradleVersion.current().version}/${CacheLayout.TRANSFORMS.getKey()}")
     }
 
     void writeLastTransformationAccessTimeToJournal(TestFile workspaceDir, long millis) {
