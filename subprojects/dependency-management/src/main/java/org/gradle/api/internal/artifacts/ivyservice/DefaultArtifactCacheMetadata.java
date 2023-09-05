@@ -27,13 +27,11 @@ public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, Glob
 
     public static final CacheVersion CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
     private final File cacheDir;
-    private final File transformsDir;
     private final File baseDir;
 
     public DefaultArtifactCacheMetadata(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
         this.baseDir = cacheBuilderFactory.getRootDir();
         this.cacheDir = cacheBuilderFactory.baseDirForCrossVersionCache(CacheLayout.ROOT.getKey());
-        this.transformsDir = cacheBuilderFactory.baseDirForCrossVersionCache(CacheLayout.TRANSFORMS.getKey());
     }
 
     public DefaultArtifactCacheMetadata(GlobalScopedCacheBuilderFactory cacheBuilderFactory, File baseDir) {
@@ -43,11 +41,6 @@ public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, Glob
     @Override
     public File getCacheDir() {
         return cacheDir;
-    }
-
-    @Override
-    public File getTransformsStoreDirectory() {
-        return transformsDir;
     }
 
     @Override
