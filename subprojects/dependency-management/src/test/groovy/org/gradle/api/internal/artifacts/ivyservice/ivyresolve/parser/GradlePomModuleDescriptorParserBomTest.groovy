@@ -134,7 +134,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     </dependencyManagement>
 </project>
 """
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
@@ -192,7 +192,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     </dependencyManagement>
 </project>
 """
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
@@ -380,7 +380,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     </dependencyManagement>
 </project>
 """
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
         when:
         parsePom()
 
@@ -472,7 +472,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     </dependencyManagement>
 </project>
 """
-        parseContext.getMetaDataArtifact({ it.selector.module == 'bom' }, _, MAVEN_POM) >> asResource(bomFile)
+        parseContext.getMetaDataArtifact({ it.getVariantSelector.module == 'bom' }, _, MAVEN_POM) >> asResource(bomFile)
 
         when:
         parsePom()
