@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.model.ComponentArtifactResolveState
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
@@ -100,11 +99,6 @@ class VariantResolvingArtifactSetTest extends Specification {
             @Override
             ImmutableAttributes getRequestedAttributes() {
                 return ImmutableAttributes.EMPTY
-            }
-
-            @Override
-            SelectionFailureHandler getFailureProcessor() {
-                return null
             }
         }, false)
 

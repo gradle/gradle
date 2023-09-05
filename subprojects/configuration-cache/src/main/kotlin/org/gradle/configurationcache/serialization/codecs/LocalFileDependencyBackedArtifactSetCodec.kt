@@ -265,7 +265,6 @@ class FixedArtifactVariantSelector(
     private val transformedVariantFactory: TransformedVariantFactory
 ) : ArtifactVariantSelector {
     override fun getRequestedAttributes() = throw UnsupportedOperationException("Should not be called")
-    override fun getFailureProcessor() = throw UnsupportedOperationException("Should not be called")
 
     override fun select(candidates: ResolvedVariantSet, resolvedArtifactTransformer: ArtifactVariantSelector.ResolvedArtifactTransformer): ResolvedArtifactSet {
         require(candidates.variants.size == 1)
@@ -290,7 +289,6 @@ class FixedArtifactVariantSelector(
 private
 class NoTransformsArtifactVariantSelector : ArtifactVariantSelector {
     override fun getRequestedAttributes() = throw UnsupportedOperationException("Should not be called")
-    override fun getFailureProcessor() = throw UnsupportedOperationException("Should not be called")
 
     override fun select(candidates: ResolvedVariantSet, resolvedArtifactTransformer: ArtifactVariantSelector.ResolvedArtifactTransformer): ResolvedArtifactSet {
         require(candidates.variants.size == 1)

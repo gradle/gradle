@@ -80,11 +80,6 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     }
 
     @Override
-    public SelectionFailureHandler getFailureProcessor() {
-        return failureProcessor;
-    }
-
-    @Override
     public String toString() {
         return "Variant selector for " + requested;
     }
