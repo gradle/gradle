@@ -56,8 +56,10 @@ author:
 teams:
   build_scan:
     members:
-      - 'alllex'
       - 'wolfs'
+  configuration:
+    members:
+      - 'alllex'
   dev_prod:
     members:
       - 'blindpirate'
