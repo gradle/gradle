@@ -16,11 +16,18 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.ivy.core.IvyPatternHelper;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.ivy.util.StringUtils.isNullOrEmpty;
 
+/**
+ * Utility methods originally used directly from {@link IvyPatternHelper}, but
+ * which have been now copied to facilitate alterations and also to isolate
+ * the usages from Ivy concepts.
+ */
 public class PatternHelper {
 
     public static final String TYPE_KEY = "type";
@@ -39,6 +46,11 @@ public class PatternHelper {
 
     public static final String ORGANISATION_PATH_KEY = "orgPath";
 
+    /**
+     * Selective copy of {@link IvyPatternHelper#substituteTokens(String, Map)},
+     * necessary because we allow for paths which are no longer supported by the Ivy code (for
+     * example paths with parent traversals, i.e. with ".." in them).
+     */
     public static String substituteTokens(String pattern, Map<String, String> attributes) {
         Map<String, Object> tokens = new HashMap<>(attributes);
         if (tokens.containsKey(ORGANISATION_KEY) && !tokens.containsKey(ORGANISATION_KEY2)) {
@@ -143,6 +155,10 @@ public class PatternHelper {
         return buffer.toString();
     }
 
+    /**
+     * Exact copy of {@link IvyPatternHelper#getTokenString(String)}, used to isolate
+     * the usages from Ivy concepts.
+     */
     public static String getTokenString(String token) {
         return "[" + token + "]";
     }
