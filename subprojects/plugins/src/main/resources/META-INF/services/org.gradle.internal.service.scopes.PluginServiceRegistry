@@ -1,2 +1,3 @@
 org.gradle.api.internal.tasks.CompileServices
 org.gradle.api.plugins.internal.PluginAuthorServices
+org.gradle.api.plugins.jvm.internal.testing.TestingServices

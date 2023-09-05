@@ -30,8 +30,12 @@ import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
+import org.gradle.api.plugins.jvm.internal.testing.engines.JUnitPlatformTestEngineFactory;
+import org.gradle.api.plugins.jvm.internal.testing.toolchains.BasicJUnitPlatformToolchain;
+import org.gradle.api.plugins.jvm.internal.testing.toolchains.FrameworkCachingJVMTestToolchain;
 import org.gradle.api.plugins.jvm.internal.testing.toolchains.JUnit4TestToolchain;
 import org.gradle.api.plugins.jvm.internal.testing.toolchains.JUnitJupiterToolchain;
+import org.gradle.api.plugins.jvm.internal.testing.toolchains.JUnitPlatformToolchain;
 import org.gradle.api.plugins.jvm.internal.testing.toolchains.JVMTestToolchain;
 import org.gradle.api.plugins.jvm.internal.testing.toolchains.KotlinTestToolchain;
 import org.gradle.api.plugins.jvm.internal.testing.toolchains.LegacyJUnit4TestToolchain;
@@ -44,6 +48,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.Actions;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.service.ServiceLookup;
@@ -61,7 +66,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final String name;
     private final JvmComponentDependencies dependencies;
     private final TaskDependencyFactory taskDependencyFactory;
-    private final ToolchainCache toolchainCache = new ToolchainCache();
+    private final ToolchainFactory toolchainFactory = new ToolchainFactory();
 
     @Inject
     public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
@@ -89,10 +94,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
             // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
             // and add dependencies automatically.
-            LegacyJUnit4TestToolchain toolchain = toolchainCache.create(LegacyJUnit4TestToolchain.class);
-            getTestToolchain().convention(toolchain);
+            getTestToolchain().convention(toolchainFactory.getOrCreate(LegacyJUnit4TestToolchain.class));
         } else {
-            JUnitJupiterToolchain toolchain = toolchainCache.create(JUnitJupiterToolchain.class);
+            JVMTestToolchain<? extends JUnitJupiterToolchain.Parameters> toolchain = toolchainFactory.getOrCreate(JUnitJupiterToolchain.class);
             getTestToolchain().convention(toolchain);
             toolchain.getParameters().getJupiterVersion().convention(JUnitJupiterToolchain.DEFAULT_VERSION);
         }
@@ -100,9 +104,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         addDefaultTestTarget();
 
         this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
-            target.getTestTask().configure(task -> {
-                initializeTestFramework(name, task);
-            });
+            target.getTestTask().configure(this::initializeTestFramework);
         });
 
         // This is a workaround for strange behavior from the Kotlin plugin
@@ -124,7 +126,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         );
     }
 
-    private void initializeTestFramework(String name, Test task) {
+    private void initializeTestFramework(Test task) {
         Provider<TestFramework> mapTestingFrameworkToTestFramework = getTestToolchain().map(toolchain -> toolchain.createTestFramework(task));
         // The Test task's testing framework is derived from the test suite's toolchain
         task.getTestFrameworkProperty().convention(mapTestingFrameworkToTestFramework);
@@ -177,7 +179,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit() {
-        useJUnit(JUnit4TestToolchain.DEFAULT_VERSION);
+        useJUnit(Actions.doNothing());
     }
 
     @Override
@@ -190,13 +192,23 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         useJUnit(parameters -> parameters.getVersion().set(version));
     }
 
-    private void useJUnit(Action<JUnit4TestToolchain.Parameters> action) {
-        setToolchainAndConfigure(JUnit4TestToolchain.class, action);
+    public void useJUnit(Action<JUnit4TestToolchain.Parameters> action) {
+        setToolchainAndConfigure(JUnit4TestToolchain.class, parameters -> {
+            parameters.getVersion().convention(JUnit4TestToolchain.DEFAULT_VERSION);
+            action.execute(parameters);
+        });
+    }
+
+    public void useJUnitPlatform(Action<JUnitPlatformToolchain.Parameters> action) {
+        setToolchainAndConfigure(BasicJUnitPlatformToolchain.class, parameters -> {
+            parameters.getPlatformVersion().convention(JUnitPlatformToolchain.DEFAULT_VERSION);
+            action.execute(parameters);
+        });
     }
 
     @Override
     public void useJUnitJupiter() {
-        useJUnitJupiter(JUnitJupiterToolchain.DEFAULT_VERSION);
+        useJUnitJupiter(Actions.doNothing());
     }
 
     @Override
@@ -209,13 +221,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         useJUnitJupiter(parameters -> parameters.getJupiterVersion().set(version));
     }
 
-    private void useJUnitJupiter(Action<JUnitJupiterToolchain.Parameters> action) {
-        setToolchainAndConfigure(JUnitJupiterToolchain.class, action);
+    public void useJUnitJupiter(Action<JUnitJupiterToolchain.Parameters> action) {
+        setToolchainAndConfigure(JUnitJupiterToolchain.class, parameters -> {
+            parameters.getJupiterVersion().convention(JUnitJupiterToolchain.DEFAULT_VERSION);
+            action.execute(parameters);
+        });
     }
 
     @Override
     public void useSpock() {
-        useSpock(SpockToolchain.DEFAULT_VERSION);
+        useSpock(Actions.doNothing());
     }
 
     @Override
@@ -228,13 +243,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         useSpock(parameters -> parameters.getSpockVersion().set(version));
     }
 
-    private void useSpock(Action<SpockToolchain.Parameters> action) {
-        setToolchainAndConfigure(SpockToolchain.class, action);
+    public void useSpock(Action<SpockToolchain.Parameters> action) {
+        setToolchainAndConfigure(SpockToolchain.class, parameters -> {
+            parameters.getSpockVersion().convention(SpockToolchain.DEFAULT_VERSION);
+            action.execute(parameters);
+        });
     }
 
     @Override
     public void useKotlinTest() {
-        useKotlinTest(KotlinTestToolchain.DEFAULT_VERSION);
+        useKotlinTest(Actions.doNothing());
     }
 
     @Override
@@ -247,13 +265,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         useKotlinTest(parameters -> parameters.getKotlinTestVersion().set(version));
     }
 
-    private void useKotlinTest(Action<KotlinTestToolchain.Parameters> action) {
-        setToolchainAndConfigure(KotlinTestToolchain.class, action);
+    public void useKotlinTest(Action<KotlinTestToolchain.Parameters> action) {
+        setToolchainAndConfigure(KotlinTestToolchain.class, parameters -> {
+            parameters.getKotlinTestVersion().convention(KotlinTestToolchain.DEFAULT_VERSION);
+            action.execute(parameters);
+        });
     }
 
     @Override
     public void useTestNG() {
-        useTestNG(TestNGToolchain.DEFAULT_VERSION);
+        useTestNG(Actions.doNothing());
     }
 
     @Override
@@ -266,12 +287,15 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         useTestNG(parameters -> parameters.getVersion().set(version));
     }
 
-    private void useTestNG(Action<TestNGToolchain.Parameters> action) {
-        setToolchainAndConfigure(TestNGToolchain.class, action);
+    public void useTestNG(Action<TestNGToolchain.Parameters> action) {
+        setToolchainAndConfigure(TestNGToolchain.class, parameters -> {
+            parameters.getVersion().convention(TestNGToolchain.DEFAULT_VERSION);
+            action.execute(parameters);
+        });
     }
 
     private <T extends JVMTestToolchain.Parameters> void setToolchainAndConfigure(Class<? extends JVMTestToolchain<T>> toolchainType, Action<T> action) {
-        JVMTestToolchain<T> toolchain = toolchainCache.create(toolchainType);
+        JVMTestToolchain<T> toolchain = toolchainFactory.getOrCreate(toolchainType);
         getTestToolchain().set(toolchain);
         action.execute(toolchain.getParameters());
     }
@@ -293,19 +317,19 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         });
     }
 
-    private class ToolchainCache {
+    private class ToolchainFactory {
         private final Map<Class<? extends JVMTestToolchain<?>>, JVMTestToolchain<?>> cache = Maps.newHashMap();
 
-        public <T extends JVMTestToolchain<?>> T create(Class<T> type) {
-            return uncheckedCast(cache.computeIfAbsent(type, t -> newToolchain(uncheckedCast(type))));
+        public <T extends JVMTestToolchain<?>> T getOrCreate(Class<T> type) {
+            return uncheckedCast(cache.computeIfAbsent(type, t -> create(uncheckedCast(type))));
         }
 
-        private <T extends JVMTestToolchain.Parameters> JVMTestToolchain<T> newToolchain(Class<? extends JVMTestToolchain<T>> type) {
+        private <T extends JVMTestToolchain.Parameters> JVMTestToolchain<T> create(Class<? extends JVMTestToolchain<T>> type) {
             IsolationScheme<JVMTestToolchain<?>, JVMTestToolchain.Parameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JVMTestToolchain.class), JVMTestToolchain.Parameters.class, JVMTestToolchain.Parameters.None.class);
             Class<T> parametersType = isolationScheme.parameterTypeFor(type);
             T parameters = parametersType == null ? null : getObjectFactory().newInstance(parametersType);
-            ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, getParentServices(), Collections.emptyList(), p -> true);
-            return getInstantiatorFactory().decorate(lookup).newInstance(type);
+            ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, getParentServices(), Collections.singletonList(JUnitPlatformTestEngineFactory.class), p -> true);
+            return new FrameworkCachingJVMTestToolchain<>(getInstantiatorFactory().decorate(lookup).newInstance(type));
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -28,7 +29,7 @@ import org.gradle.api.tasks.testing.Test;
 import javax.inject.Inject;
 import java.util.Collections;
 
-abstract public class TestNGToolchain extends AbstractJVMTestToolchain<TestNGToolchain.Parameters> {
+abstract public class TestNGToolchain implements JVMTestToolchain<TestNGToolchain.Parameters> {
     public static final String DEFAULT_VERSION = "7.5";
     private static final String GROUP_NAME = "org.testng:testng";
 
@@ -39,7 +40,7 @@ abstract public class TestNGToolchain extends AbstractJVMTestToolchain<TestNGToo
     abstract protected ObjectFactory getObjectFactory();
 
     @Override
-    public TestFramework initializeTestFramework(Test task) {
+    public TestFramework createTestFramework(Test task) {
         return new TestNGTestFramework(task, (DefaultTestFilter) task.getFilter(), getObjectFactory());
     }
 
@@ -55,7 +56,7 @@ abstract public class TestNGToolchain extends AbstractJVMTestToolchain<TestNGToo
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
-        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getVersion().get()));
+        return ImmutableSet.of(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getVersion().get()));
     }
 
     public interface Parameters extends JVMTestToolchain.Parameters {

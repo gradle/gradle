@@ -16,46 +16,44 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.util.Path;
 
-import javax.inject.Inject;
-import java.util.Collections;
+import java.util.Map;
 
-abstract public class JUnit4TestToolchain implements JVMTestToolchain<JUnit4TestToolchain.Parameters> {
-    public static final String DEFAULT_VERSION = "4.13.2";
-    private static final String GROUP_NAME = "junit:junit";
+public class FrameworkCachingJVMTestToolchain <T extends JVMTestToolchain.Parameters> implements JVMTestToolchain<T> {
+    private final JVMTestToolchain<T> delegate;
+    private final Map<Path, TestFramework> testFrameworks = Maps.newHashMap();
 
-    @Inject
-    protected abstract DependencyFactory getDependencyFactory();
+    public FrameworkCachingJVMTestToolchain(JVMTestToolchain<T> delegate) {
+        this.delegate = delegate;
+    }
 
     @Override
     public TestFramework createTestFramework(Test task) {
-        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), false);
+        return testFrameworks.computeIfAbsent(task.getIdentityPath(), k -> delegate.createTestFramework(task));
     }
 
     @Override
     public Iterable<Dependency> getCompileOnlyDependencies() {
-        return Collections.emptyList();
+        return delegate.getCompileOnlyDependencies();
     }
 
     @Override
     public Iterable<Dependency> getRuntimeOnlyDependencies() {
-        return Collections.emptyList();
+        return delegate.getRuntimeOnlyDependencies();
     }
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
-        return ImmutableSet.of(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getVersion().get()));
+        return delegate.getImplementationDependencies();
     }
 
-    public interface Parameters extends JVMTestToolchain.Parameters {
-        Property<String> getVersion();
+    @Override
+    public T getParameters() {
+        return delegate.getParameters();
     }
 }

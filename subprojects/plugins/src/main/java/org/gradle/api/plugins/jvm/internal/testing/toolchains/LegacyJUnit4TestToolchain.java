@@ -24,9 +24,9 @@ import org.gradle.api.tasks.testing.Test;
 
 import java.util.Collections;
 
-abstract public class LegacyJUnit4TestToolchain extends AbstractJVMTestToolchain<JVMTestToolchain.Parameters.None> {
+abstract public class LegacyJUnit4TestToolchain implements JVMTestToolchain<JVMTestToolchain.Parameters.None> {
     @Override
-    public TestFramework initializeTestFramework(Test task) {
+    public TestFramework createTestFramework(Test task) {
         return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true);
     }
 

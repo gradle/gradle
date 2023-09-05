@@ -16,20 +16,7 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
-import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.tasks.testing.Test;
-
-abstract public class AbstractJVMTestToolchain<T extends JVMTestToolchain.Parameters> implements JVMTestToolchain<T> {
-    private TestFramework testFramework;
-
-    @Override
-    public TestFramework createTestFramework(Test task) {
-        if (testFramework == null) {
-            testFramework = initializeTestFramework(task);
-        }
-
-        return testFramework;
+abstract public class BasicJUnitPlatformToolchain extends JUnitPlatformToolchain<BasicJUnitPlatformToolchain.Parameters> {
+    public interface Parameters extends JUnitPlatformToolchain.Parameters {
     }
-
-    abstract protected TestFramework initializeTestFramework(Test task);
 }

@@ -16,44 +16,66 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
+import org.gradle.api.plugins.jvm.internal.testing.engines.JUnitPlatformTestEngine;
+import org.gradle.api.plugins.jvm.internal.testing.engines.JUnitPlatformTestEngineFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
-import java.util.Collections;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchain.Parameters> extends AbstractJVMTestToolchain<T> {
+abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchain.Parameters> implements JVMTestToolchain<T> {
+    public static final String DEFAULT_VERSION = "1.10.0";
     private static final String GROUP_NAME = "org.junit.platform:junit-platform-launcher";
 
     @Override
-    public TestFramework initializeTestFramework(Test task) {
+    public TestFramework createTestFramework(Test task) {
         return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false, task.getDryRun());
     }
 
     @Override
     public Iterable<Dependency> getCompileOnlyDependencies() {
-        return Collections.emptyList();
+        return ImmutableSet.copyOf(dependenciesFrom(JUnitPlatformTestEngine::getCompileOnlyDependencies));
     }
 
     @Override
     public Iterable<Dependency> getRuntimeOnlyDependencies() {
-        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + getParameters().getPlatformVersion().map(version -> ":" + version).getOrElse("")));
+        ImmutableSet.Builder<Dependency> builder = ImmutableSet.builder();
+        builder.addAll(dependenciesFrom(JUnitPlatformTestEngine::getRuntimeOnlyDependencies));
+        builder.add(getDependencyFactory().create(GROUP_NAME + getParameters().getPlatformVersion().map(version -> ":" + version).getOrElse("")));
+        return builder.build();
+    }
+
+    @Override
+    public Iterable<Dependency> getImplementationDependencies() {
+        return ImmutableSet.copyOf(dependenciesFrom(JUnitPlatformTestEngine::getImplementationDependencies));
+    }
+
+    private Iterable<Dependency> dependenciesFrom(Function<? super JUnitPlatformTestEngine<?>, Iterable<Dependency>> dependencyFunction) {
+        return getParameters().getEngines().get().stream()
+            .map(dependencyFunction)
+            .flatMap(Streams::stream)
+            .collect(Collectors.toSet());
     }
 
     @Inject
     protected abstract DependencyFactory getDependencyFactory();
 
-    @Override
-    public Iterable<Dependency> getImplementationDependencies() {
-        return Collections.emptyList();
-    }
-
     public interface Parameters extends JVMTestToolchain.Parameters {
         Property<String> getPlatformVersion();
+
+        SetProperty<JUnitPlatformTestEngine<?>> getEngines();
+
+        @Inject
+        JUnitPlatformTestEngineFactory getEngineFactory();
     }
 }
