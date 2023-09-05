@@ -102,6 +102,71 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
         api << LauncherApi.values()
     }
 
+    def "Can run tasks from included build subproject"() {
+        given:
+        def runTestClass = withIncludedBuildSubprojectTest(api)
+
+        when:
+        def output1 = runTestClass.apply('TestClass1')
+
+        then:
+        notThrown(Exception)
+
+        and:
+        onlyTestClass1In(output1)
+
+        when:
+        def output2 = runTestClass.apply('TestClass2')
+
+        then:
+        notThrown(Exception)
+
+        then:
+        onlyTestClass2In(output2)
+
+        where:
+        api << LauncherApi.values()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/26206')
+    @Issue('https://github.com/gradle/gradle/issues/24550')
+    def "Can run tasks from included build subproject when configuration cache is enabled"() {
+        given:
+        def runTestClass = withIncludedBuildSubprojectTest(api)
+
+        and:
+        withConfigurationCache()
+
+        when:
+        def output1 = runTestClass.apply('TestClass1')
+
+        then:
+        notThrown(Exception)
+
+        and:
+        onlyTestClass1In(output1)
+
+        when:
+        def output2 = runTestClass.apply('TestClass2')
+
+        then:
+        notThrown(Exception)
+
+        and:
+        onlyTestClass2In(output2)
+
+        and:
+        if (api == LauncherApi.BUILD_LAUNCHER) {
+            // Remove distinction once https://github.com/gradle/gradle/issues/24550 is fixed
+            assert noConfigurationCacheAvailableIn(output2)
+        } else {
+            assert configurationCacheReusedIn(output2)
+        }
+
+        where:
+        api << LauncherApi.values()
+    }
+
     def "Can run tasks from nested included build buildSrc"() {
         given:
         def runTestClass = withIncludedBuildBuildSrcTest(api)
@@ -168,16 +233,25 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
 
     private Function<String, String> withIncludedBuildTest(LauncherApi api) {
         settingsFile << "includeBuild('app')"
-        javaLibraryWithTests(file('app'))
+        javaBuildWithTests(file('app'))
         return { testClassName ->
             runTaskAndTestClassUsing(api, ':app:test', testClassName)
+        }
+    }
+
+    private Function<String, String> withIncludedBuildSubprojectTest(LauncherApi api) {
+        settingsFile << "includeBuild('app')"
+        file('app/settings.gradle') << "include 'lib'"
+        javaLibraryWithTests(file('app/lib'))
+        return { testClassName ->
+            runTaskAndTestClassUsing(api, ':app:lib:test', testClassName)
         }
     }
 
     private Function<String, String> withIncludedBuildBuildSrcTest(LauncherApi api) {
         settingsFile << "includeBuild('app')"
         file('app/settings.gradle') << ''
-        javaLibraryWithTests(file('app/buildSrc'))
+        javaBuildWithTests(file('app/buildSrc'))
         return { testClassName ->
             runTaskAndTestClassUsing(api, ':app:buildSrc:test', testClassName)
         }
@@ -219,8 +293,12 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
         assert !output.contains('TestClass1.testMethod')
     }
 
-    private void javaLibraryWithTests(TestFile projectDir) {
+    private void javaBuildWithTests(TestFile projectDir) {
         projectDir.file('settings.gradle') << ''
+        javaLibraryWithTests(projectDir)
+    }
+
+    private void javaLibraryWithTests(TestFile projectDir) {
         projectDir.file('build.gradle') << '''
             plugins {
                 id 'java-library'
