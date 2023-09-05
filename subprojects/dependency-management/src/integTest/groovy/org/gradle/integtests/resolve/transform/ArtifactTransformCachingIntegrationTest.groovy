@@ -128,7 +128,38 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         then:
         output.count("files: [lib1.jar.txt, lib1.jar]") == 2
 
-        // From the Gradle user home cache
+        // Not cached, since running without build cache
+        output.count("Transformed") == 1
+    }
+
+    def "transforms of file dependencies is reused with build cache"() {
+        given:
+        def projectDir1 = file("project1")
+        def projectDir2 = file("project2")
+        setupProjectInDir(projectDir1)
+        setupProjectInDir(projectDir2)
+
+        when:
+        executer.inDirectory(projectDir1)
+        succeeds ":util:resolve", ":app:resolve", "--build-cache"
+
+        then:
+        output.count("files: [lib1.jar.txt, lib1.jar]") == 2
+        output.count("ids: [lib1.jar.txt (lib1.jar), lib1.jar (lib1.jar)]") == 2
+        output.count("components: [lib1.jar, lib1.jar]") == 2
+
+        output.count("Transformed") == 1
+        isTransformed("lib1.jar", "lib1.jar")
+
+        when:
+        projectDir1.deleteDir()
+        executer.inDirectory(projectDir2)
+        succeeds ":util:resolve", ":app:resolve", "--build-cache"
+
+        then:
+        output.count("files: [lib1.jar.txt, lib1.jar]") == 2
+
+        // Result is taken from build cache
         output.count("Transformed") == 0
     }
 
@@ -136,6 +167,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         projectDir.file("build.gradle") << resolveTask << """
             import org.gradle.api.artifacts.transform.TransformParameters
         """ << declareAttributes() << """
+            @CacheableTransform
             abstract class FileSizer implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NAME_ONLY)
                 @InputArtifact
