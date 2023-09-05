@@ -19,12 +19,14 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.internal.jvm.Jvm
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
+import static org.gradle.util.Matchers.containsText
 
 abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
     abstract BuildInitDsl getBuildDsl()
@@ -52,12 +54,19 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file(settingsFile).exists()
         !targetDir.file(buildFile).exists()
 
-        targetDir.file(incubating ? "build-logic" : "buildSrc").assertHasDescendants(
+
+        def buildLogicFolder = targetDir.file(incubating ? "build-logic" : "buildSrc")
+
+        def commonConventionsPath = "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-common-conventions")}"
+        buildLogicFolder.assertHasDescendants(
             settingsFile,
             buildFile,
-            "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-common-conventions")}",
+            commonConventionsPath,
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-application-conventions")}",
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-library-conventions")}",
+        )
+        buildLogicFolder.file(commonConventionsPath).assertContents(
+            containsText("JavaLanguageVersion.of(" + Jvm.current().javaVersion.majorVersion + ")")
         )
 
         def appFiles = [buildFile,
