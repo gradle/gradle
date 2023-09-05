@@ -96,7 +96,6 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -110,11 +109,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.internal.Try;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
@@ -126,7 +121,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -221,25 +215,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         MutableTransformWorkspaceServices createMutableTransformWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
             return new MutableTransformWorkspaceServices(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
-        }
-
-        ImmutableTransformWorkspaceServices createImmutableTransformWorkspaceServices(
-            BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory,
-            CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
-            FileAccessTimeJournal fileAccessTimeJournal,
-            ExecutionHistoryStore executionHistoryStore,
-            CacheConfigurationsInternal cacheConfigurations
-        ) {
-            return new ImmutableTransformWorkspaceServices(
-                buildTreeScopedCacheBuilderFactory
-                    .createCacheBuilder("transformed")
-                    .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                    .withDisplayName("Artifact transforms cache"),
-                fileAccessTimeJournal,
-                executionHistoryStore,
-                crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
-                cacheConfigurations
-            );
         }
 
         TransformInvocationFactory createTransformInvocationFactory(

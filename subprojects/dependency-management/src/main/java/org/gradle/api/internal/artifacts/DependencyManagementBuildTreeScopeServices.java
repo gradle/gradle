@@ -59,17 +59,25 @@ import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFi
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataFileSource;
+import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.Try;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.PersistentModuleSource;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
@@ -198,6 +206,25 @@ class DependencyManagementBuildTreeScopeServices {
             new InMemoryModuleArtifactCache(timeProvider)
         );
         return new ModuleRepositoryCacheProvider(persistentCaches, inMemoryOnlyCaches);
+    }
+
+    ImmutableTransformWorkspaceServices createImmutableTransformWorkspaceServices(
+        BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory,
+        CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        ExecutionHistoryStore executionHistoryStore,
+        CacheConfigurationsInternal cacheConfigurations
+    ) {
+        return new ImmutableTransformWorkspaceServices(
+            buildTreeScopedCacheBuilderFactory
+                .createCacheBuilder("transformed")
+                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+                .withDisplayName("Artifact transforms cache"),
+            fileAccessTimeJournal,
+            executionHistoryStore,
+            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
+            cacheConfigurations
+        );
     }
 
     private static ModuleRepositoryCaches prepareModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
