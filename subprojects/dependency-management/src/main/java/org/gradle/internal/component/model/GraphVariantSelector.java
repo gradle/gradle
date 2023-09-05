@@ -46,7 +46,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Uses attribute matching to select a list one or more variants for a component in a graph.
+ * Uses attribute matching to select a list of one or more variants for a component in a graph
+ * (in practice, this should be only contain single variant).
  *
  * This class is intentionally named similarly to {@link ArtifactVariantSelector}, as it has a
  * similar purpose.  An instance of {@link SelectionFailureHandler} is injected in the constructor
