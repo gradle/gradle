@@ -65,6 +65,11 @@ java {
 
 ### Kotlin DSL improvements
 
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing experience in supported IDEs compared to the traditional Groovy DSL — auto-completion, smart content assist, quick access to documentation, navigation to source, and context-aware refactoring.
+
+Kotlin DSL has received substantial improvements in recent releases, leading to the announcement that [Kotlin DSL is Now the Default for New Gradle Builds](https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds).
+This release brings another series of improvements.
+
 <a name="kotlin_1.9.10"></a>
 #### The embedded Kotlin has been upgraded to 1.9.10
 
