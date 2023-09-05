@@ -14,7 +14,6 @@ manifest:
 # if all the conditions pass.  You can define multiple automations in a .cm file, but
 # each automation name should be unique within the file.
 
-# Every action only runs if a JVM team member is the author of the change, for testing purposes.
 automations:
 
   # Add a label that indicates how many minutes it will take to review the PR and categorizes it
@@ -36,6 +35,9 @@ automations:
 # The name `calc`, and the nesting is arbitrary.
 calc:
   etr: {{ branch | estimatedReviewTime }}
+
+is:
+  requested: {{ (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) or (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) }}
 
 author:
   using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}

@@ -16,30 +16,30 @@ manifest:
 
 automations:
 
-  # If someone adds a TODO, remind them about it by requesting removal
-  point_out_todos:
+  javadoc_on_new_files:
+    # Triggered for new Java files that lack Javadoc content.
     if:
       - {{ is.requested or not pr.author_is_org_member }}
       - {{ author.using_gitstream or not pr.author_is_org_member }}
-      - {{ source.diff.files | matchDiffLines(regex=r/(TODO)|(todo)/) | some }}
+      - {{ is.java and is.new }}
+      - {{ source.diff.files | matchDiffLines(regex=r/\/*\*([\s\S]*?)\//) | nope }}
     run:
       - action: add-label@v1
         args:
-          label: "⚠️ Includes TODOs"
+          label: "⚠️ Missing Javadoc"
           color: {{ colors.yellow }}
       - action: add-comment@v1
         args:
-          comment: 'There are new TODOs present in this change.  Should any be removed?'
+          comment: |
+            This PR creates new top-level Java classes, but has no Javadoc present. Please document all top-level classes with Javadoc.
 
-# To simplify the automations section, some calculations are placed under unique YAML keys defined here.
-# Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
-# This section could also appear ahead of the automations section.
+is:
+  requested: {{ (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) or (pr.comments | match(attr='content', term='@bot-gitstream check javadoc') | some) }}
+  java: {{ files | extensions | match(term='java') | every }}
+  new: {{ source.diff.files | map(attr='original_file') | match(regex=r/^$/) | some }}
 
 colors:
   yellow: 'ffb300'
-
-is:
-  requested: {{ (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) or (pr.comments | match(attr='content', term='@bot-gitstream check todos') | some) }}
 
 author:
   using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}

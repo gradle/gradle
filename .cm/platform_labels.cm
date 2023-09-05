@@ -14,7 +14,6 @@ manifest:
 # if all the conditions pass.  You can define multiple automations in a .cm file, but
 # each automation name should be unique within the file.
 
-# Every action only runs if a JVM team member is the author of the change, for testing purposes.
 automations:
 
   # Add the a:documentation label to docs-only changes
