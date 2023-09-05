@@ -30,7 +30,6 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -2254,7 +2253,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     Set<TestFile> gradleTreeScopeOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", ".gradle", ".*", CacheLayout.TRANSFORMS.getKey(), "\\w+", "transformed"]
+        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", ".gradle", CacheLayout.TRANSFORMS.getKey(), "\\w+", "transformed"]
         outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 
@@ -2277,7 +2276,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     TestFile getCacheDir() {
-        return temporaryFolder.getTestDirectory().file(".gradle/${GradleVersion.current().version}/${CacheLayout.TRANSFORMS.getKey()}")
+        return temporaryFolder.getTestDirectory().file(".gradle/${CacheLayout.TRANSFORMS.getKey()}")
     }
 
     void writeLastTransformationAccessTimeToJournal(TestFile workspaceDir, long millis) {

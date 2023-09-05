@@ -218,7 +218,7 @@ class DependencyManagementBuildTreeScopeServices {
     ) {
         return new ImmutableTransformWorkspaceServices(
             buildTreeScopedCacheBuilderFactory
-                .createCacheBuilder(CacheLayout.TRANSFORMS.getKey())
+                .createCrossVersionCacheBuilder(CacheLayout.TRANSFORMS.getKey())
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
                 .withDisplayName("Artifact transforms cache"),
             fileAccessTimeJournal,
