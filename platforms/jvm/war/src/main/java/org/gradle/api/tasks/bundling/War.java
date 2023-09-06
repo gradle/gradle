@@ -165,7 +165,6 @@ public abstract class War extends Jar {
      *
      * @return The {@code web.xml} file.
      */
-    @Nullable
     @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
