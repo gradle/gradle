@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
-import org.gradle.internal.component.AmbiguousVariantSelectionException
+import org.gradle.internal.component.AmbiguousArtifactVariantsException
 import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
@@ -31,7 +31,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 
-class AttributeMatchingVariantSelectorSpec extends Specification {
+class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
     def consumerProvidedVariantFinder = Mock(ConsumerProvidedVariantFinder)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
@@ -57,14 +57,14 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         asDescribable() >> Describables.of("mock another resolved variant")
     }
 
-    def factory = Mock(VariantSelector.Factory)
+    def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def failureProcessor = new SelectionFailureHandler(createTestProblems())
 
     def 'direct match on variant means no finder interaction'() {
         given:
         def resolvedArtifactSet = Mock(ResolvedArtifactSet)
         def variants = [variant]
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSetOf(variants), factory)
@@ -79,14 +79,14 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     def 'multiple match on variant results in ambiguous exception'() {
         given:
         def variantSet = variantSetOf([variant, otherVariant])
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSet, factory)
 
         then:
         result instanceof BrokenResolvedArtifactSet
-        result.failure instanceof AmbiguousVariantSelectionException
+        result.failure instanceof AmbiguousArtifactVariantsException
 
         1 * variantSet.getSchema() >> attributesSchema
         1 * variantSet.getOverriddenAttributes() >> ImmutableAttributes.EMPTY
@@ -100,7 +100,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSetOf(variants), factory)
@@ -119,7 +119,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant, otherVariant, yetAnotherVariant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSetOf(variants), factory)
@@ -140,14 +140,14 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         given:
         def variants = [variant, otherVariant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
 
         when:
         def result = selector.select(variantSetOf(variants), factory)
 
         then:
         result instanceof BrokenResolvedArtifactSet
-        result.failure instanceof AmbiguousTransformException
+        result.failure instanceof AmbiguousArtifactTransformException
 
         1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants

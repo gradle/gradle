@@ -20,25 +20,37 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.SelectionFailureHandler;
+import org.gradle.internal.component.model.GraphVariantSelector;
 
-public interface VariantSelector {
+/**
+ * Selects artifacts from a set of resolved variants. This can but does not necessarily require an additional
+ * round of attribute matching to select a variant containing artifacts.
+ *
+ * This class is intentionally named similarly to {@link GraphVariantSelector}, as it has a
+ * similar purpose.  An instance of {@link SelectionFailureHandler} should be provided
+ * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
+ * calls to that instance.
+ */
+public interface ArtifactVariantSelector {
+
     /**
      * Selects matching artifacts from a given set of candidates.
      *
      * On failure, returns a set that forwards the failure to the {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor}.
      */
-    ResolvedArtifactSet select(ResolvedVariantSet candidates, Factory factory);
+    ResolvedArtifactSet select(ResolvedVariantSet candidates, ResolvedArtifactTransformer resolvedArtifactTransformer);
 
     /**
-     * As per {@link #select(ResolvedVariantSet, Factory)} but ignores no matching variants.
+     * As per {@link #select(ResolvedVariantSet, ResolvedArtifactTransformer)} but ignores no matching variants.
      */
-    default ResolvedArtifactSet maybeSelect(ResolvedVariantSet candidates, Factory factory) {
-        return select(candidates, factory);
+    default ResolvedArtifactSet maybeSelect(ResolvedVariantSet candidates, ResolvedArtifactTransformer resolvedArtifactTransformer) {
+        return select(candidates, resolvedArtifactTransformer);
     }
 
     ImmutableAttributes getRequestedAttributes();
 
-    interface Factory {
+    interface ResolvedArtifactTransformer {
         ResolvedArtifactSet asTransformed(
             ResolvedVariant sourceVariant,
             VariantDefinition variantDefinition,

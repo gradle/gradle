@@ -38,6 +38,7 @@ class JavaClassUtilTest extends Specification {
         JavaVersion.VERSION_18  | 62
         JavaVersion.VERSION_19  | 63
         JavaVersion.VERSION_20  | 64
+        JavaVersion.VERSION_21  | 65
     }
 
     def "cannot map higher java version to class file major version"() {

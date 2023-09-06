@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.internal.component;
 
-import org.gradle.internal.component.VariantSelectionException;
-
-public class AmbiguousTransformException extends VariantSelectionException {
-    public AmbiguousTransformException(String message) {
+public class IncompatibleGraphVariantsException extends AbstractGraphVariantSelectionException {
+    public IncompatibleGraphVariantsException(String message) {
         super(message);
     }
 }

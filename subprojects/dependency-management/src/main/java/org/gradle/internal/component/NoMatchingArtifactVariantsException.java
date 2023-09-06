@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,8 @@
 
 package org.gradle.internal.component;
 
-import org.gradle.internal.exceptions.StyledException;
-
-/**
- * Abstract base class for all attribute matching selection failures occurring at any stage of dependency resolution.
- */
-public abstract class AbstractSelectionException extends StyledException {
-    public AbstractSelectionException(String message) {
+public class NoMatchingArtifactVariantsException extends ArtifactVariantSelectionException {
+    public NoMatchingArtifactVariantsException(String message) {
         super(message);
-    }
-
-    public AbstractSelectionException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

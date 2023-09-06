@@ -102,7 +102,7 @@ import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
-import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -385,8 +385,8 @@ class DependencyManagementBuildScopeServices {
         return new SelectionFailureHandler(problems);
     }
 
-    AttributeMatchingConfigurationSelector createAttributeConfigurationSelector(SelectionFailureHandler selectionFailureHandler) {
-        return new AttributeMatchingConfigurationSelector(selectionFailureHandler);
+    GraphVariantSelector createGraphVariantSelector(SelectionFailureHandler selectionFailureHandler) {
+        return new GraphVariantSelector(selectionFailureHandler);
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {

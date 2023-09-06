@@ -28,8 +28,8 @@ import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.component.AmbiguousConfigurationSelectionException
-import org.gradle.internal.component.NoMatchingConfigurationSelectionException
+import org.gradle.internal.component.AmbiguousGraphVariantsException
+import org.gradle.internal.component.NoMatchingGraphVariantsException
 import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
@@ -42,7 +42,7 @@ import spock.lang.Specification
 import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.util.AttributeTestUtil.attributes
 
-class AttributeMatchingConfigurationSelectorTest extends Specification {
+class AttributeMatchingGraphArtifactVariantSelectorTest extends Specification {
     private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
     private ComponentGraphResolveState targetState
@@ -89,7 +89,7 @@ class AttributeMatchingConfigurationSelectorTest extends Specification {
         performSelection()
 
         then:
-        AmbiguousConfigurationSelectionException e = thrown()
+        AmbiguousGraphVariantsException e = thrown()
         failsWith(e, '''The consumer was configured to find attribute 'org.gradle.usage' with value 'java-api'. However we cannot choose between the following variants of org:lib:1.0:
   - api1
   - api2
@@ -112,7 +112,7 @@ All of them match the consumer attributes:
         performSelection()
 
         then:
-        NoMatchingConfigurationSelectionException e = thrown()
+        NoMatchingGraphVariantsException e = thrown()
         failsWith(e, '''No matching variant of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
   - Variant 'api' capability org:lib:1.0:
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-api' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'
@@ -146,7 +146,7 @@ All of them match the consumer attributes:
         performSelection()
 
         then:
-        NoMatchingConfigurationSelectionException e = thrown()
+        NoMatchingGraphVariantsException e = thrown()
         failsWith(e, '''No matching configuration of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
   - None of the consumable configurations have attributes.''')
     }
@@ -219,7 +219,7 @@ All of them match the consumer attributes:
         performSelection()
 
         then:
-        AmbiguousConfigurationSelectionException e = thrown()
+        AmbiguousGraphVariantsException e = thrown()
         failsWith(e, '''The consumer was configured to find attribute 'org.gradle.usage' with value 'java-api'. However we cannot choose between the following variants of org:lib:1.0:
   - api1
   - api2
@@ -236,7 +236,7 @@ All of them match the consumer attributes:
         Caused by: org.gradle.internal.resolve.ModuleVersionResolveException: Could not resolve com.squareup.okio:okio:2.4.1.
              Required by:
                  project :telemetry-definitions > com.squareup.okhttp3:okhttp:4.3.1
-             Caused by: org.gradle.internal.component.AmbiguousConfigurationSelectionException: Cannot choose between the following variants of com.squareup.okio:okio:2.4.3:
+             Caused by: org.gradle.internal.component.AmbiguousGraphVariantsException: Cannot choose between the following variants of com.squareup.okio:okio:2.4.3:
                - jvm-api
                - jvm-runtime
                - metadata-api
@@ -267,7 +267,7 @@ All of them match the consumer attributes:
         2020-02-04T21:53:19.7995006Z Caused by: org.gradle.internal.resolve.ModuleVersionResolveException: Could not resolve project :carbonite:carbonite.
              Required by:
                  project :carbonite:carbonite-compiler
-             Caused by: org.gradle.internal.component.AmbiguousConfigurationSelectionException: Cannot choose between the following variants of project :carbonite:carbonite:
+             Caused by: org.gradle.internal.component.AmbiguousGraphVariantsException: Cannot choose between the following variants of project :carbonite:carbonite:
                - compile
                - default
                - runtime
@@ -353,7 +353,7 @@ All of them match the consumer attributes:
         performSelection()
 
         then:
-        AmbiguousConfigurationSelectionException e = thrown()
+        AmbiguousGraphVariantsException e = thrown()
         failsWith(e, '''The consumer was configured to find attribute 'org.gradle.usage' with value 'java-api'. However we cannot choose between the following variants of org:lib:1.0:
   - first
   - second
@@ -463,8 +463,8 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        AttributeMatchingConfigurationSelector configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(createTestProblems()))
-        selected = configurationSelector.selectVariantsUsingAttributeMatching(
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+        selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,
             targetState,

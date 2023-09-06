@@ -18,11 +18,15 @@ package org.gradle.internal.component.model;
 
 import java.util.List;
 
-public class VariantSelectionResult {
+/**
+ * This class is used to return the results of variant selection when building a dependency graph
+ * using the {@link GraphVariantSelector}.
+ */
+public class GraphVariantSelectionResult {
     private final List<? extends VariantGraphResolveState> variants;
     private final boolean selectedByVariantAwareResolution;
 
-    public VariantSelectionResult(List<? extends VariantGraphResolveState> variants, boolean selectedByVariantAwareResolution) {
+    public GraphVariantSelectionResult(List<? extends VariantGraphResolveState> variants, boolean selectedByVariantAwareResolution) {
         this.variants = variants;
         this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
     }
