@@ -16,9 +16,6 @@
 
 package org.gradle.internal.instrumentation.property.upgrades;
 
-import org.gradle.api.plugins.quality.Checkstyle;
-import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
 
 /**
@@ -27,6 +24,6 @@ import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentati
  * Classes that should be visited should be added to the @VisitForInstrumentation annotation, e.g.
  * @VisitForInstrumentation(value = {Checkstyle.class}).
  */
-@VisitForInstrumentation(value = {Checkstyle.class, JavaCompile.class, AbstractCompile.class})
+@VisitForInstrumentation(value = {})
 public interface PropertyUpgradeInstrumentationRegistry {
 }

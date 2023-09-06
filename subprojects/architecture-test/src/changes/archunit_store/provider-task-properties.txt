@@ -124,8 +124,6 @@ Method <org.gradle.api.tasks.bundling.Zip.getEntryCompression()> does not have r
 Method <org.gradle.api.tasks.bundling.Zip.getMetadataCharset()> does not have raw return type assignable to org.gradle.api.provider.Property in (Zip.java:0)
 Method <org.gradle.api.tasks.bundling.Zip.isZip64()> does not have raw return type assignable to org.gradle.api.provider.Property in (Zip.java:0)
 Method <org.gradle.api.tasks.compile.AbstractCompile.getDestinationDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (AbstractCompile.java:0)
-Method <org.gradle.api.tasks.compile.AbstractCompile.getSourceCompatibility()> does not have raw return type assignable to org.gradle.api.provider.Property in (AbstractCompile.java:0)
-Method <org.gradle.api.tasks.compile.AbstractCompile.getTargetCompatibility()> does not have raw return type assignable to org.gradle.api.provider.Property in (AbstractCompile.java:0)
 Method <org.gradle.api.tasks.compile.GroovyCompile.getGroovyOptions()> does not have raw return type assignable to org.gradle.api.provider.Provider in (GroovyCompile.java:0)
 Method <org.gradle.api.tasks.compile.GroovyCompile.getOptions()> does not have raw return type assignable to org.gradle.api.provider.Provider in (GroovyCompile.java:0)
 Method <org.gradle.api.tasks.compile.JavaCompile.getModularity()> does not have raw return type assignable to org.gradle.api.provider.Provider in (JavaCompile.java:0)

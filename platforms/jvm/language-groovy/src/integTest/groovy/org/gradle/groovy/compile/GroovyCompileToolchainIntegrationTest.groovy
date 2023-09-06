@@ -163,15 +163,15 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
             }
 
             compileGroovy {
-                ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source).toString()" : ''}
-                ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target).toString()" : ''}
+                ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source)" : ''}
+                ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target)" : ''}
                 def projectSourceCompat = project.java.sourceCompatibility
                 def projectTargetCompat = project.java.targetCompatibility
                 doLast {
                     logger.lifecycle("project.sourceCompatibility = \$projectSourceCompat")
                     logger.lifecycle("project.targetCompatibility = \$projectTargetCompat")
-                    logger.lifecycle("task.sourceCompatibility = \${sourceCompatibility.get()}")
-                    logger.lifecycle("task.targetCompatibility = \${targetCompatibility.get()}")
+                    logger.lifecycle("task.sourceCompatibility = \$sourceCompatibility")
+                    logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
                 }
             }
         """

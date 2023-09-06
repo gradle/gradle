@@ -112,5 +112,5 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
     private
     fun resolveJvmTarget(): JavaVersion =
         if (jvmTarget.isPresent) jvmTarget.get()
-        else JavaVersion.toVersion(javaLauncher.get().metadata.languageVersion.asInt())!!
+        else JavaVersion.toVersion(javaLauncher.get().metadata.languageVersion.asInt())
 }

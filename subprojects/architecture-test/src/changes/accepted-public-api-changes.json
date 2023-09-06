@@ -25,6 +25,40 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getSourceCompatibility()",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getTargetCompatibility()",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setSourceCompatibility(java.lang.String)",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setTargetCompatibility(java.lang.String)",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
             "member": "Constructor org.gradle.kotlin.dsl.NamedDomainObjectContainerScope(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.internal.DefaultConstructorMarker)",
             "acceptation": "Private constructor changed to internal. This constructor was synthetically added by Kotlin to allow the private constructor to be called from companion object. It could not be called by Kotlin code.",

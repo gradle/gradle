@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-project")
 }
 
 description = "Plugins for building Scala code with Gradle."
