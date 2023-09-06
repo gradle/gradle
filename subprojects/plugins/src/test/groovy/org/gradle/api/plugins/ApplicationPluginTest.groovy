@@ -45,7 +45,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         def application = project.extensions.getByName('application')
         application instanceof JavaApplication
-        application.applicationName == project.name
+        application.applicationName.get() == project.name
         application.applicationDistribution.is(project.applicationDistribution)
     }
 
@@ -67,7 +67,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         task instanceof CreateStartScripts
-        task.applicationName == project.applicationName
+        task.applicationName.get() == project.applicationName
         task.outputDir == project.file('build/scripts')
         task.defaultJvmOpts == []
     }
@@ -99,7 +99,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def startScriptsTask = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScriptsTask.applicationName == 'SuperApp'
+        startScriptsTask.applicationName.get() == 'SuperApp'
 
         def installTest = project.tasks[DistributionPlugin.TASK_INSTALL_NAME]
         installTest.destinationDir == project.file("build/install/SuperApp")
@@ -116,7 +116,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScripts.executableDir == "custom_bin"
+        startScripts.executableDir.get() == "custom_bin"
     }
 
     void "mainClassName in project delegates to mainClassName in startScripts task"() {
