@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 dependencies {
@@ -30,7 +31,11 @@ dependencies {
         because("We need it for BuildOutputCleanupRegistry")
     }
     implementation(project(":toolchains-jvm"))
-    implementation(project(":internal-instrumentation-api"))
+    /**
+     * TODO: Check why this is needed. If we don't add it compilation fails with:
+     * class file for org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType not found
+     */
+    compileOnly(project(":enterprise-operations"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)

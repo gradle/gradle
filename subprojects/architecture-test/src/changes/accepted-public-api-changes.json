@@ -1,6 +1,38 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.getApplicationName()",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.getExecutableDir()",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.setApplicationName(java.lang.String)",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.setExecutableDir(java.lang.String)",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
             "member": "Class org.gradle.api.plugins.quality.CheckstylePlugin",
             "acceptation": "Removed a static internal-only method",
@@ -22,6 +54,72 @@
             "acceptation": "Removed a static internal-only method",
             "changes": [
                 "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs(org.gradle.jvm.toolchain.JavaLauncher,org.gradle.workers.ForkingWorkerSpec)"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getApplicationName()",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getExecutableDir()",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getExitEnvironmentVar()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getOptsEnvironmentVar()",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.setApplicationName(java.lang.String)",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.setExecutableDir(java.lang.String)",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.setExitEnvironmentVar(java.lang.String)",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.setOptsEnvironmentVar(java.lang.String)",
+            "acceptation": "Property upgraded",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
